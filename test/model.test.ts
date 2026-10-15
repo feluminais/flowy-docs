@@ -33,26 +33,58 @@ test('round trip keeps order, extra fields and multi-line descriptions', () => {
   assert.deepEqual(Object.keys(again.objects), ['customer', 'shop'])
 })
 
-test('an empty file is an empty model', () => {
+test('empty files and empty sections read as empty', () => {
   assert.deepEqual(parseModelFile(''), { objects: {}, connections: [], meta: {} })
   assert.deepEqual(parseModelFile('objects:\nconnections:\n'), { objects: {}, connections: [], meta: {} })
+  assert.deepEqual(parseFlowFile('x', ''), { steps: [] })
+  assert.deepEqual(parseFlowFile('x', '# just a comment\n'), { steps: [] })
+  assert.deepEqual(parseLayoutFile(''), {})
+  assert.deepEqual(parseLayoutFile('root:\n'), { root: {} })
 })
 
-test('duplicate ids are a parse error with a line number', () => {
+test('values that look like numbers, booleans or null stay text through a save', () => {
+  const m = { ...emptyModel(), ...parseModelFile('objects:\n  007: { type: actor, name: 2024, tech: 3.10, legacy: true, owner: null }\n') }
+  assert.deepEqual(m.objects['007'], { type: 'actor', name: '2024', tech: '3.10', legacy: 'true', owner: 'null' })
+  assert.deepEqual(parseModelFile(serializeModelFile(m)).objects, m.objects)
+})
+
+test('duplicate ids are a parse error with a line number, even when quoted differently', () => {
   assert.throws(
     () => parseModelFile('objects:\n  a: { type: actor, name: A }\n  a: { type: actor, name: B }\n'),
     (e: unknown) => e instanceof ParseError && e.file === 'model.yaml' && e.line === 3,
   )
+  assert.throws(() => parseModelFile("objects:\n  1: { type: actor, name: A }\n  '1': { type: actor, name: B }\n"), ParseError)
 })
 
-test('wrong shapes and merge conflicts are parse errors', () => {
+test('special keys stay plain own properties', () => {
+  const m = parseModelFile('objects:\n  __proto__: { type: actor, name: P }\n  constructor: { type: actor, name: C }\n')
+  assert.deepEqual(Object.keys(m.objects), ['__proto__', 'constructor'])
+  assert.equal(Object.getPrototypeOf(m.objects), Object.prototype)
+  assert.equal(getObject({ ...emptyModel(), ...m }, 'constructor')?.name, 'C')
+})
+
+test('wrong shapes are parse errors that name the culprit', () => {
   assert.throws(() => parseModelFile('- just\n- a list\n'), ParseError)
   assert.throws(() => parseModelFile('connections: nope\n'), ParseError)
-  assert.throws(() => parseModelFile('objects:\n  a: not-a-mapping\n'), ParseError)
+  assert.throws(() => parseModelFile('objects:\n  a: not-a-mapping\n'), /object "a" must be a mapping/)
+  assert.throws(() => parseModelFile('connections:\n  - { from: a, to: b }\n  - oops\n'), /connection 2 must be a mapping/)
+})
+
+test('merge conflicts and alias bombs are parse errors', () => {
   assert.throws(
     () => parseModelFile('objects:\n<<<<<<< HEAD\n  a: { type: actor, name: A }\n=======\n  a: { type: actor, name: B }\n>>>>>>> other\n'),
-    ParseError,
+    (e: unknown) => e instanceof ParseError && e.line === 2 && /unresolved merge conflict/.test(e.message),
   )
+  const bomb = ['a: &a [x, x, x, x, x, x, x, x, x, x]', 'b: &b [*a, *a, *a, *a, *a, *a, *a, *a, *a, *a]',
+    'c: &c [*b, *b, *b, *b, *b, *b, *b, *b, *b, *b]', 'd: [*c, *c, *c, *c, *c, *c, *c, *c, *c, *c]'].join('\n')
+  assert.throws(() => parseModelFile(bomb), ParseError)
+})
+
+test('shared objects are written out in full, not as YAML aliases', () => {
+  const point: [number, number] = [1, 2]
+  assert.doesNotMatch(serializeLayout({ root: { a: point, b: point } }), /[&*]/)
+  const step = { from: 'a', to: 'b', text: 'Go' }
+  assert.doesNotMatch(serializeFlow({ name: 'F', view: 'root', steps: [step, step] }), /[&*]/)
 })
 
 test('flow files', () => {
@@ -80,6 +112,7 @@ test('getObject ignores prototype keys, "root" and non-strings', () => {
 
 test('changedFiles lists only files whose content changed', () => {
   const before = shop()
+  assert.deepEqual(changedFiles(before, shop()), [])
   const renamed = { ...before, objects: { ...before.objects, api: { ...before.objects.api, name: 'Orders API' } } }
   assert.deepEqual(changedFiles(before, renamed).map(([path]) => path), ['model.yaml'])
   const flows = { ...before.flows }
