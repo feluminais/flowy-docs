@@ -1,6 +1,7 @@
 {
   "name": "flowy-docs",
   "version": "0.1.0",
+  "private": true,
   "description": "Open-source architecture docs you zoom through: a C4-style model in YAML, step-by-step flows, and an MCP server.",
   "license": "MIT",
   "type": "module",
@@ -17,7 +18,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@types/node": "^24.19.2",
+    "@types/node": "^22.20.5",
     "typescript": "~5.9.3"
   }
 }
