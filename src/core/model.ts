@@ -49,15 +49,16 @@ export class ParseError extends Error {
 
 const isMap = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
-/** An empty YAML value (`objects:` with nothing after it) reads as "" under the failsafe schema. */
-const orEmpty = (v: unknown, empty: unknown): unknown => (v === undefined || v === null || v === '' ? empty : v)
+/** For sections (objects, connections, steps, layout views): an empty value, `~` or `null` means empty. */
+const orEmpty = (v: unknown, empty: unknown): unknown =>
+  v === undefined || v === null || (typeof v === 'string' && /^(|~|null|Null|NULL)$/.test(v)) ? empty : v
 
 /**
  * Parse with YAML's failsafe schema: every value stays the text that was typed, so an id like
  * `007` or a version like `3.10` survives a save instead of turning into a number.
  */
 function readYaml(file: string, text: string): unknown {
-  const conflict = /^(<{7}|={7}|>{7})/m.exec(text)
+  const conflict = /^(?:(?:<{7}|>{7})(?: |\r?$)|={7}\r?$)/m.exec(text)
   if (conflict) throw new ParseError(file, 'unresolved merge conflict', text.slice(0, conflict.index).split('\n').length)
   try {
     return parse(text, { schema: 'failsafe' })
@@ -86,6 +87,7 @@ export function parseModelFile(text: string): Pick<Model, 'objects' | 'connectio
   return { objects: objects as Model['objects'], connections: connections as Connection[], meta }
 }
 
+/** Checks the file's shape only. An empty file gives `{ steps: [] }`; check() reports what's missing. */
 export function parseFlowFile(id: string, text: string): Flow {
   const file = `flows/${id}.yaml`
   const doc = orEmpty(readYaml(file, text), {})
@@ -118,8 +120,11 @@ export function parseLayoutFile(text: string): Layout {
   }))
 }
 
+// Written with the failsafe schema too, so a save gives back hand-written values exactly as typed
+// (`legacy: true` stays unquoted). Model and flow values are always strings: they come from parsed
+// text or from string-only MCP fields; a stray number throws instead of being silently retyped.
 // Without aliasDuplicateObjects: false, an object used twice would be written as a YAML &anchor/*alias.
-const dump = (value: unknown) => stringify(value, { lineWidth: 0, aliasDuplicateObjects: false })
+const dump = (value: unknown) => stringify(value, { schema: 'failsafe', lineWidth: 0, aliasDuplicateObjects: false })
 
 export const serializeModelFile = (m: Model) => dump({ ...m.meta, objects: m.objects, connections: m.connections })
 export const serializeFlow = (flow: Flow) => dump(flow)

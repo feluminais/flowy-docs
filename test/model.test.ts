@@ -40,6 +40,18 @@ test('empty files and empty sections read as empty', () => {
   assert.deepEqual(parseFlowFile('x', '# just a comment\n'), { steps: [] })
   assert.deepEqual(parseLayoutFile(''), {})
   assert.deepEqual(parseLayoutFile('root:\n'), { root: {} })
+  assert.deepEqual(parseModelFile('objects: ~\nconnections: null\n'), { objects: {}, connections: [], meta: {} })
+  assert.deepEqual(parseLayoutFile('root: ~\n'), { root: {} })
+})
+
+test('a save gives back hand-written values exactly as typed', () => {
+  const text = 'title: Shop\nobjects:\n  api:\n    type: app\n    name: API\n    legacy: true\n    order: 5\n    owner: null\n    tech: 3.10\nconnections: []\n'
+  assert.equal(serializeModelFile({ ...emptyModel(), ...parseModelFile(text) }), text)
+})
+
+test('only real git conflict markers count as merge conflicts', () => {
+  assert.throws(() => parseModelFile('objects: {}\r\n=======\r\n'), /unresolved merge conflict/)
+  assert.deepEqual(Object.keys(parseModelFile('==========: x\n<<<<<<<x: 1\n').meta), ['==========', '<<<<<<<x'])
 })
 
 test('values that look like numbers, booleans or null stay text through a save', () => {
