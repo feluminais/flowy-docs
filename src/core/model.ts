@@ -41,58 +41,91 @@ export class ParseError extends Error {
   line: number | undefined
   constructor(file: string, message: string, line?: number) {
     super(`${file}${line === undefined ? '' : `:${line}`}: ${message}`)
+    this.name = 'ParseError'
     this.file = file
     this.line = line
   }
 }
 
 const isMap = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
-const isPoint = (v: unknown) => Array.isArray(v) && v.length === 2 && v.every(n => typeof n === 'number' && Number.isFinite(n))
 
+/** An empty YAML value (`objects:` with nothing after it) reads as "" under the failsafe schema. */
+const orEmpty = (v: unknown, empty: unknown): unknown => (v === undefined || v === null || v === '' ? empty : v)
+
+/**
+ * Parse with YAML's failsafe schema: every value stays the text that was typed, so an id like
+ * `007` or a version like `3.10` survives a save instead of turning into a number.
+ */
 function readYaml(file: string, text: string): unknown {
+  const conflict = /^(<{7}|={7}|>{7})/m.exec(text)
+  if (conflict) throw new ParseError(file, 'unresolved merge conflict', text.slice(0, conflict.index).split('\n').length)
   try {
-    return parse(text)
+    return parse(text, { schema: 'failsafe' })
   } catch (e) {
-    if (e instanceof YAMLParseError) throw new ParseError(file, e.message.split('\n')[0].replace(/:$/, ''), e.linePos?.[0].line)
-    throw e
+    // Any failure (bad syntax, duplicate keys, alias bombs) means the file can't be trusted.
+    const line = e instanceof YAMLParseError ? e.linePos?.[0].line : undefined
+    const message = (e instanceof Error ? e.message : String(e)).split('\n')[0].replace(/ at line \d+, column \d+:?$/, '')
+    throw new ParseError(file, message, line)
   }
 }
 
+/** Checks the file's shape only. Field values are checked by check() in check.ts. */
 export function parseModelFile(text: string): Pick<Model, 'objects' | 'connections' | 'meta'> {
   const file = 'model.yaml'
-  const doc = readYaml(file, text) ?? {}
+  const doc = orEmpty(readYaml(file, text), {})
   if (!isMap(doc)) throw new ParseError(file, 'expected a mapping with "objects" and "connections"')
   const { objects: rawObjects, connections: rawConnections, ...meta } = doc
-  const objects = rawObjects ?? {}
-  const connections = rawConnections ?? []
-  if (!isMap(objects) || !Object.values(objects).every(isMap)) throw new ParseError(file, '"objects" must map ids to mappings')
-  if (!Array.isArray(connections) || !connections.every(isMap)) throw new ParseError(file, '"connections" must be a list of mappings')
+  const objects = orEmpty(rawObjects, {})
+  const connections = orEmpty(rawConnections, [])
+  if (!isMap(objects)) throw new ParseError(file, '"objects" must map ids to mappings')
+  const badObject = Object.entries(objects).find(([, o]) => !isMap(o))
+  if (badObject) throw new ParseError(file, `object "${badObject[0]}" must be a mapping`)
+  if (!Array.isArray(connections)) throw new ParseError(file, '"connections" must be a list')
+  const badConnection = connections.findIndex(c => !isMap(c))
+  if (badConnection >= 0) throw new ParseError(file, `connection ${badConnection + 1} must be a mapping`)
   return { objects: objects as Model['objects'], connections: connections as Connection[], meta }
 }
 
 export function parseFlowFile(id: string, text: string): Flow {
   const file = `flows/${id}.yaml`
-  const doc = readYaml(file, text)
+  const doc = orEmpty(readYaml(file, text), {})
   if (!isMap(doc)) throw new ParseError(file, 'expected a mapping with "name", "view" and "steps"')
-  const steps = doc.steps ?? []
-  if (!Array.isArray(steps) || !steps.every(isMap)) throw new ParseError(file, '"steps" must be a list of mappings')
+  const steps = orEmpty(doc.steps, [])
+  if (!Array.isArray(steps)) throw new ParseError(file, '"steps" must be a list')
+  const badStep = steps.findIndex(s => !isMap(s))
+  if (badStep >= 0) throw new ParseError(file, `step ${badStep + 1} must be a mapping`)
   return { ...doc, steps } as Flow
 }
 
-export function parseLayoutFile(text: string): Layout {
-  const doc = readYaml('layout.yaml', text) ?? {}
-  if (!isMap(doc) || !Object.values(doc).every(v => isMap(v) && Object.values(v).every(isPoint)))
-    throw new ParseError('layout.yaml', 'expected view → object → [x, y]')
-  return doc as Layout
+function toPoint(v: unknown): [number, number] | undefined {
+  if (!Array.isArray(v) || v.length !== 2) return undefined
+  const [x, y] = v.map(n => (typeof n === 'string' && n.trim() !== '' ? Number(n) : NaN))
+  return Number.isFinite(x) && Number.isFinite(y) ? [x, y] : undefined
 }
 
-const dump = (value: unknown) => stringify(value, { lineWidth: 0 })
+export function parseLayoutFile(text: string): Layout {
+  const file = 'layout.yaml'
+  const doc = orEmpty(readYaml(file, text), {})
+  if (!isMap(doc)) throw new ParseError(file, 'expected view → object → [x, y]')
+  return Object.fromEntries(Object.entries(doc).map(([view, rawBoxes]) => {
+    const boxes = orEmpty(rawBoxes, {})
+    if (!isMap(boxes)) throw new ParseError(file, `view "${view}" must map object ids to [x, y]`)
+    return [view, Object.fromEntries(Object.entries(boxes).map(([id, p]) => {
+      const point = toPoint(p)
+      if (!point) throw new ParseError(file, `${view} → ${id} must be [x, y]`)
+      return [id, point]
+    }))]
+  }))
+}
 
-export const serializeModelFile = (m: Model) => dump({ objects: m.objects, connections: m.connections, ...m.meta })
+// Without aliasDuplicateObjects: false, an object used twice would be written as a YAML &anchor/*alias.
+const dump = (value: unknown) => stringify(value, { lineWidth: 0, aliasDuplicateObjects: false })
+
+export const serializeModelFile = (m: Model) => dump({ ...m.meta, objects: m.objects, connections: m.connections })
 export const serializeFlow = (flow: Flow) => dump(flow)
 
 export function serializeLayout(layout: Layout): string {
-  const doc = new Document(layout)
+  const doc = new Document(layout, { aliasDuplicateObjects: false })
   visit(doc, { Seq: (_, node) => { node.flow = true } })
   return doc.toString({ lineWidth: 0, flowCollectionPadding: false })
 }
