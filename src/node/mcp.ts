@@ -4,6 +4,7 @@ import { check } from '../core/check.ts'
 import { changedFiles, getObject, OBJECT_TYPES, parseFile, ROOT } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
 import { connect, deleteFlow, deleteObject, disconnect, putFlow, putObject, refuseNewProblems } from '../core/ops.ts'
+import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
 import { computeView } from '../core/views.ts'
 import { loadDir, missingPaths, saveFile, VersionConflict } from './files.ts'
 
@@ -87,6 +88,18 @@ export function createMcpServer(dir: string): McpServer {
     const v = computeView(m, view)
     const box = (boxId: string) => ({ id: boxId, name: m.objects[boxId].name, type: m.objects[boxId].type })
     return { view, members: v.members.map(box), outsiders: v.outsiders.map(box), edges: v.edges }
+  }))
+
+  server.registerTool('get_mermaid', {
+    description: 'One view as a Mermaid flowchart, or one flow as a Mermaid sequence diagram, for a README or PR (GitHub draws Mermaid). Give view or flow, not both.',
+    inputSchema: {
+      view: z.string().max(64).optional().describe('"root" for the top level, or the id of an object with children'),
+      flow: z.string().max(64).optional().describe('A flow id'),
+    },
+    annotations: readOnly,
+  }, ({ view, flow }) => read(m => {
+    if ((view === undefined) === (flow === undefined)) throw new Error('Give either view or flow.')
+    return flow === undefined ? viewToMermaid(m, view!) : flowToMermaid(m, flow)
   }))
 
   server.registerTool('put_object', {

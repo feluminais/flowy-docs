@@ -99,6 +99,16 @@ Export again after the model changes. Only what the export wrote is replaced, so
 that holds the model. A file that can't be read stops the export. Problems don't: the page lists
 them.
 
+For a README or a pull request, the Mermaid button copies the view on screen (or the flow
+playing) as a Mermaid diagram, fenced and ready to paste. GitHub and GitLab draw it. The same
+from the command line, or for Claude through MCP (`get_mermaid`):
+
+```bash
+npx flowy-docs mermaid --view shop
+```
+
+`--flow <id>` prints a flow as a sequence diagram instead.
+
 The address follows what's on screen. `#shop` is the inside of Shop, and `#shop/checkout` plays
 the flow `checkout` there. Copy it to send someone straight to a level or a flow. The local canvas
 does this too.
@@ -182,5 +192,7 @@ Sharing:
 - [ ] Double-click Shop: the address ends in `#shop`. Play "Customer checks out": it ends in
       `#shop/checkout`. Press the browser's Back: the flow stops. Back again: the overview.
 - [ ] Open http://localhost:4173/flowy/#api in a new tab: it opens inside API.
+- [ ] In Shop, press Mermaid and paste into a GitHub comment preview: it draws Shop, with Customer
+      and Mail service dashed. Play "Customer checks out" and press Mermaid: a sequence diagram.
 - [ ] Export again: it replaces example-site. Add the `  shop: {}` line to `example/model.yaml`
       and export: it names model.yaml and the line, and example-site stays as it was. Undo the line.
