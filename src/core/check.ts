@@ -32,7 +32,7 @@ const missing = (v: unknown) => v === undefined || v === ''
  * The MCP server refuses writes that add problems, so a message must not change when an
  * unrelated part of the model changes: no connection positions, names or descriptions in
  * messages (the only extras are a duplicate's label and a misplaced object's parent type).
- * Step numbers are fine; they only shift inside the flow being edited.
+ * Step numbers are fine: newProblems leaves them out.
  */
 export function check(model: Model): Problem[] {
   const problems: Problem[] = []
@@ -96,7 +96,8 @@ export function check(model: Model): Problem[] {
   return problems
 }
 
-const key = (p: Problem) => JSON.stringify([p.file, p.id ?? '', p.message])
+// A step's number is left out: deleting or moving a step renumbers the problems after it, and they're still the same problems.
+const key = (p: Problem) => JSON.stringify([p.file, p.id ?? '', p.step === undefined ? p.message : p.message.replace(/^step \d+: /, '')])
 
 /** Problems in `after` that weren't already in `before`. Repeats count: a second copy of an old problem is new. */
 export function newProblems(before: Problem[], after: Problem[]): Problem[] {
