@@ -1,0 +1,60 @@
+objects:
+  customer:
+    type: actor
+    name: Customer
+    description: Someone buying things on the shop's website.
+  shop:
+    type: system
+    name: Shop
+    description: |
+      Sells things online.
+
+      A web app in front of an API. Orders are kept in Postgres, and receipts go out
+      through the **Mail service**.
+  web:
+    type: app
+    in: shop
+    name: Web app
+    tech: React
+    description: |
+      The storefront customers browse.
+
+      Talks to the API over REST. Keeps nothing but the cart.
+  api:
+    type: app
+    in: shop
+    name: API
+    tech: Node
+    description: |
+      Handles orders and sign-in.
+
+      - `POST /orders` places an order
+      - `POST /login` signs a customer in
+  db:
+    type: store
+    in: shop
+    name: Orders DB
+    tech: Postgres
+  auth:
+    type: component
+    in: api
+    name: Auth
+    description: Checks passwords and starts sessions.
+  orders:
+    type: component
+    in: api
+    name: Orders
+    description: Checks and saves orders, then asks for a receipt.
+  mail:
+    type: system
+    name: Mail service
+    description: |
+      Sends our email. Run by an outside provider.
+
+      [Provider status](https://example.com/status)
+connections:
+  - { from: customer, to: web, label: browses }
+  - { from: web, to: api, label: REST }
+  - { from: orders, to: db, label: reads/writes }
+  - { from: auth, to: db, label: checks users }
+  - { from: orders, to: mail, label: sends receipts }
