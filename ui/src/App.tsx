@@ -40,11 +40,11 @@ function pick(rec: Recording, id: string): Recording {
 }
 
 export function App() {
-  const { loaded, banner, edit, live } = useModel()
+  const { loaded, banner, edit, undo, live } = useModel()
   return (
     <div className="app">
       {banner && <div className="banner" role="alert">{banner}</div>}
-      {loaded && <Reader {...loaded} edit={edit} live={live} readOnly={!live || banner !== undefined} />}
+      {loaded && <Reader {...loaded} edit={edit} undo={undo} live={live} readOnly={!live || banner !== undefined} />}
     </div>
   )
 }
@@ -69,7 +69,7 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
   )
 }
 
-function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { edit: Edit; live: boolean; readOnly: boolean }) {
+function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loaded & { edit: Edit; undo: () => Promise<string | undefined>; live: boolean; readOnly: boolean }) {
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
   const [viewId, setViewId] = useState(() => readHash(location.hash).view)
   const [side, setSide] = useState<Side>()
@@ -125,6 +125,11 @@ function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { 
     return message === undefined
   }
   const close = () => setSide(undefined)
+  const takeBack = async () => {
+    setNotice(undefined)
+    setNotice((await undo()) ?? 'Undone.')
+    setMoved(new Map()) // a box dragged back shows where the file says
+  }
   // Fenced, so it pastes straight into a README or a PR, where GitHub draws it.
   const copyMermaid = async () => {
     const diagram = flow && playing ? flowToMermaid(model, playing.flow) : viewToMermaid(model, view)
@@ -230,6 +235,7 @@ function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { 
       else if ((e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey)) || e.key === '/') setSearching(true)
       else if (e.key.toLowerCase() === 'e' && !e.ctrlKey && !e.metaKey && !e.altKey && !readOnly) toggleEdit()
       else if (editing && e.key === 'Delete') remove()
+      else if (editing && (e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') void takeBack()
       else if (e.key === 'Backspace' && view !== ROOT && !recording) go(parentOf(model, view))
       else return
       e.preventDefault()
@@ -259,6 +265,7 @@ function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { 
         )}
         {editing && <button onClick={() => setSide({ kind: 'flow', id: '', name: '' })}>New flow</button>}
         {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
+        {editing && <button title="Undo the last change (Ctrl+Z)" onClick={() => void takeBack()}>Undo</button>}
         <span className="grow" />
         <button title="Find a box (Ctrl+K or /)" onClick={() => setSearching(true)}>Search</button>
         <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={() => void copyMermaid()}>Mermaid</button>
