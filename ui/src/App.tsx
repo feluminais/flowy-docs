@@ -3,7 +3,7 @@ import { Controls, ReactFlow } from '@xyflow/react'
 import { getObject, ROOT } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
 import { chain, hasChildren, parentOf } from '../../src/core/views.ts'
-import { Box } from './Box.tsx'
+import { Box, Description } from './Box.tsx'
 import { toGraph } from './graph.ts'
 import { useModel } from './useModel.ts'
 
@@ -23,15 +23,18 @@ export function App() {
 
 function Reader({ model }: { model: Model }) {
   const [viewId, setViewId] = useState(ROOT)
+  const [selected, setSelected] = useState<string>()
 
   // After a live reload the view's object may be gone or empty: show the nearest view that still exists.
   const view = chain(model, viewId).find(v => v === ROOT || hasChildren(model, v)) ?? ROOT
   const { nodes, edges } = toGraph(model, view)
+  const object = selected === undefined ? undefined : getObject(model, selected)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return
-      if (e.key === 'Backspace' && view !== ROOT) setViewId(parentOf(model, view))
+      if (e.key === 'Escape') setSelected(undefined)
+      else if (e.key === 'Backspace' && view !== ROOT) setViewId(parentOf(model, view))
       else return
       e.preventDefault()
     }
@@ -51,7 +54,7 @@ function Reader({ model }: { model: Model }) {
       <main className="canvas">
         <ReactFlow
           key={view} // a fresh canvas per view, so each one opens fitted to the screen
-          nodes={nodes}
+          nodes={nodes.map(n => (n.id === selected ? { ...n, selected: true } : n))} // nodes are controlled, so selection shows only through them
           edges={edges}
           nodeTypes={nodeTypes}
           fitView
@@ -61,12 +64,22 @@ function Reader({ model }: { model: Model }) {
           nodesConnectable={false}
           zoomOnDoubleClick={false}
           deleteKeyCode={null}
+          onNodeClick={(_, node) => setSelected(node.id)}
           onNodeDoubleClick={(_, node) => hasChildren(model, node.id) && setViewId(node.id)}
+          onPaneClick={() => setSelected(undefined)}
         >
           <Controls showInteractive={false} />
         </ReactFlow>
         {nodes.length === 0 && (
           <p className="empty">Nothing here yet. Ask Claude to map this repo into Flowy, or add YAML to the flowy/ folder.</p>
+        )}
+        {object && selected && (
+          <aside className="panel">
+            <button className="close" aria-label="Close" onClick={() => setSelected(undefined)}>×</button>
+            <h2>{object.name || selected}</h2>
+            <p className="muted">{object.type}{object.tech ? ` · ${object.tech}` : ''}</p>
+            {object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}
+          </aside>
         )}
       </main>
     </>
