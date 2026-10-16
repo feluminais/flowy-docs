@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn, spawnSync } from 'node:child_process'
 import { once } from 'node:events'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { State } from '../src/core/state.ts'
@@ -23,9 +23,18 @@ test('flowy serves the given folder and prints its URL', { timeout: 10_000 }, as
 })
 
 test('flowy shows the usage line for unknown commands, flags and ports', () => {
-  for (const args of [['serve'], ['--port', 'abc'], ['--port', '70000'], ['--bogus']]) {
+  for (const args of [['serve'], ['--port', 'abc'], ['--port', '70000'], ['--bogus'], ['export', 'more']]) {
     const run = spawnSync(process.execPath, ['src/cli.ts', ...args], { encoding: 'utf8' })
     assert.equal(run.status, 1, args.join(' '))
     assert.match(run.stderr, /^Usage: flowy/, args.join(' '))
   }
+})
+
+test('flowy export names the file it cannot read, and exits 1', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'flowy-cli-'))
+  t.after(() => rm(dir, { recursive: true, force: true }))
+  await writeFile(join(dir, 'model.yaml'), 'objects: [\n')
+  const run = spawnSync(process.execPath, ['src/cli.ts', 'export', '--dir', dir, '--out', join(dir, 'site')], { encoding: 'utf8' })
+  assert.equal(run.status, 1, run.stderr)
+  assert.match(run.stderr, /^model\.yaml(:\d+)?: /)
 })
