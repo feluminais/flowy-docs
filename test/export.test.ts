@@ -129,6 +129,8 @@ test('files added next to an export stay, and a folder with only hidden files co
 test('a missing or empty flowy folder is refused, so a wrong --dir cannot replace an export', async t => {
   const { root, ui, out } = await setup(t)
   await assert.rejects(exportSite({ dir: join(root, 'nope'), ui, out }), /has no model\.yaml/)
+  await mkdir(join(root, 'empty'))
+  await assert.rejects(exportSite({ dir: join(root, 'empty'), ui, out }), /has no model\.yaml/)
   assert.equal(await exists(out), false)
 })
 
