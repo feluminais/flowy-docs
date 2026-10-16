@@ -64,6 +64,10 @@ Every save goes through the same checks as Claude's edits: a change that would a
 refused, and nothing is written. If a file changed on disk in the meantime, the save is dropped
 and the page reloads. Git keeps the history.
 
+Ctrl+Z, or Undo, takes back your last change on this page, then the one before. It goes back as
+far as the page has been open. If the file changed since (Claude, your editor, another tab), undo
+leaves it alone and says so.
+
 ## Let Claude build it
 
 From the root of the repo you want to document:
@@ -177,6 +181,9 @@ Editing (press E):
 - [ ] In Shop, press Add, pick store, name it Cache and press Enter: the box appears with its form.
       Set Tech to Redis and press Tab: the box reads "store · Redis". Clear the name and press
       Enter: a notice says it was refused, and the name comes back.
+- [ ] Rename Shop to Store and press Tab, then Ctrl+Z: it's Shop again, and "Undone." shows.
+      Rename it again, change the name in `example/model.yaml` by hand, then Ctrl+Z: the notice
+      says it changed since, and your hand edit stays.
 - [ ] Select API and press Delete: the notice says it still contains auth and orders. Select
       Cache and press Delete: it goes.
 - [ ] Select API, type `src/cli.ts` in Code and press Tab: `example/model.yaml` gets a
