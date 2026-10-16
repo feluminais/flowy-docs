@@ -71,6 +71,28 @@ after `mcp` to keep the files somewhere other than `./flowy`.
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
 notes in an object's `description` instead.
 
+## Share it
+
+People without the repo can read the model too:
+
+```bash
+npx flowy-docs export
+```
+
+It writes a read-only copy of the canvas to `./flowy-site`, with the model inside its `index.html`.
+Put the folder on any static host, such as GitHub Pages, and send the link. Browsers won't run it
+straight from disk. To show it in Notion or Confluence, embed the link. `--dir` picks the model
+folder and `--out` the export folder.
+
+Export again after the model changes. Only what the export wrote is replaced, so a `.git` or a
+`CNAME` you keep next to it stays. A folder with other files in it is left alone, and so is one
+that holds the model. A file that can't be read stops the export. Problems don't: the page lists
+them.
+
+The address follows what's on screen. `#shop` is the inside of Shop, and `#shop/checkout` plays
+the flow `checkout` there. Copy it to send someone straight to a level or a flow. The local canvas
+does this too.
+
 ## Develop
 
 ```bash
@@ -134,3 +156,14 @@ Editing (press E):
 
 `git checkout example` puts the tracked files back. Delete `example/layout.yaml` and the new
 flow's file by hand.
+
+Sharing:
+
+- [ ] Run `node src/cli.ts export --dir example --out example-site`, then
+      `npx vite preview ui --outDir ../example-site --base /flowy/` and open
+      http://localhost:4173/flowy/. The overview shows, with no Edit button, and E does nothing.
+- [ ] Double-click Shop: the address ends in `#shop`. Play "Customer checks out": it ends in
+      `#shop/checkout`. Press the browser's Back: the flow stops. Back again: the overview.
+- [ ] Open http://localhost:4173/flowy/#api in a new tab: it opens inside API.
+- [ ] Export again: it replaces example-site. Add the `  shop: {}` line to `example/model.yaml`
+      and export: it names model.yaml and the line, and example-site stays as it was. Undo the line.
