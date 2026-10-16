@@ -8,18 +8,18 @@ export class OpError extends Error {
   name = 'OpError'
 }
 
-export type ObjectInput = { id: string; type?: ObjectType; name?: string; in?: string; tech?: string; description?: string }
+export type ObjectInput = { id: string; type?: ObjectType; name?: string; in?: string; tech?: string; description?: string; code?: string[] }
 export type ConnectionInput = { from: string; to: string; label?: string }
 export type FlowInput = { id: string; name: string; view: string; steps: Step[] }
 
-const FIELDS = ['type', 'name', 'in', 'tech', 'description'] as const
+const FIELDS = ['type', 'name', 'in', 'tech', 'description', 'code'] as const
 const CLEARABLE = ['in', 'tech', 'description'] as const
 const ID_RULE = 'use lowercase letters, digits and dashes, not starting with a dash ("root" is reserved)'
 
 /**
- * Create or update an object. Omitted fields stay as they are; "" removes in, tech or description.
- * Only the five known fields are copied from the input, so a new object's keys always come out
- * in the order type, name, in, tech, description, and stray input keys never land in the model.
+ * Create or update an object. Omitted fields stay as they are; "" removes in, tech or description, and [] removes code.
+ * Only the known fields are copied from the input, so a new object's keys always come out
+ * in the order type, name, in, tech, description, code, and stray input keys never land in the model.
  */
 export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid id: ${ID_RULE}`)
@@ -28,6 +28,7 @@ export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   const next: Record<string, unknown> = { ...prev }
   for (const k of FIELDS) if (fields[k] !== undefined) next[k] = fields[k]
   for (const k of CLEARABLE) if (next[k] === '') delete next[k]
+  if (Array.isArray(next.code) && next.code.length === 0) delete next.code
   return { ...model, objects: { ...model.objects, [id]: next as FlowyObject } }
 }
 
@@ -122,8 +123,11 @@ export function placeBoxes(model: Model, view: string, boxes: Record<string, [nu
   return { ...model, layout }
 }
 
-/** Refuse an edit that adds problems, naming them. Problems that were already there never block it. */
-export function refuseNewProblems(before: Model, after: Model): void {
-  const added = newProblems(check(before), check(after))
+/**
+ * Refuse an edit that adds problems, naming them. Problems that were already there never block it.
+ * `missing` holds the code paths that don't exist, in either model (see check).
+ */
+export function refuseNewProblems(before: Model, after: Model, missing: ReadonlySet<string> = new Set()): void {
+  const added = newProblems(check(before, missing), check(after, missing))
   if (added.length) throw new OpError(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}`)
 }
