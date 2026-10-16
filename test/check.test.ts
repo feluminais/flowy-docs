@@ -123,6 +123,21 @@ test('newProblems compares file, id and message, and counts repeats', () => {
   assert.equal(newProblems([a], [{ ...a, file: 'flows/x.yaml' }]).length, 1)
   assert.equal(newProblems([a], [{ ...a, id: 'y' }]).length, 1)
   assert.deepEqual(newProblems([a], [a, a]), [a])
+  assert.deepEqual(newProblems([a, a], [a, a]), [])
+})
+
+test('blank values read as missing', () => {
+  const m = shop()
+  Object.assign(m.objects, raw({ blank: { type: '', name: 'B' }, homeless: { type: 'app', name: 'H', in: '' } }))
+  m.connections.push({ from: '', to: 'web' })
+  m.flows.draft = { name: 'Draft', view: '', steps: [{ from: 'web', to: '', text: 'x' }] }
+  assert.deepEqual(check(m).map(p => `${p.file} ${p.message}`), [
+    'model.yaml blank: type is missing',
+    'model.yaml homeless: app must be inside system',
+    'model.yaml connection ? → web: "from" is missing',
+    'flows/draft.yaml view is missing',
+    'flows/draft.yaml step 1: "to" is missing',
+  ])
 })
 
 test('newProblems ignores problems that were already there', () => {
