@@ -58,7 +58,9 @@ const orEmpty = (v: unknown, empty: unknown): unknown =>
  * `007` or a version like `3.10` survives a save instead of turning into a number.
  */
 function readYaml(file: string, text: string): unknown {
-  const conflict = /^(?:(?:<{7}|>{7})(?: |\r?$)|={7}\r?$)/m.exec(text)
+  // Line starts are found by \n only: JS's ^ and $ with the m flag also break at U+2028/U+2029,
+  // which YAML keeps inside plain values, so a saved value could look like a conflict marker.
+  const conflict = /(?<![^\n])(?:(?:<{7}|>{7})(?= |\r?\n|\r?$)|={7}(?=\r?\n|\r?$))/.exec(text)
   if (conflict) throw new ParseError(file, 'unresolved merge conflict', text.slice(0, conflict.index).split('\n').length)
   try {
     return parse(text, { schema: 'failsafe' })

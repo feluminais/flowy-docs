@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
@@ -66,6 +66,51 @@ test('calls sent at the same time run in arrival order', async t => {
   ])
   assert.equal(system.error, false, system.text)
   assert.equal(app.error, false, app.text)
+})
+
+test('a read sent together with a write sees the write', async t => {
+  const { client, call } = await setup()
+  t.after(() => client.close())
+  const [, model] = await Promise.all([call('put_object', { id: 'shop', type: 'system', name: 'Shop' }), call('get_model')])
+  assert.deepEqual(Object.keys(JSON.parse(model.text).objects), ['shop'])
+})
+
+test('old problems never block an unrelated write, and only the changed file is written', async t => {
+  const { dir, client, call } = await setup()
+  t.after(() => client.close())
+  const model = 'objects:\n  customer: { type: actor, name: Customer }\n  shop: { type: system, name: Shop }\nconnections:\n  - { from: shop, to: ghost }\n'
+  await writeFile(join(dir, 'model.yaml'), model)
+  await writeFile(join(dir, 'layout.yaml'), 'root:\n  shop: [0, 0]\n')
+  const saved = await call('put_flow', { id: 'tour', name: 'Tour', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'Visits' }] })
+  assert.equal(saved.error, false, saved.text)
+  assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), model)
+  assert.equal(await readFile(join(dir, 'layout.yaml'), 'utf8'), 'root:\n  shop: [0, 0]\n')
+  assert.equal((await call('put_object', { id: 'mail', type: 'system', name: 'Mail' })).text, 'Created mail.')
+  assert.equal((await call('put_object', { id: 'mail', tech: 'SMTP' })).text, 'Updated mail.')
+})
+
+test('values with line separators save and load again', async t => {
+  const { client, call } = await setup()
+  t.after(() => client.close())
+  const description = 'a ======= <<<<<<< x'
+  assert.equal((await call('put_object', { id: 'o', type: 'actor', name: 'N', description })).error, false)
+  const model = await call('get_model')
+  assert.equal(model.error, false, model.text)
+  assert.equal(JSON.parse(model.text).objects.o.description, description)
+})
+
+test('unknown views, overlong ids and unreadable files come back as errors', async t => {
+  const { dir, client, call } = await setup()
+  t.after(() => client.close())
+  assert.match((await call('get_view', { view: 'nope' })).text, /unknown view "nope"/)
+  assert.equal((await call('get_view', { view: '__proto__' })).error, true)
+  assert.equal((await call('get_view', { view: 'root' })).error, false)
+  const long = await call('delete_flow', { id: 'f'.repeat(300) })
+  assert.equal(long.error, true)
+  assert.doesNotMatch(long.text, /ENOENT/)
+  await mkdir(join(dir, 'flows'))
+  await writeFile(join(dir, 'flows/x.yaml'), 'steps: nope\n')
+  assert.match((await call('get_model')).text, /^flows\/x\.yaml: /)
 })
 
 test('a broken file is reported, not overwritten', async t => {

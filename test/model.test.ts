@@ -51,7 +51,13 @@ test('a save gives back hand-written values exactly as typed', () => {
 
 test('only real git conflict markers count as merge conflicts', () => {
   assert.throws(() => parseModelFile('objects: {}\r\n=======\r\n'), /unresolved merge conflict/)
+  assert.throws(() => parseModelFile('objects: {}\n>>>>>>> other'), /unresolved merge conflict/)
   assert.deepEqual(Object.keys(parseModelFile('==========: x\n<<<<<<<x: 1\n').meta), ['==========', '<<<<<<<x'])
+})
+
+test('line separators inside values are not mistaken for conflict markers', () => {
+  const m = { ...emptyModel(), objects: { o: { type: 'actor' as const, name: 'N', description: 'a ======= <<<<<<< x' } } }
+  assert.deepEqual(parseModelFile(serializeModelFile(m)).objects, m.objects)
 })
 
 test('values that look like numbers, booleans or null stay text through a save', () => {
