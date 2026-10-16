@@ -7,10 +7,15 @@ import { fetchModel, fromState, saveEdit } from './save.ts'
 /** Saves one edit and resolves to what to tell the user, or undefined once it's saved. */
 export type Edit = (op: (model: Model) => Model) => Promise<string | undefined>
 
-/** The model an exported page carries (flowy export). It never changes. */
+/** The model an exported page carries (flowy export), or why it can't be read. It never changes. */
 const exported = (() => {
   const element = document.getElementById(STATE_ELEMENT)
-  return element ? fromState(JSON.parse(element.textContent ?? '') as State).model : undefined
+  if (!element) return undefined
+  try {
+    return { model: fromState(JSON.parse(element.textContent ?? '') as State).model }
+  } catch {
+    return { banner: "This page's model can't be read. Export it again." }
+  }
 })()
 
 /**
@@ -56,5 +61,5 @@ export function useModel(): { model?: Model; banner?: string; edit: Edit; live: 
     return run
   }, [load])
 
-  return exported ? { model: exported, edit, live: false } : { model, banner, edit, live: true }
+  return exported ? { ...exported, edit, live: false } : { model, banner, edit, live: true }
 }
