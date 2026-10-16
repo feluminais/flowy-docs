@@ -139,3 +139,18 @@ button, select, input, textarea { font: inherit; }
 .step-buttons { display: flex; gap: 4px; }
 .panel .step-buttons button { padding: 0 8px; }
 .code-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 4px; font-size: 13px; }
+
+/* Search: a field at the top middle, over the canvas. */
+.search {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 8;
+  width: min(420px, calc(100% - 32px)); box-sizing: border-box; padding: 8px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--box); box-shadow: 0 4px 16px #0003;
+}
+.search input {
+  width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); color: var(--fg); font-size: 15px;
+}
+.search ul { margin: 6px 0 0; padding: 0; list-style: none; }
+.search li button { all: unset; display: block; width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 4px; cursor: pointer; }
+.search li button.at, .search li button:hover { background: var(--bg); }
+.search p { margin: 8px 4px 2px; }
