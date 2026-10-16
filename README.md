@@ -25,7 +25,11 @@ folder, `--port <number>` picks the port, and `--no-open` skips the browser.
 - Double-click a box drawn as a stack to zoom into it. The breadcrumb or Backspace zooms out.
 - Hover a box for its short description. Click it for the full text. Click a line to see the
   connections it stands for.
-- Faded, dashed boxes live elsewhere in the model. They show up because something here connects to them.
+- Lines have no labels until you point at one. Click a box and its lines show theirs while the
+  others fade.
+- Faded, dashed boxes live elsewhere in the model. They show up because something here connects to
+  them, and they wait around the edges (people above, the rest on both sides) while what's inside
+  sits in the middle.
 - Pick a flow in the top bar to play it step by step: ← and → move, Esc stops.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Boxes with
   a problem carry a "!".
@@ -98,6 +102,10 @@ Reading:
       Overview › Shop, and Customer and Mail service are faded and dashed.
 - [ ] Double-click API, then press Backspace twice: you're back at the overview. Clicking the
       breadcrumb works too.
+- [ ] Every zoom fits the whole diagram in the window, and doesn't open the side panel. Resize the
+      window: it fits again.
+- [ ] In Shop, lines have no labels. Hover one: its label shows. Click API: its lines show labels
+      and the others fade. If the panel would cover the box you click, the view moves it aside.
 - [ ] Hover API: after a moment its first paragraph appears under it. Click API: the side panel
       shows the whole description with its bullet list. Esc, ×, or a click on empty canvas closes it.
 - [ ] In Shop, play "Customer checks out". Only the current step's two boxes and line stay lit.
