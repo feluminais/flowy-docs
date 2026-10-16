@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "node --test \"test/**/*.test.ts\"",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p . && tsc -p src/core"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
