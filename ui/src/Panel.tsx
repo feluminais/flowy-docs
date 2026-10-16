@@ -2,8 +2,8 @@ import type { FocusEvent, FormEvent, ReactNode } from 'react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { getObject, ROOT } from '../../src/core/model.ts'
-import type { Model, ObjectType } from '../../src/core/model.ts'
-import { deleteObject, putObject, relabel, removeConnection } from '../../src/core/ops.ts'
+import type { Model, ObjectType, Step } from '../../src/core/model.ts'
+import { deleteFlow, deleteObject, putFlow, putObject, relabel, removeConnection, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
@@ -129,6 +129,73 @@ export function AddPanel({ model, view, run, onAdded, onClose }: Common & { view
         <label>Name<input name="name" autoFocus /></label>
         <button>Add</button>
       </form>
+    </Panel>
+  )
+}
+
+/** The flow being recorded. While `id` is "", it still needs a name. `from` and `to` are the step being picked. */
+export type Recording = { id: string; name: string; from?: string; to?: string }
+
+/** The step list beside the canvas while recording a flow: click two boxes, type what happens, press Enter. */
+export function Recorder({ model, view, rec, onChange, run, onClose }: Common & { view: string; rec: Recording; onChange: (rec: Recording) => void }) {
+  if (!rec.id) return (
+    <Panel onClose={onClose}>
+      <h2>New flow</h2>
+      <form className="form" onSubmit={e => {
+        e.preventDefault()
+        const name = String(new FormData(e.currentTarget).get('name')).trim()
+        if (name) onChange({ id: newId(name, Object.keys(model.flows), 'flow'), name })
+      }}>
+        <label>Name<input name="name" autoFocus placeholder="e.g. Customer checks out" /></label>
+        <button>Start recording</button>
+      </form>
+    </Panel>
+  )
+  const flow = Object.hasOwn(model.flows, rec.id) ? model.flows[rec.id] : undefined
+  const steps = flow?.steps ?? []
+  const change = (edit: (steps: Step[]) => Step[]) => run(m => updateFlow(m, rec.id, { steps: edit(m.flows[rec.id]?.steps ?? []) }))
+  const addStep = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const text = String(new FormData(e.currentTarget).get('text')).trim()
+    if (!text || !rec.from || !rec.to) return
+    const step = { from: rec.from, to: rec.to, text }
+    // The first step creates the file: a flow with no steps is a problem, so it can't be saved before.
+    const saved = await run(m => (Object.hasOwn(m.flows, rec.id)
+      ? updateFlow(m, rec.id, { steps: [...m.flows[rec.id].steps, step] })
+      : putFlow(m, { id: rec.id, name: rec.name, view, steps: [step] })))
+    if (saved) onChange({ id: rec.id, name: rec.name })
+  }
+  return (
+    <Panel onClose={onClose}>
+      {flow
+        ? <form className="form" onSubmit={e => e.preventDefault()}><Field label="Flow" value={flow.name} onSave={name => run(m => updateFlow(m, rec.id, { name }))} /></form>
+        : <h2>{rec.name}</h2>}
+      <ol className="steps form">
+        {steps.map((s, i) => (
+          <li key={i}>
+            <Field label={`${nameOf(model, s.from)} → ${nameOf(model, s.to)}`} value={s.text} onSave={text => change(all => all.with(i, { ...all[i], text }))} />
+            <div className="step-buttons">
+              <button aria-label="Move up" disabled={i === 0} onClick={() => void change(all => all.with(i - 1, all[i]).with(i, all[i - 1]))}>↑</button>
+              <button aria-label="Move down" disabled={i === steps.length - 1} onClick={() => void change(all => all.with(i + 1, all[i]).with(i, all[i + 1]))}>↓</button>
+              <button aria-label="Delete step" onClick={() => void change(all => all.filter((_, j) => j !== i))}>×</button>
+            </div>
+          </li>
+        ))}
+      </ol>
+      {rec.from && rec.to ? (
+        <form className="form" onSubmit={addStep}>
+          <label>
+            {nameOf(model, rec.from)} → {nameOf(model, rec.to)}
+            <input name="text" autoFocus placeholder="What happens? Press Enter" onKeyDown={e => e.key === 'Escape' && onChange({ id: rec.id, name: rec.name })} />
+          </label>
+        </form>
+      ) : (
+        <p className="muted">{rec.from ? `From ${nameOf(model, rec.from)}. Now click the box it goes to.` : 'Click the box where the next step starts.'}</p>
+      )}
+      <div className="panel-buttons">
+        {flow && <button className="danger" onClick={() => void run(m => deleteFlow(m, rec.id)).then(saved => saved && onClose())}>Delete flow</button>}
+        <button onClick={onClose}>Done</button>
+      </div>
     </Panel>
   )
 }
