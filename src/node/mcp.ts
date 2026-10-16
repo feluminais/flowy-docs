@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { check, newProblems } from '../core/check.ts'
-import { changedFiles, getObject, OBJECT_TYPES, parseFlowFile, parseModelFile, ROOT } from '../core/model.ts'
+import { changedFiles, getObject, OBJECT_TYPES, parseFile, ROOT } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
 import { connect, deleteFlow, deleteObject, disconnect, putFlow, putObject } from '../core/ops.ts'
 import { computeView } from '../core/views.ts'
@@ -18,12 +18,6 @@ const ok = (value: unknown): Result => ({
   content: [{ type: 'text', text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }],
 })
 const fail = (e: unknown): Result => ({ ...ok(e instanceof Error ? e.message : String(e)), isError: true })
-
-/** Never write what can't be read back: if saving and loading ever disagree, refuse instead of breaking the folder. */
-function assertReadable(rel: string, text: string) {
-  if (rel === 'model.yaml') parseModelFile(text)
-  else parseFlowFile(rel.slice('flows/'.length, -'.yaml'.length), text)
-}
 
 export function createMcpServer(dir: string): McpServer {
   const server = new McpServer({ name: 'flowy-docs', version: '0.1.0' }, { instructions: INSTRUCTIONS })
@@ -55,8 +49,9 @@ export function createMcpServer(dir: string): McpServer {
         if (added.length) return fail(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}`)
         // Every op changes at most one file today, so a failure can't leave a half-applied multi-file change.
         const changes = changedFiles(model, next)
+        // Never write what can't be read back: if saving and loading ever disagree, refuse instead of breaking the folder.
         try {
-          for (const [rel, text] of changes) if (text !== null) assertReadable(rel, text)
+          for (const [rel, text] of changes) if (text !== null) parseFile(rel, text)
         } catch (e) {
           return fail(`Refused, nothing saved. The result couldn't be read back: ${e instanceof Error ? e.message : String(e)}`)
         }
