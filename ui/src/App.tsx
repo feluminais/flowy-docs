@@ -4,22 +4,33 @@ import type { NodeChange, XYPosition } from '@xyflow/react'
 import { check } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { ROOT } from '../../src/core/model.ts'
-import type { Model } from '../../src/core/model.ts'
+import type { Model, Step } from '../../src/core/model.ts'
 import { connect, deleteObject, placeBoxes, removeConnection } from '../../src/core/ops.ts'
 import { chain, hasChildren, parentOf, placeEnds } from '../../src/core/views.ts'
 import { Box } from './Box.tsx'
 import { connectionsOf, locate, nameOf } from './edit.ts'
 import { lineId, toGraph } from './graph.ts'
-import type { BoxNode } from './graph.ts'
-import { AddPanel, LinePanel, ObjectPanel } from './Panel.tsx'
-import type { Run } from './Panel.tsx'
+import type { BoxNode, Playing } from './graph.ts'
+import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
+import type { Recording, Run } from './Panel.tsx'
 import { useModel } from './useModel.ts'
 import type { Edit } from './useModel.ts'
 
 const nodeTypes = { box: Box }
 
 /** What the side panel shows. One thing at a time. */
-type Side = { kind: 'object'; id: string } | { kind: 'line'; from: string; to: string } | { kind: 'add' }
+type Side =
+  | { kind: 'object'; id: string }
+  | { kind: 'line'; from: string; to: string }
+  | { kind: 'add' }
+  | ({ kind: 'flow' } & Recording)
+
+/** A box clicked while recording: the first one starts the step, the second ends it, a third starts over. */
+function pick(rec: Recording, id: string): Recording {
+  if (!rec.id) return rec
+  if (!rec.from || rec.to) return { ...rec, from: id, to: undefined }
+  return id === rec.from ? rec : { ...rec, to: id }
+}
 
 export function App() {
   const { model, banner, edit } = useModel()
@@ -64,15 +75,25 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
   // After a live reload the view's object may be gone or empty: show the nearest view that still exists.
   const view = chain(model, viewId).find(v => v === ROOT || hasChildren(model, v)) ?? ROOT
   const problems = check(model)
-  const flowsHere = Object.entries(model.flows).filter(([, f]) => f.view === view && f.steps.length > 0)
+  const recording = editing && side?.kind === 'flow' ? side : undefined
+  const flowsHere = Object.entries(model.flows).filter(([, f]) => f.view === view && (editing || f.steps.length > 0))
   const flow = editing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
   const stepIndex = flow && playing ? Math.min(playing.step, flow.steps.length - 1) : 0
   const step = flow?.steps[stepIndex]
-  const allEnds = flow?.steps.map(s => placeEnds(model, view, s.from, s.to))
-  const ends = allEnds?.[stepIndex]
-  const graph = toGraph(model, view, allEnds && { ends: allEnds, step: stepIndex }, problems)
+  const placeSteps = (steps: Step[]) => steps.map(s => placeEnds(model, view, s.from, s.to))
+
+  let shown: Playing | undefined
+  if (flow) shown = { ends: placeSteps(flow.steps), step: stepIndex }
+  else if (recording) {
+    const done = placeSteps(Object.hasOwn(model.flows, recording.id) ? model.flows[recording.id].steps : [])
+    shown = recording.from && recording.to
+      ? { ends: [...done, placeEnds(model, view, recording.from, recording.to)], step: done.length }
+      : { ends: done }
+  }
+  const graph = toGraph(model, view, shown, problems)
+  const picked = side?.kind === 'object' ? [side.id] : recording ? [recording.from, recording.to] : []
   // Nodes are controlled: selection and drag positions only show through these props.
-  const nodes = graph.nodes.map(n => ({ ...n, position: moved.get(n.id) ?? n.position, selected: side?.kind === 'object' && n.id === side.id }))
+  const nodes = graph.nodes.map(n => ({ ...n, position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id) }))
   const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
   const edges = graph.edges.map(e => (e.id === selectedLine ? { ...e, selected: true } : e))
 
@@ -87,7 +108,7 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
     setViewId(id)
     setPlaying(undefined)
     setMoved(new Map())
-    setSide(s => (s?.kind === 'object' ? s : undefined)) // lines and Add belong to one view
+    setSide(s => (s?.kind === 'object' ? s : undefined)) // lines, Add and recording belong to one view
   }
   const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, flow.steps.length - 1)) })
   const toggleEdit = () => {
@@ -108,6 +129,7 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
     go(spot.view)
     if (spot.object) setSide({ kind: 'object', id: spot.object })
     else if (spot.line) setSide({ kind: 'line', from: spot.line[0], to: spot.line[1] })
+    else if (spot.flow !== undefined && editing) setSide({ kind: 'flow', id: spot.flow, name: model.flows[spot.flow].name })
     else if (spot.flow !== undefined) setPlaying({ flow: spot.flow, step: spot.step ?? 0 })
   }
   // A drag (or an arrow key on a selected box) ends with dragging: false. Then the whole view's layout is saved.
@@ -132,10 +154,11 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
       if (flow && e.key === 'ArrowRight') stepTo(stepIndex + 1)
       else if (flow && e.key === 'ArrowLeft') stepTo(stepIndex - 1)
       else if (flow && e.key === 'Escape') setPlaying(undefined)
+      else if (recording?.from && e.key === 'Escape') setSide({ ...recording, from: undefined, to: undefined })
       else if (e.key === 'Escape') setSide(undefined)
       else if (e.key.toLowerCase() === 'e' && !e.ctrlKey && !e.metaKey && !e.altKey && !readOnly) toggleEdit()
       else if (editing && e.key === 'Delete') remove()
-      else if (e.key === 'Backspace' && view !== ROOT) go(parentOf(model, view))
+      else if (e.key === 'Backspace' && view !== ROOT && !recording) go(parentOf(model, view))
       else return
       e.preventDefault()
     }
@@ -151,15 +174,18 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
             <button key={id} disabled={id === view} onClick={() => go(id)}>{nameOf(model, id)}</button>
           ))}
         </nav>
-        {!editing && flowsHere.length > 0 && (
-          <select value="" aria-label="Play a flow" onChange={e => {
-            setPlaying({ flow: e.target.value, step: 0 })
+        {flowsHere.length > 0 && (
+          <select value="" aria-label={editing ? 'Edit a flow' : 'Play a flow'} onChange={e => {
+            const id = e.target.value
+            if (editing) setSide({ kind: 'flow', id, name: model.flows[id].name })
+            else setPlaying({ flow: id, step: 0 })
             e.target.blur() // so ← and → step through the flow instead of changing this list
           }}>
-            <option value="" disabled>▶ Play a flow</option>
+            <option value="" disabled>{editing ? '✎ Edit a flow' : '▶ Play a flow'}</option>
             {flowsHere.map(([id, f]) => <option key={id} value={id}>{f.name || id}</option>)}
           </select>
         )}
+        {editing && <button onClick={() => setSide({ kind: 'flow', id: '', name: '' })}>New flow</button>}
         {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
         <span className="grow" />
         <Problems problems={problems} onPick={jump} />
@@ -174,18 +200,18 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
           fitView
           fitViewOptions={{ maxZoom: 1, padding: { x: '40px', top: '40px', bottom: '200px' } }} // room for the flow player
           colorMode="system"
-          nodesDraggable={editing}
-          nodesConnectable={editing}
+          nodesDraggable={editing && !recording}
+          nodesConnectable={editing && !recording}
           zoomOnDoubleClick={false}
           deleteKeyCode={null}
           onNodesChange={onNodesChange}
           isValidConnection={c => placeEnds(model, view, c.source, c.target) !== null} // only lines this view can show
           onConnect={c => void run(m => connect(m, { from: c.source, to: c.target }))
             .then(saved => saved && setSide({ kind: 'line', from: c.source, to: c.target }))}
-          onNodeClick={(_, node) => setSide({ kind: 'object', id: node.id })}
-          onNodeDoubleClick={(_, node) => hasChildren(model, node.id) && go(node.id)}
-          onEdgeClick={(_, e) => e.id !== 'step' && setSide({ kind: 'line', from: e.source, to: e.target })}
-          onPaneClick={close}
+          onNodeClick={(_, node) => setSide(recording ? { kind: 'flow', ...pick(recording, node.id) } : { kind: 'object', id: node.id })}
+          onNodeDoubleClick={(_, node) => !recording && hasChildren(model, node.id) && go(node.id)}
+          onEdgeClick={(_, e) => !recording && e.id !== 'step' && setSide({ kind: 'line', from: e.source, to: e.target })}
+          onPaneClick={() => setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)}
         >
           <Controls showInteractive={false} />
         </ReactFlow>
@@ -207,10 +233,13 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
         {editing && side?.kind === 'add' && (
           <AddPanel model={model} view={view} run={run} onAdded={id => setSide({ kind: 'object', id })} onClose={close} />
         )}
+        {recording && (
+          <Recorder model={model} view={view} rec={recording} onChange={rec => setSide({ kind: 'flow', ...rec })} run={run} onClose={close} />
+        )}
         {flow && step && (
           <section className="player" aria-live="polite">
             <p className="muted">{flow.name} · Step {stepIndex + 1} of {flow.steps.length}</p>
-            <p className="player-ends">{(ends ?? [step.from, step.to]).map(id => nameOf(model, id)).join(' → ')}</p>
+            <p className="player-ends">{(shown?.ends[stepIndex] ?? [step.from, step.to]).map(id => nameOf(model, id)).join(' → ')}</p>
             <p>{step.text}</p>
             <div className="player-buttons">
               <button disabled={stepIndex === 0} onClick={() => stepTo(stepIndex - 1)}>← Back</button>
