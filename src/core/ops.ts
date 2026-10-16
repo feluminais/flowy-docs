@@ -1,4 +1,4 @@
-import { getObject, isValidId } from './model.ts'
+import { getObject, isValidId, ROOT } from './model.ts'
 import type { Connection, FlowyObject, Model, ObjectType, Step } from './model.ts'
 import { memberIds } from './views.ts'
 
@@ -31,6 +31,8 @@ export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
 }
 
 export function deleteObject(model: Model, id: string): Model {
+  if (id === ROOT && Object.hasOwn(model.objects, ROOT))
+    throw new OpError('"root" is reserved, so this object can\'t be changed here. Rename or delete it in model.yaml by hand.')
   if (!getObject(model, id)) throw new OpError(`unknown object "${id}"`)
   const children = memberIds(model, id)
   if (children.length) throw new OpError(`"${id}" still contains ${children.join(', ')}. Delete or move those first.`)
@@ -66,11 +68,15 @@ export function disconnect(model: Model, { from, to, label }: ConnectionInput): 
 /** Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. */
 export function putFlow(model: Model, { id, name, view, steps }: FlowInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid flow id: ${ID_RULE}`)
+  // Flow ids are file names, and Windows and macOS don't tell Visit.yaml from visit.yaml.
+  const clash = Object.keys(model.flows).find(other => other !== id && other.toLowerCase() === id.toLowerCase())
+  if (clash) throw new OpError(`flows/${clash}.yaml already exists and differs only in case. Use "${clash}" or rename that file by hand.`)
   return { ...model, flows: { ...model.flows, [id]: { name, view, steps: steps.map(s => ({ ...s })) } } }
 }
 
 export function deleteFlow(model: Model, id: string): Model {
   if (!Object.hasOwn(model.flows, id)) throw new OpError(`unknown flow "${id}"`)
+  if (!isValidId(id)) throw new OpError(`flows/${id}.yaml has an invalid file name, so it can't be changed here. Rename or delete it by hand.`)
   const flows = { ...model.flows }
   delete flows[id]
   return { ...model, flows }

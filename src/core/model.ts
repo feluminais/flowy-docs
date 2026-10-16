@@ -72,6 +72,23 @@ function readYaml(file: string, text: string): unknown {
   }
 }
 
+const TEXT_FIELDS = {
+  object: ['type', 'name', 'in', 'tech', 'description'],
+  connection: ['from', 'to', 'label'],
+  flow: ['name', 'view'],
+  step: ['from', 'to', 'text'],
+} as const
+
+/**
+ * An entry must be a mapping, and its known fields must be text: a list or mapping there would
+ * break the checker and make the types lie. Extra fields may hold anything.
+ */
+function checkEntry(file: string, what: string, entry: unknown, fields: readonly string[]) {
+  if (!isMap(entry)) throw new ParseError(file, `${what} must be a mapping`)
+  const bad = fields.find(f => entry[f] !== undefined && typeof entry[f] !== 'string')
+  if (bad) throw new ParseError(file, `${what}: "${bad}" must be plain text, not a list or a mapping`)
+}
+
 /** Checks the file's shape only. Field values are checked by check() in check.ts. */
 export function parseModelFile(text: string): Pick<Model, 'objects' | 'connections' | 'meta'> {
   const file = 'model.yaml'
@@ -81,11 +98,9 @@ export function parseModelFile(text: string): Pick<Model, 'objects' | 'connectio
   const objects = orEmpty(rawObjects, {})
   const connections = orEmpty(rawConnections, [])
   if (!isMap(objects)) throw new ParseError(file, '"objects" must map ids to mappings')
-  const badObject = Object.entries(objects).find(([, o]) => !isMap(o))
-  if (badObject) throw new ParseError(file, `object "${badObject[0]}" must be a mapping`)
+  for (const [id, o] of Object.entries(objects)) checkEntry(file, `object "${id}"`, o, TEXT_FIELDS.object)
   if (!Array.isArray(connections)) throw new ParseError(file, '"connections" must be a list')
-  const badConnection = connections.findIndex(c => !isMap(c))
-  if (badConnection >= 0) throw new ParseError(file, `connection ${badConnection + 1} must be a mapping`)
+  connections.forEach((c, i) => checkEntry(file, `connection ${i + 1}`, c, TEXT_FIELDS.connection))
   return { objects: objects as Model['objects'], connections: connections as Connection[], meta }
 }
 
@@ -94,10 +109,10 @@ export function parseFlowFile(id: string, text: string): Flow {
   const file = `flows/${id}.yaml`
   const doc = orEmpty(readYaml(file, text), {})
   if (!isMap(doc)) throw new ParseError(file, 'expected a mapping with "name", "view" and "steps"')
+  checkEntry(file, 'flow', doc, TEXT_FIELDS.flow)
   const steps = orEmpty(doc.steps, [])
   if (!Array.isArray(steps)) throw new ParseError(file, '"steps" must be a list')
-  const badStep = steps.findIndex(s => !isMap(s))
-  if (badStep >= 0) throw new ParseError(file, `step ${badStep + 1} must be a mapping`)
+  steps.forEach((s, i) => checkEntry(file, `step ${i + 1}`, s, TEXT_FIELDS.step))
   return { ...doc, steps } as Flow
 }
 
