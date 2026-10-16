@@ -66,7 +66,7 @@ test('flow rules', () => {
   assertProblem(m, 'flows/leaf.yaml has no steps')
   assertProblem(m, 'flows/broken.yaml step 1: unknown object "ghost"')
   assertProblem(m, 'flows/broken.yaml step 2: text is missing')
-  assertProblem(m, 'flows/broken.yaml step 3: goes from an object to itself')
+  assertProblem(m, 'flows/broken.yaml step 3: goes from an object to itself (leave out "to" for a step one box does on its own)')
   assertProblem(m, `flows/broken.yaml step 4: customer → web can't be shown in view "api"`)
 })
 
@@ -203,4 +203,13 @@ test('code paths: a list of repo paths that exist', () => {
 test('isRepoPath takes files and folders', () => {
   for (const ok of ['src', 'src/', 'src/api/server.ts', '.github/workflows/', 'a.b/c']) assert.equal(isRepoPath(ok), true, ok)
   for (const bad of ['', '/', '/x', 'x//y', '..', 'x/../y', './x', 'x\\y', 'c:/x']) assert.equal(isRepoPath(bad), false, bad)
+})
+
+test('a step with no "to" is one box acting on its own', () => {
+  const m = shop()
+  m.flows.checkout.steps.push({ from: 'api', text: 'Checks the order' }, { from: 'mail', text: 'Sends it', description: 'Within a minute.' })
+  assert.deepEqual(check(m), [])
+  m.flows.checkout.steps.push({ from: 'ghost', text: 'Haunts' }, { from: '', text: 'Nobody' } as never)
+  assertProblem(m, 'flows/checkout.yaml step 6: unknown object "ghost"')
+  assertProblem(m, 'flows/checkout.yaml step 7: "from" is missing')
 })

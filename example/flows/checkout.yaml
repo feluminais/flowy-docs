@@ -3,5 +3,10 @@ view: shop
 steps:
   - { from: customer, to: web, text: Clicks "Buy" }
   - { from: web, to: api, text: POST /orders }
+  - from: orders
+    text: Checks that every item is in stock
+    description: |
+      Stock comes from the **Orders DB**. An item that ran out fails the whole order,
+      and the customer sees which one.
   - { from: orders, to: db, text: Saves the order }
   - { from: orders, to: mail, text: Asks for a receipt email }

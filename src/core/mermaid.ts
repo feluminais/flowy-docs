@@ -1,6 +1,6 @@
 import { getObject, ROOT } from './model.ts'
 import type { Model } from './model.ts'
-import { computeView, placeEnds } from './views.ts'
+import { computeView, placeStep } from './views.ts'
 
 /**
  * Text as Mermaid shows it, never as its syntax: quotes, brackets, # and ; (a line break in sequence
@@ -45,11 +45,12 @@ export function flowToMermaid(model: Model, flowId: string): string {
   const flow = Object.hasOwn(model.flows, flowId) ? model.flows[flowId] : undefined
   if (!flow) throw new Error(`unknown flow "${flowId}"`)
   // A step the view can't show (the checker reports it) keeps its own ends.
-  const steps = flow.steps.map(s => ({ ends: placeEnds(model, flow.view, s.from, s.to) ?? [s.from, s.to], text: s.text }))
+  const steps = flow.steps.map(s => ({ ends: placeStep(model, flow.view, s) ?? [s.from, s.to || s.from], text: mermaidText(String(s.text ?? '')) }))
   const n = ids([...new Set(steps.flatMap(s => s.ends))])
   return [
     'sequenceDiagram',
     ...[...n].map(([id, m]) => `  ${getObject(model, id)?.type === 'actor' ? 'actor' : 'participant'} ${m} as ${nameOf(model, id)}`),
-    ...steps.map(s => `  ${n.get(s.ends[0])}->>${n.get(s.ends[1])}: ${mermaidText(String(s.text ?? ''))}`),
+    // A step one box does on its own is a note over it.
+    ...steps.map(({ ends: [a, b], text }) => (a === b ? `  Note over ${n.get(a)}: ${text}` : `  ${n.get(a)}->>${n.get(b)}: ${text}`)),
   ].join('\n') + '\n'
 }
