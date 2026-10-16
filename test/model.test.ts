@@ -1,8 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  changedFiles, emptyModel, getObject, ParseError, parseFile, parseFlowFile, parseLayoutFile, parseModelFile,
-  serializeFile, serializeFlow, serializeLayout, serializeModelFile,
+  changedFiles, emptyModel, fileData, getObject, modelFiles, ParseError, parseFile, parseFlowFile, parseLayoutFile,
+  parseModelFile, serializeFile, serializeFlow, serializeLayout, serializeModelFile,
 } from '../src/core/model.ts'
 import type { Layout } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
@@ -172,4 +172,11 @@ test('content that is not a valid file never gets past serializeFile and parseFi
   assert.throws(() => parseFile('flows/visit.yaml', serializeFile('flows/visit.yaml', ['a', 'list'])),
     (e: unknown) => e instanceof ParseError && e.file === 'flows/visit.yaml')
   assert.throws(() => parseFile('layout.yaml', serializeFile('layout.yaml', { root: { a: 'here' } })), ParseError)
+})
+
+test('fileData is what serializeFile turns into each file, with model.yaml extras at the top level', () => {
+  const m = { ...shop(), meta: { title: 'Demo' }, layout: { root: { shop: [10, 20] as [number, number] } } }
+  for (const [rel, text] of Object.entries(modelFiles(m))) assert.equal(serializeFile(rel, fileData(m, rel)), text, rel)
+  assert.deepEqual(Object.keys(fileData(m, 'model.yaml') as object), ['title', 'objects', 'connections'])
+  assert.equal(serializeFile('layout.yaml', fileData(m, 'layout.yaml')), serializeLayout(m.layout))
 })
