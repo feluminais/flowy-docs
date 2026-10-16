@@ -34,7 +34,8 @@ folder, `--port <number>` picks the port, and `--no-open` skips the browser.
   `origin` is on GitHub or GitLab, they link there.
 - Ctrl+K or / (or Search) finds a box anywhere in the model by name. Pick one and the canvas
   opens the level it's on, with its panel open.
-- Pick a flow in the top bar to play it step by step: ← and → move, Esc stops.
+- Pick a flow in the top bar to play it step by step: ← and → move, Esc stops. A step can be one
+  box doing something on its own, and a step with more to say has a More you can open.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Boxes with
   a problem carry a "!".
 
@@ -55,8 +56,9 @@ Press E, or the Edit button.
 - Delete (the key, or the button in the panel) removes the selected box or line. A box that still
   contains others, or that a flow uses, stays, and a notice says why.
 - New flow records a walkthrough: name it, click the box where a step starts and the box it goes
-  to, type what happens and press Enter. Repeat. ↑, ↓ and × reorder and delete steps. "Edit a
-  flow" opens one you already have.
+  to (or the same box again, for a step it does on its own), type what happens and press Enter.
+  Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
+  delete steps. "Edit a flow" opens one you already have.
 
 Every save goes through the same checks as Claude's edits: a change that would add a problem is
 refused, and nothing is written. If a file changed on disk in the meantime, the save is dropped
@@ -151,7 +153,8 @@ Reading:
 - [ ] Hover API: after a moment its first paragraph appears under it. Click API: the side panel
       shows the whole description with its bullet list. Esc, ×, or a click on empty canvas closes it.
 - [ ] In Shop, play "Customer checks out". Only the current step's two boxes and line stay lit.
-      → and ← move, the buttons match, Esc stops.
+      → and ← move, the buttons match, Esc stops. Step 3 lights API alone, with no line, and its
+      More shows a paragraph with **Orders DB** in bold.
 - [ ] In API, play "Customer signs in". Web app joins as a faded box, with a dashed line to Auth.
 - [ ] In Shop, click the "2 connections" line: the panel lists both connections.
 - [ ] From the overview, press / and type `au`: "Auth component in API" is listed. Press Enter: the
