@@ -39,11 +39,14 @@ export function getObject(model: Model, id: unknown): FlowyObject | undefined {
 export class ParseError extends Error {
   file: string
   line: number | undefined
-  constructor(file: string, message: string, line?: number) {
-    super(`${file}${line === undefined ? '' : `:${line}`}: ${message}`)
+  /** What's wrong, without the `file:line:` prefix that `message` starts with. */
+  reason: string
+  constructor(file: string, reason: string, line?: number) {
+    super(`${file}${line === undefined ? '' : `:${line}`}: ${reason}`)
     this.name = 'ParseError'
     this.file = file
     this.line = line
+    this.reason = reason
   }
 }
 
@@ -151,6 +154,22 @@ export function serializeLayout(layout: Layout): string {
   visit(doc, { Seq: (_, node) => { node.flow = true } })
   return doc.toString({ lineWidth: 0, flowCollectionPadding: false })
 }
+
+/** Parse one file of the folder, picked by its path (model.yaml, layout.yaml or flows/<id>.yaml). Throws ParseError. */
+export function parseFile(rel: string, text: string): ReturnType<typeof parseModelFile> | Layout | Flow {
+  if (rel === 'model.yaml') return parseModelFile(text)
+  if (rel === 'layout.yaml') return parseLayoutFile(text)
+  return parseFlowFile(rel.slice('flows/'.length, -'.yaml'.length), text)
+}
+
+/**
+ * A file's content as plain JSON, turned into its YAML text. For model.yaml that's the file's own
+ * top-level keys ({ objects, connections, ...others }), not parseModelFile's { objects, connections, meta }.
+ * Throws on a number, boolean or null in model or flow files, which only hold text.
+ * Not a check: parse the result with parseFile before writing it.
+ */
+export const serializeFile = (rel: string, data: unknown): string =>
+  rel === 'layout.yaml' ? serializeLayout(data as Layout) : dump(data)
 
 /** Every file MCP may write, as path → text. layout.yaml belongs to the canvas. */
 export function modelFiles(m: Model): Record<string, string> {
