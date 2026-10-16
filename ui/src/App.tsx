@@ -12,6 +12,7 @@ import { Camera } from './Camera.tsx'
 import { connectionsOf, locate, nameOf } from './edit.ts'
 import { fitOptions, focusEdges, lineId, toGraph } from './graph.ts'
 import type { BoxNode, Playing } from './graph.ts'
+import { readHash, toHash } from './hash.ts'
 import { Line } from './Line.tsx'
 import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
 import type { Recording, Run } from './Panel.tsx'
@@ -67,9 +68,13 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
 }
 
 function Reader({ model, edit, live, readOnly }: { model: Model; edit: Edit; live: boolean; readOnly: boolean }) {
-  const [viewId, setViewId] = useState(ROOT)
+  // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
+  const [viewId, setViewId] = useState(() => readHash(location.hash).view)
   const [side, setSide] = useState<Side>()
-  const [playing, setPlaying] = useState<{ flow: string; step: number }>()
+  const [playing, setPlaying] = useState<{ flow: string; step: number } | undefined>(() => {
+    const { flow } = readHash(location.hash)
+    return flow === undefined ? undefined : { flow, step: 0 }
+  })
   const [editMode, setEditMode] = useState(false)
   const [notice, setNotice] = useState<string>()
   // Where boxes are being dragged to. Nodes are controlled, so a box only moves through this.
@@ -171,6 +176,30 @@ function Reader({ model, edit, live, readOnly }: { model: Model; edit: Edit; liv
       if (layoutSaves.current === 0) setMoved(new Map())
     })
   }
+
+  // The address names the view and the flow playing, so a link opens there and Back goes back. The first
+  // write replaces the address the page opened with, which also drops any part of it that named nothing.
+  const address = toHash(view, flow ? playing?.flow : undefined)
+  const addressed = useRef(false)
+  useEffect(() => {
+    if (address !== location.hash) history[addressed.current ? 'pushState' : 'replaceState'](null, '', address || location.pathname + location.search)
+    addressed.current = true
+  }, [address])
+
+  // Back, Forward, or an address typed in: show what it names. Added again on every render, like the keys below.
+  useEffect(() => {
+    const follow = () => {
+      const named = readHash(location.hash)
+      go(named.view)
+      if (named.flow !== undefined) setPlaying({ flow: named.flow, step: 0 })
+    }
+    window.addEventListener('popstate', follow)
+    window.addEventListener('hashchange', follow)
+    return () => {
+      window.removeEventListener('popstate', follow)
+      window.removeEventListener('hashchange', follow)
+    }
+  })
 
   // Added again on every render, so the handler always sees the current state.
   useEffect(() => {
