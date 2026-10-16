@@ -5,7 +5,7 @@ import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ParseError } from '../src/core/model.ts'
-import { hashText, isAllowedPath, loadDir, saveFile, VersionConflict } from '../src/node/files.ts'
+import { hashText, isAllowedPath, loadDir, loadState, missingPaths, saveFile, VersionConflict } from '../src/node/files.ts'
 
 async function tempDir(t: TestContext) {
   const dir = await mkdtemp(join(tmpdir(), 'flowy-'))
@@ -112,4 +112,21 @@ test('a UTF-8 file with a BOM loads', async t => {
   const bom = String.fromCharCode(0xfeff) // built in code so no copy or paste step can drop it
   await writeFile(join(dir, 'model.yaml'), `${bom}objects:\n  a: { type: actor, name: A }\n`)
   assert.equal((await loadDir(dir)).model.objects.a.name, 'A')
+})
+
+test('missing code paths are the well-formed ones that are not next to the flowy folder', async t => {
+  const root = await tempDir(t)
+  const dir = join(root, 'flowy')
+  await mkdir(join(root, 'src', 'api'), { recursive: true })
+  await writeFile(join(root, 'src', 'api', 'server.ts'), '')
+  await mkdir(dir)
+  await writeFile(join(dir, 'model.yaml'), 'objects:\n  api: { type: system, name: API, code: [src/api/, src/api/server.ts, gone.ts, ../x] }\n')
+  const { model } = await loadDir(dir)
+  assert.deepEqual([...missingPaths(dir, model)], ['gone.ts'])
+  const state = await loadState(dir)
+  assert.ok('problems' in state)
+  assert.deepEqual(state.problems.map(p => p.message), [
+    'api: code path "gone.ts" doesn\'t exist',
+    'api: code path "../x" must be relative, with / between folders and no "." or ".." parts',
+  ])
 })

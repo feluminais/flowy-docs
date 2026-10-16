@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controls, ReactFlow } from '@xyflow/react'
 import type { NodeChange, XYPosition } from '@xyflow/react'
-import { check, typesIn } from '../../src/core/check.ts'
+import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { ROOT } from '../../src/core/model.ts'
 import type { Model, Step } from '../../src/core/model.ts'
@@ -17,7 +17,7 @@ import { Line } from './Line.tsx'
 import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
 import type { Recording, Run } from './Panel.tsx'
 import { useModel } from './useModel.ts'
-import type { Edit } from './useModel.ts'
+import type { Edit, Loaded } from './useModel.ts'
 
 const nodeTypes = { box: Box }
 const edgeTypes = { line: Line }
@@ -38,11 +38,11 @@ function pick(rec: Recording, id: string): Recording {
 }
 
 export function App() {
-  const { model, banner, edit, live } = useModel()
+  const { loaded, banner, edit, live } = useModel()
   return (
     <div className="app">
       {banner && <div className="banner" role="alert">{banner}</div>}
-      {model && <Reader model={model} edit={edit} live={live} readOnly={!live || banner !== undefined} />}
+      {loaded && <Reader {...loaded} edit={edit} live={live} readOnly={!live || banner !== undefined} />}
     </div>
   )
 }
@@ -67,7 +67,7 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
   )
 }
 
-function Reader({ model, edit, live, readOnly }: { model: Model; edit: Edit; live: boolean; readOnly: boolean }) {
+function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { edit: Edit; live: boolean; readOnly: boolean }) {
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
   const [viewId, setViewId] = useState(() => readHash(location.hash).view)
   const [side, setSide] = useState<Side>()
@@ -89,7 +89,6 @@ function Reader({ model, edit, live, readOnly }: { model: Model; edit: Edit; liv
   const canOpen = (id: string) => hasChildren(model, id) || (editing && typesIn(model, id).length > 0)
   // After a live reload the view's object may be gone or empty: show the nearest view that still exists.
   const view = chain(model, viewId).find(v => v === ROOT || canOpen(v)) ?? ROOT
-  const problems = useMemo(() => check(model), [model])
   const recording = editing && side?.kind === 'flow' ? side : undefined
   const flowsHere = Object.entries(model.flows).filter(([, f]) => f.view === view && (editing || f.steps.length > 0))
   const flow = editing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
@@ -305,7 +304,7 @@ function Reader({ model, edit, live, readOnly }: { model: Model; edit: Edit; liv
             <button aria-label="Dismiss" onClick={() => setNotice(undefined)}>×</button>
           </div>
         )}
-        {side?.kind === 'object' && <ObjectPanel model={model} id={side.id} editing={editing} problems={problems} run={run} onClose={close} />}
+        {side?.kind === 'object' && <ObjectPanel model={model} id={side.id} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={close} />}
         {side?.kind === 'line' && (
           <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={close} />
         )}
