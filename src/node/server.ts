@@ -1,8 +1,9 @@
-import { readFile } from 'node:fs/promises'
+import { watch } from 'node:fs'
+import { mkdir, readFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { extname, join, sep } from 'node:path'
+import { extname, join, resolve, sep } from 'node:path'
 import { json } from 'node:stream/consumers'
 import { check } from '../core/check.ts'
 import { ParseError, parseFile, serializeFile } from '../core/model.ts'
@@ -69,6 +70,8 @@ async function write(dir: string, req: IncomingMessage, res: ServerResponse, rel
 }
 
 async function serveUi(ui: string, res: ServerResponse, pathname: string) {
+  // The path is never URL-decoded: new URL already resolved `..`, and %2f or %5c stay literal characters.
+  // Vite's file names are plain ASCII, so they need no decoding.
   const file = join(ui, pathname === '/' ? 'index.html' : pathname)
   try {
     if (!file.startsWith(ui + sep)) throw new Error('outside the UI folder')
@@ -93,25 +96,35 @@ function listen(server: Server, port: number): Promise<number> {
 
 /**
  * The local server behind the canvas, on 127.0.0.1 only, at `port` or the next free one (0 = any).
- * `dir` is the flowy/ folder. `ui` is the built canvas.
+ * `dir` is the flowy/ folder, created if missing so it can be watched. `ui` is the built canvas.
  */
 export async function startServer({ dir, ui, port }: { dir: string; ui: string; port: number }): Promise<Running> {
+  const uiDir = resolve(ui) // serveUi's containment check needs a normalized path
+  const clients = new Set<ServerResponse>()
   let actualPort = 0
 
   const server = createServer(async (req, res) => {
     try {
-      const url = new URL(req.url ?? '/', 'http://localhost')
       // A website can point its own domain at 127.0.0.1 (DNS rebinding); its requests then carry that domain as Host.
       if (req.headers.host !== `127.0.0.1:${actualPort}` && req.headers.host !== `localhost:${actualPort}`)
         return send(res, 403, { error: 'wrong Host header' })
+      const url = new URL(req.url ?? '/', 'http://localhost')
       if (req.method === 'GET' && url.pathname === '/api/state') return send(res, 200, await state(dir))
+      if (req.method === 'GET' && url.pathname === '/api/events') {
+        res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store' })
+        // Reconnect 1 s after flowy restarts. Writing at once also pushes the headers through proxies (Vite's dev server).
+        res.write('retry: 1000\n\n')
+        clients.add(res)
+        req.on('close', () => clients.delete(res))
+        return
+      }
       if ((req.method === 'PUT' || req.method === 'DELETE') && url.pathname.startsWith('/api/file/')) {
         // Browsers only let a page send a custom header to its own origin, so other sites can't write.
         if (req.headers['x-flowy'] !== '1') return send(res, 403, { error: 'missing X-Flowy: 1 header' })
         return await write(dir, req, res, url.pathname.slice('/api/file/'.length))
       }
       if (url.pathname.startsWith('/api/')) return send(res, 404, { error: 'not found' })
-      if (req.method === 'GET' || req.method === 'HEAD') return await serveUi(ui, res, url.pathname)
+      if (req.method === 'GET' || req.method === 'HEAD') return await serveUi(uiDir, res, url.pathname)
       send(res, 405, { error: 'method not allowed' })
     } catch (e) {
       if (!res.headersSent) send(res, 500, { error: e instanceof Error ? e.message : String(e) })
@@ -119,18 +132,34 @@ export async function startServer({ dir, ui, port }: { dir: string; ui: string; 
     }
   })
 
+  await mkdir(dir, { recursive: true })
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const watcher = watch(dir, { recursive: true }, (_event, name) => {
+    if (name?.endsWith('.tmp')) return // saveFile's temp files; the rename that follows is reported on its own
+    clearTimeout(timer)
+    timer = setTimeout(() => {
+      for (const client of clients) client.write('data: changed\n\n')
+    }, 100)
+  })
+  watcher.on('error', e => console.error(`Stopped watching ${dir} (${e.message}). Restart flowy to get live updates.`))
+
   for (let p = port; ; p++) {
     try {
       actualPort = await listen(server, p)
       break
     } catch (e) {
-      if ((e as NodeJS.ErrnoException).code !== 'EADDRINUSE' || p === 0 || p >= port + 20) throw e
+      if ((e as NodeJS.ErrnoException).code !== 'EADDRINUSE' || p === 0 || p >= port + 20) {
+        watcher.close()
+        throw e
+      }
     }
   }
 
   return {
     port: actualPort,
     close: () => new Promise(done => {
+      watcher.close()
+      clearTimeout(timer)
       server.close(() => done())
       server.closeAllConnections()
     }),

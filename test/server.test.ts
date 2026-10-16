@@ -70,14 +70,19 @@ test('PUT writes YAML when the version matches, and a stale version gets 409 wit
 })
 
 test('writes without X-Flowy, and any request with a foreign Host, are refused', async t => {
-  const { dir, port, send } = await setup(t)
+  const { dir, base, port, send } = await setup(t)
   const noHeader = await send('PUT', 'model.yaml', { version: null, data: { objects: {} } }, {})
   assert.equal(noHeader.status, 403)
+  assert.equal((await send('DELETE', 'flows/a.yaml', { version: null }, {})).status, 403)
   await assert.rejects(readFile(join(dir, 'model.yaml')), { code: 'ENOENT' })
+  // No CORS headers, so a page on another site can't send X-Flowy at all.
+  const preflight = await fetch(`${base}/api/file/model.yaml`, { method: 'OPTIONS' })
+  assert.equal(preflight.headers.get('access-control-allow-origin'), null)
   assert.equal(await rawGet(port, '/api/state'), 200)
   assert.equal(await rawGet(port, '/api/state', `localhost:${port}`), 200)
   assert.equal(await rawGet(port, '/api/state', `evil.example:${port}`), 403)
   assert.equal(await rawGet(port, '/', 'evil.example'), 403)
+  assert.equal(await rawGet(port, '//', 'evil.example'), 403)
 })
 
 test('only model.yaml, layout.yaml and flow files can be written, and only flows deleted', async t => {
@@ -143,4 +148,23 @@ test('a taken port moves on to the next free one', async t => {
     await rm(root, { recursive: true, force: true })
   })
   assert.ok(second.port > first.port && second.port <= first.port + 20, `got ${second.port} after ${first.port}`)
+})
+
+test('/api/events says "changed" after a file changes, but not for temp files', async t => {
+  const { dir, base } = await setup(t)
+  const stop = new AbortController()
+  t.after(() => stop.abort())
+  const res = await fetch(`${base}/api/events`, { signal: stop.signal })
+  assert.equal(res.headers.get('content-type'), 'text/event-stream')
+  const reader = res.body!.pipeThrough(new TextDecoderStream()).getReader()
+  assert.equal((await reader.read()).value, 'retry: 1000\n\n')
+  let received = ''
+  const next = reader.read().then(r => { received += r.value })
+  // No mkdir here: the server creates the folder so it can watch it.
+  await writeFile(join(dir, 'model.yaml.123.tmp'), 'x')
+  await new Promise(done => setTimeout(done, 300))
+  assert.equal(received, '')
+  await writeFile(join(dir, 'model.yaml'), 'objects: {}\n')
+  await next
+  assert.equal(received, 'data: changed\n\n')
 })
