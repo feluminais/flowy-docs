@@ -110,7 +110,7 @@ test('unknown views, overlong ids and unreadable files come back as errors', asy
   await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
   const long = await call('put_flow', { id: 'f'.repeat(300), name: 'F', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x' }] })
   assert.equal(long.error, true)
-  assert.doesNotMatch(long.text, /ENOENT/)
+  assert.match(long.text, /<=64 characters/)
   await mkdir(join(dir, 'flows'), { recursive: true })
   await writeFile(join(dir, 'flows/x.yaml'), 'steps: nope\n')
   assert.match((await call('get_model')).text, /^flows\/x\.yaml: /)
