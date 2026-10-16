@@ -1,0 +1,79 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { check, newProblems } from '../src/core/check.ts'
+import type { Model } from '../src/core/model.ts'
+import { shop } from './fixtures.ts'
+
+/** Lets tests add objects that break the types on purpose. */
+const raw = (objects: Record<string, unknown>) => objects as Model['objects']
+
+function assertProblem(m: Model, text: string) {
+  const all = check(m).map(p => `${p.file} ${p.message}`)
+  assert.ok(all.some(msg => msg.includes(text)), `expected a problem containing ${JSON.stringify(text)}, got ${JSON.stringify(all, null, 2)}`)
+}
+
+test('the shop fixture has no problems', () => {
+  assert.deepEqual(check(shop()), [])
+})
+
+test('object rules', () => {
+  const m = shop()
+  Object.assign(m.objects, raw({
+    'Bad Id': { type: 'actor', name: 'X' },
+    root: { type: 'actor', name: 'R' },
+    thing: { type: 'gizmo', name: 'T' },
+    nameless: { type: 'actor', name: '' },
+    floating: { type: 'app', name: 'F' },
+    lost: { type: 'store', name: 'L', in: 'nowhere' },
+    deep: { type: 'component', name: 'D', in: 'shop' },
+    boxed: { type: 'system', name: 'B', in: 'shop' },
+  }))
+  assertProblem(m, 'Bad Id: ids use lowercase')
+  assertProblem(m, 'root: ids use lowercase')
+  assertProblem(m, 'thing: unknown type "gizmo"')
+  assertProblem(m, 'nameless: name is missing')
+  assertProblem(m, 'floating: app must be inside system')
+  assertProblem(m, 'lost: "in" points to unknown object "nowhere"')
+  assertProblem(m, 'deep: component must be inside app or store, not system')
+  assertProblem(m, "boxed: system can't be inside anything")
+})
+
+test('connection rules', () => {
+  const m = shop()
+  m.connections.push({ from: 'web', to: 'ghost' }, { from: 'web', to: 'web' }, { from: 'web', to: 'api', label: 'REST' })
+  assertProblem(m, 'connection web → ghost: unknown object "ghost"')
+  assertProblem(m, 'connection web → web: connects an object to itself')
+  assertProblem(m, 'connection web → api: duplicate "REST"')
+})
+
+test('flow rules', () => {
+  const m = shop()
+  m.flows['Bad Flow'] = { name: 'B', view: 'shop', steps: [{ from: 'web', to: 'api', text: 'x' }] }
+  m.flows.leaf = { name: '', view: 'db', steps: [] }
+  m.flows.broken = {
+    name: 'Broken',
+    view: 'api',
+    steps: [
+      { from: 'ghost', to: 'auth', text: 'a' },
+      { from: 'auth', to: 'orders', text: '' },
+      { from: 'auth', to: 'auth', text: 'loop' },
+      { from: 'customer', to: 'web', text: 'far away' },
+    ],
+  }
+  assertProblem(m, 'flows/Bad Flow.yaml "Bad Flow" is not a valid flow id')
+  assertProblem(m, 'flows/leaf.yaml name is missing')
+  assertProblem(m, 'flows/leaf.yaml view "db" must be "root" or an object with children')
+  assertProblem(m, 'flows/leaf.yaml has no steps')
+  assertProblem(m, 'flows/broken.yaml step 1: unknown object "ghost"')
+  assertProblem(m, 'flows/broken.yaml step 2: text is missing')
+  assertProblem(m, 'flows/broken.yaml step 3: goes from an object to itself')
+  assertProblem(m, `flows/broken.yaml step 4: customer → web can't be shown in view "api"`)
+})
+
+test('newProblems ignores problems that were already there', () => {
+  const before = shop()
+  before.connections.push({ from: 'web', to: 'web' })
+  const after = structuredClone(before)
+  after.objects.floating = { type: 'app', name: 'F' }
+  assert.deepEqual(newProblems(check(before), check(after)).map(p => p.message), ['floating: app must be inside system'])
+})
