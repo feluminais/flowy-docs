@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { check, newProblems } from '../src/core/check.ts'
+import { check, newProblems, typesIn } from '../src/core/check.ts'
 import type { Model } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 
@@ -146,4 +146,40 @@ test('newProblems ignores problems that were already there', () => {
   const after = structuredClone(before)
   after.objects.floating = { type: 'app', name: 'F' }
   assert.deepEqual(newProblems(check(before), check(after)).map(p => p.message), ['floating: app must be inside system'])
+})
+
+test('connection and step problems say where they are, and newProblems ignores that', () => {
+  const before = shop()
+  before.connections.push({ from: 'web', to: 'web' })
+  before.flows.checkout.steps[1].text = ''
+  const at = check(before).map(p => [p.message, p.connection, p.step])
+  assert.deepEqual(at, [
+    ['connection web → web: connects an object to itself', 5, undefined],
+    ['step 2: text is missing', undefined, 1],
+  ])
+  const after = structuredClone(before)
+  after.connections.shift()
+  assert.equal(check(after)[0].connection, 4)
+  assert.deepEqual(newProblems(check(before), check(after)), [])
+})
+
+test('typesIn follows the nesting rules', () => {
+  const m = shop()
+  assert.deepEqual(typesIn(m, 'root'), ['actor', 'system'])
+  assert.deepEqual(typesIn(m, 'shop'), ['app', 'store'])
+  assert.deepEqual(typesIn(m, 'api'), ['component'])
+  assert.deepEqual(typesIn(m, 'db'), ['component'])
+  assert.deepEqual(typesIn(m, 'auth'), [])
+  assert.deepEqual(typesIn(m, 'ghost'), [])
+  assert.deepEqual(typesIn(m, 'constructor'), [])
+})
+
+test('a step problem that only got a new number is not new', () => {
+  const before = shop()
+  before.flows.checkout.steps[2].text = ''
+  const after = structuredClone(before)
+  after.flows.checkout.steps.shift()
+  assert.deepEqual(newProblems(check(before), check(after)).map(p => p.message), [])
+  after.flows.checkout.steps[0].text = ''
+  assert.equal(newProblems(check(before), check(after)).length, 1) // two steps miss their text now, one did before
 })

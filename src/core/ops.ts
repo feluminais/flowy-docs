@@ -1,5 +1,6 @@
+import { check, newProblems } from './check.ts'
 import { getObject, isValidId, ROOT } from './model.ts'
-import type { Connection, FlowyObject, Model, ObjectType, Step } from './model.ts'
+import type { Connection, Flow, FlowyObject, Layout, Model, ObjectType, Step } from './model.ts'
 import { memberIds } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
@@ -65,6 +66,25 @@ export function disconnect(model: Model, { from, to, label }: ConnectionInput): 
   return { ...model, connections: model.connections.filter(c => !matches(c)) }
 }
 
+/** Where the first from → to connection labelled `label` ("" or none: unlabelled) is. */
+function findConnection(model: Model, { from, to, label = '' }: ConnectionInput): number {
+  const i = model.connections.findIndex(c => c.from === from && c.to === to && (c.label ?? '') === label)
+  if (i === -1) throw new OpError(`no connection ${from} → ${to} ${label ? `labelled "${label}"` : 'without a label'}`)
+  return i
+}
+
+/** Remove one connection: the first that matches. Unlike disconnect, exact duplicates go one at a time. */
+export function removeConnection(model: Model, which: ConnectionInput): Model {
+  return { ...model, connections: model.connections.toSpliced(findConnection(model, which), 1) }
+}
+
+/** Give one connection (the first that matches) a new label, in place. "" removes the label. */
+export function relabel(model: Model, which: ConnectionInput, label: string): Model {
+  const i = findConnection(model, which)
+  const { label: _, ...rest } = model.connections[i]
+  return { ...model, connections: model.connections.with(i, label ? { ...model.connections[i], label } : rest) }
+}
+
 /** Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. */
 export function putFlow(model: Model, { id, name, view, steps }: FlowInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid flow id: ${ID_RULE}`)
@@ -74,10 +94,36 @@ export function putFlow(model: Model, { id, name, view, steps }: FlowInput): Mod
   return { ...model, flows: { ...model.flows, [id]: { name, view, steps: steps.map(s => ({ ...s })) } } }
 }
 
-export function deleteFlow(model: Model, id: string): Model {
+function existingFlow(model: Model, id: string): Flow {
   if (!Object.hasOwn(model.flows, id)) throw new OpError(`unknown flow "${id}"`)
   if (!isValidId(id)) throw new OpError(`flows/${id}.yaml has an invalid file name, so it can't be changed here. Rename or delete it by hand.`)
+  return model.flows[id]
+}
+
+/** Change an existing flow's name or steps, keeping everything else it has. */
+export function updateFlow(model: Model, id: string, changes: Partial<Pick<Flow, 'name' | 'steps'>>): Model {
+  return { ...model, flows: { ...model.flows, [id]: { ...existingFlow(model, id), ...changes } } }
+}
+
+export function deleteFlow(model: Model, id: string): Model {
+  existingFlow(model, id)
   const flows = { ...model.flows }
   delete flows[id]
   return { ...model, flows }
+}
+
+/** Save where boxes sit in one view (layout.yaml). Positions of objects and views that no longer exist are dropped. */
+export function placeBoxes(model: Model, view: string, boxes: Record<string, [number, number]>): Model {
+  const merged = { ...model.layout, [view]: { ...(Object.hasOwn(model.layout, view) ? model.layout[view] : {}), ...boxes } }
+  const layout: Layout = Object.fromEntries(Object.entries(merged).flatMap(([v, saved]) => {
+    const kept = Object.entries(saved).filter(([id]) => getObject(model, id))
+    return (v === ROOT || getObject(model, v)) && kept.length ? [[v, Object.fromEntries(kept)]] : []
+  }))
+  return { ...model, layout }
+}
+
+/** Refuse an edit that adds problems, naming them. Problems that were already there never block it. */
+export function refuseNewProblems(before: Model, after: Model): void {
+  const added = newProblems(check(before), check(after))
+  if (added.length) throw new OpError(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}`)
 }

@@ -1,5 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { check } from '../src/core/check.ts'
 import { BOX, toGraph } from '../ui/src/graph.ts'
 import { shop } from './fixtures.ts'
 
@@ -50,4 +51,29 @@ test('a box only the flow uses joins as an outsider for the whole flow', () => {
   const second = toGraph(shop(), 'api', { ends, step: 1 })
   assert.equal(byId(second.nodes).web.className, 'outsider dim')
   assert.deepEqual(byId(second.nodes).web.position, byId(first.nodes).web.position)
+})
+
+test('a flow without a current step brings its boxes but dims nothing', () => {
+  const { nodes, edges } = toGraph(shop(), 'api', { ends: [['web', 'auth']] })
+  assert.equal(byId(nodes).web.className, 'outsider')
+  assert.ok([...nodes, ...edges].every(item => !item.className?.includes('dim')))
+  assert.equal(edges.some(e => e.id === 'step'), false)
+})
+
+test('a box dagre places never covers a saved one', () => {
+  const free = byId(toGraph(shop(), 'shop').nodes)
+  const model = { ...shop(), layout: { shop: { web: [free.api.position.x, free.api.position.y] as [number, number] } } }
+  const placed = toGraph(model, 'shop').nodes
+  for (const a of placed) for (const b of placed) if (a !== b)
+    assert.ok(Math.abs(a.position.x - b.position.x) >= BOX.width || Math.abs(a.position.y - b.position.y) >= BOX.height, `${a.id} overlaps ${b.id}`)
+})
+
+test('boxes and lines with problems are marked', () => {
+  const m = shop()
+  m.objects.db.name = ''
+  m.connections.push({ from: 'auth', to: 'db', label: 'checks users' })
+  const problems = check(m)
+  const { nodes, edges } = toGraph(m, 'shop', undefined, problems)
+  assert.deepEqual(nodes.filter(n => n.className?.includes('problem')).map(n => n.id), ['db'])
+  assert.deepEqual(edges.filter(e => e.className?.includes('problem')).map(e => e.id), ['api db'])
 })
