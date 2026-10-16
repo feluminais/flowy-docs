@@ -14,15 +14,30 @@ const PARENTS: Record<ObjectType, readonly ObjectType[]> = {
 
 const nonEmpty = (v: unknown) => typeof v === 'string' && v.trim() !== ''
 
+/**
+ * Every problem in the model. Never throws.
+ * The MCP server refuses writes that add problems, so a message must not change when an
+ * unrelated part of the model changes: no connection positions, names or descriptions in
+ * messages. Step numbers are fine; they only shift inside the flow being edited.
+ */
 export function check(model: Model): Problem[] {
   const problems: Problem[] = []
   const add = (file: string, id: string | undefined, message: string) =>
     problems.push(id === undefined ? { file, message } : { file, id, message })
+  const checkEnds = (p: (message: string) => void, from: unknown, to: unknown) => {
+    if (from === undefined) p('"from" is missing')
+    if (to === undefined) p('"to" is missing')
+    for (const end of new Set([from, to])) if (end !== undefined && !getObject(model, end)) p(`unknown object "${end}"`)
+  }
 
   for (const [id, o] of Object.entries(model.objects)) {
     const p = (message: string) => add('model.yaml', id, `${id}: ${message}`)
     if (!isValidId(id)) p('ids use lowercase letters, digits and dashes ("root" is reserved)')
     if (!nonEmpty(o.name)) p('name is missing')
+    if (o.type === undefined) {
+      p('type is missing')
+      continue
+    }
     if (!Object.hasOwn(PARENTS, o.type)) {
       p(`unknown type "${o.type}" (use ${OBJECT_TYPES.join(', ')})`)
       continue
@@ -38,9 +53,9 @@ export function check(model: Model): Problem[] {
 
   const seen = new Set<string>()
   for (const c of model.connections) {
-    const p = (message: string) => add('model.yaml', undefined, `connection ${c.from} → ${c.to}: ${message}`)
-    for (const end of [c.from, c.to]) if (!getObject(model, end)) p(`unknown object "${end}"`)
-    if (c.from === c.to) p('connects an object to itself')
+    const p = (message: string) => add('model.yaml', undefined, `connection ${c.from ?? '?'} → ${c.to ?? '?'}: ${message}`)
+    checkEnds(p, c.from, c.to)
+    if (c.from !== undefined && c.from === c.to) p('connects an object to itself')
     const key = JSON.stringify([c.from, c.to, c.label ?? ''])
     if (seen.has(key)) p(`duplicate${c.label ? ` "${c.label}"` : ''}`)
     seen.add(key)
@@ -48,16 +63,17 @@ export function check(model: Model): Problem[] {
 
   for (const [fid, f] of Object.entries(model.flows)) {
     const p = (message: string) => add(`flows/${fid}.yaml`, undefined, message)
-    if (!isValidId(fid)) p(`"${fid}" is not a valid flow id (it is the file name)`)
+    if (!isValidId(fid)) p(`"${fid}" is not a valid flow id: the file name must use lowercase letters, digits and dashes ("root" is reserved)`)
     if (!nonEmpty(f.name)) p('name is missing')
     const viewOk = f.view === ROOT || (getObject(model, f.view) !== undefined && hasChildren(model, f.view))
-    if (!viewOk) p(`view "${f.view}" must be "root" or an object with children`)
+    if (f.view === undefined) p('view is missing')
+    else if (!viewOk) p(`view "${f.view}" must be "root" or an object with children`)
     if (f.steps.length === 0) p('has no steps')
     f.steps.forEach((s, i) => {
       const sp = (message: string) => p(`step ${i + 1}: ${message}`)
-      for (const end of [s.from, s.to]) if (!getObject(model, end)) sp(`unknown object "${end}"`)
+      checkEnds(sp, s.from, s.to)
       if (!nonEmpty(s.text)) sp('text is missing')
-      if (s.from === s.to) sp('goes from an object to itself')
+      if (s.from !== undefined && s.from === s.to) sp('goes from an object to itself')
       else if (viewOk && getObject(model, s.from) && getObject(model, s.to) && !placeEnds(model, f.view, s.from, s.to))
         sp(`${s.from} → ${s.to} can't be shown in view "${f.view}"`)
     })
@@ -67,8 +83,13 @@ export function check(model: Model): Problem[] {
 
 const key = (p: Problem) => JSON.stringify([p.file, p.id ?? '', p.message])
 
-/** Problems in `after` that weren't already in `before`. */
+/** Problems in `after` that weren't already in `before`. Repeats count: a second copy of an old problem is new. */
 export function newProblems(before: Problem[], after: Problem[]): Problem[] {
-  const old = new Set(before.map(key))
-  return after.filter(p => !old.has(key(p)))
+  const remaining = new Map<string, number>()
+  for (const p of before) remaining.set(key(p), (remaining.get(key(p)) ?? 0) + 1)
+  return after.filter(p => {
+    const left = remaining.get(key(p)) ?? 0
+    remaining.set(key(p), left - 1)
+    return left <= 0
+  })
 }

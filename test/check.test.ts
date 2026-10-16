@@ -70,6 +70,61 @@ test('flow rules', () => {
   assertProblem(m, `flows/broken.yaml step 4: customer → web can't be shown in view "api"`)
 })
 
+test('valid edge cases are not problems', () => {
+  const m = shop()
+  m.objects.cache = { type: 'store', in: 'shop', name: 'Cache' }
+  m.objects.index = { type: 'component', in: 'cache', name: 'Index' }
+  m.connections.push({ from: 'web', to: 'api', label: 'websocket' }, { from: 'api', to: 'web', label: 'REST' })
+  m.flows.visit = { name: 'Visit', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'Visits' }] }
+  assert.deepEqual(check(m), [])
+})
+
+test('exact problems for a small broken model, with no crash on missing fields', () => {
+  const m = shop()
+  Object.assign(m.objects, raw({
+    blank: { type: 'actor', name: '   ' },
+    proto: { type: 'constructor', name: 'P' },
+    typeless: { name: 'T' },
+    misplaced: { type: 'store', in: 'web', name: 'M' },
+  }))
+  m.connections.push({ from: 'ghost', to: 'ghost' }, { from: 'web' } as never)
+  m.flows.empty = { steps: [] } as never
+  assert.deepEqual(check(m).map(p => `${p.file} ${p.message}`), [
+    'model.yaml blank: name is missing',
+    'model.yaml proto: unknown type "constructor" (use actor, system, app, store, component)',
+    'model.yaml typeless: type is missing',
+    'model.yaml misplaced: store must be inside system, not app',
+    'model.yaml connection ghost → ghost: unknown object "ghost"',
+    'model.yaml connection ghost → ghost: connects an object to itself',
+    'model.yaml connection web → ?: "to" is missing',
+    'flows/empty.yaml name is missing',
+    'flows/empty.yaml view is missing',
+    'flows/empty.yaml has no steps',
+  ])
+})
+
+test('unrelated edits never make old problems look new', () => {
+  const before = shop()
+  before.connections.push({ from: 'web', to: 'ghost' }, { from: 'web', to: 'web' })
+  before.objects.floating = { type: 'app', name: 'F' }
+  const after = structuredClone(before)
+  after.connections.unshift({ from: 'customer', to: 'mail', label: 'emails' })
+  after.connections.reverse()
+  after.objects.api.description = 'Changed'
+  after.objects.extra = { type: 'actor', name: 'Extra' }
+  assert.deepEqual(newProblems(check(before), check(after)), [])
+})
+
+test('newProblems compares file, id and message, and counts repeats', () => {
+  const a = { file: 'model.yaml', id: 'x', message: 'x: name is missing' }
+  assert.deepEqual(newProblems([a], [a]), [])
+  assert.deepEqual(newProblems([a], []), [])
+  assert.equal(newProblems([a], [{ ...a, message: 'x: type is missing' }]).length, 1)
+  assert.equal(newProblems([a], [{ ...a, file: 'flows/x.yaml' }]).length, 1)
+  assert.equal(newProblems([a], [{ ...a, id: 'y' }]).length, 1)
+  assert.deepEqual(newProblems([a], [a, a]), [a])
+})
+
 test('newProblems ignores problems that were already there', () => {
   const before = shop()
   before.connections.push({ from: 'web', to: 'web' })
