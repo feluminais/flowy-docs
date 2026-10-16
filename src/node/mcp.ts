@@ -1,9 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { check, newProblems } from '../core/check.ts'
+import { check } from '../core/check.ts'
 import { changedFiles, getObject, OBJECT_TYPES, parseFile, ROOT } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
-import { connect, deleteFlow, deleteObject, disconnect, putFlow, putObject } from '../core/ops.ts'
+import { connect, deleteFlow, deleteObject, disconnect, putFlow, putObject, refuseNewProblems } from '../core/ops.ts'
 import { computeView } from '../core/views.ts'
 import { loadDir, saveFile, VersionConflict } from './files.ts'
 
@@ -45,8 +45,7 @@ export function createMcpServer(dir: string): McpServer {
       try {
         const { model, versions } = await loadDir(dir)
         const next = op(model)
-        const added = newProblems(check(model), check(next))
-        if (added.length) return fail(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}`)
+        refuseNewProblems(model, next) // the canvas refuses the same edits
         // Every op changes at most one file today, so a failure can't leave a half-applied multi-file change.
         const changes = changedFiles(model, next)
         // Never write what can't be read back: if saving and loading ever disagree, refuse instead of breaking the folder.

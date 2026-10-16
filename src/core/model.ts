@@ -146,7 +146,17 @@ export function parseLayoutFile(text: string): Layout {
 // Without aliasDuplicateObjects: false, an object used twice would be written as a YAML &anchor/*alias.
 const dump = (value: unknown) => stringify(value, { schema: 'failsafe', lineWidth: 0, aliasDuplicateObjects: false })
 
-export const serializeModelFile = (m: Model) => dump({ ...m.meta, objects: m.objects, connections: m.connections })
+/**
+ * One file's content as plain data, the way serializeFile and PUT /api/file take it. For model.yaml
+ * that's the file's own top-level keys, not the { objects, connections, meta } that parseModelFile returns.
+ */
+export function fileData(m: Model, rel: string): unknown {
+  if (rel === 'model.yaml') return { ...m.meta, objects: m.objects, connections: m.connections }
+  if (rel === 'layout.yaml') return m.layout
+  return m.flows[rel.slice('flows/'.length, -'.yaml'.length)]
+}
+
+export const serializeModelFile = (m: Model) => dump(fileData(m, 'model.yaml'))
 export const serializeFlow = (flow: Flow) => dump(flow)
 
 export function serializeLayout(layout: Layout): string {
