@@ -55,7 +55,7 @@ export async function loadDir(dir: string): Promise<Loaded> {
     if (e.code === 'ENOENT') return []
     throw e
   })
-  const names = entries.filter(e => e.isFile() && e.name.endsWith('.yaml')).map(e => e.name).sort()
+  const names = entries.filter(e => (e.isFile() || e.isSymbolicLink()) && e.name.endsWith('.yaml')).map(e => e.name).sort()
   for (const name of names) {
     const text = await read(`flows/${name}`)
     const id = name.slice(0, -'.yaml'.length)
@@ -100,7 +100,7 @@ async function saveNow(dir: string, rel: string, text: string | null, expected: 
     await writeFile(tmp, text)
     await renameWithRetry(tmp, path)
   } catch (e) {
-    await rm(tmp, { force: true })
+    await rm(tmp, { force: true }).catch(() => undefined) // keep the real error, not a cleanup one
     throw e
   }
   return hashText(text)

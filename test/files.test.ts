@@ -66,10 +66,20 @@ test('two saves of the same file at once: one wins, the other gets VersionConfli
   assert.deepEqual(await readdir(dir), ['model.yaml'])
 })
 
+test('a refused save does not block the one queued behind it', async t => {
+  const dir = await tempDir(t)
+  const [stale, fresh] = await Promise.allSettled([
+    saveFile(dir, 'model.yaml', 'objects: {}\n# stale\n', 'not-the-version'),
+    saveFile(dir, 'model.yaml', 'objects: {}\n', null),
+  ])
+  assert.equal(stale.status, 'rejected')
+  assert.equal(fresh.status, 'fulfilled')
+})
+
 test('only the flowy files themselves can be written', async t => {
   for (const ok of ['model.yaml', 'layout.yaml', 'flows/a.yaml', 'flows/checkout-2.yaml']) assert.equal(isAllowedPath(ok), true, ok)
   const bad: unknown[] = ['../model.yaml', '/model.yaml', 'x/flows/a.yaml', 'flows\\a.yaml', 'Model.yaml', 'model.yaml\n',
-    'flows/a/b.yaml', 'flows/a.yaml.', 'flows/-a.yaml', 'flows/root.yaml', 'flows/../../evil.yaml', ['model.yaml']]
+    'flows/a/b.yaml', 'flows/a.yaml.', 'flows/-a.yaml', 'flows/A.yaml', 'flows/root.yaml', 'flows/../../evil.yaml', ['model.yaml']]
   for (const rel of bad) assert.equal(isAllowedPath(rel), false, JSON.stringify(rel))
   const dir = await tempDir(t)
   await assert.rejects(saveFile(dir, '../evil.yaml', 'x', null), /refusing/)
