@@ -1,10 +1,12 @@
 import { createHash, randomUUID } from 'node:crypto'
+import { existsSync } from 'node:fs'
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
-import { check } from '../core/check.ts'
+import { check, isRepoPath } from '../core/check.ts'
 import { emptyModel, ParseError, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
 import type { State } from '../core/state.ts'
+import { codeBase } from './git.ts'
 
 /** The model plus a content hash per file (null = file missing), used to detect outside edits. */
 export type Loaded = { model: Model; versions: Record<string, string | null> }
@@ -72,12 +74,20 @@ export async function loadDir(dir: string): Promise<Loaded> {
   return { model, versions }
 }
 
+/** The `code` paths in these models that don't exist. They're relative to the folder that holds `dir`. */
+export function missingPaths(dir: string, ...models: Model[]): Set<string> {
+  const root = dirname(resolve(dir))
+  const paths = models.flatMap(m => Object.values(m.objects).flatMap(o => (Array.isArray(o.code) ? o.code : [])))
+  return new Set(paths.filter((p): p is string => typeof p === 'string' && isRepoPath(p) && !existsSync(join(root, p))))
+}
+
 /** The folder as the canvas reads it, or the file that can't be read: what GET /api/state answers and an export carries. */
 export async function loadState(dir: string): Promise<State> {
   try {
     const { model, versions } = await loadDir(dir)
     const { flows, layout, ...rest } = model
-    return { model: rest, layout, flows, problems: check(model), versions }
+    const base = await codeBase(dirname(resolve(dir)))
+    return { model: rest, layout, flows, problems: check(model, missingPaths(dir, model)), versions, ...(base ? { codeBase: base } : {}) }
   } catch (e) {
     if (e instanceof ParseError) return { parseError: { file: e.file, line: e.line, message: e.reason } }
     throw e
