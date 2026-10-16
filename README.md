@@ -30,6 +30,8 @@ folder, `--port <number>` picks the port, and `--no-open` skips the browser.
 - Faded, dashed boxes live elsewhere in the model. They show up because something here connects to
   them, and they wait around the edges (people above, the rest on both sides) while what's inside
   sits in the middle.
+- A box can list the files and folders it lives in, under its description. When the repo's
+  `origin` is on GitHub or GitLab, they link there.
 - Pick a flow in the top bar to play it step by step: ← and → move, Esc stops.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Boxes with
   a problem carry a "!".
@@ -45,7 +47,9 @@ Press E, or the Edit button.
 - Add puts a box in the current view. It offers only the types that fit there: actors and
   systems at the top, apps and stores inside a system, components inside an app or store.
   Double-click an empty system, app or store to open it and add what goes inside.
-- Click a box to change its name, type, tech and description. A field saves when you leave it.
+- Click a box to change its name, type, tech, description and code. A field saves when you leave
+  it. Code takes one path per line, relative to the folder that holds `flowy/`. A path that
+  doesn't exist shows up as a problem.
 - Delete (the key, or the button in the panel) removes the selected box or line. A box that still
   contains others, or that a flow uses, stays, and a notice says why.
 - New flow records a walkthrough: name it, click the box where a step starts and the box it goes
@@ -67,6 +71,10 @@ claude mcp add flowy -- npx flowy-docs mcp
 Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and
 `flowy/flows/*.yaml`, and refuses any change that would break the model. Add `--dir <folder>`
 after `mcp` to keep the files somewhere other than `./flowy`.
+
+Claude can also note where each box lives in the code (`code: [src/api/]`). A path that doesn't
+exist is refused, so the model can't quietly point at code that's gone. When code moves later,
+the box gets a "!" until someone fixes the path.
 
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
 notes in an object's `description` instead.
@@ -139,6 +147,8 @@ Reading:
       line, and Edit greys out. Undo it: the banner goes.
 - [ ] Add `  floating: { type: app, name: Floating }` right under `objects:`: "1 problem" appears
       and Floating has a "!". Pick the problem: Floating's panel shows it.
+- [ ] Add `    code: [src/cli.ts, nope/]` under `api:`. "1 problem" names `nope/`. API's panel lists
+      both paths, as links to github.com/feluminais/flowy-docs on the current branch. Undo it.
 - [ ] Stop flowy: a banner says the connection is lost. Start it again: the banner goes.
 
 Editing (press E):
@@ -151,6 +161,8 @@ Editing (press E):
       Enter: a notice says it was refused, and the name comes back.
 - [ ] Select API and press Delete: the notice says it still contains auth and orders. Select
       Cache and press Delete: it goes.
+- [ ] Select API, type `src/cli.ts` in Code and press Tab: `example/model.yaml` gets a
+      `code` list with `src/cli.ts`. Clear the field and press Tab: `code` is gone.
 - [ ] Press New flow, name it, click Customer then Web app, type a step and press Enter. Add a
       second step, move it up with ↑, delete it with ×. Leave edit mode and play the new flow.
 
