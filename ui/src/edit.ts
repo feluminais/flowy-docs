@@ -58,3 +58,11 @@ export function locate(model: Model, problem: Problem): Spot {
   }
   return { view: ROOT }
 }
+
+/** An object's own problems, and those of connections that touch it (a broken connection draws no line to click). */
+export function problemsOf(model: Model, problems: Problem[], id: string): Problem[] {
+  return problems.filter(p => {
+    const c = p.connection === undefined ? undefined : model.connections[p.connection]
+    return p.id === id || c?.from === id || c?.to === id
+  })
+}
