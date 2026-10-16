@@ -1,18 +1,30 @@
 {
   "name": "flowy-docs",
   "version": "0.1.0",
-  "private": true,
   "description": "Open-source architecture docs you zoom through: a C4-style model in YAML, step-by-step flows, and an MCP server.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/feluminais/flowy-docs.git"
+  },
   "type": "module",
+  "bin": {
+    "flowy": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=22.18"
   },
   "scripts": {
     "test": "node --test \"test/**/*.test.ts\"",
     "typecheck": "tsc -p . && tsc -p src/core && tsc -p ui",
+    "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && vite build ui && tsc -p tsconfig.build.json",
     "build:ui": "vite build ui",
-    "dev:ui": "vite ui"
+    "dev:ui": "vite ui",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm test && npm run typecheck"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",

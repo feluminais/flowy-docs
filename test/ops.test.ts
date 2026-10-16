@@ -1,6 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { connect, deleteFlow, deleteObject, disconnect, OpError, putFlow, putObject } from '../src/core/ops.ts'
+import {
+  connect, deleteFlow, deleteObject, disconnect, OpError, placeBoxes, putFlow, putObject, refuseNewProblems, relabel,
+  removeConnection, updateFlow,
+} from '../src/core/ops.ts'
 import type { ObjectInput } from '../src/core/ops.ts'
 import { shop } from './fixtures.ts'
 
@@ -40,6 +43,10 @@ test('ops never change the model they are given', () => {
   disconnect(m, { from: 'web', to: 'api' })
   putFlow(m, { id: 'x', name: 'X', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'hi' }] })
   deleteFlow(m, 'checkout')
+  relabel(m, { from: 'web', to: 'api', label: 'REST' }, 'HTTPS')
+  removeConnection(m, { from: 'web', to: 'api', label: 'REST' })
+  updateFlow(m, 'checkout', { steps: [] })
+  placeBoxes(m, 'root', { shop: [1, 2] })
   assert.deepEqual(m, copy)
 })
 
@@ -115,4 +122,48 @@ test('files that only a person can fix get a clear refusal', () => {
 
 test('refusals are OpErrors', () => {
   assert.throws(() => deleteObject(shop(), 'ghost'), (e: unknown) => e instanceof OpError && e.name === 'OpError')
+})
+
+test('relabel changes one connection in place, and "" removes the label', () => {
+  const m = connect(shop(), { from: 'web', to: 'api', label: 'REST' })
+  const n = relabel(m, { from: 'web', to: 'api', label: 'REST' }, 'HTTPS')
+  assert.deepEqual(n.connections.map(c => c.label), ['browses', 'HTTPS', 'reads/writes', 'checks users', 'sends receipts', 'REST'])
+  assert.deepEqual(relabel(n, { from: 'web', to: 'api', label: 'HTTPS' }, '').connections[1], { from: 'web', to: 'api' })
+  assert.equal(relabel(connect(shop(), { from: 'web', to: 'db' }), { from: 'web', to: 'db' }, 'reads').connections.at(-1)?.label, 'reads')
+  assert.throws(() => relabel(shop(), { from: 'web', to: 'api', label: 'SOAP' }, 'x'), /no connection web → api labelled "SOAP"/)
+  assert.throws(() => relabel(shop(), { from: 'web', to: 'db' }, 'x'), /no connection web → db without a label/)
+})
+
+test('removeConnection removes one connection, so a duplicate goes and the original stays', () => {
+  const m = connect(shop(), { from: 'web', to: 'api', label: 'REST' })
+  assert.deepEqual(removeConnection(m, { from: 'web', to: 'api', label: 'REST' }).connections.filter(c => c.to === 'api'),
+    [{ from: 'web', to: 'api', label: 'REST' }])
+  assert.equal(removeConnection(shop(), { from: 'customer', to: 'web', label: 'browses' }).connections.length, 4)
+  assert.throws(() => removeConnection(shop(), { from: 'web', to: 'api' }), /no connection web → api without a label/)
+})
+
+test('updateFlow changes the name or steps and keeps the rest', () => {
+  const base = shop()
+  base.flows.checkout.owner = 'team-a'
+  const steps = base.flows.checkout.steps.slice(1)
+  assert.deepEqual(updateFlow(base, 'checkout', { steps }).flows.checkout, { name: 'Customer checks out', view: 'shop', steps, owner: 'team-a' })
+  assert.equal(updateFlow(base, 'checkout', { name: 'Pays' }).flows.checkout.name, 'Pays')
+  assert.throws(() => updateFlow(shop(), 'nope', { name: 'X' }), /unknown flow "nope"/)
+  base.flows.Visit = { name: 'V', view: 'root', steps: [] }
+  assert.throws(() => updateFlow(base, 'Visit', { name: 'X' }), /flows\/Visit\.yaml has an invalid file name/)
+})
+
+test('placeBoxes merges positions into one view and drops what no longer exists', () => {
+  const layout: Record<string, Record<string, [number, number]>> = { root: { customer: [0, 0], gone: [1, 1] }, shop: { web: [5, 5] }, ghost: { x: [2, 2] } }
+  const m = { ...shop(), layout }
+  assert.deepEqual(placeBoxes(m, 'shop', { api: [10, 20] }).layout, { root: { customer: [0, 0] }, shop: { web: [5, 5], api: [10, 20] } })
+  assert.deepEqual(placeBoxes(shop(), 'api', { auth: [1, 2] }).layout, { api: { auth: [1, 2] } })
+})
+
+test('refuseNewProblems names what an edit would break, and lets old problems be', () => {
+  const before = shop()
+  before.connections.push({ from: 'web', to: 'web' })
+  assert.doesNotThrow(() => refuseNewProblems(before, putObject(before, { id: 'api', name: 'Backend' })))
+  assert.throws(() => refuseNewProblems(before, putObject(before, { id: 'api', name: '' })),
+    (e: unknown) => e instanceof OpError && e.message === 'Refused, nothing saved. This would add:\n- model.yaml: api: name is missing')
 })
