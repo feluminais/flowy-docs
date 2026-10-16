@@ -137,3 +137,15 @@ test('code paths are checked against the folder that holds the flowy folder', as
   assert.equal((await call('put_object', { id: 'shop', code: [] })).error, false)
   assert.doesNotMatch(await readFile(join(dir, 'model.yaml'), 'utf8'), /code/)
 })
+
+test('get_mermaid draws a view or a flow, and wants exactly one of them', async t => {
+  const { call } = await setup(t)
+  await call('put_object', { id: 'customer', type: 'actor', name: 'Customer' })
+  await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
+  await call('connect', { from: 'customer', to: 'shop', label: 'buys' })
+  await call('put_flow', { id: 'buy', name: 'Buying', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'Buys' }] })
+  assert.match((await call('get_mermaid', { view: 'root' })).text, /^flowchart TB\n[\s\S]*n0 -- "buys" --> n1\n$/)
+  assert.match((await call('get_mermaid', { flow: 'buy' })).text, /^sequenceDiagram\n {2}actor n0 as Customer\n[\s\S]*n0->>n1: Buys\n$/)
+  for (const args of [{}, { view: 'root', flow: 'buy' }]) assert.equal((await call('get_mermaid', args)).error, true)
+  assert.match((await call('get_mermaid', { flow: 'nope' })).text, /unknown flow "nope"/)
+})
