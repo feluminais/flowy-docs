@@ -89,10 +89,14 @@ test('old problems never block an unrelated write, and only the changed file is 
   assert.equal((await call('put_object', { id: 'mail', tech: 'SMTP' })).text, 'Updated mail.')
 })
 
+// U+2028 and U+2029, built in code so no copy or paste step can turn them into spaces
+const LS = String.fromCharCode(0x2028)
+const PS = String.fromCharCode(0x2029)
+
 test('values with line separators save and load again', async t => {
   const { client, call } = await setup()
   t.after(() => client.close())
-  const description = 'a ======= <<<<<<< x'
+  const description = `a${LS}=======${PS}<<<<<<< x`
   assert.equal((await call('put_object', { id: 'o', type: 'actor', name: 'N', description })).error, false)
   const model = await call('get_model')
   assert.equal(model.error, false, model.text)

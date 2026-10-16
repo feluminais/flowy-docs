@@ -55,8 +55,12 @@ test('only real git conflict markers count as merge conflicts', () => {
   assert.deepEqual(Object.keys(parseModelFile('==========: x\n<<<<<<<x: 1\n').meta), ['==========', '<<<<<<<x'])
 })
 
+// U+2028 and U+2029, built in code so no copy or paste step can turn them into spaces
+const LS = String.fromCharCode(0x2028)
+const PS = String.fromCharCode(0x2029)
+
 test('line separators inside values are not mistaken for conflict markers', () => {
-  const m = { ...emptyModel(), objects: { o: { type: 'actor' as const, name: 'N', description: 'a ======= <<<<<<< x' } } }
+  const m = { ...emptyModel(), objects: { o: { type: 'actor' as const, name: 'N', description: `a${LS}=======${PS}<<<<<<< x` } } }
   assert.deepEqual(parseModelFile(serializeModelFile(m)).objects, m.objects)
 })
 

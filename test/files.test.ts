@@ -109,6 +109,7 @@ test('broken files are reported with their name, and never overwritten', async t
 
 test('a UTF-8 file with a BOM loads', async t => {
   const dir = await tempDir(t)
-  await writeFile(join(dir, 'model.yaml'), '﻿objects:\n  a: { type: actor, name: A }\n')
+  const bom = String.fromCharCode(0xfeff) // built in code so no copy or paste step can drop it
+  await writeFile(join(dir, 'model.yaml'), `${bom}objects:\n  a: { type: actor, name: A }\n`)
   assert.equal((await loadDir(dir)).model.objects.a.name, 'A')
 })
