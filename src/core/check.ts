@@ -32,6 +32,9 @@ const missing = (v: unknown) => v === undefined || v === ''
 export const isRepoPath = (path: string): boolean =>
   !/^\/|\\|:/.test(path) && path.split('/').every((part, i, all) => (part !== '' || (i === all.length - 1 && i > 0)) && part !== '.' && part !== '..')
 
+/** A path made safe for a URL one part at a time, so a # or ? in a name stays part of the name. */
+export const encodePath = (path: string): string => path.split('/').map(encodeURIComponent).join('/')
+
 /**
  * Every problem in the model. Never throws. `absent` holds the code paths that don't exist; only Node
  * can tell, so the browser leaves it empty.

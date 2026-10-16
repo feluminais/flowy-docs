@@ -7,6 +7,7 @@ test('a GitHub or GitLab origin gives a link base for the branch and folder', ()
     assert.equal(codeBaseFrom(remote, 'main', ''), 'https://github.com/acme/shop/tree/main/', remote)
   assert.equal(codeBaseFrom('git@gitlab.com:group/sub/shop.git', 'dev', 'docs/'), 'https://gitlab.com/group/sub/shop/-/tree/dev/docs/')
   assert.equal(codeBaseFrom('https://github.com/acme/shop', 'feat/a b', ''), 'https://github.com/acme/shop/tree/feat/a%20b/')
+  assert.equal(codeBaseFrom('https://github.com/acme/shop', 'fix#12', 'C#/'), 'https://github.com/acme/shop/tree/fix%2312/C%23/')
 })
 
 test('other hosts give no link base', () => {
