@@ -171,3 +171,13 @@ test('typesIn follows the nesting rules', () => {
   assert.deepEqual(typesIn(m, 'db'), ['component'])
   assert.deepEqual(typesIn(m, 'auth'), [])
 })
+
+test('a step problem that only got a new number is not new', () => {
+  const before = shop()
+  before.flows.checkout.steps[2].text = ''
+  const after = structuredClone(before)
+  after.flows.checkout.steps.shift()
+  assert.deepEqual(newProblems(check(before), check(after)).map(p => p.message), [])
+  after.flows.checkout.steps[0].text = ''
+  assert.equal(newProblems(check(before), check(after)).length, 1) // two steps miss their text now, one did before
+})
