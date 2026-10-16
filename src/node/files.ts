@@ -10,6 +10,12 @@ export type Loaded = { model: Model; versions: Record<string, string | null> }
 /** The file changed since the caller read it. */
 export class VersionConflict extends Error {
   name = 'VersionConflict'
+  /** The file's version now (null = missing). */
+  version: string | null
+  constructor(rel: string, version: string | null) {
+    super(`${rel} changed since it was read`)
+    this.version = version
+  }
 }
 
 const ALLOWED = /^(model\.yaml|layout\.yaml|flows\/(?!root\.yaml$)[a-z0-9][a-z0-9-]*\.yaml)$/
@@ -89,7 +95,8 @@ async function saveNow(dir: string, rel: string, text: string | null, expected: 
   // ponytail: saves are serialized per file inside this process only. Another process or an
   // editor saving between this check and the rename can still be overwritten; add a lock file
   // if that ever bites. No fsync either: a power cut mid-save can leave an empty file (git has it).
-  if ((current === null ? null : hashText(current)) !== expected) throw new VersionConflict(`${rel} changed since it was read`)
+  const version = current === null ? null : hashText(current)
+  if (version !== expected) throw new VersionConflict(rel, version)
   if (text === null) {
     await rm(path, { force: true, maxRetries: 4, retryDelay: 50 })
     return null
