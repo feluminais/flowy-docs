@@ -10,6 +10,8 @@ export type State =
     problems: Problem[]
     /** Content hash per file, null for a missing file. Writes send it back as `version`. */
     versions: Record<string, string | null>
+    /** Where `code` paths link to, e.g. https://github.com/acme/shop/tree/main/. Missing when the repo isn't on GitHub or GitLab. */
+    codeBase?: string
   }
   | { parseError: { file: string; line?: number; message: string } }
 
