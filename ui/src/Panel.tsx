@@ -1,5 +1,5 @@
 import type { FocusEvent, FormEvent, ReactNode } from 'react'
-import { typesIn } from '../../src/core/check.ts'
+import { encodePath, typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { getObject, ROOT } from '../../src/core/model.ts'
 import type { FlowyObject, Model, ObjectType, Step } from '../../src/core/model.ts'
@@ -50,7 +50,7 @@ function CodeList({ object, codeBase }: { object: FlowyObject; codeBase?: string
   if (paths.length === 0) return null
   return (
     <ul className="code-list" aria-label="Code">
-      {paths.map(p => <li key={p}>{codeBase ? <a href={codeBase + encodeURI(p)} target="_blank" rel="noreferrer"><code>{p}</code></a> : <code>{p}</code>}</li>)}
+      {paths.map((p, i) => <li key={i}>{codeBase ? <a href={codeBase + encodePath(p)} target="_blank" rel="noreferrer"><code>{p}</code></a> : <code>{p}</code>}</li>)}
     </ul>
   )
 }
