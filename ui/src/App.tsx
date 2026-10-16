@@ -12,6 +12,7 @@ import { Camera } from './Camera.tsx'
 import { connectionsOf, locate, nameOf } from './edit.ts'
 import { fitOptions, focusEdges, lineId, toGraph } from './graph.ts'
 import type { BoxNode, Playing } from './graph.ts'
+import { readHash, toHash } from './hash.ts'
 import { Line } from './Line.tsx'
 import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
 import type { Recording, Run } from './Panel.tsx'
@@ -37,11 +38,11 @@ function pick(rec: Recording, id: string): Recording {
 }
 
 export function App() {
-  const { model, banner, edit } = useModel()
+  const { model, banner, edit, live } = useModel()
   return (
     <div className="app">
       {banner && <div className="banner" role="alert">{banner}</div>}
-      {model && <Reader model={model} edit={edit} readOnly={banner !== undefined} />}
+      {model && <Reader model={model} edit={edit} live={live} readOnly={!live || banner !== undefined} />}
     </div>
   )
 }
@@ -66,10 +67,14 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
   )
 }
 
-function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly: boolean }) {
-  const [viewId, setViewId] = useState(ROOT)
+function Reader({ model, edit, live, readOnly }: { model: Model; edit: Edit; live: boolean; readOnly: boolean }) {
+  // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
+  const [viewId, setViewId] = useState(() => readHash(location.hash).view)
   const [side, setSide] = useState<Side>()
-  const [playing, setPlaying] = useState<{ flow: string; step: number }>()
+  const [playing, setPlaying] = useState<{ flow: string; step: number } | undefined>(() => {
+    const { flow } = readHash(location.hash)
+    return flow === undefined ? undefined : { flow, step: 0 }
+  })
   const [editMode, setEditMode] = useState(false)
   const [notice, setNotice] = useState<string>()
   // Where boxes are being dragged to. Nodes are controlled, so a box only moves through this.
@@ -77,8 +82,9 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
   const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
   const [hovered, setHovered] = useState<string>() // the line the pointer is on
   const opening = useRef<ReturnType<typeof setTimeout>>(undefined) // a click on a box that opens, waiting out the double-click window
+  const quiet = useRef(true) // the next address write replaces instead of pushing (see the address effect)
 
-  const editing = editMode && !readOnly // a file that can't be read, or a lost server, makes the canvas read-only
+  const editing = editMode && !readOnly // a file that can't be read, a lost server, or an exported page makes the canvas read-only
   // A box with children opens. In edit mode an empty system, app or store opens too, so its first child can be added.
   const canOpen = (id: string) => hasChildren(model, id) || (editing && typesIn(model, id).length > 0)
   // After a live reload the view's object may be gone or empty: show the nearest view that still exists.
@@ -126,6 +132,7 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
   }
   const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, flow.steps.length - 1)) })
   const toggleEdit = () => {
+    quiet.current = true // E isn't a step to go back to
     setEditMode(!editing)
     setNotice(undefined) // "Press E to fix this flow" is stale the moment E is pressed
     setPlaying(undefined)
@@ -172,6 +179,33 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
     })
   }
 
+  // The address names the view and the flow playing, so a link opens there and Back goes back. It's checked
+  // on every render. A step the reader takes pushes an entry. Anything else replaces the address: the page
+  // opening (which also drops a part that named nothing), Back or a typed address, E, or a live reload that
+  // falls back to another view.
+  const address = toHash(view, flow ? playing?.flow : undefined)
+  useEffect(() => {
+    if (quiet.current || address !== location.hash)
+      history[quiet.current || view !== viewId ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
+    quiet.current = false
+  })
+
+  // Back, Forward, or an address typed in: show what it names. Added again on every render, like the keys below.
+  useEffect(() => {
+    const follow = () => {
+      quiet.current = true
+      const named = readHash(location.hash)
+      go(named.view)
+      if (named.flow !== undefined) setPlaying({ flow: named.flow, step: 0 })
+    }
+    window.addEventListener('popstate', follow)
+    window.addEventListener('hashchange', follow)
+    return () => {
+      window.removeEventListener('popstate', follow)
+      window.removeEventListener('hashchange', follow)
+    }
+  })
+
   // Added again on every render, so the handler always sees the current state.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -214,7 +248,7 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
         {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
         <span className="grow" />
         <Problems problems={problems} onPick={jump} />
-        <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}>Edit</button>
+        {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}>Edit</button>}
       </header>
       <main className={editing ? 'canvas editing' : 'canvas'}>
         <ReactFlow
@@ -261,7 +295,9 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
         {nodes.length === 0 && (
           <p className="empty">{editing
             ? 'Nothing here yet. Press Add to put the first box here.'
-            : 'Nothing here yet. Ask Claude to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.'}</p>
+            : live
+              ? 'Nothing here yet. Ask Claude to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.'
+              : 'Nothing here yet.'}</p>
         )}
         {notice && (
           <div className="notice" role="status">

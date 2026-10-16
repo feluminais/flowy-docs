@@ -12,3 +12,6 @@ export type State =
     versions: Record<string, string | null>
   }
   | { parseError: { file: string; line?: number; message: string } }
+
+/** The id of the script element an exported page carries its State in, as JSON. */
+export const STATE_ELEMENT = 'flowy-state'
