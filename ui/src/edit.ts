@@ -1,0 +1,60 @@
+import type { Problem } from '../../src/core/check.ts'
+import { changedFiles, fileData, getObject, isValidId, ROOT, serializeLayout } from '../../src/core/model.ts'
+import type { Connection, Model } from '../../src/core/model.ts'
+import { chain, hasChildren, parentOf, placeEnds } from '../../src/core/views.ts'
+
+export const nameOf = (model: Model, id: string) => (id === ROOT ? 'Overview' : getObject(model, id)?.name || id)
+
+/** One write: a file's new content as PUT /api/file takes it, or null to delete the file. */
+export type Change = { file: string; data: unknown }
+
+/** The files that differ between two models, layout.yaml included. */
+export function changesBetween(before: Model, after: Model): Change[] {
+  const changes = changedFiles(before, after).map(([file, text]) => ({ file, data: text === null ? null : fileData(after, file) }))
+  if (serializeLayout(before.layout) !== serializeLayout(after.layout)) changes.push({ file: 'layout.yaml', data: after.layout })
+  return changes
+}
+
+/** An id made from a name ("Orders DB" → "orders-db"), with -2, -3… when it's taken in any letter case. */
+export function newId(name: string, taken: string[], fallback: string): string {
+  const base = name.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').slice(0, 40).replace(/^-+|-+$/g, '') || fallback
+  const used = new Set(taken.map(id => id.toLowerCase()))
+  for (let n = 1; ; n++) {
+    const id = n === 1 ? base : `${base}-${n}`
+    if (isValidId(id) && !used.has(id)) return id
+  }
+}
+
+/** The connections one line of a view stands for, with their place in model.connections. */
+export function connectionsOf(model: Model, view: string, from: string, to: string): { index: number; connection: Connection }[] {
+  return model.connections.flatMap((connection, index) => {
+    const ends = placeEnds(model, view, connection.from, connection.to)
+    return ends?.[0] === from && ends[1] === to ? [{ index, connection }] : []
+  })
+}
+
+/** Where the canvas shows a problem: the view to open, and the box, line or flow step in it. */
+export type Spot = { view: string; object?: string; line?: [string, string]; flow?: string; step?: number }
+
+export function locate(model: Model, problem: Problem): Spot {
+  if (problem.id !== undefined && getObject(model, problem.id)) return { view: parentOf(model, problem.id), object: problem.id }
+  const c = problem.connection === undefined ? undefined : model.connections[problem.connection]
+  if (c) {
+    const end = [c.from, c.to].find(e => getObject(model, e))
+    if (end === undefined) return { view: ROOT }
+    // The lowest view above one end that shows the line, else that end's own box.
+    for (const view of chain(model, end).slice(1)) {
+      const line = placeEnds(model, view, c.from, c.to)
+      if (line) return { view, line }
+    }
+    return { view: parentOf(model, end), object: end }
+  }
+  const flow = /^flows\/(.+)\.yaml$/.exec(problem.file)?.[1]
+  if (flow !== undefined && Object.hasOwn(model.flows, flow)) {
+    const { view } = model.flows[flow]
+    const shown = view === ROOT || (getObject(model, view) !== undefined && hasChildren(model, view))
+    return { view: shown ? view : ROOT, flow, step: problem.step }
+  }
+  return { view: ROOT }
+}
