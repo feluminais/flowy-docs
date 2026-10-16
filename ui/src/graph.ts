@@ -134,7 +134,7 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     markerEnd: { type: 'arrowclosed' },
     className: classes(dimming && (isLit(e.from, e.to) ? 'active' : 'dim'), badLines.has(lineId(e.from, e.to)) && 'problem'),
   }))
-  if (lit && !edges.some(e => isLit(e.from, e.to)))
+  if (lit && lit[0] !== lit[1] && !edges.some(e => isLit(e.from, e.to))) // a one-box step lights its box, no line
     lines.push({ id: 'step', type: 'line', source: lit[0], target: lit[1], markerEnd: { type: 'arrowclosed' }, className: 'step' })
   return { nodes, edges: lines }
 }

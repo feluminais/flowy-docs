@@ -13,7 +13,8 @@ export type FlowyObject = {
   [extra: string]: unknown
 }
 export type Connection = { from: string; to: string; label?: string; [extra: string]: unknown }
-export type Step = { from: string; to: string; text: string; [extra: string]: unknown }
+/** One step of a flow. Without `to`, the `from` box does something on its own. `description` is the longer detail a reader can open. */
+export type Step = { from: string; to?: string; text: string; description?: string; [extra: string]: unknown }
 export type Flow = { name: string; view: string; steps: Step[]; [extra: string]: unknown }
 export type Layout = Record<string, Record<string, [number, number]>>
 
@@ -79,7 +80,7 @@ const TEXT_FIELDS = {
   object: ['type', 'name', 'in', 'tech', 'description'],
   connection: ['from', 'to', 'label'],
   flow: ['name', 'view'],
-  step: ['from', 'to', 'text'],
+  step: ['from', 'to', 'text', 'description'],
 } as const
 
 /**

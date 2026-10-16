@@ -151,6 +151,12 @@ export function AddPanel({ model, view, run, onAdded, onClose }: Common & { view
 export type Recording = { id: string; name: string; from?: string; to?: string }
 
 /** The step list beside the canvas while recording a flow: click two boxes, type what happens, press Enter. */
+/** The step with this detail, or with none when it's blank. */
+function withDescription(step: Step, description: string): Step {
+  const { description: _, ...rest } = step
+  return description.trim() ? { ...rest, description } : rest
+}
+
 export function Recorder({ model, view, rec, onChange, run, onClose }: Common & { view: string; rec: Recording; onChange: (rec: Recording) => void }) {
   if (!rec.id) return (
     <Panel onClose={onClose}>
@@ -175,11 +181,13 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
     return stepsIn(m)
   }
   const change = (edit: (steps: Step[]) => Step[]) => run(m => updateFlow(m, rec.id, { steps: edit(onScreen(m)) }))
+  // A step with no "to", or one recorded by clicking the same box twice, is that box acting on its own.
+  const ends = (from: string, to?: string) => (to === undefined || to === from ? `${nameOf(model, from)}, on its own` : `${nameOf(model, from)} → ${nameOf(model, to)}`)
   const addStep = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const text = String(new FormData(e.currentTarget).get('text')).trim()
     if (!text || !rec.from || !rec.to) return
-    const step = { from: rec.from, to: rec.to, text }
+    const step: Step = rec.to === rec.from ? { from: rec.from, text } : { from: rec.from, to: rec.to, text }
     // The first step creates the file: a flow with no steps is a problem, so it can't be saved before.
     const saved = await run(m => (Object.hasOwn(m.flows, rec.id)
       ? updateFlow(m, rec.id, { steps: [...onScreen(m), step] })
@@ -194,7 +202,12 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
       <ol className="steps form">
         {steps.map((s, i) => (
           <li key={i}>
-            <Field label={`${nameOf(model, s.from)} → ${nameOf(model, s.to)}`} value={s.text} onSave={text => change(all => all.with(i, { ...all[i], text }))} />
+            <Field label={ends(s.from, s.to)} value={s.text} onSave={text => change(all => all.with(i, { ...all[i], text }))} />
+            <details className="more" open={Boolean(s.description) || undefined}>
+              <summary>More</summary>
+              {/* An empty field removes the detail, so the step's file stays as short as it can be. */}
+              <Field label="Detail a reader can open (markdown)" value={String(s.description ?? '')} multiline onSave={description => change(all => all.with(i, withDescription(all[i], description)))} />
+            </details>
             <div className="step-buttons">
               <button aria-label="Move up" disabled={i === 0} onClick={() => void change(all => all.with(i - 1, all[i]).with(i, all[i - 1]))}>↑</button>
               <button aria-label="Move down" disabled={i === steps.length - 1} onClick={() => void change(all => all.with(i + 1, all[i]).with(i, all[i + 1]))}>↓</button>
@@ -206,12 +219,12 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
       {rec.from && rec.to ? (
         <form className="form" onSubmit={addStep}>
           <label>
-            {nameOf(model, rec.from)} → {nameOf(model, rec.to)}
+            {ends(rec.from, rec.to)}
             <input name="text" autoFocus placeholder="What happens? Press Enter" onKeyDown={e => e.key === 'Escape' && onChange({ id: rec.id, name: rec.name })} />
           </label>
         </form>
       ) : (
-        <p className="muted">{rec.from ? `From ${nameOf(model, rec.from)}. Now click the box it goes to.` : 'Click the box where the next step starts.'}</p>
+        <p className="muted">{rec.from ? `From ${nameOf(model, rec.from)}. Now click the box it goes to, or the same box for a step it does on its own.` : 'Click the box where the next step starts.'}</p>
       )}
       <div className="panel-buttons">
         {flow && <button className="danger" onClick={() => void run(m => deleteFlow(m, rec.id)).then(saved => saved && onClose())}>Delete flow</button>}
