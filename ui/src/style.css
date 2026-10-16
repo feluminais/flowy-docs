@@ -57,6 +57,7 @@ button, select, input, textarea { font: inherit; }
 .react-flow__node.outsider .box { border: 1.5px dashed var(--muted); }
 .react-flow__node.selected .box { border-color: var(--accent); }
 .react-flow__node.dim, .react-flow__edge.dim { opacity: 0.15; }
+.react-flow__edge.faint { opacity: 0.25; }
 .react-flow__edge.active .react-flow__edge-path, .react-flow__edge.step .react-flow__edge-path { stroke: var(--accent); stroke-width: 2; }
 .react-flow__edge.step .react-flow__edge-path { stroke-dasharray: 6 4; }
 
