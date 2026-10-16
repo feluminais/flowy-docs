@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controls, ReactFlow } from '@xyflow/react'
 import type { NodeChange, XYPosition } from '@xyflow/react'
 import { check, typesIn } from '../../src/core/check.ts'
@@ -77,28 +77,30 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
   const canOpen = (id: string) => hasChildren(model, id) || (editing && typesIn(model, id).length > 0)
   // After a live reload the view's object may be gone or empty: show the nearest view that still exists.
   const view = chain(model, viewId).find(v => v === ROOT || canOpen(v)) ?? ROOT
-  const problems = check(model)
+  const problems = useMemo(() => check(model), [model])
   const recording = editing && side?.kind === 'flow' ? side : undefined
   const flowsHere = Object.entries(model.flows).filter(([, f]) => f.view === view && (editing || f.steps.length > 0))
   const flow = editing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
   const stepIndex = flow && playing ? Math.min(playing.step, flow.steps.length - 1) : 0
   const step = flow?.steps[stepIndex]
-  const placeSteps = (steps: Step[]) => steps.map(s => placeEnds(model, view, s.from, s.to))
 
-  let shown: Playing | undefined
-  if (flow) shown = { ends: placeSteps(flow.steps), step: stepIndex }
-  else if (recording) {
+  // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
+  // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
+  const shown = useMemo<Playing | undefined>(() => {
+    const placeSteps = (steps: Step[]) => steps.map(s => placeEnds(model, view, s.from, s.to))
+    if (flow) return { ends: placeSteps(flow.steps), step: stepIndex }
+    if (!recording) return undefined
     const done = placeSteps(Object.hasOwn(model.flows, recording.id) ? model.flows[recording.id].steps : [])
-    shown = recording.from && recording.to
+    return recording.from && recording.to
       ? { ends: [...done, placeEnds(model, view, recording.from, recording.to)], step: done.length }
       : { ends: done }
-  }
-  const graph = toGraph(model, view, shown, problems)
+  }, [model, view, flow, stepIndex, recording])
+  const graph = useMemo(() => toGraph(model, view, shown, problems), [model, view, shown, problems])
   const picked = side?.kind === 'object' ? [side.id] : recording ? [recording.from, recording.to] : []
-  // Nodes are controlled: selection and drag positions only show through these props.
+  // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.
   const nodes = graph.nodes.map(n => ({ ...n, position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id) }))
   const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
-  const edges = graph.edges.map(e => (e.id === selectedLine ? { ...e, selected: true } : e))
+  const edges = useMemo(() => graph.edges.map(e => (e.id === selectedLine ? { ...e, selected: true } : e)), [graph, selectedLine])
 
   const run: Run = async op => {
     setNotice(undefined)
