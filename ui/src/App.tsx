@@ -8,15 +8,19 @@ import type { Model, Step } from '../../src/core/model.ts'
 import { connect, deleteObject, placeBoxes, removeConnection } from '../../src/core/ops.ts'
 import { chain, hasChildren, parentOf, placeEnds } from '../../src/core/views.ts'
 import { Box } from './Box.tsx'
+import { Camera } from './Camera.tsx'
 import { connectionsOf, locate, nameOf } from './edit.ts'
-import { lineId, toGraph } from './graph.ts'
+import { fitOptions, focusEdges, lineId, toGraph } from './graph.ts'
 import type { BoxNode, Playing } from './graph.ts'
+import { Line } from './Line.tsx'
 import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
 import type { Recording, Run } from './Panel.tsx'
 import { useModel } from './useModel.ts'
 import type { Edit } from './useModel.ts'
 
 const nodeTypes = { box: Box }
+const edgeTypes = { line: Line }
+const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is the first half of a double-click
 
 /** What the side panel shows. One thing at a time. */
 type Side =
@@ -71,6 +75,8 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
   // Where boxes are being dragged to. Nodes are controlled, so a box only moves through this.
   const [moved, setMoved] = useState(new Map<string, XYPosition>())
   const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
+  const [hovered, setHovered] = useState<string>() // the line the pointer is on
+  const opening = useRef<ReturnType<typeof setTimeout>>(undefined) // a click on a box that opens, waiting out the double-click window
 
   const editing = editMode && !readOnly // a file that can't be read, or a lost server, makes the canvas read-only
   // A box with children opens. In edit mode an empty system, app or store opens too, so its first child can be added.
@@ -83,6 +89,7 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
   const flow = editing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
   const stepIndex = flow && playing ? Math.min(playing.step, flow.steps.length - 1) : 0
   const step = flow?.steps[stepIndex]
+  const chosen = flow ? playing?.flow : recording?.id // what the flow list shows
 
   // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
   // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
@@ -100,7 +107,8 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
   // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.
   const nodes = graph.nodes.map(n => ({ ...n, position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id) }))
   const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
-  const edges = useMemo(() => graph.edges.map(e => (e.id === selectedLine ? { ...e, selected: true } : e)), [graph, selectedLine])
+  const selectedBox = side?.kind === 'object' ? side.id : undefined
+  const edges = useMemo(() => focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }), [graph, selectedBox, selectedLine, hovered])
 
   const run: Run = async op => {
     setNotice(undefined)
@@ -110,6 +118,7 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
   }
   const close = () => setSide(undefined)
   const go = (id: string) => {
+    clearTimeout(opening.current)
     setViewId(id)
     setPlaying(undefined)
     setMoved(new Map())
@@ -191,7 +200,7 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
           ))}
         </nav>
         {flowsHere.length > 0 && (
-          <select value="" aria-label={editing ? 'Edit a flow' : 'Play a flow'} onChange={e => {
+          <select value={flowsHere.some(([id]) => id === chosen) ? chosen : ''} aria-label={editing ? 'Edit a flow' : 'Play a flow'} onChange={e => {
             const id = e.target.value
             if (editing) setSide({ kind: 'flow', id, name: model.flows[id].name })
             else setPlaying({ flow: id, step: 0 })
@@ -209,12 +218,12 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
       </header>
       <main className={editing ? 'canvas editing' : 'canvas'}>
         <ReactFlow
-          key={view} // a fresh canvas per view, so each one opens fitted to the screen
+          key={view} // a fresh canvas per view
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{ maxZoom: 1, padding: { x: '40px', top: '40px', bottom: '200px' } }} // room for the flow player
+          edgeTypes={edgeTypes}
+          minZoom={0.2} // the default 0.5 stops the fit short, so a wide diagram in a small window is cut off
           colorMode="system"
           nodesDraggable={editing && !recording}
           nodesConnectable={editing && !recording}
@@ -224,12 +233,30 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
           isValidConnection={c => placeEnds(model, view, c.source, c.target) !== null} // only lines this view can show
           onConnect={c => void run(m => connect(m, { from: c.source, to: c.target }))
             .then(saved => saved && setSide({ kind: 'line', from: c.source, to: c.target }))}
-          onNodeClick={(_, node) => setSide(recording ? { kind: 'flow', ...pick(recording, node.id) } : { kind: 'object', id: node.id })}
-          onNodeDoubleClick={(_, node) => !recording && canOpen(node.id) && go(node.id)}
+          onNodeClick={(_, node) => {
+            clearTimeout(opening.current)
+            if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
+            const open = () => setSide({ kind: 'object', id: node.id })
+            // Zooming into a box is a double-click, and its first click must not open the panel.
+            if (canOpen(node.id)) opening.current = setTimeout(open, DOUBLE_CLICK)
+            else open()
+          }}
+          onNodeDoubleClick={(_, node) => {
+            if (recording || !canOpen(node.id)) return
+            go(node.id)
+            close()
+          }}
           onEdgeClick={(_, e) => !recording && e.id !== 'step' && setSide({ kind: 'line', from: e.source, to: e.target })}
-          onPaneClick={() => setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)}
+          onEdgeMouseEnter={(_, e) => setHovered(e.id)}
+          onEdgeMouseLeave={() => setHovered(undefined)}
+          onPaneClick={() => {
+            clearTimeout(opening.current)
+            setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
+          }}
         >
-          <Controls showInteractive={false} />
+          <Camera count={nodes.length} fitKey={`${view} ${flow ? playing?.flow : ''}`} player={flow !== undefined} reveal={selectedBox} />
+          {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
+          <Controls showInteractive={false} fitViewOptions={fitOptions(side !== undefined, flow !== undefined)} />
         </ReactFlow>
         {nodes.length === 0 && (
           <p className="empty">{editing
