@@ -37,11 +37,11 @@ function pick(rec: Recording, id: string): Recording {
 }
 
 export function App() {
-  const { model, banner, edit } = useModel()
+  const { model, banner, edit, live } = useModel()
   return (
     <div className="app">
       {banner && <div className="banner" role="alert">{banner}</div>}
-      {model && <Reader model={model} edit={edit} readOnly={banner !== undefined} />}
+      {model && <Reader model={model} edit={edit} live={live} readOnly={!live || banner !== undefined} />}
     </div>
   )
 }
@@ -66,7 +66,7 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
   )
 }
 
-function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly: boolean }) {
+function Reader({ model, edit, live, readOnly }: { model: Model; edit: Edit; live: boolean; readOnly: boolean }) {
   const [viewId, setViewId] = useState(ROOT)
   const [side, setSide] = useState<Side>()
   const [playing, setPlaying] = useState<{ flow: string; step: number }>()
@@ -78,7 +78,7 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
   const [hovered, setHovered] = useState<string>() // the line the pointer is on
   const opening = useRef<ReturnType<typeof setTimeout>>(undefined) // a click on a box that opens, waiting out the double-click window
 
-  const editing = editMode && !readOnly // a file that can't be read, or a lost server, makes the canvas read-only
+  const editing = editMode && !readOnly // a file that can't be read, a lost server, or an exported page makes the canvas read-only
   // A box with children opens. In edit mode an empty system, app or store opens too, so its first child can be added.
   const canOpen = (id: string) => hasChildren(model, id) || (editing && typesIn(model, id).length > 0)
   // After a live reload the view's object may be gone or empty: show the nearest view that still exists.
@@ -214,7 +214,7 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
         {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
         <span className="grow" />
         <Problems problems={problems} onPick={jump} />
-        <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}>Edit</button>
+        {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}>Edit</button>}
       </header>
       <main className={editing ? 'canvas editing' : 'canvas'}>
         <ReactFlow
@@ -261,7 +261,9 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
         {nodes.length === 0 && (
           <p className="empty">{editing
             ? 'Nothing here yet. Press Add to put the first box here.'
-            : 'Nothing here yet. Ask Claude to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.'}</p>
+            : live
+              ? 'Nothing here yet. Ask Claude to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.'
+              : 'Nothing here yet.'}</p>
         )}
         {notice && (
           <div className="notice" role="status">

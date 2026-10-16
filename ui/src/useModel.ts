@@ -1,16 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Model } from '../../src/core/model.ts'
-import { fetchModel, saveEdit } from './save.ts'
+import { STATE_ELEMENT } from '../../src/core/state.ts'
+import type { State } from '../../src/core/state.ts'
+import { fetchModel, fromState, saveEdit } from './save.ts'
 
 /** Saves one edit and resolves to what to tell the user, or undefined once it's saved. */
 export type Edit = (op: (model: Model) => Model) => Promise<string | undefined>
+
+/** The model an exported page carries (flowy export). It never changes. */
+const exported = (() => {
+  const element = document.getElementById(STATE_ELEMENT)
+  return element ? fromState(JSON.parse(element.textContent ?? '') as State).model : undefined
+})()
 
 /**
  * The model from the local server, fetched again whenever the flowy/ folder changes.
  * While a file is broken or the server is gone, it keeps the last good model and says why in `banner`.
  * `edit` runs edits one at a time, in order, and fetches the model again after each.
+ * On an exported page `live` is false: the model is the page's, and there's nothing to save to.
  */
-export function useModel(): { model?: Model; banner?: string; edit: Edit } {
+export function useModel(): { model?: Model; banner?: string; edit: Edit; live: boolean } {
   const [model, setModel] = useState<Model>()
   const [banner, setBanner] = useState<string>()
   const latest = useRef(0)
@@ -29,6 +38,7 @@ export function useModel(): { model?: Model; banner?: string; edit: Edit } {
   }, [])
 
   useEffect(() => {
+    if (exported) return
     const events = new EventSource('/api/events')
     events.onopen = load // the first connection, and each reconnection after flowy restarts
     events.onmessage = load
@@ -46,5 +56,5 @@ export function useModel(): { model?: Model; banner?: string; edit: Edit } {
     return run
   }, [load])
 
-  return { model, banner, edit }
+  return exported ? { model: exported, edit, live: false } : { model, banner, edit, live: true }
 }
