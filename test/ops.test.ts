@@ -167,3 +167,17 @@ test('refuseNewProblems names what an edit would break, and lets old problems be
   assert.throws(() => refuseNewProblems(before, putObject(before, { id: 'api', name: '' })),
     (e: unknown) => e instanceof OpError && e.message === 'Refused, nothing saved. This would add:\n- model.yaml: api: name is missing')
 })
+
+test('putObject sets code after description, and [] removes it', () => {
+  const m = putObject(shop(), { id: 'api', code: ['src/api/'], description: 'Handles orders.' })
+  assert.deepEqual(Object.keys(m.objects.api), ['type', 'in', 'name', 'tech', 'description', 'code'])
+  assert.deepEqual(m.objects.api.code, ['src/api/'])
+  assert.equal('code' in putObject(m, { id: 'api', code: [] }).objects.api, false)
+})
+
+test('refuseNewProblems counts a missing code path only when it is told what is missing', () => {
+  const before = shop()
+  const after = putObject(before, { id: 'api', code: ['gone/'] })
+  refuseNewProblems(before, after)
+  assert.throws(() => refuseNewProblems(before, after, new Set(['gone/'])), /code path "gone\/" doesn't exist/)
+})
