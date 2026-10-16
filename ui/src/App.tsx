@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Controls, ReactFlow } from '@xyflow/react'
 import type { NodeChange, XYPosition } from '@xyflow/react'
-import { check } from '../../src/core/check.ts'
+import { check, typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { ROOT } from '../../src/core/model.ts'
 import type { Model, Step } from '../../src/core/model.ts'
@@ -70,10 +70,13 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
   const [notice, setNotice] = useState<string>()
   // Where boxes are being dragged to. Nodes are controlled, so a box only moves through this.
   const [moved, setMoved] = useState(new Map<string, XYPosition>())
+  const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
 
   const editing = editMode && !readOnly // a file that can't be read, or a lost server, makes the canvas read-only
+  // A box with children opens. In edit mode an empty system, app or store opens too, so its first child can be added.
+  const canOpen = (id: string) => hasChildren(model, id) || (editing && typesIn(model, id).length > 0)
   // After a live reload the view's object may be gone or empty: show the nearest view that still exists.
-  const view = chain(model, viewId).find(v => v === ROOT || hasChildren(model, v)) ?? ROOT
+  const view = chain(model, viewId).find(v => v === ROOT || canOpen(v)) ?? ROOT
   const problems = check(model)
   const recording = editing && side?.kind === 'flow' ? side : undefined
   const flowsHere = Object.entries(model.flows).filter(([, f]) => f.view === view && (editing || f.steps.length > 0))
@@ -117,12 +120,12 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
     setSide(s => (s?.kind === 'object' || s?.kind === 'line' ? s : undefined))
   }
   const remove = () => {
-    if (side?.kind === 'object') void run(m => deleteObject(m, side.id))
+    if (side?.kind === 'object') void run(m => deleteObject(m, side.id)).then(saved => saved && close())
     if (side?.kind !== 'line') return
     const lines = connectionsOf(model, view, side.from, side.to)
-    if (lines.length !== 1) return setNotice(`This line stands for ${lines.length} connections. Delete them one at a time in the panel.`)
-    const c = lines[0].connection
-    void run(m => removeConnection(m, { from: c.from, to: c.to, label: c.label ?? '' }))
+    if (lines.length > 1) return setNotice(`This line stands for ${lines.length} connections. Delete them one at a time in the panel.`)
+    const c = lines[0]?.connection
+    if (c) void run(m => removeConnection(m, { from: c.from, to: c.to, label: c.label ?? '' })).then(saved => saved && close())
   }
   const jump = (p: Problem) => {
     const spot = locate(model, p)
@@ -144,7 +147,12 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
       const { x, y } = next.get(n.id) ?? n.position
       return [n.id, [Math.round(x), Math.round(y)] as [number, number]]
     }))
-    void run(m => placeBoxes(m, view, boxes)).then(() => setMoved(new Map()))
+    // Arrow keys queue a save per press. Clearing `moved` after an early one would snap the box back mid-way.
+    layoutSaves.current++
+    void run(m => placeBoxes(m, view, boxes)).then(() => {
+      layoutSaves.current--
+      if (layoutSaves.current === 0) setMoved(new Map())
+    })
   }
 
   // Added again on every render, so the handler always sees the current state.
@@ -209,7 +217,7 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
           onConnect={c => void run(m => connect(m, { from: c.source, to: c.target }))
             .then(saved => saved && setSide({ kind: 'line', from: c.source, to: c.target }))}
           onNodeClick={(_, node) => setSide(recording ? { kind: 'flow', ...pick(recording, node.id) } : { kind: 'object', id: node.id })}
-          onNodeDoubleClick={(_, node) => !recording && hasChildren(model, node.id) && go(node.id)}
+          onNodeDoubleClick={(_, node) => !recording && canOpen(node.id) && go(node.id)}
           onEdgeClick={(_, e) => !recording && e.id !== 'step' && setSide({ kind: 'line', from: e.source, to: e.target })}
           onPaneClick={() => setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)}
         >

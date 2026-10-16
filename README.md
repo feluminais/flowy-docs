@@ -40,6 +40,7 @@ Press E, or the Edit button.
 - Drag from the dot under a box onto another box to connect them, then type a label in the panel.
 - Add puts a box in the current view. It offers only the types that fit there: actors and
   systems at the top, apps and stores inside a system, components inside an app or store.
+  Double-click an empty system, app or store to open it and add what goes inside.
 - Click a box to change its name, type, tech and description. A field saves when you leave it.
 - Delete (the key, or the button in the panel) removes the selected box or line. A box that still
   contains others, or that a flow uses, stays, and a notice says why.

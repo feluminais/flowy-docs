@@ -170,6 +170,8 @@ test('typesIn follows the nesting rules', () => {
   assert.deepEqual(typesIn(m, 'api'), ['component'])
   assert.deepEqual(typesIn(m, 'db'), ['component'])
   assert.deepEqual(typesIn(m, 'auth'), [])
+  assert.deepEqual(typesIn(m, 'ghost'), [])
+  assert.deepEqual(typesIn(m, 'constructor'), [])
 })
 
 test('a step problem that only got a new number is not new', () => {

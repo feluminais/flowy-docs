@@ -23,7 +23,8 @@
     "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && vite build ui && tsc -p tsconfig.build.json",
     "build:ui": "vite build ui",
     "dev:ui": "vite ui",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "prepublishOnly": "npm test && npm run typecheck"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",

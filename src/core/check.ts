@@ -20,6 +20,7 @@ const PARENTS: Record<ObjectType, readonly ObjectType[]> = {
 /** The types an object may have when it sits right inside `view` (root or an object id). */
 export function typesIn(model: Model, view: string): ObjectType[] {
   const parent = view === ROOT ? undefined : getObject(model, view)
+  if (view !== ROOT && !parent) return []
   return OBJECT_TYPES.filter(t => (parent ? PARENTS[t].includes(parent.type) : PARENTS[t].length === 0))
 }
 
