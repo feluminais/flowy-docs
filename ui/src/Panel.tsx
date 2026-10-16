@@ -3,7 +3,7 @@ import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { getObject, ROOT } from '../../src/core/model.ts'
 import type { Model, ObjectType, Step } from '../../src/core/model.ts'
-import { deleteFlow, deleteObject, putFlow, putObject, relabel, removeConnection, updateFlow } from '../../src/core/ops.ts'
+import { deleteFlow, deleteObject, OpError, putFlow, putObject, relabel, removeConnection, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
@@ -75,7 +75,7 @@ export function ObjectPanel({ model, id, editing, problems, run, onClose }: Comm
       </form>
       {mine}
       <p className="muted">id: {id}</p>
-      <button className="danger" onClick={() => void run(m => deleteObject(m, id))}>Delete</button>
+      <button className="danger" onClick={() => void run(m => deleteObject(m, id)).then(saved => saved && onClose())}>Delete</button>
     </Panel>
   )
 }
@@ -152,8 +152,15 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
     </Panel>
   )
   const flow = Object.hasOwn(model.flows, rec.id) ? model.flows[rec.id] : undefined
-  const steps = flow?.steps ?? []
-  const change = (edit: (steps: Step[]) => Step[]) => run(m => updateFlow(m, rec.id, { steps: edit(m.flows[rec.id]?.steps ?? []) }))
+  const stepsIn = (m: Model) => (Object.hasOwn(m.flows, rec.id) ? m.flows[rec.id].steps : [])
+  const steps = stepsIn(model)
+  // Step numbers come from the list on screen. If the saved steps differ from it (a quick second
+  // click, or someone else's edit), refuse rather than change the step that moved into that place.
+  const onScreen = (m: Model) => {
+    if (JSON.stringify(stepsIn(m)) !== JSON.stringify(steps)) throw new OpError('The steps just changed. Check them and try again.')
+    return stepsIn(m)
+  }
+  const change = (edit: (steps: Step[]) => Step[]) => run(m => updateFlow(m, rec.id, { steps: edit(onScreen(m)) }))
   const addStep = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const text = String(new FormData(e.currentTarget).get('text')).trim()
@@ -161,7 +168,7 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
     const step = { from: rec.from, to: rec.to, text }
     // The first step creates the file: a flow with no steps is a problem, so it can't be saved before.
     const saved = await run(m => (Object.hasOwn(m.flows, rec.id)
-      ? updateFlow(m, rec.id, { steps: [...m.flows[rec.id].steps, step] })
+      ? updateFlow(m, rec.id, { steps: [...onScreen(m), step] })
       : putFlow(m, { id: rec.id, name: rec.name, view, steps: [step] })))
     if (saved) onChange({ id: rec.id, name: rec.name })
   }
