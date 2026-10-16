@@ -1,6 +1,6 @@
 import { getObject, isValidId, OBJECT_TYPES, ROOT } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
-import { hasChildren, placeEnds } from './views.ts'
+import { hasChildren, placeStep } from './views.ts'
 
 /**
  * `connection` (a place in model.connections) and `step` (a place in the flow's steps) tell the
@@ -102,10 +102,14 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     if (f.steps.length === 0) p('has no steps')
     f.steps.forEach((s, i) => {
       const sp = (message: string) => p(`step ${i + 1}: ${message}`, { step: i })
-      checkEnds(sp, s.from, s.to)
+      const alone = s.to === undefined // one box doing something on its own; a blank "to:" is still a missing end
+      if (!alone) checkEnds(sp, s.from, s.to)
+      else if (missing(s.from)) sp('"from" is missing')
+      else if (!getObject(model, s.from)) sp(`unknown object "${s.from}"`)
       if (!nonEmpty(s.text)) sp('text is missing')
-      if (!missing(s.from) && s.from === s.to) sp('goes from an object to itself')
-      else if (viewOk && getObject(model, s.from) && getObject(model, s.to) && !placeEnds(model, f.view, s.from, s.to))
+      if (alone) return
+      if (!missing(s.from) && s.from === s.to) sp('goes from an object to itself (leave out "to" for a step one box does on its own)')
+      else if (viewOk && getObject(model, s.from) && getObject(model, s.to) && !placeStep(model, f.view, s))
         sp(`${s.from} → ${s.to} can't be shown in view "${f.view}"`)
     })
   }

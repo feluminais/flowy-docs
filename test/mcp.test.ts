@@ -149,3 +149,11 @@ test('get_mermaid draws a view or a flow, and wants exactly one of them', async 
   for (const args of [{}, { view: 'root', flow: 'buy' }]) assert.equal((await call('get_mermaid', args)).error, true)
   assert.match((await call('get_mermaid', { flow: 'nope' })).text, /unknown flow "nope"/)
 })
+
+test('put_flow takes a step one box does on its own, and a longer detail', async t => {
+  const { dir, call } = await setup(t)
+  await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
+  const saved = await call('put_flow', { id: 'think', name: 'Thinking', view: 'root', steps: [{ from: 'shop', text: 'Thinks', description: 'For a **while**.' }] })
+  assert.equal(saved.error, false, saved.text)
+  assert.equal(await readFile(join(dir, 'flows', 'think.yaml'), 'utf8'), 'name: Thinking\nview: root\nsteps:\n  - from: shop\n    text: Thinks\n    description: For a **while**.\n')
+})

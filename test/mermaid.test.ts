@@ -48,3 +48,9 @@ test('an unknown view or flow is an error', () => {
   assert.throws(() => flowToMermaid(shop(), 'constructor'), /unknown flow "constructor"/)
   assert.match(viewToMermaid(shop(), 'root'), /^flowchart TB\n/)
 })
+
+test('a one-box step is a note over that box', () => {
+  const m = shop()
+  m.flows.checkout.steps.push({ from: 'orders', text: 'Checks stock' })
+  assert.match(flowToMermaid(m, 'checkout'), /\n {2}Note over n2: Checks stock\n$/)
+})
