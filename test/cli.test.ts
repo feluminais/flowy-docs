@@ -38,3 +38,18 @@ test('flowy export names the file it cannot read, and exits 1', async t => {
   assert.equal(run.status, 1, run.stderr)
   assert.match(run.stderr, /^model\.yaml(:\d+)?: /)
 })
+
+test('flowy mermaid prints a flow or a view, and wants exactly one', () => {
+  const flow = spawnSync(process.execPath, ['src/cli.ts', 'mermaid', '--dir', 'example', '--flow', 'checkout'], { encoding: 'utf8' })
+  assert.equal(flow.status, 0, flow.stderr)
+  assert.match(flow.stdout, /^sequenceDiagram\n {2}actor n0 as Customer\n/)
+  const view = spawnSync(process.execPath, ['src/cli.ts', 'mermaid', '--dir', 'example', '--view', 'shop'], { encoding: 'utf8' })
+  assert.match(view.stdout, /^flowchart TB\n/)
+  for (const args of [[], ['--flow', 'checkout', '--view', 'shop']]) {
+    const run = spawnSync(process.execPath, ['src/cli.ts', 'mermaid', '--dir', 'example', ...args], { encoding: 'utf8' })
+    assert.match(run.stderr, /^Usage: flowy/, args.join(' '))
+  }
+  const unknown = spawnSync(process.execPath, ['src/cli.ts', 'mermaid', '--dir', 'example', '--flow', 'nope'], { encoding: 'utf8' })
+  assert.equal(unknown.status, 1)
+  assert.match(unknown.stderr, /unknown flow "nope"/)
+})
