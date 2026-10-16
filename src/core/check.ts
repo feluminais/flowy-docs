@@ -2,7 +2,12 @@ import { getObject, isValidId, OBJECT_TYPES, ROOT } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
 import { hasChildren, placeEnds } from './views.ts'
 
-export type Problem = { file: string; id?: string; message: string }
+/**
+ * `connection` (a place in model.connections) and `step` (a place in the flow's steps) tell the
+ * canvas where to point. They aren't part of what a problem is: newProblems ignores them, so
+ * deleting one connection doesn't make the problems after it look new.
+ */
+export type Problem = { file: string; id?: string; message: string; connection?: number; step?: number }
 
 const PARENTS: Record<ObjectType, readonly ObjectType[]> = {
   actor: [],
@@ -10,6 +15,12 @@ const PARENTS: Record<ObjectType, readonly ObjectType[]> = {
   app: ['system'],
   store: ['system'],
   component: ['app', 'store'],
+}
+
+/** The types an object may have when it sits right inside `view` (root or an object id). */
+export function typesIn(model: Model, view: string): ObjectType[] {
+  const parent = view === ROOT ? undefined : getObject(model, view)
+  return OBJECT_TYPES.filter(t => (parent ? PARENTS[t].includes(parent.type) : PARENTS[t].length === 0))
 }
 
 const nonEmpty = (v: unknown) => typeof v === 'string' && v.trim() !== ''
@@ -25,8 +36,8 @@ const missing = (v: unknown) => v === undefined || v === ''
  */
 export function check(model: Model): Problem[] {
   const problems: Problem[] = []
-  const add = (file: string, id: string | undefined, message: string) =>
-    problems.push(id === undefined ? { file, message } : { file, id, message })
+  const add = (file: string, id: string | undefined, message: string, at?: Pick<Problem, 'connection' | 'step'>) =>
+    problems.push({ file, ...(id === undefined ? {} : { id }), message, ...at })
   const checkEnds = (p: (message: string) => void, from: unknown, to: unknown) => {
     if (missing(from)) p('"from" is missing')
     if (missing(to)) p('"to" is missing')
@@ -55,18 +66,18 @@ export function check(model: Model): Problem[] {
   }
 
   const seen = new Set<string>()
-  for (const c of model.connections) {
+  model.connections.forEach((c, i) => {
     const end = (v: unknown) => (missing(v) ? '?' : v)
-    const p = (message: string) => add('model.yaml', undefined, `connection ${end(c.from)} → ${end(c.to)}: ${message}`)
+    const p = (message: string) => add('model.yaml', undefined, `connection ${end(c.from)} → ${end(c.to)}: ${message}`, { connection: i })
     checkEnds(p, c.from, c.to)
     if (!missing(c.from) && c.from === c.to) p('connects an object to itself')
     const key = JSON.stringify([c.from, c.to, c.label ?? ''])
     if (seen.has(key)) p(`duplicate${c.label ? ` "${c.label}"` : ''}`)
     seen.add(key)
-  }
+  })
 
   for (const [fid, f] of Object.entries(model.flows)) {
-    const p = (message: string) => add(`flows/${fid}.yaml`, undefined, message)
+    const p = (message: string, at?: { step: number }) => add(`flows/${fid}.yaml`, undefined, message, at)
     if (!isValidId(fid)) p(`"${fid}" is not a valid flow id: the file name must use lowercase letters, digits and dashes ("root" is reserved)`)
     if (!nonEmpty(f.name)) p('name is missing')
     const viewOk = f.view === ROOT || (getObject(model, f.view) !== undefined && hasChildren(model, f.view))
@@ -74,7 +85,7 @@ export function check(model: Model): Problem[] {
     else if (!viewOk) p(`view "${f.view}" must be "root" or an object with children`)
     if (f.steps.length === 0) p('has no steps')
     f.steps.forEach((s, i) => {
-      const sp = (message: string) => p(`step ${i + 1}: ${message}`)
+      const sp = (message: string) => p(`step ${i + 1}: ${message}`, { step: i })
       checkEnds(sp, s.from, s.to)
       if (!nonEmpty(s.text)) sp('text is missing')
       if (!missing(s.from) && s.from === s.to) sp('goes from an object to itself')
