@@ -7,6 +7,15 @@ export const CHANGED_OUTSIDE = 'This file changed outside Flowy. Reloaded.'
 
 const text = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
+/** A State as the canvas's model. Throws with a message for the user when a file can't be read. */
+export function fromState(state: State): { model: Model; versions: Record<string, string | null> } {
+  if ('parseError' in state) {
+    const { file, line, message } = state.parseError
+    throw new Error(`Can't read ${file}${line === undefined ? '' : ` (line ${line})`}: ${message}. Fix the file and this page updates.`)
+  }
+  return { model: { ...state.model, flows: state.flows, layout: state.layout }, versions: state.versions }
+}
+
 /** GET /api/state as a model. Throws with a message for the user when the server or a file can't be read. */
 export async function fetchModel(base = ''): Promise<{ model: Model; versions: Record<string, string | null> }> {
   let state: State
@@ -17,11 +26,7 @@ export async function fetchModel(base = ''): Promise<{ model: Model; versions: R
   } catch (e) {
     throw new Error(`Can't load the model: ${text(e)}`)
   }
-  if ('parseError' in state) {
-    const { file, line, message } = state.parseError
-    throw new Error(`Can't read ${file}${line === undefined ? '' : ` (line ${line})`}: ${message}. Fix the file and this page updates.`)
-  }
-  return { model: { ...state.model, flows: state.flows, layout: state.layout }, versions: state.versions }
+  return fromState(state)
 }
 
 /**

@@ -5,10 +5,8 @@ import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { extname, join, resolve, sep } from 'node:path'
 import { json } from 'node:stream/consumers'
-import { check } from '../core/check.ts'
 import { ParseError, parseFile, serializeFile } from '../core/model.ts'
-import type { State } from '../core/state.ts'
-import { isAllowedPath, loadDir, saveFile, VersionConflict } from './files.ts'
+import { isAllowedPath, loadDir, loadState, saveFile, VersionConflict } from './files.ts'
 
 export type Running = { port: number; close: () => Promise<void> }
 
@@ -24,17 +22,6 @@ const TYPES: Record<string, string> = {
 function send(res: ServerResponse, status: number, body: unknown) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' })
   res.end(JSON.stringify(body))
-}
-
-async function state(dir: string): Promise<State> {
-  try {
-    const { model, versions } = await loadDir(dir)
-    const { flows, layout, ...rest } = model
-    return { model: rest, layout, flows, problems: check(model), versions }
-  } catch (e) {
-    if (e instanceof ParseError) return { parseError: { file: e.file, line: e.line, message: e.reason } }
-    throw e
-  }
 }
 
 /** PUT /api/file/<path> { version, data } writes a file; DELETE /api/file/flows/<id>.yaml { version } removes a flow. */
@@ -109,7 +96,7 @@ export async function startServer({ dir, ui, port }: { dir: string; ui: string; 
       if (req.headers.host !== `127.0.0.1:${actualPort}` && req.headers.host !== `localhost:${actualPort}`)
         return send(res, 403, { error: 'wrong Host header' })
       const url = new URL(req.url ?? '/', 'http://localhost')
-      if (req.method === 'GET' && url.pathname === '/api/state') return send(res, 200, await state(dir))
+      if (req.method === 'GET' && url.pathname === '/api/state') return send(res, 200, await loadState(dir))
       if (req.method === 'GET' && url.pathname === '/api/events') {
         res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store' })
         // Reconnect 1 s after flowy restarts. Writing at once also pushes the headers through proxies (Vite's dev server).
