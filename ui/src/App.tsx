@@ -224,7 +224,6 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           minZoom={0.2} // the default 0.5 stops the fit short, so a wide diagram in a small window is cut off
-          fitViewOptions={fitOptions(side !== undefined, flow !== undefined)} // the fit button; Camera does the automatic fits
           colorMode="system"
           nodesDraggable={editing && !recording}
           nodesConnectable={editing && !recording}
@@ -256,7 +255,8 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
           }}
         >
           <Camera count={nodes.length} fitKey={`${view} ${flow ? playing?.flow : ''}`} player={flow !== undefined} reveal={selectedBox} />
-          <Controls showInteractive={false} />
+          {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
+          <Controls showInteractive={false} fitViewOptions={fitOptions(side !== undefined, flow !== undefined)} />
         </ReactFlow>
         {nodes.length === 0 && (
           <p className="empty">{editing
