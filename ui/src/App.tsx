@@ -82,6 +82,7 @@ function Reader({ model, edit, live, readOnly }: { model: Model; edit: Edit; liv
   const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
   const [hovered, setHovered] = useState<string>() // the line the pointer is on
   const opening = useRef<ReturnType<typeof setTimeout>>(undefined) // a click on a box that opens, waiting out the double-click window
+  const quiet = useRef(true) // the next address write replaces instead of pushing (see the address effect)
 
   const editing = editMode && !readOnly // a file that can't be read, a lost server, or an exported page makes the canvas read-only
   // A box with children opens. In edit mode an empty system, app or store opens too, so its first child can be added.
@@ -131,6 +132,7 @@ function Reader({ model, edit, live, readOnly }: { model: Model; edit: Edit; liv
   }
   const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, flow.steps.length - 1)) })
   const toggleEdit = () => {
+    quiet.current = true // E isn't a step to go back to
     setEditMode(!editing)
     setNotice(undefined) // "Press E to fix this flow" is stale the moment E is pressed
     setPlaying(undefined)
@@ -177,18 +179,21 @@ function Reader({ model, edit, live, readOnly }: { model: Model; edit: Edit; liv
     })
   }
 
-  // The address names the view and the flow playing, so a link opens there and Back goes back. The first
-  // write replaces the address the page opened with, which also drops any part of it that named nothing.
+  // The address names the view and the flow playing, so a link opens there and Back goes back. It's checked
+  // on every render. A step the reader takes pushes an entry. Anything else replaces the address: the page
+  // opening (which also drops a part that named nothing), Back or a typed address, E, or a live reload that
+  // falls back to another view.
   const address = toHash(view, flow ? playing?.flow : undefined)
-  const addressed = useRef(false)
   useEffect(() => {
-    if (address !== location.hash) history[addressed.current ? 'pushState' : 'replaceState'](null, '', address || location.pathname + location.search)
-    addressed.current = true
-  }, [address])
+    if (quiet.current || address !== location.hash)
+      history[quiet.current || view !== viewId ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
+    quiet.current = false
+  })
 
   // Back, Forward, or an address typed in: show what it names. Added again on every render, like the keys below.
   useEffect(() => {
     const follow = () => {
+      quiet.current = true
       const named = readHash(location.hash)
       go(named.view)
       if (named.flow !== undefined) setPlaying({ flow: named.flow, step: 0 })
