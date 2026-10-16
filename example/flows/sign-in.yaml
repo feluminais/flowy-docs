@@ -1,0 +1,5 @@
+name: Customer signs in
+view: api
+steps:
+  - { from: web, to: auth, text: POST /login }
+  - { from: auth, to: db, text: Looks up the user and checks the password }
