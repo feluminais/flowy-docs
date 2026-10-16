@@ -1,8 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  changedFiles, emptyModel, getObject, ParseError, parseFlowFile, parseLayoutFile, parseModelFile,
-  serializeFlow, serializeLayout, serializeModelFile,
+  changedFiles, emptyModel, getObject, ParseError, parseFile, parseFlowFile, parseLayoutFile, parseModelFile,
+  serializeFile, serializeFlow, serializeLayout, serializeModelFile,
 } from '../src/core/model.ts'
 import type { Layout } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
@@ -149,4 +149,27 @@ test('changedFiles lists only files whose content changed', () => {
   const flows = { ...before.flows }
   delete flows.checkout
   assert.deepEqual(changedFiles(before, { ...before, flows }), [['flows/checkout.yaml', null]])
+})
+
+test('a parse error keeps its reason apart from the file:line prefix', () => {
+  assert.throws(() => parseModelFile('objects:\n  a: {}\n  a: {}\n'), (e: unknown) =>
+    e instanceof ParseError && e.line === 3 && e.message === `model.yaml:3: ${e.reason}` && !e.reason.includes('model.yaml'))
+})
+
+test('parseFile picks the parser by path, and reads back what serializeFile writes', () => {
+  const model = { title: 'Demo', objects: { a: { type: 'actor', name: 'A' } }, connections: [{ from: 'a', to: 'b' }] }
+  assert.deepEqual(parseFile('model.yaml', serializeFile('model.yaml', model)),
+    { objects: model.objects, connections: model.connections, meta: { title: 'Demo' } })
+  const flow = { name: 'Visit', view: 'root', steps: [{ from: 'a', to: 'b', text: 'Says hi' }] }
+  assert.deepEqual(parseFile('flows/visit.yaml', serializeFile('flows/visit.yaml', flow)), flow)
+  const layout = { root: { a: [10, 20.5] } }
+  assert.equal(serializeFile('layout.yaml', layout), 'root:\n  a: [10, 20.5]\n')
+  assert.deepEqual(parseFile('layout.yaml', serializeFile('layout.yaml', layout)), layout)
+})
+
+test('content that is not a valid file never gets past serializeFile and parseFile', () => {
+  assert.throws(() => serializeFile('model.yaml', { objects: { a: { type: 'actor', name: 7 } } }))
+  assert.throws(() => parseFile('flows/visit.yaml', serializeFile('flows/visit.yaml', ['a', 'list'])),
+    (e: unknown) => e instanceof ParseError && e.file === 'flows/visit.yaml')
+  assert.throws(() => parseFile('layout.yaml', serializeFile('layout.yaml', { root: { a: 'here' } })), ParseError)
 })
