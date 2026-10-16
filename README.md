@@ -32,6 +32,8 @@ folder, `--port <number>` picks the port, and `--no-open` skips the browser.
   sits in the middle.
 - A box can list the files and folders it lives in, under its description. When the repo's
   `origin` is on GitHub or GitLab, they link there.
+- Ctrl+K or / (or Search) finds a box anywhere in the model by name. Pick one and the canvas
+  opens the level it's on, with its panel open.
 - Pick a flow in the top bar to play it step by step: ← and → move, Esc stops.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Boxes with
   a problem carry a "!".
@@ -142,6 +144,9 @@ Reading:
       → and ← move, the buttons match, Esc stops.
 - [ ] In API, play "Customer signs in". Web app joins as a faded box, with a dashed line to Auth.
 - [ ] In Shop, click the "2 connections" line: the panel lists both connections.
+- [ ] From the overview, press / and type `au`: "Auth component in API" is listed. Press Enter: the
+      canvas opens API with Auth selected and its panel open. Ctrl+K and `zzz`: "Nothing called
+      that." Esc closes the search and leaves the panel open.
 - [ ] Rename Shop in `example/model.yaml` and save: the page updates without a reload.
 - [ ] Add a line `  shop: {}` right under `objects:` and save: a banner names model.yaml and the
       line, and Edit greys out. Undo it: the banner goes.
