@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Model } from '../../src/core/model.ts'
 import { STATE_ELEMENT } from '../../src/core/state.ts'
 import type { State } from '../../src/core/state.ts'
-import { fetchModel, fromState, saveEdit } from './save.ts'
+import { fetchModel, fromState, saveEdit, undoEdit } from './save.ts'
+import type { Undo } from './save.ts'
 
 /** Saves one edit and resolves to what to tell the user, or undefined once it's saved. */
 export type Edit = (op: (model: Model) => Model) => Promise<string | undefined>
@@ -24,14 +25,16 @@ const exported = (() => {
 /**
  * The model from the local server, with its problems and where code links go, fetched again whenever the flowy/ folder changes.
  * While a file is broken or the server is gone, it keeps the last good model and says why in `banner`.
- * `edit` runs edits one at a time, in order, and fetches the model again after each.
+ * `edit` runs edits one at a time, in order, and fetches the model again after each. `undo` takes the
+ * newest saved edit back, in the same queue. The edits to undo last as long as the page.
  * On an exported page `live` is false: the model is the page's, and there's nothing to save to.
  */
-export function useModel(): { loaded?: Loaded; banner?: string; edit: Edit; live: boolean } {
+export function useModel(): { loaded?: Loaded; banner?: string; edit: Edit; undo: () => Promise<string | undefined>; live: boolean } {
   const [loaded, setLoaded] = useState<Loaded>()
   const [banner, setBanner] = useState<string>()
   const latest = useRef(0)
   const queue = useRef<Promise<unknown>>(Promise.resolve())
+  const undos = useRef<Undo[]>([])
 
   const load = useCallback(async () => {
     const call = ++latest.current
@@ -56,7 +59,7 @@ export function useModel(): { loaded?: Loaded; banner?: string; edit: Edit; live
 
   const edit = useCallback<Edit>(op => {
     const run = queue.current.then(async () => {
-      const message = await saveEdit(op)
+      const message = await saveEdit(op, '', undo => undos.current.push(undo))
       await load()
       return message
     })
@@ -64,5 +67,18 @@ export function useModel(): { loaded?: Loaded; banner?: string; edit: Edit; live
     return run
   }, [load])
 
-  return exported ? { ...exported, edit, live: false } : { loaded, banner, edit, live: true }
+  const undo = useCallback(() => {
+    const run = queue.current.then(async () => {
+      const last = undos.current.pop()
+      if (!last) return 'Nothing to undo.'
+      const message = await undoEdit(last)
+      if (message) undos.current = [] // once one file moved on, older undos would go back past it
+      await load()
+      return message
+    })
+    queue.current = run
+    return run
+  }, [load])
+
+  return exported ? { ...exported, edit, undo, live: false } : { loaded, banner, edit, undo, live: true }
 }
