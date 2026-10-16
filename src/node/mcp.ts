@@ -5,7 +5,7 @@ import { changedFiles, getObject, OBJECT_TYPES, parseFile, ROOT } from '../core/
 import type { Model } from '../core/model.ts'
 import { connect, deleteFlow, deleteObject, disconnect, putFlow, putObject, refuseNewProblems } from '../core/ops.ts'
 import { computeView } from '../core/views.ts'
-import { loadDir, saveFile, VersionConflict } from './files.ts'
+import { loadDir, missingPaths, saveFile, VersionConflict } from './files.ts'
 
 const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML files in the repo.
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
@@ -45,7 +45,7 @@ export function createMcpServer(dir: string): McpServer {
       try {
         const { model, versions } = await loadDir(dir)
         const next = op(model)
-        refuseNewProblems(model, next) // the canvas refuses the same edits
+        refuseNewProblems(model, next, missingPaths(dir, model, next)) // the canvas refuses the same edits, except missing code paths, which only Node can see
         // Every op changes at most one file today, so a failure can't leave a half-applied multi-file change.
         const changes = changedFiles(model, next)
         // Never write what can't be read back: if saving and loading ever disagree, refuse instead of breaking the folder.
@@ -76,7 +76,7 @@ export function createMcpServer(dir: string): McpServer {
     description: 'Everything in the model: objects, connections, flows, and current problems.',
     inputSchema: {}, // without a schema the SDK runs this one step sooner and it overtakes earlier calls
     annotations: readOnly,
-  }, () => read(m => ({ objects: m.objects, connections: m.connections, flows: m.flows, problems: check(m) })))
+  }, () => read(m => ({ objects: m.objects, connections: m.connections, flows: m.flows, problems: check(m, missingPaths(dir, m)) })))
 
   server.registerTool('get_view', {
     description: 'What one diagram shows: members (its boxes), outsiders (faded boxes from elsewhere that connect in) and edges (connections merged to that zoom level).',
@@ -90,7 +90,7 @@ export function createMcpServer(dir: string): McpServer {
   }))
 
   server.registerTool('put_object', {
-    description: 'Create or update an object. On update, omitted fields stay as they are, and "" removes in, tech or description.',
+    description: 'Create or update an object. On update, omitted fields stay as they are, "" removes in, tech or description, and [] removes code.',
     inputSchema: {
       id: id('Object id'),
       type: z.enum(OBJECT_TYPES).optional()
@@ -99,6 +99,8 @@ export function createMcpServer(dir: string): McpServer {
       in: z.string().optional().describe('Id of the parent object. Leave it out (never "root") for the top level; "" moves it there.'),
       tech: z.string().optional().describe('Technology, e.g. "Postgres"'),
       description: z.string().optional().describe('Markdown. The first paragraph is the short teaser readers see first.'),
+      code: z.array(z.string()).optional()
+        .describe('Files and folders in the repo this object lives in, relative to the folder that holds flowy/, e.g. ["src/api/"]. Each must exist. [] removes them.'),
     },
   }, input => write(m => putObject(m, input), before => `${getObject(before, input.id) ? 'Updated' : 'Created'} ${input.id}.`))
 

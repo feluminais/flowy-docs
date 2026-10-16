@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { check, newProblems, typesIn } from '../src/core/check.ts'
+import { check, isRepoPath, newProblems, typesIn } from '../src/core/check.ts'
 import type { Model } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 
@@ -182,4 +182,25 @@ test('a step problem that only got a new number is not new', () => {
   assert.deepEqual(newProblems(check(before), check(after)).map(p => p.message), [])
   after.flows.checkout.steps[0].text = ''
   assert.equal(newProblems(check(before), check(after)).length, 1) // two steps miss their text now, one did before
+})
+
+test('code paths: a list of repo paths that exist', () => {
+  const m = shop()
+  Object.assign(m.objects, raw({
+    a: { type: 'actor', name: 'A', code: 'src/' },
+    b: { type: 'actor', name: 'B', code: ['src/', '/etc/passwd', '../up', 'a\\b', 'C:/x', './here', 'two//slashes', ''] },
+    c: { type: 'actor', name: 'C', code: ['src/api/', 'gone.ts'] },
+  }))
+  const messages = check(m, new Set(['gone.ts'])).map(p => p.message)
+  assert.ok(messages.includes('a: code must be a list of paths'))
+  for (const bad of ['/etc/passwd', '../up', 'a\\b', 'C:/x', './here', 'two//slashes', ''])
+    assert.ok(messages.includes(`b: code path "${bad}" must be relative, with / between folders and no "." or ".." parts`), bad)
+  assert.ok(messages.includes('c: code path "gone.ts" doesn\'t exist'))
+  assert.equal(messages.filter(msg => msg.startsWith('c:')).length, 1)
+  assert.equal(messages.filter(msg => msg.includes('"src/')).length, 0)
+})
+
+test('isRepoPath takes files and folders', () => {
+  for (const ok of ['src', 'src/', 'src/api/server.ts', '.github/workflows/', 'a.b/c']) assert.equal(isRepoPath(ok), true, ok)
+  for (const bad of ['', '/', '/x', 'x//y', '..', 'x/../y', './x', 'x\\y', 'c:/x']) assert.equal(isRepoPath(bad), false, bad)
 })

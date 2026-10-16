@@ -28,14 +28,22 @@ const nonEmpty = (v: unknown) => typeof v === 'string' && v.trim() !== ''
 /** Absent, or a key with nothing after it (`type:`), which reads as "". */
 const missing = (v: unknown) => v === undefined || v === ''
 
+/** A path in the repo as `code` takes it: relative, with / between folders, and no "." or ".." parts. A trailing / is a folder. */
+export const isRepoPath = (path: string): boolean =>
+  !/^\/|\\|:/.test(path) && path.split('/').every((part, i, all) => (part !== '' || (i === all.length - 1 && i > 0)) && part !== '.' && part !== '..')
+
+/** A path made safe for a URL one part at a time, so a # or ? in a name stays part of the name. */
+export const encodePath = (path: string): string => path.split('/').map(encodeURIComponent).join('/')
+
 /**
- * Every problem in the model. Never throws.
+ * Every problem in the model. Never throws. `absent` holds the code paths that don't exist; only Node
+ * can tell, so the browser leaves it empty.
  * The MCP server refuses writes that add problems, so a message must not change when an
  * unrelated part of the model changes: no connection positions, names or descriptions in
  * messages (the only extras are a duplicate's label and a misplaced object's parent type).
  * Step numbers are fine: newProblems leaves them out.
  */
-export function check(model: Model): Problem[] {
+export function check(model: Model, absent: ReadonlySet<string> = new Set()): Problem[] {
   const problems: Problem[] = []
   const add = (file: string, id: string | undefined, message: string, at?: Pick<Problem, 'connection' | 'step'>) =>
     problems.push({ file, ...(id === undefined ? {} : { id }), message, ...at })
@@ -49,6 +57,13 @@ export function check(model: Model): Problem[] {
     const p = (message: string) => add('model.yaml', id, `${id}: ${message}`)
     if (!isValidId(id)) p('ids use lowercase letters, digits and dashes ("root" is reserved)')
     if (!nonEmpty(o.name)) p('name is missing')
+    if (o.code !== undefined) {
+      if (!Array.isArray(o.code) || o.code.some(c => typeof c !== 'string')) p('code must be a list of paths')
+      else for (const path of o.code as string[]) {
+        if (!isRepoPath(path)) p(`code path "${path}" must be relative, with / between folders and no "." or ".." parts`)
+        else if (absent.has(path)) p(`code path "${path}" doesn't exist`)
+      }
+    }
     if (missing(o.type)) {
       p('type is missing')
       continue

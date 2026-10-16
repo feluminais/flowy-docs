@@ -138,3 +138,4 @@ button, select, input, textarea { font: inherit; }
 .steps label { margin: 8px 0 4px; }
 .step-buttons { display: flex; gap: 4px; }
 .panel .step-buttons button { padding: 0 8px; }
+.code-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 4px; font-size: 13px; }
