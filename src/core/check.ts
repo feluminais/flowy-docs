@@ -13,28 +13,31 @@ const PARENTS: Record<ObjectType, readonly ObjectType[]> = {
 }
 
 const nonEmpty = (v: unknown) => typeof v === 'string' && v.trim() !== ''
+/** Absent, or a key with nothing after it (`type:`), which reads as "". */
+const missing = (v: unknown) => v === undefined || v === ''
 
 /**
  * Every problem in the model. Never throws.
  * The MCP server refuses writes that add problems, so a message must not change when an
  * unrelated part of the model changes: no connection positions, names or descriptions in
- * messages. Step numbers are fine; they only shift inside the flow being edited.
+ * messages (the only extras are a duplicate's label and a misplaced object's parent type).
+ * Step numbers are fine; they only shift inside the flow being edited.
  */
 export function check(model: Model): Problem[] {
   const problems: Problem[] = []
   const add = (file: string, id: string | undefined, message: string) =>
     problems.push(id === undefined ? { file, message } : { file, id, message })
   const checkEnds = (p: (message: string) => void, from: unknown, to: unknown) => {
-    if (from === undefined) p('"from" is missing')
-    if (to === undefined) p('"to" is missing')
-    for (const end of new Set([from, to])) if (end !== undefined && !getObject(model, end)) p(`unknown object "${end}"`)
+    if (missing(from)) p('"from" is missing')
+    if (missing(to)) p('"to" is missing')
+    for (const end of new Set([from, to])) if (!missing(end) && !getObject(model, end)) p(`unknown object "${end}"`)
   }
 
   for (const [id, o] of Object.entries(model.objects)) {
     const p = (message: string) => add('model.yaml', id, `${id}: ${message}`)
     if (!isValidId(id)) p('ids use lowercase letters, digits and dashes ("root" is reserved)')
     if (!nonEmpty(o.name)) p('name is missing')
-    if (o.type === undefined) {
+    if (missing(o.type)) {
       p('type is missing')
       continue
     }
@@ -44,7 +47,7 @@ export function check(model: Model): Problem[] {
     }
     const allowed = PARENTS[o.type]
     const parent = getObject(model, o.in)
-    if (o.in === undefined) {
+    if (missing(o.in)) {
       if (allowed.length) p(`${o.type} must be inside ${allowed.join(' or ')}`)
     } else if (!parent) p(`"in" points to unknown object "${o.in}"`)
     else if (!allowed.includes(parent.type))
@@ -53,9 +56,10 @@ export function check(model: Model): Problem[] {
 
   const seen = new Set<string>()
   for (const c of model.connections) {
-    const p = (message: string) => add('model.yaml', undefined, `connection ${c.from ?? '?'} → ${c.to ?? '?'}: ${message}`)
+    const end = (v: unknown) => (missing(v) ? '?' : v)
+    const p = (message: string) => add('model.yaml', undefined, `connection ${end(c.from)} → ${end(c.to)}: ${message}`)
     checkEnds(p, c.from, c.to)
-    if (c.from !== undefined && c.from === c.to) p('connects an object to itself')
+    if (!missing(c.from) && c.from === c.to) p('connects an object to itself')
     const key = JSON.stringify([c.from, c.to, c.label ?? ''])
     if (seen.has(key)) p(`duplicate${c.label ? ` "${c.label}"` : ''}`)
     seen.add(key)
@@ -66,14 +70,14 @@ export function check(model: Model): Problem[] {
     if (!isValidId(fid)) p(`"${fid}" is not a valid flow id: the file name must use lowercase letters, digits and dashes ("root" is reserved)`)
     if (!nonEmpty(f.name)) p('name is missing')
     const viewOk = f.view === ROOT || (getObject(model, f.view) !== undefined && hasChildren(model, f.view))
-    if (f.view === undefined) p('view is missing')
+    if (missing(f.view)) p('view is missing')
     else if (!viewOk) p(`view "${f.view}" must be "root" or an object with children`)
     if (f.steps.length === 0) p('has no steps')
     f.steps.forEach((s, i) => {
       const sp = (message: string) => p(`step ${i + 1}: ${message}`)
       checkEnds(sp, s.from, s.to)
       if (!nonEmpty(s.text)) sp('text is missing')
-      if (s.from !== undefined && s.from === s.to) sp('goes from an object to itself')
+      if (!missing(s.from) && s.from === s.to) sp('goes from an object to itself')
       else if (viewOk && getObject(model, s.from) && getObject(model, s.to) && !placeEnds(model, f.view, s.from, s.to))
         sp(`${s.from} → ${s.to} can't be shown in view "${f.view}"`)
     })
