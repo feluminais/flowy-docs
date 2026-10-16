@@ -103,6 +103,16 @@ test('putFlow creates or replaces whole, and deleteFlow removes', () => {
   assert.throws(() => putFlow(shop(), { id: 'Bad', name: 'B', view: 'root', steps }), /not a valid flow id/)
 })
 
+test('files that only a person can fix get a clear refusal', () => {
+  const m = shop()
+  m.flows.Visit = { name: 'V', view: 'root', steps: [] }
+  assert.throws(() => deleteFlow(m, 'Visit'), /flows\/Visit\.yaml has an invalid file name/)
+  const steps = [{ from: 'customer', to: 'shop', text: 'Visits' }]
+  assert.throws(() => putFlow(m, { id: 'visit', name: 'V', view: 'root', steps }), /flows\/Visit\.yaml already exists and differs only in case/)
+  m.objects.root = { type: 'actor', name: 'R' }
+  assert.throws(() => deleteObject(m, 'root'), /"root" is reserved/)
+})
+
 test('refusals are OpErrors', () => {
   assert.throws(() => deleteObject(shop(), 'ghost'), (e: unknown) => e instanceof OpError && e.name === 'OpError')
 })

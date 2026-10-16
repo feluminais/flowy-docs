@@ -92,6 +92,15 @@ test('wrong shapes are parse errors that name the culprit', () => {
   assert.throws(() => parseModelFile('connections:\n  - { from: a, to: b }\n  - oops\n'), /connection 2 must be a mapping/)
 })
 
+test('a list or mapping in a text field is a parse error that names the field', () => {
+  assert.throws(() => parseModelFile('objects:\n  a: { type: [app], name: A }\n'), /object "a": "type" must be plain text/)
+  assert.throws(() => parseModelFile('objects:\n  a: { type: app, name: A, in: { x: y } }\n'), /object "a": "in" must be plain text/)
+  assert.throws(() => parseModelFile('connections:\n  - { from: a, to: [b] }\n'), /connection 1: "to" must be plain text/)
+  assert.throws(() => parseFlowFile('f', 'name: F\nview: [root]\nsteps: []\n'), /flow: "view" must be plain text/)
+  assert.throws(() => parseFlowFile('f', 'name: F\nview: root\nsteps:\n  - { from: a, to: b, text: { t: x } }\n'), /step 1: "text" must be plain text/)
+  assert.deepEqual(parseModelFile('objects:\n  a: { type: app, name: A, tags: [x, y] }\n').objects.a.tags, ['x', 'y'])
+})
+
 test('merge conflicts and alias bombs are parse errors', () => {
   assert.throws(
     () => parseModelFile('objects:\n<<<<<<< HEAD\n  a: { type: actor, name: A }\n=======\n  a: { type: actor, name: B }\n>>>>>>> other\n'),
