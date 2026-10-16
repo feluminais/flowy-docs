@@ -2,6 +2,8 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  // Relative asset paths, so an export works under any path (GitHub Pages serves /<repo>/).
+  base: './',
   plugins: [react()],
   // src/node/server.ts serves this folder. One bundle loaded from localhost, so its size doesn't matter.
   // `license` writes the MIT notices of the bundled packages next to the bundle, which their licences require.
