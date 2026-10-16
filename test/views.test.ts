@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { chain, computeView, hasChildren, memberIds, placeEnds } from '../src/core/views.ts'
+import { chain, computeView, hasChildren, memberIds, placeEnds, placeStep } from '../src/core/views.ts'
 import { shop } from './fixtures.ts'
 
 test('chain walks up to root', () => {
@@ -101,4 +101,12 @@ test('placeEnds maps flow steps and hides what a view cannot show', () => {
   assert.equal(placeEnds(m, 'api', 'customer', 'web'), null)
   assert.equal(placeEnds(m, 'shop', 'ghost', 'web'), null)
   assert.equal(placeEnds(m, 'root', 'root', 'web'), null)
+})
+
+test('placeStep puts a one-box step on the box that stands for it, twice', () => {
+  const m = shop()
+  assert.deepEqual(placeStep(m, 'shop', { from: 'auth' }), ['api', 'api'])
+  assert.deepEqual(placeStep(m, 'shop', { from: 'mail' }), ['mail', 'mail'])
+  assert.deepEqual(placeStep(m, 'shop', { from: 'web', to: 'api' }), ['web', 'api'])
+  assert.equal(placeStep(m, 'shop', { from: 'ghost' }), null)
 })

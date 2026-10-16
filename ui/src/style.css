@@ -154,3 +154,6 @@ button, select, input, textarea { font: inherit; }
 .search li button { all: unset; display: block; width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 4px; cursor: pointer; }
 .search li button.at, .search li button:hover { background: var(--bg); }
 .search p { margin: 8px 4px 2px; }
+
+.more { margin: 6px 0; }
+.more summary { cursor: pointer; color: var(--muted); font-size: 13px; }

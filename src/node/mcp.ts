@@ -142,8 +142,9 @@ export function createMcpServer(dir: string): McpServer {
       view: z.string().max(64).describe('"root" or the id of an object with children. Every step must be visible there.'),
       steps: z.array(z.object({
         from: z.string().max(64).describe('Id of the object the step starts at'),
-        to: z.string().max(64).describe('Id of the object it goes to'),
+        to: z.string().max(64).optional().describe('Id of the object it goes to. Leave it out for a step where the "from" object does something on its own.'),
         text: z.string().describe('One short sentence'),
+        description: z.string().optional().describe('Optional longer detail in markdown, shown only when a reader asks for more'),
       })).min(1),
     },
   }, input => write(m => putFlow(m, input), `Saved flow ${input.id}.`))

@@ -58,6 +58,17 @@ export function placeEnds(model: Model, v: string, from: string, to: string): [s
   return ends[0] === ends[1] ? null : ends
 }
 
+/**
+ * Where a flow step lands in view v. A step with no `to` is one box acting on its own: the box that
+ * stands for it, inside the view or around it, given twice. Null when the view can't show the step.
+ */
+export function placeStep(model: Model, v: string, step: { from: string; to?: string }): [string, string] | null {
+  if (step.to !== undefined) return placeEnds(model, v, step.from, step.to)
+  if (!getObject(model, step.from)) return null
+  const box = rep(model, step.from, v) ?? outsider(model, step.from, v)
+  return [box, box]
+}
+
 export function computeView(model: Model, v: string): View {
   const members = memberIds(model, v)
   const outsiders: string[] = []

@@ -7,8 +7,8 @@ import { ROOT } from '../../src/core/model.ts'
 import type { Model, Step } from '../../src/core/model.ts'
 import { connect, deleteObject, placeBoxes, removeConnection } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
-import { chain, hasChildren, parentOf, placeEnds } from '../../src/core/views.ts'
-import { Box } from './Box.tsx'
+import { chain, hasChildren, parentOf, placeEnds, placeStep } from '../../src/core/views.ts'
+import { Box, Description } from './Box.tsx'
 import { Camera } from './Camera.tsx'
 import { connectionsOf, locate, nameOf } from './edit.ts'
 import { fitOptions, focusEdges, lineId, toGraph } from './graph.ts'
@@ -32,11 +32,11 @@ type Side =
   | { kind: 'add' }
   | ({ kind: 'flow' } & Recording)
 
-/** A box clicked while recording: the first one starts the step, the second ends it, a third starts over. */
+/** A box clicked while recording: the first one starts the step, the second ends it (the same box again: a step it does on its own), a third starts over. */
 function pick(rec: Recording, id: string): Recording {
   if (!rec.id) return rec
   if (!rec.from || rec.to) return { ...rec, from: id, to: undefined }
-  return id === rec.from ? rec : { ...rec, to: id }
+  return { ...rec, to: id }
 }
 
 export function App() {
@@ -102,12 +102,12 @@ function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { 
   // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
   // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
   const shown = useMemo<Playing | undefined>(() => {
-    const placeSteps = (steps: Step[]) => steps.map(s => placeEnds(model, view, s.from, s.to))
+    const placeSteps = (steps: Step[]) => steps.map(s => placeStep(model, view, s))
     if (flow) return { ends: placeSteps(flow.steps), step: stepIndex }
     if (!recording) return undefined
     const done = placeSteps(Object.hasOwn(model.flows, recording.id) ? model.flows[recording.id].steps : [])
     return recording.from && recording.to
-      ? { ends: [...done, placeEnds(model, view, recording.from, recording.to)], step: done.length }
+      ? { ends: [...done, placeStep(model, view, { from: recording.from, to: recording.to === recording.from ? undefined : recording.to })], step: done.length }
       : { ends: done }
   }, [model, view, flow, stepIndex, recording])
   const graph = useMemo(() => toGraph(model, view, shown, problems), [model, view, shown, problems])
@@ -340,8 +340,14 @@ function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { 
         {flow && step && (
           <section className="player" aria-live="polite">
             <p className="muted">{flow.name} · Step {stepIndex + 1} of {flow.steps.length}</p>
-            <p className="player-ends">{(shown?.ends[stepIndex] ?? [step.from, step.to]).map(id => nameOf(model, id)).join(' → ')}</p>
+            <p className="player-ends">{[...new Set(shown?.ends[stepIndex] ?? [step.from, step.to ?? step.from])].map(id => nameOf(model, id)).join(' → ')}</p>
             <p>{step.text}</p>
+            {step.description && (
+              <details key={stepIndex} className="more">
+                <summary>More</summary>
+                <Description text={String(step.description)} />
+              </details>
+            )}
             <div className="player-buttons">
               <button disabled={stepIndex === 0} onClick={() => stepTo(stepIndex - 1)}>← Back</button>
               <button disabled={stepIndex === flow.steps.length - 1} onClick={() => stepTo(stepIndex + 1)}>Next →</button>
