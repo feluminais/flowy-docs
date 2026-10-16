@@ -10,7 +10,8 @@ picture and zoom in only where they need to.
 
 ## Let Claude build it
 
-From the root of the repo you want to document:
+Clone this repo and run `npm install` in it (needs Node 22.18 or later). Then, from the root of
+the repo you want to document:
 
 ```bash
 claude mcp add flowy -- node "<path to this repo>/src/cli.ts" mcp
