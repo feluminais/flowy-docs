@@ -60,8 +60,37 @@ test('a connection to the system you are inside shows that system as an outsider
   const m = shop()
   m.connections.push({ from: 'auth', to: 'shop', label: 'reports to' })
   const v = computeView(m, 'api')
-  assert.ok(v.outsiders.includes('shop'))
-  assert.ok(v.edges.some(e => e.from === 'auth' && e.to === 'shop'))
+  assert.deepEqual(v.outsiders, ['db', 'mail', 'shop'])
+  assert.deepEqual(v.edges.at(-1), { from: 'auth', to: 'shop', label: 'reports to', count: 1 })
+})
+
+test('deep objects in other branches are lifted to the box you can see', () => {
+  const m = shop()
+  m.objects.ui = { type: 'component', in: 'web', name: 'UI' }
+  m.objects.queue = { type: 'store', in: 'mail', name: 'Queue' }
+  m.connections = [{ from: 'ui', to: 'auth' }, { from: 'auth', to: 'queue' }]
+  const v = computeView(m, 'api')
+  assert.deepEqual(v.outsiders, ['web', 'mail'])
+  assert.deepEqual(v.edges.map(e => `${e.from}>${e.to}`), ['web>auth', 'auth>mail'])
+})
+
+test('opposite directions stay separate lines', () => {
+  const m = shop()
+  m.connections.push({ from: 'api', to: 'web', label: 'pushes' })
+  const v = computeView(m, 'shop')
+  assert.ok(v.edges.some(e => e.from === 'web' && e.to === 'api' && e.count === 1))
+  assert.ok(v.edges.some(e => e.from === 'api' && e.to === 'web' && e.count === 1))
+})
+
+test('a missing or self-pointing parent counts as top level', () => {
+  const m = shop()
+  m.objects.lost = { type: 'app', in: 'nowhere', name: 'Lost' }
+  m.objects.loop = { type: 'system', in: 'loop', name: 'Loop' }
+  m.connections.push({ from: 'loop', to: 'customer' })
+  assert.deepEqual(memberIds(m, 'root'), ['customer', 'shop', 'mail', 'lost', 'loop'])
+  const v = computeView(m, 'root')
+  assert.deepEqual(v.outsiders, [])
+  assert.ok(v.edges.some(e => e.from === 'loop' && e.to === 'customer'))
 })
 
 test('placeEnds maps flow steps and hides what a view cannot show', () => {
@@ -70,4 +99,6 @@ test('placeEnds maps flow steps and hides what a view cannot show', () => {
   assert.deepEqual(placeEnds(m, 'shop', 'orders', 'db'), ['api', 'db'])
   assert.equal(placeEnds(m, 'root', 'web', 'api'), null)
   assert.equal(placeEnds(m, 'api', 'customer', 'web'), null)
+  assert.equal(placeEnds(m, 'shop', 'ghost', 'web'), null)
+  assert.equal(placeEnds(m, 'root', 'root', 'web'), null)
 })
