@@ -3,7 +3,7 @@ import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { createMcpServer } from '../src/node/mcp.ts'
@@ -123,4 +123,17 @@ test('a broken file is reported, not overwritten', async t => {
   assert.equal(result.error, true)
   assert.match(result.text, /^model\.yaml:\d+:/)
   assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), 'objects:\n  a: { type: actor\n')
+})
+
+test('code paths are checked against the folder that holds the flowy folder', async t => {
+  const { dir, call } = await setup(t)
+  await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
+  const here = `${basename(dir)}/` // the flowy folder itself sits in its parent, so this path exists
+  assert.equal((await call('put_object', { id: 'shop', code: [here] })).error, false)
+  const refused = await call('put_object', { id: 'shop', code: [here, 'no-such-folder-for-flowy/'] })
+  assert.equal(refused.error, true)
+  assert.match(refused.text, /code path "no-such-folder-for-flowy\/" doesn't exist/)
+  assert.match(await readFile(join(dir, 'model.yaml'), 'utf8'), new RegExp(`code:\\n\\s+- ${here.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n`))
+  assert.equal((await call('put_object', { id: 'shop', code: [] })).error, false)
+  assert.doesNotMatch(await readFile(join(dir, 'model.yaml'), 'utf8'), /code/)
 })
