@@ -1,13 +1,14 @@
 import { test } from 'node:test'
 import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
-import { writeFileSync } from 'node:fs'
+import { existsSync, writeFileSync } from 'node:fs'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { deleteFlow, placeBoxes, putFlow, putObject } from '../src/core/ops.ts'
 import { startServer } from '../src/node/server.ts'
-import { CHANGED_OUTSIDE, saveEdit } from '../ui/src/save.ts'
+import { CHANGED_OUTSIDE, saveEdit, UNDO_STALE, undoEdit } from '../ui/src/save.ts'
+import type { Undo } from '../ui/src/save.ts'
 
 /** A server over a flowy/ folder that starts with a shop and a title, the way the canvas talks to it. */
 async function setup(t: TestContext) {
@@ -21,7 +22,8 @@ async function setup(t: TestContext) {
     await rm(root, { recursive: true, force: true })
   })
   const read = (rel: string) => readFile(join(dir, rel), 'utf8')
-  return { dir, read, save: (op: Parameters<typeof saveEdit>[0]) => saveEdit(op, `http://127.0.0.1:${server.port}`) }
+  const base = `http://127.0.0.1:${server.port}`
+  return { dir, read, base, save: (op: Parameters<typeof saveEdit>[0]) => saveEdit(op, base) }
 }
 
 test('an edit reads fresh, writes the file, and keeps extra top-level keys where they were', async t => {
@@ -61,4 +63,30 @@ test('layout and flow edits write their own files, and deleting a flow removes i
   assert.match(await read('flows/tour.yaml'), /text: Sends/)
   assert.equal(await save(m => deleteFlow(m, 'tour')), undefined)
   await assert.rejects(read('flows/tour.yaml'), { code: 'ENOENT' })
+})
+
+test('undo takes saved edits back, newest first, a new flow and a first layout included', async t => {
+  const { dir, read, base } = await setup(t)
+  const undos: Undo[] = []
+  const save = (op: Parameters<typeof saveEdit>[0]) => saveEdit(op, base, undo => undos.push(undo))
+  assert.equal(await save(m => putObject(m, { id: 'shop', name: 'Store' })), undefined)
+  assert.equal(await save(m => placeBoxes(m, 'root', { shop: [10, 20] })), undefined)
+  assert.equal(await save(m => putFlow(m, { id: 'tour', name: 'Tour', view: 'root', steps: [{ from: 'shop', text: 'Waits' }] })), undefined)
+  assert.equal(undos.length, 3)
+  assert.equal(await undoEdit(undos.pop()!, base), undefined)
+  assert.equal(existsSync(join(dir, 'flows', 'tour.yaml')), false)
+  assert.equal(await undoEdit(undos.pop()!, base), undefined)
+  assert.equal(await read('layout.yaml'), '{}\n')
+  assert.equal(await undoEdit(undos.pop()!, base), undefined)
+  assert.match(await read('model.yaml'), /^title: Demo\nobjects:\n {2}shop:\n {4}type: system\n {4}name: Shop\n/)
+})
+
+test('undo refuses once the file changed since, and leaves the change alone', async t => {
+  const { dir, read, base } = await setup(t)
+  const undos: Undo[] = []
+  assert.equal(await saveEdit(m => putObject(m, { id: 'shop', name: 'Store' }), base, undo => undos.push(undo)), undefined)
+  const outside = 'objects:\n  mail: { type: system, name: Mail }\n'
+  writeFileSync(join(dir, 'model.yaml'), outside)
+  assert.equal(await undoEdit(undos[0], base), UNDO_STALE)
+  assert.equal(await read('model.yaml'), outside)
 })
