@@ -163,7 +163,8 @@ export function parseFile(rel: string, text: string): ReturnType<typeof parseMod
 }
 
 /**
- * A file's content, as plain JSON (what parsing it would give), turned into its YAML text.
+ * A file's content as plain JSON, turned into its YAML text. For model.yaml that's the file's own
+ * top-level keys ({ objects, connections, ...others }), not parseModelFile's { objects, connections, meta }.
  * Throws on a number, boolean or null in model or flow files, which only hold text.
  * Not a check: parse the result with parseFile before writing it.
  */
