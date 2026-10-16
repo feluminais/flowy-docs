@@ -2,7 +2,7 @@ import type { FocusEvent, FormEvent, ReactNode } from 'react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { getObject, ROOT } from '../../src/core/model.ts'
-import type { Model, ObjectType, Step } from '../../src/core/model.ts'
+import type { FlowyObject, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { deleteFlow, deleteObject, OpError, putFlow, putObject, relabel, removeConnection, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { parentOf } from '../../src/core/views.ts'
@@ -44,8 +44,19 @@ function Field({ label, value, multiline, onSave }: { label: ReactNode; value: s
 
 type Common = { model: Model; run: Run; onClose: () => void }
 
-/** An object's description, or in edit mode a form for its name, type, tech and description. */
-export function ObjectPanel({ model, id, editing, problems, run, onClose }: Common & { id: string; editing: boolean; problems: Problem[] }) {
+/** The paths an object's `code` lists, as links when the repo is on GitHub or GitLab. Anything else in `code` is left to the problem list. */
+function CodeList({ object, codeBase }: { object: FlowyObject; codeBase?: string }) {
+  const paths = Array.isArray(object.code) ? object.code.filter((p): p is string => typeof p === 'string') : []
+  if (paths.length === 0) return null
+  return (
+    <ul className="code-list" aria-label="Code">
+      {paths.map(p => <li key={p}>{codeBase ? <a href={codeBase + encodeURI(p)} target="_blank" rel="noreferrer"><code>{p}</code></a> : <code>{p}</code>}</li>)}
+    </ul>
+  )
+}
+
+/** An object's description and code, or in edit mode a form for its name, type, tech, description and code. */
+export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClose }: Common & { id: string; editing: boolean; problems: Problem[]; codeBase?: string }) {
   const object = getObject(model, id)
   if (!object) return null
   const save = (fields: Omit<ObjectInput, 'id'>) => run(m => putObject(m, { id, ...fields }))
@@ -56,6 +67,7 @@ export function ObjectPanel({ model, id, editing, problems, run, onClose }: Comm
       <p className="muted">{object.type}{object.tech ? ` · ${object.tech}` : ''}</p>
       {mine}
       {object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}
+      <CodeList object={object} codeBase={codeBase} />
     </Panel>
   )
   // A type the nesting rules don't allow here stays in the list, so the form shows what the file says.
@@ -72,6 +84,8 @@ export function ObjectPanel({ model, id, editing, problems, run, onClose }: Comm
         </label>
         <Field label="Tech" value={object.tech ?? ''} onSave={tech => save({ tech })} />
         <Field label="Description" value={object.description ?? ''} multiline onSave={description => save({ description })} />
+        <Field label="Code (one path per line)" value={Array.isArray(object.code) ? object.code.join('\n') : ''} multiline
+          onSave={text => save({ code: text.split('\n').map(line => line.trim()).filter(Boolean) })} />
       </form>
       {mine}
       <p className="muted">id: {id}</p>
