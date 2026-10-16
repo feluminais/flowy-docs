@@ -70,7 +70,7 @@ export function putFlow(model: Model, { id, name, view, steps }: FlowInput): Mod
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid flow id: ${ID_RULE}`)
   // Flow ids are file names, and Windows and macOS don't tell Visit.yaml from visit.yaml.
   const clash = Object.keys(model.flows).find(other => other !== id && other.toLowerCase() === id.toLowerCase())
-  if (clash) throw new OpError(`flows/${clash}.yaml already exists and differs only in case. Use "${clash}" or rename that file by hand.`)
+  if (clash) throw new OpError(`flows/${clash}.yaml already exists and differs only in case. Rename or delete that file by hand.`)
   return { ...model, flows: { ...model.flows, [id]: { name, view, steps: steps.map(s => ({ ...s })) } } }
 }
 
