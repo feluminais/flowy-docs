@@ -10,7 +10,9 @@
   },
   "scripts": {
     "test": "node --test \"test/**/*.test.ts\"",
-    "typecheck": "tsc -p . && tsc -p src/core"
+    "typecheck": "tsc -p . && tsc -p src/core && tsc -p ui",
+    "build:ui": "vite build ui",
+    "dev:ui": "vite ui"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
