@@ -15,6 +15,7 @@ import type { BoxNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
 import { Line } from './Line.tsx'
 import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
+import { Search } from './Search.tsx'
 import type { Recording, Run } from './Panel.tsx'
 import { useModel } from './useModel.ts'
 import type { Edit, Loaded } from './useModel.ts'
@@ -81,6 +82,7 @@ function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { 
   const [moved, setMoved] = useState(new Map<string, XYPosition>())
   const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
   const [hovered, setHovered] = useState<string>() // the line the pointer is on
+  const [searching, setSearching] = useState(false)
   const opening = useRef<ReturnType<typeof setTimeout>>(undefined) // a click on a box that opens, waiting out the double-click window
   const quiet = useRef(true) // the next address write replaces instead of pushing (see the address effect)
 
@@ -214,6 +216,7 @@ function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { 
       else if (flow && e.key === 'Escape') setPlaying(undefined)
       else if (recording?.from && e.key === 'Escape') setSide({ ...recording, from: undefined, to: undefined })
       else if (e.key === 'Escape') setSide(undefined)
+      else if ((e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey)) || e.key === '/') setSearching(true)
       else if (e.key.toLowerCase() === 'e' && !e.ctrlKey && !e.metaKey && !e.altKey && !readOnly) toggleEdit()
       else if (editing && e.key === 'Delete') remove()
       else if (e.key === 'Backspace' && view !== ROOT && !recording) go(parentOf(model, view))
@@ -246,6 +249,7 @@ function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { 
         {editing && <button onClick={() => setSide({ kind: 'flow', id: '', name: '' })}>New flow</button>}
         {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
         <span className="grow" />
+        <button title="Find a box (Ctrl+K or /)" onClick={() => setSearching(true)}>Search</button>
         <Problems problems={problems} onPick={jump} />
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}>Edit</button>}
       </header>
@@ -297,6 +301,13 @@ function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { 
             : live
               ? 'Nothing here yet. Ask Claude to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.'
               : 'Nothing here yet.'}</p>
+        )}
+        {searching && (
+          <Search model={model} onClose={() => setSearching(false)} onPick={id => {
+            setSearching(false)
+            go(parentOf(model, id)) // the view the box sits in
+            setSide({ kind: 'object', id })
+          }} />
         )}
         {notice && (
           <div className="notice" role="status">
