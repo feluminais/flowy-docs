@@ -118,6 +118,7 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
   const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, flow.steps.length - 1)) })
   const toggleEdit = () => {
     setEditMode(!editing)
+    setNotice(undefined) // "Press E to fix this flow" is stale the moment E is pressed
     setPlaying(undefined)
     setSide(s => (s?.kind === 'object' || s?.kind === 'line' ? s : undefined))
   }
@@ -135,7 +136,12 @@ function Reader({ model, edit, readOnly }: { model: Model; edit: Edit; readOnly:
     if (spot.object) setSide({ kind: 'object', id: spot.object })
     else if (spot.line) setSide({ kind: 'line', from: spot.line[0], to: spot.line[1] })
     else if (spot.flow !== undefined && editing) setSide({ kind: 'flow', id: spot.flow, name: model.flows[spot.flow].name })
-    else if (spot.flow !== undefined) setPlaying({ flow: spot.flow, step: spot.step ?? 0 })
+    else if (spot.flow !== undefined) {
+      // The player only lists flows with steps in a view that opens (flowsHere); locate() falls back to ROOT for a bad view.
+      const f = model.flows[spot.flow]
+      if (f.view === spot.view && f.steps.length > 0) setPlaying({ flow: spot.flow, step: spot.step ?? 0 })
+      else setNotice(readOnly ? `This flow can't play yet. Fix ${p.file} first.` : 'Press E to fix this flow in edit mode.')
+    }
   }
   // A drag (or an arrow key on a selected box) ends with dragging: false. Then the whole view's layout is saved.
   const onNodesChange = (changes: NodeChange<BoxNode>[]) => {
