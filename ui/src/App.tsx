@@ -6,6 +6,7 @@ import type { Problem } from '../../src/core/check.ts'
 import { ROOT } from '../../src/core/model.ts'
 import type { Model, Step } from '../../src/core/model.ts'
 import { connect, deleteObject, placeBoxes, removeConnection } from '../../src/core/ops.ts'
+import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { chain, hasChildren, parentOf, placeEnds } from '../../src/core/views.ts'
 import { Box } from './Box.tsx'
 import { Camera } from './Camera.tsx'
@@ -124,6 +125,16 @@ function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { 
     return message === undefined
   }
   const close = () => setSide(undefined)
+  // Fenced, so it pastes straight into a README or a PR, where GitHub draws it.
+  const copyMermaid = async () => {
+    const diagram = flow && playing ? flowToMermaid(model, playing.flow) : viewToMermaid(model, view)
+    try {
+      await navigator.clipboard.writeText('```mermaid\n' + diagram + '```\n')
+      setNotice(`Copied ${flow ? 'this flow' : 'this view'} as Mermaid. Paste it into a README or a PR: GitHub draws it.`)
+    } catch {
+      setNotice("Couldn't copy: the browser didn't allow it.")
+    }
+  }
   const go = (id: string) => {
     clearTimeout(opening.current)
     setViewId(id)
@@ -250,6 +261,7 @@ function Reader({ model, problems, codeBase, edit, live, readOnly }: Loaded & { 
         {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
         <span className="grow" />
         <button title="Find a box (Ctrl+K or /)" onClick={() => setSearching(true)}>Search</button>
+        <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={() => void copyMermaid()}>Mermaid</button>
         <Problems problems={problems} onPick={jump} />
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}>Edit</button>}
       </header>
