@@ -4,14 +4,16 @@ import { parseArgs } from 'node:util'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createMcpServer } from './node/mcp.ts'
 
-const { values, positionals } = parseArgs({
-  allowPositionals: true,
-  options: { dir: { type: 'string', default: 'flowy' } },
-})
-const dir = resolve(values.dir)
+const args = (() => {
+  try {
+    return parseArgs({ allowPositionals: true, options: { dir: { type: 'string', default: 'flowy' } } })
+  } catch {
+    return undefined // an unknown flag: show the usage line, not a stack trace
+  }
+})()
 
-if (positionals[0] === 'mcp') {
-  await createMcpServer(dir).connect(new StdioServerTransport())
+if (args?.positionals[0] === 'mcp') {
+  await createMcpServer(resolve(args.values.dir)).connect(new StdioServerTransport())
 } else {
   console.error('Usage: flowy mcp [--dir flowy]')
   process.exitCode = 1

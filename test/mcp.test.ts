@@ -1,29 +1,33 @@
 import { test } from 'node:test'
+import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { createMcpServer } from '../src/node/mcp.ts'
 
-async function setup() {
+async function setup(t: TestContext) {
   const dir = await mkdtemp(join(tmpdir(), 'flowy-mcp-'))
   const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
   await createMcpServer(dir).connect(serverSide)
   const client = new Client({ name: 'test', version: '0.0.0' })
   await client.connect(clientSide)
+  t.after(async () => {
+    await client.close()
+    await rm(dir, { recursive: true, force: true })
+  })
   const call = async (name: string, args: Record<string, unknown> = {}) => {
     const result = await client.callTool({ name, arguments: args })
     const [first] = result.content as { text: string }[]
     return { error: result.isError === true, text: first.text }
   }
-  return { dir, client, call }
+  return { dir, call }
 }
 
 test('builds a model and shows a view', async t => {
-  const { dir, client, call } = await setup()
-  t.after(() => client.close())
+  const { dir, call } = await setup(t)
   assert.equal((await call('put_object', { id: 'customer', type: 'actor', name: 'Customer' })).error, false)
   await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
   await call('put_object', { id: 'web', type: 'app', name: 'Web app', in: 'shop' })
@@ -34,8 +38,7 @@ test('builds a model and shows a view', async t => {
 })
 
 test('a write that adds a problem is refused and nothing is saved', async t => {
-  const { dir, client, call } = await setup()
-  t.after(() => client.close())
+  const { dir, call } = await setup(t)
   await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
   const before = await readFile(join(dir, 'model.yaml'), 'utf8')
   const result = await call('put_object', { id: 'web', type: 'app', name: 'Web app' })
@@ -45,8 +48,7 @@ test('a write that adds a problem is refused and nothing is saved', async t => {
 })
 
 test('flows round-trip, and delete_object explains refusals', async t => {
-  const { client, call } = await setup()
-  t.after(() => client.close())
+  const { call } = await setup(t)
   await call('put_object', { id: 'customer', type: 'actor', name: 'Customer' })
   await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
   const saved = await call('put_flow', { id: 'visit', name: 'Visit', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'Visits' }] })
@@ -58,8 +60,7 @@ test('flows round-trip, and delete_object explains refusals', async t => {
 })
 
 test('calls sent at the same time run in arrival order', async t => {
-  const { client, call } = await setup()
-  t.after(() => client.close())
+  const { call } = await setup(t)
   const [system, app] = await Promise.all([
     call('put_object', { id: 'shop', type: 'system', name: 'Shop' }),
     call('put_object', { id: 'api', type: 'app', name: 'API', in: 'shop' }),
@@ -69,15 +70,13 @@ test('calls sent at the same time run in arrival order', async t => {
 })
 
 test('a read sent together with a write sees the write', async t => {
-  const { client, call } = await setup()
-  t.after(() => client.close())
+  const { call } = await setup(t)
   const [, model] = await Promise.all([call('put_object', { id: 'shop', type: 'system', name: 'Shop' }), call('get_model')])
   assert.deepEqual(Object.keys(JSON.parse(model.text).objects), ['shop'])
 })
 
 test('old problems never block an unrelated write, and only the changed file is written', async t => {
-  const { dir, client, call } = await setup()
-  t.after(() => client.close())
+  const { dir, call } = await setup(t)
   const model = 'objects:\n  customer: { type: actor, name: Customer }\n  shop: { type: system, name: Shop }\nconnections:\n  - { from: shop, to: ghost }\n'
   await writeFile(join(dir, 'model.yaml'), model)
   await writeFile(join(dir, 'layout.yaml'), 'root:\n  shop: [0, 0]\n')
@@ -94,8 +93,7 @@ const LS = String.fromCharCode(0x2028)
 const PS = String.fromCharCode(0x2029)
 
 test('values with line separators save and load again', async t => {
-  const { client, call } = await setup()
-  t.after(() => client.close())
+  const { call } = await setup(t)
   const description = `a${LS}=======${PS}<<<<<<< x`
   assert.equal((await call('put_object', { id: 'o', type: 'actor', name: 'N', description })).error, false)
   const model = await call('get_model')
@@ -104,22 +102,22 @@ test('values with line separators save and load again', async t => {
 })
 
 test('unknown views, overlong ids and unreadable files come back as errors', async t => {
-  const { dir, client, call } = await setup()
-  t.after(() => client.close())
+  const { dir, call } = await setup(t)
   assert.match((await call('get_view', { view: 'nope' })).text, /unknown view "nope"/)
   assert.equal((await call('get_view', { view: '__proto__' })).error, true)
   assert.equal((await call('get_view', { view: 'root' })).error, false)
-  const long = await call('delete_flow', { id: 'f'.repeat(300) })
+  await call('put_object', { id: 'customer', type: 'actor', name: 'Customer' })
+  await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
+  const long = await call('put_flow', { id: 'f'.repeat(300), name: 'F', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x' }] })
   assert.equal(long.error, true)
   assert.doesNotMatch(long.text, /ENOENT/)
-  await mkdir(join(dir, 'flows'))
+  await mkdir(join(dir, 'flows'), { recursive: true })
   await writeFile(join(dir, 'flows/x.yaml'), 'steps: nope\n')
   assert.match((await call('get_model')).text, /^flows\/x\.yaml: /)
 })
 
 test('a broken file is reported, not overwritten', async t => {
-  const { dir, client, call } = await setup()
-  t.after(() => client.close())
+  const { dir, call } = await setup(t)
   await writeFile(join(dir, 'model.yaml'), 'objects:\n  a: { type: actor\n')
   const result = await call('put_object', { id: 'b', type: 'actor', name: 'B' })
   assert.equal(result.error, true)
