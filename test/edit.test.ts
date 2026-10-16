@@ -46,3 +46,10 @@ test('locate finds the box, line or flow step a problem is about', () => {
   assert.deepEqual(spots['step 2: text is missing'], { view: 'shop', flow: 'checkout', step: 1 })
   assert.deepEqual(spots['has no steps'], { view: 'root', flow: 'lost', step: undefined })
 })
+
+test('locate finds a line between a box and its own child, in both directions', () => {
+  const m = shop()
+  m.connections.push({ from: 'shop', to: 'api' }, { from: 'shop', to: 'api' }, { from: 'api', to: 'shop' }, { from: 'api', to: 'shop' })
+  const spots = check(m).map(p => locate(m, p))
+  assert.deepEqual(spots, [{ view: 'shop', line: ['shop', 'api'] }, { view: 'shop', line: ['api', 'shop'] }])
+})

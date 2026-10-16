@@ -43,8 +43,8 @@ export function locate(model: Model, problem: Problem): Spot {
   if (c) {
     const end = [c.from, c.to].find(e => getObject(model, e))
     if (end === undefined) return { view: ROOT }
-    // The lowest view above one end that shows the line, else that end's own box.
-    for (const view of chain(model, end).slice(1)) {
+    // The lowest view, from one end up, that shows the line (a line to a box's own child shows inside that box), else that end's box.
+    for (const view of chain(model, end)) {
       const line = placeEnds(model, view, c.from, c.to)
       if (line) return { view, line }
     }
