@@ -21,6 +21,8 @@ export function inlineState(html: string, state: State): string {
 
 /** Whether `child` is `parent` or inside it. Real paths are compared, so a link or a short name can't hide it. */
 async function within(child: string, parent: string): Promise<boolean> {
+  // ponytail: a folder that doesn't exist yet is compared as written, so a link in its parents slips past. It can't
+  // hold the model then, but it can land inside dist/ui; resolve its deepest existing parent if that ever matters.
   const real = (p: string) => realpath(p).catch(() => resolve(p))
   const rel = relative(await real(parent), await real(child))
   return rel === '' || (rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel))
@@ -55,13 +57,13 @@ export async function exportSite({ dir, ui, out }: { dir: string; ui: string; ou
     const earlier = await readFile(join(out, 'index.html'), 'utf8').catch(() => '')
     if (!earlier.includes(OPEN)) throw new Error(`${out} has other files in it. Pick a new or empty folder, or an earlier export, with --out.`)
   }
-  // The page goes last, so an export that stops part-way still looks like one and can simply run again.
+  // The page goes first, so an export that stops part-way still looks like one and can simply run again.
   await mkdir(out, { recursive: true })
+  await writeFile(join(out, 'index.html'), page)
   for (const name of await readdir(ui)) {
     if (name === 'index.html') continue
     await rm(join(out, name), { recursive: true, force: true })
     await cp(join(ui, name), join(out, name), { recursive: true })
   }
-  await writeFile(join(out, 'index.html'), page)
   return { boxes: Object.keys(state.model.objects).length, flows: Object.keys(state.flows).length, problems: state.problems.length }
 }
