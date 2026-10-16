@@ -1,8 +1,10 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
+import { check } from '../core/check.ts'
 import { emptyModel, ParseError, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
+import type { State } from '../core/state.ts'
 
 /** The model plus a content hash per file (null = file missing), used to detect outside edits. */
 export type Loaded = { model: Model; versions: Record<string, string | null> }
@@ -68,6 +70,18 @@ export async function loadDir(dir: string): Promise<Loaded> {
     if (text !== null) model.flows[id] = parseFlowFile(id, text)
   }
   return { model, versions }
+}
+
+/** The folder as the canvas reads it, or the file that can't be read: what GET /api/state answers and an export carries. */
+export async function loadState(dir: string): Promise<State> {
+  try {
+    const { model, versions } = await loadDir(dir)
+    const { flows, layout, ...rest } = model
+    return { model: rest, layout, flows, problems: check(model), versions }
+  } catch (e) {
+    if (e instanceof ParseError) return { parseError: { file: e.file, line: e.line, message: e.reason } }
+    throw e
+  }
 }
 
 const queues = new Map<string, Promise<unknown>>()
