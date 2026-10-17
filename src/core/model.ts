@@ -3,6 +3,9 @@ import { Document, parse, stringify, visit, YAMLParseError } from 'yaml'
 export const ROOT = 'root'
 export const OBJECT_TYPES = ['actor', 'system', 'app', 'store', 'component'] as const
 export type ObjectType = (typeof OBJECT_TYPES)[number]
+/** How the canvas draws lines. A project picks one with a top-level `lines:` in model.yaml; without it, straight. */
+export const LINE_STYLES = ['straight', 'curved', 'angled'] as const
+export type LineStyle = (typeof LINE_STYLES)[number]
 
 export type FlowyObject = {
   type: ObjectType
@@ -30,6 +33,9 @@ export type Model = {
 }
 
 export const emptyModel = (): Model => ({ objects: {}, connections: [], flows: {}, layout: {}, meta: {} })
+
+/** The project's line style. Anything unknown draws straight; check() reports it. */
+export const lineStyle = (model: Model): LineStyle => LINE_STYLES.find(s => s === model.meta.lines) ?? 'straight'
 
 export const isValidId = (id: string): boolean => /^[a-z0-9][a-z0-9-]*$/.test(id) && id !== ROOT
 

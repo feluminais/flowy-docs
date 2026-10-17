@@ -1,10 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  connect, deleteFlow, deleteObject, disconnect, OpError, placeBoxes, putFlow, putObject, refuseNewProblems, relabel,
-  removeConnection, updateFlow,
+  connect, deleteFlow, deleteObject, disconnect, forgetLayout, OpError, placeBoxes, putFlow, putObject, refuseNewProblems,
+  relabel, removeConnection, setLines, updateFlow,
 } from '../src/core/ops.ts'
 import type { ObjectInput } from '../src/core/ops.ts'
+import { lineStyle } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 
 test('putObject creates with fields in a stable order, whatever order they come in', () => {
@@ -193,4 +194,20 @@ test('putObject writes external as "true" in its place, and false removes it', (
   assert.deepEqual(Object.keys(m.objects.stripe), ['type', 'name', 'external', 'tech'])
   assert.equal(Object.hasOwn(putObject(m, { id: 'stripe', external: false }).objects.stripe, 'external'), false)
   assert.equal(putObject(m, { id: 'stripe', name: 'Stripe API' }).objects.stripe.external, 'true')
+})
+
+test('setLines puts lines first in model.yaml, and undefined removes it', () => {
+  const m = setLines({ ...shop(), meta: { title: 'Shop' } }, 'curved')
+  assert.deepEqual(m.meta, { lines: 'curved', title: 'Shop' })
+  assert.deepEqual(Object.keys(m.meta), ['lines', 'title'])
+  assert.equal(lineStyle(m), 'curved')
+  assert.deepEqual(setLines(m, undefined).meta, { title: 'Shop' })
+  assert.equal(lineStyle(shop()), 'straight')
+  assert.equal(lineStyle({ ...shop(), meta: { lines: 'wiggly' } }), 'straight')
+})
+
+test("forgetLayout drops one view's positions, and refuses when there are none", () => {
+  const m = { ...shop(), layout: { shop: { web: [0, 0] as [number, number] }, root: { shop: [1, 1] as [number, number] } } }
+  assert.deepEqual(forgetLayout(m, 'shop').layout, { root: { shop: [1, 1] } })
+  assert.throws(() => forgetLayout(m, 'api'), (e: unknown) => e instanceof OpError && /Nothing to tidy/.test(e.message))
 })

@@ -1,6 +1,6 @@
 import { check, newProblems } from './check.ts'
 import { getObject, isValidId, ROOT } from './model.ts'
-import type { Connection, Flow, FlowyObject, Layout, Model, ObjectType, Step } from './model.ts'
+import type { Connection, Flow, FlowyObject, Layout, LineStyle, Model, ObjectType, Step } from './model.ts'
 import { memberIds } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
@@ -129,6 +129,20 @@ export function placeBoxes(model: Model, view: string, boxes: Record<string, [nu
     const kept = Object.entries(saved).filter(([id]) => getObject(model, id))
     return (v === ROOT || getObject(model, v)) && kept.length ? [[v, Object.fromEntries(kept)]] : []
   }))
+  return { ...model, layout }
+}
+
+/** Set the project's line style: the top-level `lines:` in model.yaml. undefined removes it, which means straight. */
+export function setLines(model: Model, style: LineStyle | undefined): Model {
+  const { lines: _, ...meta } = model.meta
+  return { ...model, meta: style === undefined ? meta : { lines: style, ...meta } }
+}
+
+/** Forget where boxes were dragged in one view (its part of layout.yaml), so the computed layout shows again. */
+export function forgetLayout(model: Model, view: string): Model {
+  if (!Object.hasOwn(model.layout, view)) throw new OpError('Nothing to tidy: no box here was moved by hand.')
+  const layout = { ...model.layout }
+  delete layout[view]
   return { ...model, layout }
 }
 
