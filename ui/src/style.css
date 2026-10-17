@@ -192,6 +192,7 @@ a { color: var(--accent); }
 .step-buttons { display: flex; gap: 4px; }
 .panel .step-buttons button { padding: 0 8px; }
 .code-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 4px; font-size: 13px; }
+.code-list code { overflow-wrap: anywhere; } /* deep paths, like a Kotlin package, wrap instead of running off the panel */
 
 /* Search: a field at the top middle, over the canvas. */
 .search {
