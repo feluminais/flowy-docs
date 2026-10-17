@@ -16,8 +16,14 @@ test('a view becomes boxes and lines, with outsiders marked', () => {
   assert.deepEqual(edges.map(e => [e.source, e.target, e.label]), [
     ['customer', 'web', 'browses'], ['web', 'api', 'REST'], ['api', 'db', '2 connections'], ['api', 'mail', 'sends receipts'],
   ])
-  assert.equal(byId(nodes).api.data.zoomable, true)
-  assert.equal(byId(nodes).db.data.zoomable, false)
+  assert.equal(byId(nodes).api.data.inside, 2)
+  assert.equal(byId(nodes).db.data.inside, 0)
+})
+
+test('a box that opens counts the boxes right inside it', () => {
+  const { nodes } = toGraph(shop(), 'root')
+  assert.equal(byId(nodes).shop.data.inside, 3)
+  assert.equal(byId(nodes).customer.data.inside, 0)
 })
 
 test('dagre places boxes without overlaps, and a layout.yaml position wins', () => {

@@ -2,11 +2,11 @@ import { Graph, layout } from '@dagrejs/dagre'
 import type { Edge, FitViewOptions, Node, Viewport, XYPosition } from '@xyflow/react'
 import type { Problem } from '../../src/core/check.ts'
 import type { FlowyObject, Model } from '../../src/core/model.ts'
-import { computeView, hasChildren, placeEnds } from '../../src/core/views.ts'
+import { computeView, memberIds, placeEnds } from '../../src/core/views.ts'
 import type { Edge as ViewEdge } from '../../src/core/views.ts'
 
 /** Every box has the same size, so dagre can place them before the browser draws them. Keep in sync with .box in style.css. */
-export const BOX = { width: 180, height: 72 }
+export const BOX = { width: 200, height: 72 }
 /** Width of the side panel at most. Keep in sync with .panel in style.css. */
 export const PANEL = 380
 
@@ -14,7 +14,8 @@ const NEAR = 80 // between the members and the outsiders around them
 const STACK = 30 // between boxes stacked in a column or row
 const PER_ROW = 4 // outsiders that only start lines wait above the members, this many to a row
 
-export type BoxData = { object: FlowyObject; zoomable: boolean }
+/** `inside`: how many boxes sit right inside this one (0: it doesn't open). */
+export type BoxData = { object: FlowyObject; inside: number }
 export type BoxNode = Node<BoxData, 'box'>
 
 /**
@@ -122,7 +123,7 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     id,
     type: 'box',
     position: at.get(id)!,
-    data: { object: model.objects[id], zoomable: hasChildren(model, id) },
+    data: { object: model.objects[id], inside: memberIds(model, id).length },
     className: classes(!members.includes(id) && 'outsider', dimming && !lit?.includes(id) && 'dim', badBoxes.has(id) && 'problem'),
   }))
   const lines: Edge[] = edges.map(e => ({
