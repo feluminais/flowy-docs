@@ -81,6 +81,18 @@ test('undo takes saved edits back, newest first, a new flow and a first layout i
   assert.match(await read('model.yaml'), /^title: Demo\nobjects:\n {2}shop:\n {4}type: system\n {4}name: Shop\n/)
 })
 
+test('while a file can\'t be read, undo says so instead of calling the edit stale, and works once it\'s fixed', async t => {
+  const { dir, read, base } = await setup(t)
+  const undos: Undo[] = []
+  assert.equal(await saveEdit(m => putObject(m, { id: 'shop', name: 'Store' }), base, undo => undos.push(undo)), undefined)
+  await mkdir(join(dir, 'flows'))
+  await writeFile(join(dir, 'flows', 'bad.yaml'), 'steps: [\n')
+  assert.match((await undoEdit(undos[0], base)) ?? '', /^Can't undo while a file can't be read: flows\/bad\.yaml/)
+  await rm(join(dir, 'flows', 'bad.yaml'))
+  assert.equal(await undoEdit(undos[0], base), undefined)
+  assert.match(await read('model.yaml'), /name: Shop/)
+})
+
 test('undo refuses once the file changed since, and leaves the change alone', async t => {
   const { dir, read, base } = await setup(t)
   const undos: Undo[] = []
