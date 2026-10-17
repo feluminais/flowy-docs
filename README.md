@@ -33,8 +33,8 @@ folder, `--port <number>` picks the port, and `--no-open` skips the browser.
 - Lines (top bar) switches between straight, curved and right-angled lines for your own screen.
   "Project default" goes back to the project's choice.
 - Faded, dashed boxes live elsewhere in the model. They show up because something here connects to
-  them, and they wait around the edges (people above, the rest on both sides or in a row below,
-  whichever crosses fewer lines) while what's inside sits in the middle.
+  them, and they wait around the edges (people above, the rest beside, below or above, wherever
+  fewer lines cross) while what's inside sits in the middle.
 - A box can list the files and folders it lives in, under its description. When the repo's
   `origin` is on GitHub or GitLab, they link there.
 - Ctrl+K or / (or Search) finds a box anywhere in the model by name. Pick one and the canvas
