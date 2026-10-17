@@ -174,6 +174,30 @@ export function lineEnds(a: Rect, b: Rect): [XYPosition, XYPosition] {
   return [edge(a, b), edge(b, a)]
 }
 
+export type Side = 'top' | 'right' | 'bottom' | 'left'
+
+/** The side of `from` that faces `to`: the one a line between their centres leaves through. */
+function facing(from: Rect, to: Rect): Side {
+  const dx = to.x + to.width / 2 - (from.x + from.width / 2)
+  const dy = to.y + to.height / 2 - (from.y + from.height / 2)
+  if (Math.abs(dx) * from.height > Math.abs(dy) * from.width) return dx > 0 ? 'right' : 'left'
+  return dy > 0 ? 'bottom' : 'top'
+}
+
+const middleOf = (r: Rect, side: Side): XYPosition => ({
+  top: { x: r.x + r.width / 2, y: r.y },
+  bottom: { x: r.x + r.width / 2, y: r.y + r.height },
+  left: { x: r.x, y: r.y + r.height / 2 },
+  right: { x: r.x + r.width, y: r.y + r.height / 2 },
+})[side]
+
+/** Where a curved or right-angled line starts and ends: the middle of the side each box turns to the other. */
+export function ports(a: Rect, b: Rect): { from: XYPosition; fromSide: Side; to: XYPosition; toSide: Side } {
+  const fromSide = facing(a, b)
+  const toSide = facing(b, a)
+  return { from: middleOf(a, fromSide), fromSide, to: middleOf(b, toSide), toSide }
+}
+
 /** What fitView is given: room for the side panel and the flow player, when they're there. */
 export const fitOptions = (panel: boolean, player: boolean): FitViewOptions => ({
   maxZoom: 1,
