@@ -3,9 +3,9 @@ import { Controls, ReactFlow } from '@xyflow/react'
 import type { NodeChange, XYPosition } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
-import { ROOT } from '../../src/core/model.ts'
+import { LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteObject, placeBoxes, removeConnection } from '../../src/core/ops.ts'
+import { connect, deleteObject, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { chain, hasChildren, parentOf, placeEnds, placeStep } from '../../src/core/views.ts'
 import { Box, Description } from './Box.tsx'
@@ -15,7 +15,8 @@ import { fitOptions, focusEdges, lineId, toGraph } from './graph.ts'
 import type { BoxNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
 import { letter } from './keys.ts'
-import { Line } from './Line.tsx'
+import { Line, LineStyleContext } from './Line.tsx'
+import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
 import { Search } from './Search.tsx'
 import type { Recording, Run } from './Panel.tsx'
@@ -93,6 +94,11 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
   const quiet = useRef(true) // the next address write replaces instead of pushing (see the address effect)
 
   const editing = editMode && !readOnly // a file that can't be read, a lost server, or an exported page makes the canvas read-only
+  // In edit mode lines show the project's style, which is what the picker changes there. Reading, the
+  // picker only changes this screen.
+  const [mine, setMine] = useState(ownLines)
+  const projectLines = lineStyle(model)
+  const lines = editing ? projectLines : mine ?? projectLines
   // A box with children opens. In edit mode an empty system, app or store opens too, so its first child can be added.
   const canOpen = (id: string) => hasChildren(model, id) || (editing && typesIn(model, id).length > 0)
   // After a live reload the view's object may be gone or empty: show the nearest view that still exists.
@@ -153,6 +159,13 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
     setSide(s => (s?.kind === 'object' ? s : undefined)) // lines, Add and recording belong to one view
   }
   const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, flow.steps.length - 1)) })
+  const pickLines = (value: string) => {
+    const style = LINE_STYLES.find(s => s === value) // "" is the project's default
+    if (editing) void run(m => setLines(m, style === 'straight' ? undefined : style))
+    const own = editing ? undefined : style // in edit mode the project's style is what you see
+    keepOwnLines(own)
+    setMine(own)
+  }
   const toggleEdit = () => {
     quiet.current = true // E isn't a step to go back to
     setEditMode(!editing)
@@ -275,6 +288,15 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
         {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
         {editing && <button title="Undo the last change (Ctrl+Z)" onClick={() => void takeBack()}>Undo</button>}
         <span className="grow" />
+        <select aria-label="Line style" value={editing ? projectLines : mine ?? ''}
+          title={editing ? 'How lines look for everyone (saved in model.yaml)' : 'How lines look on this screen'}
+          onChange={e => {
+            pickLines(e.target.value)
+            e.target.blur()
+          }}>
+          {!editing && <option value="">Lines: project default ({LINE_NAMES[projectLines]})</option>}
+          {LINE_STYLES.map(s => <option key={s} value={s}>Lines: {LINE_NAMES[s]}</option>)}
+        </select>
         {/* mousedown would blur the open field, closing it, and the click would open it again */}
         <button title="Find a box (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => setSearching(!searching)}>Search</button>
         <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={() => void copyMermaid()}>Mermaid</button>
@@ -282,47 +304,50 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}>Edit</button>}
       </header>
       <main className={editing ? 'canvas editing' : 'canvas'}>
-        <ReactFlow
-          key={view} // a fresh canvas per view
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          minZoom={0.2} // the default 0.5 stops the fit short, so a wide diagram in a small window is cut off
-          colorMode="system"
-          nodesDraggable={editing && !recording}
-          nodesConnectable={editing && !recording}
-          zoomOnDoubleClick={false}
-          deleteKeyCode={null}
-          onNodesChange={onNodesChange}
-          isValidConnection={c => placeEnds(model, view, c.source, c.target) !== null} // only lines this view can show
-          onConnect={c => void run(m => connect(m, { from: c.source, to: c.target }))
-            .then(saved => saved && setSide({ kind: 'line', from: c.source, to: c.target }))}
-          onNodeClick={(_, node) => {
-            clearTimeout(opening.current)
-            if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
-            const open = () => setSide({ kind: 'object', id: node.id })
-            // Zooming into a box is a double-click, and its first click must not open the panel.
-            if (canOpen(node.id)) opening.current = setTimeout(open, DOUBLE_CLICK)
-            else open()
-          }}
-          onNodeDoubleClick={(_, node) => {
-            if (recording || !canOpen(node.id)) return
-            go(node.id)
-            close()
-          }}
-          onEdgeClick={(_, e) => !recording && e.id !== 'step' && setSide({ kind: 'line', from: e.source, to: e.target })}
-          onEdgeMouseEnter={(_, e) => setHovered(e.id)}
-          onEdgeMouseLeave={() => setHovered(undefined)}
-          onPaneClick={() => {
-            clearTimeout(opening.current)
-            setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
-          }}
-        >
-          <Camera count={nodes.length} fitKey={`${view} ${flow ? playing?.flow : ''}`} player={flow !== undefined} reveal={selectedBox} />
-          {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
-          <Controls showInteractive={false} fitViewOptions={fitOptions(side !== undefined, flow !== undefined)} />
-        </ReactFlow>
+        <LineStyleContext value={lines}>
+          <ReactFlow
+            key={view} // a fresh canvas per view
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            minZoom={0.2} // the default 0.5 stops the fit short, so a wide diagram in a small window is cut off
+            colorMode="system"
+            defaultMarkerColor="var(--edge)"
+            nodesDraggable={editing && !recording}
+            nodesConnectable={editing && !recording}
+            zoomOnDoubleClick={false}
+            deleteKeyCode={null}
+            onNodesChange={onNodesChange}
+            isValidConnection={c => placeEnds(model, view, c.source, c.target) !== null} // only lines this view can show
+            onConnect={c => void run(m => connect(m, { from: c.source, to: c.target }))
+              .then(saved => saved && setSide({ kind: 'line', from: c.source, to: c.target }))}
+            onNodeClick={(_, node) => {
+              clearTimeout(opening.current)
+              if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
+              const open = () => setSide({ kind: 'object', id: node.id })
+              // Zooming into a box is a double-click, and its first click must not open the panel.
+              if (canOpen(node.id)) opening.current = setTimeout(open, DOUBLE_CLICK)
+              else open()
+            }}
+            onNodeDoubleClick={(_, node) => {
+              if (recording || !canOpen(node.id)) return
+              go(node.id)
+              close()
+            }}
+            onEdgeClick={(_, e) => !recording && e.id !== 'step' && setSide({ kind: 'line', from: e.source, to: e.target })}
+            onEdgeMouseEnter={(_, e) => setHovered(e.id)}
+            onEdgeMouseLeave={() => setHovered(undefined)}
+            onPaneClick={() => {
+              clearTimeout(opening.current)
+              setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
+            }}
+          >
+            <Camera count={nodes.length} fitKey={`${view} ${flow ? playing?.flow : ''}`} player={flow !== undefined} reveal={selectedBox} />
+            {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
+            <Controls showInteractive={false} fitViewOptions={fitOptions(side !== undefined, flow !== undefined)} />
+          </ReactFlow>
+        </LineStyleContext>
         {nodes.length === 0 && (
           <p className="empty">{editing
             ? 'Nothing here yet. Press Add to put the first box here.'

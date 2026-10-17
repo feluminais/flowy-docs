@@ -3,6 +3,7 @@
   --fg: #1c1917;
   --muted: #78716c;
   --line: #d6d3d1;
+  --edge: #a8a29e;
   --box: #ffffff;
   --accent: #2563eb;
   --warn-bg: #fef3c7;
@@ -26,6 +27,7 @@
     --fg: #f5f5f4;
     --muted: #a8a29e;
     --line: #57534e;
+    --edge: #78716c;
     --box: #292524;
     --accent: #60a5fa;
     --warn-bg: #451a03;
@@ -54,7 +56,7 @@ a { color: var(--accent); }
 .crumbs button + button::before { content: '›'; margin: 0 8px; color: var(--muted); font-weight: 400; }
 
 .canvas { flex: 1; position: relative; min-height: 0; }
-.canvas .react-flow { --xy-background-color: var(--bg); }
+.canvas .react-flow { --xy-background-color: var(--bg); --xy-edge-stroke: var(--edge); --xy-edge-stroke-width: 1.5; }
 .empty { position: absolute; inset: 40% 0 auto; text-align: center; color: var(--muted); }
 
 /* Keep width and height in sync with BOX in graph.ts. */
@@ -134,6 +136,7 @@ a { color: var(--accent); }
 .bar > button { padding: 4px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--box); color: var(--fg); cursor: pointer; }
 .bar > button[aria-pressed='true'] { border-color: var(--accent); background: var(--accent); color: var(--bg); }
 .bar > button:disabled { cursor: default; opacity: 0.5; }
+.bar > select { padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--box); color: var(--fg); }
 
 /* Top left, so it never covers the side panel. */
 .notice {

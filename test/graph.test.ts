@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { check } from '../src/core/check.ts'
 import { emptyModel } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
-import { BOX, fitOptions, focusEdges, lineEnds, panIntoView, PANEL, toGraph } from '../ui/src/graph.ts'
+import { BOX, fitOptions, focusEdges, lineEnds, panIntoView, PANEL, ports, toGraph } from '../ui/src/graph.ts'
 import { shop } from './fixtures.ts'
 
 const byId = <T extends { id: string }>(items: T[]) => Object.fromEntries(items.map(i => [i.id, i]))
@@ -167,4 +167,14 @@ test('the view pans only as far as it takes to show a box beside the side panel'
 test('the fit leaves room for the side panel and the flow player only when they are open', () => {
   assert.deepEqual(fitOptions(false, false).padding, { top: '40px', left: '40px', right: '40px', bottom: '40px' })
   assert.deepEqual(fitOptions(true, true).padding, { top: '40px', left: '40px', right: `${PANEL + 40}px`, bottom: '200px' })
+})
+
+test('curved and angled lines leave from the middle of the side that faces the other box', () => {
+  const a = { x: 0, y: 0, width: BOX.width, height: BOX.height }
+  assert.deepEqual(ports(a, { ...a, x: 400 }), {
+    from: { x: BOX.width, y: BOX.height / 2 }, fromSide: 'right', to: { x: 400, y: BOX.height / 2 }, toSide: 'left',
+  })
+  assert.deepEqual(ports(a, { ...a, x: 40, y: 300 }), {
+    from: { x: BOX.width / 2, y: BOX.height }, fromSide: 'bottom', to: { x: 40 + BOX.width / 2, y: 300 }, toSide: 'top',
+  })
 })
