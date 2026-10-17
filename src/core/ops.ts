@@ -8,18 +8,19 @@ export class OpError extends Error {
   name = 'OpError'
 }
 
-export type ObjectInput = { id: string; type?: ObjectType; name?: string; in?: string; tech?: string; description?: string; code?: string[] }
+export type ObjectInput = { id: string; type?: ObjectType; name?: string; in?: string; external?: boolean; tech?: string; description?: string; code?: string[] }
 export type ConnectionInput = { from: string; to: string; label?: string }
 export type FlowInput = { id: string; name: string; view: string; steps: Step[] }
 
-const FIELDS = ['type', 'name', 'in', 'tech', 'description', 'code'] as const
+const FIELDS = ['type', 'name', 'in', 'external', 'tech', 'description', 'code'] as const
 const CLEARABLE = ['in', 'tech', 'description'] as const
 const ID_RULE = 'use lowercase letters, digits and dashes, not starting with a dash ("root" is reserved)'
 
 /**
- * Create or update an object. Omitted fields stay as they are; "" removes in, tech or description, and [] removes code.
+ * Create or update an object. Omitted fields stay as they are; "" removes in, tech or description,
+ * [] removes code, and external: false removes external.
  * Only the known fields are copied from the input, so a new object's keys always come out
- * in the order type, name, in, tech, description, code, and stray input keys never land in the model.
+ * in the order type, name, in, external, tech, description, code, and stray input keys never land in the model.
  */
 export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid id: ${ID_RULE}`)
@@ -29,6 +30,9 @@ export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   for (const k of FIELDS) if (fields[k] !== undefined) next[k] = fields[k]
   for (const k of CLEARABLE) if (next[k] === '') delete next[k]
   if (Array.isArray(next.code) && next.code.length === 0) delete next.code
+  // On disk it's `external: true`, which the failsafe schema reads back as the text "true".
+  if (next.external === true) next.external = 'true'
+  else if (next.external === false) delete next.external
   return { ...model, objects: { ...model.objects, [id]: next as FlowyObject } }
 }
 
