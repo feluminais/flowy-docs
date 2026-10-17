@@ -4,7 +4,8 @@ import { check } from '../src/core/check.ts'
 import { emptyModel } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
 import { computeView } from '../src/core/views.ts'
-import { BOX, fitOptions, focusEdges, frameAround, frameNode, lineEnds, panIntoView, PANEL, ports, tangle, toGraph, untangle } from '../ui/src/graph.ts'
+import { arrange, BOX, fitOptions, focusEdges, frameAround, frameNode, lineEnds, membersOf, panIntoView, PANEL, ports, tangle, toGraph, untangle } from '../ui/src/graph.ts'
+import type { Region } from '../ui/src/graph.ts'
 import { shop } from './fixtures.ts'
 
 const byId = <T extends { id: string }>(items: T[]) => Object.fromEntries(items.map(i => [i.id, i]))
@@ -104,15 +105,17 @@ function hub(n: number): Model {
   return m
 }
 
-test('inside a box the members sit together, people wait above, and the rest split to the two sides', () => {
+test('inside a box the members sit together, people wait above, and the rest wait on both sides', () => {
   const nodes = byId(toGraph(hub(8), 'app').nodes)
   const members = [nodes.hub, nodes.store].map(n => n.position)
   const left = Math.min(...members.map(p => p.x))
   const right = Math.max(...members.map(p => p.x)) + BOX.width
   assert.ok(nodes.user.position.y + BOX.height <= Math.min(...members.map(p => p.y)), 'the user is above the members')
   const systems = Object.values(nodes).filter(n => n.id.startsWith('ext')).map(n => n.position)
-  assert.equal(systems.filter(p => p.x + BOX.width <= left).length, 4)
-  assert.equal(systems.filter(p => p.x >= right).length, 4)
+  const onLeft = systems.filter(p => p.x + BOX.width <= left).length
+  const onRight = systems.filter(p => p.x >= right).length
+  assert.equal(onLeft + onRight, 8, 'every system waits beside the members')
+  assert.ok(onLeft >= 3 && onRight >= 3, `both sides are used (${onLeft} left, ${onRight} right)`)
   const all = Object.values(nodes).map(n => n.position)
   assert.ok(Math.max(...all.map(p => p.x)) + BOX.width - Math.min(...all.map(p => p.x)) < 5 * BOX.width, 'not one wide row')
 })
@@ -251,4 +254,69 @@ test('the frame node sits behind the boxes and lets clicks through to the canvas
   assert.equal(frame.style?.pointerEvents, 'none')
   assert.equal(frame.data.name, 'Shop')
   assert.equal(frame.selectable, false)
+})
+
+/** A seeded random number below n, so a failing case repeats. */
+function random(seed: number) {
+  return (n: number) => {
+    seed = (seed * 16807) % 2147483647
+    return seed % n
+  }
+}
+
+test('scoring only the boxes that moved gives the same change as scoring everything', () => {
+  const rnd = random(1)
+  for (let round = 0; round < 200; round++) {
+    // 12 boxes on a grid with gaps, 18 lines between them, then 1 to 3 boxes jump to free cells.
+    const cells = Array.from({ length: 40 }, (_, i) => ({ x: (i % 8) * (W + 40), y: Math.floor(i / 8) * (H + 60) }))
+    const free = [...cells]
+    const before = new Map(Array.from({ length: 12 }, (_, i) => [`b${i}`, free.splice(rnd(free.length), 1)[0]]))
+    const lines = Array.from({ length: 18 }, () => ({ from: `b${rnd(12)}`, to: `b${rnd(12)}` }))
+    const after = new Map(before)
+    const moved = new Set<string>()
+    for (let k = 0; k <= rnd(3); k++) {
+      const id = `b${rnd(12)}`
+      moved.add(id)
+      after.set(id, free.splice(rnd(free.length), 1)[0])
+    }
+    assert.equal(tangle(after, lines, moved) - tangle(before, lines, moved), tangle(after, lines) - tangle(before, lines), `round ${round}`)
+  }
+})
+
+test('random views never overlap, and their outsiders stay out of the members\' block', () => {
+  const rnd = random(7)
+  for (let round = 0; round < 80; round++) {
+    const model: Model = { ...emptyModel(), objects: { s: { type: 'system', name: 'S' } } }
+    const [inside, outside] = [2 + rnd(9), 1 + rnd(16)]
+    for (let i = 0; i < inside; i++) model.objects[`a${i}`] = { type: 'app', name: `A${i}`, in: 's' }
+    for (let i = 0; i < outside; i++) model.objects[`x${i}`] = { type: i % 3 === 0 ? 'actor' : 'system', name: `X${i}` }
+    for (let i = 0; i < inside * 2; i++) {
+      const from = `a${rnd(inside)}`
+      const to = rnd(2) ? `x${rnd(outside)}` : `a${rnd(inside)}`
+      if (from !== to) model.connections.push(model.objects[to].type === 'actor' ? { from: to, to: from } : { from, to })
+    }
+    const view = computeView(model, 's')
+    const placed = toGraph(model, 's').nodes
+    for (const a of placed) for (const b of placed) if (a !== b)
+      assert.ok(Math.abs(a.position.x - b.position.x) >= W || Math.abs(a.position.y - b.position.y) >= H, `round ${round}: ${a.id} overlaps ${b.id}`)
+    const at = new Map(placed.map(n => [n.id, n.position]))
+    const inner = view.members.map(id => at.get(id)!)
+    const [left, right] = [Math.min(...inner.map(p => p.x)), Math.max(...inner.map(p => p.x)) + W]
+    const [top, bottom] = [Math.min(...inner.map(p => p.y)), Math.max(...inner.map(p => p.y)) + H]
+    for (const id of view.outsiders) {
+      const p = at.get(id)!
+      assert.ok(p.x + W <= left || p.x >= right || p.y + H <= top || p.y >= bottom, `round ${round}: ${id} sits among the members`)
+    }
+  }
+})
+
+test('rows below and above clear tall side columns', () => {
+  // One member, a column of five on the left, one on the right, four below and one above.
+  const ids = ['l1', 'l2', 'l3', 'l4', 'l5', 'r1', 'b1', 'b2', 'b3', 'b4', 'u1']
+  const lines = ids.map(id => ({ from: 'a', to: id }))
+  const sides: Record<string, Region> = { l: 'left', r: 'right', b: 'below', u: 'above' }
+  const { at } = arrange(membersOf(spots({ a: [0, 0] }), ids, lines), id => sides[id[0]])
+  const placed = [...at]
+  for (const [a, p] of placed) for (const [b, q] of placed) if (a !== b)
+    assert.ok(Math.abs(p.x - q.x) >= W || Math.abs(p.y - q.y) >= H, `${a} overlaps ${b}`)
 })
