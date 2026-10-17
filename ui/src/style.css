@@ -9,6 +9,12 @@
   --warn-fg: #78350f;
   --warn: #d97706;
   --danger: #b91c1c;
+  --actor: #7f77dd;
+  --system: #378add;
+  --app: #1d9e75;
+  --store: #d4537e;
+  --component: #d85a30;
+  --external: #888780;
   font: 14px/1.45 system-ui, sans-serif;
   color: var(--fg);
   background: var(--bg);
@@ -26,6 +32,12 @@
     --warn-fg: #fde68a;
     --warn: #f59e0b;
     --danger: #f87171;
+    --actor: #afa9ec;
+    --system: #85b7eb;
+    --app: #5dcaa5;
+    --store: #ed93b1;
+    --component: #f0997b;
+    --external: #b4b2a9;
   }
 }
 html, body, #root { height: 100%; margin: 0; }
@@ -47,13 +59,25 @@ a { color: var(--accent); }
 
 /* Keep width and height in sync with BOX in graph.ts. */
 .box {
-  position: relative; width: 180px; height: 72px; box-sizing: border-box; padding: 12px 14px;
+  position: relative; display: flex; align-items: center; gap: 10px;
+  width: 200px; height: 72px; box-sizing: border-box; padding: 0 14px 0 12px;
   border: 1px solid var(--line); border-radius: 8px; background: var(--box); color: var(--fg);
 }
-.box-actor { border-radius: 36px; }
-.box.zoomable { box-shadow: 4px 4px 0 -1px var(--bg), 4px 4px 0 0 var(--line); }
+.box-actor { border-radius: 36px; padding-left: 16px; --c: var(--actor); }
+.box-system { --c: var(--system); }
+.box-app { --c: var(--app); }
+.box-store { --c: var(--store); }
+.box-component { --c: var(--component); }
+.box.external { --c: var(--external); }
+.tile {
+  flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px;
+  color: var(--c, var(--muted)); background: color-mix(in srgb, var(--c, var(--muted)) 18%, transparent);
+}
+.box-text { min-width: 0; }
 .box-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .box-meta { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inside { position: absolute; right: 9px; bottom: 5px; display: flex; align-items: center; gap: 3px; color: var(--muted); font-size: 11px; }
+.inside svg { width: 12px; height: 12px; }
 .react-flow__handle { visibility: hidden; }
 .react-flow__node.outsider { opacity: 0.55; }
 .react-flow__node.outsider .box { border: 1.5px dashed var(--muted); }
@@ -130,6 +154,8 @@ a { color: var(--accent); }
   border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font-size: 14px;
 }
 .form textarea { resize: vertical; }
+.form label.check { display: flex; align-items: center; gap: 8px; color: var(--fg); font-size: 14px; }
+.form label.check input { display: inline; width: auto; margin: 0; }
 .panel button:not(.close) { padding: 4px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--box); color: var(--fg); cursor: pointer; }
 .panel button:disabled { cursor: default; opacity: 0.4; }
 .panel button.danger { color: var(--danger); }

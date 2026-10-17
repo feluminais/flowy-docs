@@ -64,7 +64,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
   if (!editing) return (
     <Panel onClose={onClose}>
       <h2>{object.name || id}</h2>
-      <p className="muted">{object.type}{object.tech ? ` · ${object.tech}` : ''}</p>
+      <p className="muted">{object.external === 'true' ? 'external ' : ''}{object.type}{object.tech ? ` · ${object.tech}` : ''}</p>
       {mine}
       {object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}
       <CodeList object={object} codeBase={codeBase} />
@@ -81,6 +81,10 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
           <select value={object.type} onChange={e => void save({ type: e.target.value as ObjectType })}>
             {types.map(t => <option key={t}>{t}</option>)}
           </select>
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={object.external === 'true'} onChange={e => void save({ external: e.target.checked })} />
+          Outside service (drawn grey)
         </label>
         <Field label="Tech" value={object.tech ?? ''} onSave={tech => save({ tech })} />
         <Field label="Description" value={object.description ?? ''} multiline onSave={description => save({ description })} />
