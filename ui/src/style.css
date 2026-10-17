@@ -12,6 +12,7 @@
   font: 14px/1.45 system-ui, sans-serif;
   color: var(--fg);
   background: var(--bg);
+  color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -31,6 +32,7 @@ html, body, #root { height: 100%; margin: 0; }
 button, select, input, textarea { font: inherit; }
 .app { height: 100%; display: flex; flex-direction: column; }
 .muted { color: var(--muted); }
+a { color: var(--accent); }
 
 .banner { padding: 8px 16px; background: var(--warn-bg); color: var(--warn-fg); }
 
