@@ -106,7 +106,8 @@ test('placeEnds maps flow steps and hides what a view cannot show', () => {
 test('placeStep puts a one-box step on the box that stands for it, twice', () => {
   const m = shop()
   assert.deepEqual(placeStep(m, 'shop', { from: 'auth' }), ['api', 'api'])
-  assert.deepEqual(placeStep(m, 'shop', { from: 'mail' }), ['mail', 'mail'])
+  assert.equal(placeStep(m, 'shop', { from: 'mail' }), null) // around the view, not in it
+  assert.equal(placeStep(m, 'shop', { from: 'shop' }), null) // the box you're inside
   assert.deepEqual(placeStep(m, 'shop', { from: 'web', to: 'api' }), ['web', 'api'])
   assert.equal(placeStep(m, 'shop', { from: 'ghost' }), null)
 })

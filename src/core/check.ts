@@ -107,7 +107,10 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       else if (missing(s.from)) sp('"from" is missing')
       else if (!getObject(model, s.from)) sp(`unknown object "${s.from}"`)
       if (!nonEmpty(s.text)) sp('text is missing')
-      if (alone) return
+      if (alone) {
+        if (viewOk && getObject(model, s.from) && !placeStep(model, f.view, s)) sp(`${s.from} can't be shown in view "${f.view}"`)
+        return
+      }
       if (!missing(s.from) && s.from === s.to) sp('goes from an object to itself (leave out "to" for a step one box does on its own)')
       else if (viewOk && getObject(model, s.from) && getObject(model, s.to) && !placeStep(model, f.view, s))
         sp(`${s.from} → ${s.to} can't be shown in view "${f.view}"`)

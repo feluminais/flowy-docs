@@ -41,9 +41,12 @@ const ui = fileURLToPath(new URL('../dist/ui', import.meta.url))
 
 const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
+// --flow and --view belong to mermaid. Anywhere else they're a typo, so show the usage line instead of ignoring them.
+const mermaidFlags = args?.values.flow !== undefined || args?.values.view !== undefined
+
 if (args?.positionals[0] === 'mcp') {
   await createMcpServer(resolve(args.values.dir)).connect(new StdioServerTransport())
-} else if (args?.positionals[0] === 'export' && args.positionals.length === 1) {
+} else if (args?.positionals[0] === 'export' && args.positionals.length === 1 && !mermaidFlags) {
   const out = resolve(args.values.out)
   try {
     const { boxes, flows, problems } = await exportSite({ dir: resolve(args.values.dir), ui, out })
@@ -62,7 +65,7 @@ if (args?.positionals[0] === 'mcp') {
     console.error(e instanceof Error ? e.message : String(e))
     process.exitCode = 1
   }
-} else if (args?.positionals.length === 0 && /^\d{1,5}$/.test(args.values.port) && Number(args.values.port) <= 65535) {
+} else if (args?.positionals.length === 0 && !mermaidFlags && /^\d{1,5}$/.test(args.values.port) && Number(args.values.port) <= 65535) {
   const dir = resolve(args.values.dir)
   const { port } = await startServer({ dir, ui, port: Number(args.values.port) })
   const url = `http://127.0.0.1:${port}/`

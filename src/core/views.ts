@@ -59,14 +59,14 @@ export function placeEnds(model: Model, v: string, from: string, to: string): [s
 }
 
 /**
- * Where a flow step lands in view v. A step with no `to` is one box acting on its own: the box that
- * stands for it, inside the view or around it, given twice. Null when the view can't show the step.
+ * Where a flow step lands in view v. A step with no `to` is one box acting on its own: the box inside
+ * the view that stands for it, given twice. Null when the view can't show the step. Like a line with
+ * both ends outside, a one-box step on something outside the view has nothing in the view to show.
  */
 export function placeStep(model: Model, v: string, step: { from: string; to?: string }): [string, string] | null {
   if (step.to !== undefined) return placeEnds(model, v, step.from, step.to)
-  if (!getObject(model, step.from)) return null
-  const box = rep(model, step.from, v) ?? outsider(model, step.from, v)
-  return [box, box]
+  const box = getObject(model, step.from) ? rep(model, step.from, v) : undefined
+  return box === undefined ? null : [box, box]
 }
 
 export function computeView(model: Model, v: string): View {
