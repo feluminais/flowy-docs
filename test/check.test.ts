@@ -226,3 +226,8 @@ test('external is true or false', () => {
   m.objects.mail = { ...m.objects.mail, external: 'yes' }
   assertProblem(m, 'mail: external must be true or false')
 })
+
+test('lines is straight, curved or angled', () => {
+  assert.deepEqual(check({ ...shop(), meta: { lines: 'curved' } }), [])
+  assertProblem({ ...shop(), meta: { lines: 'wiggly' } }, 'model.yaml lines must be straight, curved or angled')
+})
