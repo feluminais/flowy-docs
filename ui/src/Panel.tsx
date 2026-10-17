@@ -1,7 +1,7 @@
 import type { FocusEvent, FormEvent, ReactNode } from 'react'
 import { encodePath, typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
-import { getObject, ROOT } from '../../src/core/model.ts'
+import { getObject, isExternal, ROOT } from '../../src/core/model.ts'
 import type { FlowyObject, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { deleteFlow, deleteObject, OpError, putFlow, putObject, relabel, removeConnection, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
@@ -64,7 +64,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
   if (!editing) return (
     <Panel onClose={onClose}>
       <h2>{object.name || id}</h2>
-      <p className="muted">{object.type}{object.tech ? ` · ${object.tech}` : ''}</p>
+      <p className="muted">{isExternal(object) ? 'external ' : ''}{object.type}{object.tech ? ` · ${object.tech}` : ''}</p>
       {mine}
       {object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}
       <CodeList object={object} codeBase={codeBase} />
@@ -81,6 +81,10 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
           <select value={object.type} onChange={e => void save({ type: e.target.value as ObjectType })}>
             {types.map(t => <option key={t}>{t}</option>)}
           </select>
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={isExternal(object)} onChange={e => void save({ external: e.target.checked })} />
+          Outside service (drawn grey)
         </label>
         <Field label="Tech" value={object.tech ?? ''} onSave={tech => save({ tech })} />
         <Field label="Description" value={object.description ?? ''} multiline onSave={description => save({ description })} />

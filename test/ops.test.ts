@@ -1,10 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  connect, deleteFlow, deleteObject, disconnect, OpError, placeBoxes, putFlow, putObject, refuseNewProblems, relabel,
-  removeConnection, updateFlow,
+  connect, deleteFlow, deleteObject, disconnect, forgetLayout, OpError, placeBoxes, putFlow, putObject, refuseNewProblems,
+  relabel, removeConnection, setLines, updateFlow,
 } from '../src/core/ops.ts'
 import type { ObjectInput } from '../src/core/ops.ts'
+import { lineStyle } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 
 test('putObject creates with fields in a stable order, whatever order they come in', () => {
@@ -185,4 +186,35 @@ test('refuseNewProblems counts a missing code path only when it is told what is 
 test('putFlow drops a blank step detail and keeps a real one', () => {
   const m = putFlow(shop(), { id: 'tour', name: 'Tour', view: 'shop', steps: [{ from: 'web', text: 'a', description: '  ' }, { from: 'api', text: 'b', description: 'More.' }] })
   assert.deepEqual(m.flows.tour.steps, [{ from: 'web', text: 'a' }, { from: 'api', text: 'b', description: 'More.' }])
+})
+
+test('putObject writes external as "true" in its place, and false removes it', () => {
+  const m = putObject(shop(), { id: 'stripe', tech: 'REST', external: true, name: 'Stripe', type: 'system' })
+  assert.deepEqual(m.objects.stripe, { type: 'system', name: 'Stripe', external: 'true', tech: 'REST' })
+  assert.deepEqual(Object.keys(m.objects.stripe), ['type', 'name', 'external', 'tech'])
+  assert.equal(Object.hasOwn(putObject(m, { id: 'stripe', external: false }).objects.stripe, 'external'), false)
+  assert.equal(putObject(m, { id: 'stripe', name: 'Stripe API' }).objects.stripe.external, 'true')
+})
+
+test('setLines puts lines first in model.yaml, and undefined removes it', () => {
+  const m = setLines({ ...shop(), meta: { title: 'Shop' } }, 'curved')
+  assert.deepEqual(m.meta, { lines: 'curved', title: 'Shop' })
+  assert.deepEqual(Object.keys(m.meta), ['lines', 'title'])
+  assert.equal(lineStyle(m), 'curved')
+  assert.deepEqual(setLines(m, undefined).meta, { title: 'Shop' })
+  assert.equal(lineStyle(shop()), 'straight')
+  assert.equal(lineStyle({ ...shop(), meta: { lines: 'wiggly' } }), 'straight')
+})
+
+test('setLines leaves straight out, and an existing lines key keeps its place', () => {
+  assert.deepEqual(setLines({ ...shop(), meta: { lines: 'curved', title: 'Shop' } }, 'straight').meta, { title: 'Shop' })
+  const m = setLines({ ...shop(), meta: { title: 'Shop', lines: 'curved' } }, 'angled')
+  assert.deepEqual(Object.keys(m.meta), ['title', 'lines'])
+  assert.equal(m.meta.lines, 'angled')
+})
+
+test("forgetLayout drops one view's positions, and refuses when there are none", () => {
+  const m = { ...shop(), layout: { shop: { web: [0, 0] as [number, number] }, root: { shop: [1, 1] as [number, number] } } }
+  assert.deepEqual(forgetLayout(m, 'shop').layout, { root: { shop: [1, 1] } })
+  assert.throws(() => forgetLayout(m, 'api'), (e: unknown) => e instanceof OpError && /Nothing to tidy/.test(e.message))
 })

@@ -157,3 +157,10 @@ test('put_flow takes a step one box does on its own, and a longer detail', async
   assert.equal(saved.error, false, saved.text)
   assert.equal(await readFile(join(dir, 'flows', 'think.yaml'), 'utf8'), 'name: Thinking\nview: root\nsteps:\n  - from: shop\n    text: Thinks\n    description: For a **while**.\n')
 })
+
+test('put_object marks an outside service', async t => {
+  const { dir, call } = await setup(t)
+  const saved = await call('put_object', { id: 'stripe', type: 'system', name: 'Stripe', external: true })
+  assert.equal(saved.error, false, saved.text)
+  assert.match(await readFile(join(dir, 'model.yaml'), 'utf8'), /stripe:\n {4}type: system\n {4}name: Stripe\n {4}external: true\n/)
+})

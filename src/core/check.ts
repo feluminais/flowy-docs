@@ -1,4 +1,4 @@
-import { getObject, isValidId, OBJECT_TYPES, ROOT } from './model.ts'
+import { getObject, isValidId, LINE_STYLES, OBJECT_TYPES, ROOT } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
 import { hasChildren, placeStep } from './views.ts'
 
@@ -53,10 +53,14 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     for (const end of new Set([from, to])) if (!missing(end) && !getObject(model, end)) p(`unknown object "${end}"`)
   }
 
+  if (model.meta.lines !== undefined && !LINE_STYLES.some(s => s === model.meta.lines))
+    add('model.yaml', undefined, 'lines must be straight, curved or angled')
+
   for (const [id, o] of Object.entries(model.objects)) {
     const p = (message: string) => add('model.yaml', id, `${id}: ${message}`)
     if (!isValidId(id)) p('ids use lowercase letters, digits and dashes ("root" is reserved)')
     if (!nonEmpty(o.name)) p('name is missing')
+    if (o.external !== undefined && o.external !== 'true' && o.external !== 'false') p('external must be true or false')
     if (o.code !== undefined) {
       if (!Array.isArray(o.code) || o.code.some(c => typeof c !== 'string')) p('code must be a list of paths')
       else for (const path of o.code as string[]) {
