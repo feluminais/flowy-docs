@@ -29,6 +29,94 @@ export const lineId = (from: string, to: string) => `${from} ${to}`
 const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
 const overlaps = (a: XYPosition, b: XYPosition) => Math.abs(a.x - b.x) < BOX.width && Math.abs(a.y - b.y) < BOX.height
 
+type Spots = Map<string, XYPosition>
+type Ends = { from: string; to: string }
+
+const centreOf = (p: XYPosition): XYPosition => ({ x: p.x + BOX.width / 2, y: p.y + BOX.height / 2 })
+
+/** Whether segments ab and cd cross at a point inside both. Touching or overlapping in line doesn't count. */
+function crosses(a: XYPosition, b: XYPosition, c: XYPosition, d: XYPosition): boolean {
+  const turn = (p: XYPosition, q: XYPosition, r: XYPosition) => Math.sign((q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x))
+  return turn(a, b, c) * turn(a, b, d) < 0 && turn(c, d, a) * turn(c, d, b) < 0
+}
+
+/**
+ * Whether segment ab runs through the box at p. Its ends sit outside the box, so it does exactly when
+ * it crosses one of the box's diagonals. The box is shrunk by 4px so a line grazing a corner doesn't count.
+ */
+function runsThrough(a: XYPosition, b: XYPosition, p: XYPosition): boolean {
+  const [l, t, r, btm] = [p.x + 4, p.y + 4, p.x + BOX.width - 4, p.y + BOX.height - 4]
+  return crosses(a, b, { x: l, y: t }, { x: r, y: btm }) || crosses(a, b, { x: r, y: t }, { x: l, y: btm })
+}
+
+/**
+ * How tangled a layout looks: each pair of lines that cross (lines from the same box never do), plus
+ * each time a line runs through a box that isn't one of its ends. Lines are taken centre to centre.
+ */
+export function tangle(at: Spots, edges: Ends[]): number {
+  const lines = edges.filter(e => e.from !== e.to && at.has(e.from) && at.has(e.to))
+    .map(e => ({ ...e, a: centreOf(at.get(e.from)!), b: centreOf(at.get(e.to)!) }))
+  let score = 0
+  lines.forEach((l, i) => {
+    for (const m of lines.slice(i + 1)) {
+      const shared = [m.from, m.to].includes(l.from) || [m.from, m.to].includes(l.to)
+      if (!shared && crosses(l.a, l.b, m.a, m.b)) score++
+    }
+    for (const [id, p] of at) if (id !== l.from && id !== l.to && runsThrough(l.a, l.b, p)) score++
+  })
+  return score
+}
+
+/**
+ * Pairs of boxes next to each other. Within each group of `rows`, boxes in the same row (same y), in
+ * order along it; within each group of `columns`, boxes in the same column (same x). Boxes never pair
+ * across groups, so an outsider never trades places with a member, and a view's own boxes never trade
+ * places up and down: those are dagre's ranks, and a swap would point lines upwards.
+ */
+function neighbours(at: Spots, rows: string[][], columns: string[][]): [string, string][] {
+  const pairs: [string, string][] = []
+  const pair = (ids: string[], across: 'x' | 'y', along: 'x' | 'y') => {
+    const lines = new Map<number, string[]>()
+    for (const id of ids) {
+      const k = Math.round(at.get(id)![across])
+      lines.set(k, [...(lines.get(k) ?? []), id])
+    }
+    for (const line of lines.values()) {
+      line.sort((a, b) => at.get(a)![along] - at.get(b)![along])
+      for (let i = 1; i < line.length; i++) pairs.push([line[i - 1], line[i]])
+    }
+  }
+  for (const ids of rows) pair(ids, 'y', 'x')
+  for (const ids of columns) pair(ids, 'x', 'y')
+  return pairs
+}
+
+/**
+ * Swaps neighbouring boxes (see neighbours) while a swap makes the layout less tangled, until a whole
+ * pass swaps nothing. Boxes only trade spots, so the layout's shape stays the same. Without groups,
+ * any two boxes in a row may trade.
+ */
+export function untangle(at: Spots, edges: Ends[], rows: string[][] = [[...at.keys()]], columns: string[][] = []): Spots {
+  const next = new Map(at)
+  let score = tangle(next, edges)
+  // ponytail: about passes × pairs × lines² work, fine for a diagram's tens of boxes; a few hundred would need incremental scoring
+  for (let pass = 0; pass < 30 && score > 0; pass++) {
+    let swapped = false
+    for (const [a, b] of neighbours(next, rows, columns)) {
+      const pa = next.get(a)!
+      const pb = next.get(b)!
+      next.set(a, pb).set(b, pa)
+      const s = tangle(next, edges)
+      if (s < score) {
+        score = s
+        swapped = true
+      } else next.set(a, pa).set(b, pb)
+    }
+    if (!swapped) break
+  }
+  return next
+}
+
 /** dagre's top-left corner for each box, given the lines between them. */
 function dagreAt(boxes: string[], edges: ViewEdge[], gap: { nodesep: number; ranksep: number }): Map<string, XYPosition> {
   const g = new Graph()
@@ -45,16 +133,19 @@ function dagreAt(boxes: string[], edges: ViewEdge[], gap: { nodesep: number; ran
 
 /**
  * Inside a box: the members sit together in the middle, laid out by dagre. The outsiders stay at the
- * edges. Those that only start lines (people, mostly) wait above, in rows. The rest split into a
- * column on each side, so a box with ten neighbours isn't one very wide row.
+ * edges. Those that only start lines (people, mostly) wait above, in rows. With `shape: 'columns'` the
+ * rest split into a column on each side, so a box with ten neighbours isn't one very wide row; with
+ * `'below'` they wait in rows underneath. Also returns which boxes may trade places (see untangle):
+ * members, the rows above and the rows below along their rows, the side columns up and down.
  */
-function arrange(members: string[], outsiders: string[], edges: ViewEdge[]): Map<string, XYPosition> {
+function arrange(members: string[], outsiders: string[], edges: ViewEdge[], shape: 'columns' | 'below'): { at: Spots; rows: string[][]; columns: string[][] } {
   const at = dagreAt(members, edges, { nodesep: 40, ranksep: 70 })
   const spots = [...at.values()]
   const left = Math.min(...spots.map(p => p.x))
   const right = Math.max(...spots.map(p => p.x)) + BOX.width
   const top = Math.min(...spots.map(p => p.y))
-  const middle = { x: (left + right) / 2, y: (top + Math.max(...spots.map(p => p.y)) + BOX.height) / 2 }
+  const bottom = Math.max(...spots.map(p => p.y)) + BOX.height
+  const middle = { x: (left + right) / 2, y: (top + bottom) / 2 }
 
   // Sorting each group by where its members are keeps lines from crossing on the way in.
   const mean = (id: string, axis: 'x' | 'y') => {
@@ -64,29 +155,70 @@ function arrange(members: string[], outsiders: string[], edges: ViewEdge[]): Map
   }
   const byMean = (ids: string[], axis: 'x' | 'y') => ids.map(id => [id, mean(id, axis)] as const).sort((a, b) => a[1] - b[1]).map(([id]) => id)
   const starts = (id: string) => edges.some(e => e.from === id) && !edges.some(e => e.to === id)
+  // Rows of at most PER_ROW, centred under or over the members. `y` gives each row's top.
+  const putRows = (ids: string[], y: (row: number) => number) => {
+    for (let row = 0; row * PER_ROW < ids.length; row++) {
+      const r = ids.slice(row * PER_ROW, (row + 1) * PER_ROW)
+      const width = r.length * BOX.width + (r.length - 1) * STACK
+      r.forEach((id, j) => at.set(id, { x: middle.x - width / 2 + j * (BOX.width + STACK), y: y(row) }))
+    }
+  }
 
-  const sides = byMean(outsiders.filter(id => !starts(id)), 'x')
-  const columns = [sides.slice(0, Math.floor(sides.length / 2)), sides.slice(Math.floor(sides.length / 2))]
+  const rest = byMean(outsiders.filter(id => !starts(id)), 'x')
+  const columns = shape === 'columns' ? [rest.slice(0, Math.floor(rest.length / 2)), rest.slice(Math.floor(rest.length / 2))] : []
   const height = (n: number) => n * BOX.height + Math.max(0, n - 1) * STACK
-  const tallest = Math.max(...columns.map(c => height(c.length)))
+  const tallest = Math.max(0, ...columns.map(c => height(c.length)))
   columns.forEach((ids, i) => {
     const x = i === 0 ? left - NEAR - BOX.width : right + NEAR
     byMean(ids, 'y').forEach((id, j) => at.set(id, { x, y: middle.y - height(ids.length) / 2 + j * (BOX.height + STACK) }))
   })
+  if (shape === 'below') putRows(rest, row => bottom + NEAR + row * (BOX.height + STACK))
 
   const above = byMean(outsiders.filter(starts), 'x')
   const bottomRow = Math.min(top, middle.y - tallest / 2) - NEAR - BOX.height
-  for (let row = 0; row * PER_ROW < above.length; row++) {
-    const ids = above.slice(row * PER_ROW, (row + 1) * PER_ROW)
-    const width = ids.length * BOX.width + (ids.length - 1) * STACK
-    ids.forEach((id, j) => at.set(id, { x: middle.x - width / 2 + j * (BOX.width + STACK), y: bottomRow - row * (BOX.height + STACK) }))
+  putRows(above, row => bottomRow - row * (BOX.height + STACK))
+  return { at, rows: [members, above, shape === 'below' ? rest : []], columns }
+}
+
+/**
+ * Where every box of a view goes when nothing is saved. Finding the least tangled layout is NP-hard, so,
+ * like dagre itself, this settles for a good one: both shapes from three starting orders, each
+ * untangled, and the least tangled wins (the first on a tie, so a clean view keeps today's look).
+ */
+function place(members: string[], around: string[], edges: ViewEdge[]): Spots {
+  const lines = edges.map(e => ({ from: e.from, to: e.to }))
+  const degree = (id: string) => lines.filter(e => e.from === id || e.to === id).length
+  const orders = [(ids: string[]) => ids, (ids: string[]) => [...ids].reverse(), (ids: string[]) => [...ids].sort((a, b) => degree(b) - degree(a))]
+  const shapes = members.length > 0 && around.length > 0 ? (['columns', 'below'] as const) : ([undefined] as const)
+  let best: Spots | undefined
+  let bestScore = Infinity
+  for (const shape of shapes) for (const order of orders) {
+    const { at, rows, columns } = shape
+      ? arrange(order(members), order(around), edges, shape)
+      : { at: dagreAt(order([...members, ...around]), edges, { nodesep: 60, ranksep: 90 }), rows: [[...members, ...around]], columns: [] }
+    const tidy = untangle(at, lines, rows, columns)
+    const score = tangle(tidy, lines)
+    if (score < bestScore) [best, bestScore] = [tidy, score]
+  }
+  return best!
+}
+
+// toGraph runs again on every flow step and selection change, so placements are kept by what they're made from.
+const placements = new Map<string, Spots>()
+function placeCached(members: string[], around: string[], edges: ViewEdge[]): Spots {
+  const key = JSON.stringify([members, around, edges.map(e => [e.from, e.to])])
+  let at = placements.get(key)
+  if (!at) {
+    at = place(members, around, edges)
+    if (placements.size >= 50) placements.delete(placements.keys().next().value!)
+    placements.set(key, at)
   }
   return at
 }
 
 /**
  * The React Flow nodes and edges for one view. A box keeps its layout.yaml position; the rest are
- * placed by dagre (see arrange for views with outsiders), moved down past any saved box they would
+ * placed by `place` (dagre, then untangled), moved down past any saved box they would
  * cover. While a flow plays, the current step's two boxes and its line stay lit and everything else
  * is dimmed. A step with no line of its own gets a dashed one. Boxes only the flow uses join for the
  * whole flow, as outsiders, so nothing moves between steps. Boxes and lines with problems get the
@@ -99,7 +231,7 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
   const dimming = playing?.step !== undefined
   const lit = playing?.step === undefined ? undefined : playing.ends[playing.step]
   const around = boxes.filter(id => !members.includes(id))
-  const placed = members.length > 0 && around.length > 0 ? arrange(members, around, edges) : dagreAt(boxes, edges, { nodesep: 60, ranksep: 90 })
+  const placed = placeCached(members, around, edges)
 
   const saved = Object.hasOwn(model.layout, view) ? model.layout[view] : {}
   const at = new Map<string, XYPosition>()
