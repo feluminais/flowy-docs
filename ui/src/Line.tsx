@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react'
 import { BaseEdge, getBezierPath, getSmoothStepPath, getStraightPath, Position, useInternalNode } from '@xyflow/react'
 import type { EdgeProps, InternalNode } from '@xyflow/react'
 import type { LineStyle } from '../../src/core/model.ts'
-import { BOX, lineEnds, ports } from './graph.ts'
+import { lineEnds, ports, sizeOf } from './graph.ts'
 import type { Rect } from './graph.ts'
 
 /** How lines are drawn: the project's style, or this reader's own. App provides it. */
@@ -10,7 +10,7 @@ export const LineStyleContext = createContext<LineStyle>('straight')
 
 const SIDES = { top: Position.Top, right: Position.Right, bottom: Position.Bottom, left: Position.Left }
 
-const rect = (n: InternalNode): Rect => ({ ...n.internals.positionAbsolute, width: n.measured.width ?? BOX.width, height: n.measured.height ?? BOX.height })
+const rect = (n: InternalNode): Rect => ({ ...n.internals.positionAbsolute, ...sizeOf(n) })
 
 /** The SVG path and the label's place for one line in the given style. */
 function draw(style: LineStyle, a: Rect, b: Rect): [string, number, number] {

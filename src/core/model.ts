@@ -37,6 +37,9 @@ export const emptyModel = (): Model => ({ objects: {}, connections: [], flows: {
 /** The project's line style. Anything unknown draws straight; check() reports it. */
 export const lineStyle = (model: Model): LineStyle => LINE_STYLES.find(s => s === model.meta.lines) ?? 'straight'
 
+/** Whether an object is an outside service: `external: true`, read back as the text "true". */
+export const isExternal = (o: FlowyObject): boolean => o.external === 'true'
+
 export const isValidId = (id: string): boolean => /^[a-z0-9][a-z0-9-]*$/.test(id) && id !== ROOT
 
 /** Own-property lookup, so ids like "constructor" never reach Object.prototype. */

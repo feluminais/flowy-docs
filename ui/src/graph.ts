@@ -7,6 +7,9 @@ import type { Edge as ViewEdge } from '../../src/core/views.ts'
 
 /** Every box has the same size, so dagre can place them before the browser draws them. Keep in sync with .box in style.css. */
 export const BOX = { width: 200, height: 72 }
+/** A node's size as the browser measured it, or BOX until it has. */
+export const sizeOf = (n: { measured?: { width?: number; height?: number } }) =>
+  ({ width: n.measured?.width ?? BOX.width, height: n.measured?.height ?? BOX.height })
 /** Width of the side panel at most. Keep in sync with .panel in style.css. */
 export const PANEL = 380
 
@@ -93,14 +96,14 @@ function neighbours(at: Spots, rows: string[][], columns: string[][]): [string, 
 
 /**
  * Swaps neighbouring boxes (see neighbours) while a swap makes the layout less tangled, until a whole
- * pass swaps nothing. Boxes only trade spots, so the layout's shape stays the same. Without groups,
- * any two boxes in a row may trade.
+ * pass swaps nothing, or after `passes` passes. Boxes only trade spots, so the layout's shape stays the
+ * same. Without groups, any two boxes in a row may trade.
  */
-export function untangle(at: Spots, edges: Ends[], rows: string[][] = [[...at.keys()]], columns: string[][] = []): Spots {
+export function untangle(at: Spots, edges: Ends[], rows: string[][] = [[...at.keys()]], columns: string[][] = [], passes = 30): Spots {
   const next = new Map(at)
   let score = tangle(next, edges)
   // ponytail: about passes × pairs × lines² work, fine for a diagram's tens of boxes; a few hundred would need incremental scoring
-  for (let pass = 0; pass < 30 && score > 0; pass++) {
+  for (let pass = 0; pass < passes && score > 0; pass++) {
     let swapped = false
     for (const [a, b] of neighbours(next, rows, columns)) {
       const pa = next.get(a)!
@@ -188,7 +191,11 @@ function arrange(members: string[], outsiders: string[], edges: ViewEdge[], shap
 function place(members: string[], around: string[], edges: ViewEdge[]): Spots {
   const lines = edges.map(e => ({ from: e.from, to: e.to }))
   const degree = (id: string) => lines.filter(e => e.from === id || e.to === id).length
+  // ponytail: a big view tries one starting order with fewer passes, so it still opens without a pause;
+  // scoring only the lines a swap moves would let it do the full search
+  const big = (members.length + around.length) * lines.length > 2000
   const orders = [(ids: string[]) => ids, (ids: string[]) => [...ids].reverse(), (ids: string[]) => [...ids].sort((a, b) => degree(b) - degree(a))]
+    .slice(0, big ? 1 : 3)
   const shapes = members.length > 0 && around.length > 0 ? (['columns', 'below'] as const) : ([undefined] as const)
   let best: Spots | undefined
   let bestScore = Infinity
@@ -196,7 +203,7 @@ function place(members: string[], around: string[], edges: ViewEdge[]): Spots {
     const { at, rows, columns } = shape
       ? arrange(order(members), order(around), edges, shape)
       : { at: dagreAt(order([...members, ...around]), edges, { nodesep: 60, ranksep: 90 }), rows: [[...members, ...around]], columns: [] }
-    const tidy = untangle(at, lines, rows, columns)
+    const tidy = untangle(at, lines, rows, columns, big ? 5 : 30)
     const score = tangle(tidy, lines)
     if (score < bestScore) [best, bestScore] = [tidy, score]
   }
@@ -337,6 +344,24 @@ export function frameAround(rects: Rect[], pad = 28): Rect {
   const right = Math.max(...rects.map(r => r.x + r.width)) + pad
   const bottom = Math.max(...rects.map(r => r.y + r.height)) + pad
   return { x, y, width: right - x, height: bottom - y }
+}
+
+export const FRAME = '~frame' // ids can't hold a ~, so this never clashes with a box
+export type FrameNode = Node<{ name: string }, 'frame'>
+
+/**
+ * The frame named `name` around a view's own boxes. It takes no clicks: React Flow sets pointer-events
+ * on every node while the canvas has click handlers, and only the node's own style wins over that, so
+ * a click on the blank space inside still reaches the canvas. Its size is given as measured too, or
+ * React Flow forgets it on every render and Camera waits for it.
+ */
+export function frameNode(name: string, rects: Rect[]): FrameNode {
+  const r = frameAround(rects)
+  return {
+    id: FRAME, type: 'frame', data: { name }, position: { x: r.x, y: r.y }, width: r.width, height: r.height,
+    measured: { width: r.width, height: r.height }, style: { pointerEvents: 'none' },
+    selectable: false, draggable: false, connectable: false, focusable: false, zIndex: -1,
+  }
 }
 
 /** What fitView is given: room for the side panel and the flow player, when they're there. */

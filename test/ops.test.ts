@@ -206,6 +206,13 @@ test('setLines puts lines first in model.yaml, and undefined removes it', () => 
   assert.equal(lineStyle({ ...shop(), meta: { lines: 'wiggly' } }), 'straight')
 })
 
+test('setLines leaves straight out, and an existing lines key keeps its place', () => {
+  assert.deepEqual(setLines({ ...shop(), meta: { lines: 'curved', title: 'Shop' } }, 'straight').meta, { title: 'Shop' })
+  const m = setLines({ ...shop(), meta: { title: 'Shop', lines: 'curved' } }, 'angled')
+  assert.deepEqual(Object.keys(m.meta), ['title', 'lines'])
+  assert.equal(m.meta.lines, 'angled')
+})
+
 test("forgetLayout drops one view's positions, and refuses when there are none", () => {
   const m = { ...shop(), layout: { shop: { web: [0, 0] as [number, number] }, root: { shop: [1, 1] as [number, number] } } }
   assert.deepEqual(forgetLayout(m, 'shop').layout, { root: { shop: [1, 1] } })

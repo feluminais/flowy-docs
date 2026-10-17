@@ -1,4 +1,5 @@
 // Icons from Tabler Icons, https://tabler.io/icons. MIT License, Copyright (c) 2020-2024 Paweł Kuna.
+// The minifier drops comments, so the notice ships as ui/public/TABLER-ICONS-LICENSE.txt next to the bundle.
 import type { JSX, ReactNode } from 'react'
 import type { ObjectType } from '../../src/core/model.ts'
 
