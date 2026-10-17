@@ -5,16 +5,15 @@ import type { NodeChange, XYPosition } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
-import type { Model, Step } from '../../src/core/model.ts'
+import type { LineStyle, Model, Step } from '../../src/core/model.ts'
 import { connect, deleteObject, forgetLayout, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { chain, hasChildren, parentOf, placeEnds, placeStep } from '../../src/core/views.ts'
 import { Box, Description, Frame } from './Box.tsx'
-import type { FrameNode } from './Box.tsx'
 import { Camera } from './Camera.tsx'
 import { connectionsOf, locate, nameOf } from './edit.ts'
-import { BOX, fitOptions, focusEdges, frameAround, lineId, toGraph } from './graph.ts'
-import type { BoxNode, Playing } from './graph.ts'
+import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
+import type { BoxNode, FrameNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
 import { letter } from './keys.ts'
 import { Line, LineStyleContext } from './Line.tsx'
@@ -27,7 +26,6 @@ import type { Edit, Loaded } from './useModel.ts'
 
 const nodeTypes = { box: Box, frame: Frame }
 const edgeTypes = { line: Line }
-const FRAME = '~frame' // ids can't hold a ~, so this never clashes with a box
 const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is the first half of a double-click
 const LEAVE = 220 // ms the old view takes to fly off; keep in sync with the leave-* keyframes in style.css
 const ARRIVE = 320 // ms the new view takes to settle; keep in sync with the arrive-* keyframes
@@ -98,6 +96,7 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
   const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
   const [hovered, setHovered] = useState<string>() // the line the pointer is on
   const [searching, setSearching] = useState(false)
+  const [tidied, setTidied] = useState(0) // Tidy counts up, so the camera fits the new layout
   const opening = useRef<ReturnType<typeof setTimeout>>(undefined) // a click on a box that opens, waiting out the double-click window
   const quiet = useRef(true) // the next address write replaces instead of pushing (see the address effect)
   const [motion, setMotion] = useState<Motion>()
@@ -138,14 +137,7 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
   const nodes = graph.nodes.map(n => ({ ...n, position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id) }))
   // Inside a box, a frame named after it wraps its own boxes and follows them while they're dragged.
   const inner = view === ROOT ? [] : nodes.filter(n => graph.members.includes(n.id))
-  const frame: FrameNode[] = inner.length === 0 ? [] : [(() => {
-    const r = frameAround(inner.map(n => ({ ...n.position, width: n.measured?.width ?? BOX.width, height: n.measured?.height ?? BOX.height })))
-    return {
-      id: FRAME, type: 'frame' as const, data: { name: nameOf(model, view) }, position: { x: r.x, y: r.y }, width: r.width, height: r.height,
-      measured: { width: r.width, height: r.height }, // given, or React Flow forgets it on every render and Camera waits for it
-      selectable: false, draggable: false, connectable: false, focusable: false, zIndex: -1,
-    }
-  })()]
+  const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })))]
   const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
   const selectedBox = side?.kind === 'object' ? side.id : undefined
   const edges = useMemo(() => focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }), [graph, selectedBox, selectedLine, hovered])
@@ -199,10 +191,13 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
   const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, flow.steps.length - 1)) })
   const pickLines = (value: string) => {
     const style = LINE_STYLES.find(s => s === value) // "" is the project's default
-    if (editing) void run(m => setLines(m, style === 'straight' ? undefined : style))
-    const own = editing ? undefined : style // in edit mode the project's style is what you see
-    keepOwnLines(own)
-    setMine(own)
+    const own = (s: LineStyle | undefined) => {
+      keepOwnLines(s)
+      setMine(s)
+    }
+    // In edit mode the project's style is what you see, so once it's saved your own choice goes.
+    if (editing) void run(m => setLines(m, style)).then(saved => saved && own(undefined))
+    else own(style)
   }
   const toggleEdit = () => {
     quiet.current = true // E isn't a step to go back to
@@ -214,9 +209,9 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
   const remove = () => {
     if (side?.kind === 'object') void run(m => deleteObject(m, side.id)).then(saved => saved && close())
     if (side?.kind !== 'line') return
-    const lines = connectionsOf(model, view, side.from, side.to)
-    if (lines.length > 1) return setNotice(`This line stands for ${lines.length} connections. Delete them one at a time in the panel.`)
-    const c = lines[0]?.connection
+    const merged = connectionsOf(model, view, side.from, side.to)
+    if (merged.length > 1) return setNotice(`This line stands for ${merged.length} connections. Delete them one at a time in the panel.`)
+    const c = merged[0]?.connection
     if (c) void run(m => removeConnection(m, { from: c.from, to: c.to, label: c.label ?? '' })).then(saved => saved && close())
   }
   const jump = (p: Problem) => {
@@ -295,8 +290,9 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
       else if (key === 'e' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat && !readOnly) toggleEdit()
       else if (editing && e.key === 'Delete') remove()
       else if (editing && (e.ctrlKey || e.metaKey) && !e.shiftKey && key === 'z' && !e.repeat) void takeBack() // held down, it would empty the whole stack
-      // A second Backspace while the first is still leaving goes up from where that one is heading.
-      else if (e.key === 'Backspace' && view !== ROOT && !recording) zoomOut(parentOf(model, motion?.phase === 'leave' ? motion.to : view))
+      // A second Backspace while a zoom out is still leaving goes up from where that one is heading.
+      else if (e.key === 'Backspace' && view !== ROOT && !recording)
+        zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view))
       else return
       e.preventDefault()
     }
@@ -327,7 +323,11 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
         {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
         {editing && <button title="Undo the last change (Ctrl+Z)" onClick={() => void takeBack()}>Undo</button>}
         {editing && (
-          <button title="Forget where boxes here were dragged, and lay this view out again" onClick={() => void run(m => forgetLayout(m, view)).then(saved => saved && setMoved(new Map()))}>
+          <button title="Forget where boxes here were dragged, and lay this view out again" onClick={() => void run(m => forgetLayout(m, view)).then(saved => {
+            if (!saved) return
+            setMoved(new Map())
+            setTidied(n => n + 1)
+          })}>
             Tidy
           </button>
         )}
@@ -392,7 +392,7 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
               setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
             }}
           >
-            <Camera count={nodes.length + frame.length}fitKey={`${view} ${flow ? playing?.flow : ''}`} player={flow !== undefined} reveal={selectedBox} />
+            <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} />
             {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
             <Controls showInteractive={false} fitViewOptions={fitOptions(side !== undefined, flow !== undefined)} />
           </ReactFlow>

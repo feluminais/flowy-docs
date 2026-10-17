@@ -1,10 +1,10 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useReactFlow, useStore, useStoreApi } from '@xyflow/react'
-import { BOX, fitOptions, PANEL, panIntoView } from './graph.ts'
+import { fitOptions, PANEL, panIntoView, sizeOf } from './graph.ts'
 
 /**
  * Moves the view, inside the canvas. It fits the whole diagram once all `count` boxes are measured,
- * and again when `fitKey` changes (a flow starting or stopping) or the canvas is resized. When `reveal`
+ * and again when `fitKey` changes (a flow starting or stopping, Tidy) or the canvas is resized. When `reveal`
  * changes it pans just far enough that this box isn't hidden under the side panel.
  */
 export function Camera({ fitKey, count, player, reveal }: { fitKey: string; count: number; player: boolean; reveal?: string }) {
@@ -21,7 +21,7 @@ export function Camera({ fitKey, count, player, reveal }: { fitKey: string; coun
     const box = id ? getInternalNode(id) : undefined
     if (!box) return
     const { width, height } = store.getState()
-    const rect = { ...box.internals.positionAbsolute, width: box.measured.width ?? BOX.width, height: box.measured.height ?? BOX.height }
+    const rect = { ...box.internals.positionAbsolute, ...sizeOf(box) }
     const to = panIntoView(rect, getViewport(), { width, height }, PANEL)
     if (to) void setViewport(to, { duration: animate ? 200 : 0 })
   }

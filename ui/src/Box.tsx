@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Handle, NodeToolbar, Position, useConnection } from '@xyflow/react'
-import type { Node, NodeProps } from '@xyflow/react'
+import type { NodeProps } from '@xyflow/react'
 import Markdown from 'react-markdown'
-import type { BoxNode } from './graph.ts'
+import { isExternal } from '../../src/core/model.ts'
+import type { BoxNode, FrameNode } from './graph.ts'
 import { Cloud, TYPE_ICONS, ZoomIn } from './icons.tsx'
 
 /** Markdown from the model. react-markdown never renders raw HTML, so a repo can't inject script. Links open in a new tab. */
@@ -22,7 +23,7 @@ export function Box({ id, data: { object, inside }, isConnectable }: NodeProps<B
   const [hover, setHover] = useState(false)
   const connecting = useConnection(c => c.inProgress)
   const short = teaser(object.description)
-  const external = object.external === 'true'
+  const external = isExternal(object)
   // A type the checker doesn't know still gets a tile.
   const Icon = external ? Cloud : Object.hasOwn(TYPE_ICONS, object.type) ? TYPE_ICONS[object.type] : TYPE_ICONS.system
   const kind = external ? `external ${object.type}` : object.type
@@ -45,9 +46,7 @@ export function Box({ id, data: { object, inside }, isConnectable }: NodeProps<B
   )
 }
 
-export type FrameNode = Node<{ name: string }, 'frame'>
-
-/** The box you're inside, drawn as a frame around what's in it. It takes no clicks (see style.css). */
+/** The box you're inside, drawn as a frame around what's in it. It takes no clicks (see frameNode in graph.ts). */
 export function Frame({ data }: NodeProps<FrameNode>) {
   return <div className="frame"><span>{data.name}</span></div>
 }

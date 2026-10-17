@@ -132,10 +132,14 @@ export function placeBoxes(model: Model, view: string, boxes: Record<string, [nu
   return { ...model, layout }
 }
 
-/** Set the project's line style: the top-level `lines:` in model.yaml. undefined removes it, which means straight. */
+/**
+ * Set the project's line style: the top-level `lines:` in model.yaml. Straight is the default, so
+ * straight or undefined removes the key. A new key goes first; one that's there keeps its place.
+ */
 export function setLines(model: Model, style: LineStyle | undefined): Model {
-  const { lines: _, ...meta } = model.meta
-  return { ...model, meta: style === undefined ? meta : { lines: style, ...meta } }
+  const { lines: _, ...rest } = model.meta
+  if (style === undefined || style === 'straight') return { ...model, meta: rest }
+  return { ...model, meta: Object.hasOwn(model.meta, 'lines') ? { ...model.meta, lines: style } : { lines: style, ...rest } }
 }
 
 /** Forget where boxes were dragged in one view (its part of layout.yaml), so the computed layout shows again. */

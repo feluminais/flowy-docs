@@ -62,7 +62,7 @@ Press E, or the Edit button.
 - Delete (the key, or the button in the panel) removes the selected box or line. A box that still
   contains others, or that a flow uses, stays, and a notice says why.
 - Lines, in edit mode, sets the project's style for everyone: a `lines:` key at the top of
-  `model.yaml`.
+  `model.yaml`, which takes `straight` (the default, so it's left out), `curved` or `angled`.
 - Tidy forgets where boxes in this view were dragged, so Flowy lays it out again, picking the
   layout with the fewest crossing lines it finds. Ctrl+Z brings your positions back.
 - New flow records a walkthrough: name it, click the box where a step starts and the box it goes

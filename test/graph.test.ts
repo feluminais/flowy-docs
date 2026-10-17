@@ -4,7 +4,7 @@ import { check } from '../src/core/check.ts'
 import { emptyModel } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
 import { computeView } from '../src/core/views.ts'
-import { BOX, fitOptions, focusEdges, frameAround, lineEnds, panIntoView, PANEL, ports, tangle, toGraph, untangle } from '../ui/src/graph.ts'
+import { BOX, fitOptions, focusEdges, frameAround, frameNode, lineEnds, panIntoView, PANEL, ports, tangle, toGraph, untangle } from '../ui/src/graph.ts'
 import { shop } from './fixtures.ts'
 
 const byId = <T extends { id: string }>(items: T[]) => Object.fromEntries(items.map(i => [i.id, i]))
@@ -243,4 +243,12 @@ test('the frame wraps the boxes with room to spare', () => {
 
 test('toGraph names the view\'s own boxes', () => {
   assert.deepEqual(toGraph(shop(), 'shop').members, ['web', 'api', 'db'])
+})
+
+test('the frame node sits behind the boxes and lets clicks through to the canvas', () => {
+  const frame = frameNode('Shop', [{ x: 0, y: 0, width: 200, height: 72 }])
+  assert.deepEqual([frame.position, frame.width, frame.height], [{ x: -28, y: -28 }, 256, 128])
+  assert.equal(frame.style?.pointerEvents, 'none')
+  assert.equal(frame.data.name, 'Shop')
+  assert.equal(frame.selectable, false)
 })

@@ -73,10 +73,9 @@ a { color: var(--accent); }
 @keyframes leave-out { to { transform: scale(0.25); opacity: 0; } }
 @keyframes arrive-out { from { transform: scale(2.5); opacity: 0; } }
 
-.react-flow__node-frame { pointer-events: none; }
 .frame { position: relative; width: 100%; height: 100%; box-sizing: border-box; border: 1.5px solid var(--accent); border-radius: 12px; }
 .frame span { position: absolute; top: -10px; left: 14px; padding: 0 6px; background: var(--bg); color: var(--accent); font-size: 12px; font-weight: 600; }
-.canvas.arrive-in .frame { animation: fade-in 250ms 250ms both; }
+.canvas.arrive-in .frame { animation: fade-in 100ms 220ms both; } /* done by the end of arrive-in (320ms), when the class goes */
 
 @media (prefers-reduced-motion: reduce) {
   .canvas .react-flow__renderer, .canvas .frame { animation: none !important; }
