@@ -66,7 +66,8 @@ and the page reloads. Git keeps the history.
 
 Ctrl+Z, or Undo, takes back your last change on this page, then the one before. It goes back as
 far as the page has been open. If the file changed since (Claude, your editor, another tab), undo
-leaves it alone and says so.
+leaves it alone and says so. Undo brings back what the file said, not how it was written: like
+any save, it drops YAML comments and writes the file in Flowy's own layout.
 
 ## Let Claude build it
 
