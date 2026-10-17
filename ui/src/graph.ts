@@ -224,7 +224,7 @@ function placeCached(members: string[], around: string[], edges: ViewEdge[]): Sp
  * whole flow, as outsiders, so nothing moves between steps. Boxes and lines with problems get the
  * class "problem". Lines keep their labels here; focusEdges decides which to show.
  */
-export function toGraph(model: Model, view: string, playing?: Playing, problems: Problem[] = []): { nodes: BoxNode[]; edges: Edge[] } {
+export function toGraph(model: Model, view: string, playing?: Playing, problems: Problem[] = []): { nodes: BoxNode[]; edges: Edge[]; members: string[] } {
   const { members, outsiders, edges } = computeView(model, view)
   const flowBoxes = (playing?.ends ?? []).flatMap(e => e ?? [])
   const boxes = [...new Set([...members, ...outsiders, ...flowBoxes])]
@@ -269,7 +269,7 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
   }))
   if (lit && lit[0] !== lit[1] && !edges.some(e => isLit(e.from, e.to))) // a one-box step lights its box, no line
     lines.push({ id: 'step', type: 'line', source: lit[0], target: lit[1], markerEnd: { type: 'arrowclosed' }, className: 'step' })
-  return { nodes, edges: lines }
+  return { nodes, edges: lines, members }
 }
 
 /**
@@ -328,6 +328,15 @@ export function ports(a: Rect, b: Rect): { from: XYPosition; fromSide: Side; to:
   const fromSide = facing(a, b)
   const toSide = facing(b, a)
   return { from: middleOf(a, fromSide), fromSide, to: middleOf(b, toSide), toSide }
+}
+
+/** The frame around a view's own boxes: their bounding box plus `pad` on every side. */
+export function frameAround(rects: Rect[], pad = 28): Rect {
+  const x = Math.min(...rects.map(r => r.x)) - pad
+  const y = Math.min(...rects.map(r => r.y)) - pad
+  const right = Math.max(...rects.map(r => r.x + r.width)) + pad
+  const bottom = Math.max(...rects.map(r => r.y + r.height)) + pad
+  return { x, y, width: right - x, height: bottom - y }
 }
 
 /** What fitView is given: room for the side panel and the flow player, when they're there. */

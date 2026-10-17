@@ -4,7 +4,7 @@ import { check } from '../src/core/check.ts'
 import { emptyModel } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
 import { computeView } from '../src/core/views.ts'
-import { BOX, fitOptions, focusEdges, lineEnds, panIntoView, PANEL, ports, tangle, toGraph, untangle } from '../ui/src/graph.ts'
+import { BOX, fitOptions, focusEdges, frameAround, lineEnds, panIntoView, PANEL, ports, tangle, toGraph, untangle } from '../ui/src/graph.ts'
 import { shop } from './fixtures.ts'
 
 const byId = <T extends { id: string }>(items: T[]) => Object.fromEntries(items.map(i => [i.id, i]))
@@ -234,4 +234,13 @@ test('outsiders stay around the view, never between its own boxes', () => {
       assert.ok(p.x + BOX.width <= left || p.x >= right || p.y + BOX.height <= top || p.y >= bottom, `${name}: ${id}`)
     }
   }
+})
+
+test('the frame wraps the boxes with room to spare', () => {
+  assert.deepEqual(frameAround([{ x: 0, y: 0, width: 200, height: 72 }, { x: 300, y: 150, width: 200, height: 72 }], 28),
+    { x: -28, y: -28, width: 556, height: 278 })
+})
+
+test('toGraph names the view\'s own boxes', () => {
+  assert.deepEqual(toGraph(shop(), 'shop').members, ['web', 'api', 'db'])
 })

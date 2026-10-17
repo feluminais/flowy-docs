@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Handle, NodeToolbar, Position, useConnection } from '@xyflow/react'
-import type { NodeProps } from '@xyflow/react'
+import type { Node, NodeProps } from '@xyflow/react'
 import Markdown from 'react-markdown'
 import type { BoxNode } from './graph.ts'
 import { Cloud, TYPE_ICONS, ZoomIn } from './icons.tsx'
@@ -43,4 +43,11 @@ export function Box({ id, data: { object, inside }, isConnectable }: NodeProps<B
       )}
     </div>
   )
+}
+
+export type FrameNode = Node<{ name: string }, 'frame'>
+
+/** The box you're inside, drawn as a frame around what's in it. It takes no clicks (see style.css). */
+export function Frame({ data }: NodeProps<FrameNode>) {
+  return <div className="frame"><span>{data.name}</span></div>
 }
