@@ -207,8 +207,11 @@ test('isRepoPath takes files and folders', () => {
 
 test('a step with no "to" is one box acting on its own', () => {
   const m = shop()
-  m.flows.checkout.steps.push({ from: 'api', text: 'Checks the order' }, { from: 'mail', text: 'Sends it', description: 'Within a minute.' })
+  m.flows.checkout.steps.push({ from: 'api', text: 'Checks the order' }, { from: 'orders', text: 'Sends it', description: 'Within a minute.' })
   assert.deepEqual(check(m), [])
+  m.flows.checkout.steps.push({ from: 'mail', text: 'Sends it' })
+  assertProblem(m, `flows/checkout.yaml step 6: mail can't be shown in view "shop"`)
+  m.flows.checkout.steps.pop()
   m.flows.checkout.steps.push({ from: 'ghost', text: 'Haunts' }, { from: '', text: 'Nobody' } as never)
   assertProblem(m, 'flows/checkout.yaml step 6: unknown object "ghost"')
   assertProblem(m, 'flows/checkout.yaml step 7: "from" is missing')
