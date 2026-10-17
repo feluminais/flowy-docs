@@ -59,12 +59,15 @@ a { color: var(--accent); }
 .canvas .react-flow { --xy-background-color: var(--bg); --xy-edge-stroke: var(--edge); --xy-edge-stroke-width: 1.5; }
 .empty { position: absolute; inset: 40% 0 auto; text-align: center; color: var(--muted); }
 
-/* Opening a box: the old view flies off about the box, then the new one grows from there (see Motion in App.tsx). */
-.canvas .react-flow { transform-origin: var(--ox, 50%) var(--oy, 50%); }
-.canvas.leave-in .react-flow { animation: leave-in 220ms ease-in forwards; }
-.canvas.arrive-in .react-flow { animation: arrive-in 320ms ease-out; }
-.canvas.leave-out .react-flow { animation: leave-out 220ms ease-in forwards; }
-.canvas.arrive-out .react-flow { animation: arrive-out 320ms ease-out; }
+/*
+ * Opening a box: the old view flies off about the box, then the new one grows from there (see Motion in App.tsx).
+ * Only the diagram moves; the zoom buttons in the corner sit outside .react-flow__renderer and stay put.
+ */
+.canvas .react-flow__renderer { transform-origin: var(--ox, 50%) var(--oy, 50%); }
+.canvas.leave-in .react-flow__renderer { animation: leave-in 220ms ease-in forwards; }
+.canvas.arrive-in .react-flow__renderer { animation: arrive-in 320ms ease-out; }
+.canvas.leave-out .react-flow__renderer { animation: leave-out 220ms ease-in forwards; }
+.canvas.arrive-out .react-flow__renderer { animation: arrive-out 320ms ease-out; }
 @keyframes leave-in { to { transform: scale(4); opacity: 0; } }
 @keyframes arrive-in { from { transform: scale(0.25); opacity: 0; } }
 @keyframes leave-out { to { transform: scale(0.25); opacity: 0; } }
@@ -76,7 +79,7 @@ a { color: var(--accent); }
 .canvas.arrive-in .frame { animation: fade-in 250ms 250ms both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .canvas .react-flow, .canvas .frame { animation: none !important; }
+  .canvas .react-flow__renderer, .canvas .frame { animation: none !important; }
 }
 
 /* Keep width and height in sync with BOX in graph.ts. */
