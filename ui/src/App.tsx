@@ -14,6 +14,7 @@ import { connectionsOf, locate, nameOf } from './edit.ts'
 import { fitOptions, focusEdges, lineId, toGraph } from './graph.ts'
 import type { BoxNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
+import { letter } from './keys.ts'
 import { Line } from './Line.tsx'
 import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
 import { Search } from './Search.tsx'
@@ -226,16 +227,17 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
   // Added again on every render, so the handler always sees the current state.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const key = letter(e)
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return
       if (flow && e.key === 'ArrowRight') stepTo(stepIndex + 1)
       else if (flow && e.key === 'ArrowLeft') stepTo(stepIndex - 1)
       else if (flow && e.key === 'Escape') setPlaying(undefined)
       else if (recording?.from && e.key === 'Escape') setSide({ ...recording, from: undefined, to: undefined })
       else if (e.key === 'Escape') setSide(undefined)
-      else if ((e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey)) || e.key === '/') setSearching(true)
-      else if (e.key.toLowerCase() === 'e' && !e.ctrlKey && !e.metaKey && !e.altKey && !readOnly) toggleEdit()
+      else if ((key === 'k' && (e.ctrlKey || e.metaKey)) || e.key === '/' || (e.code === 'Slash' && !e.shiftKey)) setSearching(true)
+      else if (key === 'e' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat && !readOnly) toggleEdit()
       else if (editing && e.key === 'Delete') remove()
-      else if (editing && (e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') void takeBack()
+      else if (editing && (e.ctrlKey || e.metaKey) && !e.shiftKey && key === 'z' && !e.repeat) void takeBack() // held down, it would empty the whole stack
       else if (e.key === 'Backspace' && view !== ROOT && !recording) go(parentOf(model, view))
       else return
       e.preventDefault()
@@ -267,7 +269,8 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
         {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
         {editing && <button title="Undo the last change (Ctrl+Z)" onClick={() => void takeBack()}>Undo</button>}
         <span className="grow" />
-        <button title="Find a box (Ctrl+K or /)" onClick={() => setSearching(true)}>Search</button>
+        {/* mousedown would blur the open field, closing it, and the click would open it again */}
+        <button title="Find a box (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => setSearching(!searching)}>Search</button>
         <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={() => void copyMermaid()}>Mermaid</button>
         <Problems problems={problems} onPick={jump} />
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}>Edit</button>}

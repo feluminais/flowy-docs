@@ -78,7 +78,11 @@ export async function undoEdit(undo: Undo, base = ''): Promise<string | undefine
   try {
     for (const { file, data, version } of undo) {
       const res = await write(base, file, data, version)
-      if (res.status === 409) return UNDO_STALE
+      // The server answers 409 both for a file that moved on and, with an error, while any file can't be read.
+      if (res.status === 409) {
+        const { error } = (await res.json().catch(() => ({}))) as { error?: string }
+        return error === undefined ? UNDO_STALE : `Can't undo while a file can't be read: ${error}`
+      }
       if (!res.ok) return await failed('undo', file, res)
     }
   } catch (e) {

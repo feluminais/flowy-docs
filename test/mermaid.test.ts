@@ -54,3 +54,7 @@ test('a one-box step is a note over that box', () => {
   m.flows.checkout.steps.push({ from: 'orders', text: 'Checks stock' })
   assert.match(flowToMermaid(m, 'checkout'), /\n {2}Note over n2: Checks stock\n$/)
 })
+
+test('a backtick is escaped too, since one right after a quote starts Mermaid markdown', () => {
+  assert.equal(mermaidText('`flowy` CLI'), '#96;flowy#96; CLI')
+})

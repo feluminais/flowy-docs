@@ -8,8 +8,9 @@ import { findObjects } from './search.ts'
 /** Find a box anywhere in the model by name or id. ↑ and ↓ move, Enter picks, Esc or leaving the field closes it. */
 export function Search({ model, onPick, onClose }: { model: Model; onPick: (id: string) => void; onClose: () => void }) {
   const [query, setQuery] = useState('')
-  const [at, setAt] = useState(0)
+  const [picked, setAt] = useState(0)
   const found = findObjects(model, query)
+  const at = Math.max(0, Math.min(picked, found.length - 1)) // the list can shrink under it, after a live reload
   const where = (id: string) => {
     const parent = parentOf(model, id)
     return `${model.objects[id].type}${parent === ROOT ? '' : ` in ${nameOf(model, parent)}`}`
@@ -22,6 +23,7 @@ export function Search({ model, onPick, onClose }: { model: Model; onPick: (id: 
           setAt(0)
         }}
         onKeyDown={e => {
+          if (e.nativeEvent.isComposing) return // Enter that ends typing with an input method isn't a pick
           if (e.key === 'ArrowDown') setAt(Math.min(at + 1, found.length - 1))
           else if (e.key === 'ArrowUp') setAt(Math.max(at - 1, 0))
           else if (e.key === 'Enter' && found[at]) onPick(found[at])

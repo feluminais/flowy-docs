@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Model } from '../../src/core/model.ts'
 import { STATE_ELEMENT } from '../../src/core/state.ts'
 import type { State } from '../../src/core/state.ts'
-import { fetchModel, fromState, saveEdit, undoEdit } from './save.ts'
+import { fetchModel, fromState, saveEdit, UNDO_STALE, undoEdit } from './save.ts'
 import type { Undo } from './save.ts'
 
 /** Saves one edit and resolves to what to tell the user, or undefined once it's saved. */
@@ -72,7 +72,9 @@ export function useModel(): { loaded?: Loaded; banner?: string; edit: Edit; undo
       const last = undos.current.pop()
       if (!last) return 'Nothing to undo.'
       const message = await undoEdit(last)
-      if (message) undos.current = [] // once one file moved on, older undos would go back past it
+      // Once a file moved on, older undos would go back past it. Anything else (a broken file, no server) can be tried again.
+      if (message === UNDO_STALE) undos.current = []
+      else if (message) undos.current.push(last)
       await load()
       return message
     })
