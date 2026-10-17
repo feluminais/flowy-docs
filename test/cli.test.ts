@@ -23,7 +23,7 @@ test('flowy serves the given folder and prints its URL', { timeout: 10_000 }, as
 })
 
 test('flowy shows the usage line for unknown commands, flags and ports', () => {
-  for (const args of [['serve'], ['--port', 'abc'], ['--port', '70000'], ['--bogus'], ['export', 'more']]) {
+  for (const args of [['serve'], ['--port', 'abc'], ['--port', '70000'], ['--bogus'], ['export', 'more'], ['--flow', 'checkout'], ['export', '--view', 'shop']]) {
     const run = spawnSync(process.execPath, ['src/cli.ts', ...args], { encoding: 'utf8' })
     assert.equal(run.status, 1, args.join(' '))
     assert.match(run.stderr, /^Usage: flowy/, args.join(' '))
