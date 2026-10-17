@@ -3,7 +3,8 @@ import assert from 'node:assert/strict'
 import { check } from '../src/core/check.ts'
 import { emptyModel } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
-import { BOX, fitOptions, focusEdges, lineEnds, panIntoView, PANEL, ports, toGraph } from '../ui/src/graph.ts'
+import { computeView } from '../src/core/views.ts'
+import { BOX, fitOptions, focusEdges, lineEnds, panIntoView, PANEL, ports, tangle, toGraph, untangle } from '../ui/src/graph.ts'
 import { shop } from './fixtures.ts'
 
 const byId = <T extends { id: string }>(items: T[]) => Object.fromEntries(items.map(i => [i.id, i]))
@@ -177,4 +178,60 @@ test('curved and angled lines leave from the middle of the side that faces the o
   assert.deepEqual(ports(a, { ...a, x: 40, y: 300 }), {
     from: { x: BOX.width / 2, y: BOX.height }, fromSide: 'bottom', to: { x: 40 + BOX.width / 2, y: 300 }, toSide: 'top',
   })
+})
+
+const spots = (at: Record<string, [number, number]>) => new Map(Object.entries(at).map(([id, [x, y]]) => [id, { x, y }]))
+const W = BOX.width
+const H = BOX.height
+
+test('tangle counts lines that cross and lines that run through a box', () => {
+  const square = spots({ a: [0, 0], b: [2 * W, 0], c: [0, 3 * H], d: [2 * W, 3 * H] })
+  assert.equal(tangle(square, [{ from: 'a', to: 'd' }, { from: 'b', to: 'c' }]), 1)
+  assert.equal(tangle(square, [{ from: 'a', to: 'c' }, { from: 'b', to: 'd' }]), 0)
+  assert.equal(tangle(square, [{ from: 'a', to: 'd' }, { from: 'a', to: 'c' }]), 0, 'lines from the same box never cross')
+  const row = spots({ a: [0, 0], m: [2 * W, 0], c: [4 * W, 0] })
+  assert.equal(tangle(row, [{ from: 'a', to: 'c' }]), 1, 'a → c runs through m')
+})
+
+test('untangle swaps boxes in a row until nothing crosses, using the same spots', () => {
+  const square = spots({ a: [0, 0], b: [2 * W, 0], c: [0, 3 * H], d: [2 * W, 3 * H] })
+  const lines = [{ from: 'a', to: 'd' }, { from: 'b', to: 'c' }]
+  const tidy = untangle(square, lines)
+  assert.equal(tangle(tidy, lines), 0)
+  const where = (at: Map<string, { x: number; y: number }>) => [...at.values()].map(p => `${p.x},${p.y}`).sort()
+  assert.deepEqual(where(tidy), where(square))
+})
+
+test('untangle moves boxes up or down only in the columns it is given', () => {
+  // Every box is alone in its row. Swapping w and z fixes the crossing; swapping t and u would too,
+  // but t and u stand for a view's own boxes, whose order top to bottom is dagre's.
+  const at = spots({ t: [0, 0], u: [0, 6 * H], w: [3 * W, 2 * H], z: [3 * W, 4 * H] })
+  const lines = [{ from: 't', to: 'z' }, { from: 'u', to: 'w' }]
+  assert.equal(tangle(at, lines), 1)
+  assert.deepEqual(untangle(at, lines), at)
+  assert.equal(tangle(untangle(at, lines, [], [['w', 'z']]), lines), 0)
+})
+
+test('the computed layout of every fixture view is untangled, and keeps lines pointing down', () => {
+  for (const view of ['root', 'shop', 'api']) {
+    const { nodes } = toGraph(shop(), view)
+    const at = new Map(nodes.map(n => [n.id, n.position]))
+    assert.equal(tangle(at, computeView(shop(), view).edges), 0, view)
+  }
+  const { nodes } = toGraph(shop(), 'shop')
+  assert.ok(byId(nodes).web.position.y < byId(nodes).api.position.y)
+})
+
+test('outsiders stay around the view, never between its own boxes', () => {
+  for (const name of ['shop', 'api']) {
+    const view = computeView(shop(), name)
+    const at = new Map(toGraph(shop(), name).nodes.map(n => [n.id, n.position]))
+    const inner = view.members.map(id => at.get(id)!)
+    const [left, right] = [Math.min(...inner.map(p => p.x)), Math.max(...inner.map(p => p.x)) + BOX.width]
+    const [top, bottom] = [Math.min(...inner.map(p => p.y)), Math.max(...inner.map(p => p.y)) + BOX.height]
+    for (const id of view.outsiders) {
+      const p = at.get(id)!
+      assert.ok(p.x + BOX.width <= left || p.x >= right || p.y + BOX.height <= top || p.y >= bottom, `${name}: ${id}`)
+    }
+  }
 })

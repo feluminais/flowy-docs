@@ -5,7 +5,7 @@ import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteObject, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
+import { connect, deleteObject, forgetLayout, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { chain, hasChildren, parentOf, placeEnds, placeStep } from '../../src/core/views.ts'
 import { Box, Description } from './Box.tsx'
@@ -287,6 +287,11 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
         {editing && <button onClick={() => setSide({ kind: 'flow', id: '', name: '' })}>New flow</button>}
         {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
         {editing && <button title="Undo the last change (Ctrl+Z)" onClick={() => void takeBack()}>Undo</button>}
+        {editing && (
+          <button title="Forget where boxes here were dragged, and lay this view out again" onClick={() => void run(m => forgetLayout(m, view)).then(saved => saved && setMoved(new Map()))}>
+            Tidy
+          </button>
+        )}
         <span className="grow" />
         <select aria-label="Line style" value={editing ? projectLines : mine ?? ''}
           title={editing ? 'How lines look for everyone (saved in model.yaml)' : 'How lines look on this screen'}
