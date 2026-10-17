@@ -216,3 +216,18 @@ test('a step with no "to" is one box acting on its own', () => {
   assertProblem(m, 'flows/checkout.yaml step 6: unknown object "ghost"')
   assertProblem(m, 'flows/checkout.yaml step 7: "from" is missing')
 })
+
+test('external is true or false', () => {
+  const m = shop()
+  m.objects.mail = { ...m.objects.mail, external: 'true' }
+  assert.deepEqual(check(m), [])
+  m.objects.mail = { ...m.objects.mail, external: 'false' }
+  assert.deepEqual(check(m), [])
+  m.objects.mail = { ...m.objects.mail, external: 'yes' }
+  assertProblem(m, 'mail: external must be true or false')
+})
+
+test('lines is straight, curved or angled', () => {
+  assert.deepEqual(check({ ...shop(), meta: { lines: 'curved' } }), [])
+  assertProblem({ ...shop(), meta: { lines: 'wiggly' } }, 'model.yaml lines must be straight, curved or angled')
+})

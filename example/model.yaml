@@ -48,6 +48,7 @@ objects:
   mail:
     type: system
     name: Mail service
+    external: true
     description: |
       Sends our email. Run by an outside provider.
 

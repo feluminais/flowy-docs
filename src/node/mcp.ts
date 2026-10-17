@@ -103,13 +103,15 @@ export function createMcpServer(dir: string): McpServer {
   }))
 
   server.registerTool('put_object', {
-    description: 'Create or update an object. On update, omitted fields stay as they are, "" removes in, tech or description, and [] removes code.',
+    description: 'Create or update an object. On update, omitted fields stay as they are, "" removes in, tech or description, [] removes code, and external: false removes external.',
     inputSchema: {
       id: id('Object id'),
       type: z.enum(OBJECT_TYPES).optional()
         .describe('Required when creating. actor and system: top level. app and store: inside a system. component: inside an app or store.'),
       name: z.string().optional().describe('Display name. Required when creating.'),
       in: z.string().optional().describe('Id of the parent object. Leave it out (never "root") for the top level; "" moves it there.'),
+      external: z.boolean().optional()
+        .describe('An outside service or system you don\'t own, drawn grey. false removes it. get_model shows it as the text "true".'),
       tech: z.string().optional().describe('Technology, e.g. "Postgres"'),
       description: z.string().optional().describe('Markdown. The first paragraph is the short teaser readers see first.'),
       code: z.array(z.string()).optional()

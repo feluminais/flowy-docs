@@ -22,14 +22,19 @@ folder, `--port <number>` picks the port, and `--no-open` skips the browser.
 
 ## Read it
 
-- Double-click a box drawn as a stack to zoom into it. The breadcrumb or Backspace zooms out.
+- Each box shows its type as a coloured icon: person, system, app, store, component. Outside
+  services you don't own are grey with a cloud. "3 inside" means a box opens: double-click it to
+  zoom in. The breadcrumb or Backspace zooms out. Inside a box, a frame named after it wraps what's
+  in it.
 - Hover a box for its short description. Click it for the full text. Click a line to see the
   connections it stands for.
 - Lines have no labels until you point at one. Click a box and its lines show theirs while the
   others fade.
+- Lines (top bar) switches between straight, curved and right-angled lines for your own screen.
+  "Project default" goes back to the project's choice.
 - Faded, dashed boxes live elsewhere in the model. They show up because something here connects to
-  them, and they wait around the edges (people above, the rest on both sides) while what's inside
-  sits in the middle.
+  them, and they wait around the edges (people above, the rest beside, below or above, wherever
+  fewer lines cross) while what's inside sits in the middle.
 - A box can list the files and folders it lives in, under its description. When the repo's
   `origin` is on GitHub or GitLab, they link there.
 - Ctrl+K or / (or Search) finds a box anywhere in the model by name. Pick one and the canvas
@@ -53,8 +58,13 @@ Press E, or the Edit button.
 - Click a box to change its name, type, tech, description and code. A field saves when you leave
   it. Code takes one path per line, relative to the folder that holds `flowy/`. A path that
   doesn't exist shows up as a problem.
+- "Outside service" in a box's panel marks it `external: true`, for things you use but don't own.
 - Delete (the key, or the button in the panel) removes the selected box or line. A box that still
   contains others, or that a flow uses, stays, and a notice says why.
+- Lines, in edit mode, sets the project's style for everyone: a `lines:` key at the top of
+  `model.yaml`, which takes `straight` (the default, so it's left out), `curved` or `angled`.
+- Tidy forgets where boxes in this view were dragged, so Flowy lays it out again, picking the
+  layout with the fewest crossing lines it finds. Ctrl+Z brings your positions back.
 - New flow records a walkthrough: name it, click the box where a step starts and the box it goes
   to (or the same box again, for a step it does on its own), type what happens and press Enter.
   Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
@@ -84,6 +94,9 @@ after `mcp` to keep the files somewhere other than `./flowy`.
 Claude can also note where each box lives in the code (`code: [src/api/]`). A path that doesn't
 exist is refused, so the model can't quietly point at code that's gone. When code moves later,
 the box gets a "!" until someone fixes the path.
+
+Claude marks outside services (a payment provider, a third-party API) with `external: true`, so
+they show grey.
 
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
 notes in an object's `description` instead.
@@ -147,10 +160,19 @@ There are no automated UI tests. Before merging a canvas change, run
 
 Reading:
 
-- [ ] The overview shows Customer, Shop and Mail service. Double-click Shop: the breadcrumb reads
-      Overview › Shop, and Customer and Mail service are faded and dashed.
-- [ ] Double-click API, then press Backspace twice: you're back at the overview. Clicking the
-      breadcrumb works too.
+- [ ] The overview shows Customer, Shop and Mail service, each with a coloured icon tile. Mail
+      service is grey with a cloud and reads "external", and Shop says "3 inside". Double-click Shop:
+      the view zooms into it, the breadcrumb reads Overview › Shop, a frame labelled Shop wraps Web
+      app, API and Orders DB, and Customer and Mail service are faded and dashed outside it.
+- [ ] Double-click API, then press Backspace twice quickly: it zooms back out to the overview.
+      Clicking the breadcrumb works too. The zoom buttons in the corner don't move while it zooms.
+- [ ] Inside API, Orders DB and Mail service sit in a row below Auth and Orders, and no line runs
+      through a box.
+- [ ] With the system's reduce-motion setting on (Windows: Settings › Accessibility › Visual
+      effects › Animation effects off), opening and closing a box is instant.
+- [ ] Lines: pick curved, then right-angled. In API every line follows, labels still show on hover,
+      and a reload keeps your pick. "Project default" goes back to straight, and
+      `example/model.yaml` is unchanged.
 - [ ] Every zoom fits the whole diagram in the window, and doesn't open the side panel. Resize the
       window: it fits again.
 - [ ] In Shop, lines have no labels. Hover one: its label shows. Click API: its lines show labels
@@ -181,7 +203,7 @@ Editing (press E):
 - [ ] Drag from Customer's dot onto Mail service: a line appears and its panel opens. Type a label
       and press Enter: the line shows it.
 - [ ] In Shop, press Add, pick store, name it Cache and press Enter: the box appears with its form.
-      Set Tech to Redis and press Tab: the box reads "store · Redis". Clear the name and press
+      Set Tech to Redis and press Tab: the box reads "Redis". Clear the name and press
       Enter: a notice says it was refused, and the name comes back.
 - [ ] Rename Shop to Store and press Tab, then Ctrl+Z: it's Shop again, and "Undone." shows.
       Rename it again, change the name in `example/model.yaml` by hand, then Ctrl+Z: the notice
@@ -192,6 +214,12 @@ Editing (press E):
       `code` list with `src/cli.ts`. Clear the field and press Tab: `code` is gone.
 - [ ] Press New flow, name it, click Customer then Web app, type a step and press Enter. Add a
       second step, move it up with ↑, delete it with ×. Leave edit mode and play the new flow.
+- [ ] Lines in edit mode: pick curved and `lines: curved` appears at the top of
+      `example/model.yaml`. Ctrl+Z takes it away.
+- [ ] In Shop, drag Web app away: the frame follows it. Press Tidy: Web app goes back and
+      `example/layout.yaml` loses `shop`. Ctrl+Z puts it where you dragged it. Tidy again with
+      nothing dragged: a notice says there's nothing to tidy.
+- [ ] Tick "Outside service" on Customer: its tile goes grey with a cloud. Untick it.
 
 `git checkout example` puts the tracked files back. Delete `example/layout.yaml` and the new
 flow's file by hand.

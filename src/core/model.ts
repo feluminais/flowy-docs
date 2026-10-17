@@ -3,11 +3,16 @@ import { Document, parse, stringify, visit, YAMLParseError } from 'yaml'
 export const ROOT = 'root'
 export const OBJECT_TYPES = ['actor', 'system', 'app', 'store', 'component'] as const
 export type ObjectType = (typeof OBJECT_TYPES)[number]
+/** How the canvas draws lines. A project picks one with a top-level `lines:` in model.yaml; without it, straight. */
+export const LINE_STYLES = ['straight', 'curved', 'angled'] as const
+export type LineStyle = (typeof LINE_STYLES)[number]
 
 export type FlowyObject = {
   type: ObjectType
   name: string
   in?: string
+  /** "true" for an outside service or system you don't own. Read as text, like every value. */
+  external?: string
   tech?: string
   description?: string
   [extra: string]: unknown
@@ -28,6 +33,12 @@ export type Model = {
 }
 
 export const emptyModel = (): Model => ({ objects: {}, connections: [], flows: {}, layout: {}, meta: {} })
+
+/** The project's line style. Anything unknown draws straight; check() reports it. */
+export const lineStyle = (model: Model): LineStyle => LINE_STYLES.find(s => s === model.meta.lines) ?? 'straight'
+
+/** Whether an object is an outside service: `external: true`, read back as the text "true". */
+export const isExternal = (o: FlowyObject): boolean => o.external === 'true'
 
 export const isValidId = (id: string): boolean => /^[a-z0-9][a-z0-9-]*$/.test(id) && id !== ROOT
 
@@ -77,7 +88,7 @@ function readYaml(file: string, text: string): unknown {
 }
 
 const TEXT_FIELDS = {
-  object: ['type', 'name', 'in', 'tech', 'description'],
+  object: ['type', 'name', 'in', 'external', 'tech', 'description'],
   connection: ['from', 'to', 'label'],
   flow: ['name', 'view'],
   step: ['from', 'to', 'text', 'description'],
