@@ -82,6 +82,10 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
   const [notice, setNotice] = useState<string>()
   // Where boxes are being dragged to. Nodes are controlled, so a box only moves through this.
   const [moved, setMoved] = useState(new Map<string, XYPosition>())
+  // What each box measured. React Flow throws a box's measurements away when it gets a node object
+  // it hasn't seen, which every render here is, and its lines have nowhere to land until the browser
+  // has measured it again: they'd blink away for a frame on every drag, click and hover.
+  const sizes = useRef(new Map<string, { width: number; height: number }>())
   const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
   const [hovered, setHovered] = useState<string>() // the line the pointer is on
   const [searching, setSearching] = useState(false)
@@ -114,7 +118,7 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
   const graph = useMemo(() => toGraph(model, view, shown, problems), [model, view, shown, problems])
   const picked = side?.kind === 'object' ? [side.id] : recording ? [recording.from, recording.to] : []
   // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.
-  const nodes = graph.nodes.map(n => ({ ...n, position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id) }))
+  const nodes = graph.nodes.map(n => ({ ...n, position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id) }))
   const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
   const selectedBox = side?.kind === 'object' ? side.id : undefined
   const edges = useMemo(() => focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }), [graph, selectedBox, selectedLine, hovered])
@@ -179,6 +183,8 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
   }
   // A drag (or an arrow key on a selected box) ends with dragging: false. Then the whole view's layout is saved.
   const onNodesChange = (changes: NodeChange<BoxNode>[]) => {
+    // The browser measured a box: keep it, so the next render hands it back instead of hiding its lines.
+    for (const c of changes) if (c.type === 'dimensions' && c.dimensions) sizes.current.set(c.id, c.dimensions)
     const moves = changes.flatMap(c => (c.type === 'position' && c.position ? [{ ...c, position: c.position }] : []))
     if (moves.length === 0) return
     const next = new Map(moved)

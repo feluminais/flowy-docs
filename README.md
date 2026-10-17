@@ -176,7 +176,8 @@ Reading:
 
 Editing (press E):
 
-- [ ] Drag Mail service: `example/layout.yaml` appears, and the box stays put after a reload.
+- [ ] Drag Mail service: `example/layout.yaml` appears, and the box stays put after a reload. The
+      lines stay drawn the whole way, and so do they when you click a box or point at a line.
 - [ ] Drag from Customer's dot onto Mail service: a line appears and its panel opens. Type a label
       and press Enter: the line shows it.
 - [ ] In Shop, press Add, pick store, name it Cache and press Enter: the box appears with its form.
