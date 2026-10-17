@@ -3,14 +3,14 @@ import type { Model } from './model.ts'
 import { computeView, placeStep } from './views.ts'
 
 /**
- * Text as Mermaid shows it, never as its syntax: quotes, brackets, # and ; (a line break in sequence
+ * Text as Mermaid shows it, never as its syntax: quotes, brackets, backticks, # and ; (a line break in sequence
  * diagrams) become Mermaid's #code; entities, and new lines become spaces.
  */
 export function mermaidText(text: string): string {
   // One pass, so the ; of an entity just written is never escaped again.
-  return text.replace(/\s*\n\s*/g, ' ').replace(/[#;"<>]/g, c => `#${ENTITIES[c]};`)
+  return text.replace(/\s*\n\s*/g, ' ').replace(/[#;"<>`]/g, c => `#${ENTITIES[c]};`)
 }
-const ENTITIES: Record<string, string> = { '#': '35', ';': '59', '"': 'quot', '<': 'lt', '>': 'gt' }
+const ENTITIES: Record<string, string> = { '#': '35', ';': '59', '"': 'quot', '<': 'lt', '>': 'gt', '`': '96' } // a backtick after " starts Mermaid markdown
 
 const nameOf = (model: Model, id: string) => mermaidText(String(getObject(model, id)?.name || id))
 

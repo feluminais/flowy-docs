@@ -181,3 +181,8 @@ test('refuseNewProblems counts a missing code path only when it is told what is 
   refuseNewProblems(before, after)
   assert.throws(() => refuseNewProblems(before, after, new Set(['gone/'])), /code path "gone\/" doesn't exist/)
 })
+
+test('putFlow drops a blank step detail and keeps a real one', () => {
+  const m = putFlow(shop(), { id: 'tour', name: 'Tour', view: 'shop', steps: [{ from: 'web', text: 'a', description: '  ' }, { from: 'api', text: 'b', description: 'More.' }] })
+  assert.deepEqual(m.flows.tour.steps, [{ from: 'web', text: 'a' }, { from: 'api', text: 'b', description: 'More.' }])
+})
