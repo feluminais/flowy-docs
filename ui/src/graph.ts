@@ -35,38 +35,53 @@ const overlaps = (a: XYPosition, b: XYPosition) => Math.abs(a.x - b.x) < BOX.wid
 type Spots = Map<string, XYPosition>
 type Ends = { from: string; to: string }
 
-const centreOf = (p: XYPosition): XYPosition => ({ x: p.x + BOX.width / 2, y: p.y + BOX.height / 2 })
+/** A line from (ax, ay) to (bx, by), between the centres of two boxes. Plain numbers: tangle runs often. */
+type Segment = { ax: number; ay: number; bx: number; by: number }
 
-/** Whether segments ab and cd cross at a point inside both. Touching or overlapping in line doesn't count. */
-function crosses(a: XYPosition, b: XYPosition, c: XYPosition, d: XYPosition): boolean {
-  const turn = (p: XYPosition, q: XYPosition, r: XYPosition) => Math.sign((q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x))
-  return turn(a, b, c) * turn(a, b, d) < 0 && turn(c, d, a) * turn(c, d, b) < 0
+/** Which side of the line through p and q the point (rx, ry) is on: 1, -1, or 0 when it's on the line. */
+const turn = (px: number, py: number, qx: number, qy: number, rx: number, ry: number) => Math.sign((qx - px) * (ry - py) - (qy - py) * (rx - px))
+
+/** Whether segment s and the segment (cx, cy)–(dx, dy) cross at a point inside both. Touching or lying in line doesn't count. */
+function crosses(s: Segment, cx: number, cy: number, dx: number, dy: number): boolean {
+  return turn(s.ax, s.ay, s.bx, s.by, cx, cy) * turn(s.ax, s.ay, s.bx, s.by, dx, dy) < 0
+    && turn(cx, cy, dx, dy, s.ax, s.ay) * turn(cx, cy, dx, dy, s.bx, s.by) < 0
 }
 
 /**
- * Whether segment ab runs through the box at p. Its ends sit outside the box, so it does exactly when
+ * Whether segment s runs through the box at p. Its ends sit outside the box, so it does exactly when
  * it crosses one of the box's diagonals. The box is shrunk by 4px so a line grazing a corner doesn't count.
  */
-function runsThrough(a: XYPosition, b: XYPosition, p: XYPosition): boolean {
-  const [l, t, r, btm] = [p.x + 4, p.y + 4, p.x + BOX.width - 4, p.y + BOX.height - 4]
-  return crosses(a, b, { x: l, y: t }, { x: r, y: btm }) || crosses(a, b, { x: r, y: t }, { x: l, y: btm })
+function runsThrough(s: Segment, p: XYPosition): boolean {
+  const [l, t, r, b] = [p.x + 4, p.y + 4, p.x + BOX.width - 4, p.y + BOX.height - 4]
+  return crosses(s, l, t, r, b) || crosses(s, r, t, l, b)
 }
 
 /**
  * How tangled a layout looks: each pair of lines that cross (lines from the same box never do), plus
  * each time a line runs through a box that isn't one of its ends. Lines are taken centre to centre.
+ * With `moved`, it counts only what involves those boxes, which is all a move of them can change:
+ * the move's effect is `tangle(after, edges, moved) - tangle(before, edges, moved)`.
  */
-export function tangle(at: Spots, edges: Ends[]): number {
-  const lines = edges.filter(e => e.from !== e.to && at.has(e.from) && at.has(e.to))
-    .map(e => ({ ...e, a: centreOf(at.get(e.from)!), b: centreOf(at.get(e.to)!) }))
-  let score = 0
-  lines.forEach((l, i) => {
-    for (const m of lines.slice(i + 1)) {
-      const shared = [m.from, m.to].includes(l.from) || [m.from, m.to].includes(l.to)
-      if (!shared && crosses(l.a, l.b, m.a, m.b)) score++
-    }
-    for (const [id, p] of at) if (id !== l.from && id !== l.to && runsThrough(l.a, l.b, p)) score++
+export function tangle(at: Spots, edges: Ends[], moved?: ReadonlySet<string>): number {
+  const half = { x: BOX.width / 2, y: BOX.height / 2 }
+  const lines = edges.filter(e => e.from !== e.to && at.has(e.from) && at.has(e.to)).map(e => {
+    const [a, b] = [at.get(e.from)!, at.get(e.to)!]
+    return { from: e.from, to: e.to, ax: a.x + half.x, ay: a.y + half.y, bx: b.x + half.x, by: b.y + half.y, moves: !moved || moved.has(e.from) || moved.has(e.to) }
   })
+  const boxes = [...at]
+  const movedBoxes = moved ? boxes.filter(([id]) => moved.has(id)) : boxes
+  let score = 0
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i]
+    // Each crossing pair is counted once, from the first of its lines that moves.
+    if (l.moves) for (let j = 0; j < lines.length; j++) {
+      const m = lines[j]
+      if (j === i || (m.moves && j < i)) continue
+      const shared = m.from === l.from || m.from === l.to || m.to === l.from || m.to === l.to
+      if (!shared && crosses(l, m.ax, m.ay, m.bx, m.by)) score++
+    }
+    for (const [id, p] of l.moves ? boxes : movedBoxes) if (id !== l.from && id !== l.to && runsThrough(l, p)) score++
+  }
   return score
 }
 
@@ -102,16 +117,17 @@ function neighbours(at: Spots, rows: string[][], columns: string[][]): [string, 
 export function untangle(at: Spots, edges: Ends[], rows: string[][] = [[...at.keys()]], columns: string[][] = [], passes = 30): Spots {
   const next = new Map(at)
   let score = tangle(next, edges)
-  // ponytail: about passes × pairs × lines² work, fine for a diagram's tens of boxes; a few hundred would need incremental scoring
   for (let pass = 0; pass < passes && score > 0; pass++) {
     let swapped = false
     for (const [a, b] of neighbours(next, rows, columns)) {
+      const pair = new Set([a, b])
+      const before = tangle(next, edges, pair)
       const pa = next.get(a)!
       const pb = next.get(b)!
       next.set(a, pb).set(b, pa)
-      const s = tangle(next, edges)
-      if (s < score) {
-        score = s
+      const change = tangle(next, edges, pair) - before
+      if (change < 0) {
+        score += change
         swapped = true
       } else next.set(a, pa).set(b, pb)
     }
@@ -134,78 +150,153 @@ function dagreAt(boxes: string[], edges: ViewEdge[], gap: { nodesep: number; ran
   }))
 }
 
+/** Where an outsider waits: in the column left or right of the members, or in the rows below or above. */
+export type Region = 'left' | 'right' | 'below' | 'above'
+const REGIONS: Region[] = ['left', 'right', 'below', 'above']
+
+/** Outsiders that only start lines (people, mostly). They always wait above. */
+const startsOnly = (id: string, edges: Ends[]) => edges.some(e => e.from === id) && !edges.some(e => e.to === id)
+
 /**
- * Inside a box: the members sit together in the middle, laid out by dagre. The outsiders stay at the
- * edges. Those that only start lines (people, mostly) wait above, in rows. With `shape: 'columns'` the
- * rest split into a column on each side, so a box with ten neighbours isn't one very wide row; with
- * `'below'` they wait in rows underneath. Also returns which boxes may trade places (see untangle):
- * members, the rows above and the rows below along their rows, the side columns up and down.
+ * A view's members where dagre put them (`at`), how far they reach, and for each outsider the average
+ * place of the members it connects to (the middle when it connects to none). None of this changes
+ * while the outsiders move around, so it's worked out once. `people` only start lines and wait above.
  */
-function arrange(members: string[], outsiders: string[], edges: ViewEdge[], shape: 'columns' | 'below'): { at: Spots; rows: string[][]; columns: string[][] } {
-  const at = dagreAt(members, edges, { nodesep: 40, ranksep: 70 })
-  const spots = [...at.values()]
+export function membersOf(inner: Spots, outsiders: string[], edges: Ends[]) {
+  const spots = [...inner.values()]
   const left = Math.min(...spots.map(p => p.x))
   const right = Math.max(...spots.map(p => p.x)) + BOX.width
   const top = Math.min(...spots.map(p => p.y))
   const bottom = Math.max(...spots.map(p => p.y)) + BOX.height
   const middle = { x: (left + right) / 2, y: (top + bottom) / 2 }
+  const mean = new Map(outsiders.map((id): [string, XYPosition] => {
+    const ps = edges.flatMap(e => (e.from === id ? [e.to] : e.to === id ? [e.from] : [])).flatMap(end => inner.get(end) ?? [])
+    const avg = (axis: 'x' | 'y') => ps.reduce((sum, p) => sum + p[axis], 0) / ps.length
+    return [id, ps.length === 0 ? middle : { x: avg('x'), y: avg('y') }]
+  }))
+  const people = outsiders.filter(id => startsOnly(id, edges))
+  return { at: inner, left, right, top, bottom, middle, mean, people, rest: outsiders.filter(id => !people.includes(id)) }
+}
+type Members = ReturnType<typeof membersOf>
 
-  // Sorting each group by where its members are keeps lines from crossing on the way in.
-  const mean = (id: string, axis: 'x' | 'y') => {
-    const ends = edges.flatMap(e => (e.from === id ? [e.to] : e.to === id ? [e.from] : []))
-    const ps = ends.flatMap(end => at.get(end) ?? [])
-    return ps.length === 0 ? middle[axis] : ps.reduce((sum, p) => sum + p[axis], 0) / ps.length
-  }
-  const byMean = (ids: string[], axis: 'x' | 'y') => ids.map(id => [id, mean(id, axis)] as const).sort((a, b) => a[1] - b[1]).map(([id]) => id)
-  const starts = (id: string) => edges.some(e => e.from === id) && !edges.some(e => e.to === id)
+/**
+ * Inside a box: the members sit together in the middle. The outsiders stay at the edges: people above,
+ * in rows, and the rest where `region` says, in a column on either side or in rows below or above.
+ * Each group is sorted by where the members it connects to are, which keeps lines from crossing on the
+ * way in. Also returns which boxes may trade places (see untangle): members and the rows above and
+ * below along their rows, the side columns up and down.
+ */
+export function arrange(m: Members, region: (id: string) => Region): { at: Spots; rows: string[][]; columns: string[][] } {
+  const at = new Map(m.at)
+  const byMean = (ids: string[], axis: 'x' | 'y') => ids.sort((a, b) => m.mean.get(a)![axis] - m.mean.get(b)![axis])
   // Rows of at most PER_ROW, centred under or over the members. `y` gives each row's top.
   const putRows = (ids: string[], y: (row: number) => number) => {
     for (let row = 0; row * PER_ROW < ids.length; row++) {
       const r = ids.slice(row * PER_ROW, (row + 1) * PER_ROW)
       const width = r.length * BOX.width + (r.length - 1) * STACK
-      r.forEach((id, j) => at.set(id, { x: middle.x - width / 2 + j * (BOX.width + STACK), y: y(row) }))
+      r.forEach((id, j) => at.set(id, { x: m.middle.x - width / 2 + j * (BOX.width + STACK), y: y(row) }))
     }
   }
 
-  const rest = byMean(outsiders.filter(id => !starts(id)), 'x')
-  const columns = shape === 'columns' ? [rest.slice(0, Math.floor(rest.length / 2)), rest.slice(Math.floor(rest.length / 2))] : []
+  const columns = [byMean(m.rest.filter(id => region(id) === 'left'), 'y'), byMean(m.rest.filter(id => region(id) === 'right'), 'y')]
   const height = (n: number) => n * BOX.height + Math.max(0, n - 1) * STACK
   const tallest = Math.max(0, ...columns.map(c => height(c.length)))
   columns.forEach((ids, i) => {
-    const x = i === 0 ? left - NEAR - BOX.width : right + NEAR
-    byMean(ids, 'y').forEach((id, j) => at.set(id, { x, y: middle.y - height(ids.length) / 2 + j * (BOX.height + STACK) }))
+    const x = i === 0 ? m.left - NEAR - BOX.width : m.right + NEAR
+    ids.forEach((id, j) => at.set(id, { x, y: m.middle.y - height(ids.length) / 2 + j * (BOX.height + STACK) }))
   })
-  if (shape === 'below') putRows(rest, row => bottom + NEAR + row * (BOX.height + STACK))
+  // Rows above and below are wider than the members, so they clear the side columns too.
+  const below = byMean(m.rest.filter(id => region(id) === 'below'), 'x')
+  const belowTop = Math.max(m.bottom, m.middle.y + tallest / 2) + NEAR
+  putRows(below, row => belowTop + row * (BOX.height + STACK))
+  const above = byMean([...m.people, ...m.rest.filter(id => region(id) === 'above')], 'x')
+  const aboveBottom = Math.min(m.top, m.middle.y - tallest / 2) - NEAR - BOX.height
+  putRows(above, row => aboveBottom - row * (BOX.height + STACK))
+  return { at, rows: [[...m.at.keys()], above, below], columns }
+}
 
-  const above = byMean(outsiders.filter(starts), 'x')
-  const bottomRow = Math.min(top, middle.y - tallest / 2) - NEAR - BOX.height
-  putRows(above, row => bottomRow - row * (BOX.height + STACK))
-  return { at, rows: [members, above, shape === 'below' ? rest : []], columns }
+/**
+ * Moves outsiders between the side columns and the rows below and above, one at a time, keeping a move
+ * when it makes the layout less tangled, until a whole pass moves nothing (or `passes` passes).
+ */
+function settle(m: Members, edges: Ends[], start: Map<string, Region>, passes: number): Map<string, Region> {
+  const region = new Map(start)
+  const arranged = () => arrange(m, id => region.get(id)!).at
+  let at = arranged()
+  let score = tangle(at, edges)
+  for (let pass = 0; pass < passes && score > 0; pass++) {
+    let changed = false
+    for (const id of region.keys()) for (const r of REGIONS) {
+      const was = region.get(id)!
+      if (r === was) continue
+      region.set(id, r)
+      const next = arranged()
+      // A move re-sorts the groups it leaves and joins, so more than one box can shift.
+      const moved = new Set([...next.keys()].filter(k => next.get(k)!.x !== at.get(k)!.x || next.get(k)!.y !== at.get(k)!.y))
+      const change = tangle(next, edges, moved) - tangle(at, edges, moved)
+      if (change < 0) {
+        score += change
+        at = next
+        changed = true
+      } else region.set(id, was)
+    }
+    if (!changed) break
+  }
+  return region
+}
+
+/** The same ids in an order that only depends on `seed`, so a layout never changes between runs. */
+function shuffled(ids: string[], seed: number): string[] {
+  const out = [...ids]
+  for (let i = out.length - 1; i > 0; i--) {
+    seed = (seed * 16807) % 2147483647
+    const j = seed % (i + 1)
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
 }
 
 /**
  * Where every box of a view goes when nothing is saved. Finding the least tangled layout is NP-hard, so,
- * like dagre itself, this settles for a good one: both shapes from three starting orders, each
- * untangled, and the least tangled wins (the first on a tie, so a clean view keeps today's look).
+ * like dagre itself, this settles for a good one. dagre starts from several orders of the boxes (as
+ * given, reversed, most lines first, then a few fixed shuffles), and the outsiders from two places
+ * (split between the side columns, or all in rows below). From each start, outsiders move between sides
+ * while that helps (settle), then boxes trade places (untangle). The least tangled wins, the first on a
+ * tie, so a clean view keeps its side columns.
  */
 function place(members: string[], around: string[], edges: ViewEdge[]): Spots {
   const lines = edges.map(e => ({ from: e.from, to: e.to }))
   const degree = (id: string) => lines.filter(e => e.from === id || e.to === id).length
   // ponytail: a big view tries one starting order with fewer passes, so it still opens without a pause;
-  // scoring only the lines a swap moves would let it do the full search
+  // a time budget would let it try more where the machine is fast
   const big = (members.length + around.length) * lines.length > 2000
+  const passes = big ? 5 : 30
   const orders = [(ids: string[]) => ids, (ids: string[]) => [...ids].reverse(), (ids: string[]) => [...ids].sort((a, b) => degree(b) - degree(a))]
-    .slice(0, big ? 1 : 3)
-  const shapes = members.length > 0 && around.length > 0 ? (['columns', 'below'] as const) : ([undefined] as const)
+    .concat([1, 2, 3, 4, 5, 6].map(seed => (ids: string[]) => shuffled(ids, seed)))
+    .slice(0, big ? 1 : undefined)
   let best: Spots | undefined
   let bestScore = Infinity
-  for (const shape of shapes) for (const order of orders) {
-    const { at, rows, columns } = shape
-      ? arrange(order(members), order(around), edges, shape)
-      : { at: dagreAt(order([...members, ...around]), edges, { nodesep: 60, ranksep: 90 }), rows: [[...members, ...around]], columns: [] }
-    const tidy = untangle(at, lines, rows, columns, big ? 5 : 30)
+  const consider = (at: Spots, rows: string[][], columns: string[][]) => {
+    const tidy = untangle(at, lines, rows, columns, passes)
     const score = tangle(tidy, lines)
     if (score < bestScore) [best, bestScore] = [tidy, score]
+  }
+  for (const order of orders) {
+    if (members.length === 0 || around.length === 0) {
+      const all = order([...members, ...around])
+      consider(dagreAt(all, edges, { nodesep: 60, ranksep: 90 }), [all], [])
+      continue
+    }
+    const m = membersOf(dagreAt(order(members), edges, { nodesep: 40, ranksep: 70 }), order(around), lines)
+    // Split by where their members are: the left half of them in the left column, the rest on the right.
+    const rest = [...m.rest].sort((a, b) => m.mean.get(a)!.x - m.mean.get(b)!.x)
+    const split = new Map(rest.map((id, i): [string, Region] => [id, i < Math.floor(rest.length / 2) ? 'left' : 'right']))
+    const below = new Map(rest.map((id): [string, Region] => [id, 'below']))
+    for (const start of [split, below]) {
+      const region = settle(m, lines, start, passes)
+      const { at, rows, columns } = arrange(m, id => region.get(id)!)
+      consider(at, rows, columns)
+    }
   }
   return best!
 }
