@@ -8,6 +8,8 @@ export type FlowyObject = {
   type: ObjectType
   name: string
   in?: string
+  /** "true" for an outside service or system you don't own. Read as text, like every value. */
+  external?: string
   tech?: string
   description?: string
   [extra: string]: unknown
@@ -77,7 +79,7 @@ function readYaml(file: string, text: string): unknown {
 }
 
 const TEXT_FIELDS = {
-  object: ['type', 'name', 'in', 'tech', 'description'],
+  object: ['type', 'name', 'in', 'external', 'tech', 'description'],
   connection: ['from', 'to', 'label'],
   flow: ['name', 'view'],
   step: ['from', 'to', 'text', 'description'],

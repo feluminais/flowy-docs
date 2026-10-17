@@ -186,3 +186,11 @@ test('putFlow drops a blank step detail and keeps a real one', () => {
   const m = putFlow(shop(), { id: 'tour', name: 'Tour', view: 'shop', steps: [{ from: 'web', text: 'a', description: '  ' }, { from: 'api', text: 'b', description: 'More.' }] })
   assert.deepEqual(m.flows.tour.steps, [{ from: 'web', text: 'a' }, { from: 'api', text: 'b', description: 'More.' }])
 })
+
+test('putObject writes external as "true" in its place, and false removes it', () => {
+  const m = putObject(shop(), { id: 'stripe', tech: 'REST', external: true, name: 'Stripe', type: 'system' })
+  assert.deepEqual(m.objects.stripe, { type: 'system', name: 'Stripe', external: 'true', tech: 'REST' })
+  assert.deepEqual(Object.keys(m.objects.stripe), ['type', 'name', 'external', 'tech'])
+  assert.equal(Object.hasOwn(putObject(m, { id: 'stripe', external: false }).objects.stripe, 'external'), false)
+  assert.equal(putObject(m, { id: 'stripe', name: 'Stripe API' }).objects.stripe.external, 'true')
+})
