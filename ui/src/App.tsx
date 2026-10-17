@@ -32,8 +32,8 @@ const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is 
 const LEAVE = 220 // ms the old view takes to fly off; keep in sync with the leave-* keyframes in style.css
 const ARRIVE = 320 // ms the new view takes to settle; keep in sync with the arrive-* keyframes
 
-/** A zoom between views: the old view leaves about (x, y) on the canvas, then the new one arrives there. */
-type Motion = { dir: 'in' | 'out'; phase: 'leave' | 'arrive'; x: number; y: number }
+/** A zoom between views, heading `to` a view: the old view leaves about (x, y) on the canvas, then the new one arrives there. */
+type Motion = { dir: 'in' | 'out'; phase: 'leave' | 'arrive'; x: number; y: number; to: string }
 
 /** What the side panel shows. One thing at a time. */
 type Side =
@@ -184,10 +184,10 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
   /** Open `id` with a zoom. A second zoom on the way, or reduced motion, opens it straight away. */
   const zoomTo = (id: string, dir: Motion['dir'], x: number, y: number) => {
     if (motion || matchMedia('(prefers-reduced-motion: reduce)').matches) return go(id)
-    setMotion({ dir, phase: 'leave', x, y })
+    setMotion({ dir, phase: 'leave', x, y, to: id })
     motionTimer.current = setTimeout(() => {
       go(id)
-      setMotion({ dir, phase: 'arrive', x, y })
+      setMotion({ dir, phase: 'arrive', x, y, to: id })
       motionTimer.current = setTimeout(() => setMotion(undefined), ARRIVE)
     }, LEAVE)
   }
@@ -295,7 +295,8 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
       else if (key === 'e' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat && !readOnly) toggleEdit()
       else if (editing && e.key === 'Delete') remove()
       else if (editing && (e.ctrlKey || e.metaKey) && !e.shiftKey && key === 'z' && !e.repeat) void takeBack() // held down, it would empty the whole stack
-      else if (e.key === 'Backspace' && view !== ROOT && !recording) zoomOut(parentOf(model, view))
+      // A second Backspace while the first is still leaving goes up from where that one is heading.
+      else if (e.key === 'Backspace' && view !== ROOT && !recording) zoomOut(parentOf(model, motion?.phase === 'leave' ? motion.to : view))
       else return
       e.preventDefault()
     }
