@@ -20,6 +20,14 @@ It prints a local address (port 4321, or the next free one) and opens it in your
 model lives in `./flowy`, which Flowy creates if it's missing. `--dir <folder>` uses another
 folder, `--port <number>` picks the port, and `--no-open` skips the browser.
 
+Not on npm? From a clone, `flowy.sh` (macOS, Linux, Git Bash) or `flowy.cmd` (Windows) does the
+same with the same flags. Run it from the repo you want to document. The first run installs and
+builds, which takes a moment. After a `git pull`, delete `dist/` to rebuild.
+
+```bash
+/path/to/flowy-docs/flowy.sh
+```
+
 ## Read it
 
 - Each box shows its type as a coloured icon: person, system, app, store, component. Outside
