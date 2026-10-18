@@ -1,0 +1,15 @@
+name: Sharing a copy
+view: flowy
+steps:
+  - { from: reader, to: cli, text: npx flowy-docs export }
+  - { from: cli, to: exporter, text: Builds the folder to put on a host }
+  - { from: exporter, to: repo, text: "Loads the model, or stops on a file it can't read" }
+  - from: exporter
+    to: host
+    text: Writes the canvas with the model inside index.html
+    description: |
+      Only what the last export wrote is replaced, so a `.git` or a `CNAME` beside it stays.
+
+      Whoever opens the link needs neither the repo nor Node: the page carries the model, has no
+      Edit button and nothing to save to. Browsers won't run it straight from disk, so it wants a
+      host — or an embed, in Notion or Confluence.
