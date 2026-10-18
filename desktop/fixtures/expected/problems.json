@@ -1,0 +1,420 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "Bad_ID",
+      "type": "actor",
+      "name": "Bad id"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop",
+      "code": [
+        "src/real.ts",
+        "src/gone.ts",
+        "../escape.ts",
+        "/abs.ts"
+      ]
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop",
+      "external": "maybe"
+    },
+    {
+      "id": "nameless",
+      "type": "app",
+      "in": "shop"
+    },
+    {
+      "id": "orphan",
+      "type": "component"
+    },
+    {
+      "id": "lost",
+      "type": "component",
+      "in": "nowhere"
+    },
+    {
+      "id": "wrong",
+      "type": "component",
+      "in": "customer"
+    },
+    {
+      "id": "mystery",
+      "type": "gadget"
+    },
+    {
+      "id": "untyped",
+      "name": "No type"
+    },
+    {
+      "id": "badcode",
+      "type": "system",
+      "name": "Bad code",
+      "code": "not-a-list"
+    },
+    {
+      "id": "mixedcode",
+      "type": "system",
+      "name": "Mixed code",
+      "code": [
+        "src/real.ts",
+        [
+          "nested"
+        ]
+      ]
+    },
+    {
+      "id": "actor-in",
+      "type": "actor",
+      "name": "Actor inside",
+      "in": "shop"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "shop",
+      "label": "browses"
+    },
+    {
+      "from": "customer",
+      "to": "shop",
+      "label": "browses"
+    },
+    {
+      "from": "customer",
+      "to": "shop"
+    },
+    {
+      "from": "shop",
+      "to": "shop",
+      "label": "loop"
+    },
+    {
+      "from": "shop",
+      "to": "ghost"
+    },
+    {
+      "from": "",
+      "to": "api"
+    },
+    {
+      "from": "api"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "Bad_Flow",
+      "name": "Bad flow id",
+      "view": "root",
+      "steps": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "text": "Visits",
+          "placed": [
+            "customer",
+            "shop"
+          ],
+          "ends": "Customer → Shop"
+        }
+      ]
+    },
+    {
+      "id": "broken",
+      "name": "",
+      "view": "missing-view",
+      "steps": []
+    },
+    {
+      "id": "good",
+      "name": "A good flow",
+      "view": "root",
+      "steps": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "text": "Visits",
+          "placed": [
+            "customer",
+            "shop"
+          ],
+          "ends": "Customer → Shop"
+        },
+        {
+          "from": "shop",
+          "text": "Thinks",
+          "description": "A longer note.\n",
+          "placed": [
+            "shop",
+            "shop"
+          ],
+          "ends": "Shop"
+        }
+      ]
+    },
+    {
+      "id": "steps",
+      "name": "Step problems",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "text": "outside to inside",
+          "placed": null,
+          "ends": "Customer → Shop"
+        },
+        {
+          "from": "api",
+          "to": "api",
+          "text": "self",
+          "placed": null,
+          "ends": "API"
+        },
+        {
+          "from": "ghost",
+          "text": "alone and unknown",
+          "placed": null,
+          "ends": "ghost"
+        },
+        {
+          "from": "api",
+          "text": "fine",
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "api",
+          "to": "ghost",
+          "text": "",
+          "placed": null,
+          "ends": "API → ghost"
+        }
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "file": "model.yaml",
+      "message": "lines must be straight, curved or angled"
+    },
+    {
+      "file": "model.yaml",
+      "id": "Bad_ID",
+      "message": "Bad_ID: ids use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+    },
+    {
+      "file": "model.yaml",
+      "id": "shop",
+      "message": "shop: code path \"src/gone.ts\" doesn't exist"
+    },
+    {
+      "file": "model.yaml",
+      "id": "shop",
+      "message": "shop: code path \"../escape.ts\" must be relative, with / between folders and no \".\" or \"..\" parts"
+    },
+    {
+      "file": "model.yaml",
+      "id": "shop",
+      "message": "shop: code path \"/abs.ts\" must be relative, with / between folders and no \".\" or \"..\" parts"
+    },
+    {
+      "file": "model.yaml",
+      "id": "api",
+      "message": "api: external must be true or false"
+    },
+    {
+      "file": "model.yaml",
+      "id": "nameless",
+      "message": "nameless: name is missing"
+    },
+    {
+      "file": "model.yaml",
+      "id": "orphan",
+      "message": "orphan: name is missing"
+    },
+    {
+      "file": "model.yaml",
+      "id": "orphan",
+      "message": "orphan: component must be inside app or store"
+    },
+    {
+      "file": "model.yaml",
+      "id": "lost",
+      "message": "lost: name is missing"
+    },
+    {
+      "file": "model.yaml",
+      "id": "lost",
+      "message": "lost: \"in\" points to unknown object \"nowhere\""
+    },
+    {
+      "file": "model.yaml",
+      "id": "wrong",
+      "message": "wrong: name is missing"
+    },
+    {
+      "file": "model.yaml",
+      "id": "wrong",
+      "message": "wrong: component must be inside app or store, not actor"
+    },
+    {
+      "file": "model.yaml",
+      "id": "mystery",
+      "message": "mystery: name is missing"
+    },
+    {
+      "file": "model.yaml",
+      "id": "mystery",
+      "message": "mystery: unknown type \"gadget\" (use actor, system, app, store, component)"
+    },
+    {
+      "file": "model.yaml",
+      "id": "untyped",
+      "message": "untyped: type is missing"
+    },
+    {
+      "file": "model.yaml",
+      "id": "badcode",
+      "message": "badcode: code must be a list of paths"
+    },
+    {
+      "file": "model.yaml",
+      "id": "mixedcode",
+      "message": "mixedcode: code must be a list of paths"
+    },
+    {
+      "file": "model.yaml",
+      "id": "actor-in",
+      "message": "actor-in: actor can't be inside anything"
+    },
+    {
+      "file": "model.yaml",
+      "message": "connection customer → shop: duplicate \"browses\"",
+      "connection": 1
+    },
+    {
+      "file": "model.yaml",
+      "message": "connection shop → shop: connects an object to itself",
+      "connection": 3
+    },
+    {
+      "file": "model.yaml",
+      "message": "connection shop → ghost: unknown object \"ghost\"",
+      "connection": 4
+    },
+    {
+      "file": "model.yaml",
+      "message": "connection ? → api: \"from\" is missing",
+      "connection": 5
+    },
+    {
+      "file": "model.yaml",
+      "message": "connection api → ?: \"to\" is missing",
+      "connection": 6
+    },
+    {
+      "file": "flows/Bad_Flow.yaml",
+      "message": "\"Bad_Flow\" is not a valid flow id: the file name must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+    },
+    {
+      "file": "flows/broken.yaml",
+      "message": "name is missing"
+    },
+    {
+      "file": "flows/broken.yaml",
+      "message": "view \"missing-view\" must be \"root\" or an object with children"
+    },
+    {
+      "file": "flows/broken.yaml",
+      "message": "has no steps"
+    },
+    {
+      "file": "flows/steps.yaml",
+      "message": "step 1: customer → shop can't be shown in view \"shop\"",
+      "step": 0
+    },
+    {
+      "file": "flows/steps.yaml",
+      "message": "step 2: goes from an object to itself (leave out \"to\" for a step one box does on its own)",
+      "step": 1
+    },
+    {
+      "file": "flows/steps.yaml",
+      "message": "step 3: unknown object \"ghost\"",
+      "step": 2
+    },
+    {
+      "file": "flows/steps.yaml",
+      "message": "step 5: unknown object \"ghost\"",
+      "step": 4
+    },
+    {
+      "file": "flows/steps.yaml",
+      "message": "step 5: text is missing",
+      "step": 4
+    },
+    {
+      "file": "flows/old.yml",
+      "message": "Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to flows/old.yaml."
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "Bad_ID",
+        "shop",
+        "orphan",
+        "lost",
+        "mystery",
+        "untyped",
+        "badcode",
+        "mixedcode"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "3 connections",
+          "count": 3
+        }
+      ]
+    },
+    "customer": {
+      "id": "customer",
+      "members": [
+        "wrong"
+      ],
+      "outsiders": [],
+      "edges": []
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "api",
+        "nameless",
+        "actor-in"
+      ],
+      "outsiders": [],
+      "edges": []
+    }
+  }
+}

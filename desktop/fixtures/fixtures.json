@@ -1,0 +1,15 @@
+{
+  "example": "example",
+  "plum": "docs/demo/flowy",
+  "empty": "desktop/fixtures/cases/empty/flowy",
+  "problems": "desktop/fixtures/cases/problems/flowy",
+  "text": "desktop/fixtures/cases/text/flowy",
+  "layout": "desktop/fixtures/cases/layout/flowy",
+  "bad-syntax": "desktop/fixtures/cases/bad-syntax/flowy",
+  "duplicate-key": "desktop/fixtures/cases/duplicate-key/flowy",
+  "merge-conflict": "desktop/fixtures/cases/merge-conflict/flowy",
+  "shape-objects": "desktop/fixtures/cases/shape-objects/flowy",
+  "shape-field": "desktop/fixtures/cases/shape-field/flowy",
+  "shape-steps": "desktop/fixtures/cases/shape-steps/flowy",
+  "shape-layout": "desktop/fixtures/cases/shape-layout/flowy"
+}

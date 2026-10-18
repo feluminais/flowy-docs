@@ -1,0 +1,6 @@
+root:
+  customer: [10, 20]
+  shop: [300, 20]
+shop:
+  web: [120.5, -40]
+  api: ["1e3", " 7 "]

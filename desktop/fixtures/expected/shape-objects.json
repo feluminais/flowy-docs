@@ -1,0 +1,6 @@
+{
+  "parseError": {
+    "file": "model.yaml",
+    "message": "\"objects\" must map ids to mappings"
+  }
+}

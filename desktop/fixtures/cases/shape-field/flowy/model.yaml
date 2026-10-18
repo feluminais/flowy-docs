@@ -1,0 +1,4 @@
+objects:
+  a:
+    type: actor
+    name: [x, y]

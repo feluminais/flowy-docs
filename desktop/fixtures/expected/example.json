@@ -1,0 +1,270 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer",
+      "description": "Someone buying things on the shop's website."
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop",
+      "description": "Sells things online.\n\nA web app in front of an API. Orders are kept in Postgres, and receipts go out\nthrough the **Mail service**.\n"
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web app",
+      "in": "shop",
+      "tech": "React",
+      "description": "The storefront customers browse.\n\nTalks to the API over REST. Keeps nothing but the cart.\n"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop",
+      "tech": "Node",
+      "description": "Handles orders and sign-in.\n\n- `POST /orders` places an order\n- `POST /login` signs a customer in\n"
+    },
+    {
+      "id": "db",
+      "type": "store",
+      "name": "Orders DB",
+      "in": "shop",
+      "tech": "Postgres"
+    },
+    {
+      "id": "auth",
+      "type": "component",
+      "name": "Auth",
+      "in": "api",
+      "description": "Checks passwords and starts sessions."
+    },
+    {
+      "id": "orders",
+      "type": "component",
+      "name": "Orders",
+      "in": "api",
+      "description": "Checks and saves orders, then asks for a receipt."
+    },
+    {
+      "id": "mail",
+      "type": "system",
+      "name": "Mail service",
+      "external": "true",
+      "description": "Sends our email. Run by an outside provider.\n\n[Provider status](https://example.com/status)\n"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "web",
+      "to": "api",
+      "label": "REST"
+    },
+    {
+      "from": "orders",
+      "to": "db",
+      "label": "reads/writes"
+    },
+    {
+      "from": "auth",
+      "to": "db",
+      "label": "checks users"
+    },
+    {
+      "from": "orders",
+      "to": "mail",
+      "label": "sends receipts"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "checkout",
+      "name": "Customer checks out",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "customer",
+          "to": "web",
+          "text": "Clicks \"Buy\"",
+          "placed": [
+            "customer",
+            "web"
+          ],
+          "ends": "Customer → Web app"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "POST /orders",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "orders",
+          "text": "Checks that every item is in stock",
+          "description": "Stock comes from the **Orders DB**. An item that ran out fails the whole order,\nand the customer sees which one.\n",
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "Orders in API"
+        },
+        {
+          "from": "orders",
+          "to": "db",
+          "text": "Saves the order",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "Orders in API → Orders DB"
+        },
+        {
+          "from": "orders",
+          "to": "mail",
+          "text": "Asks for a receipt email",
+          "placed": [
+            "api",
+            "mail"
+          ],
+          "ends": "Orders in API → Mail service"
+        }
+      ]
+    },
+    {
+      "id": "sign-in",
+      "name": "Customer signs in",
+      "view": "api",
+      "steps": [
+        {
+          "from": "web",
+          "to": "auth",
+          "text": "POST /login",
+          "placed": [
+            "web",
+            "auth"
+          ],
+          "ends": "Web app → Auth"
+        },
+        {
+          "from": "auth",
+          "to": "db",
+          "text": "Looks up the user and checks the password",
+          "placed": [
+            "auth",
+            "db"
+          ],
+          "ends": "Auth → Orders DB"
+        }
+      ]
+    }
+  ],
+  "problems": [],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "shop",
+        "mail"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "shop",
+          "to": "mail",
+          "label": "sends receipts",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "api",
+        "db"
+      ],
+      "outsiders": [
+        "customer",
+        "mail"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "count": 1
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "api",
+          "to": "mail",
+          "label": "sends receipts",
+          "count": 1
+        }
+      ]
+    },
+    "api": {
+      "id": "api",
+      "members": [
+        "auth",
+        "orders"
+      ],
+      "outsiders": [
+        "db",
+        "mail"
+      ],
+      "edges": [
+        {
+          "from": "orders",
+          "to": "db",
+          "label": "reads/writes",
+          "count": 1
+        },
+        {
+          "from": "auth",
+          "to": "db",
+          "label": "checks users",
+          "count": 1
+        },
+        {
+          "from": "orders",
+          "to": "mail",
+          "label": "sends receipts",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

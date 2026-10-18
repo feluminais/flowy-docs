@@ -1,0 +1,310 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <!-- The palette of ui/src/style.css, light and dark. -->
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="BgBrush" Color="#fafaf9" />
+          <SolidColorBrush x:Key="FgBrush" Color="#1c1917" />
+          <SolidColorBrush x:Key="MutedBrush" Color="#78716c" />
+          <SolidColorBrush x:Key="LineBrush" Color="#d6d3d1" />
+          <SolidColorBrush x:Key="EdgeBrush" Color="#a8a29e" />
+          <SolidColorBrush x:Key="BoxBrush" Color="#ffffff" />
+          <SolidColorBrush x:Key="AccentBrush" Color="#2563eb" />
+          <SolidColorBrush x:Key="WarnBgBrush" Color="#fef3c7" />
+          <SolidColorBrush x:Key="WarnFgBrush" Color="#78350f" />
+          <SolidColorBrush x:Key="WarnBrush" Color="#d97706" />
+          <SolidColorBrush x:Key="DangerBrush" Color="#b91c1c" />
+          <SolidColorBrush x:Key="ActorBrush" Color="#7f77dd" />
+          <SolidColorBrush x:Key="SystemBrush" Color="#378add" />
+          <SolidColorBrush x:Key="AppBrush" Color="#1d9e75" />
+          <SolidColorBrush x:Key="StoreBrush" Color="#d4537e" />
+          <SolidColorBrush x:Key="ComponentBrush" Color="#d85a30" />
+          <SolidColorBrush x:Key="ExternalBrush" Color="#888780" />
+          <SolidColorBrush x:Key="ActorTileBrush" Color="#7f77dd" Opacity="0.18" />
+          <SolidColorBrush x:Key="SystemTileBrush" Color="#378add" Opacity="0.18" />
+          <SolidColorBrush x:Key="AppTileBrush" Color="#1d9e75" Opacity="0.18" />
+          <SolidColorBrush x:Key="StoreTileBrush" Color="#d4537e" Opacity="0.18" />
+          <SolidColorBrush x:Key="ComponentTileBrush" Color="#d85a30" Opacity="0.18" />
+          <SolidColorBrush x:Key="ExternalTileBrush" Color="#888780" Opacity="0.18" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="BgBrush" Color="#1c1917" />
+          <SolidColorBrush x:Key="FgBrush" Color="#f5f5f4" />
+          <SolidColorBrush x:Key="MutedBrush" Color="#a8a29e" />
+          <SolidColorBrush x:Key="LineBrush" Color="#57534e" />
+          <SolidColorBrush x:Key="EdgeBrush" Color="#78716c" />
+          <SolidColorBrush x:Key="BoxBrush" Color="#292524" />
+          <SolidColorBrush x:Key="AccentBrush" Color="#60a5fa" />
+          <SolidColorBrush x:Key="WarnBgBrush" Color="#451a03" />
+          <SolidColorBrush x:Key="WarnFgBrush" Color="#fde68a" />
+          <SolidColorBrush x:Key="WarnBrush" Color="#f59e0b" />
+          <SolidColorBrush x:Key="DangerBrush" Color="#f87171" />
+          <SolidColorBrush x:Key="ActorBrush" Color="#afa9ec" />
+          <SolidColorBrush x:Key="SystemBrush" Color="#85b7eb" />
+          <SolidColorBrush x:Key="AppBrush" Color="#5dcaa5" />
+          <SolidColorBrush x:Key="StoreBrush" Color="#ed93b1" />
+          <SolidColorBrush x:Key="ComponentBrush" Color="#f0997b" />
+          <SolidColorBrush x:Key="ExternalBrush" Color="#b4b2a9" />
+          <SolidColorBrush x:Key="ActorTileBrush" Color="#afa9ec" Opacity="0.18" />
+          <SolidColorBrush x:Key="SystemTileBrush" Color="#85b7eb" Opacity="0.18" />
+          <SolidColorBrush x:Key="AppTileBrush" Color="#5dcaa5" Opacity="0.18" />
+          <SolidColorBrush x:Key="StoreTileBrush" Color="#ed93b1" Opacity="0.18" />
+          <SolidColorBrush x:Key="ComponentTileBrush" Color="#f0997b" Opacity="0.18" />
+          <SolidColorBrush x:Key="ExternalTileBrush" Color="#b4b2a9" Opacity="0.18" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="FontSize" Value="14" />
+  </Style>
+  <Style Selector="TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="SelectableTextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="TextBlock.muted">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+  </Style>
+
+  <!-- The top bar. -->
+  <Style Selector="Border.bar">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding" Value="16,8" />
+  </Style>
+  <Style Selector="Button.crumb">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.crumb:disabled /template/ ContentPresenter, Button.crumb:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.crumb:disabled /template/ ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.tool">
+    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="12,4" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="Button.tool:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="Button.tool.pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource BgBrush}" />
+  </Style>
+  <Style Selector="Button.problems">
+    <Setter Property="Background" Value="{DynamicResource WarnBgBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="10,2" />
+  </Style>
+
+  <!-- A box: an outline shape (so an outsider's border can be dashed), the tile, the name, how many are inside. -->
+  <Style Selector=":is(Grid).box">
+    <Setter Property="Width" Value="200" />
+    <Setter Property="Height" Value="72" />
+  </Style>
+  <Style Selector=":is(Grid).box Rectangle.outline">
+    <Setter Property="Fill" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="Stroke" Value="{DynamicResource LineBrush}" />
+    <Setter Property="StrokeThickness" Value="1" />
+    <Setter Property="RadiusX" Value="8" />
+    <Setter Property="RadiusY" Value="8" />
+  </Style>
+  <Style Selector=":is(Grid).box.actor Rectangle.outline">
+    <Setter Property="RadiusX" Value="36" />
+    <Setter Property="RadiusY" Value="36" />
+  </Style>
+  <Style Selector=":is(Grid).box.outsider">
+    <Setter Property="Opacity" Value="0.55" />
+  </Style>
+  <Style Selector=":is(Grid).box.outsider Rectangle.outline">
+    <Setter Property="Stroke" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="StrokeThickness" Value="1.5" />
+    <Setter Property="StrokeDashArray" Value="4,3" />
+  </Style>
+  <Style Selector=":is(Grid).box.selected Rectangle.outline">
+    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box.dim">
+    <Setter Property="Opacity" Value="0.15" />
+  </Style>
+  <Style Selector=":is(Grid).box.lit">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <Style Selector=":is(Grid).box.lit Rectangle.outline">
+    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="StrokeThickness" Value="1.5" />
+    <Setter Property="StrokeDashArray" Value="" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.glow">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector=":is(Grid).box.lit Border.glow">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.tile">
+    <Setter Property="Width" Value="34" />
+    <Setter Property="Height" Value="34" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Background" Value="{DynamicResource SystemTileBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box Path.icon">
+    <Setter Property="Stroke" Value="{DynamicResource SystemBrush}" />
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box.actor Border.tile"><Setter Property="Background" Value="{DynamicResource ActorTileBrush}" /></Style>
+  <Style Selector=":is(Grid).box.actor Path.icon"><Setter Property="Stroke" Value="{DynamicResource ActorBrush}" /></Style>
+  <Style Selector=":is(Grid).box.app Border.tile"><Setter Property="Background" Value="{DynamicResource AppTileBrush}" /></Style>
+  <Style Selector=":is(Grid).box.app Path.icon"><Setter Property="Stroke" Value="{DynamicResource AppBrush}" /></Style>
+  <Style Selector=":is(Grid).box.store Border.tile"><Setter Property="Background" Value="{DynamicResource StoreTileBrush}" /></Style>
+  <Style Selector=":is(Grid).box.store Path.icon"><Setter Property="Stroke" Value="{DynamicResource StoreBrush}" /></Style>
+  <Style Selector=":is(Grid).box.component Border.tile"><Setter Property="Background" Value="{DynamicResource ComponentTileBrush}" /></Style>
+  <Style Selector=":is(Grid).box.component Path.icon"><Setter Property="Stroke" Value="{DynamicResource ComponentBrush}" /></Style>
+  <Style Selector=":is(Grid).box.external Border.tile"><Setter Property="Background" Value="{DynamicResource ExternalTileBrush}" /></Style>
+  <Style Selector=":is(Grid).box.external Path.icon"><Setter Property="Stroke" Value="{DynamicResource ExternalBrush}" /></Style>
+  <Style Selector=":is(Grid).box TextBlock.name">
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector=":is(Grid).box TextBlock.meta">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector=":is(Grid).box TextBlock.inside">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="FontSize" Value="11" />
+  </Style>
+  <Style Selector=":is(Grid).box Path.zoom">
+    <Setter Property="Stroke" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.badge">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Background" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box.problem Border.badge">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector=":is(Grid).box:focus-visible Rectangle.outline">
+    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="StrokeThickness" Value="2" />
+  </Style>
+
+  <!-- Round buttons in the corner of the canvas. -->
+  <Style Selector="Button.zoom">
+    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Width" Value="26" />
+    <Setter Property="Height" Value="26" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+
+  <!-- The side panel and what's in it. -->
+  <Style Selector=":is(Border).panel">
+    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1,0,0,0" />
+  </Style>
+  <Style Selector="Button.close">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="Padding" Value="6,0" />
+  </Style>
+  <Style Selector="Button.link, Button.disclosure">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.link">
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.link TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="Button.disclosure">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector="Button.close:pointerover /template/ ContentPresenter, Button.link:pointerover /template/ ContentPresenter, Button.disclosure:pointerover /template/ ContentPresenter, Button.close:pressed /template/ ContentPresenter, Button.link:pressed /template/ ContentPresenter, Button.disclosure:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.link:pointerover TextBlock">
+    <Setter Property="TextDecorations" Value="Underline" />
+  </Style>
+
+  <!-- Cards over the canvas: the player, search, the shortcut list. -->
+  <Style Selector=":is(Border).card">
+    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="16,12" />
+    <Setter Property="BoxShadow" Value="0 4 16 0 #33000000" />
+  </Style>
+  <Style Selector=":is(Border).notice">
+    <Setter Property="Background" Value="{DynamicResource WarnBgBrush}" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="12,8" />
+    <Setter Property="BoxShadow" Value="0 2 8 0 #33000000" />
+  </Style>
+  <Style Selector=":is(Border).notice TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" />
+  </Style>
+  <Style Selector="Border.banner">
+    <Setter Property="Background" Value="{DynamicResource WarnBgBrush}" />
+    <Setter Property="Padding" Value="16,8" />
+  </Style>
+  <Style Selector="Border.banner TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" />
+  </Style>
+  <Style Selector="Border.kbd">
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1,1,1,2" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="6,1" />
+  </Style>
+  <Style Selector="Button.result">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Padding" Value="8,6" />
+  </Style>
+  <Style Selector="Button.result.at /template/ ContentPresenter, Button.result:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
+  </Style>
+  <Style Selector="TextBox">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+</Styles>

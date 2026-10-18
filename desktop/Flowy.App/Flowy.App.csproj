@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>FlowyDocs</AssemblyName>
+    <RootNamespace>Flowy.App</RootNamespace>
+    <Product>Flowy Docs</Product>
+    <Version>0.1.0</Version>
+    <Copyright>MIT License</Copyright>
+    <ApplicationIcon>Assets/icon.ico</ApplicationIcon>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- No ICU needed: nothing here depends on the culture's sort order or calendar, and a Linux install needs no libicu. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <NoWarn>$(NoWarn);AVLN3001</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Flowy.App.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+    <PackageReference Include="Markdig" Version="1.4.1" />
+    <PackageReference Include="Velopack" Version="1.2.161" />
+    <ProjectReference Include="../Flowy.Core/Flowy.Core.csproj" />
+    <AvaloniaResource Include="Assets/icon.png" />
+    <Content Include="Assets/TABLER-ICONS-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Plum, the sample model: Help > Open the Demo, and the welcome window's button. Its code paths need the folders beside flowy/. -->
+    <Content Include="../../docs/demo/**" Link="Demo/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <!-- SkiaSharp and HarfBuzz ship their native symbols (100 MB) inside the package; a release has no use for them. -->
+  <Target Name="DropNativeSymbols" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.pdb' And $([System.String]::new('%(Filename)').StartsWith('lib'))" />
+    </ItemGroup>
+  </Target>
+</Project>

@@ -1,0 +1,7 @@
+objects:
+  a: { type: actor, name: A }
+<<<<<<< HEAD
+  b: { type: actor, name: B }
+=======
+  b: { type: actor, name: C }
+>>>>>>> other

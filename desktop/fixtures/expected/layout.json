@@ -1,0 +1,104 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web",
+      "in": "shop"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "web",
+      "to": "api"
+    }
+  ],
+  "layout": {
+    "root": {
+      "customer": [
+        10,
+        20
+      ],
+      "shop": [
+        300,
+        20
+      ]
+    },
+    "shop": {
+      "web": [
+        120.5,
+        -40
+      ],
+      "api": [
+        1000,
+        7
+      ]
+    }
+  },
+  "flows": [],
+  "problems": [],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "shop"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "api"
+      ],
+      "outsiders": [
+        "customer"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

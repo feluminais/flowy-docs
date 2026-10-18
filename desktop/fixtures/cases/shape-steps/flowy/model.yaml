@@ -1,0 +1,2 @@
+objects:
+  a: { type: actor, name: A }

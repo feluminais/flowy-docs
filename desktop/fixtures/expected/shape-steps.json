@@ -1,0 +1,6 @@
+{
+  "parseError": {
+    "file": "flows/f.yaml",
+    "message": "\"steps\" must be a list"
+  }
+}
