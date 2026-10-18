@@ -15,7 +15,7 @@ export function codeBaseFrom(remote: string, branch: string, prefix: string): st
   return `https://${host}/${repo}/${host === 'gitlab.com' ? '-/' : ''}tree/${encodePath(branch)}/${encodePath(prefix)}`
 }
 
-// ponytail: worked out once per folder per process, so a branch switch or a new origin shows after a restart; drop the cache if that bites.
+// Known limit: worked out once per folder per process, so a branch switch or a new origin shows after a restart; drop the cache if that bites.
 const bases = new Map<string, Promise<string | undefined>>()
 
 /** Where `code` paths under `root` link to, or undefined when git or the remote can't say. */

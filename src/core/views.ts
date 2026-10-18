@@ -27,7 +27,7 @@ export function memberIds(model: Model, view: string): string[] {
   return Object.keys(model.objects).filter(id => getObject(model, id) && parentOf(model, id) === view)
 }
 
-// ponytail: scans every object per call; fine for hundreds of objects, index children by parent if views get slow
+// Known limit: scans every object per call; fine for hundreds of objects, index children by parent if views get slow
 export const hasChildren = (model: Model, id: string) => memberIds(model, id).length > 0
 
 /** Whether `id` can be the view of a flow, or the place a problem opens: the top level, or an object with children. */

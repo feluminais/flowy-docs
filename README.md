@@ -17,7 +17,7 @@ npx flowy-docs
 ```
 
 It prints a local address (port 4321, or the next free one) and opens it in your browser. The
-model lives in `./flowy`, which is created on the first save. `--dir <folder>` uses another
+model lives in `./flowy`, which Flowy creates if it's missing. `--dir <folder>` uses another
 folder, `--port <number>` picks the port, and `--no-open` skips the browser.
 
 ## Read it
@@ -139,6 +139,26 @@ The address follows what's on screen. `#shop` is the inside of Shop, and `#shop/
 the flow `checkout` there. Copy it to send someone straight to a level or a flow. The local canvas
 does this too.
 
+## Is it safe to run?
+
+Flowy runs on your machine and touches only its model folder.
+
+- It listens on 127.0.0.1, so other computers can't reach it. It refuses a request whose Host isn't
+  `127.0.0.1` or `localhost` on its own port, and it saves only when a request carries a header
+  that a web page open in another tab can't send. A website can't change your files through it.
+- Saving, from the canvas or from Claude, writes `model.yaml`, `layout.yaml` and `flows/*.yaml` in
+  the model folder and nothing else. `export` writes only to its output folder.
+- It never opens your code. For `code:` paths it checks that they exist, and it runs `git` with fixed
+  arguments to read the `origin` URL and the branch for the links.
+- It makes no network requests of its own: no telemetry, no CDN, no fonts. The page talks only to
+  its local server.
+- Through `npx flowy-docs mcp`, Claude gets nine tools: three read the model and six change its
+  objects, connections and flows. None runs a command or reads a file outside the model folder.
+
+Treat a `flowy/` folder you didn't write like any other text from that repo. Descriptions are
+Markdown and can embed images, which your browser then fetches from wherever they point, and Claude
+reads the descriptions back through MCP.
+
 ## Develop
 
 ```bash
@@ -151,6 +171,10 @@ npm run build
 `npm run build` puts the canvas in `dist/ui` and the server in `dist/`. In a clone,
 `node src/cli.ts` does what `npx flowy-docs` does, once `npm run build:ui` has built the canvas.
 
+This repo documents itself. `flowy/` holds Flowy Docs' own architecture, with a flow each for
+opening it, drawing, Claude writing the model and sharing, and `node src/cli.ts` with no options
+opens it.
+
 To work on the canvas with hot reload, run Flowy on the example model, then Vite, and open
 http://localhost:5173:
 
@@ -159,99 +183,5 @@ node src/cli.ts --dir example --no-open
 npm run dev:ui
 ```
 
-### Canvas checklist
-
-There are no automated UI tests. Before merging a canvas change, run
-`npm run build:ui && node src/cli.ts --dir example` and check:
-
-Reading:
-
-- [ ] The overview shows Customer, Shop and Mail service, each with a coloured icon tile. Mail
-      service is grey with a cloud and reads "external", and Shop says "3 inside". Double-click Shop:
-      the view zooms into it, the breadcrumb reads Overview › Shop, a frame labelled Shop wraps Web
-      app, API and Orders DB, and Customer and Mail service are faded and dashed outside it.
-- [ ] Double-click API, then press Backspace twice quickly: it zooms back out to the overview.
-      Clicking the breadcrumb works too. The zoom buttons in the corner don't move while it zooms.
-- [ ] Click Shop and press Enter: it zooms in. Double-click API, click Auth (its panel opens),
-      then press Esc three times: the panel closes, then it zooms out to Shop, then to the
-      overview. Esc again does nothing. Tab moves the focus between boxes, and Enter opens the
-      focused one.
-- [ ] Zoom in with the wheel and press F: the whole view fits again. Press ?: the shortcut list
-      opens; Esc closes it.
-- [ ] Inside API, Orders DB and Mail service sit in a row below Auth and Orders, and no line runs
-      through a box.
-- [ ] With the system's reduce-motion setting on (Windows: Settings › Accessibility › Visual
-      effects › Animation effects off), opening and closing a box is instant.
-- [ ] Lines: pick curved, then right-angled. In API every line follows, labels still show on hover,
-      and a reload keeps your pick. "Project default" goes back to straight, and
-      `example/model.yaml` is unchanged.
-- [ ] Every zoom fits the whole diagram in the window, and doesn't open the side panel. Resize the
-      window: it fits again.
-- [ ] In Shop, lines have no labels. Hover one: its label shows. Click API: its lines show labels
-      and the others fade. If the panel would cover the box you click, the view moves it aside.
-- [ ] Hover API: after a moment its first paragraph appears under it. Click API: the side panel
-      shows the whole description with its bullet list. Esc, ×, or a click on empty canvas closes it.
-- [ ] In Shop, play "Customer checks out". Only the current step's two boxes and line stay lit.
-      → and ← move, End and Home jump to the last and first step, the buttons match, Esc stops
-      (and a second Esc zooms out). Step 3 lights API alone, with no line, and its
-      More shows a paragraph with **Orders DB** in bold.
-- [ ] In API, play "Customer signs in". Web app joins as a faded box, with a dashed line to Auth.
-- [ ] In Shop, click the "2 connections" line: the panel lists both connections.
-- [ ] In Shop, click API: its panel lists Out (Orders DB with "2 connections", Mail service with
-      "sends receipts" and "Orders → Mail service" under it) and In (Web app, "REST"). Open "2
-      connections": both labels show, each with the boxes inside. Point at a row: its line turns
-      blue. Click "Orders DB": the panel switches to it.
-- [ ] From the overview, press / and type `au`: "Auth component in API" is listed. Press Enter: the
-      canvas opens API with Auth selected and its panel open. Ctrl+K and `zzz`: "Nothing called
-      that." Esc closes the search and leaves the panel open.
-- [ ] Rename Shop in `example/model.yaml` and save: the page updates without a reload.
-- [ ] Add a line `  shop: {}` right under `objects:` and save: a banner names model.yaml and the
-      line, and Edit greys out. Undo it: the banner goes.
-- [ ] Add `  floating: { type: app, name: Floating }` right under `objects:`: "1 problem" appears
-      and Floating has a "!". Pick the problem: Floating's panel shows it.
-- [ ] Add `    code: [src/cli.ts, nope/]` under `api:`. "1 problem" names `nope/`. API's panel lists
-      both paths, as links to github.com/feluminais/flowy-docs on the current branch. Undo it.
-- [ ] Stop flowy: a banner says the connection is lost. Start it again: the banner goes.
-
-Editing (press E):
-
-- [ ] Drag Mail service: `example/layout.yaml` appears, and the box stays put after a reload. The
-      lines stay drawn the whole way, and so do they when you click a box or point at a line.
-- [ ] Drag from Customer's dot onto Mail service: a line appears and its panel opens. Type a label
-      and press Enter: the line shows it.
-- [ ] In Shop, press Add, pick store, name it Cache and press Enter: the box appears with its form.
-      Set Tech to Redis and press Tab: the box reads "Redis". Clear the name and press
-      Enter: a notice says it was refused, and the name comes back.
-- [ ] Rename Shop to Store and press Tab, then Ctrl+Z: it's Shop again, and "Undone." shows.
-      Ctrl+Y: it's Store again, and "Redone." shows; Ctrl+Y again: "Nothing to redo." Rename it
-      again, change the name in `example/model.yaml` by hand, then Ctrl+Z: the notice says it
-      changed since, and your hand edit stays.
-- [ ] Press N: the Add panel opens.
-- [ ] Select API and press Delete: the notice says it still contains auth and orders. Select
-      Cache and press Delete: it goes.
-- [ ] Select API, type `src/cli.ts` in Code and press Tab: `example/model.yaml` gets a
-      `code` list with `src/cli.ts`. Clear the field and press Tab: `code` is gone.
-- [ ] Press New flow, name it, click Customer then Web app, type a step and press Enter. Add a
-      second step, move it up with ↑, delete it with ×. Leave edit mode and play the new flow.
-- [ ] Lines in edit mode: pick curved and `lines: curved` appears at the top of
-      `example/model.yaml`. Ctrl+Z takes it away.
-- [ ] In Shop, drag Web app away: the frame follows it. Press Tidy: Web app goes back and
-      `example/layout.yaml` loses `shop`. Ctrl+Z puts it where you dragged it. Tidy again with
-      nothing dragged: a notice says there's nothing to tidy.
-- [ ] Tick "Outside service" on Customer: its tile goes grey with a cloud. Untick it.
-
-`git checkout example` puts the tracked files back. Delete `example/layout.yaml` and the new
-flow's file by hand.
-
-Sharing:
-
-- [ ] Run `node src/cli.ts export --dir example --out example-site`, then
-      `npx vite preview ui --outDir ../example-site --base /flowy/` and open
-      http://localhost:4173/flowy/. The overview shows, with no Edit button, and E does nothing.
-- [ ] Double-click Shop: the address ends in `#shop`. Play "Customer checks out": it ends in
-      `#shop/checkout`. Press the browser's Back: the flow stops. Back again: the overview.
-- [ ] Open http://localhost:4173/flowy/#api in a new tab: it opens inside API.
-- [ ] In Shop, press Mermaid and paste into a GitHub comment preview: it draws Shop, with Customer
-      and Mail service dashed. Play "Customer checks out" and press Mermaid: a sequence diagram.
-- [ ] Export again: it replaces example-site. Add the `  shop: {}` line to `example/model.yaml`
-      and export: it names model.yaml and the line, and example-site stays as it was. Undo the line.
+[CONTRIBUTING.md](CONTRIBUTING.md) has the conventions and the checklist to run through before
+changing the canvas.

@@ -267,7 +267,7 @@ function shuffled(ids: string[], seed: number): string[] {
 function place(members: string[], around: string[], edges: ViewEdge[]): Spots {
   const lines = edges.map(e => ({ from: e.from, to: e.to }))
   const degree = (id: string) => lines.filter(e => e.from === id || e.to === id).length
-  // ponytail: a big view tries one starting order with fewer passes, so it still opens without a pause;
+  // Known limit: a big view tries one starting order with fewer passes, so it still opens without a pause;
   // a time budget would let it try more where the machine is fast
   const big = (members.length + around.length) * lines.length > 2000
   const passes = big ? 5 : 30
@@ -337,7 +337,7 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
   for (const id of boxes) {
     if (at.has(id)) continue
     const p = { ...placed.get(id)! }
-    // ponytail: steps down one row at a time and checks every box; fine for a diagram's worth of boxes
+    // Known limit: steps down one row at a time and checks every box; fine for a diagram's worth of boxes
     while ([...at.values()].some(q => overlaps(p, q))) p.y += BOX.height + 30
     at.set(id, p)
   }
