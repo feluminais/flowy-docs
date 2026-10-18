@@ -1,6 +1,6 @@
-import { getObject, isValidId, LINE_STYLES, OBJECT_TYPES, ROOT } from './model.ts'
+import { getObject, ID_RULE, isValidId, LINE_STYLES, OBJECT_TYPES, ROOT } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
-import { hasChildren, placeStep } from './views.ts'
+import { isView, placeStep } from './views.ts'
 
 /**
  * `connection` (a place in model.connections) and `step` (a place in the flow's steps) tell the
@@ -58,7 +58,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
 
   for (const [id, o] of Object.entries(model.objects)) {
     const p = (message: string) => add('model.yaml', id, `${id}: ${message}`)
-    if (!isValidId(id)) p('ids use lowercase letters, digits and dashes ("root" is reserved)')
+    if (!isValidId(id)) p(`ids ${ID_RULE}`)
     if (!nonEmpty(o.name)) p('name is missing')
     if (o.external !== undefined && o.external !== 'true' && o.external !== 'false') p('external must be true or false')
     if (o.code !== undefined) {
@@ -98,9 +98,9 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
 
   for (const [fid, f] of Object.entries(model.flows)) {
     const p = (message: string, at?: { step: number }) => add(`flows/${fid}.yaml`, undefined, message, at)
-    if (!isValidId(fid)) p(`"${fid}" is not a valid flow id: the file name must use lowercase letters, digits and dashes ("root" is reserved)`)
+    if (!isValidId(fid)) p(`"${fid}" is not a valid flow id: the file name must ${ID_RULE}`)
     if (!nonEmpty(f.name)) p('name is missing')
-    const viewOk = f.view === ROOT || (getObject(model, f.view) !== undefined && hasChildren(model, f.view))
+    const viewOk = isView(model, f.view)
     if (missing(f.view)) p('view is missing')
     else if (!viewOk) p(`view "${f.view}" must be "root" or an object with children`)
     if (f.steps.length === 0) p('has no steps')

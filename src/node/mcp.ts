@@ -64,7 +64,7 @@ export function createMcpServer(dir: string): McpServer {
     }
   })
 
-  const id = (what: string) => z.string().max(64).describe(`${what}: lowercase letters, digits and dashes, e.g. "orders-api"`)
+  const id = (what: string) => z.string().max(64).describe(`${what}: lowercase letters, digits and dashes, not starting with a dash, e.g. "orders-api"`)
   const ends = {
     from: z.string().max(64).describe('Id of the object the connection starts at'),
     to: z.string().max(64).describe('Id of the object it goes to'),

@@ -202,13 +202,13 @@ export function AddPanel({ model, view, run, onAdded, onClose }: Common & { view
 /** The flow being recorded. While `id` is "", it still needs a name. `from` and `to` are the step being picked. */
 export type Recording = { id: string; name: string; from?: string; to?: string }
 
-/** The step list beside the canvas while recording a flow: click two boxes, type what happens, press Enter. */
 /** The step with this detail, or with none when it's blank. */
 function withDescription(step: Step, description: string): Step {
   const { description: _, ...rest } = step
   return description.trim() ? { ...rest, description } : rest
 }
 
+/** The step list beside the canvas while recording a flow: click two boxes, type what happens, press Enter. */
 export function Recorder({ model, view, rec, onChange, run, onClose }: Common & { view: string; rec: Recording; onChange: (rec: Recording) => void }) {
   if (!rec.id) return (
     <Panel onClose={onClose}>

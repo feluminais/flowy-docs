@@ -172,9 +172,10 @@ Reading:
       app, API and Orders DB, and Customer and Mail service are faded and dashed outside it.
 - [ ] Double-click API, then press Backspace twice quickly: it zooms back out to the overview.
       Clicking the breadcrumb works too. The zoom buttons in the corner don't move while it zooms.
-- [ ] Click Shop and press Enter: it zooms in. Click API (its panel opens), then press Esc three
-      times: the panel closes, then it zooms out to Shop, then to the overview. Esc again does
-      nothing. Tab moves the focus between boxes, and Enter opens the focused one.
+- [ ] Click Shop and press Enter: it zooms in. Double-click API, click Auth (its panel opens),
+      then press Esc three times: the panel closes, then it zooms out to Shop, then to the
+      overview. Esc again does nothing. Tab moves the focus between boxes, and Enter opens the
+      focused one.
 - [ ] Zoom in with the wheel and press F: the whole view fits again. Press ?: the shortcut list
       opens; Esc closes it.
 - [ ] Inside API, Orders DB and Mail service sit in a row below Auth and Orders, and no line runs

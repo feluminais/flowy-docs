@@ -40,6 +40,8 @@ export const lineStyle = (model: Model): LineStyle => LINE_STYLES.find(s => s ==
 /** Whether an object is an outside service: `external: true`, read back as the text "true". */
 export const isExternal = (o: FlowyObject): boolean => o.external === 'true'
 
+/** What an id (an object's, or a flow's file name) may be, worded to follow "ids". isValidId is the test. */
+export const ID_RULE = 'use lowercase letters, digits and dashes, not starting with a dash ("root" is reserved)'
 export const isValidId = (id: string): boolean => /^[a-z0-9][a-z0-9-]*$/.test(id) && id !== ROOT
 
 /** Own-property lookup, so ids like "constructor" never reach Object.prototype. */

@@ -1,5 +1,5 @@
 import { check, newProblems } from './check.ts'
-import { getObject, isValidId, ROOT } from './model.ts'
+import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Connection, Flow, FlowyObject, Layout, LineStyle, Model, ObjectType, Step } from './model.ts'
 import { memberIds } from './views.ts'
 
@@ -14,7 +14,6 @@ export type FlowInput = { id: string; name: string; view: string; steps: Step[] 
 
 const FIELDS = ['type', 'name', 'in', 'external', 'tech', 'description', 'code'] as const
 const CLEARABLE = ['in', 'tech', 'description'] as const
-const ID_RULE = 'use lowercase letters, digits and dashes, not starting with a dash ("root" is reserved)'
 
 /**
  * Create or update an object. Omitted fields stay as they are; "" removes in, tech or description,
