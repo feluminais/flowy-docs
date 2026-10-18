@@ -34,6 +34,19 @@ export function connectionsOf(model: Model, view: string, from: string, to: stri
   })
 }
 
+/**
+ * A playing step's ends as the player names them. `placed` is where the step lands in the view (see
+ * placeStep). When an end lands on a box that stands for something inside it, both are named ("Scheduler
+ * in Core"), so two steps on two parts of one box never read as a round trip. A step one box does on its
+ * own names it once.
+ */
+export function stepEnds(model: Model, step: { from: string; to?: string }, placed: [string, string] | null | undefined): string {
+  const real = [step.from, step.to ?? step.from]
+  const drawn = placed ?? real
+  const name = (i: number) => (drawn[i] === real[i] ? nameOf(model, real[i]) : `${nameOf(model, real[i])} in ${nameOf(model, drawn[i])}`)
+  return step.to === undefined || step.to === step.from ? name(0) : `${name(0)} → ${name(1)}`
+}
+
 /** How moving from one view to another should feel: into a box inside, out to one around, or across to one beside. */
 export type Move = 'in' | 'out' | 'across'
 

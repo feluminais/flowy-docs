@@ -11,7 +11,7 @@ import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { chain, hasChildren, parentOf, placeEnds, placeStep } from '../../src/core/views.ts'
 import { Box, Description, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
-import { connectionsOf, locate, moveBetween, nameOf } from './edit.ts'
+import { connectionsOf, locate, moveBetween, nameOf, stepEnds } from './edit.ts'
 import type { Move } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
@@ -485,7 +485,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         {flow && step && (
           <section className="player" aria-live="polite">
             <p className="muted">{flow.name} · Step {stepIndex + 1} of {flow.steps.length}</p>
-            <p className="player-ends">{[...new Set(shown?.ends[stepIndex] ?? [step.from, step.to ?? step.from])].map(id => nameOf(model, id)).join(' → ')}</p>
+            <p className="player-ends">{stepEnds(model, step, shown?.ends[stepIndex])}</p>
             <p>{step.text}</p>
             {step.description && (
               <details key={stepIndex} className="more">
