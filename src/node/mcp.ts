@@ -4,15 +4,35 @@ import { check } from '../core/check.ts'
 import { changedFiles, getObject, OBJECT_TYPES, parseFile, ROOT } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
 import { connect, deleteFlow, deleteObject, disconnect, putFlow, putObject, refuseNewProblems } from '../core/ops.ts'
+import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
-import { computeView } from '../core/views.ts'
+import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
 import { loadDir, missingPaths, saveFile, VersionConflict } from './files.ts'
 
 const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML files in the repo.
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
 Connect the most specific objects you know (e.g. component → store); zoomed-out views merge lines automatically.
 A flow is a step-by-step walkthrough played on one view: "root" (the top level) or an object with children.
+Writing a flow, so it reads the way the code works:
+- A step's text says what passes from "from" to "to", from the side of "from": "Hands the order to Billing", "Asks Pricing for the total". When "from" asks and gets its answer in the same step, say so, and don't add a step going back unless something new is sent.
+- Say when the sender doesn't wait for the other side (it queues the work, fires and forgets, or runs on a timer).
+- Keep to what the flow's trigger causes. Something that happens on its own gets a step that says so, or a flow of its own.
+- Play the flow on the view where its ends are separate boxes. put_flow answers with how each step reads there: an end written "X in Y" is drawn as Y.
 Every write is checked. A write that would add a problem is refused and nothing is saved.`
+
+/**
+ * What put_flow answers: each step as a reader will see it on the flow's view. When an end is drawn as
+ * the box that holds it, a hint says so, since two steps on two parts of one box can read as a round trip.
+ */
+function readout(model: Model, flow: FlowInput): string {
+  const steps = flow.steps.map((s, i) => {
+    const placed = placeStep(model, flow.view, s)
+    const inside = placed !== null && (placed[0] !== s.from || placed[1] !== (s.to ?? s.from))
+    return { line: `${i + 1}. ${stepEnds(model, s, placed)}: ${s.text}`, inside }
+  })
+  const hint = 'Ends written "X in Y" are drawn as Y on this view. If two steps then seem to go to Y and back, say in the text which part of Y is meant, or play the flow inside Y.'
+  return [`Saved flow ${flow.id}. On ${nameOf(model, flow.view)} it reads:`, ...steps.map(s => s.line), ...(steps.some(s => s.inside) ? [hint] : [])].join('\n')
+}
 
 type Result = { content: { type: 'text'; text: string }[]; isError?: boolean }
 const ok = (value: unknown): Result => ({
@@ -137,7 +157,7 @@ export function createMcpServer(dir: string): McpServer {
   }, input => write(m => disconnect(m, input), `Disconnected ${input.from} → ${input.to}.`))
 
   server.registerTool('put_flow', {
-    description: 'Create or replace a flow: a step-by-step walkthrough played on one view.',
+    description: 'Create or replace a flow: a step-by-step walkthrough played on one view. Answers with how each step reads there.',
     inputSchema: {
       id: id('Flow id, also its file name'),
       name: z.string().describe('Title, e.g. "Customer checks out"'),
@@ -149,7 +169,7 @@ export function createMcpServer(dir: string): McpServer {
         description: z.string().optional().describe('Optional longer detail in markdown, shown only when a reader asks for more'),
       })).min(1),
     },
-  }, input => write(m => putFlow(m, input), `Saved flow ${input.id}.`))
+  }, input => write(m => putFlow(m, input), before => readout(before, input))) // a flow changes no box, so `before` places it right
 
   server.registerTool('delete_flow', {
     description: 'Delete a flow.',

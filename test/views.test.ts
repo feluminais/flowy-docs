@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { chain, computeView, hasChildren, memberIds, placeEnds, placeStep } from '../src/core/views.ts'
+import { chain, computeView, hasChildren, memberIds, placeEnds, placeStep, stepEnds } from '../src/core/views.ts'
 import { shop } from './fixtures.ts'
 
 test('chain walks up to root', () => {
@@ -110,4 +110,16 @@ test('placeStep puts a one-box step on the box that stands for it, twice', () =>
   assert.equal(placeStep(m, 'shop', { from: 'shop' }), null) // the box you're inside
   assert.deepEqual(placeStep(m, 'shop', { from: 'web', to: 'api' }), ['web', 'api'])
   assert.equal(placeStep(m, 'shop', { from: 'ghost' }), null)
+})
+
+test('stepEnds names the part inside a box a step lands on, so two steps on one box never read as a round trip', () => {
+  // In Shop, web and api are boxes of their own.
+  assert.equal(stepEnds(shop(), { from: 'web', to: 'api' }, ['web', 'api']), 'Web app → API')
+  // At the top, Web app is drawn as Shop.
+  assert.equal(stepEnds(shop(), { from: 'customer', to: 'web' }, ['customer', 'shop']), 'Customer → Web app in Shop')
+  // Two parts of one box: both named, never just "Shop".
+  assert.equal(stepEnds(shop(), { from: 'web', to: 'api' }, ['shop', 'shop']), 'Web app in Shop → API in Shop')
+  // A step one box does on its own names it once.
+  assert.equal(stepEnds(shop(), { from: 'api' }, ['shop', 'shop']), 'API in Shop')
+  assert.equal(stepEnds(shop(), { from: 'api' }, null), 'API')
 })
