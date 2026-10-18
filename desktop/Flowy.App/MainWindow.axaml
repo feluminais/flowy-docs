@@ -1,0 +1,4 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Flowy.App.MainWindow"
+        Title="Flowy Docs" Width="1100" Height="700" MinWidth="480" MinHeight="320" />

@@ -1,0 +1,1854 @@
+{
+  "scenarios": [
+    {
+      "name": "crossing",
+      "inner": [
+        [
+          "a",
+          0,
+          0
+        ],
+        [
+          "b",
+          300,
+          0
+        ],
+        [
+          "c",
+          150,
+          160
+        ]
+      ],
+      "outsiders": [
+        "p",
+        "x",
+        "y",
+        "z"
+      ],
+      "edges": [
+        {
+          "from": "p",
+          "to": "a"
+        },
+        {
+          "from": "x",
+          "to": "b"
+        },
+        {
+          "from": "c",
+          "to": "y"
+        },
+        {
+          "from": "z",
+          "to": "c"
+        },
+        {
+          "from": "a",
+          "to": "b"
+        },
+        {
+          "from": "b",
+          "to": "c"
+        }
+      ],
+      "regions": {
+        "p": "left",
+        "x": "right",
+        "y": "below",
+        "z": "above"
+      },
+      "members": {
+        "left": 0,
+        "right": 500,
+        "top": 0,
+        "bottom": 232,
+        "middle": {
+          "x": 250,
+          "y": 116
+        },
+        "mean": [
+          [
+            "p",
+            0,
+            0
+          ],
+          [
+            "x",
+            300,
+            0
+          ],
+          [
+            "y",
+            150,
+            160
+          ],
+          [
+            "z",
+            150,
+            160
+          ]
+        ],
+        "people": [
+          "p",
+          "x",
+          "z"
+        ],
+        "rest": [
+          "y"
+        ]
+      },
+      "arranged": {
+        "at": [
+          [
+            "a",
+            0,
+            0
+          ],
+          [
+            "b",
+            300,
+            0
+          ],
+          [
+            "c",
+            150,
+            160
+          ],
+          [
+            "y",
+            150,
+            312
+          ],
+          [
+            "p",
+            -80,
+            -152
+          ],
+          [
+            "z",
+            150,
+            -152
+          ],
+          [
+            "x",
+            380,
+            -152
+          ]
+        ],
+        "rows": [
+          [
+            "a",
+            "b",
+            "c"
+          ],
+          [
+            "p",
+            "z",
+            "x"
+          ],
+          [
+            "y"
+          ]
+        ],
+        "columns": [
+          [],
+          []
+        ]
+      },
+      "tangleArranged": 1,
+      "tidy": [
+        [
+          "a",
+          0,
+          0
+        ],
+        [
+          "b",
+          300,
+          0
+        ],
+        [
+          "c",
+          150,
+          160
+        ],
+        [
+          "y",
+          150,
+          312
+        ],
+        [
+          "p",
+          -80,
+          -152
+        ],
+        [
+          "z",
+          150,
+          -152
+        ],
+        [
+          "x",
+          380,
+          -152
+        ]
+      ],
+      "tangleTidy": 1
+    },
+    {
+      "name": "people",
+      "inner": [
+        [
+          "m1",
+          0,
+          0
+        ],
+        [
+          "m2",
+          300,
+          0
+        ]
+      ],
+      "outsiders": [
+        "alice",
+        "bob",
+        "carol",
+        "dave",
+        "erin",
+        "frank"
+      ],
+      "edges": [
+        {
+          "from": "alice",
+          "to": "m2"
+        },
+        {
+          "from": "bob",
+          "to": "m1"
+        },
+        {
+          "from": "carol",
+          "to": "m2"
+        },
+        {
+          "from": "dave",
+          "to": "m1"
+        },
+        {
+          "from": "erin",
+          "to": "m2"
+        },
+        {
+          "from": "frank",
+          "to": "m1"
+        }
+      ],
+      "regions": {
+        "alice": "left",
+        "bob": "right",
+        "carol": "below",
+        "dave": "above",
+        "erin": "left",
+        "frank": "right"
+      },
+      "members": {
+        "left": 0,
+        "right": 500,
+        "top": 0,
+        "bottom": 72,
+        "middle": {
+          "x": 250,
+          "y": 36
+        },
+        "mean": [
+          [
+            "alice",
+            300,
+            0
+          ],
+          [
+            "bob",
+            0,
+            0
+          ],
+          [
+            "carol",
+            300,
+            0
+          ],
+          [
+            "dave",
+            0,
+            0
+          ],
+          [
+            "erin",
+            300,
+            0
+          ],
+          [
+            "frank",
+            0,
+            0
+          ]
+        ],
+        "people": [
+          "alice",
+          "bob",
+          "carol",
+          "dave",
+          "erin",
+          "frank"
+        ],
+        "rest": []
+      },
+      "arranged": {
+        "at": [
+          [
+            "m1",
+            0,
+            0
+          ],
+          [
+            "m2",
+            300,
+            0
+          ],
+          [
+            "bob",
+            -195,
+            -152
+          ],
+          [
+            "dave",
+            35,
+            -152
+          ],
+          [
+            "frank",
+            265,
+            -152
+          ],
+          [
+            "alice",
+            495,
+            -152
+          ],
+          [
+            "carol",
+            35,
+            -254
+          ],
+          [
+            "erin",
+            265,
+            -254
+          ]
+        ],
+        "rows": [
+          [
+            "m1",
+            "m2"
+          ],
+          [
+            "bob",
+            "dave",
+            "frank",
+            "alice",
+            "carol",
+            "erin"
+          ],
+          []
+        ],
+        "columns": [
+          [],
+          []
+        ]
+      },
+      "tangleArranged": 4,
+      "tidy": [
+        [
+          "m1",
+          0,
+          0
+        ],
+        [
+          "m2",
+          300,
+          0
+        ],
+        [
+          "bob",
+          -195,
+          -152
+        ],
+        [
+          "dave",
+          35,
+          -152
+        ],
+        [
+          "frank",
+          265,
+          -152
+        ],
+        [
+          "alice",
+          495,
+          -152
+        ],
+        [
+          "carol",
+          35,
+          -254
+        ],
+        [
+          "erin",
+          265,
+          -254
+        ]
+      ],
+      "tangleTidy": 4
+    },
+    {
+      "name": "lonely",
+      "inner": [
+        [
+          "only",
+          0,
+          0
+        ]
+      ],
+      "outsiders": [],
+      "edges": [],
+      "regions": {},
+      "members": {
+        "left": 0,
+        "right": 200,
+        "top": 0,
+        "bottom": 72,
+        "middle": {
+          "x": 100,
+          "y": 36
+        },
+        "mean": [],
+        "people": [],
+        "rest": []
+      },
+      "arranged": {
+        "at": [
+          [
+            "only",
+            0,
+            0
+          ]
+        ],
+        "rows": [
+          [
+            "only"
+          ],
+          [],
+          []
+        ],
+        "columns": [
+          [],
+          []
+        ]
+      },
+      "tangleArranged": 0,
+      "tidy": [
+        [
+          "only",
+          0,
+          0
+        ]
+      ],
+      "tangleTidy": 0
+    },
+    {
+      "name": "disconnected-outsider",
+      "inner": [
+        [
+          "a",
+          0,
+          0
+        ],
+        [
+          "b",
+          300,
+          0
+        ]
+      ],
+      "outsiders": [
+        "stray"
+      ],
+      "edges": [
+        {
+          "from": "a",
+          "to": "b"
+        }
+      ],
+      "regions": {
+        "stray": "left"
+      },
+      "members": {
+        "left": 0,
+        "right": 500,
+        "top": 0,
+        "bottom": 72,
+        "middle": {
+          "x": 250,
+          "y": 36
+        },
+        "mean": [
+          [
+            "stray",
+            250,
+            36
+          ]
+        ],
+        "people": [],
+        "rest": [
+          "stray"
+        ]
+      },
+      "arranged": {
+        "at": [
+          [
+            "a",
+            0,
+            0
+          ],
+          [
+            "b",
+            300,
+            0
+          ],
+          [
+            "stray",
+            -280,
+            0
+          ]
+        ],
+        "rows": [
+          [
+            "a",
+            "b"
+          ],
+          [],
+          []
+        ],
+        "columns": [
+          [
+            "stray"
+          ],
+          []
+        ]
+      },
+      "tangleArranged": 0,
+      "tidy": [
+        [
+          "a",
+          0,
+          0
+        ],
+        [
+          "b",
+          300,
+          0
+        ],
+        [
+          "stray",
+          -280,
+          0
+        ]
+      ],
+      "tangleTidy": 0
+    },
+    {
+      "name": "docs/demo/flowy root",
+      "inner": [
+        [
+          "customer",
+          0,
+          0
+        ],
+        [
+          "restaurant",
+          300,
+          0
+        ],
+        [
+          "courier",
+          600,
+          0
+        ],
+        [
+          "support",
+          900,
+          0
+        ],
+        [
+          "ordering",
+          0,
+          150
+        ],
+        [
+          "delivery",
+          300,
+          150
+        ],
+        [
+          "notifications",
+          600,
+          150
+        ],
+        [
+          "backoffice",
+          900,
+          150
+        ],
+        [
+          "stripe",
+          0,
+          300
+        ],
+        [
+          "twilio",
+          300,
+          300
+        ],
+        [
+          "mapbox",
+          600,
+          300
+        ]
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "ordering"
+        },
+        {
+          "from": "restaurant",
+          "to": "ordering"
+        },
+        {
+          "from": "courier",
+          "to": "delivery"
+        },
+        {
+          "from": "support",
+          "to": "backoffice"
+        },
+        {
+          "from": "ordering",
+          "to": "mapbox"
+        },
+        {
+          "from": "ordering",
+          "to": "stripe"
+        },
+        {
+          "from": "ordering",
+          "to": "notifications"
+        },
+        {
+          "from": "delivery",
+          "to": "ordering"
+        },
+        {
+          "from": "delivery",
+          "to": "mapbox"
+        },
+        {
+          "from": "delivery",
+          "to": "notifications"
+        },
+        {
+          "from": "notifications",
+          "to": "twilio"
+        },
+        {
+          "from": "backoffice",
+          "to": "ordering"
+        },
+        {
+          "from": "ordering",
+          "to": "backoffice"
+        }
+      ],
+      "regions": {},
+      "members": {
+        "left": 0,
+        "right": 1100,
+        "top": 0,
+        "bottom": 372,
+        "middle": {
+          "x": 550,
+          "y": 186
+        },
+        "mean": [],
+        "people": [],
+        "rest": []
+      },
+      "arranged": {
+        "at": [
+          [
+            "customer",
+            0,
+            0
+          ],
+          [
+            "restaurant",
+            300,
+            0
+          ],
+          [
+            "courier",
+            600,
+            0
+          ],
+          [
+            "support",
+            900,
+            0
+          ],
+          [
+            "ordering",
+            0,
+            150
+          ],
+          [
+            "delivery",
+            300,
+            150
+          ],
+          [
+            "notifications",
+            600,
+            150
+          ],
+          [
+            "backoffice",
+            900,
+            150
+          ],
+          [
+            "stripe",
+            0,
+            300
+          ],
+          [
+            "twilio",
+            300,
+            300
+          ],
+          [
+            "mapbox",
+            600,
+            300
+          ]
+        ],
+        "rows": [
+          [
+            "customer",
+            "restaurant",
+            "courier",
+            "support",
+            "ordering",
+            "delivery",
+            "notifications",
+            "backoffice",
+            "stripe",
+            "twilio",
+            "mapbox"
+          ],
+          [],
+          []
+        ],
+        "columns": [
+          [],
+          []
+        ]
+      },
+      "tangleArranged": 7,
+      "tidy": [
+        [
+          "customer",
+          0,
+          0
+        ],
+        [
+          "restaurant",
+          300,
+          0
+        ],
+        [
+          "courier",
+          600,
+          0
+        ],
+        [
+          "support",
+          900,
+          0
+        ],
+        [
+          "ordering",
+          300,
+          150
+        ],
+        [
+          "delivery",
+          600,
+          150
+        ],
+        [
+          "notifications",
+          0,
+          150
+        ],
+        [
+          "backoffice",
+          900,
+          150
+        ],
+        [
+          "stripe",
+          300,
+          300
+        ],
+        [
+          "twilio",
+          0,
+          300
+        ],
+        [
+          "mapbox",
+          600,
+          300
+        ]
+      ],
+      "tangleTidy": 3
+    },
+    {
+      "name": "docs/demo/flowy ordering",
+      "inner": [
+        [
+          "customer-app",
+          0,
+          0
+        ],
+        [
+          "web",
+          300,
+          0
+        ],
+        [
+          "kitchen-tablet",
+          600,
+          0
+        ],
+        [
+          "order-api",
+          0,
+          150
+        ],
+        [
+          "orders-db",
+          300,
+          150
+        ],
+        [
+          "menu-cache",
+          600,
+          150
+        ],
+        [
+          "events",
+          0,
+          300
+        ]
+      ],
+      "outsiders": [
+        "customer",
+        "restaurant",
+        "mapbox",
+        "stripe",
+        "notifications",
+        "delivery",
+        "backoffice"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "customer-app"
+        },
+        {
+          "from": "customer",
+          "to": "web"
+        },
+        {
+          "from": "restaurant",
+          "to": "kitchen-tablet"
+        },
+        {
+          "from": "customer-app",
+          "to": "order-api"
+        },
+        {
+          "from": "web",
+          "to": "order-api"
+        },
+        {
+          "from": "kitchen-tablet",
+          "to": "order-api"
+        },
+        {
+          "from": "order-api",
+          "to": "menu-cache"
+        },
+        {
+          "from": "order-api",
+          "to": "orders-db"
+        },
+        {
+          "from": "order-api",
+          "to": "mapbox"
+        },
+        {
+          "from": "order-api",
+          "to": "stripe"
+        },
+        {
+          "from": "order-api",
+          "to": "events"
+        },
+        {
+          "from": "order-api",
+          "to": "notifications"
+        },
+        {
+          "from": "delivery",
+          "to": "events"
+        },
+        {
+          "from": "delivery",
+          "to": "order-api"
+        },
+        {
+          "from": "delivery",
+          "to": "customer-app"
+        },
+        {
+          "from": "delivery",
+          "to": "web"
+        },
+        {
+          "from": "backoffice",
+          "to": "order-api"
+        },
+        {
+          "from": "events",
+          "to": "backoffice"
+        }
+      ],
+      "regions": {
+        "customer": "left",
+        "restaurant": "right",
+        "mapbox": "below",
+        "stripe": "above",
+        "notifications": "left",
+        "delivery": "right",
+        "backoffice": "below"
+      },
+      "members": {
+        "left": 0,
+        "right": 800,
+        "top": 0,
+        "bottom": 372,
+        "middle": {
+          "x": 400,
+          "y": 186
+        },
+        "mean": [
+          [
+            "customer",
+            150,
+            0
+          ],
+          [
+            "restaurant",
+            600,
+            0
+          ],
+          [
+            "mapbox",
+            0,
+            150
+          ],
+          [
+            "stripe",
+            0,
+            150
+          ],
+          [
+            "notifications",
+            0,
+            150
+          ],
+          [
+            "delivery",
+            75,
+            112.5
+          ],
+          [
+            "backoffice",
+            0,
+            225
+          ]
+        ],
+        "people": [
+          "customer",
+          "restaurant",
+          "delivery"
+        ],
+        "rest": [
+          "mapbox",
+          "stripe",
+          "notifications",
+          "backoffice"
+        ]
+      },
+      "arranged": {
+        "at": [
+          [
+            "customer-app",
+            0,
+            0
+          ],
+          [
+            "web",
+            300,
+            0
+          ],
+          [
+            "kitchen-tablet",
+            600,
+            0
+          ],
+          [
+            "order-api",
+            0,
+            150
+          ],
+          [
+            "orders-db",
+            300,
+            150
+          ],
+          [
+            "menu-cache",
+            600,
+            150
+          ],
+          [
+            "events",
+            0,
+            300
+          ],
+          [
+            "notifications",
+            -280,
+            150
+          ],
+          [
+            "mapbox",
+            185,
+            452
+          ],
+          [
+            "backoffice",
+            415,
+            452
+          ],
+          [
+            "stripe",
+            -45,
+            -152
+          ],
+          [
+            "delivery",
+            185,
+            -152
+          ],
+          [
+            "customer",
+            415,
+            -152
+          ],
+          [
+            "restaurant",
+            645,
+            -152
+          ]
+        ],
+        "rows": [
+          [
+            "customer-app",
+            "web",
+            "kitchen-tablet",
+            "order-api",
+            "orders-db",
+            "menu-cache",
+            "events"
+          ],
+          [
+            "stripe",
+            "delivery",
+            "customer",
+            "restaurant"
+          ],
+          [
+            "mapbox",
+            "backoffice"
+          ]
+        ],
+        "columns": [
+          [
+            "notifications"
+          ],
+          []
+        ]
+      },
+      "tangleArranged": 15,
+      "tidy": [
+        [
+          "customer-app",
+          0,
+          0
+        ],
+        [
+          "web",
+          300,
+          0
+        ],
+        [
+          "kitchen-tablet",
+          600,
+          0
+        ],
+        [
+          "order-api",
+          300,
+          150
+        ],
+        [
+          "orders-db",
+          0,
+          150
+        ],
+        [
+          "menu-cache",
+          600,
+          150
+        ],
+        [
+          "events",
+          0,
+          300
+        ],
+        [
+          "notifications",
+          -280,
+          150
+        ],
+        [
+          "mapbox",
+          415,
+          452
+        ],
+        [
+          "backoffice",
+          185,
+          452
+        ],
+        [
+          "stripe",
+          415,
+          -152
+        ],
+        [
+          "delivery",
+          -45,
+          -152
+        ],
+        [
+          "customer",
+          185,
+          -152
+        ],
+        [
+          "restaurant",
+          645,
+          -152
+        ]
+      ],
+      "tangleTidy": 8
+    },
+    {
+      "name": "docs/demo/flowy delivery",
+      "inner": [
+        [
+          "courier-app",
+          0,
+          0
+        ],
+        [
+          "dispatch",
+          300,
+          0
+        ],
+        [
+          "tracking",
+          0,
+          150
+        ],
+        [
+          "fleet-db",
+          300,
+          150
+        ]
+      ],
+      "outsiders": [
+        "courier",
+        "ordering",
+        "mapbox",
+        "notifications"
+      ],
+      "edges": [
+        {
+          "from": "courier",
+          "to": "courier-app"
+        },
+        {
+          "from": "dispatch",
+          "to": "ordering"
+        },
+        {
+          "from": "dispatch",
+          "to": "fleet-db"
+        },
+        {
+          "from": "dispatch",
+          "to": "mapbox"
+        },
+        {
+          "from": "dispatch",
+          "to": "notifications"
+        },
+        {
+          "from": "courier-app",
+          "to": "dispatch"
+        },
+        {
+          "from": "courier-app",
+          "to": "tracking"
+        },
+        {
+          "from": "courier-app",
+          "to": "ordering"
+        },
+        {
+          "from": "courier-app",
+          "to": "mapbox"
+        },
+        {
+          "from": "tracking",
+          "to": "fleet-db"
+        },
+        {
+          "from": "tracking",
+          "to": "ordering"
+        }
+      ],
+      "regions": {
+        "courier": "left",
+        "ordering": "right",
+        "mapbox": "below",
+        "notifications": "above"
+      },
+      "members": {
+        "left": 0,
+        "right": 500,
+        "top": 0,
+        "bottom": 222,
+        "middle": {
+          "x": 250,
+          "y": 111
+        },
+        "mean": [
+          [
+            "courier",
+            0,
+            0
+          ],
+          [
+            "ordering",
+            100,
+            50
+          ],
+          [
+            "mapbox",
+            150,
+            0
+          ],
+          [
+            "notifications",
+            300,
+            0
+          ]
+        ],
+        "people": [
+          "courier"
+        ],
+        "rest": [
+          "ordering",
+          "mapbox",
+          "notifications"
+        ]
+      },
+      "arranged": {
+        "at": [
+          [
+            "courier-app",
+            0,
+            0
+          ],
+          [
+            "dispatch",
+            300,
+            0
+          ],
+          [
+            "tracking",
+            0,
+            150
+          ],
+          [
+            "fleet-db",
+            300,
+            150
+          ],
+          [
+            "ordering",
+            580,
+            75
+          ],
+          [
+            "mapbox",
+            150,
+            302
+          ],
+          [
+            "courier",
+            35,
+            -152
+          ],
+          [
+            "notifications",
+            265,
+            -152
+          ]
+        ],
+        "rows": [
+          [
+            "courier-app",
+            "dispatch",
+            "tracking",
+            "fleet-db"
+          ],
+          [
+            "courier",
+            "notifications"
+          ],
+          [
+            "mapbox"
+          ]
+        ],
+        "columns": [
+          [],
+          [
+            "ordering"
+          ]
+        ]
+      },
+      "tangleArranged": 11,
+      "tidy": [
+        [
+          "courier-app",
+          300,
+          0
+        ],
+        [
+          "dispatch",
+          0,
+          0
+        ],
+        [
+          "tracking",
+          300,
+          150
+        ],
+        [
+          "fleet-db",
+          0,
+          150
+        ],
+        [
+          "ordering",
+          580,
+          75
+        ],
+        [
+          "mapbox",
+          150,
+          302
+        ],
+        [
+          "courier",
+          265,
+          -152
+        ],
+        [
+          "notifications",
+          35,
+          -152
+        ]
+      ],
+      "tangleTidy": 7
+    },
+    {
+      "name": "example root",
+      "inner": [
+        [
+          "customer",
+          0,
+          0
+        ],
+        [
+          "shop",
+          300,
+          0
+        ],
+        [
+          "mail",
+          0,
+          150
+        ]
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop"
+        },
+        {
+          "from": "shop",
+          "to": "mail"
+        }
+      ],
+      "regions": {},
+      "members": {
+        "left": 0,
+        "right": 500,
+        "top": 0,
+        "bottom": 222,
+        "middle": {
+          "x": 250,
+          "y": 111
+        },
+        "mean": [],
+        "people": [],
+        "rest": []
+      },
+      "arranged": {
+        "at": [
+          [
+            "customer",
+            0,
+            0
+          ],
+          [
+            "shop",
+            300,
+            0
+          ],
+          [
+            "mail",
+            0,
+            150
+          ]
+        ],
+        "rows": [
+          [
+            "customer",
+            "shop",
+            "mail"
+          ],
+          [],
+          []
+        ],
+        "columns": [
+          [],
+          []
+        ]
+      },
+      "tangleArranged": 0,
+      "tidy": [
+        [
+          "customer",
+          0,
+          0
+        ],
+        [
+          "shop",
+          300,
+          0
+        ],
+        [
+          "mail",
+          0,
+          150
+        ]
+      ],
+      "tangleTidy": 0
+    },
+    {
+      "name": "example shop",
+      "inner": [
+        [
+          "web",
+          0,
+          0
+        ],
+        [
+          "api",
+          300,
+          0
+        ],
+        [
+          "db",
+          0,
+          150
+        ]
+      ],
+      "outsiders": [
+        "customer",
+        "mail"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web"
+        },
+        {
+          "from": "web",
+          "to": "api"
+        },
+        {
+          "from": "api",
+          "to": "db"
+        },
+        {
+          "from": "api",
+          "to": "mail"
+        }
+      ],
+      "regions": {
+        "customer": "left",
+        "mail": "right"
+      },
+      "members": {
+        "left": 0,
+        "right": 500,
+        "top": 0,
+        "bottom": 222,
+        "middle": {
+          "x": 250,
+          "y": 111
+        },
+        "mean": [
+          [
+            "customer",
+            0,
+            0
+          ],
+          [
+            "mail",
+            300,
+            0
+          ]
+        ],
+        "people": [
+          "customer"
+        ],
+        "rest": [
+          "mail"
+        ]
+      },
+      "arranged": {
+        "at": [
+          [
+            "web",
+            0,
+            0
+          ],
+          [
+            "api",
+            300,
+            0
+          ],
+          [
+            "db",
+            0,
+            150
+          ],
+          [
+            "mail",
+            580,
+            75
+          ],
+          [
+            "customer",
+            150,
+            -152
+          ]
+        ],
+        "rows": [
+          [
+            "web",
+            "api",
+            "db"
+          ],
+          [
+            "customer"
+          ],
+          []
+        ],
+        "columns": [
+          [],
+          [
+            "mail"
+          ]
+        ]
+      },
+      "tangleArranged": 0,
+      "tidy": [
+        [
+          "web",
+          0,
+          0
+        ],
+        [
+          "api",
+          300,
+          0
+        ],
+        [
+          "db",
+          0,
+          150
+        ],
+        [
+          "mail",
+          580,
+          75
+        ],
+        [
+          "customer",
+          150,
+          -152
+        ]
+      ],
+      "tangleTidy": 0
+    },
+    {
+      "name": "example api",
+      "inner": [
+        [
+          "auth",
+          0,
+          0
+        ],
+        [
+          "orders",
+          300,
+          0
+        ]
+      ],
+      "outsiders": [
+        "db",
+        "mail"
+      ],
+      "edges": [
+        {
+          "from": "orders",
+          "to": "db"
+        },
+        {
+          "from": "auth",
+          "to": "db"
+        },
+        {
+          "from": "orders",
+          "to": "mail"
+        }
+      ],
+      "regions": {
+        "db": "left",
+        "mail": "right"
+      },
+      "members": {
+        "left": 0,
+        "right": 500,
+        "top": 0,
+        "bottom": 72,
+        "middle": {
+          "x": 250,
+          "y": 36
+        },
+        "mean": [
+          [
+            "db",
+            150,
+            0
+          ],
+          [
+            "mail",
+            300,
+            0
+          ]
+        ],
+        "people": [],
+        "rest": [
+          "db",
+          "mail"
+        ]
+      },
+      "arranged": {
+        "at": [
+          [
+            "auth",
+            0,
+            0
+          ],
+          [
+            "orders",
+            300,
+            0
+          ],
+          [
+            "db",
+            -280,
+            0
+          ],
+          [
+            "mail",
+            580,
+            0
+          ]
+        ],
+        "rows": [
+          [
+            "auth",
+            "orders"
+          ],
+          [],
+          []
+        ],
+        "columns": [
+          [
+            "db"
+          ],
+          [
+            "mail"
+          ]
+        ]
+      },
+      "tangleArranged": 1,
+      "tidy": [
+        [
+          "auth",
+          0,
+          0
+        ],
+        [
+          "orders",
+          300,
+          0
+        ],
+        [
+          "db",
+          -280,
+          0
+        ],
+        [
+          "mail",
+          580,
+          0
+        ]
+      ],
+      "tangleTidy": 1
+    }
+  ],
+  "ungrouped": {
+    "edges": [
+      {
+        "from": "a",
+        "to": "c"
+      },
+      {
+        "from": "b",
+        "to": "c"
+      }
+    ],
+    "before": [
+      [
+        "a",
+        0,
+        0
+      ],
+      [
+        "b",
+        300,
+        0
+      ],
+      [
+        "c",
+        600,
+        0
+      ]
+    ],
+    "tangleBefore": 1,
+    "after": [
+      [
+        "a",
+        0,
+        0
+      ],
+      [
+        "b",
+        600,
+        0
+      ],
+      [
+        "c",
+        300,
+        0
+      ]
+    ]
+  }
+}

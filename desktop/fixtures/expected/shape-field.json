@@ -1,0 +1,6 @@
+{
+  "parseError": {
+    "file": "model.yaml",
+    "message": "object \"a\": \"name\" must be plain text, not a list or a mapping"
+  }
+}

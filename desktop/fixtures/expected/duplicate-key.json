@@ -1,0 +1,7 @@
+{
+  "parseError": {
+    "file": "model.yaml",
+    "line": 3,
+    "message": "Map keys must be unique"
+  }
+}

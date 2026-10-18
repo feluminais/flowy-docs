@@ -1,0 +1,16 @@
+{
+  "lineStyle": "straight",
+  "objects": [],
+  "connections": [],
+  "layout": {},
+  "flows": [],
+  "problems": [],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [],
+      "outsiders": [],
+      "edges": []
+    }
+  }
+}

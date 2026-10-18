@@ -1,0 +1,8 @@
+name: Step problems
+view: shop
+steps:
+  - { from: customer, to: shop, text: outside to inside }
+  - { from: api, to: api, text: self }
+  - { from: ghost, text: alone and unknown }
+  - { from: api, text: fine }
+  - { from: api, to: ghost, text: '' }

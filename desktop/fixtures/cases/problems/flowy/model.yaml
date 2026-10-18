@@ -1,0 +1,53 @@
+lines: wiggly
+objects:
+  customer:
+    type: actor
+    name: Customer
+  Bad_ID:
+    type: actor
+    name: Bad id
+  shop:
+    type: system
+    name: Shop
+    code: [src/real.ts, src/gone.ts, ../escape.ts, /abs.ts]
+  api:
+    type: app
+    in: shop
+    name: API
+    external: maybe
+  nameless:
+    type: app
+    in: shop
+  orphan:
+    type: component
+  lost:
+    type: component
+    in: nowhere
+  wrong:
+    type: component
+    in: customer
+  mystery:
+    type: gadget
+  untyped:
+    name: No type
+  badcode:
+    type: system
+    name: Bad code
+    code: not-a-list
+  mixedcode:
+    type: system
+    name: Mixed code
+    code: [src/real.ts, [nested]]
+  actor-in:
+    type: actor
+    name: Actor inside
+    in: shop
+connections:
+  - { from: customer, to: shop, label: browses }
+  - { from: customer, to: shop, label: browses }
+  - { from: customer, to: shop }
+  - { from: shop, to: shop, label: loop }
+  - { from: shop, to: ghost }
+  - from:
+    to: api
+  - from: api

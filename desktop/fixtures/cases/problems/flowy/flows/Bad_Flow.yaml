@@ -1,0 +1,4 @@
+name: Bad flow id
+view: root
+steps:
+  - { from: customer, to: shop, text: Visits }

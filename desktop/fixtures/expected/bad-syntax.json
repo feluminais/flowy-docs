@@ -1,0 +1,7 @@
+{
+  "parseError": {
+    "file": "model.yaml",
+    "line": 2,
+    "message": "Flow sequence in block collection must be sufficiently indented and end with a ]"
+  }
+}

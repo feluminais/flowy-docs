@@ -1,0 +1,8 @@
+name: A good flow
+view: root
+steps:
+  - { from: customer, to: shop, text: Visits }
+  - from: shop
+    text: Thinks
+    description: |
+      A longer note.

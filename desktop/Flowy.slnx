@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Flowy.App.Tests/Flowy.App.Tests.csproj" />
+  <Project Path="Flowy.App/Flowy.App.csproj" />
+  <Project Path="Flowy.Core/Flowy.Core.csproj" />
+  <Project Path="Flowy.Tests/Flowy.Tests.csproj" />
+</Solution>

@@ -1,0 +1,66 @@
+name: desktop
+
+# The native reader's installers. Started by hand from the Actions tab: bump <Version> in desktop/Flowy.App/Flowy.App.csproj first.
+# Each system builds its own package (Velopack makes the Windows installer, the macOS package and the Linux AppImage on the system it
+# runs on) and uploads it to a DRAFT release named v<version>, next to what the others uploaded. Publishing the draft is the human step.
+# Nothing is signed: Windows will show SmartScreen, macOS needs right-click then Open and gets no automatic updates.
+# Only the Windows package has been built and run by the person who wrote this; the macOS and Linux jobs are untried.
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: npm ci
+      - run: npm test # includes the check that desktop/fixtures/expected still matches the TypeScript core
+      - run: dotnet test desktop
+
+  package:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, rid: win-x64, exe: FlowyDocs.exe, icon: icon.ico }
+          - { os: macos-latest, rid: osx-arm64, exe: FlowyDocs, icon: icon.icns }
+          - { os: ubuntu-latest, rid: linux-x64, exe: FlowyDocs, icon: icon.png }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Read the version
+        shell: bash
+        run: echo "VERSION=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' desktop/Flowy.App/Flowy.App.csproj)" >> "$GITHUB_ENV"
+      - run: dotnet tool restore --tool-manifest desktop/.config/dotnet-tools.json
+      - run: dotnet publish desktop/Flowy.App -c Release -r ${{ matrix.rid }} --self-contained true -o desktop/publish/${{ matrix.rid }}
+      - name: Pack
+        shell: bash
+        run: >
+          dotnet vpk pack
+          --packId FlowyDocs --packVersion "$VERSION" --packTitle "Flowy Docs" --packAuthors feluminais
+          --packDir desktop/publish/${{ matrix.rid }} --mainExe ${{ matrix.exe }}
+          --icon desktop/Flowy.App/Assets/${{ matrix.icon }}
+          --outputDir desktop/releases
+      - name: Upload to a draft release
+        shell: bash
+        run: >
+          dotnet vpk upload github
+          --repoUrl "https://github.com/${{ github.repository }}" --token "${{ secrets.GITHUB_TOKEN }}"
+          --tag "v$VERSION" --releaseName "Flowy Docs $VERSION"
+          --outputDir desktop/releases

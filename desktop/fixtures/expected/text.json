@@ -1,0 +1,121 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "2",
+      "type": "actor",
+      "name": "Two"
+    },
+    {
+      "id": "10",
+      "type": "actor",
+      "name": "Ten"
+    },
+    {
+      "id": "b",
+      "type": "actor",
+      "name": "B"
+    },
+    {
+      "id": "007",
+      "type": "actor",
+      "name": "Bond"
+    },
+    {
+      "id": "a",
+      "type": "system",
+      "name": "Quoted: \"name\"",
+      "external": "true",
+      "tech": "3.10",
+      "description": "First paragraph.\n\n- item one\n- item two\n"
+    },
+    {
+      "id": "c",
+      "type": "system",
+      "name": "Folded",
+      "description": "folded text continues here"
+    },
+    {
+      "id": "d",
+      "type": "system",
+      "name": "Escapes é \t tab",
+      "description": "multi line quoted"
+    },
+    {
+      "id": "e",
+      "type": "system",
+      "name": "Emoji 🚀 and Ünïcode",
+      "tech": "yes"
+    },
+    {
+      "id": "f",
+      "type": "system",
+      "name": "Keep",
+      "description": "trailing blank lines\n\n"
+    },
+    {
+      "id": "g",
+      "type": "system",
+      "name": "Single 'quotes' and",
+      "description": "it's fine"
+    }
+  ],
+  "connections": [
+    {
+      "from": "b",
+      "to": "10",
+      "label": "to ten"
+    },
+    {
+      "from": "2",
+      "to": "007",
+      "label": "~"
+    },
+    {
+      "from": "a",
+      "to": "c",
+      "label": "two lines"
+    }
+  ],
+  "layout": {},
+  "flows": [],
+  "problems": [],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "2",
+        "10",
+        "b",
+        "007",
+        "a",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "b",
+          "to": "10",
+          "label": "to ten",
+          "count": 1
+        },
+        {
+          "from": "2",
+          "to": "007",
+          "label": "~",
+          "count": 1
+        },
+        {
+          "from": "a",
+          "to": "c",
+          "label": "two lines",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

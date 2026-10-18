@@ -1,0 +1,1306 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer",
+      "description": "Someone hungry, ordering from the Plum app or the website."
+    },
+    {
+      "id": "restaurant",
+      "type": "actor",
+      "name": "Restaurant",
+      "description": "The kitchen staff who accept an order and mark it ready."
+    },
+    {
+      "id": "courier",
+      "type": "actor",
+      "name": "Courier",
+      "description": "Rides or drives the order from the restaurant to the customer's door."
+    },
+    {
+      "id": "support",
+      "type": "actor",
+      "name": "Support agent",
+      "description": "Answers customers and couriers when something goes wrong."
+    },
+    {
+      "id": "ordering",
+      "type": "system",
+      "name": "Ordering",
+      "description": "Everything a customer touches: browsing menus, building a basket, paying.\n\nThe **Order API** is the only way in. It keeps orders in Postgres and announces every new\norder on the **Order events** bus, which is how **Delivery** hears about it.\n"
+    },
+    {
+      "id": "delivery",
+      "type": "system",
+      "name": "Delivery",
+      "description": "Finds a courier for each order and follows it to the door.\n\nDispatch matches and offers. Live tracking keeps the customer's map moving.\n"
+    },
+    {
+      "id": "notifications",
+      "type": "system",
+      "name": "Notifications",
+      "description": "Push, SMS and email, from one place, so no other system talks to a messaging provider."
+    },
+    {
+      "id": "backoffice",
+      "type": "system",
+      "name": "Back office",
+      "description": "Tools for Plum's own staff. Nothing here is visible to customers or couriers."
+    },
+    {
+      "id": "stripe",
+      "type": "system",
+      "name": "Stripe",
+      "external": "true",
+      "description": "Takes card payments and sends refunds. Plum never sees a card number.\n\n[Provider status](https://status.stripe.com)\n"
+    },
+    {
+      "id": "twilio",
+      "type": "system",
+      "name": "Twilio",
+      "external": "true",
+      "description": "Sends the SMS messages."
+    },
+    {
+      "id": "mapbox",
+      "type": "system",
+      "name": "Mapbox",
+      "external": "true",
+      "description": "Maps, address lookup and travel times."
+    },
+    {
+      "id": "customer-app",
+      "type": "app",
+      "name": "Customer app",
+      "in": "ordering",
+      "tech": "React Native",
+      "description": "The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\nKeeps nothing but the basket and the session.\n",
+      "code": [
+        "apps/customer/"
+      ]
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Website",
+      "in": "ordering",
+      "tech": "Next.js",
+      "description": "The same ordering flow in a browser. Menus are rendered on the server so search engines see them."
+    },
+    {
+      "id": "kitchen-tablet",
+      "type": "app",
+      "name": "Kitchen tablet",
+      "in": "ordering",
+      "tech": "Android",
+      "description": "Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected."
+    },
+    {
+      "id": "order-api",
+      "type": "app",
+      "name": "Order API",
+      "in": "ordering",
+      "tech": "Node, Fastify",
+      "description": "Every client talks to this, and nothing else talks to the **Orders DB**.\n\n- `GET /menus/:restaurant` reads a menu\n- `POST /orders` places an order\n- `POST /orders/:id/refund` refunds one\n",
+      "code": [
+        "services/order-api/"
+      ]
+    },
+    {
+      "id": "orders-db",
+      "type": "store",
+      "name": "Orders DB",
+      "in": "ordering",
+      "tech": "Postgres",
+      "description": "Orders, baskets and refunds. The source of truth for what a customer owes and was charged."
+    },
+    {
+      "id": "menu-cache",
+      "type": "store",
+      "name": "Menu cache",
+      "in": "ordering",
+      "tech": "Redis",
+      "description": "Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires."
+    },
+    {
+      "id": "events",
+      "type": "store",
+      "name": "Order events",
+      "in": "ordering",
+      "tech": "Kafka",
+      "description": "One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\nDispatch reads from it, and so does the warehouse.\n"
+    },
+    {
+      "id": "menu",
+      "type": "component",
+      "name": "Menu",
+      "in": "order-api",
+      "description": "Serves a restaurant's menu from the cache, and from the database when the cache is cold."
+    },
+    {
+      "id": "basket",
+      "type": "component",
+      "name": "Basket",
+      "in": "order-api",
+      "description": "Holds what the customer picked and asks **Pricing** for the running total."
+    },
+    {
+      "id": "pricing",
+      "type": "component",
+      "name": "Pricing",
+      "in": "order-api",
+      "description": "Works out the total: items, delivery fee (by distance) and any promotion.\n\nThe delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n",
+      "code": [
+        "services/order-api/src/pricing.ts"
+      ]
+    },
+    {
+      "id": "checkout",
+      "type": "component",
+      "name": "Checkout",
+      "in": "order-api",
+      "description": "Prices the basket, authorises the card and places the order.\n\nNothing is charged until the restaurant accepts. A rejected order releases the hold.\n",
+      "code": [
+        "services/order-api/src/checkout.ts"
+      ]
+    },
+    {
+      "id": "status",
+      "type": "component",
+      "name": "Order status",
+      "in": "order-api",
+      "description": "Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step."
+    },
+    {
+      "id": "refunds",
+      "type": "component",
+      "name": "Refunds",
+      "in": "order-api",
+      "description": "Returns money to the card, then marks the order refunded. Support can refund in full or by line."
+    },
+    {
+      "id": "courier-app",
+      "type": "app",
+      "name": "Courier app",
+      "in": "delivery",
+      "tech": "Kotlin, Swift",
+      "description": "Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open."
+    },
+    {
+      "id": "dispatch",
+      "type": "app",
+      "name": "Dispatch",
+      "in": "delivery",
+      "tech": "Go",
+      "description": "Turns each new order into a courier on the way.\n\nIt reads `placed` events and offers the job to couriers one at a time, nearest first.\n",
+      "code": [
+        "services/dispatch/"
+      ]
+    },
+    {
+      "id": "tracking",
+      "type": "app",
+      "name": "Live tracking",
+      "in": "delivery",
+      "tech": "Go, WebSocket",
+      "description": "Passes the courier's position to the customer's map. A position older than a minute is dropped."
+    },
+    {
+      "id": "fleet-db",
+      "type": "store",
+      "name": "Fleet DB",
+      "in": "delivery",
+      "tech": "Postgres, PostGIS",
+      "description": "Couriers, their vehicles, and their last known position."
+    },
+    {
+      "id": "matcher",
+      "type": "component",
+      "name": "Matcher",
+      "in": "dispatch",
+      "description": "Ranks the idle couriers near a restaurant by how soon each could be there.",
+      "code": [
+        "services/dispatch/matcher.go"
+      ]
+    },
+    {
+      "id": "eta",
+      "type": "component",
+      "name": "ETA",
+      "in": "dispatch",
+      "description": "Estimates travel time from distance, traffic and the courier's vehicle."
+    },
+    {
+      "id": "offers",
+      "type": "component",
+      "name": "Offers",
+      "in": "dispatch",
+      "description": "Offers a job to one courier at a time and waits 30 seconds for an answer.\n\nA refusal or a timeout moves on to the next courier.\n"
+    },
+    {
+      "id": "notifier",
+      "type": "app",
+      "name": "Notifier",
+      "in": "notifications",
+      "tech": "Node",
+      "description": "Picks push, SMS or email for each message and sends it. Never blocks the caller."
+    },
+    {
+      "id": "templates",
+      "type": "store",
+      "name": "Message templates",
+      "in": "notifications",
+      "tech": "Postgres",
+      "description": "The wording of every message, per language."
+    },
+    {
+      "id": "admin",
+      "type": "app",
+      "name": "Admin dashboard",
+      "in": "backoffice",
+      "tech": "React",
+      "description": "Restaurants, delivery zones, promotions and the weekly reports."
+    },
+    {
+      "id": "support-console",
+      "type": "app",
+      "name": "Support console",
+      "in": "backoffice",
+      "tech": "React",
+      "description": "Look up an order, see where the courier is, issue a refund."
+    },
+    {
+      "id": "warehouse",
+      "type": "store",
+      "name": "Data warehouse",
+      "in": "backoffice",
+      "tech": "ClickHouse",
+      "description": "Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**."
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "customer-app",
+      "label": "orders on a phone"
+    },
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "orders in a browser"
+    },
+    {
+      "from": "restaurant",
+      "to": "kitchen-tablet",
+      "label": "accepts orders"
+    },
+    {
+      "from": "courier",
+      "to": "courier-app",
+      "label": "takes deliveries"
+    },
+    {
+      "from": "support",
+      "to": "support-console",
+      "label": "handles tickets"
+    },
+    {
+      "from": "support",
+      "to": "admin",
+      "label": "looks up couriers"
+    },
+    {
+      "from": "customer-app",
+      "to": "order-api",
+      "label": "REST"
+    },
+    {
+      "from": "web",
+      "to": "order-api",
+      "label": "REST"
+    },
+    {
+      "from": "kitchen-tablet",
+      "to": "order-api",
+      "label": "accepts, marks ready"
+    },
+    {
+      "from": "menu",
+      "to": "menu-cache",
+      "label": "reads menus"
+    },
+    {
+      "from": "menu",
+      "to": "orders-db",
+      "label": "on a cache miss"
+    },
+    {
+      "from": "basket",
+      "to": "orders-db",
+      "label": "saves the basket"
+    },
+    {
+      "from": "basket",
+      "to": "pricing",
+      "label": "asks for totals"
+    },
+    {
+      "from": "pricing",
+      "to": "mapbox",
+      "label": "delivery distance"
+    },
+    {
+      "from": "checkout",
+      "to": "pricing",
+      "label": "gets the total"
+    },
+    {
+      "from": "checkout",
+      "to": "stripe",
+      "label": "holds the card"
+    },
+    {
+      "from": "checkout",
+      "to": "orders-db",
+      "label": "writes the order"
+    },
+    {
+      "from": "checkout",
+      "to": "events",
+      "label": "announces placed"
+    },
+    {
+      "from": "status",
+      "to": "orders-db",
+      "label": "moves the order on"
+    },
+    {
+      "from": "status",
+      "to": "events",
+      "label": "announces each step"
+    },
+    {
+      "from": "status",
+      "to": "notifier",
+      "label": "order updates"
+    },
+    {
+      "from": "refunds",
+      "to": "stripe",
+      "label": "refunds the charge"
+    },
+    {
+      "from": "refunds",
+      "to": "orders-db",
+      "label": "marks refunded"
+    },
+    {
+      "from": "refunds",
+      "to": "notifier",
+      "label": "confirms by message"
+    },
+    {
+      "from": "dispatch",
+      "to": "events",
+      "label": "reads placed orders"
+    },
+    {
+      "from": "matcher",
+      "to": "fleet-db",
+      "label": "finds idle couriers"
+    },
+    {
+      "from": "matcher",
+      "to": "eta",
+      "label": "asks who is quickest"
+    },
+    {
+      "from": "matcher",
+      "to": "offers",
+      "label": "hands over the ranking"
+    },
+    {
+      "from": "eta",
+      "to": "mapbox",
+      "label": "travel times"
+    },
+    {
+      "from": "offers",
+      "to": "notifier",
+      "label": "sends the offer"
+    },
+    {
+      "from": "courier-app",
+      "to": "dispatch",
+      "label": "accepts or refuses"
+    },
+    {
+      "from": "courier-app",
+      "to": "tracking",
+      "label": "position every 5 s"
+    },
+    {
+      "from": "courier-app",
+      "to": "status",
+      "label": "picked up, delivered"
+    },
+    {
+      "from": "courier-app",
+      "to": "mapbox",
+      "label": "navigation"
+    },
+    {
+      "from": "tracking",
+      "to": "fleet-db",
+      "label": "stores positions"
+    },
+    {
+      "from": "tracking",
+      "to": "customer-app",
+      "label": "live map"
+    },
+    {
+      "from": "tracking",
+      "to": "web",
+      "label": "live map"
+    },
+    {
+      "from": "notifier",
+      "to": "twilio",
+      "label": "SMS"
+    },
+    {
+      "from": "notifier",
+      "to": "templates",
+      "label": "reads the wording"
+    },
+    {
+      "from": "support-console",
+      "to": "order-api",
+      "label": "looks up orders"
+    },
+    {
+      "from": "support-console",
+      "to": "refunds",
+      "label": "issues refunds"
+    },
+    {
+      "from": "admin",
+      "to": "order-api",
+      "label": "menus and promotions"
+    },
+    {
+      "from": "admin",
+      "to": "warehouse",
+      "label": "weekly reports"
+    },
+    {
+      "from": "events",
+      "to": "warehouse",
+      "label": "streams every event"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "deliver-order",
+      "name": "A courier delivers it",
+      "view": "delivery",
+      "steps": [
+        {
+          "from": "events",
+          "to": "dispatch",
+          "text": "Hears that an order was placed",
+          "placed": [
+            "ordering",
+            "dispatch"
+          ],
+          "ends": "Order events in Ordering → Dispatch"
+        },
+        {
+          "from": "dispatch",
+          "to": "fleet-db",
+          "text": "Finds idle couriers near the restaurant",
+          "placed": [
+            "dispatch",
+            "fleet-db"
+          ],
+          "ends": "Dispatch → Fleet DB"
+        },
+        {
+          "from": "dispatch",
+          "text": "Ranks them by how soon each could arrive",
+          "description": "The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the\nvehicle. The quickest one is offered the job first.\n",
+          "placed": [
+            "dispatch",
+            "dispatch"
+          ],
+          "ends": "Dispatch"
+        },
+        {
+          "from": "dispatch",
+          "to": "notifier",
+          "text": "Sends the offer as a push",
+          "placed": [
+            "dispatch",
+            "notifications"
+          ],
+          "ends": "Dispatch → Notifier in Notifications"
+        },
+        {
+          "from": "courier",
+          "to": "courier-app",
+          "text": "Accepts within 30 seconds",
+          "placed": [
+            "courier",
+            "courier-app"
+          ],
+          "ends": "Courier → Courier app"
+        },
+        {
+          "from": "courier-app",
+          "to": "tracking",
+          "text": "Streams its position every 5 seconds",
+          "description": "Only while a job is open. A position older than a minute is dropped, so a courier who loses\nsignal stops moving on the customer's map instead of jumping when it comes back.\n",
+          "placed": [
+            "courier-app",
+            "tracking"
+          ],
+          "ends": "Courier app → Live tracking"
+        },
+        {
+          "from": "tracking",
+          "to": "customer-app",
+          "text": "The customer watches the courier come",
+          "placed": [
+            "tracking",
+            "ordering"
+          ],
+          "ends": "Live tracking → Customer app in Ordering"
+        },
+        {
+          "from": "courier-app",
+          "to": "order-api",
+          "text": "Marks the order delivered",
+          "placed": [
+            "courier-app",
+            "ordering"
+          ],
+          "ends": "Courier app → Order API in Ordering"
+        }
+      ]
+    },
+    {
+      "id": "place-order",
+      "name": "Customer places an order",
+      "view": "ordering",
+      "steps": [
+        {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Fills a basket and taps Place order",
+          "placed": [
+            "customer",
+            "customer-app"
+          ],
+          "ends": "Customer → Customer app"
+        },
+        {
+          "from": "customer-app",
+          "to": "order-api",
+          "text": "POST /orders with the basket",
+          "description": "The app sends an idempotency key with the request, so a double tap or a retry on a bad\nconnection places one order, not two.\n",
+          "placed": [
+            "customer-app",
+            "order-api"
+          ],
+          "ends": "Customer app → Order API"
+        },
+        {
+          "from": "order-api",
+          "to": "stripe",
+          "text": "Holds the amount on the card",
+          "description": "**Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\nonce the restaurant accepts, and the hold is released if it refuses.\n",
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Order API → Stripe"
+        },
+        {
+          "from": "order-api",
+          "to": "orders-db",
+          "text": "Saves the order as placed",
+          "placed": [
+            "order-api",
+            "orders-db"
+          ],
+          "ends": "Order API → Orders DB"
+        },
+        {
+          "from": "order-api",
+          "to": "events",
+          "text": "Announces the order",
+          "placed": [
+            "order-api",
+            "events"
+          ],
+          "ends": "Order API → Order events"
+        },
+        {
+          "from": "events",
+          "to": "dispatch",
+          "text": "Dispatch starts looking for a courier",
+          "placed": [
+            "events",
+            "delivery"
+          ],
+          "ends": "Order events → Dispatch in Delivery"
+        },
+        {
+          "from": "order-api",
+          "to": "kitchen-tablet",
+          "text": "The restaurant's tablet rings",
+          "description": "The kitchen has two minutes to accept. After that the order is cancelled, the hold is\nreleased and the customer is told.\n",
+          "placed": [
+            "order-api",
+            "kitchen-tablet"
+          ],
+          "ends": "Order API → Kitchen tablet"
+        }
+      ]
+    },
+    {
+      "id": "refund",
+      "name": "Support refunds an order",
+      "view": "root",
+      "steps": [
+        {
+          "from": "support",
+          "to": "backoffice",
+          "text": "Finds the order in the support console",
+          "placed": [
+            "support",
+            "backoffice"
+          ],
+          "ends": "Support agent → Back office"
+        },
+        {
+          "from": "backoffice",
+          "to": "ordering",
+          "text": "Asks for a refund",
+          "placed": [
+            "backoffice",
+            "ordering"
+          ],
+          "ends": "Back office → Ordering"
+        },
+        {
+          "from": "ordering",
+          "to": "stripe",
+          "text": "The money goes back to the card",
+          "description": "Stripe refunds the original charge. The order is marked refunded only once Stripe has\nconfirmed, so the database never says money was returned that wasn't.\n",
+          "placed": [
+            "ordering",
+            "stripe"
+          ],
+          "ends": "Ordering → Stripe"
+        },
+        {
+          "from": "ordering",
+          "to": "notifications",
+          "text": "Asks for a confirmation to be sent",
+          "placed": [
+            "ordering",
+            "notifications"
+          ],
+          "ends": "Ordering → Notifications"
+        },
+        {
+          "from": "notifications",
+          "to": "twilio",
+          "text": "The customer gets an SMS",
+          "placed": [
+            "notifications",
+            "twilio"
+          ],
+          "ends": "Notifications → Twilio"
+        }
+      ]
+    }
+  ],
+  "problems": [],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "restaurant",
+        "courier",
+        "support",
+        "ordering",
+        "delivery",
+        "notifications",
+        "backoffice",
+        "stripe",
+        "twilio",
+        "mapbox"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "ordering",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "restaurant",
+          "to": "ordering",
+          "label": "accepts orders",
+          "count": 1
+        },
+        {
+          "from": "courier",
+          "to": "delivery",
+          "label": "takes deliveries",
+          "count": 1
+        },
+        {
+          "from": "support",
+          "to": "backoffice",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "ordering",
+          "to": "mapbox",
+          "label": "delivery distance",
+          "count": 1
+        },
+        {
+          "from": "ordering",
+          "to": "stripe",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "ordering",
+          "to": "notifications",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "delivery",
+          "to": "ordering",
+          "label": "4 connections",
+          "count": 4
+        },
+        {
+          "from": "delivery",
+          "to": "mapbox",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "delivery",
+          "to": "notifications",
+          "label": "sends the offer",
+          "count": 1
+        },
+        {
+          "from": "notifications",
+          "to": "twilio",
+          "label": "SMS",
+          "count": 1
+        },
+        {
+          "from": "backoffice",
+          "to": "ordering",
+          "label": "3 connections",
+          "count": 3
+        },
+        {
+          "from": "ordering",
+          "to": "backoffice",
+          "label": "streams every event",
+          "count": 1
+        }
+      ]
+    },
+    "ordering": {
+      "id": "ordering",
+      "members": [
+        "customer-app",
+        "web",
+        "kitchen-tablet",
+        "order-api",
+        "orders-db",
+        "menu-cache",
+        "events"
+      ],
+      "outsiders": [
+        "customer",
+        "restaurant",
+        "mapbox",
+        "stripe",
+        "notifications",
+        "delivery",
+        "backoffice"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "customer-app",
+          "label": "orders on a phone",
+          "count": 1
+        },
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "orders in a browser",
+          "count": 1
+        },
+        {
+          "from": "restaurant",
+          "to": "kitchen-tablet",
+          "label": "accepts orders",
+          "count": 1
+        },
+        {
+          "from": "customer-app",
+          "to": "order-api",
+          "label": "REST",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "order-api",
+          "label": "REST",
+          "count": 1
+        },
+        {
+          "from": "kitchen-tablet",
+          "to": "order-api",
+          "label": "accepts, marks ready",
+          "count": 1
+        },
+        {
+          "from": "order-api",
+          "to": "menu-cache",
+          "label": "reads menus",
+          "count": 1
+        },
+        {
+          "from": "order-api",
+          "to": "orders-db",
+          "label": "5 connections",
+          "count": 5
+        },
+        {
+          "from": "order-api",
+          "to": "mapbox",
+          "label": "delivery distance",
+          "count": 1
+        },
+        {
+          "from": "order-api",
+          "to": "stripe",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "order-api",
+          "to": "events",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "order-api",
+          "to": "notifications",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "delivery",
+          "to": "events",
+          "label": "reads placed orders",
+          "count": 1
+        },
+        {
+          "from": "delivery",
+          "to": "order-api",
+          "label": "picked up, delivered",
+          "count": 1
+        },
+        {
+          "from": "delivery",
+          "to": "customer-app",
+          "label": "live map",
+          "count": 1
+        },
+        {
+          "from": "delivery",
+          "to": "web",
+          "label": "live map",
+          "count": 1
+        },
+        {
+          "from": "backoffice",
+          "to": "order-api",
+          "label": "3 connections",
+          "count": 3
+        },
+        {
+          "from": "events",
+          "to": "backoffice",
+          "label": "streams every event",
+          "count": 1
+        }
+      ]
+    },
+    "delivery": {
+      "id": "delivery",
+      "members": [
+        "courier-app",
+        "dispatch",
+        "tracking",
+        "fleet-db"
+      ],
+      "outsiders": [
+        "courier",
+        "ordering",
+        "mapbox",
+        "notifications"
+      ],
+      "edges": [
+        {
+          "from": "courier",
+          "to": "courier-app",
+          "label": "takes deliveries",
+          "count": 1
+        },
+        {
+          "from": "dispatch",
+          "to": "ordering",
+          "label": "reads placed orders",
+          "count": 1
+        },
+        {
+          "from": "dispatch",
+          "to": "fleet-db",
+          "label": "finds idle couriers",
+          "count": 1
+        },
+        {
+          "from": "dispatch",
+          "to": "mapbox",
+          "label": "travel times",
+          "count": 1
+        },
+        {
+          "from": "dispatch",
+          "to": "notifications",
+          "label": "sends the offer",
+          "count": 1
+        },
+        {
+          "from": "courier-app",
+          "to": "dispatch",
+          "label": "accepts or refuses",
+          "count": 1
+        },
+        {
+          "from": "courier-app",
+          "to": "tracking",
+          "label": "position every 5 s",
+          "count": 1
+        },
+        {
+          "from": "courier-app",
+          "to": "ordering",
+          "label": "picked up, delivered",
+          "count": 1
+        },
+        {
+          "from": "courier-app",
+          "to": "mapbox",
+          "label": "navigation",
+          "count": 1
+        },
+        {
+          "from": "tracking",
+          "to": "fleet-db",
+          "label": "stores positions",
+          "count": 1
+        },
+        {
+          "from": "tracking",
+          "to": "ordering",
+          "label": "2 connections",
+          "count": 2
+        }
+      ]
+    },
+    "notifications": {
+      "id": "notifications",
+      "members": [
+        "notifier",
+        "templates"
+      ],
+      "outsiders": [
+        "ordering",
+        "delivery",
+        "twilio"
+      ],
+      "edges": [
+        {
+          "from": "ordering",
+          "to": "notifier",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "delivery",
+          "to": "notifier",
+          "label": "sends the offer",
+          "count": 1
+        },
+        {
+          "from": "notifier",
+          "to": "twilio",
+          "label": "SMS",
+          "count": 1
+        },
+        {
+          "from": "notifier",
+          "to": "templates",
+          "label": "reads the wording",
+          "count": 1
+        }
+      ]
+    },
+    "backoffice": {
+      "id": "backoffice",
+      "members": [
+        "admin",
+        "support-console",
+        "warehouse"
+      ],
+      "outsiders": [
+        "support",
+        "ordering"
+      ],
+      "edges": [
+        {
+          "from": "support",
+          "to": "support-console",
+          "label": "handles tickets",
+          "count": 1
+        },
+        {
+          "from": "support",
+          "to": "admin",
+          "label": "looks up couriers",
+          "count": 1
+        },
+        {
+          "from": "support-console",
+          "to": "ordering",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "admin",
+          "to": "ordering",
+          "label": "menus and promotions",
+          "count": 1
+        },
+        {
+          "from": "admin",
+          "to": "warehouse",
+          "label": "weekly reports",
+          "count": 1
+        },
+        {
+          "from": "ordering",
+          "to": "warehouse",
+          "label": "streams every event",
+          "count": 1
+        }
+      ]
+    },
+    "order-api": {
+      "id": "order-api",
+      "members": [
+        "menu",
+        "basket",
+        "pricing",
+        "checkout",
+        "status",
+        "refunds"
+      ],
+      "outsiders": [
+        "menu-cache",
+        "orders-db",
+        "mapbox",
+        "stripe",
+        "events",
+        "notifications",
+        "delivery",
+        "backoffice"
+      ],
+      "edges": [
+        {
+          "from": "menu",
+          "to": "menu-cache",
+          "label": "reads menus",
+          "count": 1
+        },
+        {
+          "from": "menu",
+          "to": "orders-db",
+          "label": "on a cache miss",
+          "count": 1
+        },
+        {
+          "from": "basket",
+          "to": "orders-db",
+          "label": "saves the basket",
+          "count": 1
+        },
+        {
+          "from": "basket",
+          "to": "pricing",
+          "label": "asks for totals",
+          "count": 1
+        },
+        {
+          "from": "pricing",
+          "to": "mapbox",
+          "label": "delivery distance",
+          "count": 1
+        },
+        {
+          "from": "checkout",
+          "to": "pricing",
+          "label": "gets the total",
+          "count": 1
+        },
+        {
+          "from": "checkout",
+          "to": "stripe",
+          "label": "holds the card",
+          "count": 1
+        },
+        {
+          "from": "checkout",
+          "to": "orders-db",
+          "label": "writes the order",
+          "count": 1
+        },
+        {
+          "from": "checkout",
+          "to": "events",
+          "label": "announces placed",
+          "count": 1
+        },
+        {
+          "from": "status",
+          "to": "orders-db",
+          "label": "moves the order on",
+          "count": 1
+        },
+        {
+          "from": "status",
+          "to": "events",
+          "label": "announces each step",
+          "count": 1
+        },
+        {
+          "from": "status",
+          "to": "notifications",
+          "label": "order updates",
+          "count": 1
+        },
+        {
+          "from": "refunds",
+          "to": "stripe",
+          "label": "refunds the charge",
+          "count": 1
+        },
+        {
+          "from": "refunds",
+          "to": "orders-db",
+          "label": "marks refunded",
+          "count": 1
+        },
+        {
+          "from": "refunds",
+          "to": "notifications",
+          "label": "confirms by message",
+          "count": 1
+        },
+        {
+          "from": "delivery",
+          "to": "status",
+          "label": "picked up, delivered",
+          "count": 1
+        },
+        {
+          "from": "backoffice",
+          "to": "refunds",
+          "label": "issues refunds",
+          "count": 1
+        }
+      ]
+    },
+    "dispatch": {
+      "id": "dispatch",
+      "members": [
+        "matcher",
+        "eta",
+        "offers"
+      ],
+      "outsiders": [
+        "fleet-db",
+        "mapbox",
+        "notifications"
+      ],
+      "edges": [
+        {
+          "from": "matcher",
+          "to": "fleet-db",
+          "label": "finds idle couriers",
+          "count": 1
+        },
+        {
+          "from": "matcher",
+          "to": "eta",
+          "label": "asks who is quickest",
+          "count": 1
+        },
+        {
+          "from": "matcher",
+          "to": "offers",
+          "label": "hands over the ranking",
+          "count": 1
+        },
+        {
+          "from": "eta",
+          "to": "mapbox",
+          "label": "travel times",
+          "count": 1
+        },
+        {
+          "from": "offers",
+          "to": "notifications",
+          "label": "sends the offer",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

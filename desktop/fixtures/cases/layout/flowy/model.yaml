@@ -1,0 +1,8 @@
+objects:
+  customer: { type: actor, name: Customer }
+  shop: { type: system, name: Shop }
+  web: { type: app, in: shop, name: Web }
+  api: { type: app, in: shop, name: API }
+connections:
+  - { from: customer, to: web, label: browses }
+  - { from: web, to: api }

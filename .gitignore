@@ -1,3 +1,7 @@
 node_modules/
 dist/
 example-site/
+desktop/**/bin/
+desktop/**/obj/
+desktop/publish/
+desktop/releases/

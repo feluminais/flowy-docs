@@ -1,0 +1,3243 @@
+{
+  "linesOf": {
+    "plum": [
+      {
+        "id": "customer",
+        "out": [
+          {
+            "from": "customer",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "customer",
+                "to": "customer-app",
+                "label": "orders on a phone"
+              },
+              {
+                "from": "customer",
+                "to": "web",
+                "label": "orders in a browser"
+              }
+            ]
+          }
+        ],
+        "in": []
+      },
+      {
+        "id": "restaurant",
+        "out": [
+          {
+            "from": "restaurant",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "restaurant",
+                "to": "kitchen-tablet",
+                "label": "accepts orders"
+              }
+            ]
+          }
+        ],
+        "in": []
+      },
+      {
+        "id": "courier",
+        "out": [
+          {
+            "from": "courier",
+            "to": "delivery",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "courier",
+                "to": "courier-app",
+                "label": "takes deliveries"
+              }
+            ]
+          }
+        ],
+        "in": []
+      },
+      {
+        "id": "support",
+        "out": [
+          {
+            "from": "support",
+            "to": "backoffice",
+            "other": "backoffice",
+            "connections": [
+              {
+                "from": "support",
+                "to": "support-console",
+                "label": "handles tickets"
+              },
+              {
+                "from": "support",
+                "to": "admin",
+                "label": "looks up couriers"
+              }
+            ]
+          }
+        ],
+        "in": []
+      },
+      {
+        "id": "ordering",
+        "out": [
+          {
+            "from": "ordering",
+            "to": "mapbox",
+            "other": "mapbox",
+            "connections": [
+              {
+                "from": "pricing",
+                "to": "mapbox",
+                "label": "delivery distance"
+              }
+            ]
+          },
+          {
+            "from": "ordering",
+            "to": "stripe",
+            "other": "stripe",
+            "connections": [
+              {
+                "from": "checkout",
+                "to": "stripe",
+                "label": "holds the card"
+              },
+              {
+                "from": "refunds",
+                "to": "stripe",
+                "label": "refunds the charge"
+              }
+            ]
+          },
+          {
+            "from": "ordering",
+            "to": "notifications",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "status",
+                "to": "notifier",
+                "label": "order updates"
+              },
+              {
+                "from": "refunds",
+                "to": "notifier",
+                "label": "confirms by message"
+              }
+            ]
+          },
+          {
+            "from": "ordering",
+            "to": "backoffice",
+            "other": "backoffice",
+            "connections": [
+              {
+                "from": "events",
+                "to": "warehouse",
+                "label": "streams every event"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "customer",
+            "to": "ordering",
+            "other": "customer",
+            "connections": [
+              {
+                "from": "customer",
+                "to": "customer-app",
+                "label": "orders on a phone"
+              },
+              {
+                "from": "customer",
+                "to": "web",
+                "label": "orders in a browser"
+              }
+            ]
+          },
+          {
+            "from": "restaurant",
+            "to": "ordering",
+            "other": "restaurant",
+            "connections": [
+              {
+                "from": "restaurant",
+                "to": "kitchen-tablet",
+                "label": "accepts orders"
+              }
+            ]
+          },
+          {
+            "from": "delivery",
+            "to": "ordering",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "dispatch",
+                "to": "events",
+                "label": "reads placed orders"
+              },
+              {
+                "from": "courier-app",
+                "to": "status",
+                "label": "picked up, delivered"
+              },
+              {
+                "from": "tracking",
+                "to": "customer-app",
+                "label": "live map"
+              },
+              {
+                "from": "tracking",
+                "to": "web",
+                "label": "live map"
+              }
+            ]
+          },
+          {
+            "from": "backoffice",
+            "to": "ordering",
+            "other": "backoffice",
+            "connections": [
+              {
+                "from": "support-console",
+                "to": "order-api",
+                "label": "looks up orders"
+              },
+              {
+                "from": "support-console",
+                "to": "refunds",
+                "label": "issues refunds"
+              },
+              {
+                "from": "admin",
+                "to": "order-api",
+                "label": "menus and promotions"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "delivery",
+        "out": [
+          {
+            "from": "delivery",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "dispatch",
+                "to": "events",
+                "label": "reads placed orders"
+              },
+              {
+                "from": "courier-app",
+                "to": "status",
+                "label": "picked up, delivered"
+              },
+              {
+                "from": "tracking",
+                "to": "customer-app",
+                "label": "live map"
+              },
+              {
+                "from": "tracking",
+                "to": "web",
+                "label": "live map"
+              }
+            ]
+          },
+          {
+            "from": "delivery",
+            "to": "mapbox",
+            "other": "mapbox",
+            "connections": [
+              {
+                "from": "eta",
+                "to": "mapbox",
+                "label": "travel times"
+              },
+              {
+                "from": "courier-app",
+                "to": "mapbox",
+                "label": "navigation"
+              }
+            ]
+          },
+          {
+            "from": "delivery",
+            "to": "notifications",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "offers",
+                "to": "notifier",
+                "label": "sends the offer"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "courier",
+            "to": "delivery",
+            "other": "courier",
+            "connections": [
+              {
+                "from": "courier",
+                "to": "courier-app",
+                "label": "takes deliveries"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "notifications",
+        "out": [
+          {
+            "from": "notifications",
+            "to": "twilio",
+            "other": "twilio",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "twilio",
+                "label": "SMS"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "ordering",
+            "to": "notifications",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "status",
+                "to": "notifier",
+                "label": "order updates"
+              },
+              {
+                "from": "refunds",
+                "to": "notifier",
+                "label": "confirms by message"
+              }
+            ]
+          },
+          {
+            "from": "delivery",
+            "to": "notifications",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "offers",
+                "to": "notifier",
+                "label": "sends the offer"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "backoffice",
+        "out": [
+          {
+            "from": "backoffice",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "support-console",
+                "to": "order-api",
+                "label": "looks up orders"
+              },
+              {
+                "from": "support-console",
+                "to": "refunds",
+                "label": "issues refunds"
+              },
+              {
+                "from": "admin",
+                "to": "order-api",
+                "label": "menus and promotions"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "support",
+            "to": "backoffice",
+            "other": "support",
+            "connections": [
+              {
+                "from": "support",
+                "to": "support-console",
+                "label": "handles tickets"
+              },
+              {
+                "from": "support",
+                "to": "admin",
+                "label": "looks up couriers"
+              }
+            ]
+          },
+          {
+            "from": "ordering",
+            "to": "backoffice",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "events",
+                "to": "warehouse",
+                "label": "streams every event"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "stripe",
+        "out": [],
+        "in": [
+          {
+            "from": "ordering",
+            "to": "stripe",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "checkout",
+                "to": "stripe",
+                "label": "holds the card"
+              },
+              {
+                "from": "refunds",
+                "to": "stripe",
+                "label": "refunds the charge"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "twilio",
+        "out": [],
+        "in": [
+          {
+            "from": "notifications",
+            "to": "twilio",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "twilio",
+                "label": "SMS"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mapbox",
+        "out": [],
+        "in": [
+          {
+            "from": "ordering",
+            "to": "mapbox",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "pricing",
+                "to": "mapbox",
+                "label": "delivery distance"
+              }
+            ]
+          },
+          {
+            "from": "delivery",
+            "to": "mapbox",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "eta",
+                "to": "mapbox",
+                "label": "travel times"
+              },
+              {
+                "from": "courier-app",
+                "to": "mapbox",
+                "label": "navigation"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "customer-app",
+        "out": [
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "other": "order-api",
+            "connections": [
+              {
+                "from": "customer-app",
+                "to": "order-api",
+                "label": "REST"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "other": "customer",
+            "connections": [
+              {
+                "from": "customer",
+                "to": "customer-app",
+                "label": "orders on a phone"
+              }
+            ]
+          },
+          {
+            "from": "delivery",
+            "to": "customer-app",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "tracking",
+                "to": "customer-app",
+                "label": "live map"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "web",
+        "out": [
+          {
+            "from": "web",
+            "to": "order-api",
+            "other": "order-api",
+            "connections": [
+              {
+                "from": "web",
+                "to": "order-api",
+                "label": "REST"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "customer",
+            "to": "web",
+            "other": "customer",
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "label": "orders in a browser"
+              }
+            ]
+          },
+          {
+            "from": "delivery",
+            "to": "web",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "tracking",
+                "to": "web",
+                "label": "live map"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "kitchen-tablet",
+        "out": [
+          {
+            "from": "kitchen-tablet",
+            "to": "order-api",
+            "other": "order-api",
+            "connections": [
+              {
+                "from": "kitchen-tablet",
+                "to": "order-api",
+                "label": "accepts, marks ready"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "restaurant",
+            "to": "kitchen-tablet",
+            "other": "restaurant",
+            "connections": [
+              {
+                "from": "restaurant",
+                "to": "kitchen-tablet",
+                "label": "accepts orders"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "order-api",
+        "out": [
+          {
+            "from": "order-api",
+            "to": "menu-cache",
+            "other": "menu-cache",
+            "connections": [
+              {
+                "from": "menu",
+                "to": "menu-cache",
+                "label": "reads menus"
+              }
+            ]
+          },
+          {
+            "from": "order-api",
+            "to": "orders-db",
+            "other": "orders-db",
+            "connections": [
+              {
+                "from": "menu",
+                "to": "orders-db",
+                "label": "on a cache miss"
+              },
+              {
+                "from": "basket",
+                "to": "orders-db",
+                "label": "saves the basket"
+              },
+              {
+                "from": "checkout",
+                "to": "orders-db",
+                "label": "writes the order"
+              },
+              {
+                "from": "status",
+                "to": "orders-db",
+                "label": "moves the order on"
+              },
+              {
+                "from": "refunds",
+                "to": "orders-db",
+                "label": "marks refunded"
+              }
+            ]
+          },
+          {
+            "from": "order-api",
+            "to": "mapbox",
+            "other": "mapbox",
+            "connections": [
+              {
+                "from": "pricing",
+                "to": "mapbox",
+                "label": "delivery distance"
+              }
+            ]
+          },
+          {
+            "from": "order-api",
+            "to": "stripe",
+            "other": "stripe",
+            "connections": [
+              {
+                "from": "checkout",
+                "to": "stripe",
+                "label": "holds the card"
+              },
+              {
+                "from": "refunds",
+                "to": "stripe",
+                "label": "refunds the charge"
+              }
+            ]
+          },
+          {
+            "from": "order-api",
+            "to": "events",
+            "other": "events",
+            "connections": [
+              {
+                "from": "checkout",
+                "to": "events",
+                "label": "announces placed"
+              },
+              {
+                "from": "status",
+                "to": "events",
+                "label": "announces each step"
+              }
+            ]
+          },
+          {
+            "from": "order-api",
+            "to": "notifications",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "status",
+                "to": "notifier",
+                "label": "order updates"
+              },
+              {
+                "from": "refunds",
+                "to": "notifier",
+                "label": "confirms by message"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "other": "customer-app",
+            "connections": [
+              {
+                "from": "customer-app",
+                "to": "order-api",
+                "label": "REST"
+              }
+            ]
+          },
+          {
+            "from": "web",
+            "to": "order-api",
+            "other": "web",
+            "connections": [
+              {
+                "from": "web",
+                "to": "order-api",
+                "label": "REST"
+              }
+            ]
+          },
+          {
+            "from": "kitchen-tablet",
+            "to": "order-api",
+            "other": "kitchen-tablet",
+            "connections": [
+              {
+                "from": "kitchen-tablet",
+                "to": "order-api",
+                "label": "accepts, marks ready"
+              }
+            ]
+          },
+          {
+            "from": "delivery",
+            "to": "order-api",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "courier-app",
+                "to": "status",
+                "label": "picked up, delivered"
+              }
+            ]
+          },
+          {
+            "from": "backoffice",
+            "to": "order-api",
+            "other": "backoffice",
+            "connections": [
+              {
+                "from": "support-console",
+                "to": "order-api",
+                "label": "looks up orders"
+              },
+              {
+                "from": "support-console",
+                "to": "refunds",
+                "label": "issues refunds"
+              },
+              {
+                "from": "admin",
+                "to": "order-api",
+                "label": "menus and promotions"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "orders-db",
+        "out": [],
+        "in": [
+          {
+            "from": "order-api",
+            "to": "orders-db",
+            "other": "order-api",
+            "connections": [
+              {
+                "from": "menu",
+                "to": "orders-db",
+                "label": "on a cache miss"
+              },
+              {
+                "from": "basket",
+                "to": "orders-db",
+                "label": "saves the basket"
+              },
+              {
+                "from": "checkout",
+                "to": "orders-db",
+                "label": "writes the order"
+              },
+              {
+                "from": "status",
+                "to": "orders-db",
+                "label": "moves the order on"
+              },
+              {
+                "from": "refunds",
+                "to": "orders-db",
+                "label": "marks refunded"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "menu-cache",
+        "out": [],
+        "in": [
+          {
+            "from": "order-api",
+            "to": "menu-cache",
+            "other": "order-api",
+            "connections": [
+              {
+                "from": "menu",
+                "to": "menu-cache",
+                "label": "reads menus"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "events",
+        "out": [
+          {
+            "from": "events",
+            "to": "backoffice",
+            "other": "backoffice",
+            "connections": [
+              {
+                "from": "events",
+                "to": "warehouse",
+                "label": "streams every event"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "order-api",
+            "to": "events",
+            "other": "order-api",
+            "connections": [
+              {
+                "from": "checkout",
+                "to": "events",
+                "label": "announces placed"
+              },
+              {
+                "from": "status",
+                "to": "events",
+                "label": "announces each step"
+              }
+            ]
+          },
+          {
+            "from": "delivery",
+            "to": "events",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "dispatch",
+                "to": "events",
+                "label": "reads placed orders"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "menu",
+        "out": [
+          {
+            "from": "menu",
+            "to": "menu-cache",
+            "other": "menu-cache",
+            "connections": [
+              {
+                "from": "menu",
+                "to": "menu-cache",
+                "label": "reads menus"
+              }
+            ]
+          },
+          {
+            "from": "menu",
+            "to": "orders-db",
+            "other": "orders-db",
+            "connections": [
+              {
+                "from": "menu",
+                "to": "orders-db",
+                "label": "on a cache miss"
+              }
+            ]
+          }
+        ],
+        "in": []
+      },
+      {
+        "id": "basket",
+        "out": [
+          {
+            "from": "basket",
+            "to": "orders-db",
+            "other": "orders-db",
+            "connections": [
+              {
+                "from": "basket",
+                "to": "orders-db",
+                "label": "saves the basket"
+              }
+            ]
+          },
+          {
+            "from": "basket",
+            "to": "pricing",
+            "other": "pricing",
+            "connections": [
+              {
+                "from": "basket",
+                "to": "pricing",
+                "label": "asks for totals"
+              }
+            ]
+          }
+        ],
+        "in": []
+      },
+      {
+        "id": "pricing",
+        "out": [
+          {
+            "from": "pricing",
+            "to": "mapbox",
+            "other": "mapbox",
+            "connections": [
+              {
+                "from": "pricing",
+                "to": "mapbox",
+                "label": "delivery distance"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "basket",
+            "to": "pricing",
+            "other": "basket",
+            "connections": [
+              {
+                "from": "basket",
+                "to": "pricing",
+                "label": "asks for totals"
+              }
+            ]
+          },
+          {
+            "from": "checkout",
+            "to": "pricing",
+            "other": "checkout",
+            "connections": [
+              {
+                "from": "checkout",
+                "to": "pricing",
+                "label": "gets the total"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "checkout",
+        "out": [
+          {
+            "from": "checkout",
+            "to": "pricing",
+            "other": "pricing",
+            "connections": [
+              {
+                "from": "checkout",
+                "to": "pricing",
+                "label": "gets the total"
+              }
+            ]
+          },
+          {
+            "from": "checkout",
+            "to": "stripe",
+            "other": "stripe",
+            "connections": [
+              {
+                "from": "checkout",
+                "to": "stripe",
+                "label": "holds the card"
+              }
+            ]
+          },
+          {
+            "from": "checkout",
+            "to": "orders-db",
+            "other": "orders-db",
+            "connections": [
+              {
+                "from": "checkout",
+                "to": "orders-db",
+                "label": "writes the order"
+              }
+            ]
+          },
+          {
+            "from": "checkout",
+            "to": "events",
+            "other": "events",
+            "connections": [
+              {
+                "from": "checkout",
+                "to": "events",
+                "label": "announces placed"
+              }
+            ]
+          }
+        ],
+        "in": []
+      },
+      {
+        "id": "status",
+        "out": [
+          {
+            "from": "status",
+            "to": "orders-db",
+            "other": "orders-db",
+            "connections": [
+              {
+                "from": "status",
+                "to": "orders-db",
+                "label": "moves the order on"
+              }
+            ]
+          },
+          {
+            "from": "status",
+            "to": "events",
+            "other": "events",
+            "connections": [
+              {
+                "from": "status",
+                "to": "events",
+                "label": "announces each step"
+              }
+            ]
+          },
+          {
+            "from": "status",
+            "to": "notifications",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "status",
+                "to": "notifier",
+                "label": "order updates"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "delivery",
+            "to": "status",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "courier-app",
+                "to": "status",
+                "label": "picked up, delivered"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "refunds",
+        "out": [
+          {
+            "from": "refunds",
+            "to": "stripe",
+            "other": "stripe",
+            "connections": [
+              {
+                "from": "refunds",
+                "to": "stripe",
+                "label": "refunds the charge"
+              }
+            ]
+          },
+          {
+            "from": "refunds",
+            "to": "orders-db",
+            "other": "orders-db",
+            "connections": [
+              {
+                "from": "refunds",
+                "to": "orders-db",
+                "label": "marks refunded"
+              }
+            ]
+          },
+          {
+            "from": "refunds",
+            "to": "notifications",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "refunds",
+                "to": "notifier",
+                "label": "confirms by message"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "backoffice",
+            "to": "refunds",
+            "other": "backoffice",
+            "connections": [
+              {
+                "from": "support-console",
+                "to": "refunds",
+                "label": "issues refunds"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "courier-app",
+        "out": [
+          {
+            "from": "courier-app",
+            "to": "dispatch",
+            "other": "dispatch",
+            "connections": [
+              {
+                "from": "courier-app",
+                "to": "dispatch",
+                "label": "accepts or refuses"
+              }
+            ]
+          },
+          {
+            "from": "courier-app",
+            "to": "tracking",
+            "other": "tracking",
+            "connections": [
+              {
+                "from": "courier-app",
+                "to": "tracking",
+                "label": "position every 5 s"
+              }
+            ]
+          },
+          {
+            "from": "courier-app",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "courier-app",
+                "to": "status",
+                "label": "picked up, delivered"
+              }
+            ]
+          },
+          {
+            "from": "courier-app",
+            "to": "mapbox",
+            "other": "mapbox",
+            "connections": [
+              {
+                "from": "courier-app",
+                "to": "mapbox",
+                "label": "navigation"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "courier",
+            "to": "courier-app",
+            "other": "courier",
+            "connections": [
+              {
+                "from": "courier",
+                "to": "courier-app",
+                "label": "takes deliveries"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "dispatch",
+        "out": [
+          {
+            "from": "dispatch",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "dispatch",
+                "to": "events",
+                "label": "reads placed orders"
+              }
+            ]
+          },
+          {
+            "from": "dispatch",
+            "to": "fleet-db",
+            "other": "fleet-db",
+            "connections": [
+              {
+                "from": "matcher",
+                "to": "fleet-db",
+                "label": "finds idle couriers"
+              }
+            ]
+          },
+          {
+            "from": "dispatch",
+            "to": "mapbox",
+            "other": "mapbox",
+            "connections": [
+              {
+                "from": "eta",
+                "to": "mapbox",
+                "label": "travel times"
+              }
+            ]
+          },
+          {
+            "from": "dispatch",
+            "to": "notifications",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "offers",
+                "to": "notifier",
+                "label": "sends the offer"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "courier-app",
+            "to": "dispatch",
+            "other": "courier-app",
+            "connections": [
+              {
+                "from": "courier-app",
+                "to": "dispatch",
+                "label": "accepts or refuses"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tracking",
+        "out": [
+          {
+            "from": "tracking",
+            "to": "fleet-db",
+            "other": "fleet-db",
+            "connections": [
+              {
+                "from": "tracking",
+                "to": "fleet-db",
+                "label": "stores positions"
+              }
+            ]
+          },
+          {
+            "from": "tracking",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "tracking",
+                "to": "customer-app",
+                "label": "live map"
+              },
+              {
+                "from": "tracking",
+                "to": "web",
+                "label": "live map"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "courier-app",
+            "to": "tracking",
+            "other": "courier-app",
+            "connections": [
+              {
+                "from": "courier-app",
+                "to": "tracking",
+                "label": "position every 5 s"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "fleet-db",
+        "out": [],
+        "in": [
+          {
+            "from": "dispatch",
+            "to": "fleet-db",
+            "other": "dispatch",
+            "connections": [
+              {
+                "from": "matcher",
+                "to": "fleet-db",
+                "label": "finds idle couriers"
+              }
+            ]
+          },
+          {
+            "from": "tracking",
+            "to": "fleet-db",
+            "other": "tracking",
+            "connections": [
+              {
+                "from": "tracking",
+                "to": "fleet-db",
+                "label": "stores positions"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "matcher",
+        "out": [
+          {
+            "from": "matcher",
+            "to": "fleet-db",
+            "other": "fleet-db",
+            "connections": [
+              {
+                "from": "matcher",
+                "to": "fleet-db",
+                "label": "finds idle couriers"
+              }
+            ]
+          },
+          {
+            "from": "matcher",
+            "to": "eta",
+            "other": "eta",
+            "connections": [
+              {
+                "from": "matcher",
+                "to": "eta",
+                "label": "asks who is quickest"
+              }
+            ]
+          },
+          {
+            "from": "matcher",
+            "to": "offers",
+            "other": "offers",
+            "connections": [
+              {
+                "from": "matcher",
+                "to": "offers",
+                "label": "hands over the ranking"
+              }
+            ]
+          }
+        ],
+        "in": []
+      },
+      {
+        "id": "eta",
+        "out": [
+          {
+            "from": "eta",
+            "to": "mapbox",
+            "other": "mapbox",
+            "connections": [
+              {
+                "from": "eta",
+                "to": "mapbox",
+                "label": "travel times"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "matcher",
+            "to": "eta",
+            "other": "matcher",
+            "connections": [
+              {
+                "from": "matcher",
+                "to": "eta",
+                "label": "asks who is quickest"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "offers",
+        "out": [
+          {
+            "from": "offers",
+            "to": "notifications",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "offers",
+                "to": "notifier",
+                "label": "sends the offer"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "matcher",
+            "to": "offers",
+            "other": "matcher",
+            "connections": [
+              {
+                "from": "matcher",
+                "to": "offers",
+                "label": "hands over the ranking"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "notifier",
+        "out": [
+          {
+            "from": "notifier",
+            "to": "twilio",
+            "other": "twilio",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "twilio",
+                "label": "SMS"
+              }
+            ]
+          },
+          {
+            "from": "notifier",
+            "to": "templates",
+            "other": "templates",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "templates",
+                "label": "reads the wording"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "ordering",
+            "to": "notifier",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "status",
+                "to": "notifier",
+                "label": "order updates"
+              },
+              {
+                "from": "refunds",
+                "to": "notifier",
+                "label": "confirms by message"
+              }
+            ]
+          },
+          {
+            "from": "delivery",
+            "to": "notifier",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "offers",
+                "to": "notifier",
+                "label": "sends the offer"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "templates",
+        "out": [],
+        "in": [
+          {
+            "from": "notifier",
+            "to": "templates",
+            "other": "notifier",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "templates",
+                "label": "reads the wording"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "admin",
+        "out": [
+          {
+            "from": "admin",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "admin",
+                "to": "order-api",
+                "label": "menus and promotions"
+              }
+            ]
+          },
+          {
+            "from": "admin",
+            "to": "warehouse",
+            "other": "warehouse",
+            "connections": [
+              {
+                "from": "admin",
+                "to": "warehouse",
+                "label": "weekly reports"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "support",
+            "to": "admin",
+            "other": "support",
+            "connections": [
+              {
+                "from": "support",
+                "to": "admin",
+                "label": "looks up couriers"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "support-console",
+        "out": [
+          {
+            "from": "support-console",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "support-console",
+                "to": "order-api",
+                "label": "looks up orders"
+              },
+              {
+                "from": "support-console",
+                "to": "refunds",
+                "label": "issues refunds"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "support",
+            "to": "support-console",
+            "other": "support",
+            "connections": [
+              {
+                "from": "support",
+                "to": "support-console",
+                "label": "handles tickets"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "warehouse",
+        "out": [],
+        "in": [
+          {
+            "from": "admin",
+            "to": "warehouse",
+            "other": "admin",
+            "connections": [
+              {
+                "from": "admin",
+                "to": "warehouse",
+                "label": "weekly reports"
+              }
+            ]
+          },
+          {
+            "from": "ordering",
+            "to": "warehouse",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "events",
+                "to": "warehouse",
+                "label": "streams every event"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "example": [
+      {
+        "id": "customer",
+        "out": [
+          {
+            "from": "customer",
+            "to": "shop",
+            "other": "shop",
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "label": "browses"
+              }
+            ]
+          }
+        ],
+        "in": []
+      },
+      {
+        "id": "shop",
+        "out": [
+          {
+            "from": "shop",
+            "to": "mail",
+            "other": "mail",
+            "connections": [
+              {
+                "from": "orders",
+                "to": "mail",
+                "label": "sends receipts"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "customer",
+            "to": "shop",
+            "other": "customer",
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "label": "browses"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "web",
+        "out": [
+          {
+            "from": "web",
+            "to": "api",
+            "other": "api",
+            "connections": [
+              {
+                "from": "web",
+                "to": "api",
+                "label": "REST"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "customer",
+            "to": "web",
+            "other": "customer",
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "label": "browses"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "api",
+        "out": [
+          {
+            "from": "api",
+            "to": "db",
+            "other": "db",
+            "connections": [
+              {
+                "from": "orders",
+                "to": "db",
+                "label": "reads/writes"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "label": "checks users"
+              }
+            ]
+          },
+          {
+            "from": "api",
+            "to": "mail",
+            "other": "mail",
+            "connections": [
+              {
+                "from": "orders",
+                "to": "mail",
+                "label": "sends receipts"
+              }
+            ]
+          }
+        ],
+        "in": [
+          {
+            "from": "web",
+            "to": "api",
+            "other": "web",
+            "connections": [
+              {
+                "from": "web",
+                "to": "api",
+                "label": "REST"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "db",
+        "out": [],
+        "in": [
+          {
+            "from": "api",
+            "to": "db",
+            "other": "api",
+            "connections": [
+              {
+                "from": "orders",
+                "to": "db",
+                "label": "reads/writes"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "label": "checks users"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "auth",
+        "out": [
+          {
+            "from": "auth",
+            "to": "db",
+            "other": "db",
+            "connections": [
+              {
+                "from": "auth",
+                "to": "db",
+                "label": "checks users"
+              }
+            ]
+          }
+        ],
+        "in": []
+      },
+      {
+        "id": "orders",
+        "out": [
+          {
+            "from": "orders",
+            "to": "db",
+            "other": "db",
+            "connections": [
+              {
+                "from": "orders",
+                "to": "db",
+                "label": "reads/writes"
+              }
+            ]
+          },
+          {
+            "from": "orders",
+            "to": "mail",
+            "other": "mail",
+            "connections": [
+              {
+                "from": "orders",
+                "to": "mail",
+                "label": "sends receipts"
+              }
+            ]
+          }
+        ],
+        "in": []
+      },
+      {
+        "id": "mail",
+        "out": [],
+        "in": [
+          {
+            "from": "shop",
+            "to": "mail",
+            "other": "shop",
+            "connections": [
+              {
+                "from": "orders",
+                "to": "mail",
+                "label": "sends receipts"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "locate": [
+    {
+      "problem": {
+        "file": "model.yaml",
+        "message": "lines must be straight, curved or angled"
+      },
+      "spot": {
+        "view": "root"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "Bad_ID",
+        "message": "Bad_ID: ids use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      },
+      "spot": {
+        "view": "root",
+        "object": "Bad_ID"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "shop",
+        "message": "shop: code path \"src/gone.ts\" doesn't exist"
+      },
+      "spot": {
+        "view": "root",
+        "object": "shop"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "shop",
+        "message": "shop: code path \"../escape.ts\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      },
+      "spot": {
+        "view": "root",
+        "object": "shop"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "shop",
+        "message": "shop: code path \"/abs.ts\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      },
+      "spot": {
+        "view": "root",
+        "object": "shop"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "api",
+        "message": "api: external must be true or false"
+      },
+      "spot": {
+        "view": "shop",
+        "object": "api"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "nameless",
+        "message": "nameless: name is missing"
+      },
+      "spot": {
+        "view": "shop",
+        "object": "nameless"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "orphan",
+        "message": "orphan: name is missing"
+      },
+      "spot": {
+        "view": "root",
+        "object": "orphan"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "orphan",
+        "message": "orphan: component must be inside app or store"
+      },
+      "spot": {
+        "view": "root",
+        "object": "orphan"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "lost",
+        "message": "lost: name is missing"
+      },
+      "spot": {
+        "view": "root",
+        "object": "lost"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "lost",
+        "message": "lost: \"in\" points to unknown object \"nowhere\""
+      },
+      "spot": {
+        "view": "root",
+        "object": "lost"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "wrong",
+        "message": "wrong: name is missing"
+      },
+      "spot": {
+        "view": "customer",
+        "object": "wrong"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "wrong",
+        "message": "wrong: component must be inside app or store, not actor"
+      },
+      "spot": {
+        "view": "customer",
+        "object": "wrong"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "mystery",
+        "message": "mystery: name is missing"
+      },
+      "spot": {
+        "view": "root",
+        "object": "mystery"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "mystery",
+        "message": "mystery: unknown type \"gadget\" (use actor, system, app, store, component)"
+      },
+      "spot": {
+        "view": "root",
+        "object": "mystery"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "untyped",
+        "message": "untyped: type is missing"
+      },
+      "spot": {
+        "view": "root",
+        "object": "untyped"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "badcode",
+        "message": "badcode: code must be a list of paths"
+      },
+      "spot": {
+        "view": "root",
+        "object": "badcode"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "mixedcode",
+        "message": "mixedcode: code must be a list of paths"
+      },
+      "spot": {
+        "view": "root",
+        "object": "mixedcode"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "id": "actor-in",
+        "message": "actor-in: actor can't be inside anything"
+      },
+      "spot": {
+        "view": "shop",
+        "object": "actor-in"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "message": "connection customer → shop: duplicate \"browses\"",
+        "connection": 1
+      },
+      "spot": {
+        "view": "root",
+        "line": [
+          "customer",
+          "shop"
+        ]
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "message": "connection shop → shop: connects an object to itself",
+        "connection": 3
+      },
+      "spot": {
+        "view": "root",
+        "object": "shop"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "message": "connection shop → ghost: unknown object \"ghost\"",
+        "connection": 4
+      },
+      "spot": {
+        "view": "root",
+        "object": "shop"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "message": "connection ? → api: \"from\" is missing",
+        "connection": 5
+      },
+      "spot": {
+        "view": "shop",
+        "object": "api"
+      }
+    },
+    {
+      "problem": {
+        "file": "model.yaml",
+        "message": "connection api → ?: \"to\" is missing",
+        "connection": 6
+      },
+      "spot": {
+        "view": "shop",
+        "object": "api"
+      }
+    },
+    {
+      "problem": {
+        "file": "flows/Bad_Flow.yaml",
+        "message": "\"Bad_Flow\" is not a valid flow id: the file name must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      },
+      "spot": {
+        "view": "root",
+        "flow": "Bad_Flow"
+      }
+    },
+    {
+      "problem": {
+        "file": "flows/broken.yaml",
+        "message": "name is missing"
+      },
+      "spot": {
+        "view": "root",
+        "flow": "broken"
+      }
+    },
+    {
+      "problem": {
+        "file": "flows/broken.yaml",
+        "message": "view \"missing-view\" must be \"root\" or an object with children"
+      },
+      "spot": {
+        "view": "root",
+        "flow": "broken"
+      }
+    },
+    {
+      "problem": {
+        "file": "flows/broken.yaml",
+        "message": "has no steps"
+      },
+      "spot": {
+        "view": "root",
+        "flow": "broken"
+      }
+    },
+    {
+      "problem": {
+        "file": "flows/steps.yaml",
+        "message": "step 1: customer → shop can't be shown in view \"shop\"",
+        "step": 0
+      },
+      "spot": {
+        "view": "shop",
+        "flow": "steps",
+        "step": 0
+      }
+    },
+    {
+      "problem": {
+        "file": "flows/steps.yaml",
+        "message": "step 2: goes from an object to itself (leave out \"to\" for a step one box does on its own)",
+        "step": 1
+      },
+      "spot": {
+        "view": "shop",
+        "flow": "steps",
+        "step": 1
+      }
+    },
+    {
+      "problem": {
+        "file": "flows/steps.yaml",
+        "message": "step 3: unknown object \"ghost\"",
+        "step": 2
+      },
+      "spot": {
+        "view": "shop",
+        "flow": "steps",
+        "step": 2
+      }
+    },
+    {
+      "problem": {
+        "file": "flows/steps.yaml",
+        "message": "step 5: unknown object \"ghost\"",
+        "step": 4
+      },
+      "spot": {
+        "view": "shop",
+        "flow": "steps",
+        "step": 4
+      }
+    },
+    {
+      "problem": {
+        "file": "flows/steps.yaml",
+        "message": "step 5: text is missing",
+        "step": 4
+      },
+      "spot": {
+        "view": "shop",
+        "flow": "steps",
+        "step": 4
+      }
+    },
+    {
+      "problem": {
+        "file": "flows/old.yml",
+        "message": "Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to flows/old.yaml."
+      },
+      "spot": {
+        "view": "root"
+      }
+    }
+  ],
+  "moves": [
+    {
+      "from": "root",
+      "to": "root",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "customer",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "restaurant",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "courier",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "support",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "ordering",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "delivery",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "notifications",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "backoffice",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "stripe",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "twilio",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "mapbox",
+      "move": "in"
+    },
+    {
+      "from": "root",
+      "to": "customer-app",
+      "move": "in"
+    },
+    {
+      "from": "customer",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "customer",
+      "to": "customer",
+      "move": "in"
+    },
+    {
+      "from": "customer",
+      "to": "restaurant",
+      "move": "across"
+    },
+    {
+      "from": "customer",
+      "to": "courier",
+      "move": "across"
+    },
+    {
+      "from": "customer",
+      "to": "support",
+      "move": "across"
+    },
+    {
+      "from": "customer",
+      "to": "ordering",
+      "move": "across"
+    },
+    {
+      "from": "customer",
+      "to": "delivery",
+      "move": "across"
+    },
+    {
+      "from": "customer",
+      "to": "notifications",
+      "move": "across"
+    },
+    {
+      "from": "customer",
+      "to": "backoffice",
+      "move": "across"
+    },
+    {
+      "from": "customer",
+      "to": "stripe",
+      "move": "across"
+    },
+    {
+      "from": "customer",
+      "to": "twilio",
+      "move": "across"
+    },
+    {
+      "from": "customer",
+      "to": "mapbox",
+      "move": "across"
+    },
+    {
+      "from": "customer",
+      "to": "customer-app",
+      "move": "across"
+    },
+    {
+      "from": "restaurant",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "restaurant",
+      "to": "customer",
+      "move": "across"
+    },
+    {
+      "from": "restaurant",
+      "to": "restaurant",
+      "move": "in"
+    },
+    {
+      "from": "restaurant",
+      "to": "courier",
+      "move": "across"
+    },
+    {
+      "from": "restaurant",
+      "to": "support",
+      "move": "across"
+    },
+    {
+      "from": "restaurant",
+      "to": "ordering",
+      "move": "across"
+    },
+    {
+      "from": "restaurant",
+      "to": "delivery",
+      "move": "across"
+    },
+    {
+      "from": "restaurant",
+      "to": "notifications",
+      "move": "across"
+    },
+    {
+      "from": "restaurant",
+      "to": "backoffice",
+      "move": "across"
+    },
+    {
+      "from": "restaurant",
+      "to": "stripe",
+      "move": "across"
+    },
+    {
+      "from": "restaurant",
+      "to": "twilio",
+      "move": "across"
+    },
+    {
+      "from": "restaurant",
+      "to": "mapbox",
+      "move": "across"
+    },
+    {
+      "from": "restaurant",
+      "to": "customer-app",
+      "move": "across"
+    },
+    {
+      "from": "courier",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "courier",
+      "to": "customer",
+      "move": "across"
+    },
+    {
+      "from": "courier",
+      "to": "restaurant",
+      "move": "across"
+    },
+    {
+      "from": "courier",
+      "to": "courier",
+      "move": "in"
+    },
+    {
+      "from": "courier",
+      "to": "support",
+      "move": "across"
+    },
+    {
+      "from": "courier",
+      "to": "ordering",
+      "move": "across"
+    },
+    {
+      "from": "courier",
+      "to": "delivery",
+      "move": "across"
+    },
+    {
+      "from": "courier",
+      "to": "notifications",
+      "move": "across"
+    },
+    {
+      "from": "courier",
+      "to": "backoffice",
+      "move": "across"
+    },
+    {
+      "from": "courier",
+      "to": "stripe",
+      "move": "across"
+    },
+    {
+      "from": "courier",
+      "to": "twilio",
+      "move": "across"
+    },
+    {
+      "from": "courier",
+      "to": "mapbox",
+      "move": "across"
+    },
+    {
+      "from": "courier",
+      "to": "customer-app",
+      "move": "across"
+    },
+    {
+      "from": "support",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "support",
+      "to": "customer",
+      "move": "across"
+    },
+    {
+      "from": "support",
+      "to": "restaurant",
+      "move": "across"
+    },
+    {
+      "from": "support",
+      "to": "courier",
+      "move": "across"
+    },
+    {
+      "from": "support",
+      "to": "support",
+      "move": "in"
+    },
+    {
+      "from": "support",
+      "to": "ordering",
+      "move": "across"
+    },
+    {
+      "from": "support",
+      "to": "delivery",
+      "move": "across"
+    },
+    {
+      "from": "support",
+      "to": "notifications",
+      "move": "across"
+    },
+    {
+      "from": "support",
+      "to": "backoffice",
+      "move": "across"
+    },
+    {
+      "from": "support",
+      "to": "stripe",
+      "move": "across"
+    },
+    {
+      "from": "support",
+      "to": "twilio",
+      "move": "across"
+    },
+    {
+      "from": "support",
+      "to": "mapbox",
+      "move": "across"
+    },
+    {
+      "from": "support",
+      "to": "customer-app",
+      "move": "across"
+    },
+    {
+      "from": "ordering",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "ordering",
+      "to": "customer",
+      "move": "across"
+    },
+    {
+      "from": "ordering",
+      "to": "restaurant",
+      "move": "across"
+    },
+    {
+      "from": "ordering",
+      "to": "courier",
+      "move": "across"
+    },
+    {
+      "from": "ordering",
+      "to": "support",
+      "move": "across"
+    },
+    {
+      "from": "ordering",
+      "to": "ordering",
+      "move": "in"
+    },
+    {
+      "from": "ordering",
+      "to": "delivery",
+      "move": "across"
+    },
+    {
+      "from": "ordering",
+      "to": "notifications",
+      "move": "across"
+    },
+    {
+      "from": "ordering",
+      "to": "backoffice",
+      "move": "across"
+    },
+    {
+      "from": "ordering",
+      "to": "stripe",
+      "move": "across"
+    },
+    {
+      "from": "ordering",
+      "to": "twilio",
+      "move": "across"
+    },
+    {
+      "from": "ordering",
+      "to": "mapbox",
+      "move": "across"
+    },
+    {
+      "from": "ordering",
+      "to": "customer-app",
+      "move": "in"
+    },
+    {
+      "from": "delivery",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "delivery",
+      "to": "customer",
+      "move": "across"
+    },
+    {
+      "from": "delivery",
+      "to": "restaurant",
+      "move": "across"
+    },
+    {
+      "from": "delivery",
+      "to": "courier",
+      "move": "across"
+    },
+    {
+      "from": "delivery",
+      "to": "support",
+      "move": "across"
+    },
+    {
+      "from": "delivery",
+      "to": "ordering",
+      "move": "across"
+    },
+    {
+      "from": "delivery",
+      "to": "delivery",
+      "move": "in"
+    },
+    {
+      "from": "delivery",
+      "to": "notifications",
+      "move": "across"
+    },
+    {
+      "from": "delivery",
+      "to": "backoffice",
+      "move": "across"
+    },
+    {
+      "from": "delivery",
+      "to": "stripe",
+      "move": "across"
+    },
+    {
+      "from": "delivery",
+      "to": "twilio",
+      "move": "across"
+    },
+    {
+      "from": "delivery",
+      "to": "mapbox",
+      "move": "across"
+    },
+    {
+      "from": "delivery",
+      "to": "customer-app",
+      "move": "across"
+    },
+    {
+      "from": "notifications",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "notifications",
+      "to": "customer",
+      "move": "across"
+    },
+    {
+      "from": "notifications",
+      "to": "restaurant",
+      "move": "across"
+    },
+    {
+      "from": "notifications",
+      "to": "courier",
+      "move": "across"
+    },
+    {
+      "from": "notifications",
+      "to": "support",
+      "move": "across"
+    },
+    {
+      "from": "notifications",
+      "to": "ordering",
+      "move": "across"
+    },
+    {
+      "from": "notifications",
+      "to": "delivery",
+      "move": "across"
+    },
+    {
+      "from": "notifications",
+      "to": "notifications",
+      "move": "in"
+    },
+    {
+      "from": "notifications",
+      "to": "backoffice",
+      "move": "across"
+    },
+    {
+      "from": "notifications",
+      "to": "stripe",
+      "move": "across"
+    },
+    {
+      "from": "notifications",
+      "to": "twilio",
+      "move": "across"
+    },
+    {
+      "from": "notifications",
+      "to": "mapbox",
+      "move": "across"
+    },
+    {
+      "from": "notifications",
+      "to": "customer-app",
+      "move": "across"
+    },
+    {
+      "from": "backoffice",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "backoffice",
+      "to": "customer",
+      "move": "across"
+    },
+    {
+      "from": "backoffice",
+      "to": "restaurant",
+      "move": "across"
+    },
+    {
+      "from": "backoffice",
+      "to": "courier",
+      "move": "across"
+    },
+    {
+      "from": "backoffice",
+      "to": "support",
+      "move": "across"
+    },
+    {
+      "from": "backoffice",
+      "to": "ordering",
+      "move": "across"
+    },
+    {
+      "from": "backoffice",
+      "to": "delivery",
+      "move": "across"
+    },
+    {
+      "from": "backoffice",
+      "to": "notifications",
+      "move": "across"
+    },
+    {
+      "from": "backoffice",
+      "to": "backoffice",
+      "move": "in"
+    },
+    {
+      "from": "backoffice",
+      "to": "stripe",
+      "move": "across"
+    },
+    {
+      "from": "backoffice",
+      "to": "twilio",
+      "move": "across"
+    },
+    {
+      "from": "backoffice",
+      "to": "mapbox",
+      "move": "across"
+    },
+    {
+      "from": "backoffice",
+      "to": "customer-app",
+      "move": "across"
+    },
+    {
+      "from": "stripe",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "stripe",
+      "to": "customer",
+      "move": "across"
+    },
+    {
+      "from": "stripe",
+      "to": "restaurant",
+      "move": "across"
+    },
+    {
+      "from": "stripe",
+      "to": "courier",
+      "move": "across"
+    },
+    {
+      "from": "stripe",
+      "to": "support",
+      "move": "across"
+    },
+    {
+      "from": "stripe",
+      "to": "ordering",
+      "move": "across"
+    },
+    {
+      "from": "stripe",
+      "to": "delivery",
+      "move": "across"
+    },
+    {
+      "from": "stripe",
+      "to": "notifications",
+      "move": "across"
+    },
+    {
+      "from": "stripe",
+      "to": "backoffice",
+      "move": "across"
+    },
+    {
+      "from": "stripe",
+      "to": "stripe",
+      "move": "in"
+    },
+    {
+      "from": "stripe",
+      "to": "twilio",
+      "move": "across"
+    },
+    {
+      "from": "stripe",
+      "to": "mapbox",
+      "move": "across"
+    },
+    {
+      "from": "stripe",
+      "to": "customer-app",
+      "move": "across"
+    },
+    {
+      "from": "twilio",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "twilio",
+      "to": "customer",
+      "move": "across"
+    },
+    {
+      "from": "twilio",
+      "to": "restaurant",
+      "move": "across"
+    },
+    {
+      "from": "twilio",
+      "to": "courier",
+      "move": "across"
+    },
+    {
+      "from": "twilio",
+      "to": "support",
+      "move": "across"
+    },
+    {
+      "from": "twilio",
+      "to": "ordering",
+      "move": "across"
+    },
+    {
+      "from": "twilio",
+      "to": "delivery",
+      "move": "across"
+    },
+    {
+      "from": "twilio",
+      "to": "notifications",
+      "move": "across"
+    },
+    {
+      "from": "twilio",
+      "to": "backoffice",
+      "move": "across"
+    },
+    {
+      "from": "twilio",
+      "to": "stripe",
+      "move": "across"
+    },
+    {
+      "from": "twilio",
+      "to": "twilio",
+      "move": "in"
+    },
+    {
+      "from": "twilio",
+      "to": "mapbox",
+      "move": "across"
+    },
+    {
+      "from": "twilio",
+      "to": "customer-app",
+      "move": "across"
+    },
+    {
+      "from": "mapbox",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "mapbox",
+      "to": "customer",
+      "move": "across"
+    },
+    {
+      "from": "mapbox",
+      "to": "restaurant",
+      "move": "across"
+    },
+    {
+      "from": "mapbox",
+      "to": "courier",
+      "move": "across"
+    },
+    {
+      "from": "mapbox",
+      "to": "support",
+      "move": "across"
+    },
+    {
+      "from": "mapbox",
+      "to": "ordering",
+      "move": "across"
+    },
+    {
+      "from": "mapbox",
+      "to": "delivery",
+      "move": "across"
+    },
+    {
+      "from": "mapbox",
+      "to": "notifications",
+      "move": "across"
+    },
+    {
+      "from": "mapbox",
+      "to": "backoffice",
+      "move": "across"
+    },
+    {
+      "from": "mapbox",
+      "to": "stripe",
+      "move": "across"
+    },
+    {
+      "from": "mapbox",
+      "to": "twilio",
+      "move": "across"
+    },
+    {
+      "from": "mapbox",
+      "to": "mapbox",
+      "move": "in"
+    },
+    {
+      "from": "mapbox",
+      "to": "customer-app",
+      "move": "across"
+    },
+    {
+      "from": "customer-app",
+      "to": "root",
+      "move": "out"
+    },
+    {
+      "from": "customer-app",
+      "to": "customer",
+      "move": "across"
+    },
+    {
+      "from": "customer-app",
+      "to": "restaurant",
+      "move": "across"
+    },
+    {
+      "from": "customer-app",
+      "to": "courier",
+      "move": "across"
+    },
+    {
+      "from": "customer-app",
+      "to": "support",
+      "move": "across"
+    },
+    {
+      "from": "customer-app",
+      "to": "ordering",
+      "move": "out"
+    },
+    {
+      "from": "customer-app",
+      "to": "delivery",
+      "move": "across"
+    },
+    {
+      "from": "customer-app",
+      "to": "notifications",
+      "move": "across"
+    },
+    {
+      "from": "customer-app",
+      "to": "backoffice",
+      "move": "across"
+    },
+    {
+      "from": "customer-app",
+      "to": "stripe",
+      "move": "across"
+    },
+    {
+      "from": "customer-app",
+      "to": "twilio",
+      "move": "across"
+    },
+    {
+      "from": "customer-app",
+      "to": "mapbox",
+      "move": "across"
+    },
+    {
+      "from": "customer-app",
+      "to": "customer-app",
+      "move": "in"
+    }
+  ],
+  "search": [
+    {
+      "model": "plum",
+      "query": "",
+      "found": []
+    },
+    {
+      "model": "example",
+      "query": "",
+      "found": []
+    },
+    {
+      "model": "plum",
+      "query": " ",
+      "found": []
+    },
+    {
+      "model": "example",
+      "query": " ",
+      "found": []
+    },
+    {
+      "model": "plum",
+      "query": "ord",
+      "found": [
+        "ordering",
+        "order-api",
+        "orders-db",
+        "events",
+        "status"
+      ]
+    },
+    {
+      "model": "example",
+      "query": "ord",
+      "found": [
+        "db",
+        "orders"
+      ]
+    },
+    {
+      "model": "plum",
+      "query": "order api",
+      "found": [
+        "order-api"
+      ]
+    },
+    {
+      "model": "example",
+      "query": "order api",
+      "found": []
+    },
+    {
+      "model": "plum",
+      "query": "API",
+      "found": [
+        "order-api"
+      ]
+    },
+    {
+      "model": "example",
+      "query": "API",
+      "found": [
+        "api"
+      ]
+    },
+    {
+      "model": "plum",
+      "query": "stripe",
+      "found": [
+        "stripe"
+      ]
+    },
+    {
+      "model": "example",
+      "query": "stripe",
+      "found": []
+    },
+    {
+      "model": "plum",
+      "query": "zzz",
+      "found": []
+    },
+    {
+      "model": "example",
+      "query": "zzz",
+      "found": []
+    },
+    {
+      "model": "plum",
+      "query": "a",
+      "found": [
+        "admin",
+        "restaurant",
+        "support",
+        "notifications",
+        "backoffice",
+        "mapbox",
+        "customer-app",
+        "kitchen-tablet"
+      ]
+    },
+    {
+      "model": "example",
+      "query": "a",
+      "found": [
+        "api",
+        "auth",
+        "web",
+        "mail"
+      ]
+    },
+    {
+      "model": "plum",
+      "query": "db  cache",
+      "found": []
+    },
+    {
+      "model": "example",
+      "query": "db  cache",
+      "found": []
+    },
+    {
+      "model": "plum",
+      "query": "in",
+      "found": [
+        "ordering",
+        "pricing",
+        "tracking",
+        "admin"
+      ]
+    },
+    {
+      "model": "example",
+      "query": "in",
+      "found": []
+    }
+  ]
+}

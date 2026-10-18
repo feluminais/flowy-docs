@@ -1,0 +1,6 @@
+{
+  "parseError": {
+    "file": "layout.yaml",
+    "message": "root → a must be [x, y]"
+  }
+}
