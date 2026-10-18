@@ -66,11 +66,16 @@ if (args?.positionals[0] === 'mcp') {
     process.exitCode = 1
   }
 } else if (args?.positionals.length === 0 && !mermaidFlags && /^\d{1,5}$/.test(args.values.port) && Number(args.values.port) <= 65535) {
-  const dir = resolve(args.values.dir)
-  const { port } = await startServer({ dir, ui, port: Number(args.values.port) })
-  const url = `http://127.0.0.1:${port}/`
-  console.log(`Flowy Docs: ${url}\nShowing ${dir}. Press Ctrl+C to stop.`)
-  if (args.values.open) openBrowser(url)
+  try {
+    const dir = resolve(args.values.dir)
+    const { port } = await startServer({ dir, ui, port: Number(args.values.port) })
+    const url = `http://127.0.0.1:${port}/`
+    console.log(`Flowy Docs: ${url}\nShowing ${dir}. Press Ctrl+C to stop.`)
+    if (args.values.open) openBrowser(url)
+  } catch (e) {
+    console.error(e instanceof Error ? e.message : String(e))
+    process.exitCode = 1
+  }
 } else {
   console.error('Usage: flowy [--dir flowy] [--port 4321] [--no-open]\n       flowy export [--dir flowy] [--out flowy-site]\n       flowy mermaid (--flow <id> | --view <id>) [--dir flowy]\n       flowy mcp [--dir flowy]')
   process.exitCode = 1

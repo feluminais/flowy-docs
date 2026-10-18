@@ -17,6 +17,8 @@ const TYPES: Record<string, string> = {
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.woff2': 'font/woff2',
+  '.txt': 'text/plain; charset=utf-8', // the licence files: shown, not downloaded
+  '.md': 'text/plain; charset=utf-8',
 }
 
 function send(res: ServerResponse, status: number, body: unknown) {

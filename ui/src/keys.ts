@@ -7,6 +7,9 @@ export function letter(e: { key: string; code: string }): string {
   return e.code.startsWith('Key') ? e.code.slice(3).toLowerCase() : e.key
 }
 
+/** Enter belongs to a focused button, link or disclosure summary, not to the canvas behind it. */
+export const takesEnter = (target: { closest?: (selector: string) => unknown } | null): boolean => Boolean(target?.closest?.('button, a, summary'))
+
 /** What one press of Escape closes, innermost first. */
 export type EscapeStep = 'shortcuts' | 'flow' | 'step' | 'panel' | 'up'
 

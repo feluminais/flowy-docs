@@ -22,6 +22,17 @@ test('flowy serves the given folder and prints its URL', { timeout: 10_000 }, as
   assert.deepEqual(state.versions, { 'model.yaml': null, 'layout.yaml': null })
 })
 
+test('flowy that cannot start says why in one line, not with a stack trace, and exits 1', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'flowy-cli-'))
+  t.after(() => rm(dir, { recursive: true, force: true }))
+  const file = join(dir, 'not-a-folder')
+  await writeFile(file, '')
+  const run = spawnSync(process.execPath, ['src/cli.ts', '--dir', file, '--port', '0', '--no-open'], { encoding: 'utf8' })
+  assert.equal(run.status, 1, run.stderr)
+  assert.match(run.stderr, /not-a-folder/)
+  assert.doesNotMatch(run.stderr, /\n\s+at /)
+})
+
 test('flowy shows the usage line for unknown commands, flags and ports', () => {
   for (const args of [['serve'], ['--port', 'abc'], ['--port', '70000'], ['--bogus'], ['export', 'more'], ['--flow', 'checkout'], ['export', '--view', 'shop']]) {
     const run = spawnSync(process.execPath, ['src/cli.ts', ...args], { encoding: 'utf8' })
