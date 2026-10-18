@@ -18,6 +18,23 @@ This repo documents itself: `flowy/` is Flowy Docs' own architecture, and `node 
 (after `npm run build:ui`). If a change adds, moves or removes a box, a connection or a flow, update
 `flowy/` in the same change. Every `code:` path in it has to exist, so the canvas shows no problems.
 
+## Run it from source
+
+`npm run build` puts the canvas in `dist/ui` and the server in `dist/`. In a clone, `node src/cli.ts` does what
+`npx flowy-docs` does, once `npm run build:ui` has built the canvas.
+
+To work on the canvas with hot reload, run Flowy on the example model, then Vite, and open http://localhost:5173:
+
+```bash
+node src/cli.ts --dir example --no-open
+npm run dev:ui
+```
+
+`docs/demo/` is Plum, the made-up delivery service in the README's screenshots. `node src/cli.ts --dir docs/demo/flowy`
+opens it. Its `code:` paths point at placeholder files beside it, so the canvas shows no problems. The screenshots in
+`docs/images/` are of that model in the light theme, 1100 by 700 (1280 by 760 for the edit one) at twice the pixel density.
+Retake them when the canvas changes how it looks.
+
 ## Canvas checklist
 
 The logic behind the canvas (layout, keys, saving) has tests, but nothing drives the canvas itself.
