@@ -136,7 +136,7 @@ a { color: var(--accent); }
 .player-buttons button:last-child { margin-left: auto; }
 
 .grow { flex: 1; }
-.react-flow__edge.selected .react-flow__edge-path { stroke: var(--accent); stroke-width: 2; }
+.react-flow__edge.selected .react-flow__edge-path, .react-flow__edge.hover .react-flow__edge-path { stroke: var(--accent); stroke-width: 2; }
 .line + .line { margin-top: 12px; border-top: 1px solid var(--line); }
 
 .problems { position: relative; }
@@ -193,6 +193,19 @@ a { color: var(--accent); }
 .panel .step-buttons button { padding: 0 8px; }
 .code-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 4px; font-size: 13px; }
 .code-list code { overflow-wrap: anywhere; } /* deep paths, like a Kotlin package, wrap instead of running off the panel */
+
+/* A box's connections in its panel: one row per line, out then in. */
+.lines-of h3 { margin: 20px 0 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.lines-of ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.lines-of > ul > li { display: flex; gap: 8px; padding: 6px 8px; margin: 0 -8px; border-radius: 6px; }
+.lines-of > ul > li:hover { background: var(--bg); }
+.lines-of .arrow { color: var(--muted); }
+.lines-of .muted { font-size: 12px; }
+.panel .lines-of button.link { all: unset; cursor: pointer; font-weight: 600; color: var(--accent); }
+.panel .lines-of button.link:hover { text-decoration: underline; }
+.panel .lines-of button.link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.lines-of summary { cursor: pointer; color: var(--muted); }
+.lines-of details ul { margin: 6px 0 0; padding-left: 4px; gap: 8px; }
 
 /* Search: a field at the top middle, over the canvas. */
 .search {

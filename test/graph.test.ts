@@ -147,6 +147,11 @@ test('selecting a box fades the lines that do not touch it', () => {
   assert.ok(focusEdges(quiet, {}).every(e => e.className === undefined))
 })
 
+test('the line pointed at stands out, also among the selected box\'s lines', () => {
+  const quiet = toGraph(shop(), 'shop').edges
+  assert.deepEqual(focusEdges(quiet, { box: 'api', hover: 'api db' }).filter(e => e.className?.includes('hover')).map(e => e.id), ['api db'])
+})
+
 test('a line runs between the borders of two boxes that face each other', () => {
   const a = { x: 0, y: 0, width: 180, height: 72 }
   assert.deepEqual(lineEnds(a, { ...a, x: 400 }), [{ x: 180, y: 36 }, { x: 400, y: 36 }])

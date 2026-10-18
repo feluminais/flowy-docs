@@ -373,7 +373,8 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
 /**
  * Lines stay quiet. A label shows only on a line you point at or select, on the lines of the
  * selected box, and on the line a flow has lit. When a box is selected its lines stand out and
- * the others fade (class "faint").
+ * the others fade (class "faint"). The line pointed at, on the canvas or in a box's panel, stands
+ * out from those too (class "hover").
  */
 export function focusEdges(edges: Edge[], focus: { box?: string; line?: string; hover?: string }): Edge[] {
   return edges.map(e => {
@@ -383,7 +384,7 @@ export function focusEdges(edges: Edge[], focus: { box?: string; line?: string; 
       ...e,
       label: shown ? e.label : undefined,
       selected: e.id === focus.line,
-      className: classes(e.className, focus.box !== undefined && !touches && 'faint'),
+      className: classes(e.className, focus.box !== undefined && !touches && 'faint', e.id === focus.hover && 'hover'),
     }
   })
 }

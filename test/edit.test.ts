@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { check } from '../src/core/check.ts'
 import { deleteFlow, placeBoxes, putObject } from '../src/core/ops.ts'
-import { changesBetween, connectionsOf, locate, newId, problemsOf } from '../ui/src/edit.ts'
+import { changesBetween, connectionsOf, linesOf, locate, newId, problemsOf } from '../ui/src/edit.ts'
 import { shop } from './fixtures.ts'
 
 test('changesBetween gives each changed file as PUT takes it, and null for a deleted flow', () => {
@@ -60,4 +60,16 @@ test('problemsOf gives an object its own problems and those of connections touch
   m.connections.push({ from: 'web', to: 'web' }, { from: 'api', to: 'ghost' })
   assert.deepEqual(problemsOf(m, check(m), 'web').map(p => p.message), ['web: name is missing', 'connection web → web: connects an object to itself'])
   assert.deepEqual(problemsOf(m, check(m), 'api').map(p => p.message), ['connection api → ghost: unknown object "ghost"'])
+})
+
+test('linesOf lists the lines touching a box where it sits, out then in, with the connections behind each', () => {
+  const ends = (lines: ReturnType<typeof linesOf>['out']) =>
+    lines.map(l => [l.other, l.connections.map(c => `${c.from}>${c.to}:${c.label ?? ''}`)])
+  // API sits in Shop. Its line to Orders DB stands for two connections from the components inside it.
+  const api = linesOf(shop(), 'api')
+  assert.deepEqual(ends(api.out), [['db', ['orders>db:reads/writes', 'auth>db:checks users']], ['mail', ['orders>mail:sends receipts']]])
+  assert.deepEqual(ends(api.in), [['web', ['web>api:REST']]])
+  // Mail service sits at the top, where Shop's line to it stands for Orders' connection.
+  assert.deepEqual(ends(linesOf(shop(), 'mail').in), [['shop', ['orders>mail:sends receipts']]])
+  assert.deepEqual(linesOf(shop(), 'mail').out, [])
 })
