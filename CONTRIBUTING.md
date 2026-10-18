@@ -35,6 +35,74 @@ opens it. Its `code:` paths point at placeholder files beside it, so the canvas 
 `docs/images/` are of that model in the light theme, 1100 by 700 (1280 by 760 for the edit one) at twice the pixel density.
 Retake them when the canvas changes how it looks.
 
+## The desktop app
+
+`desktop/` is a native, read-only reader for `flowy/` folders, built with .NET 10 and Avalonia; the browser canvas stays as it is. It
+needs the .NET 10 SDK. The pieces:
+
+- `Flowy.Core`: no UI. A C# port of the reading half of `src/core` and `src/node` (YAML read as text, parsing, views, checks, the folder
+  loader, code links) plus what the canvas decides (geometry and line paths, layout, the scene, search, navigation) and the shell's rules
+  (which folder a pick means, recents, saved state, the folder watcher) and the Mermaid text.
+- `Flowy.App`: the Avalonia app. `Canvas/` draws a view (boxes as controls, one layer behind them for the frame and lines, a camera);
+  `ReaderView` holds what the reader has chosen; `Shell` owns the windows; `Updates`, `ExplorerEntries` and `SingleInstance` are the
+  installer-side parts.
+- `Flowy.Tests` (xUnit): the Core, including parity with the TypeScript. `Flowy.App.Tests` (xUnit v3, Avalonia's headless platform):
+  keys, clicks, the wheel, windows, the menu, single instance, Explorer entries (in a throwaway registry key, never the real one).
+
+```bash
+dotnet test desktop                                                        # all of it
+dotnet run --project desktop/Flowy.App -- docs/demo                        # open a repo in the app
+dotnet run --project desktop/Flowy.App -- docs/demo --shot out.png         # save a picture of the window and exit (--scale 2 for twice the size, --picture for the diagram alone)
+```
+
+`--shot` takes flags that set up what the picture shows: `--view ordering`, `--select order-api`, `--line "web order-api"`,
+`--hover "web order-api"`, `--flow place-order --step 1`, `--search re`, `--shortcuts`, `--zoom ordering --delay 200` (a frame of the
+zoom), `--lines curved`, `--theme dark`, `--size 1100x700`. Check a visual change by looking at pictures next to `docs/images/`, which
+are the browser canvas on the same model. `FLOWY_REDUCE_MOTION=1` turns animation off.
+
+**Two readers must agree.** `dotnet test desktop` compares Flowy.Core with the TypeScript on the folders in
+`desktop/fixtures/fixtures.json` (`example/`, `docs/demo` and crafted cases) and on the canvas's own functions (line paths, camera fits,
+`arrange` and `untangle`, the scene's classes, the panels' lines, search, Mermaid text). What the TypeScript says is in `desktop/fixtures/expected`,
+written by `node desktop/fixtures/generate.ts`. If a change to `src/core`, `ui/src/graph.ts`, `example/` or `docs/demo` makes `npm test`
+fail on a "desktop" test, run that command, look at `git diff desktop/fixtures/expected`, then run `dotnet test desktop`: a C# test that
+now fails means Flowy.Core needs the same change. A new rule in `src/core` should come with a case under `desktop/fixtures/cases`.
+Positions of boxes you haven't dragged are the one thing that isn't compared: dagre has no C# twin, so `LayeredLayout` stands in.
+
+Packaging is Velopack: `dotnet tool restore` (from `desktop/`), then
+
+```bash
+dotnet publish desktop/Flowy.App -c Release -r win-x64 --self-contained true -o desktop/publish/win-x64
+cd desktop && dotnet vpk pack --packId FlowyDocs --packVersion 0.1.0 --packDir publish/win-x64 --mainExe FlowyDocs.exe \
+  --packTitle "Flowy Docs" --icon Flowy.App/Assets/icon.ico --outputDir releases
+```
+
+makes `FlowyDocs-win-Setup.exe`, a portable zip and the update feed in `desktop/releases/`. The "desktop" workflow does this on each
+system and uploads to a draft GitHub release; start it by hand after bumping `<Version>` in `Flowy.App.csproj`. Running the installer
+adds a Start menu entry and the "Open with Flowy Docs" entries to your user's registry, and uninstalling removes them. Regenerate the
+icon with `dotnet run desktop/tools/make-icon.cs` and the notices with `node desktop/tools/third-party.mjs`.
+
+Before merging a change to the app, look at what it could affect, in a real window:
+
+- [ ] `dotnet run --project desktop/Flowy.App -- docs/demo` shows Plum. Double-click Ordering: the view zooms in, the breadcrumb reads
+      Overview › Ordering, and Esc, Backspace or the breadcrumb zoom out. Double-click the faded Delivery while inside Ordering: the
+      view slides across instead of zooming in.
+- [ ] Click Order API: its panel opens and the view moves it out from under the panel. Click a name in the panel's Out list: the panel
+      switches. Open "5 connections": each label shows. Point at a row: its line lights up on the canvas.
+- [ ] Pick "Customer places an order" in Ordering: ← and → step, Home and End jump, Esc stops, and the player card shows "More".
+- [ ] Ctrl+K, type `re`: Restaurant, Refunds in Order API and Data warehouse in Back office. Enter opens Refunds' panel in its view.
+- [ ] Open `desktop/fixtures/cases/problems/flowy` (or its repo): "34 problems" in the bar, "!" on boxes, a click on a problem goes to it.
+- [ ] Save `example/model.yaml` with a new box name while the app is open: it appears without a reload. Add a line `<<<<<<<` and
+      save: a banner names the file and line, and the last good model stays.
+- [ ] File › Open Recent lists what you opened; dropping a folder from Explorer opens a window; opening the same folder twice brings
+      the first window forward; `FlowyDocs.exe <folder>` from a terminal opens it in the running app, not a second one.
+- [ ] With the system's animation effects off (Settings › Accessibility › Visual effects), opening a box is instant. With them on, it
+      is smooth: no stutter on the way in or out, and a second double-click during the move doesn't break it.
+- [ ] Help › Open the Demo shows Plum with no problems. View › Copy as Mermaid, pasted into an editor, starts with `` ```mermaid ``;
+      View › Save Picture… writes a PNG of the diagram alone. An empty `model.yaml` says "Nothing to show yet".
+- [ ] Close a window after resizing it, open the app again: it opens at that size.
+- [ ] Delete the open `flowy/` folder: a banner says it is gone. Put it back and open it again: the model returns.
+- [ ] Light and dark: change the system's theme while the app is open.
+
 ## Canvas checklist
 
 The logic behind the canvas (layout, keys, saving) has tests, but nothing drives the canvas itself.
