@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { deleteFlow, placeBoxes, putFlow, putObject } from '../src/core/ops.ts'
 import { startServer } from '../src/node/server.ts'
-import { CHANGED_OUTSIDE, saveEdit, UNDO_STALE, undoEdit } from '../ui/src/save.ts'
+import { CHANGED_OUTSIDE, REDO_STALE, saveEdit, UNDO_STALE, undoEdit } from '../ui/src/save.ts'
 import type { Undo } from '../ui/src/save.ts'
 
 /** A server over a flowy/ folder that starts with a shop and a title, the way the canvas talks to it. */
@@ -100,5 +100,38 @@ test('undo refuses once the file changed since, and leaves the change alone', as
   const outside = 'objects:\n  mail: { type: system, name: Mail }\n'
   writeFileSync(join(dir, 'model.yaml'), outside)
   assert.equal(await undoEdit(undos[0], base), UNDO_STALE)
+  assert.equal(await read('model.yaml'), outside)
+})
+
+test('redo puts an undone edit back, a deleted flow included, and undo can take it away again', async t => {
+  const { dir, read, base } = await setup(t)
+  const undos: Undo[] = []
+  const redos: Undo[] = []
+  assert.equal(await saveEdit(m => putObject(m, { id: 'shop', name: 'Store' }), base, undo => undos.push(undo)), undefined)
+  assert.equal(await saveEdit(m => putFlow(m, { id: 'tour', name: 'Tour', view: 'root', steps: [{ from: 'shop', text: 'Waits' }] }), base, undo => undos.push(undo)), undefined)
+  // Undo both, newest first; each hands over its redo.
+  assert.equal(await undoEdit(undos.pop()!, base, back => redos.push(back)), undefined)
+  assert.equal(await undoEdit(undos.pop()!, base, back => redos.push(back)), undefined)
+  assert.match(await read('model.yaml'), /name: Shop/)
+  assert.equal(existsSync(join(dir, 'flows', 'tour.yaml')), false)
+  // Redo in reverse order: the rename, then the flow file comes back.
+  assert.equal(await undoEdit(redos.pop()!, base, back => undos.push(back), 'redo'), undefined)
+  assert.match(await read('model.yaml'), /name: Store/)
+  assert.equal(await undoEdit(redos.pop()!, base, back => undos.push(back), 'redo'), undefined)
+  assert.match(await read('flows/tour.yaml'), /text: Waits/)
+  // And the redone flow can be undone again.
+  assert.equal(await undoEdit(undos.pop()!, base), undefined)
+  assert.equal(existsSync(join(dir, 'flows', 'tour.yaml')), false)
+})
+
+test('redo refuses once the file changed since, in its own words', async t => {
+  const { dir, read, base } = await setup(t)
+  const undos: Undo[] = []
+  const redos: Undo[] = []
+  assert.equal(await saveEdit(m => putObject(m, { id: 'shop', name: 'Store' }), base, undo => undos.push(undo)), undefined)
+  assert.equal(await undoEdit(undos[0], base, back => redos.push(back)), undefined)
+  const outside = 'objects:\n  mail: { type: system, name: Mail }\n'
+  writeFileSync(join(dir, 'model.yaml'), outside)
+  assert.equal(await undoEdit(redos[0], base, undefined, 'redo'), REDO_STALE)
   assert.equal(await read('model.yaml'), outside)
 })

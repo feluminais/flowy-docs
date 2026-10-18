@@ -23,9 +23,10 @@ folder, `--port <number>` picks the port, and `--no-open` skips the browser.
 ## Read it
 
 - Each box shows its type as a coloured icon: person, system, app, store, component. Outside
-  services you don't own are grey with a cloud. "3 inside" means a box opens: double-click it to
-  zoom in. The breadcrumb or Backspace zooms out. Inside a box, a frame named after it wraps what's
-  in it.
+  services you don't own are grey with a cloud. "3 inside" means a box opens: double-click it, or
+  select it and press Enter, to zoom in. Esc zooms back out, one level per press, once it has
+  closed whatever is open (a flow, the side panel). Backspace and the breadcrumb zoom out too.
+  Inside a box, a frame named after it wraps what's in it.
 - Hover a box for its short description. Click it for the full text. Click a line to see the
   connections it stands for.
 - Lines have no labels until you point at one. Click a box and its lines show theirs while the
@@ -39,8 +40,10 @@ folder, `--port <number>` picks the port, and `--no-open` skips the browser.
   `origin` is on GitHub or GitLab, they link there.
 - Ctrl+K or / (or Search) finds a box anywhere in the model by name. Pick one and the canvas
   opens the level it's on, with its panel open.
-- Pick a flow in the top bar to play it step by step: ← and → move, Esc stops. A step can be one
-  box doing something on its own, and a step with more to say has a More you can open.
+- Pick a flow in the top bar to play it step by step: ← and → move, Home and End jump to the first
+  and last step, Esc stops. A step can be one box doing something on its own, and a step with more
+  to say has a More you can open.
+- F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Boxes with
   a problem carry a "!".
 
@@ -52,7 +55,7 @@ Press E, or the Edit button.
 
 - Drag boxes to arrange the view. Positions go to `flowy/layout.yaml`.
 - Drag from the dot under a box onto another box to connect them, then type a label in the panel.
-- Add puts a box in the current view. It offers only the types that fit there: actors and
+- Add (or N) puts a box in the current view. It offers only the types that fit there: actors and
   systems at the top, apps and stores inside a system, components inside an app or store.
   Double-click an empty system, app or store to open it and add what goes inside.
 - Click a box to change its name, type, tech, description and code. A field saves when you leave
@@ -75,9 +78,10 @@ refused, and nothing is written. If a file changed on disk in the meantime, the 
 and the page reloads. Git keeps the history.
 
 Ctrl+Z, or Undo, takes back your last change on this page, then the one before. It goes back as
-far as the page has been open. If the file changed since (Claude, your editor, another tab), undo
-leaves it alone and says so. Undo brings back what the file said, not how it was written: like
-any save, it drops YAML comments and writes the file in Flowy's own layout.
+far as the page has been open. Ctrl+Y or Ctrl+Shift+Z, or Redo, puts back what you undid, until
+you make a new change. If the file changed since (Claude, your editor, another tab), undo and redo
+leave it alone and say so. Undo brings back what the file said, not how it was written: like any
+save, it drops YAML comments and writes the file in Flowy's own layout.
 
 ## Let Claude build it
 
@@ -166,6 +170,11 @@ Reading:
       app, API and Orders DB, and Customer and Mail service are faded and dashed outside it.
 - [ ] Double-click API, then press Backspace twice quickly: it zooms back out to the overview.
       Clicking the breadcrumb works too. The zoom buttons in the corner don't move while it zooms.
+- [ ] Click Shop and press Enter: it zooms in. Click API (its panel opens), then press Esc three
+      times: the panel closes, then it zooms out to Shop, then to the overview. Esc again does
+      nothing. Tab moves the focus between boxes, and Enter opens the focused one.
+- [ ] Zoom in with the wheel and press F: the whole view fits again. Press ?: the shortcut list
+      opens; Esc closes it.
 - [ ] Inside API, Orders DB and Mail service sit in a row below Auth and Orders, and no line runs
       through a box.
 - [ ] With the system's reduce-motion setting on (Windows: Settings › Accessibility › Visual
@@ -180,7 +189,8 @@ Reading:
 - [ ] Hover API: after a moment its first paragraph appears under it. Click API: the side panel
       shows the whole description with its bullet list. Esc, ×, or a click on empty canvas closes it.
 - [ ] In Shop, play "Customer checks out". Only the current step's two boxes and line stay lit.
-      → and ← move, the buttons match, Esc stops. Step 3 lights API alone, with no line, and its
+      → and ← move, End and Home jump to the last and first step, the buttons match, Esc stops
+      (and a second Esc zooms out). Step 3 lights API alone, with no line, and its
       More shows a paragraph with **Orders DB** in bold.
 - [ ] In API, play "Customer signs in". Web app joins as a faded box, with a dashed line to Auth.
 - [ ] In Shop, click the "2 connections" line: the panel lists both connections.
@@ -206,8 +216,10 @@ Editing (press E):
       Set Tech to Redis and press Tab: the box reads "Redis". Clear the name and press
       Enter: a notice says it was refused, and the name comes back.
 - [ ] Rename Shop to Store and press Tab, then Ctrl+Z: it's Shop again, and "Undone." shows.
-      Rename it again, change the name in `example/model.yaml` by hand, then Ctrl+Z: the notice
-      says it changed since, and your hand edit stays.
+      Ctrl+Y: it's Store again, and "Redone." shows; Ctrl+Y again: "Nothing to redo." Rename it
+      again, change the name in `example/model.yaml` by hand, then Ctrl+Z: the notice says it
+      changed since, and your hand edit stays.
+- [ ] Press N: the Add panel opens.
 - [ ] Select API and press Delete: the notice says it still contains auth and orders. Select
       Cache and press Delete: it goes.
 - [ ] Select API, type `src/cli.ts` in Code and press Tab: `example/model.yaml` gets a
