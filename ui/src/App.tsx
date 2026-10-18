@@ -15,7 +15,7 @@ import { connectionsOf, locate, nameOf } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
-import { escapeStep, letter } from './keys.ts'
+import { escapeStep, letter, takesEnter } from './keys.ts'
 import { Line, LineStyleContext } from './Line.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
@@ -317,7 +317,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
       else if (flow && e.key === 'ArrowLeft') stepTo(stepIndex - 1)
       else if (flow && e.key === 'Home') stepTo(0)
       else if (flow && e.key === 'End') stepTo(flow.steps.length - 1)
-      else if (e.key === 'Enter' && !recording && !(e.target instanceof HTMLButtonElement || e.target instanceof HTMLAnchorElement)) {
+      else if (e.key === 'Enter' && !recording && !takesEnter(e.target as Element | null)) {
         // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
         const id = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('.react-flow__node-box')?.dataset.id ?? selectedBox
         if (id === undefined) return

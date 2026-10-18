@@ -42,6 +42,30 @@ test('flows load by file name, in order, skipping anything that is not a .yaml f
   assert.equal(versions['flows/b.yaml'], hashText('name: B\n'))
 })
 
+test('a flow file named __proto__ is a flow with a problem, not the prototype of the flows', async t => {
+  const dir = await tempDir(t)
+  await mkdir(join(dir, 'flows'))
+  await writeFile(join(dir, 'flows/__proto__.yaml'), 'name: P\n')
+  const { model } = await loadDir(dir)
+  assert.deepEqual(Object.keys(model.flows), ['__proto__'])
+  assert.equal(Object.getPrototypeOf(model.flows), Object.prototype)
+  const state = await loadState(dir)
+  assert.ok('problems' in state)
+  assert.ok(state.problems.some(p => p.file === 'flows/__proto__.yaml' && /not a valid flow id/.test(p.message)))
+})
+
+test('a flow file ending in .yml is skipped, and the problems list says so', async t => {
+  const dir = await tempDir(t)
+  await mkdir(join(dir, 'flows'))
+  await writeFile(join(dir, 'flows/checkout.yml'), 'name: C\n')
+  const { model, ignored } = await loadDir(dir)
+  assert.deepEqual(model.flows, {})
+  assert.deepEqual(ignored, ['flows/checkout.yml'])
+  const state = await loadState(dir)
+  assert.ok('problems' in state)
+  assert.deepEqual(state.problems, [{ file: 'flows/checkout.yml', message: 'Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to flows/checkout.yaml.' }])
+})
+
 test('a stale version is refused and the file is left alone; an empty file is not a missing one', async t => {
   const dir = await tempDir(t)
   await saveFile(dir, 'model.yaml', 'objects: {}\n', null)

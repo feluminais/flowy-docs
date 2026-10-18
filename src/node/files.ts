@@ -8,8 +8,11 @@ import type { Model } from '../core/model.ts'
 import type { State } from '../core/state.ts'
 import { codeBase } from './git.ts'
 
-/** The model plus a content hash per file (null = file missing), used to detect outside edits. */
-export type Loaded = { model: Model; versions: Record<string, string | null> }
+/**
+ * The model plus a content hash per file (null = file missing), used to detect outside edits.
+ * `ignored` lists flow files Flowy skips because they end in .yml, not .yaml.
+ */
+export type Loaded = { model: Model; versions: Record<string, string | null>; ignored: string[] }
 
 /** The file changed since the caller read it. */
 export class VersionConflict extends Error {
@@ -66,13 +69,14 @@ export async function loadDir(dir: string): Promise<Loaded> {
     if (e.code === 'ENOENT') return []
     throw e
   })
-  const names = entries.filter(e => (e.isFile() || e.isSymbolicLink()) && e.name.endsWith('.yaml')).map(e => e.name).sort()
-  for (const name of names) {
+  const files = entries.filter(e => e.isFile() || e.isSymbolicLink()).map(e => e.name).sort()
+  for (const name of files.filter(n => n.endsWith('.yaml'))) {
     const text = await read(`flows/${name}`)
     const id = name.slice(0, -'.yaml'.length)
-    if (text !== null) model.flows[id] = parseFlowFile(id, text)
+    // Not `model.flows[id] = ...`: a file named __proto__.yaml would replace the prototype and the flow would vanish.
+    if (text !== null) Object.defineProperty(model.flows, id, { value: parseFlowFile(id, text), enumerable: true, writable: true, configurable: true })
   }
-  return { model, versions }
+  return { model, versions, ignored: files.filter(n => n.endsWith('.yml')).map(n => `flows/${n}`) }
 }
 
 /** The `code` paths in these models that don't exist. They're relative to the folder that holds `dir`. */
@@ -85,10 +89,12 @@ export function missingPaths(dir: string, ...models: Model[]): Set<string> {
 /** The folder as the canvas reads it, or the file that can't be read: what GET /api/state answers and an export carries. */
 export async function loadState(dir: string): Promise<State> {
   try {
-    const { model, versions } = await loadDir(dir)
+    const { model, versions, ignored } = await loadDir(dir)
     const { flows, layout, ...rest } = model
     const base = await codeBase(dirname(resolve(dir)))
-    return { model: rest, layout, flows, problems: check(model, missingPaths(dir, model)), versions, ...(base ? { codeBase: base } : {}) }
+    // A flow file that isn't read is no part of the model, so it isn't a problem check() can see.
+    const skipped = ignored.map(file => ({ file, message: `Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to ${file.replace(/\.yml$/, '.yaml')}.` }))
+    return { model: rest, layout, flows, problems: [...check(model, missingPaths(dir, model)), ...skipped], versions, ...(base ? { codeBase: base } : {}) }
   } catch (e) {
     if (e instanceof ParseError) return { parseError: { file: e.file, line: e.line, message: e.reason } }
     throw e
