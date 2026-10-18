@@ -1,7 +1,7 @@
 import type { Problem } from '../../src/core/check.ts'
 import { changedFiles, fileData, getObject, isValidId, ROOT, serializeLayout } from '../../src/core/model.ts'
 import type { Connection, Model } from '../../src/core/model.ts'
-import { chain, computeView, hasChildren, parentOf, placeEnds } from '../../src/core/views.ts'
+import { chain, computeView, isView, parentOf, placeEnds } from '../../src/core/views.ts'
 
 export const nameOf = (model: Model, id: string) => (id === ROOT ? 'Overview' : getObject(model, id)?.name || id)
 
@@ -68,8 +68,7 @@ export function locate(model: Model, problem: Problem): Spot {
   const flow = /^flows\/(.+)\.yaml$/.exec(problem.file)?.[1]
   if (flow !== undefined && Object.hasOwn(model.flows, flow)) {
     const { view } = model.flows[flow]
-    const shown = view === ROOT || (getObject(model, view) !== undefined && hasChildren(model, view))
-    return { view: shown ? view : ROOT, flow, step: problem.step }
+    return { view: isView(model, view) ? view : ROOT, flow, step: problem.step }
   }
   return { view: ROOT }
 }

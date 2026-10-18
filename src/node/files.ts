@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs'
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { check, isRepoPath } from '../core/check.ts'
-import { emptyModel, ParseError, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/model.ts'
+import { emptyModel, isValidId, ParseError, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
 import type { State } from '../core/state.ts'
 import { codeBase } from './git.ts'
@@ -22,8 +22,9 @@ export class VersionConflict extends Error {
   }
 }
 
-const ALLOWED = /^(model\.yaml|layout\.yaml|flows\/(?!root\.yaml$)[a-z0-9][a-z0-9-]*\.yaml)$/
-export const isAllowedPath = (rel: unknown): rel is string => typeof rel === 'string' && ALLOWED.test(rel)
+export const isAllowedPath = (rel: unknown): rel is string =>
+  rel === 'model.yaml' || rel === 'layout.yaml'
+  || (typeof rel === 'string' && rel.startsWith('flows/') && rel.endsWith('.yaml') && isValidId(rel.slice('flows/'.length, -'.yaml'.length)))
 
 export const hashText = (text: string) => createHash('sha256').update(text).digest('hex').slice(0, 16)
 

@@ -27,8 +27,10 @@ test('object rules', () => {
     lost: { type: 'store', name: 'L', in: 'nowhere' },
     deep: { type: 'component', name: 'D', in: 'shop' },
     boxed: { type: 'system', name: 'B', in: 'shop' },
+    '-dash': { type: 'actor', name: 'D' },
   }))
   assertProblem(m, 'Bad Id: ids use lowercase')
+  assertProblem(m, '-dash: ids use lowercase letters, digits and dashes, not starting with a dash')
   assertProblem(m, 'root: ids use lowercase')
   assertProblem(m, 'thing: unknown type "gizmo"')
   assertProblem(m, 'nameless: name is missing')

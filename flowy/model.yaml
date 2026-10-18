@@ -31,7 +31,7 @@ objects:
   host:
     type: system
     name: Static host
-    description: Wherever an export is put — GitHub Pages, S3, a folder behind nginx. It serves plain files; the model travels inside `index.html`.
+    description: Wherever an export is put (GitHub Pages, S3, a folder behind nginx). It serves plain files; the model travels inside `index.html`.
   folder:
     type: store
     in: repo
@@ -177,7 +177,7 @@ objects:
     in: canvas
     name: Side panel
     code: [ui/src/Panel.tsx, ui/src/Search.tsx]
-    description: Descriptions and code links while reading; the fields, the flow recorder and Add while editing. Search finds a box anywhere in the model.
+    description: A box's description, code links and connections (out and in) while reading; the fields, the flow recorder and Add while editing. Search finds a box anywhere in the model.
   model:
     type: component
     in: core
@@ -187,7 +187,7 @@ objects:
       Reads and writes the folder's YAML. Parsed with YAML's failsafe schema, so every value stays
       the text that was typed: an id like `007` or a version like `3.10` survives a save.
 
-      A file that can't be trusted — bad syntax, duplicate keys, a merge conflict — is a parse
+      A file that can't be trusted (bad syntax, duplicate keys, a merge conflict) is a parse
       error, and nothing is written over it.
   check:
     type: component
