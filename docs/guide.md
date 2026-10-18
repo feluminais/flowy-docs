@@ -27,7 +27,9 @@ The full detail behind the [README](../README.md): what every part of the canvas
   opens the level it's on, with its panel open.
 - Pick a flow in the top bar to play it step by step: ← and → move, Home and End jump to the first
   and last step, Esc stops. A step can be one box doing something on its own, and a step with more
-  to say has a More you can open.
+  to say has a More you can open. When a step lands on a box that stands for a part inside it, the
+  player names the part too ("Scheduler in Core"), so two steps on two parts of one box don't read
+  as a round trip.
 - F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Boxes with
   a problem carry a "!".
