@@ -72,7 +72,7 @@ export function createMcpServer(dir: string): McpServer {
   const readOnly = { readOnlyHint: true }
   const destructive = { destructiveHint: true }
 
-  // ponytail: returns the whole model; add filters if models grow past a few hundred objects
+  // Known limit: returns the whole model; add filters if models grow past a few hundred objects
   server.registerTool('get_model', {
     description: 'Everything in the model: objects, connections, flows, and current problems.',
     inputSchema: {}, // without a schema the SDK runs this one step sooner and it overtakes earlier calls

@@ -117,7 +117,7 @@ export async function saveFile(dir: string, rel: string, text: string | null, ex
 async function saveNow(dir: string, rel: string, text: string | null, expected: string | null): Promise<string | null> {
   const path = join(dir, rel)
   const current = await readText(dir, rel)
-  // ponytail: saves are serialized per file inside this process only. Another process or an
+  // Known limit: saves are serialized per file inside this process only. Another process or an
   // editor saving between this check and the rename can still be overwritten; add a lock file
   // if that ever bites. No fsync either: a power cut mid-save can leave an empty file (git has it).
   const version = current === null ? null : hashText(current)
