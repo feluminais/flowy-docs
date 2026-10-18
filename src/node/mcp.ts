@@ -13,12 +13,24 @@ const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML fil
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
 Connect the most specific objects you know (e.g. component → store); zoomed-out views merge lines automatically.
 A flow is a step-by-step walkthrough played on one view: "root" (the top level) or an object with children.
+Before you write:
+- Read the existing model first. Reuse exact names and never add a second object for something already there. Change only what was asked: fill blanks, don't overwrite or delete.
+- Add only what you can point to in the repo, and give it a code path. If you can't, leave it out and say so. Don't add a queue, cache or gateway the code doesn't use. A missing box is better than an invented one.
+- To map a repo, first list the people, apps, stores and outside services you found, each with the file that shows it, and check the list with the user before writing. If you can't tell what something is for, ask; don't guess.
+What gets a box:
+- An app runs on its own; a component is a part inside one running program. A folder, package, library, class or file is not a box. Leave out what no flow touches (logging, config, deploy plumbing). Keep a view to a handful of boxes, a dozen at most.
+- Mark services you don't own external: true. A database or bucket the system owns is a store inside it, and so is a named queue or topic.
+Writing text:
+- A description's first paragraph is the hover teaser: a sentence on what the object does for others, in words its name doesn't hold. Start apps and components with a verb. No "responsible for", no praise. Later paragraphs: why, limits, risks. No versions, counts or endpoint lists.
+- A connection label is a few words from the side that starts it, and reads as a sentence between the two names ("publishes order events to"). Say what moves; never "uses". A reply is not a connection.
 Writing a flow, so it reads the way the code works:
+- One trigger, one story, usually 3-9 steps, named for the goal. A failure gets its own flow.
 - A step's text says what passes from "from" to "to", from the side of "from": "Hands the order to Billing", "Asks Pricing for the total". When "from" asks and gets its answer in the same step, say so, and don't add a step going back unless something new is sent.
 - Say when the sender doesn't wait for the other side (it queues the work, fires and forgets, or runs on a timer).
 - Keep to what the flow's trigger causes. Something that happens on its own gets a step that says so, or a flow of its own.
 - Play the flow on the view where its ends are separate boxes. put_flow answers with how each step reads there: an end written "X in Y" is drawn as Y.
-Every write is checked. A write that would add a problem is refused and nothing is saved.`
+- A step's More (its description) holds why, timing, failure behaviour or limits, not a repeat of the step.
+After writing: every write is checked, and a write that would add a problem is refused and nothing is saved. Read the answer, fix the cause (find the right path, name or end) and write again. Don't repeat the same call or drop the field to get past it. Finish by saying what you read from the code, what you inferred and what you left out.`
 
 /**
  * What put_flow answers: each step as a reader will see it on the flow's view. When an end is drawn as
