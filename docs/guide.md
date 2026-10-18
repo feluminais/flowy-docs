@@ -89,6 +89,11 @@ the box gets a "!" until someone fixes the path.
 Claude marks outside services (a payment provider, a third-party API) with `external: true`, so
 they show grey.
 
+When Claude saves a flow, Flowy answers with how each step will read on the flow's view, the
+way the player shows it ("2. Alert channels → Text and speech in Core: …"). Its instructions ask
+for steps that say what passes between the two boxes and whether the sender waits, so a flow
+reads the way the code works.
+
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
 notes in an object's `description` instead.
 

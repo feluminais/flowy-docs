@@ -89,3 +89,19 @@ export function computeView(model: Model, v: string): View {
   }
   return { id: v, members, outsiders, edges: [...edges.values()] }
 }
+
+/** What the canvas calls an object: its name, its id when it has none, and "Overview" for the top level. */
+export const nameOf = (model: Model, id: string) => (id === ROOT ? 'Overview' : getObject(model, id)?.name || id)
+
+/**
+ * A step's ends as a reader sees them. `placed` is where the step lands in the view (see placeStep).
+ * When an end lands on a box that stands for something inside it, both are named ("Scheduler in Core"),
+ * so two steps on two parts of one box never read as a round trip. A step one box does on its own names
+ * it once. The flow player shows this, and MCP's put_flow answers with it.
+ */
+export function stepEnds(model: Model, step: { from: string; to?: string }, placed: [string, string] | null | undefined): string {
+  const real = [step.from, step.to ?? step.from]
+  const drawn = placed ?? real
+  const name = (i: number) => (drawn[i] === real[i] ? nameOf(model, real[i]) : `${nameOf(model, real[i])} in ${nameOf(model, drawn[i])}`)
+  return step.to === undefined || step.to === step.from ? name(0) : `${name(0)} → ${name(1)}`
+}

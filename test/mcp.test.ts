@@ -164,3 +164,29 @@ test('put_object marks an outside service', async t => {
   assert.equal(saved.error, false, saved.text)
   assert.match(await readFile(join(dir, 'model.yaml'), 'utf8'), /stripe:\n {4}type: system\n {4}name: Stripe\n {4}external: true\n/)
 })
+
+test('put_flow answers with how each step reads on its view, naming the part inside a box', async t => {
+  const { call } = await setup(t)
+  await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
+  await call('put_object', { id: 'web', type: 'app', name: 'Web app', in: 'shop' })
+  await call('put_object', { id: 'api', type: 'app', name: 'API', in: 'shop' })
+  await call('put_object', { id: 'auth', type: 'component', name: 'Auth', in: 'api' })
+  await call('put_object', { id: 'orders', type: 'component', name: 'Orders', in: 'api' })
+  // Played on Shop, Auth and Orders are both drawn as API: the readout says so.
+  const saved = await call('put_flow', { id: 'buy', name: 'Buying', view: 'shop', steps: [
+    { from: 'web', to: 'auth', text: 'Asks Auth to check the user' },
+    { from: 'orders', text: 'Saves the order' },
+    { from: 'orders', to: 'web', text: 'Sends the receipt' },
+  ] })
+  assert.equal(saved.error, false, saved.text)
+  assert.equal(saved.text, [
+    'Saved flow buy. On Shop it reads:',
+    '1. Web app → Auth in API: Asks Auth to check the user',
+    '2. Orders in API: Saves the order',
+    '3. Orders in API → Web app: Sends the receipt',
+    'Ends written "X in Y" are drawn as Y on this view. If two steps then seem to go to Y and back, say in the text which part of Y is meant, or play the flow inside Y.',
+  ].join('\n'))
+  // Played inside API, every end is a box of its own, and there's no hint.
+  const inside = await call('put_flow', { id: 'check', name: 'Checking', view: 'api', steps: [{ from: 'auth', to: 'orders', text: 'Lets the order through' }] })
+  assert.equal(inside.text, 'Saved flow check. On API it reads:\n1. Auth → Orders: Lets the order through')
+})

@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { ROOT } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
-import { parentOf } from '../../src/core/views.ts'
-import { nameOf } from './edit.ts'
+import { nameOf, parentOf } from '../../src/core/views.ts'
 import { findObjects } from './search.ts'
 
 /** Find a box anywhere in the model by name or id. ↑ and ↓ move, Enter picks, Esc or leaving the field closes it. */

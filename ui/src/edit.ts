@@ -3,8 +3,6 @@ import { changedFiles, fileData, getObject, isValidId, ROOT, serializeLayout } f
 import type { Connection, Model } from '../../src/core/model.ts'
 import { chain, computeView, isView, parentOf, placeEnds } from '../../src/core/views.ts'
 
-export const nameOf = (model: Model, id: string) => (id === ROOT ? 'Overview' : getObject(model, id)?.name || id)
-
 /** One write: a file's new content as PUT /api/file takes it, or null to delete the file. */
 export type Change = { file: string; data: unknown }
 
@@ -32,19 +30,6 @@ export function connectionsOf(model: Model, view: string, from: string, to: stri
     const ends = placeEnds(model, view, connection.from, connection.to)
     return ends?.[0] === from && ends[1] === to ? [{ index, connection }] : []
   })
-}
-
-/**
- * A playing step's ends as the player names them. `placed` is where the step lands in the view (see
- * placeStep). When an end lands on a box that stands for something inside it, both are named ("Scheduler
- * in Core"), so two steps on two parts of one box never read as a round trip. A step one box does on its
- * own names it once.
- */
-export function stepEnds(model: Model, step: { from: string; to?: string }, placed: [string, string] | null | undefined): string {
-  const real = [step.from, step.to ?? step.from]
-  const drawn = placed ?? real
-  const name = (i: number) => (drawn[i] === real[i] ? nameOf(model, real[i]) : `${nameOf(model, real[i])} in ${nameOf(model, drawn[i])}`)
-  return step.to === undefined || step.to === step.from ? name(0) : `${name(0)} → ${name(1)}`
 }
 
 /** How moving from one view to another should feel: into a box inside, out to one around, or across to one beside. */
