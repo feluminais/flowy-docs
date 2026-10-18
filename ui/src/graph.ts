@@ -354,8 +354,10 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     type: 'box',
     position: at.get(id)!,
     data: { object: model.objects[id], inside: memberIds(model, id).length },
-    className: classes(!members.includes(id) && 'outsider', dimming && !lit?.includes(id) && 'dim', badBoxes.has(id) && 'problem'),
+    className: classes(!members.includes(id) && 'outsider', dimming && (lit?.includes(id) ? 'lit' : 'dim'), badBoxes.has(id) && 'problem'),
   }))
+  // A lit line draws over the faded boxes (zIndex), with an arrowhead in its own colour.
+  const litLine = { zIndex: 1, markerEnd: { type: 'arrowclosed', color: 'var(--accent)' } } as const
   const lines: Edge[] = edges.map(e => ({
     id: lineId(e.from, e.to),
     type: 'line',
@@ -364,9 +366,10 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     label: e.label || undefined,
     markerEnd: { type: 'arrowclosed' },
     className: classes(dimming && (isLit(e.from, e.to) ? 'active' : 'dim'), badLines.has(lineId(e.from, e.to)) && 'problem'),
+    ...(dimming && isLit(e.from, e.to) ? litLine : {}),
   }))
   if (lit && lit[0] !== lit[1] && !edges.some(e => isLit(e.from, e.to))) // a one-box step lights its box, no line
-    lines.push({ id: 'step', type: 'line', source: lit[0], target: lit[1], markerEnd: { type: 'arrowclosed' }, className: 'step' })
+    lines.push({ id: 'step', type: 'line', source: lit[0], target: lit[1], className: 'step', ...litLine })
   return { nodes, edges: lines, members }
 }
 
