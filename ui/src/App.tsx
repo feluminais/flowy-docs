@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { Controls, ReactFlow } from '@xyflow/react'
-import type { NodeChange, XYPosition } from '@xyflow/react'
+import type { FitViewOptions, NodeChange, XYPosition } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
@@ -15,11 +15,12 @@ import { connectionsOf, locate, nameOf } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
-import { letter } from './keys.ts'
+import { escapeStep, letter } from './keys.ts'
 import { Line, LineStyleContext } from './Line.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
 import { Search } from './Search.tsx'
+import { Shortcuts } from './Shortcuts.tsx'
 import type { Recording, Run } from './Panel.tsx'
 import { useModel } from './useModel.ts'
 import type { Edit, Loaded } from './useModel.ts'
@@ -48,11 +49,11 @@ function pick(rec: Recording, id: string): Recording {
 }
 
 export function App() {
-  const { loaded, banner, edit, undo, live } = useModel()
+  const { loaded, banner, edit, undo, redo, live } = useModel()
   return (
     <div className="app">
       {banner && <div className="banner" role="alert">{banner}</div>}
-      {loaded && <Reader {...loaded} edit={edit} undo={undo} live={live} readOnly={!live || banner !== undefined} />}
+      {loaded && <Reader {...loaded} edit={edit} undo={undo} redo={redo} live={live} readOnly={!live || banner !== undefined} />}
     </div>
   )
 }
@@ -77,7 +78,9 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
   )
 }
 
-function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loaded & { edit: Edit; undo: () => Promise<string | undefined>; live: boolean; readOnly: boolean }) {
+type Back = () => Promise<string | undefined>
+
+function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }: Loaded & { edit: Edit; undo: Back; redo: Back; live: boolean; readOnly: boolean }) {
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
   const [viewId, setViewId] = useState(() => readHash(location.hash).view)
   const [side, setSide] = useState<Side>()
@@ -96,6 +99,8 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
   const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
   const [hovered, setHovered] = useState<string>() // the line the pointer is on
   const [searching, setSearching] = useState(false)
+  const [shortcuts, setShortcuts] = useState(false) // the list ? opens
+  const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined) // for F; set once each canvas is ready
   const [tidied, setTidied] = useState(0) // Tidy counts up, so the camera fits the new layout
   const opening = useRef<ReturnType<typeof setTimeout>>(undefined) // a click on a box that opens, waiting out the double-click window
   const quiet = useRef(true) // the next address write replaces instead of pushing (see the address effect)
@@ -154,6 +159,11 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
     setNotice((await undo()) ?? 'Undone.')
     setMoved(new Map()) // a box dragged back shows where the file says
   }
+  const bringBack = async () => {
+    setNotice(undefined)
+    setNotice((await redo()) ?? 'Redone.')
+    setMoved(new Map())
+  }
   // Fenced, so it pastes straight into a README or a PR, where GitHub draws it.
   const copyMermaid = async () => {
     const diagram = flow && playing ? flowToMermaid(model, playing.flow) : viewToMermaid(model, view)
@@ -182,6 +192,14 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
       setMotion({ dir, phase: 'arrive', x, y, to: id })
       motionTimer.current = setTimeout(() => setMotion(undefined), ARRIVE)
     }, LEAVE)
+  }
+  /** Zoom into box `id`, from where it sits on screen. */
+  const zoomInto = (id: string) => {
+    clearTimeout(opening.current) // a click on the box queued its panel; the zoom replaces it
+    close()
+    const c = canvas.current!.getBoundingClientRect()
+    const b = canvas.current!.querySelector(`.react-flow__node[data-id="${CSS.escape(id)}"]`)?.getBoundingClientRect()
+    zoomTo(id, 'in', b ? b.x + b.width / 2 - c.x : c.width / 2, b ? b.y + b.height / 2 - c.y : c.height / 2)
   }
   /** Zoom out to `id`, about the middle of the canvas: the box's place in the outer view isn't known until it's drawn. */
   const zoomOut = (id: string) => {
@@ -278,21 +296,44 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
 
   // Added again on every render, so the handler always sees the current state.
   useEffect(() => {
+    // The list ? shows (Shortcuts.tsx) follows this handler: keep the two in step.
     const onKey = (e: KeyboardEvent) => {
       const key = letter(e)
+      const plain = !e.ctrlKey && !e.metaKey && !e.altKey
+      const control = (e.ctrlKey || e.metaKey) && !e.repeat // held down, undo or redo would run through the whole stack
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return
-      if (flow && e.key === 'ArrowRight') stepTo(stepIndex + 1)
+      // A second press while a zoom out is still leaving goes up from where that one is heading.
+      const up = () => zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view))
+      if (e.key === 'Escape') {
+        const layer = escapeStep({ shortcuts, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: side !== undefined, inside: view !== ROOT })
+        if (layer === 'shortcuts') setShortcuts(false)
+        else if (layer === 'flow') setPlaying(undefined)
+        else if (layer === 'step' && recording) setSide({ ...recording, from: undefined, to: undefined })
+        else if (layer === 'panel') setSide(undefined)
+        else if (layer === 'up') up()
+        else return
+      }
+      else if (flow && e.key === 'ArrowRight') stepTo(stepIndex + 1)
       else if (flow && e.key === 'ArrowLeft') stepTo(stepIndex - 1)
-      else if (flow && e.key === 'Escape') setPlaying(undefined)
-      else if (recording?.from && e.key === 'Escape') setSide({ ...recording, from: undefined, to: undefined })
-      else if (e.key === 'Escape') setSide(undefined)
+      else if (flow && e.key === 'Home') stepTo(0)
+      else if (flow && e.key === 'End') stepTo(flow.steps.length - 1)
+      else if (e.key === 'Enter' && !recording && !(e.target instanceof HTMLButtonElement || e.target instanceof HTMLAnchorElement)) {
+        // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
+        const id = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('.react-flow__node-box')?.dataset.id ?? selectedBox
+        if (id === undefined) return
+        if (canOpen(id)) zoomInto(id)
+        else setSide({ kind: 'object', id })
+      }
+      // ? before the slash key's fallback: some layouts type ? on that key without Shift.
+      else if (e.key === '?') setShortcuts(open => !open)
       else if ((key === 'k' && (e.ctrlKey || e.metaKey)) || e.key === '/' || (e.code === 'Slash' && !e.shiftKey)) setSearching(true)
-      else if (key === 'e' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat && !readOnly) toggleEdit()
+      else if (key === 'f' && plain) fitNow.current?.({ ...fitOptions(side !== undefined, flow !== undefined), duration: 300 })
+      else if (key === 'e' && plain && !e.repeat && !readOnly) toggleEdit()
+      else if (editing && key === 'n' && plain && !recording) setSide({ kind: 'add' })
       else if (editing && e.key === 'Delete') remove()
-      else if (editing && (e.ctrlKey || e.metaKey) && !e.shiftKey && key === 'z' && !e.repeat) void takeBack() // held down, it would empty the whole stack
-      // A second Backspace while a zoom out is still leaving goes up from where that one is heading.
-      else if (e.key === 'Backspace' && view !== ROOT && !recording)
-        zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view))
+      else if (editing && control && ((key === 'z' && e.shiftKey) || key === 'y')) void bringBack()
+      else if (editing && control && key === 'z') void takeBack()
+      else if (e.key === 'Backspace' && view !== ROOT && !recording) up()
       else return
       e.preventDefault()
     }
@@ -322,6 +363,7 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
         {editing && <button onClick={() => setSide({ kind: 'flow', id: '', name: '' })}>New flow</button>}
         {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
         {editing && <button title="Undo the last change (Ctrl+Z)" onClick={() => void takeBack()}>Undo</button>}
+        {editing && <button title="Redo what you undid (Ctrl+Y or Ctrl+Shift+Z)" onClick={() => void bringBack()}>Redo</button>}
         {editing && (
           <button title="Forget where boxes here were dragged, and lay this view out again" onClick={() => void run(m => forgetLayout(m, view)).then(saved => {
             if (!saved) return
@@ -344,6 +386,7 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
         {/* mousedown would blur the open field, closing it, and the click would open it again */}
         <button title="Find a box (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => setSearching(!searching)}>Search</button>
         <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={() => void copyMermaid()}>Mermaid</button>
+        <button title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" aria-pressed={shortcuts} onClick={() => setShortcuts(!shortcuts)}>?</button>
         <Problems problems={problems} onPick={jump} />
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}>Edit</button>}
       </header>
@@ -376,13 +419,12 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
               if (canOpen(node.id)) opening.current = setTimeout(open, DOUBLE_CLICK)
               else open()
             }}
-            onNodeDoubleClick={(e, node) => {
+            onNodeDoubleClick={(_, node) => {
               if (recording || node.type !== 'box' || !canOpen(node.id)) return
-              clearTimeout(opening.current) // the second click queued the panel; the zoom replaces it
-              close()
-              const c = canvas.current!.getBoundingClientRect()
-              const b = (e.target as Element).closest('.react-flow__node')!.getBoundingClientRect()
-              zoomTo(node.id, 'in', b.x + b.width / 2 - c.x, b.y + b.height / 2 - c.y)
+              zoomInto(node.id)
+            }}
+            onInit={instance => {
+              fitNow.current = options => void instance.fitView(options)
             }}
             onEdgeClick={(_, e) => !recording && e.id !== 'step' && setSide({ kind: 'line', from: e.source, to: e.target })}
             onEdgeMouseEnter={(_, e) => setHovered(e.id)}
@@ -411,6 +453,7 @@ function Reader({ model, problems, codeBase, edit, undo, live, readOnly }: Loade
             setSide({ kind: 'object', id })
           }} />
         )}
+        {shortcuts && <Shortcuts editable={live && !readOnly} onClose={() => setShortcuts(false)} />}
         {notice && (
           <div className="notice" role="status">
             <span>{notice}</span>

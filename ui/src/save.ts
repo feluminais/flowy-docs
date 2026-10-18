@@ -40,10 +40,17 @@ const write = (base: string, file: string, data: unknown, version: string | null
 const failed = async (what: string, file: string, res: Response) =>
   `Couldn't ${what} ${file}: ${((await res.json().catch(() => ({}))) as { error?: string }).error ?? `the server answered ${res.status}`}`
 
-/** How to take one saved edit back: per file, newest write first, what it held before and the version the save left. */
-export type Undo = { file: string; data: unknown; version: string | null }[]
+/**
+ * How to take one saved edit back: per file, newest write first, what to put back (`data`), what the
+ * file holds now (`now`), and the version it has now. Putting an edit back hands over the reverse,
+ * which is how redo works.
+ */
+export type Undo = { file: string; data: unknown; now: unknown; version: string | null }[]
 
-export const UNDO_STALE = "Can't undo: this changed since, outside this page or in another tab. Nothing was undone."
+const stale = (word: 'undo' | 'redo') =>
+  `Can't ${word}: this changed since, outside this page or in another tab. Nothing was ${word === 'undo' ? 'undone' : 'redone'}.`
+export const UNDO_STALE = stale('undo')
+export const REDO_STALE = stale('redo')
 
 /**
  * One canvas edit, done the way MCP does it: read the files fresh, apply `op`, refuse new problems,
@@ -62,7 +69,7 @@ export async function saveEdit(op: (model: Model) => Model, base = '', onSaved?:
       if (!res.ok) return await failed('save', file, res)
       // A flow that didn't exist goes away again. model.yaml and layout.yaml can't be deleted, so they go back to empty.
       const before = versions[file] == null && file.startsWith('flows/') ? null : fileData(model, file)
-      undo.unshift({ file, data: before, version: ((await res.json()) as { version: string | null }).version })
+      undo.unshift({ file, data: before, now: data, version: ((await res.json()) as { version: string | null }).version })
     }
     if (undo.length) onSaved?.(undo)
   } catch (e) {
@@ -72,19 +79,24 @@ export async function saveEdit(op: (model: Model) => Model, base = '', onSaved?:
 
 /**
  * Put back what one saved edit changed, but only where nothing changed since. It isn't checked for
- * problems: it goes back to what was saved before. Resolves to what to tell the user, or undefined.
+ * problems: it goes back to what was saved before. Resolves to what to tell the user, or undefined
+ * once it's done, and then hands `onDone` how to take this back in turn (a redo, or an undo of a redo).
+ * `word` names it in messages.
  */
-export async function undoEdit(undo: Undo, base = ''): Promise<string | undefined> {
+export async function undoEdit(undo: Undo, base = '', onDone?: (back: Undo) => void, word: 'undo' | 'redo' = 'undo'): Promise<string | undefined> {
   try {
-    for (const { file, data, version } of undo) {
+    const back: Undo = []
+    for (const { file, data, now, version } of undo) {
       const res = await write(base, file, data, version)
       // The server answers 409 both for a file that moved on and, with an error, while any file can't be read.
       if (res.status === 409) {
         const { error } = (await res.json().catch(() => ({}))) as { error?: string }
-        return error === undefined ? UNDO_STALE : `Can't undo while a file can't be read: ${error}`
+        return error === undefined ? stale(word) : `Can't ${word} while a file can't be read: ${error}`
       }
-      if (!res.ok) return await failed('undo', file, res)
+      if (!res.ok) return await failed(word, file, res)
+      back.unshift({ file, data: now, now: data, version: ((await res.json()) as { version: string | null }).version })
     }
+    onDone?.(back)
   } catch (e) {
     return text(e)
   }

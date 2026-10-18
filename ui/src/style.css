@@ -209,5 +209,17 @@ a { color: var(--accent); }
 .search li button.at, .search li button:hover { background: var(--bg); }
 .search p { margin: 8px 4px 2px; }
 
+/* The keyboard shortcuts (?): a card at the top middle, like search. */
+.shortcuts {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 8;
+  width: min(440px, calc(100% - 32px)); max-height: calc(100% - 24px); overflow: auto; box-sizing: border-box; padding: 6px 20px 14px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--box); box-shadow: 0 4px 16px #0003;
+}
+.shortcuts .close { position: absolute; top: 8px; right: 10px; border: 0; background: none; color: var(--muted); font-size: 22px; cursor: pointer; }
+.shortcuts h3 { margin: 14px 0 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.shortcuts dl { display: grid; grid-template-columns: 8.5em 1fr; gap: 6px 14px; margin: 0; align-items: baseline; } /* one key width for every group, so the columns line up */
+.shortcuts dd { margin: 0; }
+kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--bg); font: 12px/1.6 ui-monospace, monospace; white-space: nowrap; }
+
 .more { margin: 6px 0; }
 .more summary { cursor: pointer; color: var(--muted); font-size: 13px; }

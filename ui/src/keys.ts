@@ -6,3 +6,18 @@ export function letter(e: { key: string; code: string }): string {
   if (/^[a-z]$/i.test(e.key)) return e.key.toLowerCase()
   return e.code.startsWith('Key') ? e.code.slice(3).toLowerCase() : e.key
 }
+
+/** What one press of Escape closes, innermost first. */
+export type EscapeStep = 'shortcuts' | 'flow' | 'step' | 'panel' | 'up'
+
+/**
+ * Escape peels one layer per press: the shortcut list, a flow playing, a step half recorded, the side
+ * panel, and then the box you're inside, back up to the level above. At the top, with nothing open, nothing.
+ */
+export function escapeStep(open: { shortcuts: boolean; flow: boolean; halfStep: boolean; panel: boolean; inside: boolean }): EscapeStep | undefined {
+  if (open.shortcuts) return 'shortcuts'
+  if (open.flow) return 'flow'
+  if (open.halfStep) return 'step'
+  if (open.panel) return 'panel'
+  return open.inside ? 'up' : undefined
+}
