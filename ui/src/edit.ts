@@ -1,7 +1,7 @@
 import type { Problem } from '../../src/core/check.ts'
 import { changedFiles, fileData, getObject, isValidId, ROOT, serializeLayout } from '../../src/core/model.ts'
 import type { Connection, Model } from '../../src/core/model.ts'
-import { chain, hasChildren, parentOf, placeEnds } from '../../src/core/views.ts'
+import { chain, computeView, hasChildren, parentOf, placeEnds } from '../../src/core/views.ts'
 
 export const nameOf = (model: Model, id: string) => (id === ROOT ? 'Overview' : getObject(model, id)?.name || id)
 
@@ -32,6 +32,21 @@ export function connectionsOf(model: Model, view: string, from: string, to: stri
     const ends = placeEnds(model, view, connection.from, connection.to)
     return ends?.[0] === from && ends[1] === to ? [{ index, connection }] : []
   })
+}
+
+/** A line touching a box, as the canvas draws it where the box sits: the box at its other end, and the connections it stands for. */
+export type BoxLine = { from: string; to: string; other: string; connections: Connection[] }
+
+/**
+ * The lines touching box `id` in the view it sits in, going out and coming in. A line between two
+ * boxes that open can stand for several connections between what's inside them, each with its own label.
+ */
+export function linesOf(model: Model, id: string): { out: BoxLine[]; in: BoxLine[] } {
+  const view = parentOf(model, id)
+  const lines = computeView(model, view).edges
+    .filter(e => e.from !== e.to && (e.from === id || e.to === id))
+    .map(e => ({ from: e.from, to: e.to, other: e.from === id ? e.to : e.from, connections: connectionsOf(model, view, e.from, e.to).map(c => c.connection) }))
+  return { out: lines.filter(l => l.from === id), in: lines.filter(l => l.to === id) }
 }
 
 /** Where the canvas shows a problem: the view to open, and the box, line or flow step in it. */

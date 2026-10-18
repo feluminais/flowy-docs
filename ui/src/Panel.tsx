@@ -2,12 +2,14 @@ import type { FocusEvent, FormEvent, ReactNode } from 'react'
 import { encodePath, typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { getObject, isExternal, ROOT } from '../../src/core/model.ts'
-import type { FlowyObject, Model, ObjectType, Step } from '../../src/core/model.ts'
+import type { Connection, FlowyObject, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { deleteFlow, deleteObject, OpError, putFlow, putObject, relabel, removeConnection, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
-import { connectionsOf, nameOf, newId, problemsOf } from './edit.ts'
+import { connectionsOf, linesOf, nameOf, newId, problemsOf } from './edit.ts'
+import type { BoxLine } from './edit.ts'
+import { lineId } from './graph.ts'
 
 /** Runs one edit and resolves to true once it's saved. Whatever went wrong shows as a notice. */
 export type Run = (op: (model: Model) => Model) => Promise<boolean>
@@ -55,8 +57,52 @@ function CodeList({ object, codeBase }: { object: FlowyObject; codeBase?: string
   )
 }
 
-/** An object's description and code, or in edit mode a form for its name, type, tech, description and code. */
-export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClose }: Common & { id: string; editing: boolean; problems: Problem[]; codeBase?: string }) {
+/** A connection's ends, when they're boxes inside the line's ends rather than the ends themselves. */
+const inside = (model: Model, c: Connection, line: BoxLine) =>
+  c.from === line.from && c.to === line.to ? undefined : `${nameOf(model, c.from)} → ${nameOf(model, c.to)}`
+
+/**
+ * Every line touching a box, out and in, so the panel shows its connections without clicking each
+ * line. A line that stands for several connections opens to list them. The other box's name opens its
+ * panel, and pointing at a row lights its line on the canvas.
+ */
+function LineList({ model, id, onPick, onHover }: { model: Model; id: string; onPick: (id: string) => void; onHover: (line?: string) => void }) {
+  const { out, in: incoming } = linesOf(model, id)
+  if (out.length + incoming.length === 0) return null
+  const label = (c: Connection) => c.label || <span className="muted">no label</span>
+  const row = (line: BoxLine, arrow: string) => (
+    <li key={lineId(line.from, line.to)} onMouseEnter={() => onHover(lineId(line.from, line.to))} onMouseLeave={() => onHover(undefined)}>
+      <span className="arrow" aria-hidden="true">{arrow}</span>
+      <div>
+        <button type="button" className="link" onClick={() => onPick(line.other)}>{nameOf(model, line.other)}</button>
+        {line.connections.length === 1 ? (
+          <>
+            <div>{label(line.connections[0])}</div>
+            {inside(model, line.connections[0], line) && <div className="muted">{inside(model, line.connections[0], line)}</div>}
+          </>
+        ) : (
+          <details>
+            <summary>{line.connections.length} connections</summary>
+            <ul>
+              {line.connections.map((c, i) => <li key={i}><div>{label(c)}</div><div className="muted">{inside(model, c, line)}</div></li>)}
+            </ul>
+          </details>
+        )}
+      </div>
+    </li>
+  )
+  return (
+    <section className="lines-of" aria-label="Connections">
+      {out.length > 0 && <><h3>Out</h3><ul>{out.map(l => row(l, '→'))}</ul></>}
+      {incoming.length > 0 && <><h3>In</h3><ul>{incoming.map(l => row(l, '←'))}</ul></>}
+    </section>
+  )
+}
+
+type Lines = { onPick: (id: string) => void; onHover: (line?: string) => void }
+
+/** An object's description, code and connections, or in edit mode a form for its name, type, tech, description and code. */
+export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClose, onPick, onHover }: Common & Lines & { id: string; editing: boolean; problems: Problem[]; codeBase?: string }) {
   const object = getObject(model, id)
   if (!object) return null
   const save = (fields: Omit<ObjectInput, 'id'>) => run(m => putObject(m, { id, ...fields }))
@@ -68,6 +114,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
       {mine}
       {object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}
       <CodeList object={object} codeBase={codeBase} />
+      <LineList model={model} id={id} onPick={onPick} onHover={onHover} />
     </Panel>
   )
   // A type the nesting rules don't allow here stays in the list, so the form shows what the file says.
@@ -92,6 +139,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
           onSave={text => save({ code: text.split('\n').map(line => line.trim()).filter(Boolean) })} />
       </form>
       {mine}
+      <LineList model={model} id={id} onPick={onPick} onHover={onHover} />
       <p className="muted">id: {id}</p>
       <button className="danger" onClick={() => void run(m => deleteObject(m, id)).then(saved => saved && onClose())}>Delete</button>
     </Panel>

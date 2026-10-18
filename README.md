@@ -27,8 +27,10 @@ folder, `--port <number>` picks the port, and `--no-open` skips the browser.
   select it and press Enter, to zoom in. Esc zooms back out, one level per press, once it has
   closed whatever is open (a flow, the side panel). Backspace and the breadcrumb zoom out too.
   Inside a box, a frame named after it wraps what's in it.
-- Hover a box for its short description. Click it for the full text. Click a line to see the
-  connections it stands for.
+- Hover a box for its short description. Click it for the full text and its connections: every
+  line out and in, with its label. A line that stands for several connections opens to list them.
+  Pointing at a row lights its line on the canvas, and the box's name opens that box. Click a line
+  to see the connections it stands for.
 - Lines have no labels until you point at one. Click a box and its lines show theirs while the
   others fade.
 - Lines (top bar) switches between straight, curved and right-angled lines for your own screen.
@@ -194,6 +196,10 @@ Reading:
       More shows a paragraph with **Orders DB** in bold.
 - [ ] In API, play "Customer signs in". Web app joins as a faded box, with a dashed line to Auth.
 - [ ] In Shop, click the "2 connections" line: the panel lists both connections.
+- [ ] In Shop, click API: its panel lists Out (Orders DB with "2 connections", Mail service with
+      "sends receipts" and "Orders → Mail service" under it) and In (Web app, "REST"). Open "2
+      connections": both labels show, each with the boxes inside. Point at a row: its line turns
+      blue. Click "Orders DB": the panel switches to it.
 - [ ] From the overview, press / and type `au`: "Auth component in API" is listed. Press Enter: the
       canvas opens API with Auth selected and its panel open. Ctrl+K and `zzz`: "Nothing called
       that." Esc closes the search and leaves the panel open.

@@ -460,7 +460,10 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
             <button aria-label="Dismiss" onClick={() => setNotice(undefined)}>×</button>
           </div>
         )}
-        {side?.kind === 'object' && <ObjectPanel model={model} id={side.id} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={close} />}
+        {side?.kind === 'object' && (
+          <ObjectPanel model={model} id={side.id} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={close}
+            onPick={id => setSide({ kind: 'object', id })} onHover={setHovered} />
+        )}
         {side?.kind === 'line' && (
           <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={close} />
         )}
