@@ -28,7 +28,8 @@ The screenshots show Plum, a made-up delivery service. Its model is in [docs/dem
 
 Boxes show their type as a coloured icon, and a box that holds others says how many ("7 inside"). Double-click it, or
 select it and press Enter, to zoom in. A frame named after the box wraps what's inside, and the faded dashed boxes
-around it are what something inside connects to. Esc, Backspace or the breadcrumb zoom back out.
+around it are what something inside connects to. Esc, Backspace or the breadcrumb zoom back out. A faded box that
+opens sits beside you rather than inside, so opening it slides across instead.
 
 | Type | What it is | Lives |
 | --- | --- | --- |

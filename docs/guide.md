@@ -8,7 +8,8 @@ The full detail behind the [README](../README.md): what every part of the canvas
   services you don't own are grey with a cloud. "3 inside" means a box opens: double-click it, or
   select it and press Enter, to zoom in. Esc zooms back out, one level per press, once it has
   closed whatever is open (a flow, the side panel). Backspace and the breadcrumb zoom out too.
-  Inside a box, a frame named after it wraps what's in it.
+  Inside a box, a frame named after it wraps what's in it. A faded box that opens sits beside the
+  one you're in, not inside it, so opening it slides across instead of zooming in.
 - Hover a box for its short description. Click it for the full text and its connections: every
   line out and in, with its label. A line that stands for several connections opens to list them.
   Pointing at a row lights its line on the canvas, and the box's name opens that box. Click a line

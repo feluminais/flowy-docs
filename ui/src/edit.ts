@@ -34,6 +34,19 @@ export function connectionsOf(model: Model, view: string, from: string, to: stri
   })
 }
 
+/** How moving from one view to another should feel: into a box inside, out to one around, or across to one beside. */
+export type Move = 'in' | 'out' | 'across'
+
+/**
+ * Which way `to` lies from `from` in the nesting. Opening an outsider that sits beside the box you're
+ * in (a sibling, or a cousin further out) is across, so going there and back never dives in twice.
+ */
+export function moveBetween(model: Model, from: string, to: string): Move {
+  if (chain(model, to).includes(from)) return 'in'
+  if (chain(model, from).includes(to)) return 'out'
+  return 'across'
+}
+
 /** A line touching a box, as the canvas draws it where the box sits: the box at its other end, and the connections it stands for. */
 export type BoxLine = { from: string; to: string; other: string; connections: Connection[] }
 
