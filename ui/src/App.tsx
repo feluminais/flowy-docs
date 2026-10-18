@@ -11,7 +11,8 @@ import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { chain, hasChildren, parentOf, placeEnds, placeStep } from '../../src/core/views.ts'
 import { Box, Description, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
-import { connectionsOf, locate, nameOf } from './edit.ts'
+import { connectionsOf, locate, moveBetween, nameOf } from './edit.ts'
+import type { Move } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
@@ -31,8 +32,12 @@ const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is 
 const LEAVE = 220 // ms the old view takes to fly off; keep in sync with the leave-* keyframes in style.css
 const ARRIVE = 320 // ms the new view takes to settle; keep in sync with the arrive-* keyframes
 
-/** A zoom between views, heading `to` a view: the old view leaves about (x, y) on the canvas, then the new one arrives there. */
-type Motion = { dir: 'in' | 'out'; phase: 'leave' | 'arrive'; x: number; y: number; to: string }
+/**
+ * A move between views, heading `to` a view. In and out zoom about (x, y) on the canvas. Across slides:
+ * the old view moves away from (x, y) and the new one comes in from that side; (dx, dy) is that way, in
+ * percent of the canvas.
+ */
+type Motion = { dir: Move; phase: 'leave' | 'arrive'; x: number; y: number; dx: number; dy: number; to: string }
 
 /** What the side panel shows. One thing at a time. */
 type Side =
@@ -184,22 +189,26 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     setSide(s => (s?.kind === 'object' ? s : undefined)) // lines, Add and recording belong to one view
   }
   /** Open `id` with a zoom. A second zoom on the way, or reduced motion, opens it straight away. */
-  const zoomTo = (id: string, dir: Motion['dir'], x: number, y: number) => {
+  const zoomTo = (id: string, dir: Move, x: number, y: number) => {
     if (motion || matchMedia('(prefers-reduced-motion: reduce)').matches) return go(id)
-    setMotion({ dir, phase: 'leave', x, y, to: id })
+    const r = canvas.current?.getBoundingClientRect()
+    const [ux, uy] = [x - (r?.width ?? 0) / 2, y - (r?.height ?? 0) / 2]
+    const length = Math.hypot(ux, uy) || 1 // a box dead in the middle slides nowhere and just fades
+    const slide = { dx: (ux / length) * 25, dy: (uy / length) * 25 }
+    setMotion({ dir, phase: 'leave', x, y, ...slide, to: id })
     motionTimer.current = setTimeout(() => {
       go(id)
-      setMotion({ dir, phase: 'arrive', x, y, to: id })
+      setMotion({ dir, phase: 'arrive', x, y, ...slide, to: id })
       motionTimer.current = setTimeout(() => setMotion(undefined), ARRIVE)
     }, LEAVE)
   }
-  /** Zoom into box `id`, from where it sits on screen. */
+  /** Open box `id`, from where it sits on screen: zoom in when it's inside this view, slide across when it sits beside it. */
   const zoomInto = (id: string) => {
     clearTimeout(opening.current) // a click on the box queued its panel; the zoom replaces it
     close()
     const c = canvas.current!.getBoundingClientRect()
     const b = canvas.current!.querySelector(`.react-flow__node[data-id="${CSS.escape(id)}"]`)?.getBoundingClientRect()
-    zoomTo(id, 'in', b ? b.x + b.width / 2 - c.x : c.width / 2, b ? b.y + b.height / 2 - c.y : c.height / 2)
+    zoomTo(id, moveBetween(model, view, id), b ? b.x + b.width / 2 - c.x : c.width / 2, b ? b.y + b.height / 2 - c.y : c.height / 2)
   }
   /** Zoom out to `id`, about the middle of the canvas: the box's place in the outer view isn't known until it's drawn. */
   const zoomOut = (id: string) => {
@@ -391,7 +400,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}>Edit</button>}
       </header>
       <main ref={canvas} className={['canvas', editing && 'editing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
-        style={motion && ({ '--ox': `${motion.x}px`, '--oy': `${motion.y}px` } as CSSProperties)}>
+        style={motion && ({ '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` } as CSSProperties)}>
         <LineStyleContext value={lines}>
           <ReactFlow
             key={view} // a fresh canvas per view

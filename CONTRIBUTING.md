@@ -53,6 +53,9 @@ Reading:
       then press Esc three times: the panel closes, then it zooms out to Shop, then to the
       overview. Esc again does nothing. Tab moves the focus between boxes, and Enter opens the
       focused one.
+- [ ] Add `  smtp: { type: app, name: SMTP, in: mail }` right under `objects:`, so Mail service
+      opens. Inside Shop, double-click the faded Mail service: the view slides sideways, away from
+      it, instead of zooming in. Esc: it zooms out to the overview. Undo the line.
 - [ ] Zoom in with the wheel and press F: the whole view fits again. Press ?: the shortcut list
       opens; Esc closes it.
 - [ ] Inside API, Auth, Orders and Mail service sit in a row with Orders DB below them, and no

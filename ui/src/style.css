@@ -72,10 +72,15 @@ a { color: var(--accent); }
 @keyframes arrive-in { from { transform: scale(0.25); opacity: 0; } }
 @keyframes leave-out { to { transform: scale(0.25); opacity: 0; } }
 @keyframes arrive-out { from { transform: scale(2.5); opacity: 0; } }
+/* Across, to a box beside this one: no zoom, the view slides away from the box and the next comes in from its side. */
+.canvas.leave-across .react-flow__renderer { animation: leave-across 220ms ease-in forwards; }
+.canvas.arrive-across .react-flow__renderer { animation: arrive-across 320ms ease-out; }
+@keyframes leave-across { to { transform: translate(calc(-1 * var(--dx)), calc(-1 * var(--dy))); opacity: 0; } }
+@keyframes arrive-across { from { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
 
 .frame { position: relative; width: 100%; height: 100%; box-sizing: border-box; border: 1.5px solid var(--accent); border-radius: 12px; }
 .frame span { position: absolute; top: -10px; left: 14px; padding: 0 6px; background: var(--bg); color: var(--accent); font-size: 12px; font-weight: 600; }
-.canvas.arrive-in .frame { animation: fade-in 100ms 220ms both; } /* done by the end of arrive-in (320ms), when the class goes */
+.canvas.arrive-in .frame, .canvas.arrive-across .frame { animation: fade-in 100ms 220ms both; } /* done by the end of arrive (320ms), when the class goes */
 
 @media (prefers-reduced-motion: reduce) {
   .canvas .react-flow__renderer, .canvas .frame { animation: none !important; }
