@@ -39,10 +39,20 @@ test('dagre places boxes without overlaps, and a layout.yaml position wins', () 
 test('a playing step lights its two boxes and its line, and dims the rest', () => {
   const { nodes, edges } = toGraph(shop(), 'shop', { ends: [['web', 'api']], step: 0 })
   assert.deepEqual(nodes.filter(n => !n.className?.includes('dim')).map(n => n.id), ['web', 'api'])
+  assert.deepEqual(nodes.filter(n => n.className?.includes('lit')).map(n => n.id), ['web', 'api'])
   assert.equal(byId(nodes).customer.className, 'outsider dim')
   assert.deepEqual(edges.map(e => [e.id, e.className]), [
     ['customer web', 'dim'], ['web api', 'active'], ['api db', 'dim'], ['api mail', 'dim'],
   ])
+  // The lit line draws over the faded boxes, with an arrowhead in its own colour.
+  const active = byId(edges)['web api']
+  assert.equal(active.zIndex, 1)
+  assert.deepEqual(active.markerEnd, { type: 'arrowclosed', color: 'var(--accent)' })
+})
+
+test('an outsider in a playing step is lit like the rest of the step', () => {
+  const { nodes } = toGraph(shop(), 'shop', { ends: [['api', 'mail']], step: 0 })
+  assert.equal(byId(nodes).mail.className, 'outsider lit')
 })
 
 test('a step with no line of its own gets a dashed one, and an unshowable step dims everything', () => {
@@ -56,7 +66,7 @@ test('a box only the flow uses joins as an outsider for the whole flow', () => {
   const ends: [string, string][] = [['web', 'auth'], ['auth', 'db']]
   assert.equal(byId(toGraph(shop(), 'api').nodes).web, undefined)
   const first = toGraph(shop(), 'api', { ends, step: 0 })
-  assert.equal(byId(first.nodes).web.className, 'outsider')
+  assert.equal(byId(first.nodes).web.className, 'outsider lit')
   assert.deepEqual(first.edges.at(-1)?.id, 'step')
   const second = toGraph(shop(), 'api', { ends, step: 1 })
   assert.equal(byId(second.nodes).web.className, 'outsider dim')

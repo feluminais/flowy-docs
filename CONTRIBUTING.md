@@ -71,7 +71,7 @@ Reading:
       and the others fade. If the panel would cover the box you click, the view moves it aside.
 - [ ] Hover API: after a moment its first paragraph appears under it. Click API: the side panel
       shows the whole description with its bullet list. Esc, ×, or a click on empty canvas closes it.
-- [ ] In Shop, play "Customer checks out". Only the current step's two boxes and line stay lit.
+- [ ] In Shop, play "Customer checks out". Only the current step's two boxes stay lit, with a blue border, and its line is bold and drawn over the faded boxes. Customer, outside Shop, lights up fully in step 1.
       → and ← move, End and Home jump to the last and first step, the buttons match, Esc stops
       (and a second Esc zooms out). Step 3 lights API alone, with no line, and its
       More shows a paragraph with **Orders DB** in bold.
