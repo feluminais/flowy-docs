@@ -1,97 +1,89 @@
-# Flowy Docs
+<h1 align="center">Flowy Docs</h1>
 
-Architecture docs you zoom through instead of scrolling through.
+<p align="center">Architecture docs you zoom through instead of scrolling through.</p>
+<p align="center">Node 22.18+ &nbsp; · &nbsp; Windows, macOS, Linux &nbsp; · &nbsp; MIT</p>
+<p align="center">Your architecture lives as YAML in your repo. Draw it on the canvas, let Claude write it, or both.</p>
 
-Your architecture lives as YAML in your repo, in a `flowy/` folder: systems, apps, stores and
-components, the connections between them, and step-by-step flows. Readers start at the big
-picture and zoom in only where they need to. Draw it on the canvas, let Claude write it, or both.
+<p align="center">
+  <a href="#install"><strong>Install</strong></a>
+  &nbsp; · &nbsp;
+  <a href="docs/guide.md">Guide</a>
+  &nbsp; · &nbsp;
+  <a href="https://github.com/feluminais/flowy-docs/issues">Report an issue</a>
+  &nbsp; · &nbsp;
+  <a href="CONTRIBUTING.md">Build &amp; contribute</a>
+</p>
 
-Needs Node 22.18 or later.
+![The overview of Plum, a food-delivery service: customers, restaurants, couriers and support agents, four systems and three outside services](docs/images/overview.png)
 
-## Open it
+Readers start at the big picture and open only the box they care about. The model is plain YAML in a `flowy/` folder:
+people, systems, apps, stores and components, the connections between them, and step-by-step flows. It sits in git next
+to the code it describes.
 
-From the root of the repo you want to document:
+The screenshots show Plum, a made-up delivery service. Its model is in [docs/demo/flowy](docs/demo/flowy).
 
-```bash
-npx flowy-docs
-```
+## Zoom in
 
-It prints a local address (port 4321, or the next free one) and opens it in your browser. The
-model lives in `./flowy`, which Flowy creates if it's missing. `--dir <folder>` uses another
-folder, `--port <number>` picks the port, and `--no-open` skips the browser.
+![Inside Ordering: a frame wraps its apps and stores, and faded dashed boxes around it are what they connect to](docs/images/zoom.png)
 
-Not on npm? From a clone, `flowy.sh` (macOS, Linux, Git Bash) or `flowy.cmd` (Windows) does the
-same with the same flags. Run it from the repo you want to document. The first run installs and
-builds, which takes a moment. After a `git pull`, delete `dist/` to rebuild.
+Boxes show their type as a coloured icon, and a box that holds others says how many ("7 inside"). Double-click it, or
+select it and press Enter, to zoom in. A frame named after the box wraps what's inside, and the faded dashed boxes
+around it are what something inside connects to. Esc, Backspace or the breadcrumb zoom back out.
 
-```bash
-/path/to/flowy-docs/flowy.sh
-```
+| Type | What it is | Lives |
+| --- | --- | --- |
+| Actor | A person or role | At the top |
+| System | Something you build or use | At the top, and holds apps and stores |
+| App | A service, a mobile app, a website | Inside a system, and holds components |
+| Store | A database, a cache, a queue | Inside a system, and holds components |
+| Component | A part of an app or store | Inside an app or a store |
 
-## Read it
+Outside services you don't own (a payment provider, an SMS gateway) are marked `external: true` and show grey with a cloud.
 
-- Each box shows its type as a coloured icon: person, system, app, store, component. Outside
-  services you don't own are grey with a cloud. "3 inside" means a box opens: double-click it, or
-  select it and press Enter, to zoom in. Esc zooms back out, one level per press, once it has
-  closed whatever is open (a flow, the side panel). Backspace and the breadcrumb zoom out too.
-  Inside a box, a frame named after it wraps what's in it.
-- Hover a box for its short description. Click it for the full text and its connections: every
-  line out and in, with its label. A line that stands for several connections opens to list them.
-  Pointing at a row lights its line on the canvas, and the box's name opens that box. Click a line
-  to see the connections it stands for.
-- Lines have no labels until you point at one. Click a box and its lines show theirs while the
-  others fade.
-- Lines (top bar) switches between straight, curved and right-angled lines for your own screen.
-  "Project default" goes back to the project's choice.
-- Faded, dashed boxes live elsewhere in the model. They show up because something here connects to
-  them, and they wait around the edges (people above, the rest beside, below or above, wherever
-  fewer lines cross) while what's inside sits in the middle.
-- A box can list the files and folders it lives in, under its description. When the repo's
-  `origin` is on GitHub or GitLab, they link there.
-- Ctrl+K or / (or Search) finds a box anywhere in the model by name. Pick one and the canvas
-  opens the level it's on, with its panel open.
-- Pick a flow in the top bar to play it step by step: ← and → move, Home and End jump to the first
-  and last step, Esc stops. A step can be one box doing something on its own, and a step with more
-  to say has a More you can open.
-- F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
-- "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Boxes with
-  a problem carry a "!".
+## Details on demand
 
-The page follows the files: when Claude or your editor changes them, it updates by itself.
+![Order API's panel with its description, the folder it lives in, and every connection out, one of them opened to list five](docs/images/panel.png)
+
+Hover a box for its short description. Click it for the full text, the files it lives in, and every connection out and
+in. A line that stands for several connections opens to list them, and pointing at a row lights its line on the canvas.
+Lines show their labels when you point at one, or when you select a box.
+
+A box can list the files and folders it lives in. When the repo's `origin` is on GitHub or GitLab they link there, and a
+path that doesn't exist shows up as a problem, so the model can't quietly point at code that's gone.
+
+## Flows
+
+![A flow playing: Customer app to Order API is lit, and a card says what happens and has a More with the detail](docs/images/flow.png)
+
+Pick a flow in the top bar to play it step by step. A step is one box handing something to another, or one box doing
+something on its own, and a step with more to say has a **More**. The address follows what's on screen, so
+`#ordering/place-order` plays Customer places an order; send it to someone and they land on the same step.
+
+## Find anything
+
+![Search open with "re" typed: Restaurant, Refunds in Order API, and Data warehouse in Back office](docs/images/search.png)
+
+**Ctrl+K** or **/** finds a box anywhere in the model by name. Pick one and the canvas opens the level it's on, with its
+panel open.
 
 ## Edit it
 
-Press E, or the Edit button.
+![Edit mode: the toolbar with New flow, Add, Undo, Redo and Tidy, dots under each box to connect it, and a box's fields in the panel](docs/images/edit.png)
 
-- Drag boxes to arrange the view. Positions go to `flowy/layout.yaml`.
-- Drag from the dot under a box onto another box to connect them, then type a label in the panel.
-- Add (or N) puts a box in the current view. It offers only the types that fit there: actors and
-  systems at the top, apps and stores inside a system, components inside an app or store.
-  Double-click an empty system, app or store to open it and add what goes inside.
-- Click a box to change its name, type, tech, description and code. A field saves when you leave
-  it. Code takes one path per line, relative to the folder that holds `flowy/`. A path that
-  doesn't exist shows up as a problem.
-- "Outside service" in a box's panel marks it `external: true`, for things you use but don't own.
-- Delete (the key, or the button in the panel) removes the selected box or line. A box that still
-  contains others, or that a flow uses, stays, and a notice says why.
-- Lines, in edit mode, sets the project's style for everyone: a `lines:` key at the top of
-  `model.yaml`, which takes `straight` (the default, so it's left out), `curved` or `angled`.
-- Tidy forgets where boxes in this view were dragged, so Flowy lays it out again, picking the
-  layout with the fewest crossing lines it finds. Ctrl+Z brings your positions back.
-- New flow records a walkthrough: name it, click the box where a step starts and the box it goes
-  to (or the same box again, for a step it does on its own), type what happens and press Enter.
-  Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
-  delete steps. "Edit a flow" opens one you already have.
+Press **E**, or the Edit button.
 
-Every save goes through the same checks as Claude's edits: a change that would add a problem is
-refused, and nothing is written. If a file changed on disk in the meantime, the save is dropped
-and the page reloads. Git keeps the history.
+- Drag boxes to arrange a view. Positions go to `flowy/layout.yaml`.
+- Drag from the dot under a box onto another box to connect them, then type a label.
+- **Add** offers only the types that fit where you are: actors and systems at the top, apps and stores inside a system, components
+  inside an app or store.
+- Click a box to change its name, type, tech, description and code. A field saves when you leave it.
+- **Tidy** forgets where boxes were dragged and lays the view out again with as few crossing lines as it finds.
+- **New flow** records a walkthrough: click the box where a step starts and the box it goes to, type what happens, press
+  Enter, repeat.
 
-Ctrl+Z, or Undo, takes back your last change on this page, then the one before. It goes back as
-far as the page has been open. Ctrl+Y or Ctrl+Shift+Z, or Redo, puts back what you undid, until
-you make a new change. If the file changed since (Claude, your editor, another tab), undo and redo
-leave it alone and say so. Undo brings back what the file said, not how it was written: like any
-save, it drops YAML comments and writes the file in Flowy's own layout.
+Every save goes through the same checks as Claude's edits: a change that would add a problem is refused, and nothing is
+written. **Ctrl+Z** takes back your last change, **Ctrl+Y** puts it back. Git keeps the history.
+[The guide](docs/guide.md#edit-it) has the rest.
 
 ## Let Claude build it
 
@@ -101,19 +93,25 @@ From the root of the repo you want to document:
 claude mcp add flowy -- npx flowy-docs mcp
 ```
 
-Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and
-`flowy/flows/*.yaml`, and refuses any change that would break the model. Add `--dir <folder>`
-after `mcp` to keep the files somewhere other than `./flowy`.
+Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and `flowy/flows/*.yaml`, points
+each box at the code it lives in, marks outside services, and refuses any change that would break the model. The page
+updates by itself as the files change.
 
-Claude can also note where each box lives in the code (`code: [src/api/]`). A path that doesn't
-exist is refused, so the model can't quietly point at code that's gone. When code moves later,
-the box gets a "!" until someone fixes the path.
+You can write the files by hand too. This is Checkout from the demo:
 
-Claude marks outside services (a payment provider, a third-party API) with `external: true`, so
-they show grey.
+```yaml
+objects:
+  checkout:
+    type: component
+    in: order-api
+    name: Checkout
+    code: [services/order-api/src/checkout.ts]
+    description: Prices the basket, authorises the card and places the order.
+connections:
+  - { from: checkout, to: stripe, label: holds the card }
+```
 
-Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
-notes in an object's `description` instead.
+Saving rewrites a file, so YAML comments aren't kept. Put notes in a box's `description` instead.
 
 ## Share it
 
@@ -123,73 +121,102 @@ People without the repo can read the model too:
 npx flowy-docs export
 ```
 
-It writes a read-only copy of the canvas to `./flowy-site`, with the model inside its `index.html`.
-Put the folder on any static host, such as GitHub Pages, and send the link. Browsers won't run it
-straight from disk. To show it in Notion or Confluence, embed the link. `--dir` picks the model
-folder and `--out` the export folder.
+It writes a read-only copy of the canvas to `./flowy-site`. Put the folder on any static host, such as GitHub Pages, and
+send the link. Embed the link to show it in Notion or Confluence.
 
-Export again after the model changes. Only what the export wrote is replaced, so a `.git` or a
-`CNAME` you keep next to it stays. A folder with other files in it is left alone, and so is one
-that holds the model. A file that can't be read stops the export. Problems don't: the page lists
-them.
+For a README or a pull request, the **Mermaid** button copies the view on screen, or the flow playing, as a Mermaid
+diagram that GitHub and GitLab draw. This is Customer places an order, from `npx flowy-docs mermaid --flow place-order`:
 
-For a README or a pull request, the Mermaid button copies the view on screen (or the flow
-playing) as a Mermaid diagram, fenced and ready to paste. GitHub and GitLab draw it. The same
-from the command line, or for Claude through MCP (`get_mermaid`):
-
-```bash
-npx flowy-docs mermaid --view shop
+```mermaid
+sequenceDiagram
+  actor n0 as Customer
+  participant n1 as Customer app
+  participant n2 as Order API
+  participant n3 as Stripe
+  participant n4 as Orders DB
+  participant n5 as Order events
+  participant n6 as Delivery
+  participant n7 as Kitchen tablet
+  n0->>n1: Fills a basket and taps Place order
+  n1->>n2: POST /orders with the basket
+  n2->>n3: Holds the amount on the card
+  n2->>n4: Saves the order as placed
+  n2->>n5: Announces the order
+  n5->>n6: Dispatch starts looking for a courier
+  n2->>n7: The restaurant's tablet rings
 ```
 
-`--flow <id>` prints a flow as a sequence diagram instead.
+## Shortcuts
 
-The address follows what's on screen. `#shop` is the inside of Shop, and `#shop/checkout` plays
-the flow `checkout` there. Copy it to send someone straight to a level or a flow. The local canvas
-does this too.
+| Shortcut | Action |
+| --- | --- |
+| Ctrl+K or / | Find a box |
+| Enter | Open the selected box |
+| Esc | Close what's open, then go up a level |
+| Backspace | Go up a level |
+| F | Fit the view |
+| ← → | Previous and next step of the flow playing |
+| Home, End | First and last step |
+| E | Edit mode on and off |
+| N | Add a box |
+| Ctrl+Z, Ctrl+Y | Undo and redo |
+| ? | List every shortcut |
 
-## Is it safe to run?
+## Install
+
+From the root of the repo you want to document:
+
+```bash
+npx flowy-docs
+```
+
+It prints a local address (port 4321, or the next free one) and opens it in your browser. The model lives in `./flowy`,
+which Flowy creates if it's missing. `--dir <folder>` uses another folder, `--port <number>` picks the port, and
+`--no-open` skips the browser. Needs Node 22.18 or later.
+
+<details>
+<summary>Not on npm? Run it from a clone</summary>
+
+`flowy.sh` (macOS, Linux, Git Bash) or `flowy.cmd` (Windows) does the same with the same flags. Run it from the repo
+you want to document. The first run installs and builds, which takes a moment. After a `git pull`, delete `dist/` to
+rebuild.
+
+```bash
+/path/to/flowy-docs/flowy.sh
+```
+
+</details>
+
+<details>
+<summary>Is it safe to run?</summary>
 
 Flowy runs on your machine and touches only its model folder.
 
-- It listens on 127.0.0.1, so other computers can't reach it. It refuses a request whose Host isn't
-  `127.0.0.1` or `localhost` on its own port, and it saves only when a request carries a header
-  that a web page open in another tab can't send. A website can't change your files through it.
-- Saving, from the canvas or from Claude, writes `model.yaml`, `layout.yaml` and `flows/*.yaml` in
-  the model folder and nothing else. `export` writes only to its output folder.
-- It never opens your code. For `code:` paths it checks that they exist, and it runs `git` with fixed
-  arguments to read the `origin` URL and the branch for the links.
-- It makes no network requests of its own: no telemetry, no CDN, no fonts. The page talks only to
-  its local server.
-- Through `npx flowy-docs mcp`, Claude gets nine tools: three read the model and six change its
-  objects, connections and flows. None runs a command or reads a file outside the model folder.
+- It listens on 127.0.0.1, so other computers can't reach it. It refuses a request whose Host isn't `127.0.0.1` or
+  `localhost` on its own port, and it saves only when a request carries a header that a web page open in another tab
+  can't send. A website can't change your files through it.
+- Saving, from the canvas or from Claude, writes `model.yaml`, `layout.yaml` and `flows/*.yaml` in the model folder and
+  nothing else. `export` writes only to its output folder.
+- It never opens your code. For `code:` paths it checks that they exist, and it runs `git` with fixed arguments to read
+  the `origin` URL and the branch for the links.
+- It makes no network requests of its own: no telemetry, no CDN, no fonts. The page talks only to its local server.
+- Through `npx flowy-docs mcp`, Claude gets nine tools: three read the model and six change its objects, connections and
+  flows. None runs a command or reads a file outside the model folder.
 
-Treat a `flowy/` folder you didn't write like any other text from that repo. Descriptions are
-Markdown and can embed images, which your browser then fetches from wherever they point, and Claude
-reads the descriptions back through MCP.
+Treat a `flowy/` folder you didn't write like any other text from that repo. Descriptions are Markdown and can embed
+images, which your browser then fetches from wherever they point, and Claude reads the descriptions back through MCP.
 
-## Develop
+</details>
 
-```bash
-npm install
-npm test
-npm run typecheck
-npm run build
-```
+## Contributing
 
-`npm run build` puts the canvas in `dist/ui` and the server in `dist/`. In a clone,
-`node src/cli.ts` does what `npx flowy-docs` does, once `npm run build:ui` has built the canvas.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the build, the conventions and the checklist to run through before changing
+the canvas. This repo documents itself: `node src/cli.ts` opens its own `flowy/` folder. Bug reports and feature
+requests go to [Issues](https://github.com/feluminais/flowy-docs/issues).
 
-This repo documents itself. `flowy/` holds Flowy Docs' own architecture, with a flow each for
-opening it, drawing, Claude writing the model and sharing, and `node src/cli.ts` with no options
-opens it.
+## License
 
-To work on the canvas with hot reload, run Flowy on the example model, then Vite, and open
-http://localhost:5173:
+[MIT](LICENSE). The box icons are from [Tabler Icons](https://tabler.io/icons), also MIT; their notice ships with the
+canvas.
 
-```bash
-node src/cli.ts --dir example --no-open
-npm run dev:ui
-```
-
-[CONTRIBUTING.md](CONTRIBUTING.md) has the conventions and the checklist to run through before
-changing the canvas.
+Plum is made up. Stripe, Twilio and Mapbox appear in it as examples of outside services, and have no tie to Flowy Docs.

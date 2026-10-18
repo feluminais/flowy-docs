@@ -1,0 +1,20 @@
+name: A courier delivers it
+view: delivery
+steps:
+  - { from: events, to: dispatch, text: Hears that an order was placed }
+  - { from: dispatch, to: fleet-db, text: Finds idle couriers near the restaurant }
+  - from: dispatch
+    text: Ranks them by how soon each could arrive
+    description: |
+      The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the
+      vehicle. The quickest one is offered the job first.
+  - { from: dispatch, to: notifier, text: Sends the offer as a push }
+  - { from: courier, to: courier-app, text: Accepts within 30 seconds }
+  - from: courier-app
+    to: tracking
+    text: Streams its position every 5 seconds
+    description: |
+      Only while a job is open. A position older than a minute is dropped, so a courier who loses
+      signal stops moving on the customer's map instead of jumping when it comes back.
+  - { from: tracking, to: customer-app, text: The customer watches the courier come }
+  - { from: courier-app, to: order-api, text: Marks the order delivered }

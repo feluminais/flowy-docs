@@ -1,0 +1,273 @@
+objects:
+  customer:
+    type: actor
+    name: Customer
+    description: Someone hungry, ordering from the Plum app or the website.
+  restaurant:
+    type: actor
+    name: Restaurant
+    description: The kitchen staff who accept an order and mark it ready.
+  courier:
+    type: actor
+    name: Courier
+    description: Rides or drives the order from the restaurant to the customer's door.
+  support:
+    type: actor
+    name: Support agent
+    description: Answers customers and couriers when something goes wrong.
+  ordering:
+    type: system
+    name: Ordering
+    description: |
+      Everything a customer touches: browsing menus, building a basket, paying.
+
+      The **Order API** is the only way in. It keeps orders in Postgres and announces every new
+      order on the **Order events** bus, which is how **Delivery** hears about it.
+  delivery:
+    type: system
+    name: Delivery
+    description: |
+      Finds a courier for each order and follows it to the door.
+
+      Dispatch matches and offers. Live tracking keeps the customer's map moving.
+  notifications:
+    type: system
+    name: Notifications
+    description: Push, SMS and email, from one place, so no other system talks to a messaging provider.
+  backoffice:
+    type: system
+    name: Back office
+    description: Tools for Plum's own staff. Nothing here is visible to customers or couriers.
+  stripe:
+    type: system
+    name: Stripe
+    external: true
+    description: |
+      Takes card payments and sends refunds. Plum never sees a card number.
+
+      [Provider status](https://status.stripe.com)
+  twilio:
+    type: system
+    name: Twilio
+    external: true
+    description: Sends the SMS messages.
+  mapbox:
+    type: system
+    name: Mapbox
+    external: true
+    description: Maps, address lookup and travel times.
+  customer-app:
+    type: app
+    in: ordering
+    name: Customer app
+    tech: React Native
+    code: [apps/customer/]
+    description: |
+      The app on the customer's phone. Browse, order, pay and watch the courier arrive.
+
+      Keeps nothing but the basket and the session.
+  web:
+    type: app
+    in: ordering
+    name: Website
+    tech: Next.js
+    description: The same ordering flow in a browser. Menus are rendered on the server so search engines see them.
+  kitchen-tablet:
+    type: app
+    in: ordering
+    name: Kitchen tablet
+    tech: Android
+    description: Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected.
+  order-api:
+    type: app
+    in: ordering
+    name: Order API
+    tech: Node, Fastify
+    code: [services/order-api/]
+    description: |
+      Every client talks to this, and nothing else talks to the **Orders DB**.
+
+      - `GET /menus/:restaurant` reads a menu
+      - `POST /orders` places an order
+      - `POST /orders/:id/refund` refunds one
+  orders-db:
+    type: store
+    in: ordering
+    name: Orders DB
+    tech: Postgres
+    description: Orders, baskets and refunds. The source of truth for what a customer owes and was charged.
+  menu-cache:
+    type: store
+    in: ordering
+    name: Menu cache
+    tech: Redis
+    description: Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires.
+  events:
+    type: store
+    in: ordering
+    name: Order events
+    tech: Kafka
+    description: |
+      One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.
+
+      Dispatch reads from it, and so does the warehouse.
+  menu:
+    type: component
+    in: order-api
+    name: Menu
+    description: Serves a restaurant's menu from the cache, and from the database when the cache is cold.
+  basket:
+    type: component
+    in: order-api
+    name: Basket
+    description: Holds what the customer picked and asks **Pricing** for the running total.
+  pricing:
+    type: component
+    in: order-api
+    name: Pricing
+    code: [services/order-api/src/pricing.ts]
+    description: |
+      Works out the total: items, delivery fee (by distance) and any promotion.
+
+      The delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.
+  checkout:
+    type: component
+    in: order-api
+    name: Checkout
+    code: [services/order-api/src/checkout.ts]
+    description: |
+      Prices the basket, authorises the card and places the order.
+
+      Nothing is charged until the restaurant accepts. A rejected order releases the hold.
+  status:
+    type: component
+    in: order-api
+    name: Order status
+    description: Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step.
+  refunds:
+    type: component
+    in: order-api
+    name: Refunds
+    description: Returns money to the card, then marks the order refunded. Support can refund in full or by line.
+  courier-app:
+    type: app
+    in: delivery
+    name: Courier app
+    tech: Kotlin, Swift
+    description: Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open.
+  dispatch:
+    type: app
+    in: delivery
+    name: Dispatch
+    tech: Go
+    code: [services/dispatch/]
+    description: |
+      Turns each new order into a courier on the way.
+
+      It reads `placed` events and offers the job to couriers one at a time, nearest first.
+  tracking:
+    type: app
+    in: delivery
+    name: Live tracking
+    tech: Go, WebSocket
+    description: Passes the courier's position to the customer's map. A position older than a minute is dropped.
+  fleet-db:
+    type: store
+    in: delivery
+    name: Fleet DB
+    tech: Postgres, PostGIS
+    description: Couriers, their vehicles, and their last known position.
+  matcher:
+    type: component
+    in: dispatch
+    name: Matcher
+    code: [services/dispatch/matcher.go]
+    description: Ranks the idle couriers near a restaurant by how soon each could be there.
+  eta:
+    type: component
+    in: dispatch
+    name: ETA
+    description: Estimates travel time from distance, traffic and the courier's vehicle.
+  offers:
+    type: component
+    in: dispatch
+    name: Offers
+    description: |
+      Offers a job to one courier at a time and waits 30 seconds for an answer.
+
+      A refusal or a timeout moves on to the next courier.
+  notifier:
+    type: app
+    in: notifications
+    name: Notifier
+    tech: Node
+    description: Picks push, SMS or email for each message and sends it. Never blocks the caller.
+  templates:
+    type: store
+    in: notifications
+    name: Message templates
+    tech: Postgres
+    description: The wording of every message, per language.
+  admin:
+    type: app
+    in: backoffice
+    name: Admin dashboard
+    tech: React
+    description: Restaurants, delivery zones, promotions and the weekly reports.
+  support-console:
+    type: app
+    in: backoffice
+    name: Support console
+    tech: React
+    description: Look up an order, see where the courier is, issue a refund.
+  warehouse:
+    type: store
+    in: backoffice
+    name: Data warehouse
+    tech: ClickHouse
+    description: Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**.
+connections:
+  - { from: customer, to: customer-app, label: orders on a phone }
+  - { from: customer, to: web, label: orders in a browser }
+  - { from: restaurant, to: kitchen-tablet, label: accepts orders }
+  - { from: courier, to: courier-app, label: takes deliveries }
+  - { from: support, to: support-console, label: handles tickets }
+  - { from: support, to: admin, label: looks up couriers }
+  - { from: customer-app, to: order-api, label: REST }
+  - { from: web, to: order-api, label: REST }
+  - { from: kitchen-tablet, to: order-api, label: "accepts, marks ready" }
+  - { from: menu, to: menu-cache, label: reads menus }
+  - { from: menu, to: orders-db, label: on a cache miss }
+  - { from: basket, to: orders-db, label: saves the basket }
+  - { from: basket, to: pricing, label: asks for totals }
+  - { from: pricing, to: mapbox, label: delivery distance }
+  - { from: checkout, to: pricing, label: gets the total }
+  - { from: checkout, to: stripe, label: holds the card }
+  - { from: checkout, to: orders-db, label: writes the order }
+  - { from: checkout, to: events, label: announces placed }
+  - { from: status, to: orders-db, label: moves the order on }
+  - { from: status, to: events, label: announces each step }
+  - { from: status, to: notifier, label: order updates }
+  - { from: refunds, to: stripe, label: refunds the charge }
+  - { from: refunds, to: orders-db, label: marks refunded }
+  - { from: refunds, to: notifier, label: confirms by message }
+  - { from: dispatch, to: events, label: reads placed orders }
+  - { from: matcher, to: fleet-db, label: finds idle couriers }
+  - { from: matcher, to: eta, label: asks who is quickest }
+  - { from: matcher, to: offers, label: hands over the ranking }
+  - { from: eta, to: mapbox, label: travel times }
+  - { from: offers, to: notifier, label: sends the offer }
+  - { from: courier-app, to: dispatch, label: accepts or refuses }
+  - { from: courier-app, to: tracking, label: "position every 5 s" }
+  - { from: courier-app, to: status, label: "picked up, delivered" }
+  - { from: courier-app, to: mapbox, label: navigation }
+  - { from: tracking, to: fleet-db, label: stores positions }
+  - { from: tracking, to: customer-app, label: live map }
+  - { from: tracking, to: web, label: live map }
+  - { from: notifier, to: twilio, label: SMS }
+  - { from: notifier, to: templates, label: reads the wording }
+  - { from: support-console, to: order-api, label: looks up orders }
+  - { from: support-console, to: refunds, label: issues refunds }
+  - { from: admin, to: order-api, label: menus and promotions }
+  - { from: admin, to: warehouse, label: weekly reports }
+  - { from: events, to: warehouse, label: streams every event }

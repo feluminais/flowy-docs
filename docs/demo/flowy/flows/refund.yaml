@@ -1,0 +1,13 @@
+name: Support refunds an order
+view: root
+steps:
+  - { from: support, to: backoffice, text: Finds the order in the support console }
+  - { from: backoffice, to: ordering, text: Asks for a refund, in full or by line }
+  - from: ordering
+    to: stripe
+    text: The money goes back to the card
+    description: |
+      Stripe refunds the original charge. The order is marked refunded only once Stripe has
+      confirmed, so the database never says money was returned that wasn't.
+  - { from: ordering, to: notifications, text: Asks for a confirmation to be sent }
+  - { from: notifications, to: twilio, text: The customer gets an SMS }
