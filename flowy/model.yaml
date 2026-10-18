@@ -49,10 +49,11 @@ objects:
     in: flowy
     name: Command line
     tech: Node 22.18+
-    code: [src/cli.ts]
+    code: [src/cli.ts, flowy.sh, flowy.cmd]
     description: |
       `npx flowy-docs` and what follows it: no argument serves the canvas, `mcp` speaks MCP over
-      stdio, `export` writes a static copy, `mermaid` prints a diagram.
+      stdio, `export` writes a static copy, `mermaid` prints a diagram. In a clone, `flowy.sh` and
+      `flowy.cmd` build once and then run the same thing.
 
       `--dir` picks the model folder, `--port` the port (or the next free one), `--no-open` leaves
       the browser alone.
