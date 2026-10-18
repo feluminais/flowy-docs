@@ -1,6 +1,6 @@
 # Flowy Docs
 
-Architecture docs you zoom through instead of scrolling through. An open-source take on IcePanel.
+Architecture docs you zoom through instead of scrolling through.
 
 Your architecture lives as YAML in your repo, in a `flowy/` folder: systems, apps, stores and
 components, the connections between them, and step-by-step flows. Readers start at the big
