@@ -1,0 +1,263 @@
+objects:
+  reader:
+    type: actor
+    name: Reader
+    description: |
+      Someone on the team who wants to understand the repo. They open the canvas, zoom in where they
+      need to, and in edit mode draw what isn't there yet.
+  claude:
+    type: actor
+    name: Claude
+    description: Claude, or another MCP client, writing the model from what it reads in the code.
+  flowy:
+    type: system
+    name: Flowy Docs
+    description: |
+      Architecture docs you zoom through instead of scrolling through.
+
+      One npm package with four ways in: the canvas in a browser, an MCP server for Claude, a static
+      export, and Mermaid on the command line. They all read and write the same YAML through the
+      same checks, so none of them can leave the folder in a state the others refuse.
+  repo:
+    type: system
+    name: Your repo
+    description: |
+      The repo being documented. Flowy keeps the model in a `flowy/` folder at its root and points
+      `code` paths at files beside it. Git keeps the history; Flowy has no store of its own.
+  forge:
+    type: system
+    name: GitHub or GitLab
+    description: Where `code` paths link to, worked out from the repo's origin, branch and place in the tree. Any other host and the paths are plain text.
+  host:
+    type: system
+    name: Static host
+    description: Wherever an export is put — GitHub Pages, S3, a folder behind nginx. It serves plain files; the model travels inside `index.html`.
+  folder:
+    type: store
+    in: repo
+    name: flowy/ folder
+    tech: YAML
+    code: [flowy/]
+    description: |
+      `model.yaml` (objects and connections), `flows/<id>.yaml` (one walkthrough each) and
+      `layout.yaml` (where boxes were dragged).
+
+      Saving rewrites a file, so YAML comments don't survive: notes belong in an object's
+      `description`. This repo documents itself with the folder you're reading now.
+  cli:
+    type: app
+    in: flowy
+    name: Command line
+    tech: Node 22.18+
+    code: [src/cli.ts]
+    description: |
+      `npx flowy-docs` and what follows it: no argument serves the canvas, `mcp` speaks MCP over
+      stdio, `export` writes a static copy, `mermaid` prints a diagram.
+
+      `--dir` picks the model folder, `--port` the port (or the next free one), `--no-open` leaves
+      the browser alone.
+  server:
+    type: app
+    in: flowy
+    name: Local server
+    tech: Node http
+    code: [src/node/server.ts, src/node/files.ts, src/node/git.ts]
+    description: |
+      Serves the built canvas and the model to 127.0.0.1 only, and watches the folder.
+
+      Two guards keep other pages out: a request whose Host isn't this server's is refused (a site
+      can point its own domain at 127.0.0.1), and a write must carry `X-Flowy: 1`, which only a page
+      from this origin may send.
+  canvas:
+    type: app
+    in: flowy
+    name: Canvas
+    tech: React, React Flow
+    code: [ui/]
+    description: |
+      The page: boxes you zoom into, lines that stay quiet until you point at them, flows that play
+      step by step, and edit mode behind E.
+
+      The same bundle is served by the local server and shipped in an export; on an exported page
+      the model comes from the HTML and there is nothing to save to.
+  mcp:
+    type: app
+    in: flowy
+    name: MCP server
+    tech: stdio
+    code: [src/node/mcp.ts]
+    description: |
+      Nine tools over stdio: read the model, a view or a Mermaid diagram, and write objects,
+      connections and flows.
+
+      Calls arrive in bursts and run one at a time, in order, so each one sees what the one before
+      it wrote. A write that loses a race on the file is retried once.
+  exporter:
+    type: app
+    in: flowy
+    name: Export
+    code: [src/node/export.ts]
+    description: |
+      Writes a read-only copy of the canvas, with the model as JSON inside `index.html`.
+
+      It replaces only what it wrote last time, so a `.git` or a `CNAME` beside it stays, and it
+      refuses a folder that holds the model or the canvas it is copying.
+  core:
+    type: app
+    in: flowy
+    name: Core
+    code: [src/core/]
+    description: |
+      What a model is and what may be done to it, with no Node and no browser in it: the canvas
+      bundles the same files the server runs.
+
+      That is why an edit drawn on the canvas and the same edit from Claude are refused for the
+      same reasons.
+  api:
+    type: component
+    in: server
+    name: HTTP API
+    code: [src/node/server.ts]
+    description: |
+      `GET /api/state` for everything the canvas shows, `PUT`/`DELETE /api/file/<path>` for one
+      file, `GET /api/events` for a line that says "changed" when the folder does.
+
+      The watcher waits 100 ms, so an editor saving three files wakes the page once.
+  filestore:
+    type: component
+    in: server
+    name: Folder reader
+    code: [src/node/files.ts]
+    description: |
+      Reads the whole folder into one model and writes one file at a time.
+
+      A write carries the version the caller read (a hash of the file). If the file moved on since,
+      the write is dropped with 409 rather than overwriting someone else's change, and nothing is
+      written at all while any file in the folder fails to parse.
+  gitlink:
+    type: component
+    in: server
+    name: Code links
+    code: [src/node/git.ts]
+    description: Turns the repo's origin, branch and prefix into the address `code` paths link to. Worked out once per folder, so a branch switch shows after a restart.
+  shell:
+    type: component
+    in: canvas
+    name: Canvas page
+    code: [ui/src/App.tsx, ui/src/Camera.tsx]
+    description: |
+      The view you're in, the box or line you picked, the flow playing, and edit mode. It keeps the
+      address in step, so a link opens where it says and Back goes back.
+
+      The camera fits a view when you arrive and pans a box out from under the side panel, but never
+      undoes your own panning.
+  graph:
+    type: component
+    in: canvas
+    name: Layout
+    code: [ui/src/graph.ts, ui/src/Box.tsx, ui/src/Line.tsx]
+    description: |
+      Turns a view into boxes and lines: dagre places what hasn't been dragged, and the boxes that
+      live elsewhere wait around the edges, each on the side that crosses fewest lines.
+
+      A dragged box keeps its saved place; the rest flow around it.
+  sync:
+    type: component
+    in: canvas
+    name: Saving
+    code: [ui/src/useModel.ts, ui/src/save.ts]
+    description: |
+      Holds the model the page shows and saves edits one at a time, each one read-apply-check-write
+      like the MCP server's.
+
+      It keeps what it can undo for as long as the page is open, and an undo whose file changed
+      since is refused rather than forced.
+  panel:
+    type: component
+    in: canvas
+    name: Side panel
+    code: [ui/src/Panel.tsx, ui/src/Search.tsx]
+    description: Descriptions and code links while reading; the fields, the flow recorder and Add while editing. Search finds a box anywhere in the model.
+  model:
+    type: component
+    in: core
+    name: Files
+    code: [src/core/model.ts, src/core/state.ts]
+    description: |
+      Reads and writes the folder's YAML. Parsed with YAML's failsafe schema, so every value stays
+      the text that was typed: an id like `007` or a version like `3.10` survives a save.
+
+      A file that can't be trusted — bad syntax, duplicate keys, a merge conflict — is a parse
+      error, and nothing is written over it.
+  check:
+    type: component
+    in: core
+    name: Checks
+    code: [src/core/check.ts]
+    description: |
+      Every problem in the model, never throwing: a missing name, a box in a type that can't hold
+      it, a line to nothing, a flow step the view can't show, a `code` path that isn't there.
+
+      Problems are shown, not fixed. A file edited by hand keeps its problems until someone deals
+      with them.
+  views:
+    type: component
+    in: core
+    name: Views
+    code: [src/core/views.ts]
+    description: |
+      What one level shows: the boxes inside it, the boxes elsewhere that lines reach, and where a
+      line between two of them lands.
+
+      A line between boxes deeper down is drawn between the boxes that stand for them here, and
+      several such lines merge into one, labelled "N connections".
+  ops:
+    type: component
+    in: core
+    name: Edits
+    code: [src/core/ops.ts]
+    description: |
+      Every change anything may make: add or change a box, connect, disconnect, put or delete a
+      flow, place boxes, pick a line style.
+
+      Each one returns a new model, and a change that would add a problem is refused before
+      anything is written.
+  mermaid:
+    type: component
+    in: core
+    name: Mermaid
+    code: [src/core/mermaid.ts]
+    description: A view as a flowchart, a flow as a sequence diagram, fenced and ready to paste where GitHub or GitLab draws it.
+connections:
+  - { from: reader, to: cli, label: npx flowy-docs }
+  - { from: reader, to: shell, label: "reads it, draws in edit mode" }
+  - { from: reader, to: host, label: opens the shared link }
+  - { from: claude, to: mcp, label: writes the model }
+  - { from: cli, to: server, label: serves the canvas }
+  - { from: cli, to: mcp, label: speaks MCP over stdio }
+  - { from: cli, to: exporter, label: writes a static copy }
+  - { from: cli, to: mermaid, label: prints a diagram }
+  - { from: sync, to: api, label: "reads the model, saves a file" }
+  - { from: sync, to: api, label: listens for changes }
+  - { from: shell, to: sync, label: "saves edits, takes them back" }
+  - { from: shell, to: graph, label: what to draw }
+  - { from: shell, to: panel, label: what is selected }
+  - { from: shell, to: ops, label: the edit the reader made }
+  - { from: panel, to: forge, label: links code paths }
+  - { from: graph, to: views, label: "boxes, outsiders and lines" }
+  - { from: api, to: filestore, label: reads and writes }
+  - { from: api, to: gitlink, label: where code links point }
+  - { from: filestore, to: folder, label: one file at a time }
+  - { from: filestore, to: model, label: parses and serializes }
+  - { from: filestore, to: check, label: every load is checked }
+  - { from: gitlink, to: repo, label: asks git for origin and branch }
+  - { from: mcp, to: filestore, label: the same reads and writes }
+  - { from: mcp, to: ops, label: one change at a time }
+  - { from: ops, to: check, label: refuses what adds a problem }
+  - { from: ops, to: model, label: writes it back as YAML }
+  - { from: check, to: views, label: can this view show it }
+  - { from: views, to: model, label: reads }
+  - { from: mermaid, to: views, label: what the view holds }
+  - { from: exporter, to: filestore, label: loads the model }
+  - { from: exporter, to: canvas, label: copies the built page }
+  - { from: exporter, to: host, label: writes a read-only copy }

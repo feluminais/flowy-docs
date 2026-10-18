@@ -1,0 +1,22 @@
+name: Opening the canvas
+view: flowy
+steps:
+  - { from: reader, to: cli, text: Runs npx flowy-docs in the repo }
+  - from: cli
+    to: server
+    text: Starts the local server and opens the browser
+    description: |
+      Port 4321, or the next free one up to twenty along, on 127.0.0.1 only. The `flowy/` folder is
+      created if it isn't there yet, so there is always something to watch.
+  - { from: canvas, to: server, text: "GET /api/state" }
+  - from: server
+    to: repo
+    text: Reads model.yaml, layout.yaml and every flow
+    description: |
+      One file that can't be parsed stops the whole load: the page says which file and which line,
+      keeps the last model it had, and greys out Edit until the file is fixed.
+  - from: canvas
+    text: Lays the level out and draws it
+    description: |
+      Boxes that were dragged keep their saved place; dagre places the rest. The view fits the
+      window before the first paint, so it never shows unfitted for a frame.
