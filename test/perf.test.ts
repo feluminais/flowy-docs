@@ -1,7 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ParseError } from '../src/core/model.ts'
-import { parseRun } from '../src/core/perf.ts'
+import { checkRun, parseRun } from '../src/core/perf.ts'
+import { shop } from './fixtures.ts'
 
 /** Three levels of a run against the shop fixture (test/fixtures.ts): api and db are measured, and orders inside api. */
 const RAMP = `name: Ramp, 20 s per level
@@ -115,4 +116,26 @@ test('an object called __proto__ is data, not the prototype', () => {
   const { run } = parseRun('r', 'name: R\nlevels:\n  - { load: 1, objects: { __proto__: { util: 0.5 } } }\n  - load: 2\n')
   assert.deepEqual(Object.keys(run.levels[0].objects), ['__proto__'])
   assert.equal(Object.getPrototypeOf(run.levels[0].objects), Object.prototype)
+})
+
+test('a run that names only things the model has has no problems', () => {
+  assert.deepEqual(checkRun('ramp', ramp(), shop()), [])
+})
+
+test('checkRun reports what the model does not have, each once however many levels repeat it', () => {
+  const { run } = parseRun('r', `name: R
+entry: ghost
+levels:
+  - load: 1
+    objects: { ghost: { util: 0.1 }, api: { util: 0.1 } }
+    connections: [{ from: web, to: db, rate: 1 }, { from: web, to: phantom, rate: 1 }]
+  - load: 2
+    objects: { ghost: { util: 0.2 } }
+`)
+  assert.deepEqual(checkRun('r', run, shop()).map(p => `${p.file} ${p.message}`), [
+    'perf/r.yaml entry "ghost" is not an object',
+    'perf/r.yaml unknown object "ghost"',
+    'perf/r.yaml web → db is not a connection in the model',
+    'perf/r.yaml unknown object "phantom"',
+  ])
 })
