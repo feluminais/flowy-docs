@@ -31,6 +31,18 @@ public class FolderWatcherTests
     }
 
     [Fact]
+    public void A_load_test_run_saved_in_perf_is_noticed_too()
+    {
+        using var temp = new TempDir();
+        Directory.CreateDirectory(Path.Combine(temp.Dir, "perf"));
+        using var watcher = new FolderWatcher(temp.Dir, TimeSpan.FromMilliseconds(30));
+        using var seen = new ManualResetEventSlim();
+        watcher.Changed += seen.Set;
+        temp.Write("perf/ramp.yaml", "name: Ramp\n");
+        Assert.True(seen.Wait(Patience));
+    }
+
+    [Fact]
     public void Several_saves_in_a_burst_wake_it_once()
     {
         using var temp = new TempDir();

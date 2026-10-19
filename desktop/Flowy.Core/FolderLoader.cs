@@ -2,8 +2,11 @@ using System.Text;
 
 namespace Flowy.Core;
 
-/// <summary>A model folder as the reader shows it: the model and everything wrong with it.</summary>
-public sealed record Folder(Model Model, IReadOnlyList<Problem> Problems);
+/// <summary>
+/// A model folder as the reader shows it: the model and everything wrong with it, and the load-test runs in <c>perf/</c> with what is wrong with those
+/// (kept apart, as in the TypeScript State: a file of numbers never stops the model loading).
+/// </summary>
+public sealed record Folder(Model Model, IReadOnlyList<Problem> Problems, IdMap<LoadRun>? Runs = null, IReadOnlyList<Problem>? RunProblems = null);
 
 /// <summary>Reads a flowy/ folder. A port of loadDir and loadState in src/node/files.ts, without the parts that write.</summary>
 public static class FolderLoader
@@ -93,6 +96,63 @@ public static class FolderLoader
         // A flow file that isn't read is no part of the model, so the checks can't see it.
         var skipped = ignored.Select(file => new Problem(file, null,
             $"Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to {file[..^".yml".Length]}.yaml."));
-        return new Folder(model, [.. Checks.Run(model, MissingPaths(dir, model)), .. skipped]);
+        var (runs, runProblems) = LoadRuns(dir, model);
+        return new Folder(model, [.. Checks.Run(model, MissingPaths(dir, model)), .. skipped], runs, runProblems);
+    }
+
+    /// <summary>
+    /// Reads <c>perf/*.yaml</c>, a port of loadRuns in src/node/files.ts. A file that can't be played, or whose name isn't an id, becomes a problem
+    /// and is skipped: the architecture view is worth more than the numbers, so a file here never stops a model loading.
+    /// </summary>
+    public static (IdMap<LoadRun> Runs, List<Problem> Problems) LoadRuns(string dir, Model model)
+    {
+        var runs = new IdMap<LoadRun>();
+        var problems = new List<Problem>();
+        var perf = Path.Combine(dir, "perf");
+        if (!Directory.Exists(perf)) return (runs, problems);
+        List<string> names;
+        try
+        {
+            names = Directory.EnumerateFiles(perf).Select(Path.GetFileName).OfType<string>().ToList();
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            problems.Add(new Problem("perf", null, $"can't be read: {e.Message}"));
+            return (runs, problems);
+        }
+        names.Sort(StringComparer.Ordinal);
+        foreach (var name in names)
+        {
+            var file = $"perf/{name}";
+            if (name.EndsWith(".yml", StringComparison.Ordinal))
+            {
+                problems.Add(new Problem(file, null, $"Flowy reads run files that end in .yaml, so this one is ignored. Rename it to {name[..^".yml".Length]}.yaml."));
+                continue;
+            }
+            if (!name.EndsWith(".yaml", StringComparison.Ordinal)) continue;
+            var id = name[..^".yaml".Length];
+            if (!Names.IsValidId(id))
+            {
+                problems.Add(new Problem(file, null, $"\"{id}\" is not a valid run id: the file name must {Names.IdRule}"));
+                continue;
+            }
+            try
+            {
+                if (ReadText(dir, file) is not { } text) continue;
+                var (run, found) = Perf.ParseRun(id, text);
+                runs.Add(id, run);
+                problems.AddRange(found);
+                problems.AddRange(Perf.CheckRun(id, run, model));
+            }
+            catch (ParseError e)
+            {
+                problems.Add(new Problem(file, null, e.Line is null ? e.Reason : $"line {e.Line}: {e.Reason}"));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                problems.Add(new Problem(file, null, $"can't be read: {e.Message}"));
+            }
+        }
+        return (runs, problems);
     }
 }
