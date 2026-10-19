@@ -23,7 +23,7 @@ async function setup(t: TestContext) {
     const [first] = result.content as { text: string }[]
     return { error: result.isError === true, text: first.text }
   }
-  return { dir, call }
+  return { dir, call, client }
 }
 
 test('builds a model and shows a view', async t => {
@@ -268,4 +268,14 @@ test('put_flow takes a recursive step, and refuses a wrong one', async t => {
   const wrongKind = await call('put_flow', { id: 'bad', name: 'Bad', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x', animation: { kind: 'call', returns: 'x' } }] })
   assert.equal(wrongKind.error, true)
   assert.match(wrongKind.text, /returns only applies to recurse/)
+})
+
+test('Claude is told how to use recurse', async t => {
+  const { client } = await setup(t)
+  const putFlow = (await client.listTools()).tools.find(tool => tool.name === 'put_flow')!
+  assert.match(JSON.stringify(putFlow.inputSchema), /recurse/)
+  const instructions = client.getInstructions() ?? ''
+  assert.match(instructions, /recurse/)
+  assert.match(instructions, /no "to"/)
+  assert.match(instructions, /depth/)
 })

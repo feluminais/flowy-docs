@@ -135,6 +135,7 @@ A flow is a walkthrough of one thing happening. It has a name, the view it plays
 - **Play the flow on the view where its ends are separate shapes.** A step written "X in Y" is drawn as Y. For detail inside a shape, write a second flow on that shape.
 - **A step with no matching line means the model is missing one.** Fix the model, then the step.
 - **Tag a step only when the way it travels adds something.** `animation: call` when the sender waits for the answer, `send` or `event` when it doesn't, `callback` when something sets off a reply to whoever subscribed, with `trigger: outside` when what set it off came in at the step before. Most steps stay untagged. The text still says everything: it has to read the same in Mermaid, in a screenshot and with motion off.
+- **A shape that calls itself is one step with no `to`, tagged `animation: recurse`.** Use it when the shape calls itself to handle a smaller piece of the same job: a tree walk, a CNAME chase, a pricing rule over its own parts. The text says **what gets smaller** and **what stops it**: "Follows the CNAME and asks itself again for the target, until it reaches an address". `depth` (2 to 5, default 3) is only how deep the picture goes, so put the real limit in the step's More. `carries` and `returns` name what goes in and what comes back. Repeating the same work without nesting is not recursion, and a connection from a shape to itself is not allowed: the line list is for relationships between shapes.
 
 An example. This is a flow Plum doesn't have, with Plum's shapes.
 
