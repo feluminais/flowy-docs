@@ -1,0 +1,137 @@
+name: "Slow gateway"
+about: "Made by perf-lab on one machine: 20 s measured at each level after 3 s of warm-up, a fresh lab for each level, open-loop, gateway about 360 ms. Absolute numbers belong to that machine."
+unit: req/s
+entry: shopper
+levels:
+  - load: 10
+    overall: { rate: 10.1, p50: 11.08, p95: 415.81, errors: 0 }
+    objects:
+      web-api: { util: 0.038, errors: 0 }
+      reports: { util: 0.028 }
+      sqlite: { util: 0.004 }
+      files: { util: 0, queue: 0 }
+      queue: { queue: 0 }
+      worker: { util: 0.2, errors: 0 }
+    connections:
+      - { from: shopper, to: web-api, rate: 8.9, p50: 0.22, p95: 436.12, errors: 0 }
+      - { from: shopper, to: file-api, rate: 1.3, p50: 1.68, p95: 3.13, errors: 0 }
+      - { from: catalog, to: cache, rate: 6.3, p50: 0, p95: 0, errors: 0 }
+      - { from: catalog, to: sqlite, rate: 2.9, p50: 0.04, p95: 0.07, errors: 0 }
+      - { from: orders, to: sqlite, rate: 4.1, p50: 0.55, p95: 0.74, errors: 0 }
+      - { from: orders, to: payments, rate: 2.1, p50: 358.3, p95: 450.7, errors: 0 }
+      - { from: orders, to: queue, rate: 2.1, p50: 0.13, p95: 0.19, errors: 0 }
+      - { from: queue, to: worker, rate: 2.1, p50: 0, p95: 0, errors: 0 }
+      - { from: worker, to: sqlite, rate: 4.3, p50: 0.48, p95: 0.67, errors: 0 }
+      - { from: worker, to: payments, rate: 2.2, p50: 372.74, p95: 449.85, errors: 0 }
+      - { from: file-api, to: files, rate: 1.3, p50: 1.35, p95: 1.95, errors: 0 }
+      - { from: reports, to: sqlite, rate: 0.6, p50: 0.05, p95: 0.06, errors: 0 }
+  - load: 25
+    overall: { rate: 26.5, p50: 11.28, p95: 415.43, errors: 0 }
+    objects:
+      web-api: { util: 0.071, errors: 0 }
+      reports: { util: 0.051 }
+      sqlite: { util: 0.008 }
+      files: { util: 0, queue: 0 }
+      queue: { queue: 0 }
+      worker: { util: 0.412, errors: 0 }
+    connections:
+      - { from: shopper, to: web-api, rate: 22.6, p50: 0.17, p95: 409.8, errors: 0 }
+      - { from: shopper, to: file-api, rate: 4, p50: 1.47, p95: 1.98, errors: 0 }
+      - { from: catalog, to: cache, rate: 16.7, p50: 0, p95: 0, errors: 0 }
+      - { from: catalog, to: sqlite, rate: 7.5, p50: 0.04, p95: 0.06, errors: 0 }
+      - { from: orders, to: sqlite, rate: 8.8, p50: 0.54, p95: 0.78, errors: 0 }
+      - { from: orders, to: payments, rate: 4.5, p50: 374.03, p95: 448.99, errors: 0 }
+      - { from: orders, to: queue, rate: 4.5, p50: 0.11, p95: 0.18, errors: 0 }
+      - { from: queue, to: worker, rate: 4.5, p50: 0, p95: 124.45, errors: 0 }
+      - { from: worker, to: sqlite, rate: 8.9, p50: 0.04, p95: 0.66, errors: 0 }
+      - { from: worker, to: payments, rate: 4.4, p50: 358.5, p95: 448.75, errors: 0 }
+      - { from: file-api, to: files, rate: 4, p50: 1.21, p95: 1.86, errors: 0 }
+      - { from: reports, to: sqlite, rate: 1.3, p50: 0.05, p95: 0.08, errors: 0 }
+  - load: 50
+    overall: { rate: 51.3, p50: 12.2, p95: 421.91, errors: 0 }
+    objects:
+      web-api: { util: 0.109, errors: 0 }
+      reports: { util: 0.069 }
+      sqlite: { util: 0.017 }
+      files: { util: 0.001, queue: 0 }
+      queue: { queue: 0 }
+      worker: { util: 0.972, errors: 0 }
+    connections:
+      - { from: shopper, to: web-api, rate: 42.9, p50: 0.14, p95: 420.63, errors: 0 }
+      - { from: shopper, to: file-api, rate: 7.8, p50: 1.4, p95: 4.23, errors: 0 }
+      - { from: catalog, to: cache, rate: 30.5, p50: 0, p95: 0, errors: 0 }
+      - { from: catalog, to: sqlite, rate: 11, p50: 0.04, p95: 0.06, errors: 0 }
+      - { from: orders, to: sqlite, rate: 21.1, p50: 0.51, p95: 0.63, errors: 0 }
+      - { from: orders, to: payments, rate: 10.4, p50: 357.68, p95: 449.18, errors: 0 }
+      - { from: orders, to: queue, rate: 10.4, p50: 0, p95: 0.01, errors: 0 }
+      - { from: queue, to: worker, rate: 10.7, p50: 764.74, p95: 1649.74, errors: 0 }
+      - { from: worker, to: sqlite, rate: 21.4, p50: 0.03, p95: 0.64, errors: 0 }
+      - { from: worker, to: payments, rate: 10.7, p50: 357.55, p95: 450.74, errors: 0 }
+      - { from: file-api, to: files, rate: 7.8, p50: 1.24, p95: 2.41, errors: 0 }
+      - { from: reports, to: sqlite, rate: 2, p50: 0.07, p95: 0.14, errors: 0 }
+  - load: 100
+    overall: { rate: 102.8, p50: 12.12, p95: 432.33, errors: 0 }
+    objects:
+      web-api: { util: 0.224, errors: 0 }
+      reports: { util: 0.158 }
+      sqlite: { util: 0.027 }
+      files: { util: 0.006, queue: 0 }
+      queue: { queue: 227 }
+      worker: { util: 1, errors: 0 }
+    connections:
+      - { from: shopper, to: web-api, rate: 88.1, p50: 0.1, p95: 423.77, errors: 0 }
+      - { from: shopper, to: file-api, rate: 15, p50: 1.41, p95: 36.65, errors: 0 }
+      - { from: catalog, to: cache, rate: 62.4, p50: 0, p95: 0, errors: 0 }
+      - { from: catalog, to: sqlite, rate: 23.7, p50: 0.03, p95: 0.05, errors: 0 }
+      - { from: orders, to: sqlite, rate: 41.5, p50: 0.49, p95: 0.6, errors: 0 }
+      - { from: orders, to: payments, rate: 20.8, p50: 371.93, p95: 450.57, errors: 0 }
+      - { from: orders, to: queue, rate: 20.8, p50: 0, p95: 0, errors: 0 }
+      - { from: queue, to: worker, rate: 10.7, p50: 6443.17, p95: 11088.74, errors: 0 }
+      - { from: worker, to: sqlite, rate: 21.4, p50: 0.04, p95: 0.59, errors: 0 }
+      - { from: worker, to: payments, rate: 10.7, p50: 373.44, p95: 451.68, errors: 0 }
+      - { from: file-api, to: files, rate: 15, p50: 1.24, p95: 36.36, errors: 0 }
+      - { from: reports, to: sqlite, rate: 5, p50: 0.07, p95: 0.12, errors: 0 }
+  - load: 200
+    overall: { rate: 201.4, p50: 16.79, p95: 441.87, errors: 0 }
+    objects:
+      web-api: { util: 0.453, errors: 0 }
+      reports: { util: 0.341 }
+      sqlite: { util: 0.047 }
+      files: { util: 0.042, queue: 0 }
+      queue: { queue: 650 }
+      worker: { util: 1, errors: 0 }
+    connections:
+      - { from: shopper, to: web-api, rate: 171.9, p50: 0.08, p95: 429.83, errors: 0 }
+      - { from: shopper, to: file-api, rate: 30, p50: 1.78, p95: 84.61, errors: 0 }
+      - { from: catalog, to: cache, rate: 121.5, p50: 0, p95: 0, errors: 0 }
+      - { from: catalog, to: sqlite, rate: 48.2, p50: 0.03, p95: 0.05, errors: 0 }
+      - { from: orders, to: sqlite, rate: 78, p50: 0.48, p95: 0.64, errors: 0 }
+      - { from: orders, to: payments, rate: 39.3, p50: 372.66, p95: 460.87, errors: 0 }
+      - { from: orders, to: queue, rate: 39.3, p50: 0, p95: 0, errors: 0 }
+      - { from: queue, to: worker, rate: 10.5, p50: 9133.9, p95: 15514.32, errors: 0 }
+      - { from: worker, to: sqlite, rate: 21.1, p50: 0.03, p95: 0.61, errors: 0 }
+      - { from: worker, to: payments, rate: 10.5, p50: 382.53, p95: 456.25, errors: 0 }
+      - { from: file-api, to: files, rate: 30, p50: 1.63, p95: 84.36, errors: 0 }
+      - { from: reports, to: sqlite, rate: 11.1, p50: 0.07, p95: 0.13, errors: 0 }
+  - load: 400
+    overall: { rate: 404.5, p50: 49.36, p95: 516.46, errors: 0.0094 }
+    objects:
+      web-api: { util: 0.77, errors: 0.0111 }
+      reports: { util: 0.57 }
+      sqlite: { util: 0.089 }
+      files: { util: 0.369, queue: 0 }
+      queue: { queue: 1408 }
+      worker: { util: 1, errors: 0.1723 }
+    connections:
+      - { from: shopper, to: web-api, rate: 345.8, p50: 0.06, p95: 451.71, errors: 0.0111 }
+      - { from: shopper, to: file-api, rate: 61.2, p50: 32.24, p95: 572.37, errors: 0 }
+      - { from: catalog, to: cache, rate: 245.8, p50: 0, p95: 0, errors: 0 }
+      - { from: catalog, to: sqlite, rate: 98.9, p50: 0.02, p95: 0.04, errors: 0 }
+      - { from: orders, to: sqlite, rate: 161.3, p50: 0.45, p95: 0.68, errors: 0 }
+      - { from: orders, to: payments, rate: 80.6, p50: 397.75, p95: 517.4, errors: 0.0474 }
+      - { from: orders, to: queue, rate: 76.8, p50: 0, p95: 0, errors: 0 }
+      - { from: queue, to: worker, rate: 12, p50: 10891.37, p95: 17398.45, errors: 0 }
+      - { from: worker, to: sqlite, rate: 23.9, p50: 0.11, p95: 0.63, errors: 0 }
+      - { from: worker, to: payments, rate: 12, p50: 384.03, p95: 508.01, errors: 0.1723 }
+      - { from: file-api, to: files, rate: 61.2, p50: 32.17, p95: 572.2, errors: 0 }
+      - { from: reports, to: sqlite, rate: 19.4, p50: 0.07, p95: 0.12, errors: 0 }
