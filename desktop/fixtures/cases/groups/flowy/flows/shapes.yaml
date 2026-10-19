@@ -1,0 +1,24 @@
+name: Every shape a group can take
+view: shop
+groups:
+  first: { kind: parallel }
+  fan: { kind: parallel }
+  maybe: { kind: branch }
+  poll: { kind: repeat, until: the job is done }
+  again: { kind: repeat, times: 2 }
+  last: { kind: branch }
+steps:
+  - { from: api, to: billing, text: Starts together with Dispatch, group: first, lane: Billing }
+  - { from: api, to: dispatch, text: Starts together with Billing, group: first, lane: Dispatch }
+  - { from: api, to: billing, text: Asks Billing for a total }
+  - { from: api, to: billing, text: Lane A one, group: fan, lane: A }
+  - { from: billing, to: db, text: Lane A two, group: fan }
+  - { from: api, to: dispatch, text: Lane B only, group: fan, lane: B }
+  - { from: api, to: db, text: Lane C one, group: fan, lane: C }
+  - { from: db, to: api, text: Lane C two, group: fan }
+  - { from: api, to: db, text: Lane C three, group: fan }
+  - { from: api, to: dispatch, text: Books a courier, group: maybe, lane: A courier is wanted }
+  - { from: api, to: db, text: Checks the job, group: poll }
+  - { from: api, to: db, text: Saves, group: again }
+  - { from: api, to: db, text: Saves once more, group: again }
+  - { from: api, to: billing, text: Ends the flow, group: last, lane: Last }

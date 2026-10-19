@@ -1,0 +1,37 @@
+name: A little of everything wrong
+view: shop
+groups:
+  Bad Id: { kind: repeat, times: 2 }
+  nokind: {}
+  weird: { kind: loop }
+  extra: { kind: repeat, times: 2, in: x }
+  wrongkind: { kind: branch, times: 3, until: x }
+  badtimes: { kind: repeat, times: 1 }
+  needs: { kind: repeat }
+  unused: { kind: repeat, times: 2 }
+  solo: { kind: parallel }
+  rep: { kind: repeat, times: 2 }
+  br: { kind: branch }
+  a: { kind: repeat, times: 2 }
+  b: { kind: repeat, times: 2 }
+steps:
+  - { from: api, to: db, text: s1, group: Bad Id }
+  - { from: api, to: db, text: s2, group: nokind }
+  - { from: api, to: db, text: s3, group: weird }
+  - { from: api, to: db, text: s4, group: extra }
+  - { from: api, to: db, text: s5, group: wrongkind, lane: A }
+  - { from: api, to: db, text: s6, group: badtimes }
+  - { from: api, to: db, text: s7, group: needs }
+  - { from: api, to: db, text: s8, group: solo, lane: only }
+  - { from: api, to: db, text: s9, group: rep, lane: x }
+  - { from: api, to: db, text: s10, group: br }
+  - { from: api, to: db, text: s11, group: br, lane: A }
+  - { from: api, to: db, text: s12, group: br, lane: A }
+  - { from: api, to: db, text: s13, group: a }
+  - { from: api, to: db, text: s14, group: b }
+  - { from: api, to: db, text: s15, group: a }
+  - { from: api, to: db, text: s16, group: b }
+  - { from: api, to: db, text: s17, group: nope }
+  - { from: api, to: db, text: s18, lane: loose }
+  - { from: api, to: db, text: s19, flow: nowhere }
+  - { from: api, to: db, text: s20, group: constructor }

@@ -1,0 +1,6 @@
+name: F
+view: root
+groups:
+  g:
+    kind: [a]
+steps: []
