@@ -258,3 +258,20 @@ test('links: a list of web addresses and repo paths that exist', () => {
     assert.ok(messages.includes(`d: link "${bad}" must be a web address (http or https) or a path in the repo, relative, with / between folders and no "." or ".." parts`), bad)
   assert.deepEqual(messages.filter(msg => msg.startsWith('e:')), ['e: link path "docs/gone.md" doesn\'t exist'])
 })
+
+test('animation rules', () => {
+  const m = shop()
+  m.flows.checkout.steps = [
+    { from: 'customer', to: 'web', text: 'a', animation: 'send' },
+    { from: 'web', to: 'api', text: 'b', animation: { kind: 'callback', trigger: 'outside' } },
+    { from: 'api', to: 'db', text: 'c', animation: 'sned' },
+    { from: 'api', text: 'd', animation: 'call' },
+    { from: 'api', to: 'db', text: 'e', animation: { kind: 'send', trigger: 'outside' } },
+    { from: 'api', to: 'db', text: 'f', animation: '' },
+  ]
+  assert.deepEqual(check(m).map(p => p.message), [
+    'step 3: unknown animation "sned" (use send, call, callback, event)',
+    'step 4: animation "call" needs a "to"',
+    'step 5: animation trigger only applies to callback',
+  ])
+})

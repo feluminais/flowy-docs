@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
+import { dumpBeats } from '../desktop/fixtures/beats.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from '../desktop/fixtures/dump.ts'
 import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
 import { dumpLayout } from '../desktop/fixtures/layout.ts'
@@ -52,3 +53,8 @@ for (const [name, dir] of Object.entries(fixtureDirs())) {
     assert.deepEqual(JSON.parse(JSON.stringify(await dumpFolder(dir))), expected, 'run: node desktop/fixtures/generate.ts')
   })
 }
+
+test('desktop animation beats still match what the TypeScript core says', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('beats'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(dumpBeats())), expected, 'run: node desktop/fixtures/generate.ts')
+})

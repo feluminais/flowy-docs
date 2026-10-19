@@ -30,8 +30,11 @@ public sealed record FlowyObject(string? Type, string? Name, string? In, string?
 
 public sealed record Connection(string? From, string? To, string? Label);
 
-/// <summary>One step of a flow. Without <c>To</c>, the <c>From</c> box does something on its own.</summary>
-public sealed record Step(string? From, string? To, string? Text, string? Description);
+/// <summary>
+/// One step of a flow. Without <c>To</c>, the <c>From</c> box does something on its own. <c>Animation</c> is what the file
+/// held under <c>animation</c>: text, a mapping or a list, which <see cref="Animations"/> reads and the checks report on.
+/// </summary>
+public sealed record Step(string? From, string? To, string? Text, string? Description, object? Animation = null);
 
 public sealed record Flow(string? Name, string? View, IReadOnlyList<Step> Steps);
 

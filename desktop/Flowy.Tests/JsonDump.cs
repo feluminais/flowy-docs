@@ -73,7 +73,7 @@ internal static class JsonDump
                 ("steps", Arr(kv.Value.Steps.Select(s =>
                 {
                     var placed = Views.PlaceStep(m, kv.Value.View, s.From, s.To);
-                    var step = Obj(("from", s.From), ("to", s.To), ("text", s.Text), ("description", s.Description));
+                    var step = Obj(("from", s.From), ("to", s.To), ("text", s.Text), ("description", s.Description), ("animation", Raw(s.Animation)));
                     step["placed"] = Pair(placed); // null stays in the JSON here, as it does in dump.ts
                     step["ends"] = s.From is null ? null : JsonValue.Create(Views.StepEnds(m, s.From, s.To, placed));
                     return step;

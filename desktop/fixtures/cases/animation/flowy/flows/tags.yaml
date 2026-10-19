@@ -1,0 +1,18 @@
+name: Every way to tag a step
+view: shop
+steps:
+  - { from: web, to: api, text: Posts the order, animation: call }
+  - { from: api, to: db, text: Saves it, animation: { kind: send, carries: order } }
+  - { from: stripe, to: api, text: Reports the charge settled, animation: { kind: event } }
+  - { from: api, to: web, text: Tells the page it is paid, animation: { kind: callback, trigger: outside } }
+  - { from: api, to: db, text: A timer fires, animation: { kind: callback } }
+  - { from: api, to: db, text: Typo, animation: sned }
+  - { from: api, text: Alone, animation: call }
+  - { from: api, to: db, text: Wrong option, animation: { kind: send, speed: fast } }
+  - { from: api, to: db, text: Trigger on a send, animation: { kind: send, trigger: outside } }
+  - { from: api, to: db, text: Blank kind, animation: { kind: "" } }
+  - { from: api, to: db, text: No kind, animation: { carries: order } }
+  - { from: api, to: db, text: Bad trigger, animation: { kind: callback, trigger: sideways } }
+  - { from: api, to: db, text: Blank word, animation: { kind: send, carries: " " } }
+  - { from: api, to: db, text: A list, animation: [send] }
+  - { from: api, to: db, text: Blank tag, animation: "" }

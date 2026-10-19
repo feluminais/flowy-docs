@@ -1,0 +1,355 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web app",
+      "in": "shop"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop"
+    },
+    {
+      "id": "db",
+      "type": "store",
+      "name": "Orders DB",
+      "in": "shop"
+    },
+    {
+      "id": "stripe",
+      "type": "system",
+      "name": "Stripe",
+      "external": "true"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "web",
+      "to": "api",
+      "label": "REST"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "label": "reads and writes"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "tags",
+      "name": "Every way to tag a step",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Posts the order",
+          "animation": "call",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Saves it",
+          "animation": {
+            "kind": "send",
+            "carries": "order"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "stripe",
+          "to": "api",
+          "text": "Reports the charge settled",
+          "animation": {
+            "kind": "event"
+          },
+          "placed": [
+            "stripe",
+            "api"
+          ],
+          "ends": "Stripe → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Tells the page it is paid",
+          "animation": {
+            "kind": "callback",
+            "trigger": "outside"
+          },
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "A timer fires",
+          "animation": {
+            "kind": "callback"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Typo",
+          "animation": "sned",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "text": "Alone",
+          "animation": "call",
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Wrong option",
+          "animation": {
+            "kind": "send",
+            "speed": "fast"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Trigger on a send",
+          "animation": {
+            "kind": "send",
+            "trigger": "outside"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Blank kind",
+          "animation": {
+            "kind": ""
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "No kind",
+          "animation": {
+            "carries": "order"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Bad trigger",
+          "animation": {
+            "kind": "callback",
+            "trigger": "sideways"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Blank word",
+          "animation": {
+            "kind": "send",
+            "carries": " "
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "A list",
+          "animation": [
+            "send"
+          ],
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Blank tag",
+          "animation": "",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        }
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "file": "flows/tags.yaml",
+      "message": "step 6: unknown animation \"sned\" (use send, call, callback, event)",
+      "step": 5
+    },
+    {
+      "file": "flows/tags.yaml",
+      "message": "step 7: animation \"call\" needs a \"to\"",
+      "step": 6
+    },
+    {
+      "file": "flows/tags.yaml",
+      "message": "step 8: unknown animation option \"speed\" (use kind, trigger, carries)",
+      "step": 7
+    },
+    {
+      "file": "flows/tags.yaml",
+      "message": "step 9: animation trigger only applies to callback",
+      "step": 8
+    },
+    {
+      "file": "flows/tags.yaml",
+      "message": "step 10: animation needs a kind (use send, call, callback, event)",
+      "step": 9
+    },
+    {
+      "file": "flows/tags.yaml",
+      "message": "step 11: animation needs a kind (use send, call, callback, event)",
+      "step": 10
+    },
+    {
+      "file": "flows/tags.yaml",
+      "message": "step 12: animation trigger must be inside or outside",
+      "step": 11
+    },
+    {
+      "file": "flows/tags.yaml",
+      "message": "step 13: animation carries must be a word",
+      "step": 12
+    },
+    {
+      "file": "flows/tags.yaml",
+      "message": "step 14: animation must be a kind or a mapping with a kind",
+      "step": 13
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "shop",
+        "stripe"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "api",
+        "db"
+      ],
+      "outsiders": [
+        "customer"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "count": 1
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "label": "reads and writes",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

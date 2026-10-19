@@ -230,3 +230,16 @@ test("forgetLayout drops one view's positions, and refuses when there are none",
   assert.deepEqual(forgetLayout(m, 'shop').layout, { root: { shop: [1, 1] } })
   assert.throws(() => forgetLayout(m, 'api'), (e: unknown) => e instanceof OpError && /Nothing to tidy/.test(e.message))
 })
+
+test('a step keeps its animation through putFlow and updateFlow', () => {
+  const steps = [
+    { from: 'customer', to: 'web', text: 'Clicks', animation: 'call' },
+    { from: 'web', to: 'api', text: 'Posts', animation: { kind: 'callback', trigger: 'outside', carries: 'order' } },
+  ]
+  const put = putFlow(shop(), { id: 'tagged', name: 'Tagged', view: 'shop', steps })
+  assert.deepEqual(put.flows.tagged.steps, steps)
+  const renamed = updateFlow(put, 'tagged', { name: 'Tagged again' })
+  assert.deepEqual(renamed.flows.tagged.steps, steps)
+  const edited = updateFlow(put, 'tagged', { steps: put.flows.tagged.steps.map((s, i) => (i === 0 ? { ...s, text: 'Taps' } : s)) })
+  assert.deepEqual(edited.flows.tagged.steps[0], { from: 'customer', to: 'web', text: 'Taps', animation: 'call' })
+})

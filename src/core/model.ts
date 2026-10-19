@@ -19,7 +19,15 @@ export type FlowyObject = {
 }
 export type Connection = { from: string; to: string; label?: string; [extra: string]: unknown }
 /** One step of a flow. Without `to`, the `from` box does something on its own. `description` is the longer detail a reader can open. */
-export type Step = { from: string; to?: string; text: string; description?: string; [extra: string]: unknown }
+export type Step = {
+  from: string
+  to?: string
+  text: string
+  description?: string
+  /** How the step plays: a kind, or a mapping with a kind (see animation.ts). Read it with animationOf; check() reports a wrong one. */
+  animation?: unknown
+  [extra: string]: unknown
+}
 export type Flow = { name: string; view: string; steps: Step[]; [extra: string]: unknown }
 export type Layout = Record<string, Record<string, [number, number]>>
 
