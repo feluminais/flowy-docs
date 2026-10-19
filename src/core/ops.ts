@@ -3,6 +3,7 @@ import { iconProblem } from './look.ts'
 import type { Shape } from './look.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Model, ObjectType, Step } from './model.ts'
+import { GROUP_KINDS, isGroupKind, TIMES_MAX, TIMES_MIN, timesOk } from './structure.ts'
 import { chain, memberIds } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
@@ -154,9 +155,196 @@ function existingFlow(model: Model, id: string): Flow {
   return model.flows[id]
 }
 
-/** Change an existing flow's name or steps, keeping everything else it has. */
-export function updateFlow(model: Model, id: string, changes: Partial<Pick<Flow, 'name' | 'steps'>>): Model {
-  return { ...model, flows: { ...model.flows, [id]: { ...existingFlow(model, id), ...changes } } }
+/**
+ * The flow with these groups: replaced where its `groups:` already is, else put just before the steps, so the file reads name, view, groups,
+ * steps. No groups, or none left, takes the section out.
+ */
+function withGroups(flow: Flow, groups: Record<string, Group> | undefined): Flow {
+  const none = groups === undefined || Object.keys(groups).length === 0
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(flow)) {
+    if (key === 'groups') {
+      if (!none) out.groups = groups
+      continue
+    }
+    if (key === 'steps' && !none && !('groups' in flow)) out.groups = groups
+    out[key] = value
+  }
+  return out as Flow
+}
+
+/** Change an existing flow's name, steps or groups, keeping everything else it has (and its groups when not given any). */
+export function updateFlow(model: Model, id: string, changes: Partial<Pick<Flow, 'name' | 'steps' | 'groups'>>): Model {
+  const { groups, ...rest } = changes
+  const flow = { ...existingFlow(model, id), ...rest }
+  return { ...model, flows: { ...model.flows, [id]: 'groups' in changes ? withGroups(flow, groups) : flow } }
+}
+
+const groupOf = (s: Step | undefined): string => (s !== undefined && typeof s.group === 'string' ? s.group.trim() : '')
+const laneOf = (s: Step | undefined): string => (s !== undefined && typeof s.lane === 'string' ? s.lane.trim() : '')
+const blankText = (v: unknown): boolean => typeof v !== 'string' || v.trim() === ''
+
+function existingStep(flow: Flow, id: string, index: number): Step {
+  if (!Number.isInteger(index) || index < 0 || index >= flow.steps.length) throw new OpError(`flow "${id}" has no step ${index + 1}`)
+  return flow.steps[index]
+}
+
+/**
+ * The steps of a flow with step `index` taken out of its group (it stays in the list, without `group` and `lane`), and the groups without
+ * any that this left empty. When it started a lane and the next step of the group has none, that step takes the label.
+ */
+function leaveGroup(flow: Flow, index: number): { steps: Step[]; groups: Record<string, Group> | undefined } {
+  const steps = [...flow.steps]
+  const g = groupOf(steps[index])
+  if (g === '') return { steps, groups: flow.groups }
+  const lane = laneOf(steps[index]) !== '' ? steps[index].lane : undefined
+  const next = steps[index + 1]
+  if (lane !== undefined && groupOf(next) === g && laneOf(next) === '') steps[index + 1] = { ...next, lane }
+  const { group: _g, lane: _l, ...kept } = steps[index]
+  steps[index] = kept as Step
+  let groups = flow.groups
+  if (groups !== undefined && !steps.some(s => groupOf(s) === g)) {
+    const { [g]: _, ...rest } = groups
+    groups = rest
+  }
+  return { steps, groups }
+}
+
+/**
+ * Remove step `index` of a flow without breaking its groups: when it started a lane and the next step of that group has none, that step takes
+ * the label, and a group whose last member goes is taken out with it.
+ */
+export function removeStep(model: Model, id: string, index: number): Model {
+  const flow = existingFlow(model, id)
+  existingStep(flow, id, index)
+  const { steps, groups } = leaveGroup(flow, index)
+  steps.splice(index, 1)
+  return { ...model, flows: { ...model.flows, [id]: withGroups({ ...flow, steps }, groups) } }
+}
+
+/**
+ * Put step `index` in the declared group `group` ("" takes it out of its group). It leaves its old group first, as in removeStep. A repeat has
+ * no lanes. In a branch or parallel group a step that comes before the others takes over the label of the first lane, which it joins at the
+ * front, and in a group with no other step it starts "Lane 1".
+ */
+export function setStepGroup(model: Model, id: string, index: number, group: string): Model {
+  const flow = existingFlow(model, id)
+  const step = existingStep(flow, id, index)
+  const to = group.trim()
+  if (to !== '' && !(flow.groups !== undefined && Object.hasOwn(flow.groups, to))) throw new OpError(`unknown group "${group}"`)
+  if (groupOf(step) === to) return model
+  const left = leaveGroup(flow, index)
+  const steps = left.steps
+  if (to !== '') {
+    const { lane: _l, ...joined } = { ...steps[index], group: to }
+    steps[index] = joined as Step
+    const kind = flow.groups![to].kind
+    if (kind === 'branch' || kind === 'parallel') {
+      const first = steps.findIndex((s, i) => i !== index && groupOf(s) === to)
+      if (first === -1) steps[index] = { ...steps[index], lane: 'Lane 1' }
+      else if (first > index) {
+        const has = laneOf(steps[first]) !== ''
+        steps[index] = { ...steps[index], lane: has ? steps[first].lane : 'Lane 1' }
+        if (has) {
+          const { lane: _o, ...rest } = steps[first]
+          steps[first] = rest as Step
+        }
+      }
+    }
+  }
+  return { ...model, flows: { ...model.flows, [id]: withGroups({ ...flow, steps }, left.groups) } }
+}
+
+/**
+ * Give an existing group another kind. A repeat keeps its `times` and `until` (and gets `times: "3"` when it has neither), the others drop
+ * them; members lose their lanes when it becomes a repeat, and when it becomes a branch or parallel group its first step starts "Lane 1"
+ * (and, for parallel, every other step that starts no lane starts one of its own unless two lanes are there already).
+ */
+export function setGroupKind(model: Model, id: string, group: string, kind: string): Model {
+  const flow = existingFlow(model, id)
+  if (flow.groups === undefined || !Object.hasOwn(flow.groups, group)) throw new OpError(`unknown group "${group}"`)
+  if (!isGroupKind(kind)) throw new OpError(`unknown kind "${kind}" (use ${GROUP_KINDS.join(', ')})`)
+  const { times, until, ...others } = flow.groups[group]
+  const next: Group = { ...others, kind }
+  if (kind === 'repeat') {
+    if (times !== undefined) next.times = times
+    if (until !== undefined) next.until = until
+    if (blankText(times) && blankText(until)) next.times = '3'
+  }
+  const steps = [...flow.steps]
+  const members = steps.flatMap((s, i) => (groupOf(s) === group ? [i] : []))
+  if (kind === 'repeat') {
+    for (const i of members) {
+      if (steps[i].lane === undefined) continue
+      const { lane: _l, ...kept } = steps[i]
+      steps[i] = kept as Step
+    }
+  } else if (members.length > 0) {
+    if (laneOf(steps[members[0]]) === '') steps[members[0]] = { ...steps[members[0]], lane: 'Lane 1' }
+    // Parallel lanes are at least two: every step that starts no lane starts one of its own, as groupSteps does.
+    if (kind === 'parallel' && members.filter(i => laneOf(steps[i]) !== '').length < 2) {
+      for (const i of members) {
+        if (laneOf(steps[i]) !== '') continue
+        const used = new Set(members.map(j => laneOf(steps[j])))
+        let n = 1
+        while (used.has(`Lane ${n}`)) n++
+        steps[i] = { ...steps[i], lane: `Lane ${n}` }
+      }
+    }
+  }
+  return { ...model, flows: { ...model.flows, [id]: withGroups({ ...flow, steps }, { ...flow.groups, [group]: next }) } }
+}
+
+/**
+ * Declare a group and put the steps `first` to `last` (0-based, both included) in it. A repeat is written with `times: "3"`; in a branch or
+ * parallel group every step starts a lane of its own ("Lane 1", "Lane 2"…), which the steps' lane labels then reshape.
+ */
+export function groupSteps(model: Model, id: string, group: string, kind: string, first: number, last: number): Model {
+  const flow = existingFlow(model, id)
+  if (!isValidId(group)) throw new OpError(`"${group}" is not a valid group id: ${ID_RULE}`)
+  if (flow.groups !== undefined && Object.hasOwn(flow.groups, group)) throw new OpError(`group "${group}" already exists`)
+  if (!isGroupKind(kind)) throw new OpError(`unknown kind "${kind}" (use ${GROUP_KINDS.join(', ')})`)
+  existingStep(flow, id, first)
+  existingStep(flow, id, last)
+  if (last < first) throw new OpError(`step ${last + 1} comes before step ${first + 1}`)
+  const steps = [...flow.steps]
+  for (let i = first; i <= last; i++) {
+    const other = groupOf(steps[i])
+    if (other !== '') throw new OpError(`step ${i + 1} is already in group "${other}"`)
+    const { lane: _l, ...kept } = steps[i]
+    steps[i] = kind === 'repeat' ? { ...kept, group } as Step : { ...kept, group, lane: `Lane ${i - first + 1}` } as Step
+  }
+  const declared: Group = kind === 'repeat' ? { kind, times: '3' } : { kind }
+  return { ...model, flows: { ...model.flows, [id]: withGroups({ ...flow, steps }, { ...(flow.groups ?? {}), [group]: declared }) } }
+}
+
+/** Create or replace a group of a flow. `times` may be a number, which is written as text; a blank `times`, `until` or `text` is left out. */
+export function putGroup(model: Model, flowId: string, id: string, group: GroupInput): Model {
+  const flow = existingFlow(model, flowId)
+  if (!isValidId(id)) throw new OpError(`"${id}" is not a valid group id: ${ID_RULE}`)
+  const next: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(group)) {
+    if (value === undefined) continue
+    const text = typeof value === 'number' ? String(value) : value
+    if ((key === 'times' || key === 'until' || key === 'text') && (typeof text !== 'string' || text.trim() === '')) continue
+    next[key] = text
+  }
+  // The checks only refuse a problem that is new, so a bad `times` over an old bad `times` would pass them: this says no first.
+  if ('times' in next && !timesOk(next.times)) throw new OpError(`group "${id}": times must be a whole number from ${TIMES_MIN} to ${TIMES_MAX}`)
+  return { ...model, flows: { ...model.flows, [flowId]: withGroups(flow, { ...(flow.groups ?? {}), [id]: next as Group }) } }
+}
+
+/** Remove a group's declaration, and the group and lane of every step that named it. */
+export function removeGroup(model: Model, flowId: string, id: string): Model {
+  const flow = existingFlow(model, flowId)
+  if (flow.groups === undefined || !Object.hasOwn(flow.groups, id)) throw new OpError(`unknown group "${id}"`)
+  const { [id]: _, ...rest } = flow.groups
+  const steps = flow.steps.map(s => {
+    if (typeof s.group !== 'string' || s.group.trim() !== id) return s
+    const { group: _g, lane: _l, ...kept } = s
+    return kept as Step
+  })
+  return { ...model, flows: { ...model.flows, [flowId]: withGroups({ ...flow, steps }, rest) } }
 }
 
 export function deleteFlow(model: Model, id: string): Model {

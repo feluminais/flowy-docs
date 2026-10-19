@@ -36,7 +36,7 @@ two load-test runs with made-up numbers (a dinner rush where Delivery's ETA runs
 the same test after a fix); they name shapes and connections of the model, so a rename there is a run problem. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
-`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --flow place-order --step 1` for the flow,
+`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
 and `--search re` for the search. Retake them when the app changes how it looks.
 
 ## The performance lab

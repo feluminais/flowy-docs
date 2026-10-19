@@ -6,6 +6,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
 
@@ -59,6 +60,7 @@ internal sealed partial class ReaderView : Grid
     private string _view = Names.Root;
     private Side? _side; // what is picked: it shows in Details
     private PanelTab? _tab; // the navigator's tab (Flows or Explorer), chosen on its rail or its strip; null: the navigator is closed
+    private bool _navUsed; // the navigator is where the reader last clicked or opened something: Escape closes it then, and leaves it alone once they work in the diagram
     private bool _details; // Details was opened from its rail, to show the level you are in; a pick opens it too
     private double _navWidth = Camera.Nav; // dragged by the sashes on the panels' edges
     private double _detailsWidth = Camera.Panel;
@@ -140,19 +142,12 @@ internal sealed partial class ReaderView : Grid
             Refresh();
         };
         _canvas.EdgeHovered += id => SetHover(id);
-        _canvas.PaneClicked += () =>
+        _canvas.PaneClicked += PaneClicked;
+        _canvas.FrameClicked += () =>
         {
-            _opening?.Stop();
-            _undoMove = false;
-            if (Recording is { } rec)
-            {
-                _side = _side! with { From = null, To = null };
-                Refresh();
-                return;
-            }
-            _side = null;
-            Refresh();
-            Focus();
+            // While a flow is recorded, or a load shows, the outline is just empty canvas: the panel has its own work.
+            if (Recording is not null || PerfOpen) PaneClicked();
+            else ShowLevel();
         };
         _panel.Closed += () =>
         {
@@ -185,6 +180,8 @@ internal sealed partial class ReaderView : Grid
         _player.BackToFlow += GoBack;
 
         Focusable = true;
+        // Every press, handled or not (the canvas handles its own): it says which half the reader is working in.
+        AddHandler(PointerPressedEvent, OnPointerDown, RoutingStrategies.Tunnel, handledEventsToo: true);
         // On the whole window, so keys work wherever the focus happens to be: a click on a button must not switch the shortcuts off.
         AttachedToVisualTree += (_, _) => TopLevel.GetTopLevel(this)?.AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Bubble);
         DetachedFromVisualTree += (_, e) => (e.RootVisual as Interactive)?.RemoveHandler(KeyDownEvent, OnKeyDown);
@@ -298,6 +295,7 @@ internal sealed partial class ReaderView : Grid
         _folder = folder;
         _session = new EditSession(dir);
         _editMode = false;
+        _navUsed = false;
         _view = Names.Root;
         _side = null;
         _details = false;
@@ -731,6 +729,32 @@ internal sealed partial class ReaderView : Grid
 
     // ---- selecting ---------------------------------------------------------------------------------------------
 
+    private void PaneClicked()
+    {
+        _opening?.Stop();
+        _undoMove = false;
+        if (Recording is { } rec)
+        {
+            _side = _side! with { From = null, To = null };
+            Refresh();
+            return;
+        }
+        _side = null;
+        Refresh();
+        Focus();
+    }
+
+    /// <summary>Opens Details on the level you are inside, as its button on the rail does: what a click on the outline round that level does.</summary>
+    private void ShowLevel()
+    {
+        _opening?.Stop();
+        _undoMove = false;
+        _side = null;
+        _details = true;
+        Refresh();
+        Focus();
+    }
+
     private void BoxClicked(string id)
     {
         _opening?.Stop();
@@ -897,9 +921,31 @@ internal sealed partial class ReaderView : Grid
 
     // ---- keys --------------------------------------------------------------------------------------------------
 
+    private bool InNavigator(object? source) => _nav.IsVisible && source is Visual v && (ReferenceEquals(v, _nav) || v.GetVisualAncestors().Contains(_nav));
+
+    /// <summary>A click in the navigator makes Escape close it. A click anywhere else (the diagram, Details) makes Escape leave it alone, and takes the keyboard out of it.</summary>
+    private void OnPointerDown(object? sender, PointerPressedEventArgs e)
+    {
+        var inside = InNavigator(e.Source);
+        _navUsed = inside;
+        if (!inside && InNavigator(TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement())) Focus();
+    }
+
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (_folder is not { } folder || e.Source is TextBox) return;
+        if (_folder is not { } folder) return;
+        var inNavigator = InNavigator(e.Source);
+        if (e.Source is TextBox field)
+        {
+            // A field keeps its keys. The navigator's filters give up Escape once they are empty, so it closes with a click in one.
+            if (e.Key != Key.Escape || !inNavigator) return;
+            if (!string.IsNullOrEmpty(field.Text))
+            {
+                field.Text = "";
+                e.Handled = true;
+                return;
+            }
+        }
         if (_nav.Explorer.Holds(e.Source) && e.Key != Key.Escape) return; // the tree has its own keys, and a letter typed in it goes to its filter
         var view = CurrentView();
         var plain = e.KeyModifiers == KeyModifiers.None;
@@ -916,14 +962,15 @@ internal sealed partial class ReaderView : Grid
         else if (e.Key == Key.Escape && ResetPick()) { }
         else if (e.Key == Key.Escape)
         {
-            switch (Navigation.Escape(_shortcuts is not null, flow is not null, HasPanel, view != Names.Root))
+            var navigator = ShownTab is not null && (_navUsed || inNavigator);
+            switch (Navigation.Escape(_shortcuts is not null, navigator, flow is not null, RightOpen, view != Names.Root))
             {
                 case EscapeStep.Shortcuts: ShowShortcuts(false); break;
+                case EscapeStep.Navigator: CloseNav(); break;
                 case EscapeStep.Flow: Stop(); break;
                 case EscapeStep.Panel:
-                    if (PerfOpen) ClosePerf(); // the panel you are working in first, then the navigator
-                    else if (DetailsOpen) CloseDetails();
-                    else CloseNav();
+                    if (PerfOpen) ClosePerf();
+                    else CloseDetails();
                     break;
                 case EscapeStep.Up: Up(); break;
                 default: return;

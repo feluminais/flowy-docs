@@ -15,7 +15,7 @@ namespace Flowy.App.Tests;
 /// <summary>Recording a flow, and editing one: pick the two boxes of a step with the pointer, type what happens, reorder, delete.</summary>
 public class RecorderTests
 {
-    private static (TempFolder Temp, string Dir, Window Window, ReaderView Reader) Open()
+    private static (TempFolder Temp, string Dir, Window Window, ReaderView Reader) Open(Action<string>? prepare = null)
     {
         var temp = new TempFolder();
         var dir = Path.Combine(temp.Path, "flowy");
@@ -26,6 +26,7 @@ public class RecorderTests
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             File.WriteAllText(target, File.ReadAllText(file));
         }
+        prepare?.Invoke(dir);
         var reader = new ReaderView();
         var window = new Window { Width = 1200, Height = 800, Content = reader };
         window.Show();
@@ -211,7 +212,7 @@ public class RecorderTests
 
         Press(Labelled(reader.Panel.CurrentRecorder!, "Delete flow"));
         await Until(() => !File.Exists(Path.Combine(dir, "flows", "browse.yaml")));
-        Assert.False(reader.HasPanel);
+        await Until(() => !reader.HasPanel); // the panel closes once the delete has been saved: a moment after the file goes
         await reader.UndoAsync();
         Assert.True(File.Exists(Path.Combine(dir, "flows", "browse.yaml")));
         Assert.Contains("name: Customer looks around", FlowFile(dir, "browse"));
@@ -241,5 +242,192 @@ public class RecorderTests
         Settle(window);
         Assert.False(reader.Canvas.Editable);
         Assert.Contains("selected", ((Control)reader.Canvas.BoxControlFor("customer")!).Classes);
+    }
+
+    [AvaloniaFact]
+    public async Task A_stretch_of_steps_is_grouped_and_a_step_joins_the_group_from_its_own_list()
+    {
+        var (temp, dir, _, reader) = Open();
+        using var _ = temp;
+        EditFlow(reader, "order");
+        Assert.True(await reader.Panel.CurrentRecorder!.AddGroupAsync("Retry the payment", "repeat", 2, 2));
+        await Until(() => FlowFile(dir, "order").Contains("groups:"));
+        var file = FlowFile(dir, "order");
+        Assert.Contains("groups:\n  retry-the-payment:\n    kind: repeat\n    times: 3\n    text: Retry the payment\n", file);
+        Assert.Contains("    text: Takes payment\n    description: |\n      Details about it.\n    group: retry-the-payment\n", file);
+        Assert.Contains("owner: product", file); // the flow's own extra key
+
+        var recorder = reader.Panel.CurrentRecorder!;
+        Assert.Equal(["retry-the-payment"], recorder.GroupIds);
+        Assert.Equal(["", "retry-the-payment"], recorder.StepGroupBoxes[0].Items.Cast<string>());
+        Assert.False(recorder.StepLanes[1].IsVisible); // a repeat has no lanes
+        recorder.StepGroupBoxes[0].SelectedItem = "retry-the-payment";
+        await Until(() => reader.Folder!.Model.Flows["order"].Steps[0].Group == "retry-the-payment");
+        Assert.Equal("retry-the-payment", reader.Folder!.Model.Flows["order"].Steps[1].Group);
+        Assert.Null(reader.Folder.Model.Flows["order"].Steps[0].Lane);
+    }
+
+    [AvaloniaFact]
+    public async Task A_branch_gets_a_lane_for_every_step_and_a_lane_is_renamed_and_an_empty_one_joins_the_lane_before()
+    {
+        var (temp, dir, _, reader) = Open();
+        using var _ = temp;
+        EditFlow(reader, "order");
+        Assert.True(await reader.Panel.CurrentRecorder!.AddGroupAsync("", "branch", 1, 2));
+        await Until(() => FlowFile(dir, "order").Contains("lane: Lane 2"));
+        var file = FlowFile(dir, "order");
+        Assert.Contains("groups:\n  branch:\n    kind: branch\n", file);
+        Assert.Contains("    group: branch\n    lane: Lane 1\n", file);
+        var recorder = reader.Panel.CurrentRecorder!;
+        Assert.True(recorder.StepLanes[0].IsVisible);
+
+        recorder.StepLanes[1].Text = "The card is declined";
+        await recorder.StepLanes[1].Commit();
+        await Until(() => FlowFile(dir, "order").Contains("lane: The card is declined"));
+
+        recorder = reader.Panel.CurrentRecorder!;
+        recorder.StepLanes[1].Text = "  ";
+        await recorder.StepLanes[1].Commit();
+        await Until(() => reader.Folder!.Model.Flows["order"].Steps[1].Lane is null or "");
+        Assert.DoesNotContain("The card is declined", FlowFile(dir, "order"));
+    }
+
+    [AvaloniaFact]
+    public async Task Deleting_the_step_that_starts_a_lane_hands_the_label_on_to_the_next_step_of_the_group()
+    {
+        var (temp, dir, _, reader) = Open();
+        using var _ = temp;
+        EditFlow(reader, "order");
+        await reader.Panel.CurrentRecorder!.AddGroupAsync("Pick", "branch", 1, 2);
+        await Until(() => FlowFile(dir, "order").Contains("lane: Lane 2"));
+        var recorder = reader.Panel.CurrentRecorder!;
+        recorder.StepLanes[1].Text = "";
+        await recorder.StepLanes[1].Commit();
+        await Until(() => !FlowFile(dir, "order").Contains("lane: Lane 2"));
+
+        Press(Named(reader.Panel.CurrentRecorder!, "Delete step", 0));
+        await Until(() => reader.Folder!.Model.Flows["order"].Steps.Count == 1);
+        var step = reader.Folder!.Model.Flows["order"].Steps[0];
+        Assert.Equal(("pick", "Lane 1"), (step.Group, step.Lane)); // the step left behind starts the lane now
+        Assert.Contains("groups:\n  pick:", FlowFile(dir, "order"));
+    }
+
+[AvaloniaFact]
+    public async Task Deleting_the_last_member_of_a_group_removes_the_group_from_the_file()
+    {
+        var (temp, dir, _, reader) = Open();
+        using var _ = temp;
+        EditFlow(reader, "order");
+        await reader.Panel.CurrentRecorder!.AddGroupAsync("Pick", "branch", 2, 2);
+        await Until(() => FlowFile(dir, "order").Contains("groups:"));
+        Press(Named(reader.Panel.CurrentRecorder!, "Delete step", 1));
+        await Until(() => reader.Folder!.Model.Flows["order"].Steps.Count == 1);
+        var file = FlowFile(dir, "order");
+        Assert.DoesNotContain("groups:", file);
+        Assert.Contains("owner: product", file);
+        Assert.Contains("note: x", file);
+    }
+
+    [AvaloniaFact]
+    public async Task A_group_changes_kind_keeps_its_text_and_a_times_that_is_not_2_to_99_is_refused_with_the_old_one_back()
+    {
+        var (temp, dir, _, reader) = Open();
+        using var _ = temp;
+        EditFlow(reader, "order");
+        await reader.Panel.CurrentRecorder!.AddGroupAsync("Retry", "repeat", 1, 2);
+        await Until(() => FlowFile(dir, "order").Contains("kind: repeat"));
+        var recorder = reader.Panel.CurrentRecorder!;
+        Assert.Equal("3", recorder.GroupTimes("retry")!.Text);
+
+        recorder.GroupTimes("retry")!.Text = "1";
+        await recorder.GroupTimes("retry")!.Commit();
+        Assert.Contains("times must be a whole number from 2 to 99", reader.NoticeText);
+        Assert.Equal("3", recorder.GroupTimes("retry")!.Text);
+        Assert.Contains("times: 3", FlowFile(dir, "order"));
+
+        recorder.GroupTimes("retry")!.Text = "5";
+        await recorder.GroupTimes("retry")!.Commit();
+        await Until(() => FlowFile(dir, "order").Contains("times: 5"));
+
+        reader.Panel.CurrentRecorder!.GroupKindBox("retry").SelectedItem = "branch";
+        await Until(() => FlowFile(dir, "order").Contains("kind: branch"));
+        var file = FlowFile(dir, "order");
+        Assert.DoesNotContain("times:", file);
+        Assert.Contains("text: Retry", file);
+        Assert.Contains("lane: Lane 1", file);
+        Assert.Null(reader.Panel.CurrentRecorder!.GroupTimes("retry")); // a branch has no times
+    }
+
+    [AvaloniaFact]
+    public async Task A_step_opens_another_flow_and_removing_a_group_takes_the_lanes_with_it()
+    {
+        var (temp, dir, _, reader) = Open();
+        using var _ = temp;
+        EditFlow(reader, "order");
+        var recorder = reader.Panel.CurrentRecorder!;
+        Assert.Equal(["", "browse"], recorder.StepFlowBoxes[0].Items.Cast<string>());
+        recorder.StepFlowBoxes[0].SelectedItem = "browse";
+        await Until(() => reader.Folder!.Model.Flows["order"].Steps[0].FlowId == "browse");
+        Assert.Contains("flow: browse", FlowFile(dir, "order"));
+        reader.Panel.CurrentRecorder!.StepFlowBoxes[0].SelectedItem = "";
+        await Until(() => reader.Folder!.Model.Flows["order"].Steps[0].FlowId is null);
+        Assert.DoesNotContain("flow:", FlowFile(dir, "order"));
+
+        await reader.Panel.CurrentRecorder!.AddGroupAsync("Pick", "parallel", 1, 2);
+        await Until(() => FlowFile(dir, "order").Contains("kind: parallel"));
+        Press(reader.Panel.CurrentRecorder!.GroupRemove("pick"));
+        await Until(() => !FlowFile(dir, "order").Contains("groups:"));
+        var file = FlowFile(dir, "order");
+        Assert.DoesNotContain("lane:", file);
+        Assert.DoesNotContain("group:", file);
+        Assert.Contains("text: Takes payment", file);
+    }
+
+    [AvaloniaFact]
+    public async Task Saving_a_lane_or_a_choice_leaves_the_rows_alone_so_the_next_field_keeps_the_focus()
+    {
+        var (temp, dir, _, reader) = Open();
+        using var _ = temp;
+        EditFlow(reader, "order");
+        await reader.Panel.CurrentRecorder!.AddGroupAsync("Pick", "branch", 1, 2);
+        await Until(() => FlowFile(dir, "order").Contains("lane: Lane 2"));
+        var recorder = reader.Panel.CurrentRecorder!;
+        var (first, second) = (recorder.StepTexts[0], recorder.StepTexts[1]);
+
+        recorder.StepLanes[1].Text = "The card is declined";
+        await recorder.StepLanes[1].Commit();
+        await Until(() => FlowFile(dir, "order").Contains("lane: The card is declined"));
+        Assert.Same(recorder, reader.Panel.CurrentRecorder);
+        Assert.Same(first, reader.Panel.CurrentRecorder!.StepTexts[0]); // the rows were not built again
+        Assert.Same(second, reader.Panel.CurrentRecorder!.StepTexts[1]);
+
+        reader.Panel.CurrentRecorder!.StepFlowBoxes[0].SelectedItem = "browse";
+        await Until(() => reader.Folder!.Model.Flows["order"].Steps[0].FlowId == "browse");
+        Assert.Same(first, reader.Panel.CurrentRecorder!.StepTexts[0]);
+        Assert.Equal("browse", reader.Panel.CurrentRecorder!.StepFlowBoxes[0].SelectedItem);
+
+        reader.Panel.CurrentRecorder!.StepGroupBoxes[1].SelectedItem = "";
+        await Until(() => reader.Folder!.Model.Flows["order"].Steps[1].Group is null);
+        Assert.Same(second, reader.Panel.CurrentRecorder!.StepTexts[1]);
+        Assert.False(reader.Panel.CurrentRecorder!.StepLanes[1].IsVisible); // a step with no group has no lane
+    }
+
+    [AvaloniaFact]
+    public async Task A_times_outside_2_to_99_is_refused_even_when_the_file_already_has_a_bad_one()
+    {
+        var (temp, dir, _, reader) = Open(dir => File.WriteAllText(Path.Combine(dir, "flows", "hollow.yaml"),
+            "name: Hollow\nview: root\ngroups:\n  retry:\n    kind: repeat\n    times: \"1\"\nsteps:\n  - { from: customer, to: shop, text: Asks, group: retry }\n  - { from: shop, to: customer, text: Answers, group: retry }\n"));
+        using var _ = temp;
+        EditFlow(reader, "hollow");
+        var recorder = reader.Panel.CurrentRecorder!;
+        recorder.GroupTimes("retry")!.Text = "100";
+        await recorder.GroupTimes("retry")!.Commit();
+        Assert.Contains("times must be a whole number from 2 to 99", reader.NoticeText);
+        Assert.Contains("times: \"1\"", FlowFile(dir, "hollow"));
+        Assert.Equal("1", recorder.GroupTimes("retry")!.Text);
+
+        recorder.GroupTimes("retry")!.Text = " 7 ";
+        await recorder.GroupTimes("retry")!.Commit();
+        await Until(() => FlowFile(dir, "hollow").Contains("times: 7"));
     }
 }

@@ -17,6 +17,8 @@ internal sealed class CanvasView : Border
 {
     private const double DragSlop = 3;
 
+    private static readonly Cursor HandCursor = new(StandardCursorType.Hand);
+
     private readonly BackLayer _back = new();
     private readonly MotionLayer _motion = new();
     private readonly MarksLayer _marks = new();
@@ -75,6 +77,9 @@ internal sealed class CanvasView : Border
     public event Action<string>? EdgeClicked;
     public event Action<string?>? EdgeHovered;
     public event Action? PaneClicked;
+
+    /// <summary>A click on the outline round the level you are inside (or its name): a click on that system itself.</summary>
+    public event Action? FrameClicked;
 
     public CanvasView()
     {
@@ -525,7 +530,9 @@ internal sealed class CanvasView : Border
             SetViewport(_pressedViewport with { X = _pressedViewport.X + dx, Y = _pressedViewport.Y + dy });
             return;
         }
-        var edge = OverBox(e) ? null : _back.EdgeAt(p);
+        var overBox = OverBox(e);
+        var edge = overBox ? null : _back.EdgeAt(p);
+        Cursor = !overBox && edge is null && _back.OnFrame(p) ? HandCursor : null;
         if (edge == _hoveredEdge) return;
         _hoveredEdge = edge;
         EdgeHovered?.Invoke(edge);
@@ -575,8 +582,9 @@ internal sealed class CanvasView : Border
         }
         _marqueeMode = false;
         if (_dragged) return;
-        var edge = _back.EdgeAt(e.GetPosition(this));
-        if (edge is not null) EdgeClicked?.Invoke(edge);
+        var pressed = e.GetPosition(this);
+        if (_back.EdgeAt(pressed) is { } edge) EdgeClicked?.Invoke(edge);
+        else if (_back.OnFrame(pressed)) FrameClicked?.Invoke();
         else PaneClicked?.Invoke();
     }
 }

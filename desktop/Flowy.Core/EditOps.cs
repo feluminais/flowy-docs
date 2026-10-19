@@ -180,8 +180,8 @@ public static class EditOps
         return step;
     }
 
-    /// <summary>Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included.</summary>
-    public static EditDoc PutFlow(EditDoc doc, string id, string name, string view, IEnumerable<OrderedDictionary<string, object?>> steps)
+    /// <summary>Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. <paramref name="groups"/> (group id → its options, all text) is written between the view and the steps; none or an empty set writes no <c>groups:</c>.</summary>
+    public static EditDoc PutFlow(EditDoc doc, string id, string name, string view, IEnumerable<OrderedDictionary<string, object?>> steps, OrderedDictionary<string, object?>? groups = null)
     {
         if (!Names.IsValidId(id)) throw new OpError($"\"{id}\" is not a valid flow id: {Names.IdRule}");
         // Flow ids are file names, and Windows and macOS don't tell Visit.yaml from visit.yaml.
@@ -196,7 +196,10 @@ public static class EditOps
             if (copy.TryGetValue("description", out var detail) && detail is string text && text.Trim() == "") copy.Remove("description");
             copies.Add(copy);
         }
-        d.Flows[id] = new OrderedDictionary<string, object?> { ["name"] = name, ["view"] = view, ["steps"] = copies };
+        var flow = new OrderedDictionary<string, object?> { ["name"] = name, ["view"] = view };
+        if (groups is { Count: > 0 }) flow["groups"] = Clone(groups);
+        flow["steps"] = copies;
+        d.Flows[id] = flow;
         return d;
     }
 
@@ -207,14 +210,269 @@ public static class EditOps
         return (OrderedDictionary<string, object?>)holder.Clone().Objects["x"]!;
     }
 
-    /// <summary>Change an existing flow's name or steps, keeping everything else it has.</summary>
-    public static EditDoc UpdateFlow(EditDoc doc, string id, string? name = null, IEnumerable<OrderedDictionary<string, object?>>? steps = null)
+    /// <summary>The flow with these groups: replaced where its <c>groups:</c> already is, else put just before the steps, so the file reads name, view, groups, steps. No groups, or none left, takes the section out.</summary>
+    private static OrderedDictionary<string, object?> WithGroups(OrderedDictionary<string, object?> flow, OrderedDictionary<string, object?>? groups)
+    {
+        var none = groups is null || groups.Count == 0;
+        var had = flow.ContainsKey("groups");
+        var result = new OrderedDictionary<string, object?>();
+        foreach (var (key, value) in flow)
+        {
+            if (key == "groups")
+            {
+                if (!none) result["groups"] = groups;
+                continue;
+            }
+            if (key == "steps" && !none && !had) result["groups"] = groups;
+            result[key] = value;
+        }
+        return result;
+    }
+
+    /// <summary>Change an existing flow's name, steps or groups, keeping everything else it has (and its groups when not given any).</summary>
+    public static EditDoc UpdateFlow(EditDoc doc, string id, string? name = null, IEnumerable<OrderedDictionary<string, object?>>? steps = null, OrderedDictionary<string, object?>? groups = null)
     {
         ExistingFlow(doc, id);
         var d = doc.Clone();
         var flow = Entry(d.Flows[id]);
         if (name is not null) flow["name"] = name;
         if (steps is not null) flow["steps"] = steps.Select(s => (object?)Clone(s)).ToList();
+        if (groups is not null) d.Flows[id] = WithGroups(flow, Clone(groups));
+        return d;
+    }
+
+    private static string GroupOf(object? step) => Text(Entry(step), "group") is { } g ? Structure.JsTrim(g) : "";
+
+    private static string LaneOf(object? step) => Text(Entry(step), "lane") is { } l ? Structure.JsTrim(l) : "";
+
+    private static OrderedDictionary<string, object?>? GroupsOf(OrderedDictionary<string, object?> flow) =>
+        flow.TryGetValue("groups", out var g) ? g as OrderedDictionary<string, object?> : null;
+
+    private static List<object?> StepsOf(OrderedDictionary<string, object?> flow) =>
+        flow.TryGetValue("steps", out var raw) && raw is List<object?> list ? list : [];
+
+    private static OpError NoStep(string id, int index) => new($"flow \"{id}\" has no step {index + 1}");
+
+    /// <summary>
+    /// Take step <paramref name="index"/> out of its group, in <paramref name="steps"/> (it stays in the list, without <c>group</c> and <c>lane</c>), and return the
+    /// groups without any that this left empty. When it started a lane and the next step of the group has none, that step takes the label.
+    /// </summary>
+    private static OrderedDictionary<string, object?>? LeaveGroup(OrderedDictionary<string, object?> flow, List<object?> steps, int index)
+    {
+        var groups = GroupsOf(flow);
+        var g = GroupOf(steps[index]);
+        if (g == "") return groups;
+        var step = Entry(steps[index]);
+        var lane = LaneOf(step) != "" ? step["lane"] : null;
+        if (lane is not null && index + 1 < steps.Count && GroupOf(steps[index + 1]) == g && LaneOf(steps[index + 1]) == "") Entry(steps[index + 1])["lane"] = lane;
+        step.Remove("group");
+        step.Remove("lane");
+        if (groups is not null && !steps.Any(s => GroupOf(s) == g)) groups = Without(groups, g);
+        return groups;
+    }
+
+    private static OrderedDictionary<string, object?> Without(OrderedDictionary<string, object?> map, string drop)
+    {
+        var kept = new OrderedDictionary<string, object?>();
+        foreach (var (key, value) in map)
+            if (key != drop) kept[key] = value;
+        return kept;
+    }
+
+    /// <summary>A step with <c>lane</c> taken out of it, in the order it had.</summary>
+    private static OrderedDictionary<string, object?> WithoutLane(object? step) => Without(Entry(step), "lane");
+
+    /// <summary>
+    /// Remove step <paramref name="index"/> of a flow without breaking its groups: when it started a lane and the next step of that group has none, that step takes
+    /// the label, and a group whose last member goes is taken out with it.
+    /// </summary>
+    public static EditDoc RemoveStep(EditDoc doc, string id, int index)
+    {
+        ExistingFlow(doc, id);
+        var d = doc.Clone();
+        var flow = Entry(d.Flows[id]);
+        var steps = StepsOf(flow);
+        if (index < 0 || index >= steps.Count) throw NoStep(id, index);
+        var groups = LeaveGroup(flow, steps, index);
+        steps.RemoveAt(index);
+        d.Flows[id] = WithGroups(flow, groups);
+        return d;
+    }
+
+    /// <summary>
+    /// Put step <paramref name="index"/> in the declared group <paramref name="group"/> ("" takes it out of its group). It leaves its old group first, as in
+    /// <see cref="RemoveStep"/>. A repeat has no lanes. In a branch or parallel group a step that comes before the others takes over the label of the first lane,
+    /// which it joins at the front, and in a group with no other step it starts "Lane 1".
+    /// </summary>
+    public static EditDoc SetStepGroup(EditDoc doc, string id, int index, string group)
+    {
+        ExistingFlow(doc, id);
+        var d = doc.Clone();
+        var flow = Entry(d.Flows[id]);
+        var steps = StepsOf(flow);
+        if (index < 0 || index >= steps.Count) throw NoStep(id, index);
+        var to = Structure.JsTrim(group);
+        var declared = GroupsOf(flow);
+        if (to != "" && !(declared is not null && declared.ContainsKey(to))) throw new OpError($"unknown group \"{group}\"");
+        if (GroupOf(steps[index]) == to) return doc;
+        var left = LeaveGroup(flow, steps, index);
+        if (to != "")
+        {
+            var joined = WithoutLane(steps[index]);
+            joined["group"] = to;
+            steps[index] = joined;
+            var kind = Text(Entry(declared![to]), "kind");
+            if (kind is "branch" or "parallel")
+            {
+                var first = -1;
+                for (var i = 0; i < steps.Count && first == -1; i++)
+                    if (i != index && GroupOf(steps[i]) == to) first = i;
+                if (first == -1) joined["lane"] = "Lane 1";
+                else if (first > index)
+                {
+                    var has = LaneOf(steps[first]) != "";
+                    joined["lane"] = has ? Entry(steps[first])["lane"] : "Lane 1";
+                    if (has) steps[first] = WithoutLane(steps[first]);
+                }
+            }
+        }
+        d.Flows[id] = WithGroups(flow, left);
+        return d;
+    }
+
+    /// <summary>
+    /// Give an existing group another kind. A repeat keeps its <c>times</c> and <c>until</c> (and gets <c>times: "3"</c> when it has neither), the others drop
+    /// them; members lose their lanes when it becomes a repeat, and when it becomes a branch or parallel group its first step starts "Lane 1".
+    /// </summary>
+    public static EditDoc SetGroupKind(EditDoc doc, string id, string group, string kind)
+    {
+        ExistingFlow(doc, id);
+        var d = doc.Clone();
+        var flow = Entry(d.Flows[id]);
+        var groups = GroupsOf(flow);
+        if (groups is null || !groups.ContainsKey(group)) throw new OpError($"unknown group \"{group}\"");
+        if (!Structure.Kinds.Contains(kind)) throw new OpError($"unknown kind \"{kind}\" (use {string.Join(", ", Structure.Kinds)})");
+        var old = Entry(groups[group]);
+        var next = new OrderedDictionary<string, object?>();
+        foreach (var (key, value) in old)
+            if (key is not ("times" or "until")) next[key] = value;
+        next["kind"] = kind;
+        if (kind == "repeat")
+        {
+            old.TryGetValue("times", out var times);
+            old.TryGetValue("until", out var until);
+            if (old.ContainsKey("times")) next["times"] = times;
+            if (old.ContainsKey("until")) next["until"] = until;
+            if (Structure.Blank(times) && Structure.Blank(until)) next["times"] = "3";
+        }
+        var steps = StepsOf(flow);
+        var members = Enumerable.Range(0, steps.Count).Where(i => GroupOf(steps[i]) == group).ToList();
+        if (kind == "repeat")
+        {
+            foreach (var i in members)
+                if (Entry(steps[i]).ContainsKey("lane")) steps[i] = WithoutLane(steps[i]);
+        }
+        else if (members.Count > 0)
+        {
+            if (LaneOf(steps[members[0]]) == "") Entry(steps[members[0]])["lane"] = "Lane 1";
+            // Parallel lanes are at least two: every step that starts no lane starts one of its own, as GroupSteps does.
+            if (kind == "parallel" && members.Count(i => LaneOf(steps[i]) != "") < 2)
+                foreach (var i in members)
+                {
+                    if (LaneOf(steps[i]) != "") continue;
+                    var used = members.Select(j => LaneOf(steps[j])).ToHashSet();
+                    var n = 1;
+                    while (used.Contains($"Lane {n}")) n++;
+                    Entry(steps[i])["lane"] = $"Lane {n}";
+                }
+        }
+        var all = new OrderedDictionary<string, object?>();
+        foreach (var (key, value) in groups) all[key] = key == group ? next : value;
+        d.Flows[id] = WithGroups(flow, all);
+        return d;
+    }
+
+    /// <summary>
+    /// Declare a group and put the steps <paramref name="first"/> to <paramref name="last"/> (0-based, both included) in it. A repeat is written with <c>times: "3"</c>;
+    /// in a branch or parallel group every step starts a lane of its own ("Lane 1", "Lane 2"…), which the steps' lane labels then reshape.
+    /// </summary>
+    public static EditDoc GroupSteps(EditDoc doc, string id, string group, string kind, int first, int last)
+    {
+        ExistingFlow(doc, id);
+        if (!Names.IsValidId(group)) throw new OpError($"\"{group}\" is not a valid group id: {Names.IdRule}");
+        var d = doc.Clone();
+        var flow = Entry(d.Flows[id]);
+        var groups = GroupsOf(flow);
+        if (groups is not null && groups.ContainsKey(group)) throw new OpError($"group \"{group}\" already exists");
+        if (!Structure.Kinds.Contains(kind)) throw new OpError($"unknown kind \"{kind}\" (use {string.Join(", ", Structure.Kinds)})");
+        var steps = StepsOf(flow);
+        if (first < 0 || first >= steps.Count) throw NoStep(id, first);
+        if (last < 0 || last >= steps.Count) throw NoStep(id, last);
+        if (last < first) throw new OpError($"step {last + 1} comes before step {first + 1}");
+        for (var i = first; i <= last; i++)
+        {
+            var other = GroupOf(steps[i]);
+            if (other != "") throw new OpError($"step {i + 1} is already in group \"{other}\"");
+            var kept = WithoutLane(steps[i]);
+            kept["group"] = group;
+            if (kind != "repeat") kept["lane"] = $"Lane {i - first + 1}";
+            steps[i] = kept;
+        }
+        var declared = new OrderedDictionary<string, object?> { ["kind"] = kind };
+        if (kind == "repeat") declared["times"] = "3";
+        var all = new OrderedDictionary<string, object?>();
+        if (groups is not null)
+            foreach (var (key, value) in groups) all[key] = value;
+        all[group] = declared;
+        d.Flows[id] = WithGroups(flow, all);
+        return d;
+    }
+
+    /// <summary>Create or replace a group of a flow. A blank <c>times</c>, <c>until</c> or <c>text</c> is left out.</summary>
+    public static EditDoc PutGroup(EditDoc doc, string flowId, string id, OrderedDictionary<string, object?> group)
+    {
+        ExistingFlow(doc, flowId);
+        if (!Names.IsValidId(id)) throw new OpError($"\"{id}\" is not a valid group id: {Names.IdRule}");
+        var d = doc.Clone();
+        var flow = Entry(d.Flows[flowId]);
+        var next = new OrderedDictionary<string, object?>();
+        foreach (var (key, value) in group)
+        {
+            if (value is null) continue;
+            if (key is "times" or "until" or "text" && Structure.Blank(value)) continue;
+            next[key] = value;
+        }
+        // The checks only refuse a problem that is new, so a bad `times` over an old bad `times` would pass them: this says no first.
+        if (next.TryGetValue("times", out var times) && !Structure.TimesOk(times))
+            throw new OpError($"group \"{id}\": times must be a whole number from {Structure.TimesMin} to {Structure.TimesMax}");
+        var groups = new OrderedDictionary<string, object?>();
+        if (flow.TryGetValue("groups", out var existing) && existing is OrderedDictionary<string, object?> map)
+            foreach (var (key, value) in map) groups[key] = value;
+        groups[id] = next;
+        d.Flows[flowId] = WithGroups(flow, groups);
+        return d;
+    }
+
+    /// <summary>Remove a group's declaration, and the group and lane of every step that named it.</summary>
+    public static EditDoc RemoveGroup(EditDoc doc, string flowId, string id)
+    {
+        ExistingFlow(doc, flowId);
+        var d = doc.Clone();
+        var flow = Entry(d.Flows[flowId]);
+        if (!(flow.TryGetValue("groups", out var existing) && existing is OrderedDictionary<string, object?> map && map.ContainsKey(id))) throw new OpError($"unknown group \"{id}\"");
+        var rest = new OrderedDictionary<string, object?>();
+        foreach (var (key, value) in map)
+            if (key != id) rest[key] = value;
+        if (flow.TryGetValue("steps", out var raw) && raw is List<object?> steps)
+            for (var i = 0; i < steps.Count; i++)
+            {
+                if (GroupOf(steps[i]) != id) continue;
+                var kept = new OrderedDictionary<string, object?>();
+                foreach (var (key, value) in Entry(steps[i]))
+                    if (key is not ("group" or "lane")) kept[key] = value;
+                steps[i] = kept;
+            }
+        d.Flows[flowId] = WithGroups(flow, rest);
         return d;
     }
 

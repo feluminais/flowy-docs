@@ -141,6 +141,15 @@ svg { flex: none; }
 
 .frame { position: relative; width: 100%; height: 100%; box-sizing: border-box; border: 1.5px solid var(--accent); border-radius: 12px; }
 .frame span { position: absolute; top: -10px; left: 14px; padding: 0 6px; background: var(--bg); color: var(--accent); font-size: 12px; font-weight: 600; }
+/* The outline and the name take a click (Frame in Box.tsx), as strips on the border a few pixels either side of it; the space inside takes none. */
+.frame .hit { pointer-events: auto; cursor: pointer; }
+.frame i.hit { position: absolute; }
+.frame i.top, .frame i.bottom { left: 0; right: 0; height: 12px; }
+.frame i.left, .frame i.right { top: 0; bottom: 0; width: 12px; }
+.frame i.top { top: -7px; }
+.frame i.bottom { bottom: -7px; }
+.frame i.left { left: -7px; }
+.frame i.right { right: -7px; }
 .canvas.arrive-in .frame, .canvas.arrive-across .frame { animation: fade-in 100ms 220ms both; } /* done by the end of arrive (320ms), when the class goes */
 
 @media (prefers-reduced-motion: reduce) {
@@ -360,6 +369,13 @@ svg { flex: none; }
 .steps > li:not(:last-child)::after { content: ''; position: absolute; left: 11.5px; top: 30px; bottom: 6px; width: 1px; background: var(--line); }
 .steps label { margin: 0 0 4px; }
 .step-buttons { display: flex; gap: 2px; margin-top: 8px; }
+.steps .more .form { gap: 8px; margin-top: 8px; }
+.groups { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.groups > li { padding: 10px; border: 1px solid var(--line); border-radius: 10px; }
+.group-head { display: flex; align-items: center; gap: 8px; }
+.group-head button { width: 30px; margin-left: auto; padding: 0; }
+.pair { display: flex; gap: 8px; }
+.pair > label { flex: 1; }
 /* Files and links: rows as in a file tree, lit when pointed at. */
 .code-list, .link-list ul { list-style: none; padding: 0; margin: 0 -8px; display: grid; gap: 0; font-size: 13px; }
 .code-list li, .link-list li { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; }

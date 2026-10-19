@@ -109,11 +109,11 @@ export function stopsOf(flow: Flow): Stop[] {
 
 /** Every option a group may hold. Which of them a kind takes is checked below; `in` is kept back for nesting. */
 const GROUP_OPTIONS = ['kind', 'text', 'times', 'until'] as const
-const TIMES_MIN = 2
-const TIMES_MAX = 99
+export const TIMES_MIN = 2
+export const TIMES_MAX = 99
 
 /** `times` is digits only, from 2 to 99: files hold text, and put_flow turns a number into text before it is written. */
-const timesOk = (v: unknown): boolean => typeof v === 'string' && /^[0-9]+$/.test(v) && Number(v) >= TIMES_MIN && Number(v) <= TIMES_MAX
+export const timesOk = (v: unknown): boolean => typeof v === 'string' && /^[0-9]+$/.test(v) && Number(v) >= TIMES_MIN && Number(v) <= TIMES_MAX
 
 /**
  * What is wrong with a flow's groups, lanes and flow links, in this order: each declared group's own problems (in the order the

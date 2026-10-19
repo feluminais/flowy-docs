@@ -36,7 +36,7 @@ public class NavigatorTests
     {
         var (window, reader) = Open();
         var icons = reader.Rail.Shown.ToList();
-        Assert.Equal(["Explorer, 36", "Flows, 3"], icons.Select(i => i.Name));
+        Assert.Equal(["Explorer, 36", "Flows, 5"], icons.Select(i => i.Name));
         Assert.All(icons, i => Assert.True(i.Visible));
         Assert.Equal(["Details", "Performance, 2"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name)); // Performance is there only where there is a run: Plum has two
         Assert.False(reader.HasPanel); // nothing is open until an icon is picked
@@ -89,7 +89,7 @@ public class NavigatorTests
         var (_, reader) = Open();
         reader.ClickRail(PanelTab.Explorer);
         var explorer = reader.Navigator.Explorer;
-        Assert.Equal("36 shapes · 3 flows", explorer.SummaryText);
+        Assert.Equal("36 shapes · 5 flows", explorer.SummaryText);
         Assert.Equal("shape:root", explorer.Rows[0].Key);
         Assert.Equal(36, explorer.Rows[0].Shapes);
         Assert.Contains(explorer.Rows, r => r.Key == "shape:ordering" && r.Depth == 1 && r.Expandable && !r.Expanded);
@@ -140,7 +140,7 @@ public class NavigatorTests
         reader.GoTo("delivery");
         reader.ClickRail(PanelTab.Flows);
         var listed = reader.Navigator.Flows.Listed;
-        Assert.Equal(3, listed.Count);
+        Assert.Equal(5, listed.Count);
         Assert.Equal("delivery", listed[0].View); // the flows in this level come first
         reader.Navigator.Flows.Open("place-order");
         Assert.Equal("ordering", reader.View);
@@ -161,18 +161,73 @@ public class NavigatorTests
         Assert.True(reader.Navigator.IsVisible);
     }
 
+    private static Point At(Control control, Window window, double x, double y) =>
+        control.TranslatePoint(new Point(control.Bounds.Width * x, control.Bounds.Height * y), window)!.Value;
+
+    private static void Click(Window window, Point at)
+    {
+        window.MouseDown(at, MouseButton.Left);
+        window.MouseUp(at, MouseButton.Left);
+    }
+
     [AvaloniaFact]
-    public void Esc_closes_Details_first_and_then_the_navigator()
+    public void Esc_closes_the_navigator_first_while_it_is_the_last_thing_used_and_then_Details()
     {
         var (window, reader) = Open();
         reader.ClickRail(PanelTab.Explorer);
         reader.OpenObject("ordering");
         Assert.True(reader.DetailsOpenNow);
         Press(window, Key.Escape, PhysicalKey.Escape);
-        Assert.False(reader.DetailsOpenNow);
-        Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
+        Assert.Null(reader.ShownTabNow);
+        Assert.True(reader.DetailsOpenNow);
         Press(window, Key.Escape, PhysicalKey.Escape);
         Assert.False(reader.HasPanel);
+    }
+
+    [AvaloniaFact]
+    public void A_click_in_the_diagram_takes_Esc_off_the_navigator_and_a_click_in_the_navigator_gives_it_back()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Explorer);
+        Click(window, At(reader.Canvas, window, 0.8, 0.97));
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Equal(PanelTab.Explorer, reader.ShownTabNow); // worked in the diagram: Esc is for the diagram
+
+        Click(window, At(reader.Navigator, window, 0.5, 0.95)); // even a click that lands on nothing in particular
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Null(reader.ShownTabNow);
+    }
+
+    [AvaloniaFact]
+    public void Esc_in_the_diagram_still_closes_Details_and_goes_up_but_never_the_navigator()
+    {
+        var (window, reader) = Open();
+        reader.GoTo("ordering");
+        reader.ClickRail(PanelTab.Flows);
+        reader.OpenObject("order-api");
+        Click(window, At(reader.Canvas, window, 0.8, 0.97));
+        reader.OpenObject("order-api"); // the click on empty canvas let go of it; pick it again, as a click on the shape would
+        Assert.True(reader.DetailsOpenNow);
+
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.False(reader.DetailsOpenNow);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Equal(Names.Root, reader.View);
+        Press(window, Key.Escape, PhysicalKey.Escape); // at the top, with only the navigator open: nothing
+        Assert.Equal(PanelTab.Flows, reader.ShownTabNow);
+    }
+
+    [AvaloniaFact]
+    public void A_navigator_that_came_back_with_the_project_is_left_alone_by_Esc_until_it_is_used()
+    {
+        var (window, reader) = Open();
+        reader.RestoreNavigator(new NavigatorState("explorer", [], null, null));
+        Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
+        Click(window, At(reader.Navigator, window, 0.5, 0.95));
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Null(reader.ShownTabNow);
     }
 
     [AvaloniaFact]
@@ -198,7 +253,7 @@ public class NavigatorTests
         var explorer = reader.Navigator.Explorer;
         explorer.Filter = "order api";
         Assert.Equal(["Overview", "Ordering", "Order API"], explorer.Rows.Select(r => r.Name));
-        Assert.Equal("36 shapes · 3 flows", explorer.SummaryText); // the totals are of the whole model
+        Assert.Equal("36 shapes · 5 flows", explorer.SummaryText); // the totals are of the whole model
         explorer.Filter = "zzzzz";
         Assert.Empty(explorer.Rows);
         explorer.Filter = "";

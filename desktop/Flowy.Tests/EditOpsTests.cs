@@ -25,6 +25,9 @@ public class EditOpsTests
 
     private static List<OrderedDictionary<string, object?>> Steps(JsonNode? steps) => Entries(steps);
 
+    /// <summary>The groups of a flow in a script: group id → options, as a tree. None if the script has none; {} is an empty set.</summary>
+    private static OrderedDictionary<string, object?>? Groups(JsonNode? groups) => groups is null ? null : (OrderedDictionary<string, object?>)YamlWriterTests.Tree(groups)!;
+
     private static EditDoc Apply(EditDoc doc, JsonNode s)
     {
         switch (Str(s, "op"))
@@ -39,8 +42,14 @@ public class EditOpsTests
             case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label")));
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));
             case "relabel": return EditOps.Relabel(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "label")!);
-            case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]));
-            case "updateFlow": return EditOps.UpdateFlow(doc, Str(s, "id")!, Str(s, "name"), s["steps"] is null ? null : Steps(s["steps"]));
+            case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]), Groups(s["groups"]));
+            case "updateFlow": return EditOps.UpdateFlow(doc, Str(s, "id")!, Str(s, "name"), s["steps"] is null ? null : Steps(s["steps"]), Groups(s["groups"]));
+            case "removeStep": return EditOps.RemoveStep(doc, Str(s, "id")!, s["index"]!.GetValue<int>());
+            case "putGroup": return EditOps.PutGroup(doc, Str(s, "id")!, Str(s, "group")!, (OrderedDictionary<string, object?>)YamlWriterTests.Tree(s["options"])!);
+            case "removeGroup": return EditOps.RemoveGroup(doc, Str(s, "id")!, Str(s, "group")!);
+            case "setStepGroup": return EditOps.SetStepGroup(doc, Str(s, "id")!, s["index"]!.GetValue<int>(), Str(s, "group")!);
+            case "setGroupKind": return EditOps.SetGroupKind(doc, Str(s, "id")!, Str(s, "group")!, Str(s, "kind")!);
+            case "groupSteps": return EditOps.GroupSteps(doc, Str(s, "id")!, Str(s, "group")!, Str(s, "kind")!, s["first"]!.GetValue<int>(), s["last"]!.GetValue<int>());
             case "deleteFlow": return EditOps.DeleteFlow(doc, Str(s, "id")!);
             case "placeBoxes":
                 return EditOps.PlaceBoxes(doc, Str(s, "view")!, s["boxes"]!.AsObject().Select(b => (b.Key, b.Value![0]!.GetValue<double>(), b.Value![1]!.GetValue<double>())));
@@ -141,5 +150,16 @@ public class EditOpsTests
         EditOps.PlaceBoxes(doc, "root", [("customer", 1, 2)]);
         EditOps.SetLines(doc, "angled");
         Assert.Equal(before, doc.ToFiles());
+    }
+
+    [Fact]
+    public void A_blank_groups_section_is_no_section_so_an_edit_writes_what_the_browser_writes()
+    {
+        foreach (var blank in new[] { "groups:\n", "groups: ~\n", "groups: null\n" })
+        {
+            var doc = EditDoc.Parse("objects: {}\n", null, [KeyValuePair.Create("f", $"name: F\nview: root\n{blank}steps:\n  - {{ from: a, text: x }}\n")]);
+            var files = EditOps.UpdateFlow(doc, "f", name: "G").ToFiles();
+            Assert.Equal("name: G\nview: root\nsteps:\n  - from: a\n    text: x\n", files["flows/f.yaml"]);
+        }
     }
 }

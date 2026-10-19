@@ -1,0 +1,14 @@
+name: A paid order is announced
+view: ordering
+groups:
+  readers:
+    kind: parallel
+steps:
+  - { from: order-api, to: events, text: Announces that the order is paid and carries on without waiting }
+  - from: events
+    to: dispatch
+    text: Hands the event to Dispatch, which starts looking for a courier
+    group: readers
+    lane: Delivery
+    flow: deliver-order
+  - { from: events, to: warehouse, text: Streams the same event to the warehouse for its own records, group: readers, lane: Warehouse }
