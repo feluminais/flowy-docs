@@ -32,6 +32,8 @@ export type Store = {
   putStep(step: Step, blobs: Map<string, Uint8Array>): Promise<void>
   /** Every readable step, oldest first. A file that is not a step (cut off, misshapen, a temporary file) is skipped. */
   steps(): Promise<Step[]>
+  /** The last `count` readable steps, oldest first, reading as few files as it takes. */
+  tail(count: number): Promise<Step[]>
   /** The newest readable step, reading as few files as it takes. */
   latest(): Promise<Step | undefined>
   /** How many step files there are, readable or not. */
@@ -115,12 +117,17 @@ export function openStore(root: string): Store {
     },
 
     async steps() {
-      const steps: Step[] = []
-      for (const name of await stepFiles()) {
-        const step = await readStep(name)
-        if (step) steps.push(step)
+      return (await Promise.all((await stepFiles()).map(readStep))).filter((step): step is Step => step !== undefined)
+    },
+
+    async tail(count) {
+      const names = await stepFiles()
+      const tail: Step[] = []
+      for (let i = names.length - 1; i >= 0 && tail.length < count; i--) {
+        const step = await readStep(names[i])
+        if (step) tail.unshift(step)
       }
-      return steps
+      return tail
     },
 
     async latest() {
@@ -147,7 +154,8 @@ export function openStore(root: string): Store {
     },
 
     async prune(plan, graceMs) {
-      for (const id of plan.dropSteps) await rm(`${stepsDir}/${id}.json`, { force: true })
+      // Housekeeping that more than one program may do at once, on files a virus scanner may hold: a file that will not go is left for the next trim.
+      for (const id of plan.dropSteps) await rm(`${stepsDir}/${id}.json`, { force: true }).catch(() => undefined)
       let names: string[]
       try {
         names = await readdir(blobsDir)
@@ -158,8 +166,11 @@ export function openStore(root: string): Store {
       const now = Date.now()
       for (const name of names) {
         if (!isHash(name) || plan.keepBlobs.has(name)) continue
-        const { mtimeMs } = await stat(`${blobsDir}/${name}`)
-        if (now - mtimeMs >= graceMs) await rm(`${blobsDir}/${name}`, { force: true })
+        try {
+          if (now - (await stat(`${blobsDir}/${name}`)).mtimeMs >= graceMs) await rm(`${blobsDir}/${name}`, { force: true })
+        } catch {
+          // gone already, or in use
+        }
       }
     },
 

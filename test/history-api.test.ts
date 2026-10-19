@@ -8,18 +8,19 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { hashText } from '../src/node/files.ts'
 import { openHistory } from '../src/node/history.ts'
+import type { History } from '../src/node/history.ts'
 import { createHistoryApi } from '../src/node/history-api.ts'
 
 /** A model folder, a history over it, and the history routes behind a real HTTP server, so request bodies arrive as real streams. */
-async function setup(t: TestContext, blockStateDir = false) {
+async function setup(t: TestContext, blockStateDir = false, restore?: History['restore']) {
   const root = await mkdtemp(join(tmpdir(), 'flowy-api-'))
   const dir = join(root, 'flowy')
   await mkdir(dir, { recursive: true })
   const stateDir = join(root, 'state')
   if (blockStateDir) await writeFile(stateDir, 'in the way')
   let tick = 0
-  const history = openHistory(dir, { app: 'browser', stateDir, now: () => new Date(Date.UTC(2026, 9, 20, 10, 0, 0) + tick++), random: () => tick.toString(16).padStart(6, '0') })
-  const api = createHistoryApi(history)
+  const history = openHistory(dir, { app: 'browser', stateDir, log: () => undefined, now:() => new Date(Date.UTC(2026, 9, 20, 10, 0, 0) + tick++), random: () => tick.toString(16).padStart(6, '0') })
+  const api = createHistoryApi(restore ? { ...history, restore } : history) // a test may stand in for restore to see how its answers are passed on
   const server = createServer(async (req, res) => {
     const answer = await api.handle(req, new URL(req.url ?? '/', 'http://localhost'))
     res.writeHead(answer?.status ?? 404, { 'Content-Type': 'application/json' })
@@ -134,7 +135,7 @@ test('POST /api/history/restore puts a version back and says where to undo to', 
   assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), 'a: 1\n')
 })
 
-test('restore answers 404 for an unknown step, 409 for a file that changed, 503 when history cannot be saved, 500 when a copy is gone', async t => {
+test('restore answers 404 for an unknown step, 409 for a file that changed, 500 when a saved copy is gone', async t => {
   const { post, put, history } = await setup(t)
   await put('model.yaml', 'a: 1\n')
   const one = await history.record('One', 'you')
@@ -152,13 +153,14 @@ test('restore answers 404 for an unknown step, 409 for a file that changed, 503 
   await rm(join(history.root, 'blobs', hashText('a: 1\n')))
   const gone = await post('/api/history/restore', { id: one.id, versions: (await history.now()).versions, label: 'x' })
   assert.equal(gone.status, 500)
+  assert.match(gone.body.error, /saved copy of model.yaml is gone/)
+})
 
-  await rm(join(history.root, 'blobs'), { recursive: true })
-  await writeFile(join(history.root, 'blobs'), 'in the way')
-  await put('model.yaml', 'a: 4\n')
-  const unsaved = await post('/api/history/restore', { id: one.id, versions: (await history.now()).versions, label: 'x' })
-  assert.equal(unsaved.status, 503)
-  assert.match(unsaved.body.error, /history isn't being saved/)
+test('restore passes on 503 when history cannot be saved and 500 when it fails', async t => {
+  for (const [kind, status] of [['unsaved', 503], ['failed', 500]] as const) {
+    const { post } = await setup(t, false, async () => ({ ok: false, kind, message: `message for ${kind}` }))
+    assert.deepEqual(await post('/api/history/restore', { id: 'x', versions: {}, label: 'y' }), { status, body: { error: `message for ${kind}` } })
+  }
 })
 
 test('restore refuses a body without an id, a versions object or a label', async t => {

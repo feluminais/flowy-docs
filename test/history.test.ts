@@ -1,13 +1,34 @@
 import { test } from 'node:test'
 import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, rm, utimes, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { HISTORY_LIMIT } from '../src/core/history.ts'
+import { collapseSteps, HISTORY_LIMIT, HISTORY_SLACK, stepId } from '../src/core/history.ts'
+import type { Step, StepSource } from '../src/core/history.ts'
 import { hashBytes, hashText } from '../src/node/files.ts'
 import { openHistory } from '../src/node/history.ts'
 import type { HistoryOptions } from '../src/node/history.ts'
+import { openStore } from '../src/node/history-store.ts'
+
+/** Steps written straight into a trail, much faster than recording them: "Step 1" to "Step <count>", each with its own model.yaml. */
+async function prefill(root: string, count: number) {
+  const store = openStore(root)
+  for (let n = 1; n <= count; n++) {
+    const text = `n: ${n}\n`
+    const time = new Date(Date.UTC(2026, 0, 1) + n * 1000)
+    await store.putStep(
+      { id: stepId(time, 'aaaaaa'), time: time.toISOString(), label: `Step ${n}`, source: 'you', app: 'browser', files: { 'model.yaml': hashText(text) } },
+      new Map([[hashText(text), new TextEncoder().encode(text)]]),
+    )
+  }
+}
+
+/** Makes every blob in a trail look an hour old, so a trim may delete the ones nothing names. */
+async function ageBlobs(root: string) {
+  const anHourAgo = new Date(Date.now() - 3_600_000)
+  for (const name of await readdir(join(root, 'blobs'))) await utimes(join(root, 'blobs', name), anHourAgo, anHourAgo)
+}
 
 /** A model folder and a history over it, with a clock that ticks one millisecond per look and ids that count up, so steps sort in the order they were made. */
 async function setup(t: TestContext, options: Partial<HistoryOptions> = {}) {
@@ -21,6 +42,7 @@ async function setup(t: TestContext, options: Partial<HistoryOptions> = {}) {
     app: 'browser', stateDir,
     now: () => new Date(Date.UTC(2026, 9, 20, 10, 0, 0) + tick++),
     random: () => tick.toString(16).padStart(6, '0'),
+    log: () => undefined, // tests that make the history fail on purpose do not need the line on the screen
     ...options,
   })
   const put = async (rel: string, content: string | Uint8Array) => {
@@ -173,16 +195,133 @@ test('an unwritable store never throws, says why, and recovers', async t => {
   assert.equal(history.failure, undefined)
 })
 
-test('more than HISTORY_LIMIT steps are pruned to the newest', async t => {
+test('the trail is trimmed to the newest 300 once it holds 30 more than that', async t => {
+  const small = await setup(t)
+  await prefill(small.history.root, HISTORY_LIMIT)
+  await small.put('model.yaml', 'n: next\n')
+  await small.history.record('Step next', 'you')
+  assert.equal((await small.history.list()).length, HISTORY_LIMIT + 1) // over the limit, not yet trimmed
+
   const { history, put } = await setup(t)
-  for (let n = 1; n <= HISTORY_LIMIT + 5; n++) {
-    await put('model.yaml', `n: ${n}\n`)
-    await history.record(`Step ${n}`, 'you')
-  }
+  await prefill(history.root, HISTORY_LIMIT + HISTORY_SLACK)
+  assert.equal((await history.list()).length, HISTORY_LIMIT + HISTORY_SLACK) // not trimmed yet
+  await put('model.yaml', `n: ${HISTORY_LIMIT + HISTORY_SLACK + 1}\n`)
+  await history.record(`Step ${HISTORY_LIMIT + HISTORY_SLACK + 1}`, 'you')
   const list = await history.list()
   assert.equal(list.length, HISTORY_LIMIT)
-  assert.equal(list[0].label, `Step ${HISTORY_LIMIT + 5}`)
-  assert.equal(list[list.length - 1].label, 'Step 6')
+  assert.equal(list[0].label, `Step ${HISTORY_LIMIT + HISTORY_SLACK + 1}`)
+  assert.equal(list[list.length - 1].label, `Step ${HISTORY_SLACK + 2}`)
+})
+
+test('a trim that fails does not fail the record that caused it', async t => {
+  const { history, put } = await setup(t)
+  await prefill(history.root, HISTORY_LIMIT + HISTORY_SLACK)
+  const stuck = join(history.root, 'blobs', 'eeeeeeeeeeeeeeee')
+  await mkdir(stuck) // a directory where a blob should be: removing it as a file fails
+  await utimes(stuck, new Date(0), new Date(0))
+  await put('model.yaml', 'n: next\n')
+  assert.ok(await history.record('Next', 'you'))
+  assert.equal(history.failure, undefined)
+  assert.equal((await history.list())[0].label, 'Next')
+})
+
+test('Review Focus: restoring the oldest step still works when recording the present trims it away', async t => {
+  const { dir, history, put } = await setup(t)
+  await prefill(history.root, HISTORY_LIMIT + HISTORY_SLACK)
+  await ageBlobs(history.root)
+  await put('model.yaml', 'changed outside\n')
+  const oldest = (await history.list()).at(-1)
+  assert.equal(oldest?.label, 'Step 1')
+  const result = await history.restore(oldest!.id, (await history.now()).versions, 'Restored')
+  assert.equal(result.ok, true, JSON.stringify(result))
+  assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), 'n: 1\n')
+})
+
+test('restore refuses a step that names a file Flowy may not write, before writing anything', async t => {
+  const { dir, history, put } = await setup(t)
+  await put('model.yaml', 'now\n')
+  const hash = hashText('then\n')
+  await openStore(history.root).putStep(
+    { id: stepId(new Date(Date.UTC(2026, 0, 1)), 'aaaaaa'), time: '2026-01-01T00:00:00.000Z', label: 'Odd', source: 'you', app: 'browser', files: { 'model.yaml': hash, '../escape.yaml': hash } },
+    new Map([[hash, new TextEncoder().encode('then\n')]]),
+  )
+  const odd = (await history.list())[0]
+  const result = await history.restore(odd.id, (await history.now()).versions, 'x')
+  assert.equal(result.ok, false)
+  assert.ok(!result.ok && result.kind === 'failed' && /doesn't write/.test(result.message))
+  assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), 'now\n')
+  assert.deepEqual((await readdir(join(dir, '..'))).sort(), ['flowy', 'state'])
+})
+
+test('a restore that fails part way records the mix as a step', async t => {
+  const { dir, history, put } = await setup(t)
+  await put('model.yaml', 'one\n')
+  await put('flows/a.yaml', 'name: A\n')
+  const one = await history.record('One', 'you')
+  await rm(join(dir, 'flows'), { recursive: true })
+  await writeFile(join(dir, 'flows'), 'a file where the folder was') // flows/a.yaml can no longer be written
+  await put('model.yaml', 'two\n')
+  await history.record('Two', 'you')
+  assert.ok(one)
+  const result = await history.restore(one.id, (await history.now()).versions, 'x')
+  assert.equal(result.ok, false)
+  assert.ok(!result.ok && result.kind === 'failed')
+  assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), 'one\n') // model.yaml was written before flows/a.yaml failed
+  const top = (await history.list())[0]
+  assert.match(top.label, /^Changed outside Flowy/)
+  assert.deepEqual((await history.read(top.id))?.files, { 'model.yaml': { text: 'one\n' } })
+})
+
+test('restore does not throw when the trail cannot be read', async t => {
+  const { history } = await setup(t)
+  await mkdir(history.root, { recursive: true })
+  await writeFile(join(history.root, 'steps'), 'a file where the folder of steps should be')
+  const result = await history.restore('nope', {}, 'x')
+  assert.equal(result.ok, false)
+  assert.ok(!result.ok && result.kind === 'failed')
+})
+
+test('ensureCurrent names the step the whole list would, however long the run of identical steps', async t => {
+  const content = 'same\n'
+  const hash = hashText(content)
+  const blobs = new Map([[hash, new TextEncoder().encode(content)], [hashText('other\n'), new TextEncoder().encode('other\n')]])
+  const other = hashText('other\n')
+  const at = (n: number, id = 'aaaaaa') => stepId(new Date(Date.UTC(2026, 0, 1) + n * 1000), id)
+  const make = (n: number, source: StepSource, files: Record<string, string>): Step => ({ id: at(n), time: new Date(Date.UTC(2026, 0, 1) + n * 1000).toISOString(), label: `${source} ${n}`, source, app: 'browser', files })
+  const cases: [string, Step[]][] = [
+    ['one labelled step', [make(1, 'you', { 'model.yaml': hash })]],
+    ['an outside step after a labelled one', [make(1, 'you', { 'model.yaml': hash }), make(2, 'outside', { 'model.yaml': hash })]],
+    ['two outside steps', [make(1, 'you', { 'model.yaml': other }), make(2, 'outside', { 'model.yaml': hash }), make(3, 'outside', { 'model.yaml': hash })]],
+    ['a labelled step after an outside one', [make(1, 'outside', { 'model.yaml': hash }), make(2, 'claude', { 'model.yaml': hash })]],
+    ['a run longer than the first look', [make(1, 'you', { 'model.yaml': other }), ...[2, 3, 4, 5, 6, 7].map(n => make(n, 'outside', { 'model.yaml': hash }))]],
+    ['a long run with a labelled step in the middle', [make(1, 'you', { 'model.yaml': other }), ...[2, 3, 4, 5, 6, 7].map(n => make(n, n === 5 ? 'you' : 'outside', { 'model.yaml': hash }))]],
+  ]
+  for (const [name, steps] of cases) {
+    const { history, put } = await setup(t)
+    await put('model.yaml', content)
+    const store = openStore(history.root)
+    for (const step of steps) await store.putStep(step, blobs)
+    const ensured = await history.ensureCurrent('watch')
+    assert.deepEqual(ensured, { saved: true, id: collapseSteps(await store.steps()).at(-1)?.id }, name)
+  }
+})
+
+test('a history failure is logged once, in one quiet line, until it clears', async t => {
+  const lines: string[] = []
+  const { root, history, put } = await setup(t, { log: line => lines.push(line) })
+  await writeFile(join(root, 'state'), 'in the way')
+  await put('model.yaml', 'a: 1\n')
+  await history.record('One', 'you')
+  await history.record('Two', 'you')
+  assert.equal(lines.length, 1)
+  assert.match(lines[0], /history isn't being saved/i)
+  await rm(join(root, 'state'))
+  assert.ok(await history.record('Three', 'you'))
+  await rm(join(root, 'state'), { recursive: true })
+  await writeFile(join(root, 'state'), 'in the way again')
+  await put('model.yaml', 'a: 2\n')
+  await history.record('Four', 'you')
+  assert.equal(lines.length, 2)
 })
 
 test('restore puts an older version back, removes a flow added since, and brings back one removed', async t => {
@@ -239,14 +378,14 @@ test('restore of an unknown id is unknown', async t => {
 })
 
 test('restore refuses while the history cannot be written, and changes nothing', async t => {
-  const { dir, history, put } = await setup(t)
+  // A fixed clock and random part make the name of the next step's file known: a folder of that name stops the step from being written.
+  const { dir, history, put } = await setup(t, { now: () => new Date(Date.UTC(2026, 9, 20, 11, 0, 0)), random: () => 'cccccc' })
   await put('model.yaml', 'a: 1\n')
-  const one = await history.record('One', 'you')
+  const one = await history.record('One', 'you') // 20261020T110000000Z-cccccc
   await put('model.yaml', 'a: 2\n')
-  await history.record('Two', 'you')
+  await history.record('Two', 'you') // ...001Z-cccccc
   assert.ok(one)
-  await rm(join(history.root, 'blobs'), { recursive: true })
-  await writeFile(join(history.root, 'blobs'), 'in the way') // writing a step now fails
+  await mkdir(join(history.root, 'steps', '20261020T110000002Z-cccccc.json'))
   await put('model.yaml', 'a: 3\n')
   const result = await history.restore(one.id, (await history.now()).versions, 'x')
   assert.equal(result.ok, false)
