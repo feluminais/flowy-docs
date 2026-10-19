@@ -35,6 +35,14 @@ internal static class Icons
     public const string Undo = "M9 14l-4 -4l4 -4M5 10h11a4 4 0 1 1 0 8h-1";
     public const string Redo = "M15 14l4 -4l-4 -4M19 10h-11a4 4 0 1 0 0 8h1";
     public const string Search = "M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M21 21l-6 -6";
+    // The three kinds of group: a repeat, a branch (one of several lanes) and parallel lanes.
+    public const string Repeat = "M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3";
+    public const string GitFork = "M12 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M7 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M17 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M7 8v2a2 2 0 0 0 2 2h6a2 2 0 0 0 2 -2v-2M12 12l0 4";
+    public const string ArrowsSplit = "M21 17h-8l-3.5 -5h-6.5M21 7h-8l-3.495 5";
+
+    /// <summary>The icon of a kind of group: repeat, branch or parallel.</summary>
+    public static string ForKind(string? kind) => kind switch { "repeat" => Repeat, "branch" => GitFork, _ => ArrowsSplit };
+
     public const string Route = "M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M18 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M12 19h4.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h3.5";
     public const string Grid = "M4 4h6v6h-6zM14 4h6v6h-6zM4 14h6v6h-6zM14 14h6v6h-6z";
     public const string Alert = "M12 9v4M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0zM12 16h.01";

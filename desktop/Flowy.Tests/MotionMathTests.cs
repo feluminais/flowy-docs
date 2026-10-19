@@ -64,4 +64,11 @@ public class MotionMathTests
         Assert.Equal((0.0, 1.0), MotionMath.Squash(beats, 750)); // the receiver takes it in
         Assert.Equal((0.0, 0.0), MotionMath.Squash(beats, 5000));
     }
+
+    [Fact]
+    public void A_box_several_steps_squash_takes_the_largest_squash_and_none_is_none()
+    {
+        Assert.Equal(0, MotionMath.Largest([]));
+        Assert.Equal(0.5, MotionMath.Largest([0.2, 0.5, 0.1]));
+    }
 }

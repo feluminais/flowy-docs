@@ -30,6 +30,9 @@ public static class MotionMath
     /// <summary>How far along a line of length <paramref name="length"/> a blob is at progress <paramref name="p"/>, running forward or back.</summary>
     public static double Distance(string? dir, double p, double length) => (dir == "back" ? 1 - Ease(p) : Ease(p)) * length;
 
+    /// <summary>The biggest of some squashes, 0 for none: a box that several steps squash takes the largest.</summary>
+    public static double Largest(IEnumerable<double> amounts) => amounts.Aggregate(0.0, Math.Max);
+
     /// <summary>How hard each end of the step is squashed at <paramref name="t"/>: the strongest of the gulps running then.</summary>
     public static (double From, double To) Squash(IEnumerable<Beat> beats, double t)
     {
