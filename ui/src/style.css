@@ -407,3 +407,58 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .motion .dots circle { fill: var(--accent); }
 .motion .glyph { fill: none; stroke: var(--bg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .motion .glyph.drop { stroke: var(--accent); stroke-width: 2.2; }
+
+/* The navigator: a rail of icons on the right edge that is always there, and a panel with three tabs (Navigator.tsx). */
+.stage { flex: 1; display: flex; min-height: 0; }
+.stage > .canvas { min-width: 0; }
+.rail { flex: none; box-sizing: border-box; width: 44px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0; border-left: 1px solid var(--line); background: var(--bg); }
+.rail button { position: relative; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+.rail button:hover { background: var(--hover); color: var(--fg); }
+.rail button[aria-pressed='true'] { background: var(--tint); color: var(--accent); }
+.rail button:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.rail .count { position: absolute; top: -3px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--muted); font-size: 10px; font-weight: 600; line-height: 14px; text-align: center; }
+.rail button[aria-pressed='true'] .count { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+
+.navtabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); }
+.panel > .navtabs { margin: -22px -22px 0; padding: 10px 52px 0 16px; }
+.panel .navtabs button { min-height: 34px; padding: 0 10px; border-radius: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--muted); font-weight: 500; }
+.panel .navtabs button:hover:not(:disabled) { background: none; color: var(--fg); }
+.panel .navtabs button[aria-selected='true'] { color: var(--fg); border-bottom-color: var(--accent); }
+.navpanel { padding: 0; gap: 0; overflow: hidden; }
+.navpanel > .navtabs { margin: 0; padding: 10px 52px 0 16px; flex: none; }
+.navbody { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 12px 12px; }
+.navfind { display: flex; align-items: center; gap: 7px; height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--box); color: var(--muted); }
+.navfind:focus-within { border-color: var(--accent); }
+.navfind input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--fg); }
+.navsum { margin: 0 2px; color: var(--muted); font-size: 12px; }
+.navsum .bad { color: var(--danger); }
+.navnote { margin: 8px 6px; font-size: 13px; }
+.navscroll { flex: 1; min-height: 0; overflow: auto; margin: 0 -4px; padding: 0 4px; }
+.navhead { display: flex; justify-content: space-between; margin: 12px 4px 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.navhead:first-child { margin-top: 2px; }
+.panel .flow-row, .panel .group-head { width: 100%; justify-content: flex-start; min-height: 32px; text-align: left; }
+.panel .flow-row .name, .panel .group-head .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel .flow-row .muted { font-size: 12px; white-space: nowrap; }
+.panel .flow-row[aria-current='true'] { background: var(--tint); color: var(--accent); }
+.panel .flow-row[aria-current='true'] svg { color: inherit; }
+.panel .group-head { color: var(--muted); font-weight: 600; }
+.panel .group-head svg { transition: transform 0.12s; }
+.panel .group-head[aria-expanded='true'] svg { transform: rotate(90deg); }
+.flow-group .flow-row { padding-left: 24px; }
+
+.tree { flex: 1; min-height: 0; overflow: auto; position: relative; outline: 0; margin: 0 -4px; border-radius: 6px; }
+.tree-rows { position: relative; }
+.tree-row { position: absolute; left: 0; right: 0; height: 30px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; padding-right: 8px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.tree-row:hover { background: var(--hover); }
+.tree-row.here { background: color-mix(in srgb, var(--fg) 5%, transparent); }
+.tree-row.sel { background: var(--tint); }
+.tree-row.sel .name { color: var(--accent); font-weight: 600; }
+.tree:focus-visible .tree-row.focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.tree-row.dim .name { color: var(--muted); }
+.tree-row .twist { flex: none; display: grid; place-items: center; width: 20px; height: 20px; color: var(--muted); border-radius: 4px; }
+.tree-row .twist:hover { background: var(--hover); }
+.tree-row[aria-expanded='true'] .twist svg { transform: rotate(90deg); }
+.tree-row .tile { flex: none; }
+.tree-row .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tree-row .dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); }
+.tree-row .count { flex: none; color: var(--muted); font-size: 12px; }

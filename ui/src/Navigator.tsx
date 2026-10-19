@@ -1,0 +1,238 @@
+import { createContext, useEffect, useMemo, useRef, useState } from 'react'
+import type { KeyboardEvent, ReactNode, Ref } from 'react'
+import type { Problem } from '../../src/core/check.ts'
+import { ROOT } from '../../src/core/model.ts'
+import type { Model } from '../../src/core/model.ts'
+import { flowGroups, outline, outlineKey } from '../../src/core/outline.ts'
+import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
+import { nameOf } from '../../src/core/views.ts'
+import { ObjectTile } from './Chrome.tsx'
+import { ChevronRight, Close, Home, Info, Pencil, Play, Route, Search as SearchIcon, Sitemap } from './icons.tsx'
+import type { NavTab } from './navstate.ts'
+import { scrollToRow, visibleRows } from './window.ts'
+
+const ROW = 30 // px: every row of the tree is this tall, which is what lets it be windowed
+
+const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+
+/** The tab strip that tops every panel. App provides it, so each panel (Details has several) shows it without being told. */
+export const NavTabsContext = createContext<ReactNode>(null)
+
+export function NavTabs({ tab, showFlows, onPick }: { tab: NavTab; showFlows: boolean; onPick: (tab: NavTab) => void }) {
+  const tabs: [NavTab, string][] = [['details', 'Details'], ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []), ['explorer', 'Explorer']]
+  return (
+    <div className="navtabs" role="tablist" aria-label="Panel">
+      {tabs.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => onPick(id)}>{label}</button>)}
+    </div>
+  )
+}
+
+/** The slim column of icons on the right edge. It is always there, and the counts on it say how much the documentation holds. */
+export function Rail({ tab, flows, shapes, showFlows, onPick }: { tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean; onPick: (tab: NavTab) => void }) {
+  const button = (id: NavTab, label: string, key: string | undefined, Icon: typeof Info, count?: number) => (
+    <button key={id} aria-pressed={tab === id} aria-label={count === undefined ? label : `${label}, ${count}`} title={key ? `${label} (${key})` : label} onClick={() => onPick(id)}>
+      <Icon size={18} />
+      {count !== undefined && <span className="count" aria-hidden="true">{count > 999 ? '999+' : count}</span>}
+    </button>
+  )
+  return (
+    <nav className="rail" aria-label="Panels">
+      {button('details', 'Details', undefined, Info)}
+      {showFlows && button('flows', 'Flows', 'L', Route, flows)}
+      {button('explorer', 'Explorer', 'O', Sitemap, shapes)}
+    </nav>
+  )
+}
+
+/** The panel of the Flows and Explorer tabs. It has no scrolling of its own: each tab scrolls what it holds. */
+export function NavPanel({ tabs, onClose, children }: { tabs: ReactNode; onClose: () => void; children: ReactNode }) {
+  return (
+    <aside className="panel navpanel">
+      {tabs}
+      <button className="close" aria-label="Close" onClick={onClose}><Close size={16} /></button>
+      <div className="navbody">{children}</div>
+    </aside>
+  )
+}
+
+function SearchField({ value, label, onChange, inputRef, onKeyDown }: {
+  value: string; label: string; onChange: (value: string) => void; inputRef?: Ref<HTMLInputElement>; onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
+}) {
+  return (
+    <label className="navfind">
+      <SearchIcon size={15} />
+      <input ref={inputRef} value={value} placeholder={label} aria-label={label} onChange={e => onChange(e.target.value)} onKeyDown={onKeyDown} />
+    </label>
+  )
+}
+
+/**
+ * Every flow in the documentation: first those that play in the level you are in, then all the others under the level they play in.
+ * Picking one goes to its level and plays it (or, while editing, opens it for editing).
+ */
+export function FlowsTab({ model, view, editing, current, onOpen }: { model: Model; view: string; editing: boolean; current?: string; onOpen: (flow: FlowRef) => void }) {
+  const [query, setQuery] = useState('')
+  const [closed, setClosed] = useState<ReadonlySet<string>>(new Set())
+  const groups = useMemo(() => flowGroups(model, view, { editing }), [model, view, editing])
+  const needle = query.trim().toLowerCase()
+  const keep = (f: FlowRef) => needle === '' || f.name.toLowerCase().includes(needle) || f.id.includes(needle)
+  const here = groups.here.filter(keep)
+  const elsewhere = groups.elsewhere.map(g => ({ ...g, flows: g.flows.filter(keep) })).filter(g => g.flows.length > 0)
+  const row = (f: FlowRef) => (
+    <button key={f.id} className="flow-row" aria-current={f.id === current} onClick={() => onOpen(f)}>
+      {editing ? <Pencil size={15} /> : <Play size={15} />}
+      <span className="name">{f.name}</span>
+      <span className="muted">{f.steps === 0 ? 'no steps yet' : plural(f.steps, 'step')}</span>
+    </button>
+  )
+  const otherCount = groups.total - groups.here.length
+  return (
+    <>
+      <SearchField value={query} label="Find a flow" onChange={setQuery} />
+      <div className="navscroll">
+        <h3 className="navhead"><span>In {nameOf(model, view)}</span><span className="muted">{groups.here.length}</span></h3>
+        {here.length > 0 && here.map(row)}
+        {groups.here.length === 0 && <p className="muted navnote">No flows in {nameOf(model, view)}.{otherCount > 0 && ` ${otherCount} elsewhere.`}</p>}
+        {groups.here.length > 0 && here.length === 0 && <p className="muted navnote">Nothing here matches.</p>}
+        {groups.elsewhere.length > 0 && <h3 className="navhead"><span>Everywhere else</span><span className="muted">{otherCount}</span></h3>}
+        {elsewhere.map(g => {
+          const open = needle !== '' || !closed.has(g.view)
+          return (
+            <div key={g.view} className="flow-group">
+              <button className="group-head" aria-expanded={open} onClick={() => setClosed(c => { const next = new Set(c); if (next.has(g.view)) next.delete(g.view); else next.add(g.view); return next })}>
+                <ChevronRight size={14} />
+                <span className="name">{g.path.length > 0 ? g.path.join(' › ') : g.name}</span>
+                <span className="muted">{g.flows.length}</span>
+              </button>
+              {open && g.flows.map(row)}
+            </div>
+          )
+        })}
+        {needle !== '' && here.length === 0 && elsewhere.length === 0 && <p className="muted navnote">No flow matches “{query.trim()}”.</p>}
+        {groups.total === 0 && <p className="muted navnote">No flows yet. New flow in the bar starts one.</p>}
+      </div>
+    </>
+  )
+}
+
+const KEYS: Partial<Record<string, OutlineKey>> = {
+  ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight', Home: 'Home', End: 'End', Enter: 'Enter',
+}
+
+type ExplorerProps = {
+  model: Model
+  problems: readonly Problem[]
+  editing: boolean
+  expanded: ReadonlySet<string>
+  onToggle: (id: string, expand: boolean) => void
+  /** The level the canvas shows, the shape selected on it, and the flow playing: what the tree marks. */
+  here: string
+  selected?: string
+  playing?: string
+  /** A click on a row, and Enter or a double-click on one. */
+  onPick: (row: OutlineRow) => void
+  onOpen: (row: OutlineRow) => void
+}
+
+/**
+ * The whole documentation as a tree: a summary line, a filter, and the rows (see core/outline.ts), drawn a window at a time so a model of
+ * thousands of shapes stays smooth. It keeps the row you are on in view as you zoom on the canvas, but not while you are using the tree.
+ */
+export function Explorer({ model, problems, editing, expanded, onToggle, here, selected, playing, onPick, onOpen }: ExplorerProps) {
+  const [filter, setFilter] = useState('')
+  const [focus, setFocus] = useState<string>()
+  const [scrollTop, setScrollTop] = useState(0)
+  const [height, setHeight] = useState(400)
+  const list = useRef<HTMLDivElement>(null)
+  const find = useRef<HTMLInputElement>(null)
+  const using = useRef(false) // the pointer is over the tree, or a key was just pressed in it
+  const { rows, totals } = useMemo(() => outline(model, { expanded, filter, editing, problems }), [model, expanded, filter, editing, problems])
+  const current = playing ? `flow:${playing}` : `shape:${selected ?? here}`
+  const levelKey = `shape:${here}`
+
+  useEffect(() => {
+    const el = list.current
+    if (!el) return
+    const measure = () => setHeight(el.clientHeight)
+    measure()
+    const watch = new ResizeObserver(measure)
+    watch.observe(el)
+    return () => watch.disconnect()
+  }, [])
+
+  const reveal = (key: string | undefined) => {
+    const at = rows.findIndex(r => r.key === key)
+    const el = list.current
+    const to = el && at !== -1 ? scrollToRow(at, el.scrollTop, el.clientHeight, ROW) : undefined
+    if (el && to !== undefined) el.scrollTop = to
+  }
+  useEffect(() => {
+    if (!using.current && filter === '') reveal(current)
+  }, [current, rows])
+  useEffect(() => reveal(focus), [focus])
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return
+    const key = KEYS[e.key]
+    if (key) {
+      using.current = true
+      const result = outlineKey(rows, focus, key)
+      if (result.focus !== undefined) setFocus(result.focus)
+      if (result.toggle) onToggle(result.toggle.id, result.toggle.expand)
+      if (result.open) onOpen(result.open)
+      e.preventDefault()
+      e.stopPropagation() // the canvas's own keys (E, Enter, the arrows of a flow) are not meant for the tree
+    } else if (e.key.length === 1 && e.key !== ' ') {
+      find.current?.focus() // the letter then lands in the filter
+      e.stopPropagation()
+    }
+  }
+
+  const { start, end } = visibleRows(scrollTop, height, rows.length, ROW)
+  const counts = (r: OutlineRow) => (r.kind === 'flow' ? plural(r.steps ?? 0, 'step') : [r.shapes > 0 && String(r.shapes), r.flows > 0 && plural(r.flows, 'flow')].filter(Boolean).join(' · '))
+  const icon = (r: OutlineRow) => (r.id === ROOT && r.kind === 'shape' ? <Home size={16} /> : r.kind === 'flow' ? <Route size={16} /> : <ObjectTile model={model} object={model.objects[r.id]} size={18} />)
+
+  return (
+    <>
+      <p className="navsum">
+        {plural(totals.shapes, 'shape')} · {plural(totals.flows, 'flow')}
+        {totals.problems > 0 && <span className="bad"> · {plural(totals.problems, 'problem')}</span>}
+      </p>
+      <SearchField value={filter} label="Filter the tree" onChange={setFilter} inputRef={find}
+        onKeyDown={e => {
+          if (e.key === 'Escape' && filter !== '') {
+            setFilter('')
+            e.stopPropagation()
+          } else if (e.key === 'ArrowDown' && rows.length > 0) {
+            setFocus(rows[0].key)
+            list.current?.focus()
+            e.preventDefault()
+          }
+        }} />
+      <div ref={list} className="tree" role="tree" aria-label="Documentation" tabIndex={0} onKeyDown={onKeyDown}
+        aria-activedescendant={focus ? `nav-${focus}` : undefined}
+        onScroll={e => setScrollTop(e.currentTarget.scrollTop)}
+        onPointerEnter={() => { using.current = true }} onPointerLeave={() => { using.current = false }}
+        onBlur={() => { using.current = false }}>
+        {rows.length === 0 && <p className="muted navnote">{filter.trim() === '' ? 'Nothing here yet.' : `Nothing matches “${filter.trim()}”.`}</p>}
+        <div className="tree-rows" style={{ height: rows.length * ROW }}>
+          {rows.slice(start, end).map((r, k) => (
+            <div key={r.key} id={`nav-${r.key}`} role="treeitem" aria-level={r.depth + 1} aria-expanded={r.expandable ? r.expanded : undefined} aria-selected={r.key === current}
+              className={classes('tree-row', r.key === current && 'sel', r.key === levelKey && 'here', r.key === focus && 'focus', !r.match && 'dim')}
+              style={{ top: (start + k) * ROW, paddingLeft: 6 + r.depth * 16 }}
+              onClick={() => { setFocus(r.key); onPick(r) }} onDoubleClick={() => onOpen(r)}>
+              {r.expandable
+                ? <span className="twist" aria-hidden="true" onClick={e => { e.stopPropagation(); onToggle(r.id, !r.expanded) }}><ChevronRight size={14} /></span>
+                : <span className="twist" aria-hidden="true" />}
+              {icon(r)}
+              <span className="name">{r.name}</span>
+              {r.problem && <span className="dot" title="A problem in here" />}
+              <span className="count">{counts(r)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  )
+}

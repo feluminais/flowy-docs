@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import type { FocusEvent, FormEvent, ReactNode } from 'react'
 import { encodePath, isRepoPath, isWebAddress, typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
@@ -10,6 +10,7 @@ import type { Connection, FlowyObject, Link, Model, ObjectType, Step } from '../
 import { deleteFlow, deleteObject, OpError, putFlow, putObject, relabel, removeConnection, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
+import { NavTabsContext } from './Navigator.tsx'
 import { Description } from './Box.tsx'
 import { connectionsOf, linesOf, newId, problemsOf } from './edit.ts'
 import type { BoxLine } from './edit.ts'
@@ -21,11 +22,25 @@ import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, Check, Cloud, Code, F
 export type Run = (op: (model: Model) => Model) => Promise<boolean>
 
 function Panel({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  const tabs = useContext(NavTabsContext) // the strip of tabs on top, when App gives one
   return (
     <aside className="panel">
+      {tabs}
       <button className="close" aria-label="Close" onClick={onClose}><Close size={16} /></button>
       {children}
     </aside>
+  )
+}
+
+/** What Details shows at the top level when nothing is picked: how much there is, and where to go next. */
+export function OverviewPanel({ totals, onClose }: { totals: { shapes: number; flows: number; problems: number }; onClose: () => void }) {
+  const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+  return (
+    <Panel onClose={onClose}>
+      <h2>Overview</h2>
+      <p className="muted">{count(totals.shapes, 'shape')} · {count(totals.flows, 'flow')}{totals.problems > 0 && ` · ${count(totals.problems, 'problem')}`}</p>
+      <p>Pick a shape on the canvas to read about it here, or open the Explorer to see everything at once.</p>
+    </Panel>
   )
 }
 

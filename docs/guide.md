@@ -32,7 +32,13 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   problem.
 - Ctrl+K or / (or Search) finds a shape anywhere in the model by name. Pick one and the canvas
   opens the level it's on, with its panel open.
-- Pick a flow in the top bar to play it step by step: ← and → move, Home and End jump to the first
+- The icons on the right edge open a panel with three tabs. Details is what a click on a shape or a
+  line shows. Flows (L) lists every flow: first those in the level you're in, then all the others under
+  the level they play in, and a click goes there and plays it. Explorer (O) shows everything as a tree,
+  with how many shapes and flows are inside each, a dot where something is wrong, and a filter. A click
+  shows a shape where it's drawn; Enter or a double-click zooms into it, and the tree follows you as you
+  zoom. The numbers on the icons are how many flows and shapes there are in all.
+- Pick a flow in the Flows tab to play it step by step: ← and → move, Home and End jump to the first
   and last step, Esc stops. A step can be one shape doing something on its own, and a step with more
   to say has a More you can open. When a step lands on a shape that stands for a part inside it, the
   player names the part too ("Scheduler in Core"), so two steps on two parts of one shape don't read
