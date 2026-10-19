@@ -153,7 +153,7 @@ what it saves, the browser and Claude see, and the other way round. A file that 
 with the reason in a banner, and while it is there editing is off.
 
 Editing in the app: **E** (or the Edit button) turns it on, and the bar gains New flow, Add, Undo, Redo and Tidy. A box's panel becomes
-a form (name, type, outside service, tech, description, code), and a line's panel has a label field and a delete for each connection it
+a form (name, type, outside service, tech, description, links, code), and a line's panel has a label field and a delete for each connection it
 stands for. Drag a box to move it; the dot under a box starts a connection, which you drop on another box. Each edit is checked first:
 one that would add a problem is refused and a notice says why. A file changed elsewhere since the app read it is never overwritten: the
 edit is dropped, and the view reloads. **Ctrl+Z** and **Ctrl+Y** undo and redo, but only where the files are still as that edit left
@@ -161,11 +161,16 @@ them. The sample model that ships with the app can't be edited.
 
 What it has, as the canvas does: zoom into a box (double-click it, or select it and press Enter; Esc and Backspace go back up, and
 the breadcrumb works too), a frame around the box you're inside, boxes that belong to another level faded and dashed, wheel to
-zoom and drag to pan, **F** to fit, the side panel with the description, the files a box lives in (as links when the repo's origin
-is on GitHub or GitLab), and every connection out and in, flows that play with ← and → (Home and End go to the first and last
+zoom and drag to pan, **F** to fit, the side panel with the description, its links, the files a box lives in (as links when the repo's
+origin is on GitHub or GitLab), and every connection out and in, flows that play with ← and → (Home and End go to the first and last
 step), **Ctrl+K** or **/** to find a box, **?** for the shortcut list, the problem list in the top bar, straight, curved or
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a box that sits
 beside the one you're in slides across instead of zooming in.**
+
+The links in a box's panel open on your computer. A web address opens in the browser, a folder in the file explorer, and a file in your
+default app if it is a document (Markdown, text, PDF, a common image). Any other file, such as a script or a program, is shown in its
+folder and not run. A small folder button beside each file shows it in its folder. **File › Open Files With** picks an app of your own to
+open files with (any file inside the repo), and that choice stays on your computer, never in the repo.
 
 What it adds is a way to choose the model:
 
