@@ -79,13 +79,21 @@ public static class Recents
 /// <summary>How big the window was, so the next one opens the same: its size when not maximized, and whether it was.</summary>
 public readonly record struct WindowSize(double Width, double Height, bool Maximized);
 
-/// <summary>What the navigator remembers for one project: the panel tab that was open ("flows" or "explorer", else none) and which shapes were open in the tree.</summary>
-public sealed record NavigatorState(string? Tab, IReadOnlyList<string> Expanded)
+/// <summary>What the navigator remembers for one project: the panel tab that was open ("flows" or "explorer", else none), which shapes were open in the tree, and how wide the two side panels were dragged (null: as they begin).</summary>
+public sealed record NavigatorState(string? Tab, IReadOnlyList<string> Expanded, double? NavWidth = null, double? DetailsWidth = null)
 {
     /// <summary>The most shapes remembered open for one project, and the most projects remembered, so a runaway entry never grows the file without bound.</summary>
     public const int MaxExpanded = 2000;
 
     public const int MaxProjects = 50;
+
+    /// <summary>The narrowest and widest a side panel gets when dragged.</summary>
+    public const double MinWidth = 220;
+
+    public const double MaxWidth = 640;
+
+    /// <summary>A panel's width in whole pixels, kept between <see cref="MinWidth"/> and <see cref="MaxWidth"/>, and below <paramref name="limit"/>: what the canvas can spare.</summary>
+    public static double Clamp(double width, double limit = MaxWidth) => Math.Round(Math.Max(MinWidth, Math.Min(width, Math.Min(MaxWidth, limit))), MidpointRounding.AwayFromZero);
 }
 
 /// <summary>What the app remembers between runs. <c>OpenFilesWith</c> is the app the person chose to open a box's linked files with; null means the system's default. <c>Navigators</c> is what each project's navigator remembers, by <see cref="ModelFolders.Key"/>.</summary>
@@ -141,7 +149,8 @@ public sealed class UserStateStore(string file)
                     var open = entry.Value.TryGetProperty("expanded", out var x) && x.ValueKind == JsonValueKind.Array
                         ? x.EnumerateArray().Where(e => e.ValueKind == JsonValueKind.String).Select(e => e.GetString()!).Take(NavigatorState.MaxExpanded).ToList()
                         : [];
-                    navigators[entry.Name] = new NavigatorState(tab, open);
+                    double? Width(string name) => entry.Value.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number && v.TryGetDouble(out var w) && double.IsFinite(w) ? NavigatorState.Clamp(w) : null;
+                    navigators[entry.Name] = new NavigatorState(tab, open, Width("navWidth"), Width("detailsWidth"));
                 }
             }
             return new UserState(recent, lines, updates, window, openWith, navigators);
@@ -159,7 +168,7 @@ public sealed class UserStateStore(string file)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(file)!);
             var temp = file + ".tmp";
-            System.IO.File.WriteAllText(temp, JsonSerializer.Serialize(new { recent = state.Recent, lines = state.Lines, checkForUpdates = state.CheckForUpdates, openFilesWith = state.OpenFilesWith, window = state.Window is { } w ? new { width = w.Width, height = w.Height, maximized = w.Maximized } : null, navigators = state.Navigators?.ToDictionary(k => k.Key, k => new { tab = k.Value.Tab, expanded = k.Value.Expanded }) }, Json));
+            System.IO.File.WriteAllText(temp, JsonSerializer.Serialize(new { recent = state.Recent, lines = state.Lines, checkForUpdates = state.CheckForUpdates, openFilesWith = state.OpenFilesWith, window = state.Window is { } w ? new { width = w.Width, height = w.Height, maximized = w.Maximized } : null, navigators = state.Navigators?.ToDictionary(k => k.Key, k => new { tab = k.Value.Tab, expanded = k.Value.Expanded, navWidth = k.Value.NavWidth, detailsWidth = k.Value.DetailsWidth }) }, Json));
             System.IO.File.Move(temp, file, true);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)

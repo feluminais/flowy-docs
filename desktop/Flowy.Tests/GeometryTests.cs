@@ -69,9 +69,9 @@ public class GeometryTests
     [Fact]
     public void A_view_that_fits_is_shown_whole_and_centred_and_never_zoomed_past_one()
     {
-        var v = Camera.Fit(new Rect(0, 0, 1000, 600), 1100, 700, Camera.FitPadding(false, false));
+        var v = Camera.Fit(new Rect(0, 0, 1000, 600), 1100, 700, Camera.FitPadding(0, false));
         Assert.Equal(new Viewport(50, 50, 1), v);
-        var small = Camera.Fit(new Rect(0, 0, 200, 72), 1100, 700, Camera.FitPadding(false, false));
+        var small = Camera.Fit(new Rect(0, 0, 200, 72), 1100, 700, Camera.FitPadding(0, false));
         Assert.Equal(1, small.Zoom);
         Assert.Equal(450, small.X);
     }
@@ -79,16 +79,17 @@ public class GeometryTests
     [Fact]
     public void A_view_too_big_to_fit_is_zoomed_out_but_not_below_the_minimum()
     {
-        var v = Camera.Fit(new Rect(0, 0, 2000, 1000), 1000, 600, Camera.FitPadding(false, false));
+        var v = Camera.Fit(new Rect(0, 0, 2000, 1000), 1000, 600, Camera.FitPadding(0, false));
         Assert.Equal((1000 - 80) / 2000.0, v.Zoom, 9);
-        Assert.Equal(Camera.MinZoom, Camera.Fit(new Rect(0, 0, 90000, 90000), 1000, 600, Camera.FitPadding(false, false)).Zoom);
+        Assert.Equal(Camera.MinZoom, Camera.Fit(new Rect(0, 0, 90000, 90000), 1000, 600, Camera.FitPadding(0, false)).Zoom);
     }
 
     [Fact]
-    public void Room_is_kept_for_the_side_panel_and_the_player()
+    public void Room_is_kept_for_the_side_panels_and_the_player_as_wide_as_they_are()
     {
-        Assert.Equal(new Padding(40, 420, 40, 40), Camera.FitPadding(true, false));
-        Assert.Equal(new Padding(40, 40, 200, 40), Camera.FitPadding(false, true));
+        Assert.Equal(new Padding(40, 420, 40, 40), Camera.FitPadding(Camera.Panel, false));
+        Assert.Equal(new Padding(40, 40, 200, 40), Camera.FitPadding(0, true));
+        Assert.Equal(new Padding(40, 540, 40, 300), Camera.FitPadding(500, false, 260));
     }
 
     [Fact]
@@ -99,6 +100,14 @@ public class GeometryTests
         var moved = Camera.PanIntoView(new Rect(900, 100, 200, 72), view, 1100, 700)!.Value;
         Assert.Equal(-404, moved.X);
         Assert.Equal(0, moved.Y);
+    }
+
+    [Fact]
+    public void A_box_under_the_navigator_on_the_left_is_moved_clear_too()
+    {
+        var view = new Viewport(0, 0, 1);
+        Assert.Null(Camera.PanIntoView(new Rect(100, 100, 200, 72), view, 1100, 700, Camera.Panel, 24, 0));
+        Assert.Equal(244, Camera.PanIntoView(new Rect(100, 100, 200, 72), view, 1100, 700, Camera.Panel, 24, 320)!.Value.X);
     }
 
     [Fact]

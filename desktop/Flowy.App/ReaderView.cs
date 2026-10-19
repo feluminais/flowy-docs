@@ -41,7 +41,11 @@ internal sealed partial class ReaderView : Grid
     private readonly TextBlock _bannerText = new() { TextWrapping = TextWrapping.Wrap };
     private readonly StackPanel _crumbs = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
     private readonly NavigatorPanel _nav = new();
-    private readonly NavRail _rail = new();
+    private readonly NavRail _rail = new(true); // the navigator's, on the left
+    private readonly NavRail _detailsRail = new(false); // Details', on the right
+    private readonly Sash _navSash = new(true, "Resize the navigator");
+    private readonly Sash _detailsSash = new(false, "Resize the details panel");
+    private Control? _zoomButtons;
     private readonly ComboBox _linePicker = new();
     private readonly Button _searchButton = new();
     private readonly Button _helpButton = new();
@@ -51,22 +55,14 @@ internal sealed partial class ReaderView : Grid
     private string? _codeBase;
     private string? _repoRoot;
     private string _view = Names.Root;
-    private Side? _sideValue;
-    private PanelTab? _tab; // the tab chosen on the rail or a tab strip; null: the panel follows what is picked
-    private bool _keepTab; // the Explorer selects a shape without taking the panel off the Explorer
+    private Side? _side; // what is picked: it shows in Details
+    private PanelTab? _tab; // the navigator's tab (Flows or Explorer), chosen on its rail or its strip; null: the navigator is closed
+    private bool _details; // Details was opened from its rail, to show the level you are in; a pick opens it too
+    private double _navWidth = Camera.Nav; // dragged by the sashes on the panels' edges
+    private double _detailsWidth = Camera.Panel;
     private readonly HashSet<string> _expanded = [Names.Root]; // the shapes whose children show in the Explorer; the project's own row starts open
     private (Model Model, bool Editing, OutlineTotals Totals)? _totals;
 
-    /// <summary>What is picked. Pointing at something shows it in Details, so setting one takes the panel off the Flows and Explorer tabs.</summary>
-    private Side? _side
-    {
-        get => _sideValue;
-        set
-        {
-            _sideValue = value;
-            if (value is not null && !_keepTab) _tab = null;
-        }
-    }
     private (string Flow, int Step)? _playing;
     private string? _hover;
     private string? _ownLines; // this reader's own pick of line style
@@ -109,9 +105,11 @@ internal sealed partial class ReaderView : Grid
             HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
             Children = { _emptyTitle, _emptyBody },
         };
-        var stage = new Grid { Children = { _motionHost, _empty, ZoomButtons(), _panel, _nav, _player, _overlay } };
-        var beside = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { stage, _rail } };
-        SetColumn(_rail, 1);
+        _zoomButtons = ZoomButtons();
+        var stage = new Grid { Children = { _motionHost, _empty, _zoomButtons, _panel, _nav, _navSash, _detailsSash, _player, _overlay } };
+        var beside = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { _rail, stage, _detailsRail } };
+        SetColumn(stage, 1);
+        SetColumn(_detailsRail, 2);
         SetRow(beside, 2);
         Children.Add(beside);
 
@@ -147,11 +145,19 @@ internal sealed partial class ReaderView : Grid
             Refresh();
             Focus();
         };
-        _panel.Closed += CloseTab;
-        _panel.Tabs.Picked += SetTab;
+        _panel.Closed += CloseDetails;
         _nav.Tabs.Picked += SetTab;
-        _nav.Closed += CloseTab;
+        _nav.Closed += CloseNav;
         _rail.Picked += ToggleTab;
+        _detailsRail.Picked += ToggleTab;
+        _navSash.Current = () => _navWidth;
+        _navSash.Resized += w => ResizeNav(w);
+        _navSash.Reset += () => ResizeNav(Camera.Nav);
+        _navSash.Settled += Remember;
+        _detailsSash.Current = () => _detailsWidth;
+        _detailsSash.Resized += w => ResizeDetails(w);
+        _detailsSash.Reset += () => ResizeDetails(Camera.Panel);
+        _detailsSash.Settled += Remember;
         _nav.Flows.Opened += flow => OpenFlow(flow.Id);
         _nav.Explorer.Picked += PickRow;
         _nav.Explorer.Opened += OpenRow;
@@ -173,7 +179,7 @@ internal sealed partial class ReaderView : Grid
 
     // What a test can look at.
     internal string? SelectedBoxId => SelectedBox;
-    internal bool HasPanel => ShownTab is not null;
+    internal bool HasPanel => ShownTab is not null || DetailsOpen;
     internal bool IsMoving => _moving;
     internal bool ShowsEmptyNote => _empty.IsVisible;
     internal string? BannerText => _banner.IsVisible ? _bannerText.Text : null;
@@ -277,6 +283,7 @@ internal sealed partial class ReaderView : Grid
         _editMode = false;
         _view = Names.Root;
         _side = null;
+        _details = false;
         _playing = null;
         _hover = null;
         _codeBase = null;
@@ -324,7 +331,7 @@ internal sealed partial class ReaderView : Grid
     public void ShowNotice(string text, double seconds = 0)
     {
         DismissNotice();
-        var notice = new Notice(text, DismissNotice);
+        var notice = new Notice(text, DismissNotice) { Margin = NoticeMargin };
         _notice = notice;
         _overlay.Children.Add(notice);
         if (seconds > 0)
@@ -427,7 +434,7 @@ internal sealed partial class ReaderView : Grid
         if (key != _fitKey)
         {
             _fitKey = key;
-            _canvas.Fit(false, flow is not null);
+            _canvas.Fit(0, flow is not null);
         }
 
         RefreshBar(model, view, flow);
@@ -510,11 +517,6 @@ internal sealed partial class ReaderView : Grid
 
     private void RefreshPanel(Model model, string view)
     {
-        if (ShownTab is PanelTab.Flows or PanelTab.Explorer)
-        {
-            _panel.Clear(); // the navigator draws itself (RefreshNavigator)
-            return;
-        }
         switch (_side)
         {
             case { Kind: SideKind.Object, Id: { } id } when Editing:
@@ -542,10 +544,10 @@ internal sealed partial class ReaderView : Grid
         }
     }
 
-    /// <summary>Details with nothing picked, while that tab is chosen: the level you are inside, or the project's Overview at the top.</summary>
+    /// <summary>Details with nothing picked, while its rail button is pressed: the level you are inside, or the project's Overview at the top.</summary>
     private void ShowViewDetails(Model model, string view)
     {
-        if (_tab != PanelTab.Details) _panel.Clear();
+        if (!_details) _panel.Clear();
         else if (view == Names.Root) _panel.ShowOverview(Totals());
         else if (Editing) _panel.ShowObjectEditor(model, view, _folder!.Problems, RunAsync, OpenObject, SetHover, CloseSide);
         else _panel.ShowObject(model, view, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover);
@@ -658,7 +660,7 @@ internal sealed partial class ReaderView : Grid
         _canvas.RenderTransform = new ScaleTransform(scale, scale);
     }
 
-    public void FitNow() => _canvas.Fit(ShownTab is not null, PlayingFlow() is not null, 220);
+    public void FitNow() => _canvas.Fit(DetailsOpen ? _detailsWidth : 0, PlayingFlow() is not null, ShownTab is not null ? _navWidth : 0, 220);
 
     // ---- selecting ---------------------------------------------------------------------------------------------
 
@@ -693,7 +695,7 @@ internal sealed partial class ReaderView : Grid
         _undoMove = false;
         _side = new Side(SideKind.Object, Id: id);
         Refresh();
-        _canvas.Reveal(id);
+        _canvas.Reveal(id, _detailsWidth, ShownTab is not null ? _navWidth : 0);
     }
 
     public void Select(string id) => OpenObject(id);
@@ -816,12 +818,13 @@ internal sealed partial class ReaderView : Grid
         else if (e.Key == Key.Escape && ResetPick()) { }
         else if (e.Key == Key.Escape)
         {
-            switch (Navigation.Escape(_shortcuts is not null, flow is not null, ShownTab is not null, view != Names.Root))
+            switch (Navigation.Escape(_shortcuts is not null, flow is not null, HasPanel, view != Names.Root))
             {
                 case EscapeStep.Shortcuts: ShowShortcuts(false); break;
                 case EscapeStep.Flow: Stop(); break;
                 case EscapeStep.Panel:
-                    CloseTab();
+                    if (DetailsOpen) CloseDetails(); // the panel you are working in first, then the navigator
+                    else CloseNav();
                     break;
                 case EscapeStep.Up: Up(); break;
                 default: return;

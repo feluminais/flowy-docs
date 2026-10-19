@@ -49,13 +49,34 @@ export type OutlineOptions = {
 }
 
 type Tree = {
-  /** Shapes by what they sit in (ROOT for the top level), in the order the model declares them. */
+  /** Shapes by what they sit in (ROOT for the top level), in the tree's order (see `sorted`). */
   kids: Map<string, string[]>
-  /** Flows by the view they play in: those a reader can play, or all of them while editing. A flow whose view can't open is left out. */
+  /** Flows by the view they play in, by name: those a reader can play, or all of them while editing. A flow whose view can't open is left out. */
   flowsIn: Map<string, string[]>
   /** Every shape reachable from ROOT, each before what is inside it. */
   preorder: string[]
 }
+
+// ponytail: ordinal on the lower-cased text, not a locale collation, so the C# port gives the same order. "é" sorts after "z" here;
+// switch both sides to a shared collation if names in accented scripts need to sort by letter.
+/** -1, 0 or 1 by name as VS Code's Explorer sorts: any case, and a run of digits counts as a number ("step 2" before "step 10"). */
+function byName(a: string, b: string): number {
+  const x = lower(a).split(/(\d+)/)
+  const y = lower(b).split(/(\d+)/)
+  for (let i = 0; i < Math.min(x.length, y.length); i++) {
+    if (x[i] === y[i]) continue
+    if (i % 2 === 1) { // both are digit runs
+      const [m, n] = [x[i].replace(/^0+(?=\d)/, ''), y[i].replace(/^0+(?=\d)/, '')]
+      if (m.length !== n.length) return m.length < n.length ? -1 : 1
+      if (m !== n) return m < n ? -1 : 1
+      continue // 007 and 7 are the same number
+    }
+    return x[i] < y[i] ? -1 : 1
+  }
+  return Math.sign(x.length - y.length) // one is the start of the other
+}
+
+const byNameThenId = (name: (id: string) => string) => (a: string, b: string) => byName(name(a), name(b)) || (a < b ? -1 : a > b ? 1 : 0)
 
 function treeOf(model: Model, editing: boolean): Tree {
   const kids = new Map<string, string[]>()
@@ -74,6 +95,11 @@ function treeOf(model: Model, editing: boolean): Tree {
     if (list) list.push(id)
     else flowsIn.set(flow.view, [id])
   }
+  // As in VS Code's Explorer: a shape that holds others comes first, as a folder does, then the rest, each group by name.
+  const folder = (id: string) => kids.has(id) || flowsIn.has(id)
+  const byShape = byNameThenId(id => nameOf(model, id))
+  for (const list of kids.values()) list.sort((a, b) => Number(folder(b)) - Number(folder(a)) || byShape(a, b))
+  for (const list of flowsIn.values()) list.sort(byNameThenId(id => model.flows[id].name || id))
   // A loop of shapes inside each other is never reached from ROOT, and a stack (not recursion) keeps a long chain from overflowing.
   const preorder: string[] = []
   const stack = [...(kids.get(ROOT) ?? [])].reverse()

@@ -26,7 +26,7 @@ const PERFORMANCE: [string, string][] = [
   ['→  ←', 'Next and previous tested load'],
   ['Home  End', 'Lowest and highest tested load'],
   ['P', 'Ramp the load up on its own, or pause'],
-  ['Esc', 'Close the tab'],
+  ['Esc', 'Close the panel'],
 ]
 const EDITING: [string, string][] = [
   ['E', 'Edit mode on and off'],

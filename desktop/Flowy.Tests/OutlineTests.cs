@@ -9,6 +9,19 @@ public class OutlineTests
 {
     private static JsonNode Expected() => JsonNode.Parse(File.ReadAllText(Path.Combine(Repo.Root, "desktop", "fixtures", "expected", "outline.json")))!;
 
+    /// <summary>The same pairs test/outline.test.ts sorts: any case, numbers as numbers, and a name that starts another comes first.</summary>
+    [Theory]
+    [InlineData("alpha", "Auth", -1)]
+    [InlineData("step 1", "Step 02", -1)]
+    [InlineData("Step 2", "step 10", -1)]
+    [InlineData("step 10", "Step 2", 1)]
+    [InlineData("Step 02", "Step 2", 0)]
+    [InlineData("000", "0", 0)]
+    [InlineData("a", "A", 0)]
+    [InlineData("a", "a1", -1)]
+    [InlineData("a2b", "a10a", -1)]
+    public void NamesSortAsInTheExplorerDoes(string a, string b, int expected) => Assert.Equal(expected, Outlines.ByName(a, b));
+
     private static JsonObject Folders() => Expected()["folders"]!.AsObject();
 
     public static IEnumerable<object[]> Names() => Folders().Where(kv => kv.Value!["parseError"] is null).Select(kv => new object[] { kv.Key });

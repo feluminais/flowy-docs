@@ -184,9 +184,17 @@ test('the view pans only as far as it takes to show a box beside the side panel'
   assert.equal(panIntoView({ ...box, width: 2000 }, view, size)?.x, 24 - 100, 'a box wider than the room keeps its left edge in sight')
 })
 
-test('the fit leaves room for the side panel and the flow player only when they are open', () => {
-  assert.deepEqual(fitOptions(false, false).padding, { top: '40px', left: '40px', right: '40px', bottom: '40px' })
-  assert.deepEqual(fitOptions(true, true).padding, { top: '40px', left: '40px', right: `${PANEL + 40}px`, bottom: '200px' })
+test('the fit leaves room for the side panels and the flow player only when they are open, as wide as they are', () => {
+  assert.deepEqual(fitOptions(0, false).padding, { top: '40px', left: '40px', right: '40px', bottom: '40px' })
+  assert.deepEqual(fitOptions(PANEL, true).padding, { top: '40px', left: '40px', right: `${PANEL + 40}px`, bottom: '200px' })
+  assert.deepEqual(fitOptions(500, false, 260).padding, { top: '40px', left: '300px', right: '540px', bottom: '40px' })
+})
+
+test('the view also keeps a box out from under the navigator on the left', () => {
+  const size = { width: 1280, height: 800 }
+  const box = { x: 100, y: 100, width: 180, height: 72 }
+  assert.equal(panIntoView(box, { x: 0, y: 0, zoom: 1 }, size, PANEL, 24, 0), undefined)
+  assert.deepEqual(panIntoView(box, { x: 0, y: 0, zoom: 1 }, size, PANEL, 24, 320), { x: 244, y: 0, zoom: 1 }, 'its left edge ends 24px right of the navigator')
 })
 
 test('curved and angled lines leave from the middle of the side that faces the other box', () => {

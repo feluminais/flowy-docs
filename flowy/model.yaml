@@ -139,9 +139,12 @@ objects:
       and the shapes ringing, flashing or squashing. The same frame-driven clock runs it and Autoplay's
       waits, and nothing moves when the system asks for less motion.
 
-      A rail of icons on the right edge opens the panel with three tabs, as on the canvas: Details,
-      every flow grouped by where it plays, and the whole documentation as a tree drawn a window of
-      rows at a time. Each project's open tab and open rows are remembered in the app's state file.
+      A rail of icons on the left edge opens the navigator, as on the canvas: every flow grouped by
+      where it plays, and the whole documentation as a tree drawn a window of rows at a time, shapes
+      that hold others first and then by name. Details opens on the right, from its own rail or by
+      picking a shape. Both panels are dragged wider or narrower by their inner edge, and a
+      double-click puts the width back. Each project's open tab, open rows and panel widths are
+      remembered in the app's state file.
 
       Descriptions are drawn by a small Markdown renderer: raw HTML is dropped, an image shows as
       its description in brackets and is never fetched, and a link opens only if it is http or https.
@@ -195,9 +198,11 @@ objects:
       A step tagged with an `animation:` plays as a pipe with a blob running through it, and Autoplay
       steps through a flow on its own. A Performance tab plays a load-test run back over the diagram.
 
-      A rail of icons on the right edge opens a panel with three tabs: Details, every flow in the
-      documentation, and the whole documentation as a tree. A fourth, Performance, joins them when
-      the folder has load-test runs.
+      A rail of icons on the left edge opens a panel with two tabs: every flow in the documentation,
+      and the whole documentation as a tree. Details opens on the right, from its own rail or by
+      picking a shape, and where the folder has load-test runs the right rail has a Performance
+      button that puts its panel in Details' place. Both panels are dragged wider or narrower by
+      their inner edge, as in VS Code, and a double-click puts the width back.
 
       The same bundle is served by the local server and shipped in an export; on an exported page
       the model comes from the HTML and there is nothing to save to.
@@ -273,7 +278,7 @@ objects:
       The view you're in, the shape or line you picked, the flow playing, and edit mode. It keeps the
       address in step, so a link opens where it says and Back goes back.
 
-      The camera fits a view when you arrive and pans a shape out from under the side panel, but never
+      The camera fits a view when you arrive and pans a shape out from under the side panels, but never
       undoes your own panning.
   graph:
     type: component
@@ -313,11 +318,14 @@ objects:
     name: Navigator
     code: [ui/src/Navigator.tsx, ui/src/navstate.ts, ui/src/navstore.ts, ui/src/window.ts]
     description: |
-      The rail of icons on the right edge and the tabs it opens: every flow, grouped by where it plays,
-      and the whole documentation as a tree drawn a window of rows at a time. It asks core for the rows.
+      The rail of icons on the left edge and the tabs it opens: every flow, grouped by where it plays,
+      and the whole documentation as a tree drawn a window of rows at a time. It asks core for the rows,
+      which come in VS Code's order: shapes that hold others first, then the rest, each by name.
 
-      Which tab was open and which shapes were open in the tree are remembered for each project, in the
-      browser's storage.
+      The edges of this panel and of the Details panel are sashes you drag to resize them.
+
+      Which tab was open, which shapes were open in the tree and how wide the two panels are are
+      remembered for each project, in the browser's storage.
   sync:
     type: component
     in: canvas

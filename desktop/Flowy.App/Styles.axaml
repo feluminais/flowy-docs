@@ -587,12 +587,22 @@
     <Setter Property="Stroke" Value="{DynamicResource BoxBrush}" />
     <Setter Property="StrokeThickness" Value="2" />
   </Style>
-  <!-- The navigator: the rail on the right edge, the strip of tabs, the Flows list and the Explorer tree (Navigator.cs, FlowsView.cs, ExplorerView.cs). -->
+  <!-- The navigator: the rail on the left edge, the strip of tabs, the Flows list and the Explorer tree (Navigator.cs, FlowsView.cs, ExplorerView.cs); the Details rail on the right edge. -->
   <Style Selector=":is(Border).rail">
     <Setter Property="Background" Value="{DynamicResource BgBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
     <Setter Property="BorderThickness" Value="1,0,0,0" />
   </Style>
+  <Style Selector=":is(Border).rail.railleft"><Setter Property="BorderThickness" Value="0,0,1,0" /></Style>
+  <Style Selector=":is(Border).panel.navpanel">
+    <Setter Property="BorderThickness" Value="0,0,1,0" />
+    <Setter Property="BoxShadow" Value="12 0 32 0 #1a000000" />
+  </Style>
+  <!-- The strip you drag to resize a side panel (Sash.cs): invisible until the pointer is on it, then lit like VS Code's. -->
+  <Style Selector=":is(Border).sash"><Setter Property="Background" Value="Transparent" /></Style>
+  <Style Selector=":is(Border).sash:pointerover"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Border).sash.drag"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Border).sash:focus-visible"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Button.railbutton">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
