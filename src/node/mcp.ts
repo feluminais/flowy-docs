@@ -38,6 +38,7 @@ Writing a flow, so it reads the way the code works:
 - Keep to what the flow's trigger causes. Something that happens on its own gets a step that says so, or a flow of its own.
 - Play the flow on the view where its ends are separate shapes. put_flow answers with how each step reads there: an end written "X in Y" is drawn as Y.
 - A step may carry animation (send, call, callback or event) so it plays as something travelling between the two shapes. Tag only a step whose way of travelling adds to its text: call when the sender waits for the answer, send or event when it doesn't, callback when something sets off a reply to a subscriber (trigger: "outside" when that came in at the step before). Leave most steps untagged, and make the text read the same with the motion off.
+- Neighbouring steps may be a group, declared once under groups and joined with group on each step. A repeat is the same steps run again: times is the limit the code really has (never a number for the picture), and until says what stops it; the backoff goes in the group's text. A branch is alternatives: each lane starts at the step that says lane, named by its condition in plain words, and every lane is told in turn. A failure that is a single step can be a lane; one that is a story stays its own flow. Parallel lanes all start together: a fan-out to several receivers is one-step lanes, so every step still has one "to". Keep a group's steps next to each other, and don't put one group inside another. A step may say flow: the id of another flow that tells what happens next. Say in the step text what the group says, so the text reads the same without it.
 - A step's More (its description) holds why, timing, failure behaviour or limits, not a repeat of the step.
 After writing: every write is checked, and a write that would add a problem is refused and nothing is saved. Read the answer, fix the cause (find the right path, name or end) and write again. Don't repeat the same call or drop the field to get past it. Finish by saying what you read from the code, what you inferred and what you left out.`
 
@@ -208,8 +209,11 @@ export function createMcpServer(dir: string): McpServer {
       name: z.string().describe('Title, e.g. "Customer checks out"'),
       view: z.string().max(64).describe('"root" or the id of an object with children. Every step must be visible there.'),
       groups: z.record(z.string().max(64), z.strictObject({
-        kind: z.enum(GROUP_KINDS), times: z.union([z.number().int(), z.string()]).optional(), until: z.string().optional(), text: z.string().optional(),
-      })).optional(),
+        kind: z.enum(GROUP_KINDS).describe('repeat (the same steps again), branch (one of several lanes) or parallel (every lane at once)'),
+        times: z.union([z.number().int(), z.string()]).optional().describe('repeat only: how many times in all, the first run included, 2 to 99. The limit the code really has.'),
+        until: z.string().optional().describe('repeat only: what stops it, in words'),
+        text: z.string().optional().describe('A few words for what the kind does not say, such as the backoff'),
+      })).optional().describe('Groups of neighbouring steps, by id (lowercase letters, digits and dashes). A step joins one with its "group".'),
       steps: z.array(z.object({
         from: z.string().max(64).describe('Id of the object the step starts at'),
         to: z.string().max(64).optional().describe('Id of the object it goes to. Leave it out for a step where the "from" object does something on its own.'),
@@ -219,9 +223,9 @@ export function createMcpServer(dir: string): McpServer {
           z.string(),
           z.strictObject({ kind: z.string(), trigger: z.string().optional(), carries: z.string().optional() }),
         ]).optional().describe(`How the step plays when a reader steps to it: ${ANIMATION_KINDS.join(', ')}, or { kind, trigger: "inside" | "outside" (callback only), carries: a word }. Optional: a step without one does not move.`),
-        group: z.string().max(64).optional(),
-        lane: z.string().optional(),
-        flow: z.string().max(64).optional(),
+        group: z.string().max(64).optional().describe('The id of the group (under groups) this step belongs to. The steps of a group sit next to each other.'),
+        lane: z.string().optional().describe('Branch and parallel groups only: starts a lane at this step, named in plain words (for a branch, the condition). The steps after it in the group belong to it until the next lane. The first step of a branch or parallel group needs one.'),
+        flow: z.string().max(64).optional().describe('The id of another flow that tells what happens next. It must exist.'),
       })).min(1),
     },
   }, input => write(m => putFlow(m, input), before => readout(before, input))) // a flow changes no box, so `before` places it right
