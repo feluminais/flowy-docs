@@ -8,7 +8,7 @@ const READING: [string, string][] = [
   ['Enter', 'Open the selected shape'],
   ['Esc', "Close what's open, then go up a level"],
   ['Backspace  Z', 'Zoom out: go up a level'],
-  ['Ctrl+K or /', 'Find a shape'],
+  ['Ctrl+K  /', 'Find a shape'],
   ['F', 'Fit the view'],
   ['L', 'Show every flow, and play one'],
   ['O', 'Show everything as a tree'],
@@ -34,7 +34,7 @@ const EDITING: [string, string][] = [
   ['Delete', 'Delete the selected shape or line'],
   ['Ctrl+Z', 'Undo'],
   ['Esc  Backspace', 'Straight after dragging a shape: take the drag back'],
-  ['Ctrl+Y', 'Redo (Ctrl+Shift+Z works too)'],
+  ['Ctrl+Y  Ctrl+Shift+Z', 'Redo'],
 ]
 
 /** Two spaces between keys that do the same thing: each is its own cap. */
