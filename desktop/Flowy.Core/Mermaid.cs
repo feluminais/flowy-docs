@@ -85,13 +85,14 @@ public static partial class Mermaid
         var steps = flow.Steps.Select(s =>
         {
             var (a, b) = Views.PlaceStep(model, flow.View, s.From, s.To) ?? (s.From ?? "", string.IsNullOrEmpty(s.To) ? s.From ?? "" : s.To);
-            return (A: a, B: b, Text: Text(s.Text ?? ""));
+            // A good recursion tag on a step with no "to"; anything else that looks like one is not.
+            return (A: a, B: b, Text: Text(s.Text ?? ""), Recursion: Animations.Read(s) is { Kind: "recurse" });
         }).ToList();
         var n = Ids(steps.SelectMany(s => new[] { s.A, s.B }));
         var lines = new List<string> { "sequenceDiagram" };
         lines.AddRange(n.Select(kv => $"  {(model.GetObject(kv.Key)?.Type == "actor" ? "actor" : "participant")} {kv.Value} as {NameOf(model, kv.Key)}"));
-        // A step one box does on its own is a note over it.
-        lines.AddRange(steps.Select(s => s.A == s.B ? $"  Note over {n[s.A]}: {s.Text}" : $"  {n[s.A]}->>{n[s.B]}: {s.Text}"));
+        // A step one box does on its own is a note over it, unless it is a recursion: that is an arrow back to the same box.
+        lines.AddRange(steps.Select(s => s.A != s.B ? $"  {n[s.A]}->>{n[s.B]}: {s.Text}" : s.Recursion ? $"  {n[s.A]}->>{n[s.A]}: {s.Text}" : $"  Note over {n[s.A]}: {s.Text}"));
         return string.Join('\n', lines) + "\n";
     }
 }

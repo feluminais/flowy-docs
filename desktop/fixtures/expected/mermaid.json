@@ -160,6 +160,25 @@
         }
       ],
       "flows": []
+    },
+    {
+      "folder": "desktop/fixtures/cases/recurse/flowy",
+      "views": [
+        {
+          "view": "root",
+          "text": "flowchart TB\n  n0([\"Customer<br/>actor\"])\n  n1[\"Shop<br/>system\"]\n  n2[\"Stripe<br/>system\"]\n  n0 -- \"browses\" --> n1\n"
+        },
+        {
+          "view": "shop",
+          "text": "flowchart TB\n  n0[\"Web app<br/>app\"]\n  n1[\"API<br/>app\"]\n  n2[(\"Orders DB<br/>store\")]\n  n3([\"Customer<br/>actor\"])\n  n3 -- \"browses\" --> n0\n  n0 -- \"REST\" --> n1\n  n1 -- \"reads and writes\" --> n2\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+        }
+      ],
+      "flows": [
+        {
+          "flow": "recursion",
+          "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Orders DB\n  n0->>n0: Walks the category tree\n  n0->>n0: Follows the CNAME\n  Note over n0: Too shallow\n  n0->>n1: Recurse with a to\n  Note over n0: Recurse to itself\n  Note over n0: Wrong option\n"
+        }
+      ]
     }
   ]
 }

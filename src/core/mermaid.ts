@@ -1,5 +1,6 @@
 import { colorPair, isColor, isOpacity, fillOpacity, shapeOf, typeColor } from './look.ts'
 import type { Shape } from './look.ts'
+import { animationOf } from './animation.ts'
 import { getObject, ROOT } from './model.ts'
 import type { Model } from './model.ts'
 import { computeView, placeStep } from './views.ts'
@@ -74,12 +75,16 @@ export function flowToMermaid(model: Model, flowId: string): string {
   const flow = Object.hasOwn(model.flows, flowId) ? model.flows[flowId] : undefined
   if (!flow) throw new Error(`unknown flow "${flowId}"`)
   // A step the view can't show (the checker reports it) keeps its own ends.
-  const steps = flow.steps.map(s => ({ ends: placeStep(model, flow.view, s) ?? [s.from, s.to || s.from], text: mermaidText(String(s.text ?? '')) }))
+  const steps = flow.steps.map(s => ({
+    ends: placeStep(model, flow.view, s) ?? [s.from, s.to || s.from],
+    text: mermaidText(String(s.text ?? '')),
+    recursion: animationOf(s)?.kind === 'recurse', // a good tag on a step with no "to"; anything else that looks like one is not
+  }))
   const n = ids([...new Set(steps.flatMap(s => s.ends))])
   return [
     'sequenceDiagram',
     ...[...n].map(([id, m]) => `  ${getObject(model, id)?.type === 'actor' ? 'actor' : 'participant'} ${m} as ${nameOf(model, id)}`),
-    // A step one box does on its own is a note over it.
-    ...steps.map(({ ends: [a, b], text }) => (a === b ? `  Note over ${n.get(a)}: ${text}` : `  ${n.get(a)}->>${n.get(b)}: ${text}`)),
+    // A step one box does on its own is a note over it, unless it is a recursion: that is an arrow back to the same box.
+    ...steps.map(({ ends: [a, b], text, recursion }) => (a === b ? (recursion ? `  ${n.get(a)}->>${n.get(a)}: ${text}` : `  Note over ${n.get(a)}: ${text}`) : `  ${n.get(a)}->>${n.get(b)}: ${text}`)),
   ].join('\n') + '\n'
 }

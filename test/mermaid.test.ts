@@ -55,6 +55,22 @@ test('a one-box step is a note over that box', () => {
   assert.match(flowToMermaid(m, 'checkout'), /\n {2}Note over n2: Checks stock\n$/)
 })
 
+test('a recursion is an arrow back to the same shape, and nothing that only looks like one is', () => {
+  const m = shop()
+  m.flows.checkout.steps = [
+    { from: 'api', text: 'Walks the tree', animation: 'recurse' },
+    { from: 'api', text: 'Plain note' },
+    { from: 'api', text: 'Bad depth', animation: { kind: 'recurse', depth: '9' } },
+    { from: 'api', to: 'api', text: 'To itself', animation: 'recurse' },
+    { from: 'api', to: 'db', text: 'Recurse with a to', animation: 'recurse' },
+    { from: 'api', text: 'Not a recursion', animation: 'call' },
+  ]
+  const text = flowToMermaid(m, 'checkout')
+  assert.match(text, /\n {2}(n\d+)->>\1: Walks the tree\n/)
+  for (const note of ['Plain note', 'Bad depth', 'To itself', 'Not a recursion']) assert.match(text, new RegExp(`\\n {2}Note over n\\d+: ${note}\\n`), note)
+  assert.match(text, /\n {2}(n\d+)->>(?!\1)n\d+: Recurse with a to\n/)
+})
+
 test('a backtick is escaped too, since one right after a quote starts Mermaid markdown', () => {
   assert.equal(mermaidText('`flowy` CLI'), '#96;flowy#96; CLI')
 })
