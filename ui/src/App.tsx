@@ -14,7 +14,7 @@ import { otherLaneSteps, stopIndexOf, stopsOf } from '../../src/core/structure.t
 import { knee, traffic as trafficOf } from '../../src/core/perf.ts'
 import { expandTo, outline } from '../../src/core/outline.ts'
 import type { OutlineRow } from '../../src/core/outline.ts'
-import { chain, hasChildren, nameOf, parentOf, placeEnds, placeStep, stepEnds } from '../../src/core/views.ts'
+import { chain, hasChildren, isView, nameOf, parentOf, placeEnds, placeStep, stepEnds } from '../../src/core/views.ts'
 import { Box, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
 import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pencil, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
@@ -211,14 +211,17 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
     return p && stop.kind && caption.marks[n] !== '' ? [{ ends: p, text: caption.marks[n], kind: stop.kind }] : []
   }) : []
   // A stop settles when every motion in it has finished, not the first.
-  const finishedSteps = useRef({ key: '', done: new Set<number>() })
+  const finishedSteps = useRef(new Set<number>())
+  useEffect(() => {
+    finishedSteps.current = new Set()
+  }, [stepKey])
   const finished = (i: number) => {
-    if (finishedSteps.current.key !== stepKey) finishedSteps.current = { key: stepKey, done: new Set() }
-    finishedSteps.current.done.add(i)
-    if (finishedSteps.current.done.size >= animated.length) setSettledKey(stepKey)
+    finishedSteps.current.add(i)
+    if (finishedSteps.current.size >= animated.length) setSettledKey(stepKey)
   }
   const lastLeft = playing?.trail?.at(-1)
-  const trail = flow && lastLeft ? { name: model.flows[lastLeft.flow]?.name ?? lastLeft.flow, step: lastLeft.step + 1 } : undefined
+  const leftFlow = lastLeft && Object.hasOwn(model.flows, lastLeft.flow) ? model.flows[lastLeft.flow] : undefined
+  const trail = flow && lastLeft ? { name: leftFlow?.name ?? lastLeft.flow, step: Math.min(lastLeft.step, leftFlow ? stopsOf(leftFlow).length - 1 : lastLeft.step) + 1 } : undefined
   const graph = useMemo(() => toGraph(model, view, shown, problems), [model, view, shown, problems])
   const load = loadTest ? loadAt(loadTest, here) : 0
   const loadTraffic = useMemo(() => (perfOpen && loadTest ? trafficOf(model, loadTest, load, view) : undefined), [perfOpen, model, loadTest, load, view])
@@ -371,7 +374,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   /** A step's story continues in another flow: open it (on its own view), leaving the place to come back to. */
   const openLinked = (id: string) => {
     const f = Object.hasOwn(model.flows, id) ? model.flows[id] : undefined
-    if (!playing || !f || f.steps.length === 0) return
+    if (!playing || !f || f.steps.length === 0 || !isView(model, f.view)) return // a flow whose view can't open can't play
     if (f.view !== view) go(f.view)
     setPlaying({ flow: id, step: 0, trail: leaveFlow(playing.trail ?? [], { flow: playing.flow, step: stopIndex }) })
   }
@@ -379,7 +382,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const goBack = () => {
     const closed = closeFlow(playing?.trail ?? [])
     const parent = closed && Object.hasOwn(model.flows, closed.back.flow) ? model.flows[closed.back.flow] : undefined
-    if (!closed || !parent) return setPlaying(undefined) // the flow it came from is gone
+    if (!closed || !parent || !isView(model, parent.view)) return setPlaying(undefined) // the flow it came from is gone, or can't play any more
     if (parent.view !== view) go(parent.view)
     setPlaying({ flow: closed.back.flow, step: closed.back.step, ...(closed.trail.length > 0 ? { trail: closed.trail } : {}) })
   }

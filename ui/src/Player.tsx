@@ -1,7 +1,7 @@
 import type { Caption, Progress } from '../../src/core/captions.ts'
 import type { Flow, Model } from '../../src/core/model.ts'
 import type { GroupKind, Stop } from '../../src/core/structure.ts'
-import { stepEnds } from '../../src/core/views.ts'
+import { isView, stepEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { Chip } from './Chrome.tsx'
 import { ArrowLeft, ArrowRight, ArrowsSplit, Close, GitFork, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
@@ -87,7 +87,7 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, auto
             )}
             {target && (
               <div className="player-buttons flow-link">
-                <button disabled={target.steps.length === 0} onClick={() => onOpenFlow(link!)}><Route size={16} />Open flow: {target.name || link}</button>
+                <button disabled={target.steps.length === 0 || !isView(model, target.view)} onClick={() => onOpenFlow(link!)}><Route size={16} />Open flow: {target.name || link}</button>
               </div>
             )}
           </div>
