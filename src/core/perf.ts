@@ -126,3 +126,29 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
   })
   return { run: { name: name ?? id, ...(about === undefined ? {} : { about }), unit: unit ?? 'load', ...(entry === undefined ? {} : { entry }), levels }, problems }
 }
+
+/**
+ * What a run says that the model doesn't back up: an `entry` or an object that isn't there, a connection that
+ * isn't one of the model's. Each is reported once, however many levels repeat it. The numbers can't quietly
+ * point at things that are gone, the rule `code` paths already follow.
+ */
+export function checkRun(id: string, run: Run, model: Model): Problem[] {
+  const file = `perf/${id}.yaml`
+  const problems: Problem[] = []
+  const said = new Set<string>()
+  const once = (message: string) => {
+    if (said.has(message)) return
+    said.add(message)
+    problems.push({ file, message })
+  }
+  if (run.entry !== undefined && !getObject(model, run.entry)) once(`entry "${run.entry}" is not an object`)
+  for (const level of run.levels) {
+    for (const oid of Object.keys(level.objects)) if (!getObject(model, oid)) once(`unknown object "${oid}"`)
+    for (const { from, to } of level.connections) {
+      const unknown = [from, to].filter(end => !getObject(model, end))
+      for (const end of unknown) once(`unknown object "${end}"`)
+      if (unknown.length === 0 && !model.connections.some(c => c.from === from && c.to === to)) once(`${from} → ${to} is not a connection in the model`)
+    }
+  }
+  return problems
+}
