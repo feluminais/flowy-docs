@@ -237,6 +237,52 @@ public class ReaderTests
     }
 
     [AvaloniaFact]
+    public void A_second_click_on_a_box_closes_its_panel()
+    {
+        var (window, reader) = Open();
+        void Click(string id)
+        {
+            window.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick(3);
+            var at = ((Visual)reader.Canvas.BoxControlFor(id)!).TranslatePoint(new Point(100, 25), window)!.Value;
+            window.MouseDown(at, MouseButton.Left);
+            window.MouseUp(at, MouseButton.Left);
+        }
+
+        Click("customer");
+        Assert.Equal("customer", reader.SelectedBoxId);
+        Click("customer");
+        Assert.False(reader.HasPanel);
+
+        Click("customer");
+        Click("ordering"); // another box changes the panel, as before
+        Assert.Equal("ordering", reader.SelectedBoxId);
+        Click("ordering");
+        Assert.False(reader.HasPanel);
+    }
+
+    [AvaloniaFact]
+    public void A_second_click_on_the_outline_round_the_level_closes_Details()
+    {
+        var (window, reader) = Open();
+        reader.GoTo("ordering");
+        Dispatcher.UIThread.RunJobs();
+        var frame = reader.Canvas.Scene!.Frame!.Value;
+        var vp = reader.Canvas.Viewport;
+        var onEdge = reader.Canvas.TranslatePoint(new Point(frame.X * vp.Zoom + vp.X, (frame.Y + frame.Height / 2) * vp.Zoom + vp.Y), window)!.Value;
+
+        window.MouseDown(onEdge, MouseButton.Left);
+        window.MouseUp(onEdge, MouseButton.Left);
+        Assert.True(reader.DetailsOpenNow);
+
+        window.MouseDown(onEdge, MouseButton.Left);
+        window.MouseUp(onEdge, MouseButton.Left);
+        Assert.False(reader.DetailsOpenNow);
+        Assert.Equal("ordering", reader.View);
+    }
+
+    [AvaloniaFact]
     public void A_reload_keeps_where_the_reader_is_and_closes_a_panel_whose_box_is_gone()
     {
         var (_, reader) = Open();

@@ -138,6 +138,11 @@ internal sealed partial class ReaderView : Grid
             _opening?.Stop();
             var edge = Scene()?.Edges.FirstOrDefault(e => e.Id == id);
             if (edge is null) return;
+            if (_side is { Kind: SideKind.Line } line && line.From == edge.From && line.To == edge.To)
+            {
+                CloseDetails(); // its panel is already open: a second click closes it
+                return;
+            }
             _side = new Side(SideKind.Line, From: edge.From, To: edge.To);
             Refresh();
         };
@@ -749,6 +754,11 @@ internal sealed partial class ReaderView : Grid
     {
         _opening?.Stop();
         _undoMove = false;
+        if (_details && _side is null)
+        {
+            CloseDetails(); // its Details are already showing: a second click closes them
+            return;
+        }
         _side = null;
         _details = true;
         Refresh();
@@ -762,6 +772,11 @@ internal sealed partial class ReaderView : Grid
         if (Recording is { } rec)
         {
             PickBox(rec, id);
+            return;
+        }
+        if (_side is { Kind: SideKind.Object, Id: { } open } && open == id)
+        {
+            CloseDetails(); // its panel is already open: a second click closes it
             return;
         }
         // Zooming into a box is a double-click, and its first click must not open the panel. With a panel already open there's

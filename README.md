@@ -32,10 +32,11 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](docs/writin
 Open the Demo** shows Plum.
 
 **The browser version** does the same on any system that has Node, and it is where `export` and Claude's MCP server live.
-From the root of the repo:
+It runs from a [clone of this repo](#the-browser-version), since there is no npm package yet. From the root of the repo you
+want to read:
 
 ```bash
-npx flowy-docs
+node /path/to/flowy-docs/dist/cli.js
 ```
 
 Both read, and both edit. Press **E** to change a model by hand ([below](#edit-it)), or ask Claude
@@ -133,10 +134,10 @@ panel open.
 
 ## Let Claude build it
 
-From the root of the repo you want to document:
+From the root of the repo you want to document, once the clone is [built](#the-browser-version):
 
 ```bash
-claude mcp add flowy -- npx flowy-docs mcp
+claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
 Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and `flowy/flows/*.yaml`, points
@@ -184,7 +185,7 @@ written. **Ctrl+Z** takes back your last change, **Ctrl+Y** puts it back. Git ke
 People without the repo can read the model too:
 
 ```bash
-npx flowy-docs export
+node /path/to/flowy-docs/dist/cli.js export
 ```
 
 It writes a read-only copy of the canvas to `./flowy-site`. Put the folder on any static host, such as GitHub Pages, and
@@ -192,7 +193,7 @@ send the link. Embed the link to show it in Notion or Confluence. The export car
 
 For a README or a pull request, the app's **View › Copy as Mermaid** (the browser's **Mermaid** button) copies the view on
 screen, or the flow playing, as a Mermaid diagram that GitHub and GitLab draw. **View › Save Picture** saves the diagram as a
-PNG. This is Customer places an order, from `npx flowy-docs mermaid --flow place-order`:
+PNG. This is Customer places an order, from the command `mermaid --flow place-order`:
 
 ```mermaid
 sequenceDiagram
@@ -264,28 +265,27 @@ doesn't update itself.
 
 ## The browser version
 
-From the root of the repo you want to document:
+Clone the repo and build it once. It needs Node 22.18 or later:
 
 ```bash
-npx flowy-docs
+git clone https://github.com/feluminais/flowy-docs
+cd flowy-docs
+npm install
+npm run build
+```
+
+Then, from the root of the repo you want to document:
+
+```bash
+node /path/to/flowy-docs/dist/cli.js
 ```
 
 It prints a local address (port 4321, or the next free one) and opens it in your browser. The model lives in `./flowy`,
 which Flowy creates if it's missing. `--dir <folder>` uses another folder, `--port <number>` picks the port, and
-`--no-open` skips the browser. Needs Node 22.18 or later. It does everything the app does, plus `export`.
+`--no-open` skips the browser. It does everything the app does, plus `export`.
 
-<details>
-<summary>Not on npm? Run it from a clone</summary>
-
-`flowy.sh` (macOS, Linux, Git Bash) or `flowy.cmd` (Windows) does the same with the same flags. Run it from the repo
-you want to document. The first run installs and builds, which takes a moment. After a `git pull`, delete `dist/` to
-rebuild.
-
-```bash
-/path/to/flowy-docs/flowy.sh
-```
-
-</details>
+`flowy.sh` (macOS, Linux, Git Bash) and `flowy.cmd` (Windows) in the clone run the same command with the same flags, and
+build on the first run. After a `git pull`, run `npm install` and `npm run build` again.
 
 <details>
 <summary>Is it safe to run?</summary>
@@ -308,7 +308,7 @@ Flowy runs on your machine and touches only its model folder.
   document in its default app, anything else shown in its folder and not run (an app you pick under **File › Open Files
   With** may open any file in the repo). It keeps its recent folders, window size, line-style pick and that app in
   `state.json` in its own folder under your application data.
-- Through `npx flowy-docs mcp`, Claude gets eleven tools: three read the model and eight change its objects, icons,
+- Through the `mcp` command, Claude gets eleven tools: three read the model and eight change its objects, icons,
   connections and flows. None runs a command or reads a file outside the model folder.
 
 Treat a `flowy/` folder you didn't write like any other text from that repo. In the browser, descriptions are Markdown and
