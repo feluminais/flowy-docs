@@ -212,7 +212,7 @@ public class RecorderTests
 
         Press(Labelled(reader.Panel.CurrentRecorder!, "Delete flow"));
         await Until(() => !File.Exists(Path.Combine(dir, "flows", "browse.yaml")));
-        Assert.False(reader.HasPanel);
+        await Until(() => !reader.HasPanel); // the panel closes once the delete has been saved: a moment after the file goes
         await reader.UndoAsync();
         Assert.True(File.Exists(Path.Combine(dir, "flows", "browse.yaml")));
         Assert.Contains("name: Customer looks around", FlowFile(dir, "browse"));
