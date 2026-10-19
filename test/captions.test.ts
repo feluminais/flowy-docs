@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { captionOf, progressOf } from '../src/core/captions.ts'
 import type { Flow, Step } from '../src/core/model.ts'
-import { stopIndexOf, stopsOf } from '../src/core/structure.ts'
+import { otherLaneSteps, stopIndexOf, stopsOf } from '../src/core/structure.ts'
 
 const step = (extra: Partial<Step> = {}): Step => ({ from: 'a', to: 'b', text: 't', ...extra })
 const flowOf = (groups: Flow['groups'] | undefined, steps: Step[]): Flow => ({ name: 'F', view: 'root', ...(groups ? { groups } : {}), steps })
@@ -72,4 +72,14 @@ test('stopIndexOf finds the stop that holds a step, and answers the first stop f
   assert.equal(stopIndexOf(stops, 6), 5)
   assert.equal(stopIndexOf(stops, 4), 4)
   assert.equal(stopIndexOf(stops, 99), 0)
+})
+
+test('otherLaneSteps names the steps of the lanes a branch stop is not in, and nothing outside a branch', () => {
+  const stops = stopsOf(example)
+  assert.deepEqual(otherLaneSteps(stops, 2), [4])
+  assert.deepEqual(otherLaneSteps(stops, 3), [4])
+  assert.deepEqual(otherLaneSteps(stops, 4), [2, 3])
+  assert.deepEqual(otherLaneSteps(stops, 0), [])
+  assert.deepEqual(otherLaneSteps(stops, 5), [])
+  assert.deepEqual(otherLaneSteps(stops, 99), [])
 })
