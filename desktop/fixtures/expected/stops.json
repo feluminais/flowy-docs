@@ -1,0 +1,849 @@
+{
+  "flows": [
+    {
+      "id": "bad",
+      "runs": [
+        {
+          "group": "Bad Id",
+          "kind": "repeat",
+          "start": 0,
+          "end": 0,
+          "lanes": []
+        },
+        {
+          "group": "extra",
+          "kind": "repeat",
+          "start": 3,
+          "end": 3,
+          "lanes": []
+        },
+        {
+          "group": "wrongkind",
+          "kind": "branch",
+          "start": 4,
+          "end": 4,
+          "lanes": [
+            {
+              "label": "A",
+              "steps": [
+                4
+              ]
+            }
+          ]
+        },
+        {
+          "group": "badtimes",
+          "kind": "repeat",
+          "start": 5,
+          "end": 5,
+          "lanes": []
+        },
+        {
+          "group": "needs",
+          "kind": "repeat",
+          "start": 6,
+          "end": 6,
+          "lanes": []
+        },
+        {
+          "group": "solo",
+          "kind": "parallel",
+          "start": 7,
+          "end": 7,
+          "lanes": [
+            {
+              "label": "only",
+              "steps": [
+                7
+              ]
+            }
+          ]
+        },
+        {
+          "group": "rep",
+          "kind": "repeat",
+          "start": 8,
+          "end": 8,
+          "lanes": []
+        },
+        {
+          "group": "br",
+          "kind": "branch",
+          "start": 9,
+          "end": 11,
+          "lanes": [
+            {
+              "label": "",
+              "steps": [
+                9
+              ]
+            },
+            {
+              "label": "A",
+              "steps": [
+                10
+              ]
+            },
+            {
+              "label": "A",
+              "steps": [
+                11
+              ]
+            }
+          ]
+        },
+        {
+          "group": "a",
+          "kind": "repeat",
+          "start": 12,
+          "end": 12,
+          "lanes": []
+        },
+        {
+          "group": "b",
+          "kind": "repeat",
+          "start": 13,
+          "end": 13,
+          "lanes": []
+        },
+        {
+          "group": "a",
+          "kind": "repeat",
+          "start": 14,
+          "end": 14,
+          "lanes": []
+        },
+        {
+          "group": "b",
+          "kind": "repeat",
+          "start": 15,
+          "end": 15,
+          "lanes": []
+        }
+      ],
+      "stops": [
+        {
+          "steps": [
+            0
+          ],
+          "group": "Bad Id",
+          "kind": "repeat",
+          "before": []
+        },
+        {
+          "steps": [
+            1
+          ],
+          "before": [
+            0
+          ]
+        },
+        {
+          "steps": [
+            2
+          ],
+          "before": [
+            1
+          ]
+        },
+        {
+          "steps": [
+            3
+          ],
+          "group": "extra",
+          "kind": "repeat",
+          "before": [
+            2
+          ]
+        },
+        {
+          "steps": [
+            4
+          ],
+          "group": "wrongkind",
+          "kind": "branch",
+          "laneLabels": [
+            "A"
+          ],
+          "lanes": [
+            0
+          ],
+          "before": [
+            3
+          ]
+        },
+        {
+          "steps": [
+            5
+          ],
+          "group": "badtimes",
+          "kind": "repeat",
+          "before": [
+            4
+          ]
+        },
+        {
+          "steps": [
+            6
+          ],
+          "group": "needs",
+          "kind": "repeat",
+          "before": [
+            5
+          ]
+        },
+        {
+          "steps": [
+            7
+          ],
+          "group": "solo",
+          "kind": "parallel",
+          "laneLabels": [
+            "only"
+          ],
+          "lanes": [
+            0
+          ],
+          "before": [
+            6
+          ]
+        },
+        {
+          "steps": [
+            8
+          ],
+          "group": "rep",
+          "kind": "repeat",
+          "before": [
+            7
+          ]
+        },
+        {
+          "steps": [
+            9
+          ],
+          "group": "br",
+          "kind": "branch",
+          "laneLabels": [
+            "",
+            "A",
+            "A"
+          ],
+          "lanes": [
+            0
+          ],
+          "before": [
+            8
+          ]
+        },
+        {
+          "steps": [
+            10
+          ],
+          "group": "br",
+          "kind": "branch",
+          "laneLabels": [
+            "",
+            "A",
+            "A"
+          ],
+          "lanes": [
+            1
+          ],
+          "before": [
+            8
+          ]
+        },
+        {
+          "steps": [
+            11
+          ],
+          "group": "br",
+          "kind": "branch",
+          "laneLabels": [
+            "",
+            "A",
+            "A"
+          ],
+          "lanes": [
+            2
+          ],
+          "before": [
+            8
+          ]
+        },
+        {
+          "steps": [
+            12
+          ],
+          "group": "a",
+          "kind": "repeat",
+          "before": [
+            11
+          ]
+        },
+        {
+          "steps": [
+            13
+          ],
+          "group": "b",
+          "kind": "repeat",
+          "before": [
+            12
+          ]
+        },
+        {
+          "steps": [
+            14
+          ],
+          "group": "a",
+          "kind": "repeat",
+          "before": [
+            13
+          ]
+        },
+        {
+          "steps": [
+            15
+          ],
+          "group": "b",
+          "kind": "repeat",
+          "before": [
+            14
+          ]
+        },
+        {
+          "steps": [
+            16
+          ],
+          "before": [
+            15
+          ]
+        },
+        {
+          "steps": [
+            17
+          ],
+          "before": [
+            16
+          ]
+        },
+        {
+          "steps": [
+            18
+          ],
+          "before": [
+            17
+          ]
+        },
+        {
+          "steps": [
+            19
+          ],
+          "before": [
+            18
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blankish",
+      "runs": [
+        {
+          "group": "pick",
+          "kind": "branch",
+          "start": 1,
+          "end": 1,
+          "lanes": [
+            {
+              "label": "",
+              "steps": [
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "stops": [
+        {
+          "steps": [
+            0
+          ],
+          "before": []
+        },
+        {
+          "steps": [
+            1
+          ],
+          "group": "pick",
+          "kind": "branch",
+          "laneLabels": [
+            ""
+          ],
+          "lanes": [
+            0
+          ],
+          "before": [
+            0
+          ]
+        },
+        {
+          "steps": [
+            2
+          ],
+          "before": [
+            1
+          ]
+        },
+        {
+          "steps": [
+            3
+          ],
+          "before": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "capture-payment",
+      "runs": [],
+      "stops": [
+        {
+          "steps": [
+            0
+          ],
+          "before": []
+        },
+        {
+          "steps": [
+            1
+          ],
+          "before": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "numbered",
+      "runs": [],
+      "stops": [
+        {
+          "steps": [
+            0
+          ],
+          "before": []
+        },
+        {
+          "steps": [
+            1
+          ],
+          "before": [
+            0
+          ]
+        },
+        {
+          "steps": [
+            2
+          ],
+          "before": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ok",
+      "runs": [
+        {
+          "group": "charge",
+          "kind": "repeat",
+          "start": 0,
+          "end": 1,
+          "lanes": []
+        },
+        {
+          "group": "outcome",
+          "kind": "branch",
+          "start": 2,
+          "end": 4,
+          "lanes": [
+            {
+              "label": "Card accepted",
+              "steps": [
+                2,
+                3
+              ]
+            },
+            {
+              "label": "Card declined",
+              "steps": [
+                4
+              ]
+            }
+          ]
+        },
+        {
+          "group": "tell",
+          "kind": "parallel",
+          "start": 5,
+          "end": 6,
+          "lanes": [
+            {
+              "label": "Billing",
+              "steps": [
+                5
+              ]
+            },
+            {
+              "label": "Dispatch",
+              "steps": [
+                6
+              ]
+            }
+          ]
+        }
+      ],
+      "stops": [
+        {
+          "steps": [
+            0
+          ],
+          "group": "charge",
+          "kind": "repeat",
+          "before": []
+        },
+        {
+          "steps": [
+            1
+          ],
+          "group": "charge",
+          "kind": "repeat",
+          "before": [
+            0
+          ]
+        },
+        {
+          "steps": [
+            2
+          ],
+          "group": "outcome",
+          "kind": "branch",
+          "laneLabels": [
+            "Card accepted",
+            "Card declined"
+          ],
+          "lanes": [
+            0
+          ],
+          "before": [
+            1
+          ]
+        },
+        {
+          "steps": [
+            3
+          ],
+          "group": "outcome",
+          "kind": "branch",
+          "laneLabels": [
+            "Card accepted",
+            "Card declined"
+          ],
+          "lanes": [
+            0
+          ],
+          "before": [
+            2
+          ]
+        },
+        {
+          "steps": [
+            4
+          ],
+          "group": "outcome",
+          "kind": "branch",
+          "laneLabels": [
+            "Card accepted",
+            "Card declined"
+          ],
+          "lanes": [
+            1
+          ],
+          "before": [
+            1
+          ]
+        },
+        {
+          "steps": [
+            5,
+            6
+          ],
+          "group": "tell",
+          "kind": "parallel",
+          "laneLabels": [
+            "Billing",
+            "Dispatch"
+          ],
+          "lanes": [
+            0,
+            1
+          ],
+          "before": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shapes",
+      "runs": [
+        {
+          "group": "first",
+          "kind": "parallel",
+          "start": 0,
+          "end": 1,
+          "lanes": [
+            {
+              "label": "Billing",
+              "steps": [
+                0
+              ]
+            },
+            {
+              "label": "Dispatch",
+              "steps": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "group": "fan",
+          "kind": "parallel",
+          "start": 3,
+          "end": 8,
+          "lanes": [
+            {
+              "label": "A",
+              "steps": [
+                3,
+                4
+              ]
+            },
+            {
+              "label": "B",
+              "steps": [
+                5
+              ]
+            },
+            {
+              "label": "C",
+              "steps": [
+                6,
+                7,
+                8
+              ]
+            }
+          ]
+        },
+        {
+          "group": "maybe",
+          "kind": "branch",
+          "start": 9,
+          "end": 9,
+          "lanes": [
+            {
+              "label": "A courier is wanted",
+              "steps": [
+                9
+              ]
+            }
+          ]
+        },
+        {
+          "group": "poll",
+          "kind": "repeat",
+          "start": 10,
+          "end": 10,
+          "lanes": []
+        },
+        {
+          "group": "again",
+          "kind": "repeat",
+          "start": 11,
+          "end": 12,
+          "lanes": []
+        },
+        {
+          "group": "last",
+          "kind": "branch",
+          "start": 13,
+          "end": 13,
+          "lanes": [
+            {
+              "label": "Last",
+              "steps": [
+                13
+              ]
+            }
+          ]
+        }
+      ],
+      "stops": [
+        {
+          "steps": [
+            0,
+            1
+          ],
+          "group": "first",
+          "kind": "parallel",
+          "laneLabels": [
+            "Billing",
+            "Dispatch"
+          ],
+          "lanes": [
+            0,
+            1
+          ],
+          "before": []
+        },
+        {
+          "steps": [
+            2
+          ],
+          "before": [
+            0,
+            1
+          ]
+        },
+        {
+          "steps": [
+            3,
+            5,
+            6
+          ],
+          "group": "fan",
+          "kind": "parallel",
+          "laneLabels": [
+            "A",
+            "B",
+            "C"
+          ],
+          "lanes": [
+            0,
+            1,
+            2
+          ],
+          "before": [
+            2
+          ]
+        },
+        {
+          "steps": [
+            4,
+            7
+          ],
+          "group": "fan",
+          "kind": "parallel",
+          "laneLabels": [
+            "A",
+            "B",
+            "C"
+          ],
+          "lanes": [
+            0,
+            2
+          ],
+          "before": [
+            3,
+            5,
+            6
+          ]
+        },
+        {
+          "steps": [
+            8
+          ],
+          "group": "fan",
+          "kind": "parallel",
+          "laneLabels": [
+            "A",
+            "B",
+            "C"
+          ],
+          "lanes": [
+            2
+          ],
+          "before": [
+            4,
+            7
+          ]
+        },
+        {
+          "steps": [
+            9
+          ],
+          "group": "maybe",
+          "kind": "branch",
+          "laneLabels": [
+            "A courier is wanted"
+          ],
+          "lanes": [
+            0
+          ],
+          "before": [
+            8
+          ]
+        },
+        {
+          "steps": [
+            10
+          ],
+          "group": "poll",
+          "kind": "repeat",
+          "before": [
+            9
+          ]
+        },
+        {
+          "steps": [
+            11
+          ],
+          "group": "again",
+          "kind": "repeat",
+          "before": [
+            10
+          ]
+        },
+        {
+          "steps": [
+            12
+          ],
+          "group": "again",
+          "kind": "repeat",
+          "before": [
+            11
+          ]
+        },
+        {
+          "steps": [
+            13
+          ],
+          "group": "last",
+          "kind": "branch",
+          "laneLabels": [
+            "Last"
+          ],
+          "lanes": [
+            0
+          ],
+          "before": [
+            12
+          ]
+        }
+      ]
+    }
+  ]
+}

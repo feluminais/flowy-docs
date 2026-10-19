@@ -177,6 +177,11 @@ public static class Checks
                 else if (viewOk && model.GetObject(s.From) is not null && model.GetObject(s.To) is not null && Views.PlaceStep(model, f.View, s.From, s.To) is null)
                     Sp($"{s.From} → {s.To} can't be shown in view \"{f.View}\"");
             }
+            foreach (var (step, message) in Structure.Problems(f, id => model.Flows.Contains(id)))
+            {
+                if (step is { } n) P($"step {n + 1}: {message}", n);
+                else P(message);
+            }
         }
         return problems;
     }

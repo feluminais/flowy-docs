@@ -1,0 +1,958 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop"
+    },
+    {
+      "id": "db",
+      "type": "store",
+      "name": "Orders DB",
+      "in": "shop"
+    },
+    {
+      "id": "billing",
+      "type": "app",
+      "name": "Billing",
+      "in": "shop"
+    },
+    {
+      "id": "dispatch",
+      "type": "app",
+      "name": "Dispatch",
+      "in": "shop"
+    },
+    {
+      "id": "stripe",
+      "type": "system",
+      "name": "Stripe",
+      "external": "true"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "api",
+      "label": "orders through"
+    },
+    {
+      "from": "api",
+      "to": "stripe",
+      "label": "charges with"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "label": "reads and writes"
+    },
+    {
+      "from": "api",
+      "to": "billing",
+      "label": "tells"
+    },
+    {
+      "from": "api",
+      "to": "dispatch",
+      "label": "tells"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "bad",
+      "name": "A little of everything wrong",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s1",
+          "group": "Bad Id",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s2",
+          "group": "nokind",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s3",
+          "group": "weird",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s4",
+          "group": "extra",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s5",
+          "group": "wrongkind",
+          "lane": "A",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s6",
+          "group": "badtimes",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s7",
+          "group": "needs",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s8",
+          "group": "solo",
+          "lane": "only",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s9",
+          "group": "rep",
+          "lane": "x",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s10",
+          "group": "br",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s11",
+          "group": "br",
+          "lane": "A",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s12",
+          "group": "br",
+          "lane": "A",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s13",
+          "group": "a",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s14",
+          "group": "b",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s15",
+          "group": "a",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s16",
+          "group": "b",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s17",
+          "group": "nope",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s18",
+          "lane": "loose",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s19",
+          "flow": "nowhere",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "s20",
+          "group": "constructor",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        }
+      ],
+      "groups": {
+        "Bad Id": {
+          "kind": "repeat",
+          "times": "2"
+        },
+        "nokind": {},
+        "weird": {
+          "kind": "loop"
+        },
+        "extra": {
+          "kind": "repeat",
+          "times": "2",
+          "in": "x"
+        },
+        "wrongkind": {
+          "kind": "branch",
+          "times": "3",
+          "until": "x"
+        },
+        "badtimes": {
+          "kind": "repeat",
+          "times": "1"
+        },
+        "needs": {
+          "kind": "repeat"
+        },
+        "unused": {
+          "kind": "repeat",
+          "times": "2"
+        },
+        "solo": {
+          "kind": "parallel"
+        },
+        "rep": {
+          "kind": "repeat",
+          "times": "2"
+        },
+        "br": {
+          "kind": "branch"
+        },
+        "a": {
+          "kind": "repeat",
+          "times": "2"
+        },
+        "b": {
+          "kind": "repeat",
+          "times": "2"
+        }
+      }
+    },
+    {
+      "id": "blankish",
+      "name": "Values that look blank",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "api",
+          "to": "db",
+          "text": "A group of one invisible character is no group",
+          "group": "﻿",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "A lane of one next-line character is a lane",
+          "group": "pick",
+          "lane": "",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "A blank flow is none",
+          "flow": " ",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "A blank lane with no group is none",
+          "lane": " ",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        }
+      ],
+      "groups": {
+        "pick": {
+          "kind": "branch"
+        }
+      }
+    },
+    {
+      "id": "capture-payment",
+      "name": "Capture a payment",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "billing",
+          "to": "db",
+          "text": "Records the charge against the order",
+          "placed": [
+            "billing",
+            "db"
+          ],
+          "ends": "Billing → Orders DB"
+        },
+        {
+          "from": "billing",
+          "text": "Closes the invoice",
+          "placed": [
+            "billing",
+            "billing"
+          ],
+          "ends": "Billing"
+        }
+      ]
+    },
+    {
+      "id": "numbered",
+      "name": "Group ids that look like numbers",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "api",
+          "to": "db",
+          "text": "First",
+          "group": "b",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Second",
+          "group": "10",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Third",
+          "group": "2",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        }
+      ],
+      "groups": {
+        "2": {
+          "kind": "loop"
+        },
+        "10": {
+          "kind": "loop"
+        },
+        "b": {
+          "kind": "loop"
+        },
+        "a": {
+          "kind": "repeat",
+          "times": "2"
+        }
+      }
+    },
+    {
+      "id": "ok",
+      "name": "Customer pays for an order",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "api",
+          "to": "stripe",
+          "text": "Charges the card",
+          "group": "charge",
+          "placed": [
+            "api",
+            "stripe"
+          ],
+          "ends": "API → Stripe"
+        },
+        {
+          "from": "stripe",
+          "to": "api",
+          "text": "Times out at the bank",
+          "group": "charge",
+          "placed": [
+            "stripe",
+            "api"
+          ],
+          "ends": "Stripe → API"
+        },
+        {
+          "from": "stripe",
+          "to": "api",
+          "text": "Reports the charge settled",
+          "group": "outcome",
+          "lane": "Card accepted",
+          "placed": [
+            "stripe",
+            "api"
+          ],
+          "ends": "Stripe → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Marks the order paid",
+          "group": "outcome",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "stripe",
+          "to": "api",
+          "text": "Reports the final decline",
+          "group": "outcome",
+          "lane": "Card declined",
+          "placed": [
+            "stripe",
+            "api"
+          ],
+          "ends": "Stripe → API"
+        },
+        {
+          "from": "api",
+          "to": "billing",
+          "text": "Tells Billing",
+          "group": "tell",
+          "lane": "Billing",
+          "flow": "capture-payment",
+          "placed": [
+            "api",
+            "billing"
+          ],
+          "ends": "API → Billing"
+        },
+        {
+          "from": "api",
+          "to": "dispatch",
+          "text": "Tells Dispatch",
+          "group": "tell",
+          "lane": "Dispatch",
+          "placed": [
+            "api",
+            "dispatch"
+          ],
+          "ends": "API → Dispatch"
+        }
+      ],
+      "groups": {
+        "charge": {
+          "kind": "repeat",
+          "times": "3",
+          "text": "Backs off 1 s, 2 s, 4 s between tries"
+        },
+        "outcome": {
+          "kind": "branch"
+        },
+        "tell": {
+          "kind": "parallel"
+        }
+      }
+    },
+    {
+      "id": "shapes",
+      "name": "Every shape a group can take",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "api",
+          "to": "billing",
+          "text": "Starts together with Dispatch",
+          "group": "first",
+          "lane": "Billing",
+          "placed": [
+            "api",
+            "billing"
+          ],
+          "ends": "API → Billing"
+        },
+        {
+          "from": "api",
+          "to": "dispatch",
+          "text": "Starts together with Billing",
+          "group": "first",
+          "lane": "Dispatch",
+          "placed": [
+            "api",
+            "dispatch"
+          ],
+          "ends": "API → Dispatch"
+        },
+        {
+          "from": "api",
+          "to": "billing",
+          "text": "Asks Billing for a total",
+          "placed": [
+            "api",
+            "billing"
+          ],
+          "ends": "API → Billing"
+        },
+        {
+          "from": "api",
+          "to": "billing",
+          "text": "Lane A one",
+          "group": "fan",
+          "lane": "A",
+          "placed": [
+            "api",
+            "billing"
+          ],
+          "ends": "API → Billing"
+        },
+        {
+          "from": "billing",
+          "to": "db",
+          "text": "Lane A two",
+          "group": "fan",
+          "placed": [
+            "billing",
+            "db"
+          ],
+          "ends": "Billing → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "dispatch",
+          "text": "Lane B only",
+          "group": "fan",
+          "lane": "B",
+          "placed": [
+            "api",
+            "dispatch"
+          ],
+          "ends": "API → Dispatch"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Lane C one",
+          "group": "fan",
+          "lane": "C",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "db",
+          "to": "api",
+          "text": "Lane C two",
+          "group": "fan",
+          "placed": [
+            "db",
+            "api"
+          ],
+          "ends": "Orders DB → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Lane C three",
+          "group": "fan",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "dispatch",
+          "text": "Books a courier",
+          "group": "maybe",
+          "lane": "A courier is wanted",
+          "placed": [
+            "api",
+            "dispatch"
+          ],
+          "ends": "API → Dispatch"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Checks the job",
+          "group": "poll",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Saves",
+          "group": "again",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Saves once more",
+          "group": "again",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "billing",
+          "text": "Ends the flow",
+          "group": "last",
+          "lane": "Last",
+          "placed": [
+            "api",
+            "billing"
+          ],
+          "ends": "API → Billing"
+        }
+      ],
+      "groups": {
+        "first": {
+          "kind": "parallel"
+        },
+        "fan": {
+          "kind": "parallel"
+        },
+        "maybe": {
+          "kind": "branch"
+        },
+        "poll": {
+          "kind": "repeat",
+          "until": "the job is done"
+        },
+        "again": {
+          "kind": "repeat",
+          "times": "2"
+        },
+        "last": {
+          "kind": "branch"
+        }
+      }
+    }
+  ],
+  "problems": [
+    {
+      "file": "flows/bad.yaml",
+      "message": "group \"Bad Id\": ids use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "group \"nokind\": kind is missing (use repeat, branch, parallel)"
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "group \"weird\": unknown kind \"loop\" (use repeat, branch, parallel)"
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "group \"extra\": unknown option \"in\" (use kind, text, times, until)"
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "group \"wrongkind\": times only applies to repeat"
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "group \"wrongkind\": until only applies to repeat"
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "group \"badtimes\": times must be a whole number from 2 to 99"
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "group \"needs\": a repeat needs times or until"
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 9: lane only applies to branch and parallel",
+      "step": 8
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 10: the first step of group \"br\" needs a lane",
+      "step": 9
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 12: lane \"A\" is already used in group \"br\"",
+      "step": 11
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 14: sits inside the stretch of group \"a\" without belonging to it",
+      "step": 13
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 15: sits inside the stretch of group \"b\" without belonging to it",
+      "step": 14
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 17: group \"nope\" is not declared under groups",
+      "step": 16
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 18: lane needs a group",
+      "step": 17
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 19: unknown flow \"nowhere\"",
+      "step": 18
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 20: group \"constructor\" is not declared under groups",
+      "step": 19
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "group \"unused\": no step belongs to it"
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "group \"solo\": a parallel group needs at least two lanes"
+    },
+    {
+      "file": "flows/numbered.yaml",
+      "message": "group \"2\": unknown kind \"loop\" (use repeat, branch, parallel)"
+    },
+    {
+      "file": "flows/numbered.yaml",
+      "message": "group \"10\": unknown kind \"loop\" (use repeat, branch, parallel)"
+    },
+    {
+      "file": "flows/numbered.yaml",
+      "message": "group \"b\": unknown kind \"loop\" (use repeat, branch, parallel)"
+    },
+    {
+      "file": "flows/numbered.yaml",
+      "message": "group \"a\": no step belongs to it"
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "shop",
+        "stripe"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "orders through",
+          "count": 1
+        },
+        {
+          "from": "shop",
+          "to": "stripe",
+          "label": "charges with",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ],
+      "outsiders": [
+        "customer",
+        "stripe"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "api",
+          "label": "orders through",
+          "count": 1
+        },
+        {
+          "from": "api",
+          "to": "stripe",
+          "label": "charges with",
+          "count": 1
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "label": "reads and writes",
+          "count": 1
+        },
+        {
+          "from": "api",
+          "to": "billing",
+          "label": "tells",
+          "count": 1
+        },
+        {
+          "from": "api",
+          "to": "dispatch",
+          "label": "tells",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

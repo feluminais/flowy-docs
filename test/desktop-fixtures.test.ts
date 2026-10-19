@@ -8,6 +8,7 @@ import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
 import { dumpOutline } from '../desktop/fixtures/outline.ts'
 import { dumpPerf, dumpPerfView } from '../desktop/fixtures/perf.ts'
+import { dumpStops } from '../desktop/fixtures/structure.ts'
 import { dumpOps } from '../desktop/fixtures/ops.ts'
 import { dumpYamlWrite } from '../desktop/fixtures/yaml-write.ts'
 import { dumpNavigation, dumpScenes } from '../desktop/fixtures/scene.ts'
@@ -74,4 +75,9 @@ test('desktop load-test runs still read, roll up, struggle and draw as the TypeS
 test('desktop panel maths and words still match ui/src/perfview.ts', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('perf-view'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(await dumpPerfView())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop runs and stops of a flow\'s groups still match what the TypeScript core says', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('stops'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpStops())), expected, 'run: node desktop/fixtures/generate.ts')
 })

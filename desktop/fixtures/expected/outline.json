@@ -16085,6 +16085,1440 @@
         }
       ]
     },
+    "groups": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 6,
+            "problems": 23
+          }
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 6,
+            "problems": 23
+          }
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "shop"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:billing",
+              "kind": "shape",
+              "id": "billing",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Billing",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dispatch",
+              "kind": "shape",
+              "id": "dispatch",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Dispatch",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A little of everything wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 20,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:capture-payment",
+              "kind": "flow",
+              "id": "capture-payment",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Capture a payment",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ok",
+              "kind": "flow",
+              "id": "ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Customer pays for an order",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every shape a group can take",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 14,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Group ids that look like numbers",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:blankish",
+              "kind": "flow",
+              "id": "blankish",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Values that look blank",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 6,
+            "problems": 23
+          }
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "api",
+            "db",
+            "billing",
+            "dispatch",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:billing",
+              "kind": "shape",
+              "id": "billing",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Billing",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dispatch",
+              "kind": "shape",
+              "id": "dispatch",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Dispatch",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A little of everything wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 20,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:capture-payment",
+              "kind": "flow",
+              "id": "capture-payment",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Capture a payment",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ok",
+              "kind": "flow",
+              "id": "ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Customer pays for an order",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every shape a group can take",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 14,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Group ids that look like numbers",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:blankish",
+              "kind": "flow",
+              "id": "blankish",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Values that look blank",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 6,
+            "problems": 23
+          }
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "api",
+            "db",
+            "billing",
+            "dispatch",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:billing",
+              "kind": "shape",
+              "id": "billing",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Billing",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dispatch",
+              "kind": "shape",
+              "id": "dispatch",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Dispatch",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A little of everything wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 20,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:capture-payment",
+              "kind": "flow",
+              "id": "capture-payment",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Capture a payment",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ok",
+              "kind": "flow",
+              "id": "ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Customer pays for an order",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every shape a group can take",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 14,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Group ids that look like numbers",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:blankish",
+              "kind": "flow",
+              "id": "blankish",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Values that look blank",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 6,
+            "problems": 23
+          }
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dispatch",
+              "kind": "shape",
+              "id": "dispatch",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Dispatch",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A little of everything wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 20,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:capture-payment",
+              "kind": "flow",
+              "id": "capture-payment",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Capture a payment",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ok",
+              "kind": "flow",
+              "id": "ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Customer pays for an order",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every shape a group can take",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 14,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Group ids that look like numbers",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:blankish",
+              "kind": "flow",
+              "id": "blankish",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Values that look blank",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 6,
+            "problems": 23
+          }
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [],
+          "totals": {
+            "shapes": 7,
+            "flows": 6,
+            "problems": 23
+          }
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 6,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 6,
+            "problems": 23
+          }
+        }
+      ],
+      "groups": [
+        {
+          "view": "root",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "bad",
+                  "name": "A little of everything wrong",
+                  "steps": 20,
+                  "view": "shop"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "Capture a payment",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "ok",
+                  "name": "Customer pays for an order",
+                  "steps": 7,
+                  "view": "shop"
+                },
+                {
+                  "id": "shapes",
+                  "name": "Every shape a group can take",
+                  "steps": 14,
+                  "view": "shop"
+                },
+                {
+                  "id": "numbered",
+                  "name": "Group ids that look like numbers",
+                  "steps": 3,
+                  "view": "shop"
+                },
+                {
+                  "id": "blankish",
+                  "name": "Values that look blank",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        },
+        {
+          "view": "root",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "bad",
+                  "name": "A little of everything wrong",
+                  "steps": 20,
+                  "view": "shop"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "Capture a payment",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "ok",
+                  "name": "Customer pays for an order",
+                  "steps": 7,
+                  "view": "shop"
+                },
+                {
+                  "id": "shapes",
+                  "name": "Every shape a group can take",
+                  "steps": 14,
+                  "view": "shop"
+                },
+                {
+                  "id": "numbered",
+                  "name": "Group ids that look like numbers",
+                  "steps": 3,
+                  "view": "shop"
+                },
+                {
+                  "id": "blankish",
+                  "name": "Values that look blank",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        },
+        {
+          "view": "shop",
+          "editing": false,
+          "here": [
+            {
+              "id": "bad",
+              "name": "A little of everything wrong",
+              "steps": 20,
+              "view": "shop"
+            },
+            {
+              "id": "capture-payment",
+              "name": "Capture a payment",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "ok",
+              "name": "Customer pays for an order",
+              "steps": 7,
+              "view": "shop"
+            },
+            {
+              "id": "shapes",
+              "name": "Every shape a group can take",
+              "steps": 14,
+              "view": "shop"
+            },
+            {
+              "id": "numbered",
+              "name": "Group ids that look like numbers",
+              "steps": 3,
+              "view": "shop"
+            },
+            {
+              "id": "blankish",
+              "name": "Values that look blank",
+              "steps": 4,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [],
+          "total": 6
+        },
+        {
+          "view": "shop",
+          "editing": true,
+          "here": [
+            {
+              "id": "bad",
+              "name": "A little of everything wrong",
+              "steps": 20,
+              "view": "shop"
+            },
+            {
+              "id": "capture-payment",
+              "name": "Capture a payment",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "ok",
+              "name": "Customer pays for an order",
+              "steps": 7,
+              "view": "shop"
+            },
+            {
+              "id": "shapes",
+              "name": "Every shape a group can take",
+              "steps": 14,
+              "view": "shop"
+            },
+            {
+              "id": "numbered",
+              "name": "Group ids that look like numbers",
+              "steps": 3,
+              "view": "shop"
+            },
+            {
+              "id": "blankish",
+              "name": "Values that look blank",
+              "steps": 4,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [],
+          "total": 6
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": true,
+          "opened": [
+            "customer",
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": true,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "api",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "api",
+          "self": true,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": true,
+          "opened": [
+            "db",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "billing",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "billing",
+          "self": true,
+          "opened": [
+            "billing",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "dispatch",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "dispatch",
+          "self": true,
+          "opened": [
+            "dispatch",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": true,
+          "opened": [
+            "root",
+            "stripe"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
+    },
     "shape-groups": {
       "parseError": true
     },

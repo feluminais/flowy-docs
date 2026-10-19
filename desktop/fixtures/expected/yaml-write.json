@@ -2006,6 +2006,61 @@
       "text": "steps:\n  - from: a\n    to: b\n    text: x\n    animation:\n      kind: callback\n      trigger: outside\n      carries: receipt\n  - from: b\n    text: y\n    animation: call\n"
     },
     {
+      "name": "groups before steps",
+      "data": {
+        "name": "Pays",
+        "view": "shop",
+        "groups": {
+          "charge": {
+            "kind": "repeat",
+            "times": "3",
+            "text": "Backs off 1 s, 2 s, 4 s"
+          },
+          "tell": {
+            "kind": "parallel"
+          }
+        },
+        "steps": [
+          {
+            "from": "a",
+            "to": "b",
+            "text": "x",
+            "group": "charge"
+          },
+          {
+            "from": "a",
+            "to": "c",
+            "text": "y",
+            "group": "tell",
+            "lane": "Billing",
+            "flow": "capture-payment"
+          }
+        ]
+      },
+      "text": "name: Pays\nview: shop\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    text: Backs off 1 s, 2 s, 4 s\n  tell:\n    kind: parallel\nsteps:\n  - from: a\n    to: b\n    text: x\n    group: charge\n  - from: a\n    to: c\n    text: y\n    group: tell\n    lane: Billing\n    flow: capture-payment\n"
+    },
+    {
+      "name": "integer-like group ids",
+      "data": {
+        "name": "N",
+        "groups": {
+          "2": {
+            "kind": "repeat",
+            "times": "2"
+          },
+          "10": {
+            "kind": "loop"
+          },
+          "b": {
+            "kind": "repeat",
+            "until": "the job is done"
+          }
+        },
+        "steps": []
+      },
+      "text": "name: N\ngroups:\n  2:\n    kind: repeat\n    times: 2\n  10:\n    kind: loop\n  b:\n    kind: repeat\n    until: the job is done\nsteps: []\n"
+    },
+    {
       "name": "top-level list",
       "data": [
         "a",
@@ -2202,6 +2257,33 @@
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\perf\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\groups\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-groups\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-group\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
