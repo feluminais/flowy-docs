@@ -438,6 +438,18 @@ export function lineEnds(a: Rect, b: Rect, edgeA: Outline = [], edgeB: Outline =
   return [leave(a, edgeA, b), leave(b, edgeB, a)]
 }
 
+/**
+ * The path of a recursion's loop pipe for a box: it leaves the shape's outline on the right a little above the middle, swings out
+ * to the right (about 70 px) and comes back in a little below the middle. Starting and ending on the outline keeps it attached to
+ * a diamond or an ellipse as much as to a rectangle.
+ */
+export function loopAround(r: Rect, edge: Outline = []): string {
+  const start = leaveAt(r, edge, r.width / 2, -r.height * 0.22)
+  const end = leaveAt(r, edge, r.width / 2, r.height * 0.22)
+  const reach = 90 // the control points sit this far out, so the curve itself bulges about three quarters of it
+  return `M${start.x} ${start.y}C${start.x + reach} ${start.y - 40} ${end.x + reach} ${end.y + 40} ${end.x} ${end.y}`
+}
+
 export type Side = 'top' | 'right' | 'bottom' | 'left'
 
 /** The side of `from` that faces `to`: the one a line between their centres leaves through. */

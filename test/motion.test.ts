@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { animationOf } from '../src/core/animation.ts'
-import { active, bump, dashAround, distance, drawable, ease, progress, tubeOpacity } from '../ui/src/motion.ts'
+import { animationOf, beatsFor } from '../src/core/animation.ts'
+import { active, bump, cardBox, cardsAt, dashAround, distance, drawable, ease, pillText, progress, tileSquash, tubeOpacity } from '../ui/src/motion.ts'
 
 const beat = { at: 100, dur: 400 }
 
@@ -62,4 +62,39 @@ test('a kind the browser does not draw yet reads as no animation', () => {
   for (const kind of ['send', 'call', 'callback', 'event']) assert.deepEqual(drawable(animationOf({ to: 'b', animation: kind })), { kind, trigger: 'inside' })
   assert.equal(drawable(animationOf({ animation: 'recurse' })), undefined)
   assert.equal(drawable(undefined), undefined)
+})
+
+const depth3 = beatsFor({ kind: 'recurse', trigger: 'inside', depth: 3 }, { length: 250, afterLanding: false }).beats
+
+test('the pile of cards slides in and out as the stack beats say, and never goes below nothing', () => {
+  const at = (t: number) => cardsAt(depth3, t)
+  assert.deepEqual([0, 619].map(at), [0, 0])
+  assert.equal(at(695), 0.5)
+  assert.deepEqual([770, 1000].map(at), [1, 1])
+  assert.deepEqual([1390, 1800].map(at), [2, 2])
+  assert.equal(at(2265), 1.5)
+  assert.equal(at(2340), 1)
+  assert.deepEqual([2960, 9999].map(at), [0, 0])
+  const deep = beatsFor({ kind: 'recurse', trigger: 'inside', depth: 5 }, { length: 250, afterLanding: false }).beats
+  for (let t = 0; t < 6000; t += 25) assert.ok(cardsAt(deep, t) <= 4 && cardsAt(deep, t) >= 0, String(t))
+})
+
+test('a card sits 8 px lower and 7 px narrower on each side than the one above it', () => {
+  const box = { x: 10, y: 20, width: 200, height: 72 }
+  assert.deepEqual(cardBox(box, 2, 1), { x: 24, y: 36, width: 172, height: 72 })
+  assert.deepEqual(cardBox(box, 1, 0.5), { x: 13.5, y: 24, width: 193, height: 72 })
+  assert.deepEqual(cardBox(box, 3, 0), box)
+})
+
+test('the counter reads the height of the stack while it plays and how deep it was after', () => {
+  assert.equal(pillText(true, 0, 3), '↻ 1')
+  assert.equal(pillText(true, 1.4, 3), '↻ 2')
+  assert.equal(pillText(true, 1.6, 3), '↻ 3')
+  assert.equal(pillText(false, 0, 3), '↻ 3 deep')
+})
+
+test('with one box at both ends a squash on the first side is not wiped by the empty second side', () => {
+  assert.deepEqual(tileSquash(true, { from: 0.6, to: 0 }), { from: 0.6, to: 0 })
+  assert.deepEqual(tileSquash(true, { from: 0.2, to: 0.5 }), { from: 0.5, to: 0 })
+  assert.deepEqual(tileSquash(false, { from: 0.2, to: 0.5 }), { from: 0.2, to: 0.5 })
 })

@@ -5,7 +5,7 @@ import { SHAPE_DEFS } from '../src/core/look.ts'
 import { emptyModel } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
 import { computeView } from '../src/core/views.ts'
-import { arrange, BOX, fitOptions, focusEdges, frameAround, frameNode, lineEnds, membersOf, panIntoView, PANEL, ports, tangle, toGraph, untangle } from '../ui/src/graph.ts'
+import { arrange, BOX, fitOptions, focusEdges, frameAround, frameNode, lineEnds, loopAround, membersOf, panIntoView, PANEL, ports, tangle, toGraph, untangle } from '../ui/src/graph.ts'
 import type { Region } from '../ui/src/graph.ts'
 import { shop } from './fixtures.ts'
 
@@ -363,4 +363,15 @@ test('curved and angled lines leave from the middle of the side on the outline',
   assert.deepEqual(ports(a, { ...a, x: 400 }, SHAPE_DEFS.diamond.edge, SHAPE_DEFS.parallelogram.edge), {
     from: { x: 199, y: 36 }, fromSide: 'right', to: { x: 413.5, y: 36 }, toSide: 'left',
   })
+})
+
+const numbers = (path: string) => (path.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number)
+
+test("a loop pipe leaves and re-enters the shape's own outline, on its right", () => {
+  const box = { x: 0, y: 0, width: 200, height: 72 }
+  const [sx, sy, c1x, c1y, c2x, c2y, ex, ey] = numbers(loopAround(box)).map(n => Math.round(n * 100) / 100)
+  assert.deepEqual([sx, sy, c1x, c1y, c2x, c2y, ex, ey], [200, 20.16, 290, -19.84, 290, 91.84, 200, 51.84])
+  const diamond = numbers(loopAround(box, [[100, 1], [199, 36], [100, 71], [1, 36]]))
+  assert.ok(diamond[0] > 100 && diamond[0] < 199 && diamond[6] > 100 && diamond[6] < 199, 'both ends are on the diamond, not on the box')
+  assert.ok(diamond[1] < diamond[7], 'it starts above where it ends')
 })
