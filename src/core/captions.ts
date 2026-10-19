@@ -17,6 +17,13 @@ export type Caption = { chip: string; text: string; tabs: string[]; tab: number;
 
 const part = (v: unknown): string => (blank(v) ? '' : String(v).trim())
 
+/** What a repeat does, in words: "up to 3 times, until it works", or "" when it says neither. */
+const repeatWords = (g: Record<string, unknown>): string => {
+  const times = part(g.times)
+  const until = part(g.until)
+  return [times === '' ? '' : `up to ${times} times`, until === '' ? '' : `until ${until}`].filter(w => w !== '').join(', ')
+}
+
 export function captionOf(flow: Flow, stop: Stop): Caption {
   const none: Caption = { chip: '', text: '', tabs: [], tab: -1, lanes: [], marks: stop.steps.map(() => '') }
   if (stop.group === undefined || stop.kind === undefined) return none
@@ -27,7 +34,7 @@ export function captionOf(flow: Flow, stop: Stop): Caption {
   if (stop.kind === 'repeat') {
     const times = part(g.times)
     const until = part(g.until)
-    const words = [times === '' ? '' : `up to ${times} times`, until === '' ? '' : `until ${until}`].filter(w => w !== '').join(', ')
+    const words = repeatWords(g)
     const mark = times !== '' ? `up to ${times}` : until !== '' ? `until ${until}` : ''
     return { ...none, chip: words === '' ? 'Repeats' : `Repeats ${words}`, text, marks: stop.steps.map(() => mark) }
   }
@@ -39,15 +46,16 @@ export function captionOf(flow: Flow, stop: Stop): Caption {
 }
 
 /**
- * The progress bar: a cell for each stop, in `col` and `row`, and a bracket for each group over the columns it covers. Most stops take the next
+ * The progress bar: a cell for each stop, in `col` and `row`, and a bracket for each group over the columns it covers. A `title` is what a
+ * reader sees on hovering a cell (the lane it is in) or a bracket (what the group means). Most stops take the next
  * column on row 0. The lanes of a branch start in the same column and sit on rows of their own, each lane's stops in the columns after it,
  * and what follows the branch starts after its longest lane. `rows` is the most any branch needs, and at least 1.
  */
 export type Progress = {
   cols: number
   rows: number
-  cells: { stop: number; col: number; row: number }[]
-  brackets: { kind: GroupKind; from: number; to: number; text: string }[]
+  cells: { stop: number; col: number; row: number; title: string }[]
+  brackets: { kind: GroupKind; from: number; to: number; text: string; title: string }[]
 }
 
 export function progressOf(flow: Flow, stops: Stop[]): Progress {
@@ -58,7 +66,7 @@ export function progressOf(flow: Flow, stops: Stop[]): Progress {
   for (let k = 0; k < stops.length;) {
     const s = stops[k]
     if (s.group === undefined || s.kind === undefined) {
-      cells.push({ stop: k, col: col++, row: 0 })
+      cells.push({ stop: k, col: col++, row: 0, title: '' })
       k++
       continue
     }
@@ -71,18 +79,26 @@ export function progressOf(flow: Flow, stops: Stop[]): Progress {
       for (let j = k; j <= end; j++) {
         const lane = stops[j].lanes?.[0] ?? 0
         const at = used[lane] ?? 0
-        cells.push({ stop: j, col: start + at, row: lane })
+        cells.push({ stop: j, col: start + at, row: lane, title: s.laneLabels?.[lane] ?? '' })
         used[lane] = at + 1
       }
       const longest = Math.max(1, ...used.map(n => n ?? 0))
       rows = Math.max(rows, lanes)
-      brackets.push({ kind: 'branch', from: start, to: start + longest - 1, text: lanes > 1 ? `one of ${lanes}` : 'only if' })
+      const only = s.laneLabels?.[0] ?? ''
+      brackets.push({
+        kind: 'branch', from: start, to: start + longest - 1,
+        text: lanes > 1 ? `one of ${lanes} lanes` : 'only if',
+        title: lanes > 1 ? 'Alternatives: only one of these lanes happens' : only === '' ? 'Happens only sometimes' : `Happens only if: ${only}`,
+      })
       col = start + longest
     } else {
-      for (let j = k; j <= end; j++) cells.push({ stop: j, col: col++, row: 0 })
+      for (let j = k; j <= end; j++) cells.push({ stop: j, col: col++, row: 0, title: stops[j].lanes?.map(l => s.laneLabels?.[l] ?? '').join(' + ') ?? '' })
       const g = isMap(flow.groups) && Object.hasOwn(flow.groups, s.group) && isMap(flow.groups[s.group]) ? flow.groups[s.group] : {}
       const times = part(g.times)
-      brackets.push({ kind: s.kind, from: start, to: col - 1, text: s.kind === 'repeat' ? (times === '' ? '' : `×${times}`) : 'together' })
+      const words = repeatWords(g)
+      brackets.push(s.kind === 'repeat'
+        ? { kind: s.kind, from: start, to: col - 1, text: times === '' ? '' : `×${times}`, title: words === '' ? 'Repeats' : `Repeats ${words}` }
+        : { kind: s.kind, from: start, to: col - 1, text: 'at once', title: 'These steps happen at the same time' })
     }
     k = end + 1
   }
