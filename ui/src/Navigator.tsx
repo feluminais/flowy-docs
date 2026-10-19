@@ -7,7 +7,7 @@ import { flowGroups, outline, outlineKey } from '../../src/core/outline.ts'
 import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
-import { Activity, ChevronRight, Close, Home, Info, Pencil, Play, Route, Search as SearchIcon, Sitemap } from './icons.tsx'
+import { Activity, ChevronRight, Close, Home, Info, Pencil, Play, Route, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
 import { MAX_WIDTH, MIN_WIDTH } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { scrollToRow, visibleRows } from './window.ts'
@@ -39,7 +39,7 @@ function RailButton({ label, hint, Icon, pressed, count, onClick }: { label: str
 export function NavRail({ tab, flows, shapes, showFlows, onPick }: { tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean; onPick: (tab: NavTab) => void }) {
   return (
     <nav className="rail left" aria-label="Navigator">
-      <RailButton label="Explorer" hint="O" Icon={Sitemap} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
+      <RailButton label="Explorer" hint="O" Icon={ExplorerIcon} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
       {showFlows && <RailButton label="Flows" hint="L" Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
     </nav>
   )
@@ -128,7 +128,13 @@ export function FlowsTab({ model, view, editing, current, onOpen }: { model: Mod
   const otherCount = groups.total - groups.here.length
   return (
     <>
-      <SearchField value={query} label="Find a flow" onChange={setQuery} />
+      <SearchField value={query} label="Find a flow" onChange={setQuery}
+        onKeyDown={e => {
+          if (e.key === 'Escape' && query !== '') {
+            setQuery('')
+            e.stopPropagation()
+          }
+        }} />
       <div className="navscroll">
         <h3 className="navhead"><span>In {nameOf(model, view)}</span><span className="muted">{groups.here.length}</span></h3>
         {here.length > 0 && here.map(row)}

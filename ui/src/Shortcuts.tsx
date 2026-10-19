@@ -6,7 +6,7 @@ import type { IconProps } from './icons.tsx'
 /** The keyboard shortcuts, as App's key handler has them. Keep the two in step. */
 const READING: [string, string][] = [
   ['Enter', 'Open the selected shape'],
-  ['Esc', "Close what's open, then go up a level"],
+  ['Esc', "Close what's open, then go up a level. The navigator closes only if your last click was in it"],
   ['Backspace  Z', 'Zoom out: go up a level'],
   ['Ctrl+K  /', 'Find a shape'],
   ['F', 'Fit the view'],

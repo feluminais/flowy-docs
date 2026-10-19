@@ -20,12 +20,15 @@ internal static class Chrome
     /// <summary>A button's content: an icon, then its text unless it has none (an icon-only button). It gets the text as its name for screen readers and tests.</summary>
     public static void Fill(Button button, string icon, string? text, string? name = null)
     {
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7, VerticalAlignment = VerticalAlignment.Center };
-        // The words sit a little below the middle of their line, so every icon goes down with them: icon-only buttons too, so a row lines up.
+        // An icon-only button is a fixed square: its row would stretch to fill it and leave the icon at the left edge, so the row is centred.
+        // A fixed height, so the words and an icon-only button's lone icon are placed the same way: the height of a row of words follows the font.
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7, Height = 20, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = text is null ? HorizontalAlignment.Center : HorizontalAlignment.Stretch };
+        // The icon sits at the middle of the row, and the words a little above it: a font's line has more room under the letters than over them,
+        // so the capitals fall below the middle of their line, and the bar's picker, which has no such nudge, puts them where these go.
         var glyph = Icons.Make(icon, "btnicon", 16);
-        glyph.Margin = new Thickness(0, 2, 0, 0);
+        glyph.VerticalAlignment = VerticalAlignment.Center;
         row.Children.Add(glyph);
-        if (text is not null) row.Children.Add(new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, Classes = { "btntext" } });
+        if (text is not null) row.Children.Add(new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 0, 1), Classes = { "btntext" } });
         button.Content = row;
         AutomationProperties.SetName(button, name ?? text ?? icon);
         if (text is null) button.Classes.Add("icononly");

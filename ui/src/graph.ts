@@ -498,18 +498,19 @@ export function frameAround(rects: Rect[], pad = 28): Rect {
 }
 
 export const FRAME = '~frame' // ids can't hold a ~, so this never clashes with a box
-export type FrameNode = Node<{ name: string }, 'frame'>
+export type FrameNode = Node<{ name: string; onOpen?: () => void }, 'frame'>
 
 /**
  * The frame named `name` around a view's own boxes. It takes no clicks: React Flow sets pointer-events
  * on every node while the canvas has click handlers, and only the node's own style wins over that, so
- * a click on the blank space inside still reaches the canvas. Its size is given as measured too, or
- * React Flow forgets it on every render and Camera waits for it.
+ * a click on the blank space inside still reaches the canvas. Only its outline and its name take a click (see
+ * Frame in Box.tsx), which calls `onOpen`: a click on the system you are inside. Its size is given as measured
+ * too, or React Flow forgets it on every render and Camera waits for it.
  */
-export function frameNode(name: string, rects: Rect[]): FrameNode {
+export function frameNode(name: string, rects: Rect[], onOpen?: () => void): FrameNode {
   const r = frameAround(rects)
   return {
-    id: FRAME, type: 'frame', data: { name }, position: { x: r.x, y: r.y }, width: r.width, height: r.height,
+    id: FRAME, type: 'frame', data: { name, onOpen }, position: { x: r.x, y: r.y }, width: r.width, height: r.height,
     measured: { width: r.width, height: r.height }, style: { pointerEvents: 'none' },
     selectable: false, draggable: false, connectable: false, focusable: false, zIndex: -1,
   }

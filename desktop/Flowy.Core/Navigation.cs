@@ -12,7 +12,7 @@ public sealed record BoxLine(string From, string To, string Other, IReadOnlyList
 public sealed record Spot(string View, string? Object = null, (string From, string To)? Line = null, string? Flow = null, int? Step = null);
 
 /// <summary>What one press of Escape closes, innermost first.</summary>
-public enum EscapeStep { Shortcuts, Flow, Panel, Up }
+public enum EscapeStep { Shortcuts, Navigator, Flow, Panel, Up }
 
 /// <summary>The reading half of ui/src/edit.ts, ui/src/search.ts and ui/src/keys.ts, and the teaser of ui/src/Box.tsx.</summary>
 public static partial class Navigation
@@ -129,10 +129,15 @@ public static partial class Navigation
     public static string? Teaser(string? description) =>
         description is null ? null : Regex.Split(description.Trim(), @"\n\s*\n")[0];
 
-    /// <summary>Escape peels one layer per press: the shortcut list, a flow playing, the side panel, and then the box you're inside, back up to the level above. At the top, with nothing open, nothing.</summary>
-    public static EscapeStep? Escape(bool shortcuts, bool flow, bool panel, bool inside)
+    /// <summary>
+    /// Escape peels one layer per press: the shortcut list, the navigator (Flows and Explorer) when it is the last thing you used, a flow playing,
+    /// the Details or Performance panel, and then the box you're inside, back up to the level above. At the top, with nothing open, nothing.
+    /// <paramref name="navigator"/> is true only when the navigator is open and your last click or key was in it: Escape in the diagram leaves it alone.
+    /// </summary>
+    public static EscapeStep? Escape(bool shortcuts, bool navigator, bool flow, bool panel, bool inside)
     {
         if (shortcuts) return EscapeStep.Shortcuts;
+        if (navigator) return EscapeStep.Navigator;
         if (flow) return EscapeStep.Flow;
         if (panel) return EscapeStep.Panel;
         return inside ? EscapeStep.Up : null;
