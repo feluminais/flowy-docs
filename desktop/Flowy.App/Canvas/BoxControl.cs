@@ -34,6 +34,10 @@ internal sealed class BoxControl : Grid
     private readonly Path _tint = Layer("tint");
     private readonly Path _outline = Layer("outline");
     private readonly Path _colorline = Layer("colorline");
+    private readonly Path _strainGlow = Layer("strainglow");
+    private readonly Path _strain = Layer("strain");
+    private readonly Border _queue = new();
+    private readonly TextBlock _queueText = new();
     private readonly Ellipse _handle = new() { Width = 10, Height = 10, IsHitTestVisible = false, IsVisible = false, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 3) };
     private Path? _icon;
     private string? _teaser;
@@ -97,14 +101,22 @@ internal sealed class BoxControl : Grid
         };
         badge.Classes.Add("badge");
 
+        _queue.Classes.Add("queue");
+        _queue.Child = _queueText;
+        _queue.IsVisible = false;
+        _queue.IsHitTestVisible = false;
+
         Children.Add(_glow);
+        Children.Add(_strainGlow);
         Children.Add(_fill);
         Children.Add(_tint);
         Children.Add(_outline);
         Children.Add(_colorline);
+        Children.Add(_strain); // over the author's colour, which stays as it is underneath
         Children.Add(_content);
         Children.Add(_inside);
         Children.Add(badge);
+        Children.Add(_queue);
         _handle.Classes.Add("handle");
         Children.Add(_handle);
         Update(box);
@@ -130,13 +142,14 @@ internal sealed class BoxControl : Grid
         Classes.Set("lit", box.Mode == BoxMode.Lit);
         Classes.Set("dim", box.Mode == BoxMode.Dim);
         Classes.Set("problem", box.Problem);
+        PlaceQueue();
         Classes.Set("colored", colored);
         Classes.Set("tinted", opacity > 0);
 
         if (shape != _shape)
         {
             var outline = OutlineOf(shape);
-            _glow.Data = _fill.Data = _tint.Data = _outline.Data = _colorline.Data = outline;
+            _glow.Data = _fill.Data = _tint.Data = _outline.Data = _colorline.Data = _strain.Data = _strainGlow.Data = outline;
             _shape = shape;
         }
         // Where content may sit inside the shape, and where "3 inside" goes.
@@ -210,6 +223,31 @@ internal sealed class BoxControl : Grid
         _handle.IsVisible = editable;
         Cursor = editable ? new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.SizeAll) : null;
     }
+
+    /// <summary>
+    /// What a load does to this shape (see <see cref="Perf.TrafficFor"/>): an outline from green to red along its own outline, with a glow, and how many
+    /// are waiting as a number in the corner. Null (or nothing measured) leaves the shape as it is.
+    /// </summary>
+    public void SetPerf(BoxTraffic? perf)
+    {
+        Classes.Set("strained", perf?.Strain is not null);
+        if (perf?.Strain is { } strain)
+        {
+            _strain.Stroke = ThemeBrushes.For(PerfColors.Hex(strain, false), PerfColors.Hex(strain, true));
+            _strainGlow.Stroke = ThemeBrushes.For(PerfColors.Hex(strain, false), PerfColors.Hex(strain, true), 0.35);
+            _strainGlow.StrokeThickness = 4 + 9 * strain;
+        }
+        var queue = perf?.Queue ?? 0;
+        _queue.IsVisible = queue > 0;
+        _queueText.Text = queue.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        PlaceQueue();
+    }
+
+    /// <summary>The queue number sits beside the problem mark, not over it.</summary>
+    private void PlaceQueue() => _queue.Margin = new Thickness(0, -9, Classes.Contains("problem") ? 14 : -7, 0);
+
+    /// <summary>What a test can look at: whether the strain outline is on, and the number of what is waiting (null when none are).</summary>
+    internal (bool Strained, string? Queue) PerfShown => (Classes.Contains("strained"), _queue.IsVisible ? _queueText.Text : null);
 
     /// <summary>Called by the canvas as the selection changes.</summary>
     public void SetSelected(bool selected) => Classes.Set("selected", selected);

@@ -19,6 +19,8 @@ internal sealed class CanvasView : Border
 
     private readonly BackLayer _back = new();
     private readonly MotionLayer _motion = new();
+    private readonly TrafficLayer _traffic = new();
+    private Traffic? _load; // the load being shown, if the Performance panel is open
     private IDisposable? _step;
     private readonly Avalonia.Controls.Canvas _stage = new() { RenderTransformOrigin = RelativePoint.TopLeft };
     private readonly Dictionary<string, BoxControl> _boxes = [];
@@ -62,7 +64,7 @@ internal sealed class CanvasView : Border
     {
         ClipToBounds = true;
         Background = Brushes.Transparent;
-        Child = new Grid { Children = { _back, _stage, _motion } };
+        Child = new Grid { Children = { _back, _stage, _traffic, _motion } };
     }
 
     public Scene? Scene => _scene;
@@ -178,6 +180,42 @@ internal sealed class CanvasView : Border
         }
         foreach (var (id, control) in _boxes) control.SetSelected(_selected.Contains(id));
         _back.SetScene(scene, lineStyle);
+        if (_load is not null) ApplyLoad();
+    }
+
+    /// <summary>The traffic layer, for tests: how many particles run and whether it runs at all.</summary>
+    internal (int Particles, bool Running) TrafficNow => (_traffic.ParticleCount, _traffic.Running);
+
+    /// <summary>The load that is showing, or null.</summary>
+    internal Traffic? Load => _load;
+
+    /// <summary>How thick the line from one box to another is drawn under the load (null: as usual), for tests.</summary>
+    internal double? LineWidth(string from, string to) => _back.WidthOf(SceneBuilder.LineId(from, to));
+
+    /// <summary>
+    /// Shows a load: strain outlines and queue numbers on the shapes, thicker lines where there is more traffic and, unless motion is reduced, particles running
+    /// along them. Null takes it all away.
+    /// </summary>
+    public void ShowLoad(Traffic? load)
+    {
+        _load = load;
+        ApplyLoad();
+    }
+
+    private void ApplyLoad()
+    {
+        foreach (var (id, box) in _boxes) box.SetPerf(_load is not null && _load.Boxes.TryGetValue(id, out var perf) ? perf : null);
+        _back.SetWidths(_load?.Lines.ToDictionary(l => SceneBuilder.LineId(l.From, l.To), l => l.Width));
+        if (_load is null || MotionSettings.Reduced) _traffic.Clear();
+        else _traffic.Set(_load.Lines, PathOf);
+    }
+
+    /// <summary>A traffic line's path, flattened, in the style the lines are drawn in: the same one the line itself takes, so the particles run on it.</summary>
+    private FlatLine? PathOf(LineTraffic line)
+    {
+        if (_scene is null || RectOf(line.From) is not { } a || RectOf(line.To) is not { } b) return null;
+        double[]? Outline(string id) => Look.DefOf(_scene.Boxes.First(x => x.Id == id).Object).Edge;
+        return PathPoints.Flatten(LinePaths.Build(LineStyle, a, b, Outline(line.From), Outline(line.To)).Data);
     }
 
     /// <summary>The scene with the boxes that are being (or were just) dragged where they are now, and the frame around the members following them.</summary>
@@ -200,6 +238,7 @@ internal sealed class CanvasView : Border
         _scene = WithMoved(_baseScene);
         foreach (var box in _scene.Boxes) _boxes[box.Id].Update(box);
         _back.SetScene(_scene, LineStyle);
+        if (_load is not null) ApplyLoad();
     }
 
     private void EndGesture(PointerEventArgs e)
@@ -242,6 +281,7 @@ internal sealed class CanvasView : Border
         _stage.RenderTransform = new MatrixTransform(Matrix.CreateScale(viewport.Zoom, viewport.Zoom) * Matrix.CreateTranslation(viewport.X, viewport.Y));
         _back.Viewport = viewport;
         _motion.Viewport = viewport;
+        _traffic.Viewport = viewport;
     }
 
     /// <summary>Moves the camera to <paramref name="target"/>, over <paramref name="milliseconds"/> (0: at once).</summary>

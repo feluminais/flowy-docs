@@ -458,6 +458,36 @@
   <Style Selector=":is(Grid).box.problem Border.badge">
     <Setter Property="IsVisible" Value="True" />
   </Style>
+  <!-- A load (the Performance panel): an outline from green to red over the shape's own, with a glow, and how many are waiting in the corner. -->
+  <Style Selector=":is(Grid).box Path.strain">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="StrokeThickness" Value="3" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box Path.strainglow">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="StrokeThickness" Value="7" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box.strained Path.strain, :is(Grid).box.strained Path.strainglow">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.queue">
+    <Setter Property="Background" Value="{DynamicResource WarnBrush}" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="MinWidth" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="Padding" Value="6,0" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.queue TextBlock">
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
   <Style Selector=":is(Grid).box:focus-visible Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
     <Setter Property="StrokeThickness" Value="2" />
