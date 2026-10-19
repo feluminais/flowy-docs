@@ -23,8 +23,9 @@
   background: var(--bg);
   color-scheme: light dark;
 }
+/* The system's dark colours, unless a host (VS Code) says light. A host that says dark gets the same ones below: keep the two in step. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #1c1917;
     --fg: #f5f5f4;
     --muted: #a8a29e;
@@ -46,6 +47,29 @@
     --hover: color-mix(in srgb, var(--fg) 10%, transparent);
   }
 }
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #1c1917;
+  --fg: #f5f5f4;
+  --muted: #a8a29e;
+  --line: #57534e;
+  --edge: #78716c;
+  --box: #292524;
+  --accent: #60a5fa;
+  --warn-bg: #451a03;
+  --warn-fg: #fde68a;
+  --warn: #f59e0b;
+  --danger: #f87171;
+  --actor: #afa9ec;
+  --system: #85b7eb;
+  --app: #5dcaa5;
+  --store: #ed93b1;
+  --component: #f0997b;
+  --external: #b4b2a9;
+  --tint: color-mix(in srgb, var(--accent) 16%, transparent);
+  --hover: color-mix(in srgb, var(--fg) 10%, transparent);
+}
+:root[data-theme='light'] { color-scheme: light; }
 html, body, #root { height: 100%; margin: 0; }
 button, select, input, textarea { font: inherit; }
 .app { height: 100%; display: flex; flex-direction: column; }
@@ -141,6 +165,15 @@ svg { flex: none; }
 
 .frame { position: relative; width: 100%; height: 100%; box-sizing: border-box; border: 1.5px solid var(--accent); border-radius: 12px; }
 .frame span { position: absolute; top: -10px; left: 14px; padding: 0 6px; background: var(--bg); color: var(--accent); font-size: 12px; font-weight: 600; }
+/* The outline and the name take a click (Frame in Box.tsx), as strips on the border a few pixels either side of it; the space inside takes none. */
+.frame .hit { pointer-events: auto; cursor: pointer; }
+.frame i.hit { position: absolute; }
+.frame i.top, .frame i.bottom { left: 0; right: 0; height: 12px; }
+.frame i.left, .frame i.right { top: 0; bottom: 0; width: 12px; }
+.frame i.top { top: -7px; }
+.frame i.bottom { bottom: -7px; }
+.frame i.left { left: -7px; }
+.frame i.right { right: -7px; }
 .canvas.arrive-in .frame, .canvas.arrive-across .frame { animation: fade-in 100ms 220ms both; } /* done by the end of arrive (320ms), when the class goes */
 
 @media (prefers-reduced-motion: reduce) {
@@ -360,6 +393,13 @@ svg { flex: none; }
 .steps > li:not(:last-child)::after { content: ''; position: absolute; left: 11.5px; top: 30px; bottom: 6px; width: 1px; background: var(--line); }
 .steps label { margin: 0 0 4px; }
 .step-buttons { display: flex; gap: 2px; margin-top: 8px; }
+.steps .more .form { gap: 8px; margin-top: 8px; }
+.groups { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.groups > li { padding: 10px; border: 1px solid var(--line); border-radius: 10px; }
+.group-head { display: flex; align-items: center; gap: 8px; }
+.group-head button { width: 30px; margin-left: auto; padding: 0; }
+.pair { display: flex; gap: 8px; }
+.pair > label { flex: 1; }
 /* Files and links: rows as in a file tree, lit when pointed at. */
 .code-list, .link-list ul { list-style: none; padding: 0; margin: 0 -8px; display: grid; gap: 0; font-size: 13px; }
 .code-list li, .link-list li { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; }
@@ -372,6 +412,8 @@ svg { flex: none; }
 .link-list ul { font-size: 14px; }
 .link-list .muted { margin-left: 2px; font-size: 12px; overflow-wrap: anywhere; }
 
+/* The frame React Flow draws round shapes picked with Shift and drag would sit over them and take their clicks. The shapes show they are picked themselves. */
+.react-flow__nodesselection-rect { pointer-events: none !important; }
 /* A box's connections in its panel: one row per line, out then in. */
 .lines-of { display: contents; }
 .lines-of ul { list-style: none; margin: 0 -8px; padding: 0; display: grid; gap: 2px; }
@@ -538,10 +580,22 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .reading .value { font-weight: 600; font-variant-numeric: tabular-nums; }
 .reading svg { width: 120px; height: 28px; }
 .reading path { stroke: var(--accent); stroke-width: 1.75; }
-.key { display: grid; grid-template-columns: 22px 1fr; gap: 6px 10px; margin: 0; }
-.key dd { margin: 0; color: var(--muted); }
-.key .swatch { display: block; width: 20px; height: 10px; margin-top: 5px; border-radius: 5px; background: linear-gradient(90deg, hsl(150 70% 40%), hsl(75 70% 42%), hsl(0 70% 45%)); }
-.key .dot { display: block; width: 8px; height: 8px; margin: 5px auto; border-radius: 4px; background: var(--accent); }
+/* A key draws each mark the way it looks on the chart or the canvas, with its name beside it. */
+.keyrow { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--muted); }
+.keyrow li { display: flex; align-items: center; gap: 6px; }
+.keyrow .swatch { display: inline-flex; align-items: center; }
+.sw { flex: none; display: inline-block; box-sizing: border-box; }
+.sw.p50, .sw.p95, .sw.busy { width: 18px; height: 0; border-top: 2px solid var(--accent); border-radius: 1px; }
+.sw.p95 { border-top-color: var(--warn); }
+.sw.busy { border-top: 4px solid var(--muted); }
+.sw.knee { width: 2px; height: 14px; background: repeating-linear-gradient(to bottom, var(--danger) 0 3px, transparent 3px 6px); }
+.sw.heat { width: 20px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, hsl(150 70% 40%), hsl(75 70% 42%), hsl(0 70% 45%)); }
+.sw.none { width: 20px; height: 10px; border: 1px solid var(--line); border-radius: 3px; }
+.sw.queue { min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--warn); color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; }
+.sw.call { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.sw.call.bad { background: var(--danger); }
+.hint { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.hint kbd:not(:first-child) { margin-left: 6px; }
 .perf ul.plain { margin: 0; padding-left: 18px; }
 .stripfig { margin: 0; }
-.stripfig figcaption { font-size: 12px; margin-top: 2px; }
+.stripfig figcaption { margin-top: 4px; }

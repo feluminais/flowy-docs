@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { check } from '../src/core/check.ts'
 import { deleteFlow, placeBoxes, putObject } from '../src/core/ops.ts'
-import { changesBetween, connectionsOf, linesOf, locate, moveBetween, newId, problemsOf } from '../ui/src/edit.ts'
+import { changesBetween, connectionsOf, linesOf, locate, moveBetween, newId, problemsOf, withKey } from '../ui/src/edit.ts'
 import { shop } from './fixtures.ts'
 
 test('changesBetween gives each changed file as PUT takes it, and null for a deleted flow', () => {
@@ -84,4 +84,12 @@ test('moveBetween: into a box inside, out to one around, across to one beside', 
   assert.equal(moveBetween(m, 'shop', 'mail'), 'across', 'side by side')
   assert.equal(moveBetween(m, 'mail', 'shop'), 'across', 'and back: still across, never in twice')
   assert.equal(moveBetween(m, 'api', 'mail'), 'across', 'a cousin is across too')
+})
+
+test('withKey sets a lane or a flow link trimmed, keeps its place, and a blank one takes the key away', () => {
+  const step = { from: 'a', lane: 'Old', text: 'x', note: 'kept' }
+  assert.deepEqual(Object.entries(withKey(step, 'lane', '  New lane ')), [['from', 'a'], ['lane', 'New lane'], ['text', 'x'], ['note', 'kept']])
+  assert.deepEqual(withKey(step, 'lane', '   '), { from: 'a', text: 'x', note: 'kept' })
+  assert.deepEqual(withKey({ from: 'a', text: 'x' }, 'flow', 'deliver'), { from: 'a', text: 'x', flow: 'deliver' })
+  assert.deepEqual(withKey({ from: 'a', text: 'x' }, 'flow', ''), { from: 'a', text: 'x' })
 })

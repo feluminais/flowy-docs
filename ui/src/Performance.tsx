@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import type { ReactNode } from 'react'
 import type { Problem } from '../../src/core/check.ts'
 import type { Model } from '../../src/core/model.ts'
 import { knee, kneeText } from '../../src/core/perf.ts'
@@ -30,7 +31,16 @@ export type PerfProps = {
   onRamp: () => void
 }
 
-/** Latency against load, one point for each tested level: the typical and the slowest 1 in 20, a cursor at where the slider is, and a mark where it first struggles. */
+/** A row of marks, each drawn as it looks on the chart or the canvas with its name beside it: the way to say what a colour or a shape means. */
+function KeyRow({ children }: { children: ReactNode }) {
+  return <ul className="keyrow">{children}</ul>
+}
+
+function KeyItem({ swatch, children }: { swatch: ReactNode; children: ReactNode }) {
+  return <li><span className="swatch" aria-hidden="true">{swatch}</span>{children}</li>
+}
+
+/** Latency against load, one point for each tested level: the expected call and the slowest 5%, a cursor at where the slider is, and a mark where it first struggles. */
 function Strip({ run, pos, kneeAt }: { run: Run; pos: number; kneeAt?: number }) {
   const p50 = run.levels.map(l => l.overall.p50)
   const p95 = run.levels.map(l => l.overall.p95)
@@ -40,7 +50,7 @@ function Strip({ run, pos, kneeAt }: { run: Run; pos: number; kneeAt?: number })
   const n = run.levels.length
   return (
     <figure className="stripfig">
-    <svg className="strip" viewBox="0 0 320 120" role="img" aria-label="Typical and slowest latency at each tested load">
+    <svg className="strip" viewBox="0 0 320 120" role="img" aria-label="Expected call and slowest 5% at each tested load">
       {gridOf(scale, box).map(g => (
         <g key={g.label}>
           <line x1={box.x} x2={box.x + box.width} y1={g.y} y2={g.y} className="grid" />
@@ -53,7 +63,13 @@ function Strip({ run, pos, kneeAt }: { run: Run; pos: number; kneeAt?: number })
       <path d={pathOf(p50, scale, box)} className="p50" />
       <line x1={xAt(box, pos, n)} x2={xAt(box, pos, n)} y1={box.y} y2={box.y + box.height} className="cursor" />
     </svg>
-    <figcaption className="muted">Blue: the typical call. Amber: the slowest 1 in 20. {kneeAt !== undefined && 'The red dashes: where it first struggles.'}</figcaption>
+    <figcaption>
+      <KeyRow>
+        <KeyItem swatch={<span className="sw p50" />}>Expected call</KeyItem>
+        <KeyItem swatch={<span className="sw p95" />}>Slowest 5%</KeyItem>
+        {kneeAt !== undefined && <KeyItem swatch={<span className="sw knee" />}>First struggles</KeyItem>}
+      </KeyRow>
+    </figcaption>
     </figure>
   )
 }
@@ -116,7 +132,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, pos, ramping, 
       <Section icon={Activity} title="Load" />
       <div className="loadnum">
         <strong>{fmtLoad(load, run.unit)}</strong>
-        <span className="muted">{isTested(pos) ? 'a tested level' : `between ${lower.load} and ${upper.load}, worked out from the two`}</span>
+        <span className="muted">{isTested(pos) ? 'Tested' : `Between ${lower.load} and ${upper.load}, estimated`}</span>
       </div>
       <div className="slide">
         <input type="range" min={0} max={top(run)} step="any" value={pos} aria-label="Load" aria-valuetext={fmtLoad(load, run.unit)}
@@ -127,7 +143,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, pos, ramping, 
       </div>
       <div className="perf-buttons">
         {!still && <button className="primary" aria-pressed={ramping} onClick={onRamp}>{ramping ? <><Pause size={16} />Pause</> : <><Play size={16} />Ramp</>}</button>}
-        <span className="muted">← → step the levels{still ? '' : ', P ramps up'}</span>
+        <span className="hint muted"><kbd>←</kbd><kbd>→</kbd>Step{!still && <><kbd>P</kbd>Ramp</>}</span>
       </div>
 
       <Section icon={Alert} title="Where it struggles" />
@@ -137,17 +153,19 @@ export function PerfBody({ model, view, runs, runProblems, runId, pos, ramping, 
       <Strip run={run} pos={pos} kneeAt={struggle?.index} />
 
       <Section icon={Info} title={selected ? selected.title : 'Selected'} />
-      {selected === undefined && <p className="muted">Click a shape or a line to see its numbers.</p>}
-      {selected && shown.length === 0 && <p className="muted">Nothing was measured here{selection?.kind === 'object' ? ', or inside it' : ''}.</p>}
+      {selected === undefined && <p className="muted">Click a shape or a line.</p>}
+      {selected && shown.length === 0 && <p className="muted">Nothing measured here{selection?.kind === 'object' ? ' or inside it' : ''}.</p>}
       {selected && shown.map(key => <Reading key={key} metric={key} at={selected.at?.[key]} series={selected.series(key)} pos={pos} />)}
 
       <Section icon={Info} title="Key" />
-      <dl className="key">
-        <dt><span className="swatch" /></dt>
-        <dd>A shape's outline runs from green to red as it fills up. A number on it is how many are waiting. No outline: nothing was measured.</dd>
-        <dt><span className="dot" /></dt>
-        <dd>A dot is a call. More dots and a thicker line are more calls, slower dots are slower calls, and red dots are calls that fail.</dd>
-      </dl>
+      <KeyRow>
+        <KeyItem swatch={<span className="sw heat" />}>Busy</KeyItem>
+        <KeyItem swatch={<span className="sw queue">3</span>}>Waiting</KeyItem>
+        <KeyItem swatch={<span className="sw none" />}>Not measured</KeyItem>
+        <KeyItem swatch={<span className="sw call" />}>A call (slower dots, slower calls)</KeyItem>
+        <KeyItem swatch={<span className="sw call bad" />}>A call that fails</KeyItem>
+        <KeyItem swatch={<span className="sw busy" />}>More calls</KeyItem>
+      </KeyRow>
       {problems}
     </div>
   )

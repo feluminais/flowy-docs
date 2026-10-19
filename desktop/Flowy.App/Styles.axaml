@@ -511,6 +511,56 @@
     <Setter Property="HorizontalAlignment" Value="Center" />
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
+  <!-- The marks of a key (the Performance panel), each drawn as it looks on the chart or the canvas. -->
+  <Style Selector="Border.sw, Line.knee">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Focusable" Value="False" />
+  </Style>
+  <Style Selector="Border.sw.p50, Border.sw.p95, Border.sw.busy">
+    <Setter Property="Width" Value="18" />
+    <Setter Property="Height" Value="2" />
+    <Setter Property="CornerRadius" Value="1" />
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="Border.sw.p95"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector="Border.sw.busy">
+    <Setter Property="Height" Value="4" />
+    <Setter Property="Background" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector="Line.knee"><Setter Property="Stroke" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector="Border.sw.heat">
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="10" />
+    <Setter Property="CornerRadius" Value="5" />
+  </Style>
+  <Style Selector="Border.sw.none">
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="10" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+  </Style>
+  <Style Selector="Border.sw.queue">
+    <Setter Property="MinWidth" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="4,0" />
+    <Setter Property="Background" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.sw.queue TextBlock">
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.sw.call">
+    <Setter Property="Width" Value="8" />
+    <Setter Property="Height" Value="8" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="Border.sw.call.bad"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
   <Style Selector=":is(Grid).box:focus-visible Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
     <Setter Property="StrokeThickness" Value="2" />
@@ -674,7 +724,7 @@
     <Setter Property="BorderThickness" Value="1" />
   </Style>
   <Style Selector="Border.railcount TextBlock"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Button.railbutton.active Border.railcount TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.railcount.active TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector=":is(StackPanel).navtabs Button.navtab">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0,0,0,2" />

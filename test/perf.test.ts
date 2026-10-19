@@ -247,7 +247,7 @@ test('knee falls back to overall latency passing three times its starting point,
   for (const l of run.levels) l.objects = {}
   const k = knee(run)
   assert.deepEqual(k, { index: 2, load: 400, latency: { from: 100, to: 420 } })
-  assert.equal(kneeText(run, k!, nameIn), 'Latency passes 3× its starting point at 400 req/s: overall p95 goes from 100 ms to 420 ms')
+  assert.equal(kneeText(run, k!, nameIn), 'First struggles at 400 req/s: the slowest 5% of calls go from 100 ms to 420 ms')
 })
 
 test('a run that never struggles has no knee', () => {

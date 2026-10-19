@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import type { Model } from '../../src/core/model.ts'
-import { STATE_ELEMENT } from '../../src/core/state.ts'
-import type { State } from '../../src/core/state.ts'
-import { fetchModel, fromState, REDO_STALE, saveEdit, UNDO_STALE, undoEdit } from './save.ts'
+import { pushedState, STATE_ELEMENT } from '../../src/core/state.ts'
+import { vscode } from './host.ts'
+import { fetchModel, fromEmbedded, fromState, REDO_STALE, saveEdit, UNDO_STALE, undoEdit } from './save.ts'
 import type { Undo } from './save.ts'
 
 /** Saves one edit and resolves to what to tell the user, or undefined once it's saved. */
@@ -12,15 +12,10 @@ export type Edit = (op: (model: Model) => Model) => Promise<string | undefined>
 /** What the canvas shows: the model, its problems, and where code links go. */
 export type Loaded = Omit<ReturnType<typeof fromState>, 'versions'>
 
-/** The model an exported page carries (flowy export), or why it can't be read. It never changes. */
-const exported = (() => {
+/** The model an exported page carries (flowy export), or why it can't be read. */
+const exported: { loaded?: Loaded; banner?: string } | undefined = (() => {
   const element = document.getElementById(STATE_ELEMENT)
-  if (!element) return undefined
-  try {
-    return { loaded: fromState(JSON.parse(element.textContent ?? '') as State) }
-  } catch {
-    return { banner: "This page's model can't be read. Export it again." }
-  }
+  return element ? fromEmbedded(element.textContent ?? '') : undefined
 })()
 
 /**
@@ -29,11 +24,14 @@ const exported = (() => {
  * `edit` runs edits one at a time, in order, and fetches the model again after each. `undo` takes the
  * newest saved edit back and `redo` puts the newest undone one back, in the same queue. They last as
  * long as the page; a new edit clears what there was to redo.
- * On an exported page `live` is false: the model is the page's, and there's nothing to save to.
+ * On an exported page `live` is false: the model is the page's, and there's nothing to save to. Inside a VS Code
+ * webview the page is exported too, and the extension posts a new State whenever a file changes: a model that
+ * can't be read keeps the last good one on show and says why in `banner`, as it does with the local server.
  */
 export function useModel(): { loaded?: Loaded; banner?: string; edit: Edit; undo: () => Promise<string | undefined>; redo: () => Promise<string | undefined>; live: boolean } {
   const [loaded, setLoaded] = useState<Loaded>()
   const [banner, setBanner] = useState<string>()
+  const [pushed, setPushed] = useState(exported)
   const latest = useRef(0)
   const queue = useRef<Promise<unknown>>(Promise.resolve())
   const undos = useRef<Undo[]>([])
@@ -59,6 +57,22 @@ export function useModel(): { loaded?: Loaded; banner?: string; edit: Edit; undo
     events.onerror = () => setBanner('Lost the connection to flowy. Retrying…')
     return () => events.close()
   }, [load])
+
+  useEffect(() => {
+    // Only a VS Code webview has this; a page on a static host takes no state from whoever embeds it.
+    if (!exported || !vscode) return
+    const onMessage = (e: MessageEvent<unknown>) => {
+      const state = pushedState(e.data)
+      if (!state) return
+      try {
+        setPushed({ loaded: fromState(state) })
+      } catch (err) {
+        setPushed(was => ({ ...was, banner: err instanceof Error ? err.message : String(err) }))
+      }
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [])
 
   const edit = useCallback<Edit>(op => {
     const run = queue.current.then(async () => {
@@ -91,5 +105,5 @@ export function useModel(): { loaded?: Loaded; banner?: string; edit: Edit; undo
   const undo = useCallback(() => step(undos, redos, 'undo'), [step])
   const redo = useCallback(() => step(redos, undos, 'redo'), [step])
 
-  return exported ? { ...exported, edit, undo, redo, live: false } : { loaded, banner, edit, undo, redo, live: true }
+  return exported ? { ...pushed, edit, undo, redo, live: false } : { loaded, banner, edit, undo, redo, live: true }
 }

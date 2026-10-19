@@ -13,7 +13,7 @@ namespace Flowy.App;
 internal sealed record PerfSelection(string? Id, string? From = null, string? To = null);
 
 /// <summary>
-/// Latency against load, one point for each tested level: the typical call and the slowest 1 in 20, a cursor where the slider is, and a dashed mark
+/// Latency against load, one point for each tested level: the expected call and the slowest 5%, a cursor where the slider is, and a dashed mark
 /// where the run first struggles. Drawn in a 320 by 120 space that is scaled to the width it is given, as the browser's SVG is.
 /// </summary>
 internal sealed class LatencyStrip : Control
@@ -29,7 +29,7 @@ internal sealed class LatencyStrip : Control
         _kneeAt = kneeAt;
         _pos = pos;
         IsHitTestVisible = false;
-        AutomationProperties.SetName(this, "Typical and slowest latency at each tested load");
+        AutomationProperties.SetName(this, "Expected call and slowest 5% at each tested load");
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
 
@@ -86,6 +86,96 @@ internal sealed class LatencyStrip : Control
         var d = PerfView.PathOf(values, scale, Plot);
         if (d == "") return;
         context.DrawGeometry(null, new Pen(brush, 2, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round), Geometry.Parse(d));
+    }
+}
+
+/// <summary>A gradient from green through amber to red, in the colours the canvas outlines a shape with in the theme that is showing.</summary>
+internal sealed class HeatSwatch : Border
+{
+    public HeatSwatch()
+    {
+        Classes.Add("sw");
+        Classes.Add("heat");
+        ActualThemeVariantChanged += (_, _) => Fill();
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        Fill();
+    }
+
+    private void Fill()
+    {
+        var dark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+        var brush = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0.5, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0.5, RelativeUnit.Relative) };
+        foreach (var strain in new[] { 0.0, 0.5, 1.0 }) brush.GradientStops.Add(new GradientStop(Color.Parse(PerfColors.Hex(strain, dark)), strain));
+        Background = brush;
+    }
+}
+
+/// <summary>A row of marks, each drawn as it looks on the chart or the canvas with its name beside it: how the panel says what a colour or a shape means.</summary>
+internal static class KeyRow
+{
+    public static Control Of(params (Control Swatch, string Label)?[] items)
+    {
+        var row = new WrapPanel();
+        foreach (var item in items)
+        {
+            if (item is not { } entry) continue;
+            var label = new TextBlock { Text = entry.Label, Classes = { "muted" }, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
+            row.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 0, 16, 6), Children = { entry.Swatch, label } });
+        }
+        return row;
+    }
+
+    /// <summary>A mark the styles draw: a line (<c>p50</c>, <c>p95</c>, <c>busy</c>), a dot (<c>call</c>, and <c>bad</c> as well for one that fails) or an outline (<c>none</c>).</summary>
+    public static Control Mark(params string[] classes)
+    {
+        var mark = new Border();
+        mark.Classes.Add("sw");
+        foreach (var c in classes) mark.Classes.Add(c);
+        return mark;
+    }
+
+    /// <summary>The red dashes that mark where a run first struggles.</summary>
+    public static Control Dashes()
+    {
+        var dashes = new Avalonia.Controls.Shapes.Line { StartPoint = new Point(0, 0), EndPoint = new Point(0, 14), StrokeThickness = 2, StrokeDashArray = [1.5, 1.5], VerticalAlignment = VerticalAlignment.Center };
+        dashes.Classes.Add("knee");
+        return dashes;
+    }
+
+    /// <summary>The badge that says how many are waiting.</summary>
+    public static Control Count(string number)
+    {
+        var badge = new Border { Child = new TextBlock { Text = number } };
+        badge.Classes.Add("sw");
+        badge.Classes.Add("queue");
+        return badge;
+    }
+}
+
+/// <summary>Keys and what they do, a cap or two and a word each: the hint under the slider.</summary>
+internal static class KeyHint
+{
+    public static Control Of(params (string Keys, string What)[] hints)
+    {
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
+        foreach (var (keys, what) in hints)
+        {
+            var hint = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
+            // Keys that do the same thing are written with a space between: each is its own cap.
+            foreach (var key in keys.Split(' '))
+            {
+                var cap = new Border { Child = new TextBlock { Text = key, FontSize = 12, FontFamily = new FontFamily("Cascadia Mono, Consolas, Menlo, monospace") } };
+                cap.Classes.Add("kbd");
+                hint.Children.Add(cap);
+            }
+            hint.Children.Add(new TextBlock { Text = what, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center });
+            row.Children.Add(hint);
+        }
+        return row;
     }
 }
 
@@ -336,7 +426,7 @@ internal sealed class PerfPanel : StackPanel
         Children.Add(new TickLabels(run.Levels.Select(l => l.Load.ToString("R", CultureInfo.InvariantCulture)).ToList()));
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
         if (!still) buttons.Children.Add(_ramp);
-        buttons.Children.Add(new TextBlock { Text = still ? "← → step the levels" : "← → step the levels, P ramps up", Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center });
+        buttons.Children.Add(KeyHint.Of(still ? [("← →", "Step")] : [("← →", "Step"), ("P", "Ramp")]));
         Children.Add(buttons);
 
         Children.Add(Chrome.Section(Icons.Alert, "Where it struggles"));
@@ -355,13 +445,21 @@ internal sealed class PerfPanel : StackPanel
         }
         _strip = new LatencyStrip(run, knee?.Index, pos);
         Children.Add(_strip);
-        Children.Add(new TextBlock { Text = "Blue: the typical call. Amber: the slowest 1 in 20." + (knee is null ? "" : " The red dashes: where it first struggles."), Classes = { "muted" }, FontSize = 12, TextWrapping = TextWrapping.Wrap });
+        Children.Add(KeyRow.Of(
+            (KeyRow.Mark("p50"), "Expected call"),
+            (KeyRow.Mark("p95"), "Slowest 5%"),
+            knee is null ? null : (KeyRow.Dashes(), "First struggles")));
 
         BuildSelection(model, view, run, selection);
 
         Children.Add(Chrome.Section(Icons.Info, "Key"));
-        Children.Add(Muted("A shape's outline runs from green to red as it fills up. A number on it is how many are waiting. No outline: nothing was measured."));
-        Children.Add(Muted("A dot is a call. More dots and a thicker line are more calls, slower dots are slower calls, and red dots are calls that fail."));
+        Children.Add(KeyRow.Of(
+            (new HeatSwatch(), "Busy"),
+            (KeyRow.Count("3"), "Waiting"),
+            (KeyRow.Mark("none"), "Not measured"),
+            (KeyRow.Mark("call"), "A call (slower dots, slower calls)"),
+            (KeyRow.Mark("call", "bad"), "A call that fails"),
+            (KeyRow.Mark("busy"), "More calls")));
         Children.Add(problems);
         SetPos(pos, ramping);
     }
@@ -389,7 +487,7 @@ internal sealed class PerfPanel : StackPanel
         Children.Add(Chrome.Section(Icons.Info, title));
         if (keys is null)
         {
-            Children.Add(Muted("Click a shape or a line to see its numbers."));
+            Children.Add(Muted("Click a shape or a line."));
             return;
         }
         var any = false;
@@ -408,7 +506,7 @@ internal sealed class PerfPanel : StackPanel
             Children.Add(row);
             _readings.Add(new Reading(key, frame => at!(frame, key), value, curve, info));
         }
-        if (!any) Children.Add(Muted(selection is { Id: not null } ? "Nothing was measured here, or inside it." : "Nothing was measured here."));
+        if (!any) Children.Add(Muted(selection is { Id: not null } ? "Nothing measured here or inside it." : "Nothing measured here."));
     }
 
     /// <summary>Puts the thumb back on the level the panel is at, after a drag that took it somewhere between levels without reaching another.</summary>
@@ -437,12 +535,12 @@ internal sealed class PerfPanel : StackPanel
         _ramping = ramping;
         var load = PerfView.LoadAt(run, pos);
         _loadNumber.Text = PerfView.FmtLoad(load, run.Unit);
-        if (PerfView.IsTested(pos)) _loadNote.Text = "a tested level";
+        if (PerfView.IsTested(pos)) _loadNote.Text = "Tested";
         else
         {
             var lower = run.Levels[Math.Min(PerfView.Top(run) - 1, (int)Math.Floor(pos))];
             var upper = run.Levels[Math.Min(PerfView.Top(run), (int)Math.Floor(pos) + 1)];
-            _loadNote.Text = $"between {lower.Load.ToString("R", CultureInfo.InvariantCulture)} and {upper.Load.ToString("R", CultureInfo.InvariantCulture)}, worked out from the two";
+            _loadNote.Text = $"Between {lower.Load.ToString("R", CultureInfo.InvariantCulture)} and {upper.Load.ToString("R", CultureInfo.InvariantCulture)}, estimated";
         }
         _syncing = true;
         _slider.Value = pos;

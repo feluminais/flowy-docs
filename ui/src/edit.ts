@@ -1,6 +1,6 @@
 import type { Problem } from '../../src/core/check.ts'
 import { changedFiles, fileData, getObject, isValidId, ROOT, serializeLayout } from '../../src/core/model.ts'
-import type { Connection, Model } from '../../src/core/model.ts'
+import type { Connection, Model, Step } from '../../src/core/model.ts'
 import { chain, isView, parentOf, placeEnds } from '../../src/core/views.ts'
 
 /** One write: a file's new content as PUT /api/file takes it, or null to delete the file. */
@@ -22,6 +22,12 @@ export function newId(name: string, taken: string[], fallback: string): string {
     const id = n === 1 ? base : `${base}-${n}`
     if (isValidId(id) && !used.has(id)) return id
   }
+}
+
+/** The step with its lane or flow link set to the text, trimmed, or without that key when the text is blank. A key that is there keeps its place. */
+export function withKey(step: Step, key: 'lane' | 'flow', value: string): Step {
+  const { [key]: _, ...rest } = step
+  return value.trim() === '' ? rest as Step : { ...step, [key]: value.trim() }
 }
 
 /** The connections one line of a view stands for, with their place in model.connections. */

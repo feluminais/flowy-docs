@@ -506,6 +506,139 @@
   "layout": {},
   "flows": [
     {
+      "id": "announce-order",
+      "name": "A paid order is announced",
+      "view": "ordering",
+      "steps": [
+        {
+          "from": "order-api",
+          "to": "events",
+          "text": "Announces that the order is paid and carries on without waiting",
+          "placed": [
+            "order-api",
+            "events"
+          ],
+          "ends": "Order API → Order events"
+        },
+        {
+          "from": "events",
+          "to": "dispatch",
+          "text": "Hands the event to Dispatch, which starts looking for a courier",
+          "group": "readers",
+          "lane": "Delivery",
+          "flow": "deliver-order",
+          "placed": [
+            "events",
+            "delivery"
+          ],
+          "ends": "Order events → Dispatch in Delivery"
+        },
+        {
+          "from": "events",
+          "to": "warehouse",
+          "text": "Streams the same event to the warehouse for its own records",
+          "group": "readers",
+          "lane": "Warehouse",
+          "placed": [
+            "events",
+            "backoffice"
+          ],
+          "ends": "Order events → Data warehouse in Back office"
+        }
+      ],
+      "groups": {
+        "readers": {
+          "kind": "parallel"
+        }
+      }
+    },
+    {
+      "id": "capture-payment",
+      "name": "The payment is captured",
+      "view": "ordering",
+      "steps": [
+        {
+          "from": "order-api",
+          "to": "stripe",
+          "text": "Captures the amount it held",
+          "group": "charge",
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Order API → Stripe"
+        },
+        {
+          "from": "stripe",
+          "to": "order-api",
+          "text": "Doesn't answer within five seconds",
+          "group": "charge",
+          "placed": [
+            "stripe",
+            "order-api"
+          ],
+          "ends": "Stripe → Order API"
+        },
+        {
+          "from": "stripe",
+          "to": "order-api",
+          "text": "Confirms the charge",
+          "group": "outcome",
+          "lane": "The charge goes through",
+          "placed": [
+            "stripe",
+            "order-api"
+          ],
+          "ends": "Stripe → Order API"
+        },
+        {
+          "from": "order-api",
+          "to": "orders-db",
+          "text": "Marks the order paid",
+          "group": "outcome",
+          "placed": [
+            "order-api",
+            "orders-db"
+          ],
+          "ends": "Order API → Orders DB"
+        },
+        {
+          "from": "stripe",
+          "to": "order-api",
+          "text": "Declines the card",
+          "description": "A decline is final: it is not retried. The hold is released, and the app asks the customer\nfor another card.\n",
+          "group": "outcome",
+          "lane": "The card is declined",
+          "placed": [
+            "stripe",
+            "order-api"
+          ],
+          "ends": "Stripe → Order API"
+        },
+        {
+          "from": "order-api",
+          "to": "customer-app",
+          "text": "Asks the customer to try another card",
+          "group": "outcome",
+          "placed": [
+            "order-api",
+            "customer-app"
+          ],
+          "ends": "Order API → Customer app"
+        }
+      ],
+      "groups": {
+        "charge": {
+          "kind": "repeat",
+          "times": "3",
+          "text": "Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three."
+        },
+        "outcome": {
+          "kind": "branch"
+        }
+      }
+    },
+    {
       "id": "deliver-order",
       "name": "A courier delivers it",
       "view": "delivery",
