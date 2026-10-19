@@ -357,6 +357,17 @@ objects:
 
       A line between shapes deeper down is drawn between the shapes that stand for them here, and
       several such lines merge into one, labelled "N connections".
+  outline:
+    type: component
+    in: core
+    name: Outline
+    code: [src/core/outline.ts, desktop/Flowy.Core/Outline.cs]
+    description: |
+      What the navigator shows: the shapes as a tree with the flows under the systems they play in,
+      the flows grouped by where they play, and what each key does in the tree.
+
+      It draws nothing. The canvas and the desktop app each draw these rows, so they agree on what is
+      on every line: its counts, its problem mark and which rows a filter keeps.
   ops:
     type: component
     in: core
@@ -426,6 +437,7 @@ connections:
   - { from: check, to: views, label: can this view show it }
   - { from: check, to: animation, label: asks if a step's tag is right }
   - { from: views, to: model, label: reads }
+  - { from: outline, to: views, label: asks what each shape holds }
   - { from: mermaid, to: views, label: what the view holds }
   - { from: mermaid, to: look, label: how each shape is drawn }
   - { from: check, to: look, label: whether a shape, colour or icon exists }

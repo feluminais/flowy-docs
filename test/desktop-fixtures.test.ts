@@ -6,6 +6,7 @@ import { dumpFolder, expectedPath, fixtureDirs } from '../desktop/fixtures/dump.
 import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
 import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
+import { dumpOutline } from '../desktop/fixtures/outline.ts'
 import { dumpOps } from '../desktop/fixtures/ops.ts'
 import { dumpYamlWrite } from '../desktop/fixtures/yaml-write.ts'
 import { dumpNavigation, dumpScenes } from '../desktop/fixtures/scene.ts'
@@ -57,4 +58,9 @@ for (const [name, dir] of Object.entries(fixtureDirs())) {
 test('desktop animation beats still match what the TypeScript core says', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('beats'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(dumpBeats())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop navigator rows, flow groups and keys still match what the TypeScript core says', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('outline'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpOutline())), expected, 'run: node desktop/fixtures/generate.ts')
 })

@@ -9,6 +9,7 @@ import { dumpGeometry } from './geometry.ts'
 import { dumpLayout } from './layout.ts'
 import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
+import { dumpOutline } from './outline.ts'
 import { dumpOps } from './ops.ts'
 import { dumpYamlWrite } from './yaml-write.ts'
 import { dumpNavigation, dumpScenes } from './scene.ts'
@@ -29,3 +30,4 @@ await write('mermaid', await dumpMermaid())
 await write('yaml-write', await dumpYamlWrite())
 await write('ops', await dumpOps())
 await write('beats', dumpBeats())
+await write('outline', await dumpOutline())
