@@ -19,8 +19,8 @@ public static partial class Structure
 
     private static readonly string[] Options = ["kind", "text", "times", "until"];
 
-    private const int TimesMin = 2;
-    private const int TimesMax = 99;
+    public const int TimesMin = 2;
+    public const int TimesMax = 99;
 
     // What JavaScript's trim() removes: white space and line terminators. .NET's own Trim differs (it takes U+0085 and not U+FEFF).
     private static readonly char[] JsSpace = new int[]
@@ -40,7 +40,7 @@ public static partial class Structure
     [GeneratedRegex(@"^[0-9]+\z")]
     private static partial Regex Digits();
 
-    private static bool TimesOk(object? v) =>
+    public static bool TimesOk(object? v) =>
         v is string s && Digits().IsMatch(s) && int.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out var n) && n is >= TimesMin and <= TimesMax;
 
     private static string StepGroup(Flow flow, int i) => flow.Steps[i].Group is { } g ? JsTrim(g) : "";

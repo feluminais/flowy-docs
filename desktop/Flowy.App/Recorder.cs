@@ -25,9 +25,9 @@ internal sealed class Recorder : StackPanel
     {
         public required FieldBox Text;
         public required FieldBox Detail;
-        public required ComboBox GroupBox;
+        public required Choice<string> Group;
         public required FieldBox Lane;
-        public required ComboBox FlowBox;
+        public required Choice<string> Flow;
     }
 
     private sealed class GroupCard
@@ -84,11 +84,11 @@ internal sealed class Recorder : StackPanel
 
     internal IReadOnlyList<FieldBox> StepDetails => _rows.Select(r => r.Detail).ToList();
 
-    internal IReadOnlyList<ComboBox> StepGroupBoxes => _rows.Select(r => r.GroupBox).ToList();
+    internal IReadOnlyList<ComboBox> StepGroupBoxes => _rows.Select(r => r.Group.Box).ToList();
 
     internal IReadOnlyList<FieldBox> StepLanes => _rows.Select(r => r.Lane).ToList();
 
-    internal IReadOnlyList<ComboBox> StepFlowBoxes => _rows.Select(r => r.FlowBox).ToList();
+    internal IReadOnlyList<ComboBox> StepFlowBoxes => _rows.Select(r => r.Flow.Box).ToList();
 
     internal IReadOnlyList<string> GroupIds => _cards.Select(c => c.Id).ToList();
 
@@ -171,10 +171,17 @@ internal sealed class Recorder : StackPanel
         _flowName?.Sync(flow?.Name ?? "");
 
         // The steps: the rows stay as they are while only the text changed, so a field being typed in keeps its focus.
-        // A row shows its group, lane and flow, and the choices come from the flow's groups and the other flows, so those are part of what rebuilds it.
+        // What a row can pick comes from the flow's groups and the other flows (and a group or flow a step names that is not there), so those rebuild the
+        // rows. The group, lane and flow a step has are synced in place below, as its text is: a save must not take the focus away from the next field.
         var declared = flow?.Groups ?? [];
         var others = model.Flows.Where(kv => kv.Key != rec.Id).Select(kv => (Id: kv.Key, Name: kv.Value.Name ?? "")).ToList();
-        var signature = string.Join('\u0002', steps.Select(s => $"{s.From}\u0001{s.To}\u0001{s.Group}\u0001{s.Lane}\u0001{s.FlowId}"))
+        var strange = steps.Select(s =>
+        {
+            var g = Structure.JsTrim(s.Group ?? "");
+            var t = Structure.JsTrim(s.FlowId ?? "");
+            return $"{(g != "" && !declared.ContainsKey(g) ? g : "")}\u0001{(t != "" && !others.Any(o => o.Id == t) ? t : "")}";
+        });
+        var signature = string.Join('\u0002', steps.Select(s => $"{s.From}\u0001{s.To}")) + '\u0003' + string.Join('\u0002', strange)
             + '\u0003' + string.Join('\u0002', declared.Select(g => $"{g.Key}\u0001{KindOf(declared, g.Key)}"))
             + '\u0003' + string.Join('\u0002', others.Select(o => $"{o.Id}\u0001{o.Name}"));
         if (signature != _signature || _rows.Count != steps.Count)
@@ -188,7 +195,11 @@ internal sealed class Recorder : StackPanel
         {
             _rows[i].Text.Sync(steps[i].Text ?? "");
             _rows[i].Detail.Sync(steps[i].Description ?? "");
+            var group = Structure.JsTrim(steps[i].Group ?? "");
+            _rows[i].Group.Sync(group);
+            _rows[i].Flow.Sync(Structure.JsTrim(steps[i].FlowId ?? ""));
             _rows[i].Lane.Sync(steps[i].Lane ?? "");
+            _rows[i].Lane.IsVisible = group != "" && HasLanes(KindOf(declared, group));
         }
         if (flow is not null) ShowGroups(rec.Id, steps.Count, declared);
         else
@@ -355,31 +366,46 @@ internal sealed class Recorder : StackPanel
         return op(d);
     });
 
-    /// <summary>A choice list that saves the pick, and shows the saved choice again if the edit is refused.</summary>
-    private static ComboBox Choice<T>(string name, IReadOnlyList<T> items, T selected, Func<T, string> label, Func<T, Task<bool>> save) where T : notnull
+    /// <summary>A choice list that saves the pick, shows the saved choice again if the edit is refused, and follows the model with <see cref="Sync"/>.</summary>
+    private sealed class Choice<T> where T : notnull
     {
-        var box = new ComboBox
+        private T _current;
+        private bool _syncing;
+
+        public ComboBox Box { get; }
+
+        public Choice(string name, IReadOnlyList<T> items, T selected, Func<T, string> label, Func<T, Task<bool>> save)
         {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            ItemsSource = items,
-            SelectedItem = selected,
-            ItemTemplate = new FuncDataTemplate<T>((item, _) => new TextBlock { Text = label(item), VerticalAlignment = VerticalAlignment.Center }),
-        };
-        Avalonia.Automation.AutomationProperties.SetName(box, name);
-        var current = selected;
-        var syncing = false;
-        box.SelectionChanged += async (_, _) =>
-        {
-            if (syncing || box.SelectedItem is not T pick || EqualityComparer<T>.Default.Equals(pick, current)) return;
-            if (await save(pick)) current = pick;
-            else
+            _current = selected;
+            Box = new ComboBox
             {
-                syncing = true;
-                box.SelectedItem = current;
-                syncing = false;
-            }
-        };
-        return box;
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                ItemsSource = items,
+                SelectedItem = selected,
+                ItemTemplate = new FuncDataTemplate<T>((item, _) => new TextBlock { Text = label(item), VerticalAlignment = VerticalAlignment.Center }),
+            };
+            Avalonia.Automation.AutomationProperties.SetName(Box, name);
+            Box.SelectionChanged += async (_, _) =>
+            {
+                if (_syncing || Box.SelectedItem is not T pick || EqualityComparer<T>.Default.Equals(pick, _current)) return;
+                if (await save(pick)) _current = pick;
+                else Show(_current);
+            };
+        }
+
+        private void Show(T value)
+        {
+            _syncing = true;
+            Box.SelectedItem = value;
+            _syncing = false;
+        }
+
+        /// <summary>The model now says <paramref name="value"/>.</summary>
+        public void Sync(T value)
+        {
+            _current = value;
+            if (!EqualityComparer<T>.Default.Equals(Box.SelectedItem is T shown ? shown : default!, value)) Show(value);
+        }
     }
 
     private Control BuildRow(Model model, string flowId, IReadOnlyList<Step> shown, int i, OrderedDictionary<string, object?> groups, IReadOnlyList<(string Id, string Name)> others)
@@ -440,27 +466,27 @@ internal sealed class Recorder : StackPanel
         var groupChoices = new List<string> { "" };
         groupChoices.AddRange(groups.Keys);
         if (group != "" && !groups.ContainsKey(group)) groupChoices.Add(group);
-        var groupBox = Choice("Group", groupChoices, group,
+        var groupChoice = new Choice<string>("Group", groupChoices, group,
             g => g == "" ? "None" : groups.ContainsKey(g) ? $"{g} · {KindName(KindOf(groups, g))}" : $"{g} · not declared",
             g => Edit(flowId, d => EditOps.SetStepGroup(d, flowId, i, g)));
         var lane = new FieldBox("Lane (a new lane starts at a step that names it)", "", false, v => Change(steps =>
         {
-            if (v.Trim() == "") steps[i].Remove("lane");
-            else steps[i]["lane"] = v.Trim();
+            if (Structure.JsTrim(v) == "") steps[i].Remove("lane");
+            else steps[i]["lane"] = Structure.JsTrim(v);
         }));
         lane.IsVisible = group != "" && HasLanes(KindOf(groups, group));
         var flowNames = others.ToDictionary(o => o.Id, o => o.Name);
         var flowChoices = new List<string> { "" };
         flowChoices.AddRange(others.Select(o => o.Id));
         if (target != "" && !others.Any(o => o.Id == target)) flowChoices.Add(target);
-        var flowBox = Choice("Opens flow", flowChoices, target,
-            id => id == "" ? "None" : flowNames.TryGetValue(id, out var name) ? (name == "" ? id : name) : $"{id} · no such flow",
+        var flowChoice = new Choice<string>("Opens flow", flowChoices, target,
+            id => id == "" ? "None" : id == flowId ? "This flow" : flowNames.TryGetValue(id, out var name) ? (name == "" ? id : name) : $"{id} · no such flow",
             id => Change(steps =>
             {
                 if (id == "") steps[i].Remove("flow");
                 else steps[i]["flow"] = id;
             }));
-        var structure = new StackPanel { Spacing = 8, IsVisible = group != "" || target != "", Children = { Captioned("Group", groupBox), lane, Captioned("Opens flow", flowBox) } };
+        var structure = new StackPanel { Spacing = 8, IsVisible = group != "" || target != "", Children = { Captioned("Group", groupChoice.Box), lane, Captioned("Opens flow", flowChoice.Box) } };
         var structureToggle = new Button { Content = structure.IsVisible ? "▾ Group and flow" : "▸ Group and flow", HorizontalAlignment = HorizontalAlignment.Left };
         structureToggle.Classes.Add("disclosure");
         structureToggle.Click += (_, _) =>
@@ -468,7 +494,7 @@ internal sealed class Recorder : StackPanel
             structure.IsVisible = !structure.IsVisible;
             structureToggle.Content = structure.IsVisible ? "▾ Group and flow" : "▸ Group and flow";
         };
-        _rows.Add(new Row { Text = text, Detail = detail, GroupBox = groupBox, Lane = lane, FlowBox = flowBox });
+        _rows.Add(new Row { Text = text, Detail = detail, Group = groupChoice, Lane = lane, Flow = flowChoice });
         // A number before each step, so the order reads at a glance.
         var number = new Border { Child = new TextBlock { Text = (i + 1).ToString() }, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 22, 0, 0) };
         number.Classes.Add("badge");
@@ -520,7 +546,8 @@ internal sealed class Recorder : StackPanel
             options[key] = value;
             return EditOps.PutGroup(d, flowId, id, options);
         });
-        var kindBox = Choice("Kind", KindNames.Select(k => k.Kind).ToList(), kind ?? "", k => KindName(k), k => Edit(flowId, d => EditOps.SetGroupKind(d, flowId, id, k)));
+        var kindChoice = new Choice<string>("Kind", KindNames.Select(k => k.Kind).ToList(), kind ?? "", k => KindName(k), k => Edit(flowId, d => EditOps.SetGroupKind(d, flowId, id, k)));
+        var kindBox = kindChoice.Box;
         var remove = new Button();
         remove.Classes.Add("tool");
         remove.Classes.Add("danger");
@@ -545,7 +572,7 @@ internal sealed class Recorder : StackPanel
         var body = new StackPanel { Spacing = 8, Children = { head, Captioned("Kind", kindBox) } };
         if (kind == "repeat")
         {
-            card.Times = new FieldBox("Times (a whole number from 2 to 99)", "", false, v => Option("times", v.Trim()));
+            card.Times = new FieldBox("Times (a whole number from 2 to 99)", "", false, v => Option("times", Structure.JsTrim(v)));
             card.Until = new FieldBox("Until (what ends it, instead of a count)", "", false, v => Option("until", v));
             body.Children.Add(card.Times);
             body.Children.Add(card.Until);

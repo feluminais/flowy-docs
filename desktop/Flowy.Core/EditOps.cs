@@ -351,7 +351,20 @@ public static class EditOps
             foreach (var i in members)
                 if (Entry(steps[i]).ContainsKey("lane")) steps[i] = WithoutLane(steps[i]);
         }
-        else if (members.Count > 0 && LaneOf(steps[members[0]]) == "") Entry(steps[members[0]])["lane"] = "Lane 1";
+        else if (members.Count > 0)
+        {
+            if (LaneOf(steps[members[0]]) == "") Entry(steps[members[0]])["lane"] = "Lane 1";
+            // Parallel lanes are at least two: every step that starts no lane starts one of its own, as GroupSteps does.
+            if (kind == "parallel" && members.Count(i => LaneOf(steps[i]) != "") < 2)
+                foreach (var i in members)
+                {
+                    if (LaneOf(steps[i]) != "") continue;
+                    var used = members.Select(j => LaneOf(steps[j])).ToHashSet();
+                    var n = 1;
+                    while (used.Contains($"Lane {n}")) n++;
+                    Entry(steps[i])["lane"] = $"Lane {n}";
+                }
+        }
         var all = new OrderedDictionary<string, object?>();
         foreach (var (key, value) in groups) all[key] = key == group ? next : value;
         d.Flows[id] = WithGroups(flow, all);
@@ -408,6 +421,9 @@ public static class EditOps
             if (key is "times" or "until" or "text" && Structure.Blank(value)) continue;
             next[key] = value;
         }
+        // The checks only refuse a problem that is new, so a bad `times` over an old bad `times` would pass them: this says no first.
+        if (next.TryGetValue("times", out var times) && !Structure.TimesOk(times))
+            throw new OpError($"group \"{id}\": times must be a whole number from {Structure.TimesMin} to {Structure.TimesMax}");
         var groups = new OrderedDictionary<string, object?>();
         if (flow.TryGetValue("groups", out var existing) && existing is OrderedDictionary<string, object?> map)
             foreach (var (key, value) in map) groups[key] = value;

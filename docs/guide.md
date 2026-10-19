@@ -98,8 +98,9 @@ checks, and write the same text, so a change made in one looks the same in git a
   steps, **Groups** lists each group with its kind, its times or until (for a repeat) and its text, and a form puts a stretch of steps
   in a new group: a repeat is written with `times: 3`, and in a branch or parallel group every step starts a lane of its own
   ("Lane 1", "Lane 2"…), which you then rename or empty to join the lane before. Each choice is one edit: a step that leaves a group
-  hands its lane's label to the next step, a group whose last step goes is removed, and a change the checks refuse (a `times` of 1,
-  a step moved out of its group's stretch) says why and saves nothing.
+  hands its lane's label to the next step, a group whose last step goes is removed, a group given another kind keeps what still
+  applies (a repeat becomes a branch or parallel group with its first step starting "Lane 1", and for parallel every step starts a lane),
+  and a change the checks refuse (a `times` outside 2 to 99, a step moved out of its group's stretch) says why and saves nothing.
 
 Every save goes through the same checks as Claude's edits: a change that would add a problem is
 refused, and nothing is written. If a file changed on disk in the meantime, the save is dropped

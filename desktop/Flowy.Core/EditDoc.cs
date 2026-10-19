@@ -54,6 +54,8 @@ public sealed class EditDoc
             var flow = YamlText.Parse($"flows/{id}.yaml", text) as OrderedDictionary<string, object?> ?? [];
             // Like parseFlowFile: a missing or empty steps is an empty list, in the key's own place, else last.
             flow["steps"] = flow.TryGetValue("steps", out var steps) && !IsEmpty(steps) ? steps : new List<object?>();
+            // Like parseFlowFile: a blank `groups:` is no section.
+            if (flow.TryGetValue("groups", out var groups) && IsEmpty(groups)) flow.Remove("groups");
             doc.Flows[id] = flow;
         }
         if (layoutText is not null)
