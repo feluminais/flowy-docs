@@ -562,7 +562,7 @@ internal sealed partial class ReaderView : Grid
         }
         var step = f.Flow.Steps[index];
         var ends = step.From is null ? "" : Views.StepEnds(model, step.From, step.To, shown?.Ends[index]);
-        var moves = Animations.Read(step) is not null && shown?.Ends[index] is not null;
+        var moves = Drawn(step) is not null && shown?.Ends[index] is not null;
         _player.Show(string.IsNullOrEmpty(f.Flow.Name) ? f.Id : f.Flow.Name, index, f.Flow.Steps.Count, ends, step.Text ?? "", step.Description, _auto, moves);
     }
 

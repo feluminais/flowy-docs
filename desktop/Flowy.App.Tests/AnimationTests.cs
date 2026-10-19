@@ -1,9 +1,11 @@
 using System.Diagnostics;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Flowy.Core;
 using Xunit;
 
@@ -106,17 +108,36 @@ public class AnimationTests
     [AvaloniaFact]
     public void A_recurse_step_does_not_move_until_the_desktop_draws_it()
     {
-        var (_, reader) = Open("0", Recursion);
+        var (window, reader) = Open("0", Recursion);
         try
         {
             reader.Play("recursion"); // "Walks the category tree", a good recurse tag
             Assert.False(reader.StepMoving);
+            Assert.False(HasReplay(window), "a step that does not move has nothing to replay");
         }
         finally
         {
             Finish();
         }
     }
+
+    [AvaloniaFact]
+    public void A_tagged_step_offers_Replay()
+    {
+        var (window, reader) = Open("0");
+        try
+        {
+            reader.Play("tags");
+            Assert.True(HasReplay(window));
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    private static bool HasReplay(Window window) =>
+        window.GetVisualDescendants().OfType<Button>().Any(b => AutomationProperties.GetName(b) == "Replay this step");
 
     [AvaloniaFact]
     public void R_plays_the_step_again()
