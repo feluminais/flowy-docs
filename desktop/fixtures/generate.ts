@@ -1,11 +1,12 @@
 // Writes what the TypeScript side says into desktop/fixtures/expected/*.json. Run from the repo root:
 //   node desktop/fixtures/generate.ts
 // Run it after changing src/core, ui/src/graph.ts, example/, docs/demo or a case under desktop/fixtures/cases, then run the desktop tests.
-import { mkdir, writeFile } from 'node:fs/promises'
-import { dirname } from 'node:path'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 import { dumpBeats } from './beats.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
 import { dumpGeometry } from './geometry.ts'
+import { buildTrail, dumpHistory } from './history.ts'
 import { dumpLayout } from './layout.ts'
 import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
@@ -37,3 +38,13 @@ await write('perf-runs', await dumpPerf())
 await write('perf-view', await dumpPerfView())
 await write('stops', await dumpStops())
 await write('captions', await dumpCaptions())
+await write('history', await dumpHistory())
+
+// The sample trail: the step and blob files the TypeScript store writes, for the C# store to read.
+const trailDir = join(dirname(expectedPath('history')), 'history-trail')
+await rm(trailDir, { recursive: true, force: true })
+for (const [rel, bytes] of Object.entries((await buildTrail()).files)) {
+  await mkdir(dirname(join(trailDir, rel)), { recursive: true })
+  await writeFile(join(trailDir, rel), bytes)
+}
+console.log('wrote history-trail')
