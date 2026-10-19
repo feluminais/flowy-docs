@@ -22,17 +22,3 @@ export type State =
 
 /** The id of the script element an exported page carries its State in, as JSON. */
 export const STATE_ELEMENT = 'flowy-state'
-
-/** The `type` of the message a host (the VS Code extension) posts to a page it embeds, to show a new State. */
-export const STATE_MESSAGE = 'flowy-state'
-
-/** The message that shows `state` on a page that is embedded in a host. */
-export const stateMessage = (state: State) => ({ type: STATE_MESSAGE, state })
-
-/** The State a message carries, or undefined when `data` is some other message. */
-export function pushedState(data: unknown): State | undefined {
-  if (typeof data !== 'object' || data === null || (data as { type?: unknown }).type !== STATE_MESSAGE) return undefined
-  const state = (data as { state?: unknown }).state
-  if (typeof state !== 'object' || state === null || !('parseError' in state || 'model' in state)) return undefined
-  return state as State
-}

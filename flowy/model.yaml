@@ -247,14 +247,16 @@ objects:
     tech: VS Code webview
     code: [vscode/]
     description: |
-      `Flowy: Open Docs` opens the folder in a panel inside VS Code, drawn by the same canvas. It is
-      read-only for now: the extension reads the folder, puts the model in the page the way an export
-      does, and sends the page a new copy whenever a file changes, so a save from the editor, the app or
-      Claude shows at once.
+      `Flowy: Open Docs` opens the folder in a panel inside VS Code, drawn by the same canvas, which
+      reads and edits there as it does in a browser. The page has no server to call, so it asks the
+      extension: for the folder's state, and to write a file. The extension answers a write with the same
+      code the local server runs, version check and all, and tells the page whenever anything under the
+      folder changes, so a save from the editor, the app, the canvas or Claude shows at once.
 
       The editor's own theme colours the canvas, and the Mermaid button asks the editor to write to the
       clipboard, because a webview can't count on doing it itself. It needs a trusted, local workspace:
-      it runs git in the folder.
+      it runs git in the folder. It keeps no step history, and a file open with unsaved changes in the
+      editor is left to VS Code's own conflict prompt.
   core:
     type: app
     in: flowy
@@ -270,7 +272,7 @@ objects:
     type: component
     in: server
     name: HTTP API
-    code: [src/node/server.ts]
+    code: [src/node/server.ts, src/node/writes.ts]
     description: |
       `GET /api/state` for everything the canvas shows, `PUT`/`DELETE /api/file/<path>` for one
       file, `GET /api/events` for a line that says "changed" when the folder does.
@@ -538,7 +540,7 @@ connections:
   - { from: exporter, to: filestore, label: loads the model }
   - { from: exporter, to: canvas, label: copies the built page }
   - { from: exporter, to: host, label: writes a read-only copy }
-  - { from: vscode, to: filestore, label: "loads the model, and again on every save" }
+  - { from: vscode, to: filestore, label: "loads the model, and writes the canvas's edits" }
   - { from: vscode, to: canvas, label: shows the built page in a panel }
   - { from: filestore, to: perf, label: reads the runs in perf/ }
   - { from: perf, to: views, label: which line a connection lands in }

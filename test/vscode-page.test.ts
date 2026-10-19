@@ -1,6 +1,5 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import type { State } from '../src/core/state.ts'
 import { webviewPage } from '../vscode/src/page.ts'
 
 /** What `vite build` writes for the canvas, with the file names it picks. */
@@ -19,11 +18,7 @@ const built = `<!doctype html>
 </html>
 `
 
-const state: State = {
-  model: { objects: { shop: { type: 'system', name: 'Shop </script><b>' } }, connections: [], meta: {} },
-  layout: {}, flows: {}, problems: [], versions: { 'model.yaml': 'abc' },
-}
-const options = { assetRoot: 'https://file+.vscode-resource.vscode-cdn.net/ext/media', cspSource: 'https://*.vscode-cdn.net', nonce: 'N0nce', state }
+const options = { assetRoot: 'https://file+.vscode-resource.vscode-cdn.net/ext/media', cspSource: 'https://*.vscode-cdn.net', nonce: 'N0nce' }
 
 test("the canvas's files load from the extension's media folder", () => {
   const page = webviewPage(built, options)
@@ -45,12 +40,8 @@ test('only the canvas script runs, and nothing else can load or connect', () => 
   assert.equal(rules['connect-src'], undefined)
 })
 
-test('the page starts with the state in it, and no text in the model can end its script', () => {
-  const page = webviewPage(built, options)
-  const found = /<script type="application\/json" id="flowy-state">(.*?)<\/script>/s.exec(page)
-  assert.ok(found, 'no state in the page')
-  assert.deepEqual(JSON.parse(found[1]), state)
-  assert.ok(page.indexOf('flowy-state') < page.indexOf('</head>'))
+test('the page carries no model: the canvas asks the extension for it', () => {
+  assert.ok(!webviewPage(built, options).includes('flowy-state'))
 })
 
 test('a page that is not the built canvas is refused', () => {

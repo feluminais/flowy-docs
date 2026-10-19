@@ -5,11 +5,11 @@ import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { extname, join, resolve, sep } from 'node:path'
 import { json } from 'node:stream/consumers'
-import { ParseError, parseFile, serializeFile } from '../core/model.ts'
-import { isAllowedPath, loadDir, loadState, saveFile, VersionConflict } from './files.ts'
+import { loadState } from './files.ts'
 import type { History } from './history.ts'
 import { createHistoryApi } from './history-api.ts'
 import type { HistoryApi } from './history-api.ts'
+import { applyWrite } from './writes.ts'
 
 export type Running = { port: number; close: () => Promise<void> }
 
@@ -29,37 +29,11 @@ function send(res: ServerResponse, status: number, body: unknown) {
   res.end(JSON.stringify(body))
 }
 
-/** PUT /api/file/<path> { version, data } writes a file; DELETE /api/file/flows/<id>.yaml { version } removes a flow. */
+/** PUT /api/file/<path> { version, data } writes a file; DELETE /api/file/flows/<id>.yaml { version } removes a flow. See applyWrite. */
 async function write(dir: string, req: IncomingMessage, res: ServerResponse, rel: string, history?: HistoryApi) {
-  if (!isAllowedPath(rel) || (req.method === 'DELETE' && !rel.startsWith('flows/')))
-    return send(res, 400, { error: `can't write "${rel}"` })
-  const body = (await json(req).catch(() => undefined)) as { version?: unknown; data?: unknown } | undefined
-  const version = body?.version
-  if (typeof version !== 'string' && version !== null)
-    return send(res, 400, { error: 'the body needs "version": the file\'s version from /api/state, or null for a new file' })
-  if (req.method === 'PUT' && body?.data === undefined) return send(res, 400, { error: 'the body needs "data"' })
-  try {
-    await loadDir(dir) // nothing is written while any file fails to parse
-  } catch (e) {
-    if (e instanceof ParseError) return send(res, 409, { error: e.message })
-    throw e
-  }
-  let text: string | null = null
-  if (req.method === 'PUT') {
-    try {
-      text = serializeFile(rel, body?.data)
-      parseFile(rel, text) // never write what can't be read back
-    } catch (e) {
-      return send(res, 400, { error: `not a valid ${rel}: ${e instanceof ParseError ? e.reason : String(e)}` })
-    }
-  }
-  try {
-    await history?.beforeWrite() // the files as they are now become a step before this edit changes them
-    send(res, 200, { version: await saveFile(dir, rel, text, version) })
-  } catch (e) {
-    if (e instanceof VersionConflict) return send(res, 409, { version: e.version })
-    throw e
-  }
+  const body = await json(req).catch(() => undefined)
+  const answer = await applyWrite(dir, req.method ?? '', rel, body, history && (() => history.beforeWrite()))
+  send(res, answer.status, answer.body)
 }
 
 async function serveUi(ui: string, res: ServerResponse, pathname: string) {
