@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ParseError } from '../src/core/model.ts'
-import { checkRun, interpolate, parseRun } from '../src/core/perf.ts'
+import { checkRun, interpolate, parseRun, rollUp, strain } from '../src/core/perf.ts'
 import { shop } from './fixtures.ts'
 
 /** Three levels of a run against the shop fixture (test/fixtures.ts): api and db are measured, and orders inside api. */
@@ -188,4 +188,39 @@ levels:
   - { load: 300, objects: { x: { util: 0.6 } } }
 `)
   near(interpolate(run, 200).objects.x.util, 0.4)
+})
+
+test('strain is the busier of utilisation and errors, with errors counting twenty times', () => {
+  assert.equal(strain({}), undefined)
+  assert.equal(strain({ queue: 3, rate: 5 }), undefined)
+  assert.deepEqual(strain({ util: 0.4 }), { value: 0.4, by: 'util', share: 0.4 })
+  const mostlyErrors = strain({ util: 0.4, errors: 0.025 })
+  assert.equal(mostlyErrors?.by, 'errors')
+  near(mostlyErrors?.value, 0.5)
+  assert.equal(strain({ util: 0.4, errors: 0.01 })?.by, 'util')
+  assert.deepEqual(strain({ errors: 0.2 }), { value: 1, by: 'errors', share: 0.2 })
+  assert.deepEqual(strain({ errors: 0 }), { value: 0, by: 'errors', share: 0 }) // only errors were measured, so it is not "by util"
+})
+
+test('rollUp gives a shape the worst of what it holds, with queues added up', () => {
+  const { objects } = rollUp(shop(), ramp().levels[1], 'root')
+  assert.deepEqual(objects.orders, { util: 0.3 })
+  assert.deepEqual(objects.api, { util: 0.7, queue: 2 }) // its own, with orders inside it no busier
+  assert.deepEqual(objects.shop, { util: 0.8, queue: 2 }) // db is the busiest thing inside it
+  assert.equal(Object.hasOwn(objects, 'web'), false) // nothing measured it, nothing inside it
+})
+
+test('rollUp merges the connections that land on one line in a view', () => {
+  const run = ramp()
+  assert.deepEqual(rollUp(shop(), run.levels[2], 'shop').lines, [
+    { from: 'web', to: 'api', rate: 300, p50: 60, p95: 200, errors: 0.08 },
+    { from: 'api', to: 'db', rate: 270, p50: 50, p95: 120 }, // orders → db and auth → db: rates added, worst latency
+  ])
+})
+
+test('rollUp leaves out a connection the view folds into one box, and one the model does not have', () => {
+  const run = ramp()
+  assert.deepEqual(rollUp(shop(), run.levels[2], 'root').lines, [])
+  const { run: odd } = parseRun('r', 'name: R\nlevels:\n  - { load: 1, connections: [{ from: web, to: db, rate: 5 }] }\n  - load: 2\n')
+  assert.deepEqual(rollUp(shop(), odd.levels[0], 'shop').lines, [])
 })

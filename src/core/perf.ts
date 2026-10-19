@@ -210,3 +210,55 @@ export function interpolate(run: Run, load: number): Level {
 
   return { load: at, overall: metricsAt(levels, l => l.overall, EDGE_KEYS, at), objects, connections }
 }
+
+/**
+ * How strained an object is, 0 to 1: its utilisation, or its error share counted twenty times (5% failing is as bad as
+ * full), whichever is worse. Undefined when neither was measured. `share` is the raw number that decided it.
+ */
+export function strain(m: Metrics): { value: number; by: 'util' | 'errors'; share: number } | undefined {
+  if (m.util === undefined && m.errors === undefined) return undefined
+  const util = m.util ?? 0
+  const errors = m.errors ?? 0
+  const fromErrors = Math.min(1, errors * 20)
+  return m.util !== undefined && util >= fromErrors ? { value: util, by: 'util', share: util } : { value: fromErrors, by: 'errors', share: errors }
+}
+
+/** One of two numbers when only one exists, else `f` of both. */
+const either = (x: number | undefined, y: number | undefined, f: (a: number, b: number) => number): number | undefined =>
+  x === undefined ? y : y === undefined ? x : f(x, y)
+const add = (a: number, b: number) => a + b
+
+/** `m` without the keys that have no number. */
+const defined = (m: Metrics): Metrics => Object.fromEntries(Object.entries(m).filter(([, v]) => v !== undefined))
+
+/**
+ * A level as one view draws it. Each object takes the worst of what it holds and of itself (highest util and errors,
+ * queues added; if a run measures both a shape and what is inside it, the queue counts twice, so measure one). Each
+ * line the view draws takes the connections that land on it: rates added, worst latency, worst errors. A connection
+ * the model doesn't have is left out. Objects are the same in every view; lines depend on `view`.
+ */
+export function rollUp(model: Model, level: Level, view: string): { objects: Record<string, Metrics>; lines: Pair[] } {
+  const objects: Record<string, Metrics> = {}
+  for (const [id, m] of Object.entries(level.objects)) {
+    if (!getObject(model, id)) continue
+    for (const holder of chain(model, id)) {
+      if (holder === ROOT) continue
+      const so = Object.hasOwn(objects, holder) ? objects[holder] : {}
+      put(objects, holder, defined({ util: either(so.util, m.util, Math.max), errors: either(so.errors, m.errors, Math.max), queue: either(so.queue, m.queue, add) }))
+    }
+  }
+
+  const lines = new Map<string, Pair>()
+  for (const c of level.connections) {
+    if (!model.connections.some(m => m.from === c.from && m.to === c.to)) continue
+    const ends = placeEnds(model, view, c.from, c.to)
+    if (!ends) continue
+    const key = JSON.stringify(ends)
+    const so = lines.get(key)
+    lines.set(key, {
+      from: ends[0], to: ends[1],
+      ...defined({ rate: either(so?.rate, c.rate, add), p50: either(so?.p50, c.p50, Math.max), p95: either(so?.p95, c.p95, Math.max), errors: either(so?.errors, c.errors, Math.max) }),
+    })
+  }
+  return { objects, lines: [...lines.values()] }
+}
