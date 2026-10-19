@@ -462,3 +462,14 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .tree-row .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .tree-row .dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); }
 .tree-row .count { flex: none; color: var(--muted); font-size: 12px; }
+
+/*
+ * Performance. A load-test run is drawn on the diagram: particles run along the lines (TrafficLayer), a shape's outline goes from green to red
+ * with how strained it is (--strain, 0 to 1, set on the box), and a number on it says how many are waiting. The tab's panel is Performance.tsx.
+ */
+.canvas.loaded .react-flow__edge-path { transition: stroke-width 0.25s; }
+.traffic { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+.box.strained .shape path { stroke: light-dark(hsl(calc(150 - 150 * var(--strain)) 70% 38%), hsl(calc(150 - 150 * var(--strain)) 75% 62%)); stroke-width: 3; transition: stroke 0.25s; }
+.box.strained .shape { filter: drop-shadow(0 0 calc(2px + 9px * var(--strain)) light-dark(hsl(calc(150 - 150 * var(--strain)) 70% 45% / 0.6), hsl(calc(150 - 150 * var(--strain)) 75% 60% / 0.6))); }
+@media (prefers-reduced-motion: reduce) { .canvas.loaded .react-flow__edge-path, .box.strained .shape path { transition: none; } }
+.queue-badge { position: absolute; top: -9px; right: -7px; min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 10px; background: var(--warn); color: #fff; font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }

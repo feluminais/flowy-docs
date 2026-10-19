@@ -21,7 +21,7 @@ export const teaser = (description?: string) => description?.trim().split(/\n\s*
  * icon (grey with a cloud when it's external), its name, its tech (or type), and how many shapes it opens onto. Hovering
  * shows the teaser. In edit mode a line starts at the dot at the bottom, and while it's being drawn the whole shape is a place to drop it.
  */
-export function Box({ id, data: { object, inside, icon }, isConnectable }: NodeProps<BoxNode>) {
+export function Box({ id, data: { object, inside, icon, perf }, isConnectable }: NodeProps<BoxNode>) {
   const [hover, setHover] = useState(false)
   const connecting = useConnection(c => c.inProgress)
   const short = teaser(object.description)
@@ -30,8 +30,8 @@ export function Box({ id, data: { object, inside, icon }, isConnectable }: NodeP
   const kind = external ? `external ${object.type}` : object.type
   return (
     <div
-      className={`box box-${object.type}${external ? ' external' : ''}${isColor(object.color) ? ' colored' : ''}${fillOpacity(object) > 0 ? ' tinted' : ''}${onFill(object) ? ' on' : ''}`}
-      style={{ ...lookVars(object), padding: `${top}px ${right}px ${bottom}px ${left}px` }}
+      className={`box box-${object.type}${external ? ' external' : ''}${isColor(object.color) ? ' colored' : ''}${fillOpacity(object) > 0 ? ' tinted' : ''}${onFill(object) ? ' on' : ''}${perf?.strain !== undefined ? ' strained' : ''}`}
+      style={{ ...lookVars(object), ...(perf?.strain !== undefined && { '--strain': perf.strain }), padding: `${top}px ${right}px ${bottom}px ${left}px` }}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
     >
       <svg className="shape" viewBox="0 0 200 72" aria-hidden="true"><path d={path} /></svg>
@@ -41,6 +41,7 @@ export function Box({ id, data: { object, inside, icon }, isConnectable }: NodeP
         <div className="box-name">{object.name || id}</div>
         <div className="box-meta">{[external && 'external', object.tech || object.type].filter(Boolean).join(' · ')}</div>
       </div>
+      {perf && perf.queue > 0 && <span className="queue-badge" title={`${perf.queue} waiting`}>{perf.queue}</span>}
       {inside > 0 && <span className="inside" style={{ right: badge[0], bottom: badge[1] }}><ZoomIn />{inside} inside</span>}
       <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} />
       {short && (

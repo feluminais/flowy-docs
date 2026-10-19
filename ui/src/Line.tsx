@@ -9,6 +9,9 @@ import type { BoxData, Outline, Rect } from './graph.ts'
 /** How lines are drawn: the project's style, or this reader's own. App provides it. */
 export const LineStyleContext = createContext<LineStyle>('straight')
 
+/** How thick each line is drawn while traffic shows (by line id), where it differs from the usual. */
+export const LineWidthsContext = createContext<ReadonlyMap<string, number>>(new Map())
+
 const SIDES = { top: Position.Top, right: Position.Right, bottom: Position.Bottom, left: Position.Left }
 
 export const rect = (n: InternalNode): Rect => ({ ...n.internals.positionAbsolute, ...sizeOf(n) })
@@ -41,9 +44,10 @@ export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode):
  */
 export function Line({ id, source, target, label, markerEnd, interactionWidth }: EdgeProps) {
   const style = useContext(LineStyleContext)
+  const width = useContext(LineWidthsContext).get(id)
   const a = useInternalNode(source)
   const b = useInternalNode(target)
   if (!a || !b) return null
   const [path, labelX, labelY] = draw(style, rect(a), rect(b), outline(a), outline(b))
-  return <BaseEdge id={id} path={path} label={label} labelX={labelX} labelY={labelY} markerEnd={markerEnd} interactionWidth={interactionWidth} />
+  return <BaseEdge id={id} path={path} label={label} labelX={labelX} labelY={labelY} markerEnd={markerEnd} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
 }

@@ -1,6 +1,7 @@
 import { Graph, layout } from '@dagrejs/dagre'
 import type { Edge, FitViewOptions, Node, Viewport, XYPosition } from '@xyflow/react'
 import type { Problem } from '../../src/core/check.ts'
+import type { BoxTraffic } from '../../src/core/perf.ts'
 import { iconData } from '../../src/core/look.ts'
 import type { FlowyObject, Model } from '../../src/core/model.ts'
 import { computeView, memberIds, placeEnds } from '../../src/core/views.ts'
@@ -19,7 +20,7 @@ const STACK = 30 // between boxes stacked in a column or row
 const PER_ROW = 4 // outsiders that only start lines wait above the members, this many to a row
 
 /** `inside`: how many boxes sit right inside this one (0: it doesn't open). */
-export type BoxData = { object: FlowyObject; inside: number; icon: string }
+export type BoxData = { object: FlowyObject; inside: number; icon: string; perf?: BoxTraffic }
 export type BoxNode = Node<BoxData, 'box'>
 
 /**
