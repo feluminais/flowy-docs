@@ -44,6 +44,9 @@ import { Player } from './Player.tsx'
 import { closeFlow, followBack, openFlow as leaveFlow } from './trail.ts'
 import type { Spot } from './trail.ts'
 import type { Recording, Run } from './Panel.tsx'
+import { copyMessage } from '../../src/core/host.ts'
+import { vscode } from './host.ts'
+import { useColorMode } from './hosttheme.ts'
 import { useModel } from './useModel.ts'
 import type { Edit, Loaded } from './useModel.ts'
 
@@ -111,6 +114,7 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
 type Back = () => Promise<string | undefined>
 
 function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo, live, readOnly }: Loaded & { edit: Edit; undo: Back; redo: Back; live: boolean; readOnly: boolean }) {
+  const colorMode = useColorMode()
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
   const [viewId, setViewId] = useState(() => readHash(location.hash).view)
   const [side, setSide] = useState<Side>()
@@ -313,8 +317,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   // Fenced, so it pastes straight into a README or a PR, where GitHub draws it.
   const copyMermaid = async () => {
     const diagram = flow && playing ? flowToMermaid(model, playing.flow) : viewToMermaid(model, view)
+    const text = '```mermaid\n' + diagram + '```\n'
     try {
-      await navigator.clipboard.writeText('```mermaid\n' + diagram + '```\n')
+      // In VS Code the editor writes it: a webview can't count on the clipboard API, which wants the page focused.
+      if (vscode) vscode.postMessage(copyMessage(text))
+      else await navigator.clipboard.writeText(text)
       setNotice(`Copied ${flow ? 'this flow' : 'this view'} as Mermaid. Paste it into a README or a PR: GitHub draws it.`)
     } catch {
       setNotice("Couldn't copy: the browser didn't allow it.")
@@ -717,7 +724,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
               minZoom={0.2} // the default 0.5 stops the fit short, so a wide diagram in a small window is cut off
-              colorMode="system"
+              colorMode={colorMode}
               defaultMarkerColor="var(--edge)"
               nodesDraggable={editing && !recording}
               nodesConnectable={editing && !recording}
