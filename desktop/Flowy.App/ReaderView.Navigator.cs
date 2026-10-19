@@ -27,7 +27,7 @@ internal sealed partial class ReaderView
     private PanelTab? ShownTab => _tab == PanelTab.Flows && !ShowFlows ? null : _tab;
 
     /// <summary>Whether the Details panel on the right is open: from its rail, or because something is picked.</summary>
-    private bool DetailsOpen => _details || _side is not null;
+    private bool DetailsOpen => (_details || _side is not null) && !PerfOpen; // the Performance panel is in its place while it is open
 
     private void SetTab(PanelTab tab)
     {
@@ -39,11 +39,14 @@ internal sealed partial class ReaderView
     /// <summary>A click on a rail: open that panel, or close it when it is the one open.</summary>
     private void ToggleTab(PanelTab tab)
     {
-        if (tab == PanelTab.Details)
+        if (tab == PanelTab.Performance) TogglePerf();
+        else if (tab == PanelTab.Details)
         {
             if (DetailsOpen) CloseDetails();
             else
             {
+                _perf = false; // Details takes the place of Performance
+                _ramping = false;
                 _details = true;
                 Refresh();
             }
@@ -174,7 +177,8 @@ internal sealed partial class ReaderView
         var tab = ShownTab;
         var showFlows = ShowFlows;
         _rail.Update(tab, totals.Flows, totals.Shapes, showFlows);
-        _detailsRail.Update(DetailsOpen ? PanelTab.Details : null, 0, 0, false);
+        _detailsRail.Update(DetailsOpen ? PanelTab.Details : PerfOpen ? PanelTab.Performance : null, 0, 0, false);
+        _detailsRail.UpdatePerformance(ShowPerf, _folder?.Runs?.Count ?? 0, PerfOpen);
         if (tab is { } open) _nav.Show(open, showFlows);
         else _nav.Hide();
         ApplyWidths();
@@ -217,13 +221,14 @@ internal sealed partial class ReaderView
 
     internal (double Nav, double Details) PanelWidthsOnScreen => (_nav.Width, _panel.Width);
 
-    internal void ClickRail(PanelTab tab) => (tab == PanelTab.Details ? _detailsRail : _rail).Press(tab);
+    internal void ClickRail(PanelTab tab) => (tab is PanelTab.Details or PanelTab.Performance ? _detailsRail : _rail).Press(tab);
 
     /// <summary>Opens a panel by name ("details", "flows" or "explorer"), for a picture (--tab). Anything else is ignored.</summary>
     public void OpenTab(string name)
     {
         if (!Enum.TryParse<PanelTab>(name, true, out var tab)) return;
-        if (tab != PanelTab.Details) SetTab(tab);
+        if (tab == PanelTab.Performance) OpenPerf();
+        else if (tab != PanelTab.Details) SetTab(tab);
         else if (!DetailsOpen) ToggleTab(tab);
     }
 
