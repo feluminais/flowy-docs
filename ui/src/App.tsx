@@ -112,7 +112,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   // The left-hand panel's tab (the navigator: Flows or Explorer), and whether the right-hand Details panel was opened from its rail. Details shows
   // `side`, or the level you are in, so a `side` opens it too.
   const [remembered] = useState(loadNav)
-  const [tab, setTab] = useState<NavTab | undefined>(remembered.tab)
+  const [tab, setNavTab] = useState<NavTab | undefined>(remembered.tab)
+  // Whether the navigator is where the reader last clicked or opened something: Escape closes it then, and leaves it alone once they work in
+  // the diagram. A navigator that came back with the page has not been used.
+  const navUsed = useRef(false)
+  const setTab = (t: NavTab | undefined) => {
+    navUsed.current = t !== undefined
+    setNavTab(t)
+  }
   const [details, setDetails] = useState(false)
   const [navWidth, setNavWidth] = useState(remembered.navWidth ?? NAV) // dragged by the sashes on the panels' edges
   const [detailsWidth, setDetailsWidth] = useState(remembered.detailsWidth ?? PANEL)
@@ -232,7 +239,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const nodes = graph.nodes.map(n => ({ ...n, data: loadTraffic ? { ...n.data, perf: loadTraffic.boxes[n.id] } : n.data, position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id) }))
   // Inside a box, a frame named after it wraps its own boxes and follows them while they're dragged.
   const inner = view === ROOT ? [] : nodes.filter(n => graph.members.includes(n.id))
-  const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })))]
+  // A click on its outline is a click on that shape: its Details open, as the rail's button opens them. While a flow is recorded or a load shows,
+  // the panel has its own work, so the outline takes no click.
+  const openLevel = recording || perfOpen ? undefined : () => {
+    justMoved.current = false
+    clearTimeout(opening.current)
+    setSide(undefined)
+    setDetails(true)
+  }
+  const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })), openLevel)]
   const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
   const selectedBox = side?.kind === 'object' ? side.id : undefined
   const edges = useMemo(() => focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }), [graph, selectedBox, selectedLine, hovered])
@@ -543,6 +558,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
     }
   })
 
+  // Where the last click landed: in the navigator, Escape closes it; anywhere else (the diagram, Details, the bar), it leaves the navigator be.
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      navUsed.current = e.target instanceof Element && e.target.closest('.navpanel') !== null
+    }
+    window.addEventListener('pointerdown', onDown, true)
+    return () => window.removeEventListener('pointerdown', onDown, true)
+  }, [])
+
   // Added again on every render, so the handler always sees the current state.
   useEffect(() => {
     // The list ? shows (Shortcuts.tsx) follows this handler: keep the two in step.
@@ -550,22 +574,27 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       const key = letter(e)
       const plain = !e.ctrlKey && !e.metaKey && !e.altKey
       const control = (e.ctrlKey || e.metaKey) && !e.repeat // held down, undo or redo would run through the whole stack
+      const inNavigator = e.target instanceof Element && e.target.closest('.navpanel') !== null
       // A field keeps its keys, except the load slider: its arrows and Home and End are the tab's own, so they work right after it was used.
-      if ((e.target instanceof HTMLInputElement && e.target.type !== 'range') || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return
+      // The navigator's filters clear themselves on Escape and stop it, so one that gets here is empty: a click in it lets Escape close the navigator.
+      if ((e.target instanceof HTMLInputElement && e.target.type !== 'range') || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+        if (!(e.key === 'Escape' && inNavigator && e.target instanceof HTMLInputElement)) return
+      }
       // A second press while a zoom out is still leaving goes up from where that one is heading.
       const up = () => zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view))
       if (undoesMove(e, { editing, justMoved: justMoved.current, shortcuts, plain })) {
         void takeBack()
       }
       else if (e.key === 'Escape') {
-        const layer = escapeStep({ shortcuts, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: rightOpen || nav !== undefined, inside: view !== ROOT })
+        const navigator = nav !== undefined && (navUsed.current || inNavigator)
+        const layer = escapeStep({ shortcuts, navigator, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: rightOpen, inside: view !== ROOT })
         if (layer === 'shortcuts') setShortcuts(false)
+        else if (layer === 'navigator') setTab(undefined)
         else if (layer === 'flow') setPlaying(undefined)
         else if (layer === 'step' && recording) setSide({ ...recording, from: undefined, to: undefined })
         else if (layer === 'panel') {
-          if (perfOpen) closePerf() // the panel you are working in first, then the navigator
-          else if (detailsOpen) closeDetails()
-          else setTab(undefined)
+          if (perfOpen) closePerf()
+          else closeDetails()
         }
         else if (layer === 'up') up()
         else return

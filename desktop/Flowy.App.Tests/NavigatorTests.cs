@@ -161,18 +161,73 @@ public class NavigatorTests
         Assert.True(reader.Navigator.IsVisible);
     }
 
+    private static Point At(Control control, Window window, double x, double y) =>
+        control.TranslatePoint(new Point(control.Bounds.Width * x, control.Bounds.Height * y), window)!.Value;
+
+    private static void Click(Window window, Point at)
+    {
+        window.MouseDown(at, MouseButton.Left);
+        window.MouseUp(at, MouseButton.Left);
+    }
+
     [AvaloniaFact]
-    public void Esc_closes_Details_first_and_then_the_navigator()
+    public void Esc_closes_the_navigator_first_while_it_is_the_last_thing_used_and_then_Details()
     {
         var (window, reader) = Open();
         reader.ClickRail(PanelTab.Explorer);
         reader.OpenObject("ordering");
         Assert.True(reader.DetailsOpenNow);
         Press(window, Key.Escape, PhysicalKey.Escape);
-        Assert.False(reader.DetailsOpenNow);
-        Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
+        Assert.Null(reader.ShownTabNow);
+        Assert.True(reader.DetailsOpenNow);
         Press(window, Key.Escape, PhysicalKey.Escape);
         Assert.False(reader.HasPanel);
+    }
+
+    [AvaloniaFact]
+    public void A_click_in_the_diagram_takes_Esc_off_the_navigator_and_a_click_in_the_navigator_gives_it_back()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Explorer);
+        Click(window, At(reader.Canvas, window, 0.8, 0.97));
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Equal(PanelTab.Explorer, reader.ShownTabNow); // worked in the diagram: Esc is for the diagram
+
+        Click(window, At(reader.Navigator, window, 0.5, 0.95)); // even a click that lands on nothing in particular
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Null(reader.ShownTabNow);
+    }
+
+    [AvaloniaFact]
+    public void Esc_in_the_diagram_still_closes_Details_and_goes_up_but_never_the_navigator()
+    {
+        var (window, reader) = Open();
+        reader.GoTo("ordering");
+        reader.ClickRail(PanelTab.Flows);
+        reader.OpenObject("order-api");
+        Click(window, At(reader.Canvas, window, 0.8, 0.97));
+        reader.OpenObject("order-api"); // the click on empty canvas let go of it; pick it again, as a click on the shape would
+        Assert.True(reader.DetailsOpenNow);
+
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.False(reader.DetailsOpenNow);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Equal(Names.Root, reader.View);
+        Press(window, Key.Escape, PhysicalKey.Escape); // at the top, with only the navigator open: nothing
+        Assert.Equal(PanelTab.Flows, reader.ShownTabNow);
+    }
+
+    [AvaloniaFact]
+    public void A_navigator_that_came_back_with_the_project_is_left_alone_by_Esc_until_it_is_used()
+    {
+        var (window, reader) = Open();
+        reader.RestoreNavigator(new NavigatorState("explorer", [], null, null));
+        Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
+        Click(window, At(reader.Navigator, window, 0.5, 0.95));
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Null(reader.ShownTabNow);
     }
 
     [AvaloniaFact]

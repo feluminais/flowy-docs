@@ -70,7 +70,7 @@ Outside services you don't own (a payment provider, an SMS gateway) are marked `
 ![Order API's panel with its description, the folder it lives in, and every connection out, where a row for five connections opens to list them](docs/images/desktop-panel.png)
 
 Hover a shape for its short description. Click it for the full text, the files it lives in, and every connection out and
-in. A line that stands for several connections opens to list them, and pointing at a row lights its line on the canvas.
+in. Inside a shape, click the blue frame round what is in it to see that shape the same way. A line that stands for several connections opens to list them, and pointing at a row lights its line on the canvas.
 Lines show their labels when you point at one, or when you select a shape.
 
 A shape can list the files and folders it lives in. When the repo's `origin` is on GitHub or GitLab they link there, and a
@@ -213,7 +213,7 @@ sequenceDiagram
 | O | The Explorer: everything as a tree |
 | L | The Flows tab: every flow, and play one |
 | Enter | Open the selected shape |
-| Esc | Close what's open, then go up a level |
+| Esc | Close what's open, then go up a level. The navigator closes only if your last click was in it |
 | Backspace, Z | Zoom out: go up a level |
 | F | Fit the view |
 | ← → | Previous and next step of the flow playing, or previous and next tested load |
