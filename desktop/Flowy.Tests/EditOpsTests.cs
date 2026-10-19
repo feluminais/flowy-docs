@@ -35,6 +35,7 @@ public class EditOpsTests
                     s["links"] is null ? null : Entries(s["links"]),
                     Str(s, "shape"), Str(s, "color"), s["opacity"]?.ToString(), Str(s, "icon")));
             case "deleteObject": return EditOps.DeleteObject(doc, Str(s, "id")!);
+            case "deleteObjects": return EditOps.DeleteObjects(doc, s["ids"]!.AsArray().Select(i => i!.GetValue<string>()).ToList());
             case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label")));
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));
             case "relabel": return EditOps.Relabel(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "label")!);

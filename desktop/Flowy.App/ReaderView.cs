@@ -25,9 +25,10 @@ internal sealed partial class ReaderView : Grid
     private const double LeaveMilliseconds = 140;
     private const double ArriveMilliseconds = 230;
 
-    private enum SideKind { Object, Line, Add, Flow }
+    private enum SideKind { Object, Objects, Line, Add, Flow }
 
-    private sealed record Side(SideKind Kind, string? Id = null, string? From = null, string? To = null, string? FlowName = null);
+    /// <summary><c>Objects</c> is several boxes picked in edit mode, to move or delete together: their ids are in <c>Ids</c>.</summary>
+    private sealed record Side(SideKind Kind, string? Id = null, string? From = null, string? To = null, string? FlowName = null, IReadOnlyList<string>? Ids = null);
 
     private readonly CanvasView _canvas = new();
     private readonly Border _motionHost;
@@ -77,6 +78,7 @@ internal sealed partial class ReaderView : Grid
     private ShortcutsCard? _shortcuts;
     private Notice? _notice;
     private DispatcherTimer? _opening; // a click on a box that opens, waiting out the double-click window
+    private string? _openingBox; // that box: a Ctrl+click in the meantime still counts it as picked
     private IDisposable? _motion;
     private bool _moving;
 
@@ -119,6 +121,8 @@ internal sealed partial class ReaderView : Grid
         Children.Add(beside);
 
         _canvas.BoxClicked += BoxClicked;
+        _canvas.BoxToggled += ToggleBox;
+        _canvas.BoxesPicked += PickBoxes;
         _canvas.BoxesMoved += moved => _ = MoveBoxesAsync(moved);
         _canvas.ConnectRequested += (from, to) => _ = ConnectAsync(from, to);
         _canvas.BoxDoubleClicked += id =>
@@ -331,6 +335,7 @@ internal sealed partial class ReaderView : Grid
     {
         _folder = folder;
         if (_side is { Kind: SideKind.Object, Id: { } id } && folder.Model.GetObject(id) is null) _side = null;
+        if (_side is { Kind: SideKind.Objects, Ids: { } picked }) _side = SideOf(picked.Where(p => folder.Model.GetObject(p) is not null).ToList()); // boxes that went are no longer picked
         if (!PerfOpen || LoadTest is null) _ramping = false; // a ramp whose run is gone has nothing to run on, and its loop has already ended
         SetBanner(null);
         Refresh();
@@ -416,7 +421,7 @@ internal sealed partial class ReaderView : Grid
     private string? SelectedBox => _side is { Kind: SideKind.Object } s ? s.Id : null;
 
     /// <summary>The boxes drawn as selected: the open box, or the two picked for the step being recorded.</summary>
-    private IEnumerable<string> SelectedBoxes => Recording is { } r ? new[] { r.From, r.To }.OfType<string>() : SelectedBox is { } b ? [b] : [];
+    private IEnumerable<string> SelectedBoxes => Recording is { } r ? new[] { r.From, r.To }.OfType<string>() : _side is { Kind: SideKind.Objects, Ids: { } many } ? many : SelectedBox is { } b ? [b] : [];
 
     private Scene? Scene() => _canvas.Scene;
 
@@ -553,6 +558,9 @@ internal sealed partial class ReaderView : Grid
                 break;
             case { Kind: SideKind.Object, Id: { } id }:
                 _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover);
+                break;
+            case { Kind: SideKind.Objects, Ids: { } picked } when Editing:
+                _panel.ShowObjects(model, picked, OpenObject, DeleteSelectedAsync);
                 break;
             case { Kind: SideKind.Line, From: { } from, To: { } to } when Editing:
                 _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide);
@@ -739,9 +747,11 @@ internal sealed partial class ReaderView : Grid
             OpenObject(id);
             return;
         }
+        _openingBox = id;
         _opening = new DispatcherTimer(TimeSpan.FromMilliseconds(DoubleClickMilliseconds), DispatcherPriority.Normal, (_, _) =>
         {
             _opening?.Stop();
+            _openingBox = null;
             OpenObject(id);
         });
         _opening.Start();

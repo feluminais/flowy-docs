@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { typesIn } from '../../src/core/check.ts'
 import { modelFiles, ROOT, serializeLayout } from '../../src/core/model.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteFlow, deleteObject, forgetLayout, OpError, placeBoxes, putFlow, putObject, refuseNewProblems, relabel, removeConnection, setLines, updateFlow } from '../../src/core/ops.ts'
+import { connect, deleteFlow, deleteObject, deleteObjects, forgetLayout, OpError, placeBoxes, putFlow, putObject, refuseNewProblems, relabel, removeConnection, setLines, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
@@ -72,6 +72,14 @@ export const STEPS: Spec[] = [
   { op: 'deleteObject', id: 'cache' },
   { op: 'deleteObject', id: '10' },
   { op: 'deleteObject', id: '2' },
+  { op: 'deleteObjects', ids: ['weird', 'pay'] }, // two at once, and the line to pay goes with it
+  { op: 'deleteObjects', ids: ['checkout', 'customer'] }, // customer is used by a flow: nothing goes, not even checkout
+  { op: 'deleteObjects', ids: ['db', 'ghost'] },
+  { op: 'deleteObjects', ids: ['shop', 'web'] }, // shop still has api and db inside
+  { op: 'deleteObjects', ids: [] },
+  { op: 'deleteFlow', id: 'browse' },
+  { op: 'deleteFlow', id: 'order' },
+  { op: 'deleteObjects', ids: ['shop', 'api', 'web', 'db', 'checkout'] }, // a box with what is inside it, the inner ones first
 ]
 
 function apply(model: Model, s: Spec): Model {
@@ -81,6 +89,7 @@ function apply(model: Model, s: Spec): Model {
       return putObject(model, input as ObjectInput)
     }
     case 'deleteObject': return deleteObject(model, s.id)
+    case 'deleteObjects': return deleteObjects(model, s.ids)
     case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label })
     case 'removeConnection': return removeConnection(model, { from: s.from, to: s.to, label: s.which })
     case 'relabel': return relabel(model, { from: s.from, to: s.to, label: s.which }, s.label)
