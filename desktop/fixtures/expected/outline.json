@@ -1270,7 +1270,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1279,7 +1279,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 3,
+            "flows": 5,
             "problems": 0
           }
         },
@@ -1299,7 +1299,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1363,7 +1363,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1500,7 +1500,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 3,
+            "flows": 5,
             "problems": 0
           }
         },
@@ -1521,7 +1521,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1585,7 +1585,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1704,6 +1704,22 @@
               "match": true
             },
             {
+              "key": "flow:announce-order",
+              "kind": "flow",
+              "id": "announce-order",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "A paid order is announced",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:place-order",
               "kind": "flow",
               "id": "place-order",
@@ -1714,6 +1730,22 @@
               "shapes": 0,
               "flows": 0,
               "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:capture-payment",
+              "kind": "flow",
+              "id": "capture-payment",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The payment is captured",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -1850,7 +1882,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 3,
+            "flows": 5,
             "problems": 0
           }
         },
@@ -1906,7 +1938,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2178,7 +2210,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2393,6 +2425,22 @@
               "match": true
             },
             {
+              "key": "flow:announce-order",
+              "kind": "flow",
+              "id": "announce-order",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "A paid order is announced",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:place-order",
               "kind": "flow",
               "id": "place-order",
@@ -2403,6 +2451,22 @@
               "shapes": 0,
               "flows": 0,
               "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:capture-payment",
+              "kind": "flow",
+              "id": "capture-payment",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The payment is captured",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -2539,7 +2603,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 3,
+            "flows": 5,
             "problems": 0
           }
         },
@@ -2595,7 +2659,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2867,7 +2931,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3082,6 +3146,22 @@
               "match": true
             },
             {
+              "key": "flow:announce-order",
+              "kind": "flow",
+              "id": "announce-order",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "A paid order is announced",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:place-order",
               "kind": "flow",
               "id": "place-order",
@@ -3092,6 +3172,22 @@
               "shapes": 0,
               "flows": 0,
               "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:capture-payment",
+              "kind": "flow",
+              "id": "capture-payment",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The payment is captured",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -3228,7 +3324,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 3,
+            "flows": 5,
             "problems": 0
           }
         },
@@ -3246,7 +3342,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3454,7 +3550,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3557,6 +3653,22 @@
               "match": true
             },
             {
+              "key": "flow:announce-order",
+              "kind": "flow",
+              "id": "announce-order",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "A paid order is announced",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:place-order",
               "kind": "flow",
               "id": "place-order",
@@ -3567,6 +3679,22 @@
               "shapes": 0,
               "flows": 0,
               "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:capture-payment",
+              "kind": "flow",
+              "id": "capture-payment",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The payment is captured",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -3639,7 +3767,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 3,
+            "flows": 5,
             "problems": 0
           }
         },
@@ -3659,7 +3787,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3675,7 +3803,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3700,7 +3828,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 3,
+            "flows": 5,
             "problems": 0
           }
         },
@@ -3720,7 +3848,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3784,7 +3912,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -3921,7 +4049,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 3,
+            "flows": 5,
             "problems": 0
           }
         }
@@ -3962,15 +4090,27 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "root",
@@ -4007,24 +4147,48 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "ordering",
           "editing": false,
           "here": [
             {
+              "id": "announce-order",
+              "name": "A paid order is announced",
+              "steps": 3,
+              "view": "ordering"
+            },
+            {
               "id": "place-order",
               "name": "Customer places an order",
               "steps": 7,
+              "view": "ordering"
+            },
+            {
+              "id": "capture-payment",
+              "name": "The payment is captured",
+              "steps": 6,
               "view": "ordering"
             }
           ],
@@ -4058,16 +4222,28 @@
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "ordering",
           "editing": true,
           "here": [
             {
+              "id": "announce-order",
+              "name": "A paid order is announced",
+              "steps": 3,
+              "view": "ordering"
+            },
+            {
               "id": "place-order",
               "name": "Customer places an order",
               "steps": 7,
+              "view": "ordering"
+            },
+            {
+              "id": "capture-payment",
+              "name": "The payment is captured",
+              "steps": 6,
               "view": "ordering"
             }
           ],
@@ -4101,7 +4277,7 @@
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "delivery",
@@ -4136,15 +4312,27 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "delivery",
@@ -4179,15 +4367,27 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "notifications",
@@ -4230,15 +4430,27 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "notifications",
@@ -4281,15 +4493,27 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "backoffice",
@@ -4332,15 +4556,27 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "backoffice",
@@ -4383,15 +4619,27 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "order-api",
@@ -4434,15 +4682,27 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "order-api",
@@ -4485,15 +4745,27 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "dispatch",
@@ -4536,15 +4808,27 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         },
         {
           "view": "dispatch",
@@ -4587,15 +4871,27 @@
               ],
               "flows": [
                 {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
                   "id": "place-order",
                   "name": "Customer places an order",
                   "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 3
+          "total": 5
         }
       ],
       "expandTo": [
