@@ -1,0 +1,24 @@
+name: Extremes
+about: Numbers on the edges of what the drawing caps, and of what counts as struggling.
+unit: req/s
+levels:
+  - load: 1
+    overall: { p95: 100 }
+    objects:
+      web: { util: 0.849 }
+      db: { util: 0.5, queue: 0.5 }
+    connections:
+      - { from: orders, to: db, rate: 5000, p50: 100000, p95: 100000, errors: 0.0099 }
+      - { from: customer, to: web, rate: 0, p50: 0 }
+      - { from: auth, to: db, rate: 0.5, p50: 0.2, errors: 0.01 }
+      - { from: orders, to: queue, rate: 1, p50: 6.5, errors: 0.2 }
+  - load: 2
+    overall: { p95: 300 }
+    objects:
+      web: { util: 0.85 }
+      db: { util: 0.5, queue: 1.5 }
+    connections:
+      - { from: orders, to: db, rate: 5000, p50: 100000, p95: 100000, errors: 0.0099 }
+      - { from: customer, to: web, rate: 0, p50: 0 }
+      - { from: auth, to: db, rate: 0.5, p50: 0.2, errors: 0.01 }
+      - { from: orders, to: queue, rate: 1, p50: 6.5, errors: 0.2 }

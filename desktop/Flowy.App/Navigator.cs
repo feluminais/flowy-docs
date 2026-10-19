@@ -9,8 +9,8 @@ using Flowy.Core;
 
 namespace Flowy.App;
 
-/// <summary>What a rail button opens: the Details panel on the right, or one tab of the navigator on the left (every flow, or the whole documentation as a tree).</summary>
-internal enum PanelTab { Details, Flows, Explorer }
+/// <summary>What a rail button opens: the Details panel on the right (or, beside it, the Performance panel that takes its place), or one tab of the navigator on the left (every flow, or the whole documentation as a tree).</summary>
+internal enum PanelTab { Details, Flows, Explorer, Performance }
 
 /// <summary>
 /// A slim column of icons on an edge, always there. The left one holds Flows and Explorer, and the counts on it say how much the documentation
@@ -35,7 +35,12 @@ internal sealed class NavRail : Border
             Add(column, PanelTab.Flows, Icons.Route, "Flows", "L");
             Add(column, PanelTab.Explorer, Icons.Sitemap, "Explorer", "O");
         }
-        else Add(column, PanelTab.Details, Icons.Info, "Details", null);
+        else
+        {
+            Add(column, PanelTab.Details, Icons.Info, "Details", null);
+            Add(column, PanelTab.Performance, Icons.Activity, "Performance", "T");
+            _entries[PanelTab.Performance].Button.IsVisible = false; // there only where the folder has load-test runs
+        }
         Child = column;
     }
 
@@ -68,6 +73,15 @@ internal sealed class NavRail : Border
         _entries[PanelTab.Flows].Button.IsVisible = showFlows;
         SetCount(PanelTab.Flows, "Flows", flows);
         SetCount(PanelTab.Explorer, "Explorer", shapes);
+    }
+
+    /// <summary>The right rail's Performance button: there only when the folder has runs (the number on it is how many) and the reader is not editing.</summary>
+    public void UpdatePerformance(bool show, int runs, bool open)
+    {
+        if (!_entries.TryGetValue(PanelTab.Performance, out var entry)) return;
+        entry.Button.IsVisible = show;
+        entry.Button.Classes.Set("active", open);
+        SetCount(PanelTab.Performance, "Performance", runs);
     }
 
     private void SetCount(PanelTab tab, string name, int n)

@@ -35,6 +35,7 @@ internal sealed partial class ReaderView : Grid
     private readonly TextBlock _emptyTitle = new() { Text = "Nothing to show yet", FontSize = 18, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center };
     private readonly TextBlock _emptyBody = new() { TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Classes = { "muted" } };
     private readonly SidePanel _panel = new();
+    private readonly PerfPanel _perfPanel = new();
     private readonly PlayerCard _player = new();
     private readonly Grid _overlay = new();
     private readonly Border _banner = new();
@@ -145,7 +146,12 @@ internal sealed partial class ReaderView : Grid
             Refresh();
             Focus();
         };
-        _panel.Closed += CloseDetails;
+        _panel.Closed += () =>
+        {
+            if (PerfOpen) ClosePerf();
+            else CloseDetails();
+        };
+        WirePerformance();
         _nav.Tabs.Picked += SetTab;
         _nav.Closed += CloseNav;
         _rail.Picked += ToggleTab;
@@ -179,7 +185,7 @@ internal sealed partial class ReaderView : Grid
 
     // What a test can look at.
     internal string? SelectedBoxId => SelectedBox;
-    internal bool HasPanel => ShownTab is not null || DetailsOpen;
+    internal bool HasPanel => ShownTab is not null || RightOpen;
     internal bool IsMoving => _moving;
     internal bool ShowsEmptyNote => _empty.IsVisible;
     internal string? BannerText => _banner.IsVisible ? _bannerText.Text : null;
@@ -284,6 +290,8 @@ internal sealed partial class ReaderView : Grid
         _view = Names.Root;
         _side = null;
         _details = false;
+        _perf = false;
+        _ramping = false;
         _playing = null;
         _hover = null;
         _codeBase = null;
@@ -316,6 +324,7 @@ internal sealed partial class ReaderView : Grid
     {
         _folder = folder;
         if (_side is { Kind: SideKind.Object, Id: { } id } && folder.Model.GetObject(id) is null) _side = null;
+        if (!PerfOpen || LoadTest is null) _ramping = false; // a ramp whose run is gone has nothing to run on, and its loop has already ended
         SetBanner(null);
         Refresh();
     }
@@ -411,7 +420,7 @@ internal sealed partial class ReaderView : Grid
         return _folder.Model.Flows.Where(kv => kv.Value.View == view && (kv.Value.Steps.Count > 0 || Editing)).Select(kv => (kv.Key, kv.Value)).ToList();
     }
 
-    private (string Id, Flow Flow)? PlayingFlow() => Editing ? null : _playing is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
+    private (string Id, Flow Flow)? PlayingFlow() => Editing || PerfOpen ? null : _playing is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
 
     private int StepIndex() => PlayingFlow() is { } f && _playing is { } p ? Math.Max(0, Math.Min(p.Step, f.Flow.Steps.Count - 1)) : 0;
 
@@ -440,6 +449,7 @@ internal sealed partial class ReaderView : Grid
         RefreshBar(model, view, flow);
         RefreshEdit();
         RefreshPanel(model, view);
+        ApplyLoad();
         RefreshPlayer(model, view, flow, index, shown);
         UpdateMotion(flow, index, shown);
         RefreshNavigator(model, view, flow);
@@ -517,6 +527,11 @@ internal sealed partial class ReaderView : Grid
 
     private void RefreshPanel(Model model, string view)
     {
+        if (PerfOpen)
+        {
+            ShowPerfPanel(model, view);
+            return;
+        }
         switch (_side)
         {
             case { Kind: SideKind.Object, Id: { } id } when Editing:
@@ -660,7 +675,7 @@ internal sealed partial class ReaderView : Grid
         _canvas.RenderTransform = new ScaleTransform(scale, scale);
     }
 
-    public void FitNow() => _canvas.Fit(DetailsOpen ? _detailsWidth : 0, PlayingFlow() is not null, ShownTab is not null ? _navWidth : 0, 220);
+    public void FitNow() => _canvas.Fit(RightOpen ? _detailsWidth : 0, PlayingFlow() is not null, ShownTab is not null ? _navWidth : 0, 220);
 
     // ---- selecting ---------------------------------------------------------------------------------------------
 
@@ -772,7 +787,7 @@ internal sealed partial class ReaderView : Grid
             _shortcuts = null;
             return;
         }
-        _shortcuts = new ShortcutsCard(() => ShowShortcuts(false));
+        _shortcuts = new ShortcutsCard(() => ShowShortcuts(false), ShowPerf);
         _overlay.Children.Add(_shortcuts);
     }
 
@@ -823,7 +838,8 @@ internal sealed partial class ReaderView : Grid
                 case EscapeStep.Shortcuts: ShowShortcuts(false); break;
                 case EscapeStep.Flow: Stop(); break;
                 case EscapeStep.Panel:
-                    if (DetailsOpen) CloseDetails(); // the panel you are working in first, then the navigator
+                    if (PerfOpen) ClosePerf(); // the panel you are working in first, then the navigator
+                    else if (DetailsOpen) CloseDetails();
                     else CloseNav();
                     break;
                 case EscapeStep.Up: Up(); break;
@@ -831,6 +847,11 @@ internal sealed partial class ReaderView : Grid
             }
         }
         else if (EditKey(e)) { }
+        else if (PerfOpen && e.Key == Key.Right) StepLevel(Math.Floor(_pos + 1e-6) + 1);
+        else if (PerfOpen && e.Key == Key.Left) StepLevel(Math.Ceiling(_pos - 1e-6) - 1);
+        else if (PerfOpen && e.Key == Key.Home) StepLevel(0);
+        else if (PerfOpen && LoadTest is { } top && e.Key == Key.End) StepLevel(PerfView.Top(top));
+        else if (PerfOpen && e.PhysicalKey == PhysicalKey.P && plain) ToggleRamp();
         else if (flow is not null && e.Key == Key.Right) StepTo(StepIndex() + 1);
         else if (flow is not null && e.Key == Key.Left) StepTo(StepIndex() - 1);
         else if (flow is not null && e.Key == Key.Home) StepTo(0);
@@ -850,6 +871,7 @@ internal sealed partial class ReaderView : Grid
         else if (e.PhysicalKey == PhysicalKey.F && plain) FitNow();
         else if (e.PhysicalKey == PhysicalKey.L && plain && ShowFlows) ToggleTab(PanelTab.Flows);
         else if (e.PhysicalKey == PhysicalKey.O && plain) ToggleTab(PanelTab.Explorer);
+        else if (e.PhysicalKey == PhysicalKey.T && plain && ShowPerf) TogglePerf();
         // Z zooms out, always: in edit mode Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
         else if ((e.Key == Key.Back || e.PhysicalKey == PhysicalKey.Z) && plain && view != Names.Root && Recording is null) Up();
         else return;

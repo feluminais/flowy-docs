@@ -208,6 +208,7 @@ internal sealed class ShortcutsCard : Border
         ("F", "Fit the view"),
         ("L", "Show every flow, and play one"),
         ("O", "Show everything as a tree"),
+        ("T", "Show a load-test run on the diagram, where there is one"),
         ("E", "Edit mode on and off"),
         ("?", "Show these shortcuts"),
     ];
@@ -221,6 +222,14 @@ internal sealed class ShortcutsCard : Border
         ("Esc", "Stop the flow"),
     ];
 
+    private static readonly (string, string)[] Performance =
+    [
+        ("→  ←", "Next and previous tested load"),
+        ("Home  End", "Lowest and highest tested load"),
+        ("P", "Ramp the load up on its own, or pause"),
+        ("Esc", "Close the panel"),
+    ];
+
     private static readonly (string, string)[] Editing =
     [
         ("N", "Add a shape here"),
@@ -230,7 +239,7 @@ internal sealed class ShortcutsCard : Border
         ("Ctrl+Y  Ctrl+Shift+Z", "Redo"),
     ];
 
-    public ShortcutsCard(Action close)
+    public ShortcutsCard(Action close, bool performance = false)
     {
         Classes.Add("card");
         HorizontalAlignment = HorizontalAlignment.Center;
@@ -241,6 +250,7 @@ internal sealed class ShortcutsCard : Border
         column.Children.Add(new TextBlock { Text = "Keyboard shortcuts", FontSize = 17, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 0, 32, 0) });
         AddGroup(column, Icons.Search, "Getting around", Reading);
         AddGroup(column, Icons.Play, "Flows", Flows);
+        if (performance) AddGroup(column, Icons.Activity, "Performance", Performance);
         AddGroup(column, Icons.Pencil, "In edit mode", Editing);
         var closeButton = new Button { Content = Icons.Make(Icons.Close, "closeicon", 16), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top };
         closeButton.Classes.Add("close");

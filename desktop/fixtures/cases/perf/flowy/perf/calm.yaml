@@ -1,0 +1,16 @@
+name: Calm
+about: Nothing here gets near its limit, and the lines carry no latency, so they take the default crossing time.
+unit: req/s
+levels:
+  - load: 5
+    objects:
+      web: { util: 0.1 }
+      db: { util: 0.05, queue: 0 }
+    connections:
+      - { from: orders, to: db, rate: 5 }
+  - load: 10
+    objects:
+      web: { util: 0.2 }
+      db: { util: 0.1 }
+    connections:
+      - { from: orders, to: db, rate: 10 }

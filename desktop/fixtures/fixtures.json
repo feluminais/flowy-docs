@@ -15,5 +15,6 @@
   "shape-layout": "desktop/fixtures/cases/shape-layout/flowy",
   "look": "desktop/fixtures/cases/look/flowy",
   "animation": "desktop/fixtures/cases/animation/flowy",
-  "recurse": "desktop/fixtures/cases/recurse/flowy"
+  "recurse": "desktop/fixtures/cases/recurse/flowy",
+  "perf": "desktop/fixtures/cases/perf/flowy"
 }

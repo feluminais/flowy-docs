@@ -1,0 +1,16 @@
+name: Unknown
+unit: req/s
+entry: nowhere
+levels:
+  - load: 1
+    objects:
+      ghost: { util: 0.1 }
+      web: { util: 0.1 }
+    connections:
+      - { from: orders, to: worker, rate: 1 }
+      - { from: ghost, to: db, rate: 1 }
+  - load: 2
+    objects:
+      ghost: { util: 0.2 }
+    connections:
+      - { from: orders, to: worker, rate: 2 }

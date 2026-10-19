@@ -17,6 +17,7 @@ internal sealed class BackLayer : Control
     private sealed record Drawn(SceneEdge Edge, LinePath Path, Geometry Geometry);
 
     private List<Drawn> _lines = [];
+    private IReadOnlyDictionary<string, double>? _widths; // how thick each line is drawn while a load shows (by line id), where it differs from the usual
     private Scene? _scene;
     private Viewport _viewport = new(0, 0, 1);
 
@@ -51,6 +52,19 @@ internal sealed class BackLayer : Control
             }).ToList();
         InvalidateVisual();
     }
+
+    /// <summary>Draws the lines at these thicknesses (a load's traffic makes busy lines thicker), or as usual for null.</summary>
+    public void SetWidths(IReadOnlyDictionary<string, double>? widths)
+    {
+        _widths = widths;
+        InvalidateVisual();
+    }
+
+    /// <summary>How thick a line is drawn while a load shows, or null when it is drawn as usual (for tests).</summary>
+    internal double? WidthOf(string edgeId) => _widths is not null && _widths.TryGetValue(edgeId, out var w) ? w : null;
+
+    /// <summary>How thick a line is drawn: what a load's traffic gives it, which outranks being picked, hovered or lit as the browser's inline width does; else lit 3, picked or hovered 2, any other 1.5.</summary>
+    internal static double ThicknessOf(bool lit, bool picked, double? traffic) => traffic ?? (lit ? 3 : picked ? 2 : 1.5);
 
     /// <summary>The line under a point of this control, if any (within a few pixels of it), for pointing at and clicking lines.</summary>
     public string? EdgeAt(Point screen)
@@ -99,7 +113,7 @@ internal sealed class BackLayer : Control
         var lit = e.Flags.HasFlag(EdgeFlags.Active) || e.Flags.HasFlag(EdgeFlags.Step);
         var emphasised = lit || e.Selected || e.Flags.HasFlag(EdgeFlags.Hover);
         var brush = e.Flags.HasFlag(EdgeFlags.Problem) && !lit ? Brush("WarnBrush") : emphasised ? accent : Brush("EdgeBrush");
-        var thickness = lit ? 3 : e.Selected || e.Flags.HasFlag(EdgeFlags.Hover) ? 2 : 1.5;
+        var thickness = ThicknessOf(lit, e.Selected || e.Flags.HasFlag(EdgeFlags.Hover), WidthOf(e.Id));
         var dash = e.Flags.HasFlag(EdgeFlags.Step) ? new DashStyle([8 / thickness, 5 / thickness], 0) : null;
         using var opacity = context.PushOpacity(Fade(e));
         if (lit) // a soft glow under it

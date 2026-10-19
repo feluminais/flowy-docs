@@ -56,6 +56,8 @@ internal sealed partial class ReaderView
         if (on && ReadOnly) return;
         if (_editMode == on) return;
         _editMode = on;
+        _perf = false; // editing and the Performance panel don't mix: the numbers would sit on a model that is changing
+        _ramping = false;
         DismissNotice();
         _playing = null;
         if (!on && _side is { Kind: SideKind.Add or SideKind.Flow }) _side = null;

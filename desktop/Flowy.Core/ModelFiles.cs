@@ -20,7 +20,7 @@ public static class ModelFiles
     private static OrderedDictionary<string, object?> NewMap() => [];
 
     /// <summary>For sections: an empty value, <c>~</c> or <c>null</c> means empty.</summary>
-    private static object? OrEmpty(object? v, object? empty) => v is null or "" or "~" or "null" or "Null" or "NULL" ? empty : v;
+    internal static object? OrEmpty(object? v, object? empty) => v is null or "" or "~" or "null" or "Null" or "NULL" ? empty : v;
 
     private static string? Text(OrderedDictionary<string, object?> map, string key) => map.TryGetValue(key, out var v) ? v as string : null;
 

@@ -104,7 +104,7 @@ against load, and reads out the numbers of the shape or line you click.
 It plays back what was measured and nothing more: between two tested loads it blends the two, past the highest there is nothing
 to show, and a shape nobody measured stays plain. The file format is in [the guide](docs/guide.md#performance). `perf-lab/` is a
 small shop that really runs, with a load generator that writes these files (`npm run lab:run`, then
-`node src/cli.ts --dir perf-lab/flowy` to look at it). The browser version shows runs; the desktop app doesn't yet.
+`node src/cli.ts --dir perf-lab/flowy` to look at it). The browser and the desktop app both show runs.
 
 ## Find anything
 
