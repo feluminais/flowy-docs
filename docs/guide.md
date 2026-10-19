@@ -94,6 +94,12 @@ checks, and write the same text, so a change made in one looks the same in git a
   Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
   delete steps. To change a flow you already have, pick it in the Flows tab: in edit mode its rows carry a pencil, and a click opens
   the flow for editing instead of playing it.
+- Each step's **Group and flow** holds the group it is in, its lane (for a branch or parallel group) and the flow it opens. Under the
+  steps, **Groups** lists each group with its kind, its times or until (for a repeat) and its text, and a form puts a stretch of steps
+  in a new group: a repeat is written with `times: 3`, and in a branch or parallel group every step starts a lane of its own
+  ("Lane 1", "Lane 2"…), which you then rename or empty to join the lane before. Each choice is one edit: a step that leaves a group
+  hands its lane's label to the next step, a group whose last step goes is removed, and a change the checks refuse (a `times` of 1,
+  a step moved out of its group's stretch) says why and saves nothing.
 
 Every save goes through the same checks as Claude's edits: a change that would add a problem is
 refused, and nothing is written. If a file changed on disk in the meantime, the save is dropped
@@ -322,7 +328,7 @@ isn't in the address, so a reload drops it. Nothing moves when the system asks f
 stay. A flow with none of these keys reads, plays and exports exactly as it did.
 
 Claude's `put_flow` takes `groups` and a step's `group`, `lane` and `flow` (a `times` may be a number there), and its instructions say when
-to reach for each. The edit forms have no fields for them yet, so write them in the file.
+to reach for each. Edit mode has fields for all of them (see above).
 
 ## Performance
 
