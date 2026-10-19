@@ -545,7 +545,7 @@
           }
         ]
       },
-      "error": "Refused, nothing saved. This would add:\n- flows/tagged-bad.yaml: step 1: unknown animation \"zoom\" (use send, call, callback, event)"
+      "error": "Refused, nothing saved. This would add:\n- flows/tagged-bad.yaml: step 1: unknown animation \"zoom\" (use send, call, callback, event, recurse)"
     },
     {
       "spec": {

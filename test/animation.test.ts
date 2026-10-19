@@ -22,7 +22,8 @@ test('no tag, a blank tag, a bad one, or a step with no "to" reads as nothing', 
 })
 
 test('problems say what to fix', () => {
-  const kinds = 'use send, call, callback, event'
+  const kinds = 'use send, call, callback, event, recurse'
+  const depth = 'animation depth must be a whole number from 2 to 5'
   const cases: [unknown, boolean, string | undefined][] = [
     [undefined, true, undefined],
     ['', true, undefined],
@@ -40,8 +41,31 @@ test('problems say what to fix', () => {
     [{ kind: 'send', carries: ' ' }, true, 'animation carries must be a word'],
     [{ kind: 'send', carries: ['x'] }, true, 'animation carries must be a word'],
     ['call', false, 'animation "call" needs a "to"'],
+    ['recurse', false, undefined],
+    [{ kind: 'recurse', depth: 3 }, false, undefined],
+    [{ kind: 'recurse', depth: '4', carries: 'CNAME', returns: 'A record' }, false, undefined],
+    [{ kind: 'recurse', depth: '2' }, false, undefined],
+    [{ kind: 'recurse', depth: '5' }, false, undefined],
+    ['recurse', true, 'animation "recurse" is a shape calling itself: leave out "to"'],
+    ...['1', '6', '3.5', '3x', '', 1, 6, 3.5, true, '99999999999999999999'].map((d): [unknown, boolean, string] => [{ kind: 'recurse', depth: d }, false, depth]),
+    [{ kind: 'send', depth: 3 }, true, 'animation depth only applies to recurse'],
+    [{ kind: 'send', returns: 'x' }, true, 'animation returns only applies to recurse'],
+    [{ kind: 'recurse', returns: ' ' }, false, 'animation returns must be a word'],
+    [{ kind: 'recurse', trigger: 'outside' }, false, 'animation trigger only applies to callback'],
+    [{ kind: 'recurse', speed: 'fast' }, false, 'unknown animation option "speed" (use kind, carries, depth, returns)'],
   ]
   for (const [raw, hasTo, expected] of cases) assert.equal(animationProblem(raw, hasTo), expected, JSON.stringify(raw))
+})
+
+test('recurse reads with its depth, and only recurse has one', () => {
+  assert.deepEqual(animationOf({ animation: 'recurse' }), { kind: 'recurse', trigger: 'inside', depth: 3 })
+  assert.deepEqual(
+    animationOf({ animation: { kind: 'recurse', depth: '4', carries: 'CNAME', returns: 'A record' } }),
+    { kind: 'recurse', trigger: 'inside', carries: 'CNAME', depth: 4, returns: 'A record' },
+  )
+  assert.equal(animationOf({ to: 'b', animation: 'recurse' }), undefined)
+  assert.equal(animationOf({ animation: 'call' }), undefined)
+  assert.deepEqual(animationOf({ to: 'b', animation: 'send' }), { kind: 'send', trigger: 'inside' })
 })
 
 test('travel time follows the length of the line, between half a second and a bit over one', () => {

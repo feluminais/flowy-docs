@@ -258,7 +258,7 @@
   "problems": [
     {
       "file": "flows/tags.yaml",
-      "message": "step 6: unknown animation \"sned\" (use send, call, callback, event)",
+      "message": "step 6: unknown animation \"sned\" (use send, call, callback, event, recurse)",
       "step": 5
     },
     {
@@ -278,12 +278,12 @@
     },
     {
       "file": "flows/tags.yaml",
-      "message": "step 10: animation needs a kind (use send, call, callback, event)",
+      "message": "step 10: animation needs a kind (use send, call, callback, event, recurse)",
       "step": 9
     },
     {
       "file": "flows/tags.yaml",
-      "message": "step 11: animation needs a kind (use send, call, callback, event)",
+      "message": "step 11: animation needs a kind (use send, call, callback, event, recurse)",
       "step": 10
     },
     {

@@ -5,14 +5,21 @@
  * desktop/Flowy.Core/Animation.cs is a port, and desktop/fixtures/beats.ts keeps the two equal.
  */
 
-export const ANIMATION_KINDS = ['send', 'call', 'callback', 'event'] as const
+export const ANIMATION_KINDS = ['send', 'call', 'callback', 'event', 'recurse'] as const
 export type AnimationKind = (typeof ANIMATION_KINDS)[number]
 export const TRIGGERS = ['inside', 'outside'] as const
 export type Trigger = (typeof TRIGGERS)[number]
-const OPTIONS = ['kind', 'trigger', 'carries'] as const
+/** Every option a mapping may hold. Which of them a kind takes is `optionsFor`. */
+const OPTIONS = ['kind', 'trigger', 'carries', 'depth', 'returns'] as const
+/** Whether a kind runs between two boxes (it needs a "to") or is one box acting on itself (it takes none). */
+const ENDS: Record<AnimationKind, 'to' | 'alone'> = { send: 'to', call: 'to', callback: 'to', event: 'to', recurse: 'alone' }
+/** A recursion's depth is the height of its call stack at its deepest, the first call included. */
+const DEPTH_MIN = 2
+const DEPTH_MAX = 5
+const DEPTH_DEFAULT = 3
 
-/** A step's animation, read: the kind, who sets a callback off (inside unless the file says outside), and the word the blob carries. */
-export type Animation = { kind: AnimationKind; trigger: Trigger; carries?: string }
+/** A step's animation, read: the kind, who sets a callback off (inside unless the file says outside), the word the blob carries, and for recurse its depth and the word that comes back. */
+export type Animation = { kind: AnimationKind; trigger: Trigger; carries?: string; depth?: number; returns?: string }
 
 export type Glyph = 'envelope' | 'bolt' | 'bell'
 
@@ -38,10 +45,20 @@ export type Beat = {
 const isMap = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 const isKind = (v: string): v is AnimationKind => ANIMATION_KINDS.some(k => k === v)
 const KINDS_HINT = `use ${ANIMATION_KINDS.join(', ')}`
+const optionsFor = (kind: AnimationKind): string[] => (kind === 'recurse' ? ['kind', 'carries', 'depth', 'returns'] : ['kind', 'trigger', 'carries'])
+
+/** What check() says about a recurse step that has a "to". A step whose "to" is its own "from" already gets a message for that, so check() leaves this one out. */
+export const RECURSE_HAS_TO = 'animation "recurse" is a shape calling itself: leave out "to"'
+
+/** A `depth` as a number when it is one: a whole number from 2 to 5, or the text of one. Files hold text and MCP may give a number. */
+function depthOf(v: unknown): number | undefined {
+  const n = typeof v === 'number' ? v : typeof v === 'string' && /^[0-9]+$/.test(v) ? Number(v) : NaN
+  return Number.isInteger(n) && n >= DEPTH_MIN && n <= DEPTH_MAX ? n : undefined
+}
 
 /**
  * What is wrong with a step's `animation`, worded to follow "step N: ", or undefined. A blank tag is no tag.
- * `hasTo` is whether the step has a "to": every kind so far travels between two boxes.
+ * `hasTo` is whether the step has a "to": most kinds travel between two boxes and need one, recurse is one box and takes none.
  */
 export function animationProblem(raw: unknown, hasTo: boolean): string | undefined {
   if (raw === undefined || raw === '') return undefined
@@ -52,12 +69,17 @@ export function animationProblem(raw: unknown, hasTo: boolean): string | undefin
   if (!isKind(kind)) return `unknown animation "${kind}" (${KINDS_HINT})`
   if (isMap(raw)) {
     const extra = Object.keys(raw).find(k => !OPTIONS.some(o => o === k))
-    if (extra !== undefined) return `unknown animation option "${extra}" (use ${OPTIONS.join(', ')})`
-    const { trigger, carries } = raw
+    if (extra !== undefined) return `unknown animation option "${extra}" (use ${optionsFor(kind).join(', ')})`
+    const { trigger, carries, depth, returns } = raw
     if (trigger !== undefined && !TRIGGERS.some(t => t === trigger)) return `animation trigger must be ${TRIGGERS.join(' or ')}`
     if (trigger !== undefined && kind !== 'callback') return 'animation trigger only applies to callback'
     if (carries !== undefined && (typeof carries !== 'string' || carries.trim() === '')) return 'animation carries must be a word'
+    if (depth !== undefined && kind !== 'recurse') return 'animation depth only applies to recurse'
+    if (returns !== undefined && kind !== 'recurse') return 'animation returns only applies to recurse'
+    if (depth !== undefined && depthOf(depth) === undefined) return `animation depth must be a whole number from ${DEPTH_MIN} to ${DEPTH_MAX}`
+    if (returns !== undefined && (typeof returns !== 'string' || returns.trim() === '')) return 'animation returns must be a word'
   }
+  if (ENDS[kind] === 'alone') return hasTo ? RECURSE_HAS_TO : undefined
   if (!hasTo) return `animation "${kind}" needs a "to"`
   return undefined
 }
@@ -67,10 +89,13 @@ export function animationOf(step: { to?: string; animation?: unknown }): Animati
   const raw = step.animation
   if (raw === undefined || raw === '' || animationProblem(raw, step.to !== undefined) !== undefined) return undefined
   const map = isMap(raw) ? raw : { kind: raw }
+  const kind = map.kind as AnimationKind
   return {
-    kind: map.kind as AnimationKind,
+    kind,
     trigger: map.trigger === 'outside' ? 'outside' : 'inside',
     ...(typeof map.carries === 'string' ? { carries: map.carries } : {}),
+    ...(kind === 'recurse' ? { depth: depthOf(map.depth) ?? DEPTH_DEFAULT } : {}),
+    ...(kind === 'recurse' && typeof map.returns === 'string' ? { returns: map.returns } : {}),
   }
 }
 
@@ -109,6 +134,8 @@ export function beatsFor(a: Animation, { length, afterLanding }: { length: numbe
         if (a.trigger === 'inside') return [effect('ring', 'from', 0, 400), blob(300, 'bell'), effect('ring', 'to', 300 + T, 400)]
         if (afterLanding) return [effect('flash', 'from', 0, 250), blob(200, 'bell'), effect('ring', 'to', 200 + T, 400)]
         return [{ do: 'drop', on: 'from', at: 0, dur: 350, glyph: 'bolt' }, effect('flash', 'from', 350, 250), blob(550, 'bell'), effect('ring', 'to', 550 + T, 400)]
+      case 'recurse':
+        throw new Error('recurse has no beats yet')
     }
   })()
   const total = Math.max(...body.map(b => b.at + b.dur))

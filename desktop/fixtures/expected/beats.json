@@ -179,60 +179,60 @@
     {
       "animation": "sned",
       "to": true,
-      "problem": "unknown animation \"sned\" (use send, call, callback, event)"
+      "problem": "unknown animation \"sned\" (use send, call, callback, event, recurse)"
     },
     {
       "animation": "sned",
       "to": false,
-      "problem": "unknown animation \"sned\" (use send, call, callback, event)"
+      "problem": "unknown animation \"sned\" (use send, call, callback, event, recurse)"
     },
     {
       "animation": "Send",
       "to": true,
-      "problem": "unknown animation \"Send\" (use send, call, callback, event)"
+      "problem": "unknown animation \"Send\" (use send, call, callback, event, recurse)"
     },
     {
       "animation": "Send",
       "to": false,
-      "problem": "unknown animation \"Send\" (use send, call, callback, event)"
+      "problem": "unknown animation \"Send\" (use send, call, callback, event, recurse)"
     },
     {
       "animation": {
         "kind": ""
       },
       "to": true,
-      "problem": "animation needs a kind (use send, call, callback, event)"
+      "problem": "animation needs a kind (use send, call, callback, event, recurse)"
     },
     {
       "animation": {
         "kind": ""
       },
       "to": false,
-      "problem": "animation needs a kind (use send, call, callback, event)"
+      "problem": "animation needs a kind (use send, call, callback, event, recurse)"
     },
     {
       "animation": {},
       "to": true,
-      "problem": "animation needs a kind (use send, call, callback, event)"
+      "problem": "animation needs a kind (use send, call, callback, event, recurse)"
     },
     {
       "animation": {},
       "to": false,
-      "problem": "animation needs a kind (use send, call, callback, event)"
+      "problem": "animation needs a kind (use send, call, callback, event, recurse)"
     },
     {
       "animation": {
         "carries": "x"
       },
       "to": true,
-      "problem": "animation needs a kind (use send, call, callback, event)"
+      "problem": "animation needs a kind (use send, call, callback, event, recurse)"
     },
     {
       "animation": {
         "carries": "x"
       },
       "to": false,
-      "problem": "animation needs a kind (use send, call, callback, event)"
+      "problem": "animation needs a kind (use send, call, callback, event, recurse)"
     },
     {
       "animation": {
