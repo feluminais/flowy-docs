@@ -59,6 +59,26 @@ public class ReaderTests
     }
 
     [AvaloniaFact]
+    public void A_click_on_the_outline_round_the_level_opens_Details_for_that_system()
+    {
+        var (window, reader) = Open();
+        reader.GoTo("ordering");
+        Dispatcher.UIThread.RunJobs();
+        var frame = reader.Canvas.Scene!.Frame!.Value;
+        var vp = reader.Canvas.Viewport;
+        Point OnScreen(double x, double y) => reader.Canvas.TranslatePoint(new Point(x * vp.Zoom + vp.X, y * vp.Zoom + vp.Y), window)!.Value;
+        Assert.False(reader.HasPanel);
+
+        var onEdge = OnScreen(frame.X, frame.Y + frame.Height / 2);
+        window.MouseDown(onEdge, MouseButton.Left);
+        window.MouseUp(onEdge, MouseButton.Left);
+
+        Assert.True(reader.DetailsOpenNow); // what the (i) button on the rail opens: the level you are inside
+        Assert.Null(reader.SelectedBoxId);
+        Assert.Equal("ordering", reader.View);
+    }
+
+    [AvaloniaFact]
     public void Backspace_goes_up_a_level_but_not_from_the_top()
     {
         var (window, reader) = Open();

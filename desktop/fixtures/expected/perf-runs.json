@@ -3033,7 +3033,7 @@
           "to": 300
         }
       },
-      "text": "Latency passes 3× its starting point at 3 users: overall p95 goes from 100 ms to 300 ms"
+      "text": "First struggles at 3 users: the slowest 5% of calls go from 100 ms to 300 ms"
     },
     {
       "id": "errors",
@@ -7147,7 +7147,7 @@
           "to": 650
         }
       },
-      "text": "Latency passes 3× its starting point at 4 users: overall p95 goes from 200 ms to 650 ms"
+      "text": "First struggles at 4 users: the slowest 5% of calls go from 200 ms to 650 ms"
     },
     {
       "id": "numbers",

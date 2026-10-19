@@ -91,8 +91,8 @@ public static class PerfView
         ["queue"] = new("Waiting", v => Trim(Perf.JsRound(v), 0)),
         ["errors"] = new("Failing", FmtPct),
         ["rate"] = new("Calls", FmtRate),
-        ["p50"] = new("Typical", FmtMs, Log: true),
-        ["p95"] = new("Slowest 1 in 20", FmtMs, Log: true),
+        ["p50"] = new("Expected call", FmtMs, Log: true),
+        ["p95"] = new("Slowest 5%", FmtMs, Log: true),
     };
 
     /// <summary>The numbers a shape can have, and a line, in the order the panel lists them.</summary>

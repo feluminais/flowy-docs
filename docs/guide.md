@@ -10,8 +10,8 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   services you don't own are grey with a cloud. A shape can choose its own shape, colour, opacity and icon
   ([below](#shapes-colour-and-icons)). "3 inside" means a shape opens: double-click it, or
   select it and press Enter, to zoom in. Esc zooms back out, one level per press, once it has
-  closed whatever is open (a flow, the side panel). Backspace, Z and the breadcrumb zoom out too.
-  Inside a shape, a frame named after it wraps what's in it. A faded shape that opens sits beside the
+  closed whatever is open (a flow, the side panel; the navigator only if your last click was in it). Backspace, Z and the breadcrumb zoom out too.
+  Inside a shape, a frame named after it wraps what's in it, and a click on the frame opens that shape's panel. A faded shape that opens sits beside the
   one you're in, not inside it, so opening it slides across instead of zooming in.
 - Hover a shape for its short description. Click it for the full text and its connections: every
   line out and in, with its label. A line that stands for several connections opens to list them.
@@ -54,6 +54,9 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   R plays the step again, and Autoplay (P) steps through the flow on its own. Nothing moves when
   the system asks for less motion, and a step's text always says the same thing. The desktop app
   plays them the same way.
+- A flow whose steps are grouped (see [Repeats, branches and parallel steps](#repeats-branches-and-parallel-steps)) is played in
+  stops: a chip names the group, a branch shows its lanes as tabs, the bar has a bracket under each group, and the lanes of a parallel
+  group are one stop, lit and moving together. A step that says `flow:` has an Open flow button, and a bar to come back.
 - F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Shapes with
   a problem carry a "!".
@@ -79,6 +82,10 @@ checks, and write the same text, so a change made in one looks the same in git a
 - "Outside service" in a shape's panel marks it `external: true`, for things you use but don't own.
 - Delete (the key, or the button in the panel) removes the selected shape or line. A shape that still
   contains others, or that a flow uses, stays, and a notice says why.
+- To work on several shapes at once, Ctrl+click (or Shift+click) adds a shape to the selection and takes it out again, Shift and drag on
+  the empty canvas draws a box round the shapes to select, and Ctrl+A selects every shape in the view. Dragging any selected shape moves
+  them all, and Esc straight after takes the whole move back. Delete removes them all as one edit: if one of them can't go (it has shapes
+  inside, or a flow uses it), none do. Ctrl+Z puts back everything at once. The desktop app does all of this too.
 - Lines, in edit mode, sets the project's style for everyone: a `lines:` key at the top of
   `model.yaml`, which takes `straight` (the default, so it's left out), `curved` or `angled`.
 - Esc or Backspace, straight after dragging a shape, take the drag back: whoever has just moved a shape and got it wrong reaches for them.
@@ -91,6 +98,13 @@ checks, and write the same text, so a change made in one looks the same in git a
   Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
   delete steps. To change a flow you already have, pick it in the Flows tab: in edit mode its rows carry a pencil, and a click opens
   the flow for editing instead of playing it.
+- Each step's **Group and flow** holds the group it is in, its lane (for a branch or parallel group) and the flow it opens. Under the
+  steps, **Groups** lists each group with its kind, its times or until (for a repeat) and its text, and a form puts a stretch of steps
+  in a new group: a repeat is written with `times: 3`, and in a branch or parallel group every step starts a lane of its own
+  ("Lane 1", "Lane 2"…), which you then rename or empty to join the lane before. Each choice is one edit: a step that leaves a group
+  hands its lane's label to the next step, a group whose last step goes is removed, a group given another kind keeps what still
+  applies (a repeat becomes a branch or parallel group with its first step starting "Lane 1", and for parallel every step starts a lane),
+  and a change the checks refuse (a `times` outside 2 to 99, a step moved out of its group's stretch) says why and saves nothing.
 
 Every save goes through the same checks as Claude's edits: a change that would add a problem is
 refused, and nothing is written. If a file changed on disk in the meantime, the save is dropped
@@ -277,7 +291,7 @@ on a branch, a lane on a step with no group or in a repeat, a first step with no
 fewer than two lanes, a step that sits between two members of a group without belonging to it, and a `flow` that isn't a flow in the
 folder. The last means a change that deletes a flow another one points at is refused, as any change that adds a problem is.
 
-**What it does today.** The checks, and Mermaid. A repeat becomes a `loop` block labelled with every fact it has, a branch an `alt` with
+**Elsewhere in Flowy.** The checks, and Mermaid. A repeat becomes a `loop` block labelled with every fact it has, a branch an `alt` with
 an `else` for each further lane (`opt` when it has one), a parallel group a `par` with an `and` for each further lane, and a step with
 `flow:` is followed by a note over its end that names the flow it continues in. The sample above comes out as:
 
@@ -306,10 +320,20 @@ sequenceDiagram
   end
 ```
 
-The player in the browser and in the app doesn't draw groups yet. It plays a grouped flow as the plain list it still is, one step
-after another in file order, and a flow with none of these keys reads, plays and exports exactly as it did. The edit forms have no
-fields for them yet either, so write them in the file. Claude's `put_flow` accepts `groups` and a step's `group`, `lane` and `flow`
-(a `times` may be a number there), but its instructions don't yet say when to reach for them, so ask when you want one.
+**In the player.** The player steps through *stops*, the things that are on screen at once. Every step is a stop of its own except in
+a parallel group, where stop *k* is the *k*-th step of every lane: five one-step lanes are one stop with five lines lit and moving
+together, and a lane that has run out simply drops out. The card says where you are: a chip names the group (`Repeats up to 3 times`,
+`One of 2`, `At the same time, 2 lanes`), a branch lists its lanes as tabs with yours marked, the group's own `text` follows, and the
+progress bar has a cell for each stop, a branch's lanes on rows of their own and a bracket under each group. Point at a cell or a
+bracket to read what it means, or press the **?** on the card for a key to all of it. A parallel stop shows a block for each lane. On
+the canvas a small label on each lit line says how often it repeats or which lane it is, and the lanes of a branch you are not in
+are dashed and faint. A step with `flow:` has an **Open flow** button. It plays that flow on its own level and puts a bar at the top
+of the card, *Back to "…", step N*, that returns you to where you were (in the browser, the Back button does the same). The way back
+isn't in the address, so a reload drops it. Nothing moves when the system asks for less motion, and the chips, tabs, brackets and labels
+stay. A flow with none of these keys reads, plays and exports exactly as it did.
+
+Claude's `put_flow` takes `groups` and a step's `group`, `lane` and `flow` (a `times` may be a number there), and its instructions say when
+to reach for each. Edit mode has fields for all of them (see above).
 
 ## Performance
 
@@ -338,7 +362,7 @@ levels:
 
 Every number is optional except a level's `load`. On a shape, `util` is how much of what it can do is in use (0 to 1), `queue` how many are waiting, and
 `errors` the share that fail (0 to 1). On a connection, and in `overall` (what the entry point measured), `rate` is calls a
-second, `p50` and `p95` are milliseconds (the typical call, and the slowest 1 in 20) and `errors` is the share that fail.
+second, `p50` and `p95` are milliseconds (the tab calls them the expected call and the slowest 5%) and `errors` is the share that fail.
 Levels go up in load, and a run needs at least two. A number that isn't there isn't drawn as zero: that shape or line stays
 plain. `unit` says what a load counts, and `entry` can name the shape the load comes in at.
 

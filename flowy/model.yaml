@@ -21,6 +21,8 @@ objects:
 
       A native desktop app, built separately, reads and edits the same folders and draws them with
       its own renderer. It writes the same text through the same checks.
+
+      A VS Code extension, also built separately, shows the same canvas in a panel inside the editor.
     links:
       - { title: Guide, url: docs/guide.md }
       - { title: Writing good Flowy docs, url: docs/writing.md }
@@ -86,10 +88,10 @@ objects:
       command line or a right-click in Explorer, at the size it was last closed at. A sample model
       (Plum) ships with it, and View copies a diagram as Mermaid or saves it as a picture.
 
-      Press E to edit: the forms, dragging, connecting, recording flows, Undo and Redo of the
-      canvas. Every edit goes through the same checks as the browser's and Claude's, and a file
-      changed elsewhere since it was read is never overwritten. Opening never creates files in a
-      repo; only an edit does.
+      Press E to edit: the forms, dragging (one shape, or several picked together), connecting,
+      recording flows, Undo and Redo of the canvas. Every edit goes through the same checks as the
+      browser's and Claude's, and a file changed elsewhere since it was read is never overwritten.
+      Opening never creates files in a repo; only an edit does.
   desktop-core:
     type: component
     in: desktop
@@ -211,8 +213,8 @@ objects:
       button that puts its panel in Details' place. Both panels are dragged wider or narrower by
       their inner edge, as in VS Code, and a double-click puts the width back.
 
-      The same bundle is served by the local server and shipped in an export; on an exported page
-      the model comes from the HTML and there is nothing to save to.
+      The same bundle is served by the local server, shipped in an export, and shown in the VS Code
+      panel; on an exported page the model comes from the HTML and there is nothing to save to.
   mcp:
     type: app
     in: flowy
@@ -238,6 +240,21 @@ objects:
 
       It replaces only what it wrote last time, so a `.git` or a `CNAME` beside it stays, and it
       refuses a folder that holds the model or the canvas it is copying.
+  vscode:
+    type: app
+    in: flowy
+    name: VS Code extension
+    tech: VS Code webview
+    code: [vscode/]
+    description: |
+      `Flowy: Open Docs` opens the folder in a panel inside VS Code, drawn by the same canvas. It is
+      read-only for now: the extension reads the folder, puts the model in the page the way an export
+      does, and sends the page a new copy whenever a file changes, so a save from the editor, the app or
+      Claude shows at once.
+
+      The editor's own theme colours the canvas, and the Mermaid button asks the editor to write to the
+      clipboard, because a webview can't count on doing it itself. It needs a trusted, local workspace:
+      it runs git in the folder.
   core:
     type: app
     in: flowy
@@ -471,6 +488,7 @@ connections:
   - { from: reader, to: desktop, label: opens folders in a window }
   - { from: reader, to: shell, label: "reads it, draws in edit mode" }
   - { from: reader, to: host, label: opens the shared link }
+  - { from: reader, to: vscode, label: reads it inside the editor }
   - { from: claude, to: mcp, label: writes the model }
   - { from: cli, to: server, label: serves the canvas }
   - { from: desktop-canvas, to: desktop-core, label: what to draw }
@@ -520,6 +538,8 @@ connections:
   - { from: exporter, to: filestore, label: loads the model }
   - { from: exporter, to: canvas, label: copies the built page }
   - { from: exporter, to: host, label: writes a read-only copy }
+  - { from: vscode, to: filestore, label: "loads the model, and again on every save" }
+  - { from: vscode, to: canvas, label: shows the built page in a panel }
   - { from: filestore, to: perf, label: reads the runs in perf/ }
   - { from: perf, to: views, label: which line a connection lands in }
   - { from: perf, to: model, label: reads files the same way }

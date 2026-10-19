@@ -24,11 +24,11 @@ public static class Captions
     /// <summary>What each thing on the card means, in plain words: the legend the card opens.</summary>
     public static readonly IReadOnlyList<LegendRow> Legend =
     [
-        new("repeat", "Repeat", "The same steps run again. The chip says how many times at most, or what stops it."),
-        new("branch", "Branch", "Alternatives: only one of the lanes happens. Each tab is a lane and the one you are in is marked. On the canvas the others are dashed."),
-        new("parallel", "Same time", "Parallel lanes: steps that happen together. Each stop shows the next step of every lane, and they light up and move at the same moment."),
-        new(null, "The bar", "One cell for each stop. A branch puts its lanes on rows of their own, and a bracket under the bar names each group. Point at a cell or a bracket to read more."),
-        new(null, "The label on a line", "What the group says about that step: how often it repeats, or which lane it is in."),
+        new("repeat", "Repeat", "The same steps again. The chip says how many times, or what stops it."),
+        new("branch", "Branch", "Only one lane happens. Each tab is a lane, and the one you are in is marked. The others are dashed on the canvas."),
+        new("parallel", "Same time", "Lanes that run together. Each stop lights the next step of every lane."),
+        new(null, "The bar", "One cell for each stop, and a row for each lane of a branch. A bracket under it names each group. Point at one for more."),
+        new(null, "The label on a line", "Which lane, or which repeat, the step is in."),
     ];
 
     private static string Part(OrderedDictionary<string, object?> group, string key)

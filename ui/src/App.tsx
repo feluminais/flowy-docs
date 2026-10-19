@@ -1,12 +1,12 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import { Controls, ReactFlow } from '@xyflow/react'
 import type { FitViewOptions, NodeChange, XYPosition } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
 import { LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
 import type { LineStyle, Model, Step } from '../../src/core/model.ts'
-import { connect, deleteObject, forgetLayout, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
+import { connect, deleteObjects, forgetLayout, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { animationOf, followsLanding } from '../../src/core/animation.ts'
 import { captionOf, progressOf } from '../../src/core/captions.ts'
@@ -34,7 +34,8 @@ import { keepNav, loadNav } from './navstore.ts'
 import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, Sash } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
 import { activeRun, clampPos, loadAt, rampFrom, rampPos, RAMP_STEP_MS, snap, top } from './perfview.ts'
-import { AddPanel, LinePanel, ObjectPanel, OverviewPanel, Recorder } from './Panel.tsx'
+import { AddPanel, LinePanel, ManyPanel, ObjectPanel, OverviewPanel, Recorder } from './Panel.tsx'
+import { addsToSelection, banded, keepsSelection, toggled } from './selection.ts'
 import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
 import { StepMotion } from './StepMotion.tsx'
@@ -43,6 +44,9 @@ import { Player } from './Player.tsx'
 import { closeFlow, followBack, openFlow as leaveFlow } from './trail.ts'
 import type { Spot } from './trail.ts'
 import type { Recording, Run } from './Panel.tsx'
+import { copyMessage } from '../../src/core/host.ts'
+import { vscode } from './host.ts'
+import { useColorMode } from './hosttheme.ts'
 import { useModel } from './useModel.ts'
 import type { Edit, Loaded } from './useModel.ts'
 
@@ -62,9 +66,13 @@ type Motion = { dir: Move; phase: 'leave' | 'arrive'; x: number; y: number; dx: 
 /** What the side panel shows. One thing at a time. */
 type Side =
   | { kind: 'object'; id: string }
+  | { kind: 'objects'; ids: string[] } // several shapes picked in edit mode, to move or delete together
   | { kind: 'line'; from: string; to: string }
   | { kind: 'add' }
   | ({ kind: 'flow' } & Recording)
+
+/** The panel for a set of shapes: none shows nothing, one is an ordinary click on it. */
+const sideFor = (ids: string[]): Side | undefined => (ids.length === 0 ? undefined : ids.length === 1 ? { kind: 'object', id: ids[0] } : { kind: 'objects', ids })
 
 /** A box clicked while recording: the first one starts the step, the second ends it (the same box again: a step it does on its own), a third starts over. */
 function pick(rec: Recording, id: string): Recording {
@@ -106,13 +114,21 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
 type Back = () => Promise<string | undefined>
 
 function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo, live, readOnly }: Loaded & { edit: Edit; undo: Back; redo: Back; live: boolean; readOnly: boolean }) {
+  const colorMode = useColorMode()
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
   const [viewId, setViewId] = useState(() => readHash(location.hash).view)
   const [side, setSide] = useState<Side>()
   // The left-hand panel's tab (the navigator: Flows or Explorer), and whether the right-hand Details panel was opened from its rail. Details shows
   // `side`, or the level you are in, so a `side` opens it too.
   const [remembered] = useState(loadNav)
-  const [tab, setTab] = useState<NavTab | undefined>(remembered.tab)
+  const [tab, setNavTab] = useState<NavTab | undefined>(remembered.tab)
+  // Whether the navigator is where the reader last clicked or opened something: Escape closes it then, and leaves it alone once they work in
+  // the diagram. A navigator that came back with the page has not been used.
+  const navUsed = useRef(false)
+  const setTab = (t: NavTab | undefined) => {
+    navUsed.current = t !== undefined
+    setNavTab(t)
+  }
   const [details, setDetails] = useState(false)
   const [navWidth, setNavWidth] = useState(remembered.navWidth ?? NAV) // dragged by the sashes on the panels' edges
   const [detailsWidth, setDetailsWidth] = useState(remembered.detailsWidth ?? PANEL)
@@ -143,12 +159,18 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const sizes = useRef(new Map<string, { width: number; height: number }>())
   const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
   const justMoved = useRef(false) // the last thing done was dragging a box, and nothing has been done since: Esc or Backspace take it back
+  const banding = useRef(false) // a box is being drawn round shapes to pick them (Shift and drag)
   const [hovered, setHovered] = useState<string>() // the line the pointer is on
   const [searching, setSearching] = useState(false)
   const [shortcuts, setShortcuts] = useState(false) // the list ? opens
   const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined) // for F; set once each canvas is ready
   const [tidied, setTidied] = useState(0) // Tidy counts up, so the camera fits the new layout
   const opening = useRef<ReturnType<typeof setTimeout>>(undefined) // a click on a box that opens, waiting out the double-click window
+  const openingBox = useRef<string>(undefined) // that box: a Ctrl+click in the meantime still counts it as picked
+  const cancelOpen = () => {
+    clearTimeout(opening.current)
+    openingBox.current = undefined
+  }
   const quiet = useRef(true) // the next address write replaces instead of pushing (see the address effect)
   const [motion, setMotion] = useState<Motion>()
   const motionTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -227,12 +249,21 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const loadTraffic = useMemo(() => (perfOpen && loadTest ? trafficOf(model, loadTest, load, view) : undefined), [perfOpen, model, loadTest, load, view])
   const widths = useMemo(() => new Map(loadTraffic?.lines.map(l => [lineId(l.from, l.to), l.width])), [loadTraffic])
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches // no ramp and no traffic: the colours, thickness, badges and numbers say it all
-  const picked = side?.kind === 'object' ? [side.id] : recording ? [recording.from, recording.to] : []
+  const chosen = side?.kind === 'objects' ? side.ids : side?.kind === 'object' ? [side.id] : [] // the shapes picked for editing, one or several
+  const picked = recording ? [recording.from, recording.to] : chosen
   // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.
   const nodes = graph.nodes.map(n => ({ ...n, data: loadTraffic ? { ...n.data, perf: loadTraffic.boxes[n.id] } : n.data, position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id) }))
   // Inside a box, a frame named after it wraps its own boxes and follows them while they're dragged.
   const inner = view === ROOT ? [] : nodes.filter(n => graph.members.includes(n.id))
-  const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })))]
+  // A click on its outline is a click on that shape: its Details open, as the rail's button opens them. While a flow is recorded or a load shows,
+  // the panel has its own work, so the outline takes no click.
+  const openLevel = recording || perfOpen ? undefined : () => {
+    justMoved.current = false
+    clearTimeout(opening.current)
+    setSide(undefined)
+    setDetails(true)
+  }
+  const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })), openLevel)]
   const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
   const selectedBox = side?.kind === 'object' ? side.id : undefined
   const edges = useMemo(() => focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }), [graph, selectedBox, selectedLine, hovered])
@@ -286,8 +317,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   // Fenced, so it pastes straight into a README or a PR, where GitHub draws it.
   const copyMermaid = async () => {
     const diagram = flow && playing ? flowToMermaid(model, playing.flow) : viewToMermaid(model, view)
+    const text = '```mermaid\n' + diagram + '```\n'
     try {
-      await navigator.clipboard.writeText('```mermaid\n' + diagram + '```\n')
+      // In VS Code the editor writes it: a webview can't count on the clipboard API, which wants the page focused.
+      if (vscode) vscode.postMessage(copyMessage(text))
+      else await navigator.clipboard.writeText(text)
       setNotice(`Copied ${flow ? 'this flow' : 'this view'} as Mermaid. Paste it into a README or a PR: GitHub draws it.`)
     } catch {
       setNotice("Couldn't copy: the browser didn't allow it.")
@@ -295,7 +329,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   }
   const go = (id: string) => {
     justMoved.current = false
-    clearTimeout(opening.current)
+    cancelOpen()
     clearTimeout(motionTimer.current)
     setMotion(undefined)
     setViewId(id)
@@ -322,7 +356,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   }
   /** Open box `id`, from where it sits on screen: zoom in when it's inside this view, slide across when it sits beside it. */
   const zoomInto = (id: string) => {
-    clearTimeout(opening.current) // a click on the box queued its panel; the zoom replaces it
+    cancelOpen() // a click on the box queued its panel; the zoom replaces it
     close()
     const c = canvas.current!.getBoundingClientRect()
     const b = canvas.current!.querySelector(`.react-flow__node[data-id="${CSS.escape(id)}"]`)?.getBoundingClientRect()
@@ -456,8 +490,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
     setPlaying(undefined)
     setSide(s => (s?.kind === 'object' || s?.kind === 'line' ? s : undefined))
   }
+  // Pressing on a box that isn't one of several picked starts over with that box alone. Otherwise dragging it would carry the others along.
+  const pressBox = (e: ReactPointerEvent<HTMLElement>) => {
+    if (!editing || side?.kind !== 'objects') return
+    const id = e.target instanceof Element ? e.target.closest<HTMLElement>('.react-flow__node-box')?.dataset.id : undefined
+    if (id !== undefined && !keepsSelection(side.ids, id, addsToSelection(e))) setSide(undefined)
+  }
   const remove = () => {
-    if (side?.kind === 'object') void run(m => deleteObject(m, side.id)).then(saved => saved && close())
+    // One edit for the lot, so one undo brings them all back, and a shape that can't go (it has things inside, or a flow uses it) stops them all.
+    if (side?.kind === 'object' || side?.kind === 'objects') void run(m => deleteObjects(m, chosen)).then(saved => saved && close())
     if (side?.kind !== 'line') return
     const merged = connectionsOf(model, view, side.from, side.to)
     if (merged.length > 1) return setNotice(`This line stands for ${merged.length} connections. Delete them one at a time in the panel.`)
@@ -481,6 +522,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const onNodesChange = (changes: NodeChange<BoxNode | FrameNode>[]) => {
     // The browser measured a box: keep it, so the next render hands it back instead of hiding its lines.
     for (const c of changes) if (c.type === 'dimensions' && c.dimensions) sizes.current.set(c.id, c.dimensions)
+    // Drawing a box round shapes: the ones it takes in are the selection. Boxes outside this view's own (the people and systems around it) stay out.
+    if (banding.current) setSide(sideFor(banded(chosen, changes, new Set(graph.members))))
     const moves = changes.flatMap(c => (c.type === 'position' && c.position ? [{ ...c, position: c.position }] : []))
     if (moves.length === 0) return
     const next = new Map(moved)
@@ -543,6 +586,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
     }
   })
 
+  // Where the last click landed: in the navigator, Escape closes it; anywhere else (the diagram, Details, the bar), it leaves the navigator be.
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      navUsed.current = e.target instanceof Element && e.target.closest('.navpanel') !== null
+    }
+    window.addEventListener('pointerdown', onDown, true)
+    return () => window.removeEventListener('pointerdown', onDown, true)
+  }, [])
+
   // Added again on every render, so the handler always sees the current state.
   useEffect(() => {
     // The list ? shows (Shortcuts.tsx) follows this handler: keep the two in step.
@@ -550,22 +602,27 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       const key = letter(e)
       const plain = !e.ctrlKey && !e.metaKey && !e.altKey
       const control = (e.ctrlKey || e.metaKey) && !e.repeat // held down, undo or redo would run through the whole stack
+      const inNavigator = e.target instanceof Element && e.target.closest('.navpanel') !== null
       // A field keeps its keys, except the load slider: its arrows and Home and End are the tab's own, so they work right after it was used.
-      if ((e.target instanceof HTMLInputElement && e.target.type !== 'range') || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return
+      // The navigator's filters clear themselves on Escape and stop it, so one that gets here is empty: a click in it lets Escape close the navigator.
+      if ((e.target instanceof HTMLInputElement && e.target.type !== 'range') || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+        if (!(e.key === 'Escape' && inNavigator && e.target instanceof HTMLInputElement)) return
+      }
       // A second press while a zoom out is still leaving goes up from where that one is heading.
       const up = () => zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view))
       if (undoesMove(e, { editing, justMoved: justMoved.current, shortcuts, plain })) {
         void takeBack()
       }
       else if (e.key === 'Escape') {
-        const layer = escapeStep({ shortcuts, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: rightOpen || nav !== undefined, inside: view !== ROOT })
+        const navigator = nav !== undefined && (navUsed.current || inNavigator)
+        const layer = escapeStep({ shortcuts, navigator, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: rightOpen, inside: view !== ROOT })
         if (layer === 'shortcuts') setShortcuts(false)
+        else if (layer === 'navigator') setTab(undefined)
         else if (layer === 'flow') setPlaying(undefined)
         else if (layer === 'step' && recording) setSide({ ...recording, from: undefined, to: undefined })
         else if (layer === 'panel') {
-          if (perfOpen) closePerf() // the panel you are working in first, then the navigator
-          else if (detailsOpen) closeDetails()
-          else setTab(undefined)
+          if (perfOpen) closePerf()
+          else closeDetails()
         }
         else if (layer === 'up') up()
         else return
@@ -598,6 +655,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       else if (key === 'e' && plain && !e.repeat && !readOnly) toggleEdit()
       else if (editing && key === 'n' && plain && !recording) show({ kind: 'add' })
       else if (editing && e.key === 'Delete') remove()
+      else if (editing && control && key === 'a' && !recording) show(sideFor(graph.members))
       else if (editing && control && ((key === 'z' && e.shiftKey) || key === 'y')) void bringBack()
       else if (editing && control && key === 'z') void takeBack()
       // Z zooms out, always: Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
@@ -655,7 +713,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       </header>
       <div className="stage">
         <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} onPick={toggleTab} />
-        <main ref={canvas} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
+        <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           <LineStyleContext value={lines}>
             <LineWidthsContext value={widths}>
@@ -666,29 +724,46 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
               minZoom={0.2} // the default 0.5 stops the fit short, so a wide diagram in a small window is cut off
-              colorMode="system"
+              colorMode={colorMode}
               defaultMarkerColor="var(--edge)"
               nodesDraggable={editing && !recording}
               nodesConnectable={editing && !recording}
               zoomOnDoubleClick={false}
               deleteKeyCode={null}
+              selectionKeyCode={editing && !recording ? 'Shift' : null} // Shift and drag on the empty canvas draws a box round shapes to pick them
+              onSelectionStart={() => {
+                banding.current = true
+                justMoved.current = false
+                cancelOpen()
+              }}
+              onSelectionEnd={() => {
+                banding.current = false
+              }}
               onNodesChange={onNodesChange}
               isValidConnection={c => placeEnds(model, view, c.source, c.target) !== null} // only lines this view can show
               onConnect={c => void run(m => connect(m, { from: c.source, to: c.target }))
                 .then(saved => saved && show({ kind: 'line', from: c.source, to: c.target }))}
-              onNodeClick={(_, node) => {
+              onNodeClick={(e, node) => {
                 if (node.type !== 'box') return // the frame takes no pointer events, this is a guard
                 justMoved.current = false
-                clearTimeout(opening.current)
+                const waiting = openingBox.current
+                cancelOpen()
                 if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
+                // Ctrl, Cmd or Shift adds the box to the shapes picked, or takes it out again. A box clicked a moment ago is picked too, though its panel hasn't opened yet.
+                if (editing && addsToSelection(e)) return show(sideFor(toggled(waiting === undefined ? chosen : [waiting], node.id)))
                 const open = () => show({ kind: 'object', id: node.id })
                 // Zooming into a box is a double-click, and its first click must not open the panel. With a panel already open there's
                 // nothing to open, only its box to change, so that goes at once: no wait between one box and the next.
-                if (canOpen(node.id) && side === undefined) opening.current = setTimeout(open, DOUBLE_CLICK)
-                else open()
+                if (canOpen(node.id) && side === undefined) {
+                  openingBox.current = node.id
+                  opening.current = setTimeout(() => {
+                    openingBox.current = undefined
+                    open()
+                  }, DOUBLE_CLICK)
+                } else open()
               }}
-              onNodeDoubleClick={(_, node) => {
-                if (recording || node.type !== 'box' || !canOpen(node.id)) return
+              onNodeDoubleClick={(e, node) => {
+                if (recording || node.type !== 'box' || !canOpen(node.id) || addsToSelection(e)) return
                 zoomInto(node.id)
               }}
               onInit={instance => {
@@ -702,7 +777,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
               onEdgeMouseLeave={() => setHovered(undefined)}
               onPaneClick={() => {
                 justMoved.current = false
-                clearTimeout(opening.current)
+                cancelOpen()
                 setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
               }}
             >
@@ -745,6 +820,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
           {detailsOpen && side === undefined && view === ROOT && <OverviewPanel totals={totals} onClose={closeDetails} />}
           {detailsOpen && side?.kind === 'line' && (
             <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closeDetails} />
+          )}
+          {detailsOpen && editing && side?.kind === 'objects' && (
+            <ManyPanel model={model} ids={side.ids} onPick={id => show({ kind: 'object', id })} onDelete={remove} onClose={closeDetails} />
           )}
           {detailsOpen && editing && side?.kind === 'add' && (
             <AddPanel model={model} view={view} run={run} onAdded={id => setSide({ kind: 'object', id })} onClose={closeDetails} />

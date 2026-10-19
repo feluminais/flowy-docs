@@ -384,7 +384,7 @@ public static class Perf
         var at = $"{Js(k.Load)} {run.Unit}";
         if (k.By is { } by)
             return $"First struggles at {at}: {nameOf(by.Id)} {(by.Kind == "util" ? $"at {Pct(by.Share)} of capacity" : $"failing {Pct(by.Share)} of calls")}";
-        return $"Latency passes {Js(KneeLatency)}× its starting point at {at}: overall p95 goes from {Js(JsRound(k.LatencyFrom!.Value))} ms to {Js(JsRound(k.LatencyTo!.Value))} ms";
+        return $"First struggles at {at}: the slowest 5% of calls go from {Js(JsRound(k.LatencyFrom!.Value))} ms to {Js(JsRound(k.LatencyTo!.Value))} ms";
     }
 
     /// <summary>A line that carried <paramref name="rate"/> calls a second: logarithmic and capped, because a screen can't draw 1000 particles a second.</summary>

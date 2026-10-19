@@ -70,7 +70,7 @@ Outside services you don't own (a payment provider, an SMS gateway) are marked `
 ![Order API's panel with its description, the folder it lives in, and every connection out, where a row for five connections opens to list them](docs/images/desktop-panel.png)
 
 Hover a shape for its short description. Click it for the full text, the files it lives in, and every connection out and
-in. A line that stands for several connections opens to list them, and pointing at a row lights its line on the canvas.
+in. Inside a shape, click the blue frame round what is in it to see that shape the same way. A line that stands for several connections opens to list them, and pointing at a row lights its line on the canvas.
 Lines show their labels when you point at one, or when you select a shape.
 
 A shape can list the files and folders it lives in. When the repo's `origin` is on GitHub or GitLab they link there, and a
@@ -95,9 +95,17 @@ the step's text still says the same thing. The app and the browser play them ali
 
 Neighbouring steps can also belong together. A flow file can mark them as a `repeat` that runs up to a stated number of times,
 a `branch` of lanes of which one happens, or `parallel` lanes that all happen at once, and a step can say that another flow
-tells the rest of its story (`flow:`). Flowy checks all of it, and the Mermaid copy draws it as `loop`, `alt` and `par` blocks.
-The player doesn't draw these marks yet, so it still steps through a flow in file order. The format is in
-[the guide](docs/guide.md#repeats-branches-and-parallel-steps).
+tells the rest of its story (`flow:`).
+
+![A flow with a repeat and a branch: a chip says One of 2, two tabs name the lanes and mark the one you are in, the bar has a bracket under each group, and a label on the lit line names the lane](docs/images/desktop-structure.png)
+
+The player steps through what is on screen at once, so the lanes of a parallel group are one stop, lit and moving together.
+A chip names the group, a branch shows its lanes as tabs while the other lanes are dashed on the canvas, the progress bar has a
+bracket under each group, a label on the line says how often it repeats or which lane it is, and **Open flow** plays the other
+flow with a bar to come back. A **?** on the card says what each of these means. Flowy checks all of it, and the Mermaid copy draws
+it as `loop`, `alt` and `par` blocks. The format is in [the guide](docs/guide.md#repeats-branches-and-parallel-steps), and Plum has two:
+[capture-payment](docs/demo/flowy/flows/capture-payment.yaml) retries a charge and branches on the outcome, and
+[announce-order](docs/demo/flowy/flows/announce-order.yaml) tells two readers at once and opens Delivery's flow.
 
 ## Performance
 
@@ -213,7 +221,7 @@ sequenceDiagram
 | O | The Explorer: everything as a tree |
 | L | The Flows tab: every flow, and play one |
 | Enter | Open the selected shape |
-| Esc | Close what's open, then go up a level |
+| Esc | Close what's open, then go up a level. The navigator closes only if your last click was in it |
 | Backspace, Z | Zoom out: go up a level |
 | F | Fit the view |
 | ← → | Previous and next step of the flow playing, or previous and next tested load |
@@ -224,7 +232,8 @@ sequenceDiagram
 | Ctrl+O, F5 | Open a folder, reload it (app) |
 | E | Edit mode on and off |
 | N | Add a shape |
-| Delete | Delete the open shape or line |
+| Delete | Delete the open shapes or line |
+| Ctrl+click, Shift+drag, Ctrl+A | Select several shapes (editing): add one, draw a box round some, or take them all. Drag any of them to move them together |
 | Ctrl+Z, Ctrl+Y | Undo and redo |
 | Esc, Backspace | Right after dragging a shape (editing): take the drag back |
 | ? | List every shortcut |

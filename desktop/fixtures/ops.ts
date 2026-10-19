@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { typesIn } from '../../src/core/check.ts'
 import { modelFiles, ROOT, serializeLayout } from '../../src/core/model.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteFlow, deleteObject, forgetLayout, OpError, placeBoxes, putFlow, putObject, refuseNewProblems, relabel, removeConnection, setLines, updateFlow } from '../../src/core/ops.ts'
+import { connect, deleteFlow, deleteObject, deleteObjects, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setLines, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
@@ -57,6 +57,63 @@ export const STEPS: Spec[] = [
   { op: 'updateFlow', id: 'nope', name: 'x' },
   { op: 'deleteFlow', id: 'pay' },
   { op: 'deleteFlow', id: 'pay' },
+  { op: 'putFlow', id: 'retry-pay', name: 'Customer pays, with a retry', view: 'root', groups: { retry: { kind: 'repeat', times: 3 }, result: { kind: 'branch', text: 'Depends on the bank' } }, steps: [{ from: 'customer', to: 'shop', text: 'Pays', group: 'retry' }, { from: 'shop', to: 'customer', text: 'Asks again', group: 'retry' }, { from: 'shop', text: 'Accepts', group: 'result', lane: 'Accepted' }, { from: 'shop', text: 'Writes it down', group: 'result' }, { from: 'shop', text: 'Declines', group: 'result', lane: 'Declined' }, { from: 'shop', to: 'customer', text: 'Done' }] },
+  { op: 'putFlow', id: 'no-groups', name: 'An empty set writes none', view: 'root', groups: {}, steps: [{ from: 'customer', text: 'Only step' }] },
+  { op: 'putFlow', id: 'bad-groups', name: 'A group nobody is in', view: 'root', groups: { lonely: { kind: 'branch' } }, steps: [{ from: 'customer', text: 'x' }] },
+  { op: 'removeStep', id: 'retry-pay', index: 1 },
+  { op: 'removeStep', id: 'retry-pay', index: 1 },
+  { op: 'removeStep', id: 'retry-pay', index: 2 },
+  { op: 'removeStep', id: 'retry-pay', index: 9 },
+  { op: 'removeStep', id: 'retry-pay', index: -1 },
+  { op: 'removeStep', id: 'nope', index: 0 },
+  { op: 'putGroup', id: 'retry-pay', group: 'retry', options: { kind: 'repeat', until: 'the bank answers', times: '  ', text: 'Every second' } },
+  { op: 'putGroup', id: 'retry-pay', group: 'retry', options: { kind: 'repeat', times: '1' } },
+  { op: 'putGroup', id: 'retry-pay', group: 'retry', options: { kind: 'repeat', times: '100' } },
+  { op: 'putGroup', id: 'retry-pay', group: 'retry', options: { kind: 'repeat', times: ' 5 ' } },
+  { op: 'putGroup', id: 'retry-pay', group: 'retry', options: { kind: 'repeat', times: '12' } },
+  { op: 'putGroup', id: 'retry-pay', group: 'poll', options: { kind: 'repeat', times: '5' } },
+  { op: 'putGroup', id: 'retry-pay', group: 'Bad Id', options: { kind: 'branch' } },
+  { op: 'putGroup', id: 'nope', group: 'x', options: { kind: 'branch' } },
+  { op: 'putGroup', id: 'retry-pay', group: 'result', options: { kind: 'parallel' } },
+  { op: 'removeGroup', id: 'retry-pay', group: 'result' },
+  { op: 'removeGroup', id: 'retry-pay', group: 'nope' },
+  { op: 'removeGroup', id: 'browse', group: 'together' },
+  { op: 'updateFlow', id: 'retry-pay', groups: { retry: { kind: 'repeat', times: '4' } } },
+  { op: 'updateFlow', id: 'retry-pay', name: 'Customer pays again' },
+  { op: 'updateFlow', id: 'retry-pay', groups: {} },
+  { op: 'removeStep', id: 'retry-pay', index: 0 },
+  { op: 'removeStep', id: 'browse', index: 0 },
+  { op: 'removeStep', id: 'browse', index: 0 },
+  { op: 'deleteFlow', id: 'retry-pay' },
+  { op: 'deleteFlow', id: 'no-groups' },
+  { op: 'putFlow', id: 'plan', name: 'Customer plans', view: 'root', steps: [{ from: 'customer', text: 'Looks' }, { from: 'customer', to: 'shop', text: 'Asks' }, { from: 'shop', text: 'Answers' }, { from: 'shop', to: 'customer', text: 'Confirms' }, { from: 'customer', text: 'Leaves' }] },
+  { op: 'groupSteps', id: 'plan', group: 'asking', kind: 'repeat', first: 1, last: 2 },
+  { op: 'groupSteps', id: 'plan', group: 'asking', kind: 'branch', first: 3, last: 3 },
+  { op: 'groupSteps', id: 'plan', group: 'Bad Id', kind: 'repeat', first: 3, last: 3 },
+  { op: 'groupSteps', id: 'plan', group: 'again', kind: 'zig', first: 3, last: 3 },
+  { op: 'groupSteps', id: 'plan', group: 'again', kind: 'repeat', first: 2, last: 3 },
+  { op: 'groupSteps', id: 'plan', group: 'again', kind: 'repeat', first: 4, last: 3 },
+  { op: 'groupSteps', id: 'plan', group: 'again', kind: 'repeat', first: 3, last: 9 },
+  { op: 'groupSteps', id: 'nope', group: 'again', kind: 'repeat', first: 0, last: 0 },
+  { op: 'groupSteps', id: 'plan', group: 'ending', kind: 'branch', first: 3, last: 4 },
+  { op: 'setStepGroup', id: 'plan', index: 0, group: 'asking' },
+  { op: 'setStepGroup', id: 'plan', index: 0, group: 'asking' },
+  { op: 'setStepGroup', id: 'plan', index: 0, group: 'nope' },
+  { op: 'setStepGroup', id: 'plan', index: 9, group: 'asking' },
+  { op: 'setStepGroup', id: 'plan', index: 0, group: '' },
+  { op: 'setStepGroup', id: 'plan', index: 2, group: 'ending' },
+  { op: 'setStepGroup', id: 'plan', index: 4, group: '' },
+  { op: 'setStepGroup', id: 'plan', index: 4, group: 'ending' },
+  { op: 'setStepGroup', id: 'plan', index: 3, group: '' },
+  { op: 'setGroupKind', id: 'plan', group: 'ending', kind: 'repeat' },
+  { op: 'setGroupKind', id: 'plan', group: 'ending', kind: 'parallel' },
+  { op: 'setGroupKind', id: 'plan', group: 'ending', kind: 'branch' },
+  { op: 'setGroupKind', id: 'plan', group: 'ending', kind: 'zig' },
+  { op: 'setGroupKind', id: 'plan', group: 'asking', kind: 'parallel' },
+  { op: 'setGroupKind', id: 'plan', group: 'asking', kind: 'branch' },
+  { op: 'setGroupKind', id: 'plan', group: 'nope', kind: 'repeat' },
+  { op: 'setGroupKind', id: 'nope', group: 'ending', kind: 'repeat' },
+  { op: 'deleteFlow', id: 'plan' },
   { op: 'placeBoxes', view: 'root', boxes: { customer: [12, 34], shop: [300.5, 40], ghost: [1, 2] } },
   { op: 'placeBoxes', view: 'shop', boxes: { api: [5, 6], web: [0, 0] } },
   { op: 'placeBoxes', view: 'nowhere', boxes: { api: [5, 6] } },
@@ -72,6 +129,14 @@ export const STEPS: Spec[] = [
   { op: 'deleteObject', id: 'cache' },
   { op: 'deleteObject', id: '10' },
   { op: 'deleteObject', id: '2' },
+  { op: 'deleteObjects', ids: ['weird', 'pay'] }, // two at once, and the line to pay goes with it
+  { op: 'deleteObjects', ids: ['checkout', 'customer'] }, // customer is used by a flow: nothing goes, not even checkout
+  { op: 'deleteObjects', ids: ['db', 'ghost'] },
+  { op: 'deleteObjects', ids: ['shop', 'web'] }, // shop still has api and db inside
+  { op: 'deleteObjects', ids: [] },
+  { op: 'deleteFlow', id: 'browse' },
+  { op: 'deleteFlow', id: 'order' },
+  { op: 'deleteObjects', ids: ['shop', 'api', 'web', 'db', 'checkout'] }, // a box with what is inside it, the inner ones first
 ]
 
 function apply(model: Model, s: Spec): Model {
@@ -81,11 +146,18 @@ function apply(model: Model, s: Spec): Model {
       return putObject(model, input as ObjectInput)
     }
     case 'deleteObject': return deleteObject(model, s.id)
+    case 'deleteObjects': return deleteObjects(model, s.ids)
     case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label })
     case 'removeConnection': return removeConnection(model, { from: s.from, to: s.to, label: s.which })
     case 'relabel': return relabel(model, { from: s.from, to: s.to, label: s.which }, s.label)
-    case 'putFlow': return putFlow(model, { id: s.id, name: s.name, view: s.view, steps: s.steps as Step[] })
-    case 'updateFlow': return updateFlow(model, s.id, { ...(s.name === undefined ? {} : { name: s.name }), ...(s.steps === undefined ? {} : { steps: s.steps as Step[] }) })
+    case 'putFlow': return putFlow(model, { id: s.id, name: s.name, view: s.view, steps: s.steps as Step[], ...(s.groups === undefined ? {} : { groups: s.groups }) })
+    case 'updateFlow': return updateFlow(model, s.id, { ...(s.name === undefined ? {} : { name: s.name }), ...(s.steps === undefined ? {} : { steps: s.steps as Step[] }), ...(s.groups === undefined ? {} : { groups: s.groups }) })
+    case 'removeStep': return removeStep(model, s.id, s.index)
+    case 'putGroup': return putGroup(model, s.id, s.group, s.options)
+    case 'removeGroup': return removeGroup(model, s.id, s.group)
+    case 'setStepGroup': return setStepGroup(model, s.id, s.index, s.group)
+    case 'setGroupKind': return setGroupKind(model, s.id, s.group, s.kind)
+    case 'groupSteps': return groupSteps(model, s.id, s.group, s.kind, s.first, s.last)
     case 'deleteFlow': return deleteFlow(model, s.id)
     case 'placeBoxes': return placeBoxes(model, s.view, s.boxes)
     case 'setLines': return setLines(model, s.style)

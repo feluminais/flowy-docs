@@ -43,13 +43,13 @@ public class PerfPanelTests
         var (panel, folder) = Open();
         Show(panel, folder, "ramp", 3);
         Assert.Equal("100 req/s", panel.LoadText);
-        Assert.Equal("a tested level", panel.LoadNote);
+        Assert.Equal("Tested", panel.LoadNote);
         Assert.Equal(3, panel.SliderMaximum);
         Assert.Equal(3, panel.SliderValue);
         var text = Text(panel);
         Assert.Contains("First struggles at 100 req/s: Worker at 97% of capacity", text);
         Assert.Contains("Go there", text);
-        Assert.Contains("Click a shape or a line to see its numbers.", text);
+        Assert.Contains("Click a shape or a line.", text);
         Assert.NotNull(panel.Picker); // there is more than one run
     }
 
@@ -60,11 +60,11 @@ public class PerfPanelTests
         Show(panel, folder, "ramp", 1);
         panel.SetPos(1.5, true);
         Assert.Equal("38 req/s", panel.LoadText); // 37.5, written as a tie goes in the browser too
-        Assert.Equal("between 25 and 50, worked out from the two", panel.LoadNote);
+        Assert.Equal("Between 25 and 50, estimated", panel.LoadNote);
         Assert.Equal(1.5, panel.SliderValue);
         Assert.Equal("Pause", Label(panel));
         panel.SetPos(2, false);
-        Assert.Equal("a tested level", panel.LoadNote);
+        Assert.Equal("Tested", panel.LoadNote);
         Assert.Equal("Ramp", Label(panel));
     }
 
@@ -125,13 +125,13 @@ public class PerfPanelTests
         Show(panel, folder, "ramp", 3, selection: new PerfSelection("worker"));
         Assert.Equal([("Busy", "97%"), ("Failing", "1%")], panel.Readings);
         Show(panel, folder, "ramp", 3, selection: new PerfSelection(null, "queue", "worker"));
-        Assert.Equal([("Calls", "5 calls a second"), ("Typical", "4 s"), ("Slowest 1 in 20", "9 s"), ("Failing", "0%")], panel.Readings);
+        Assert.Equal([("Calls", "5 calls a second"), ("Expected call", "4 s"), ("Slowest 5%", "9 s"), ("Failing", "0%")], panel.Readings);
         panel.SetPos(1, false);
         Assert.Equal("5 calls a second", panel.Readings[0].Value);
         Assert.Equal("0.1 ms", panel.Readings[1].Value);
         Show(panel, folder, "ramp", 3, selection: new PerfSelection("customer"));
         Assert.Empty(panel.Readings);
-        Assert.Contains("Nothing was measured here, or inside it.", Text(panel));
+        Assert.Contains("Nothing measured here or inside it.", Text(panel));
     }
 
     [AvaloniaFact]
@@ -150,11 +150,32 @@ public class PerfPanelTests
         var (panel, folder) = Open();
         Show(panel, folder, "ramp", 3, still: true);
         Assert.Null(panel.RampButton.Parent);
-        Assert.Contains("← → step the levels", Text(panel));
-        Assert.DoesNotContain("P ramps up", Text(panel));
+        Assert.Contains("←|→|Step", Text(panel));
+        Assert.DoesNotContain("|P|", Text(panel));
         Show(panel, folder, "ramp", 3, still: false);
         Assert.NotNull(panel.RampButton.Parent);
-        Assert.Contains("P ramps up", Text(panel));
+        Assert.Contains("|P|Ramp", Text(panel));
+    }
+
+    [AvaloniaFact]
+    public void The_chart_and_the_canvas_marks_are_keyed_by_drawing_them_with_a_name_beside_each()
+    {
+        var (panel, folder) = Open();
+        Show(panel, folder, "ramp", 3);
+        var names = panel.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
+        Assert.Equal(["Expected call", "Slowest 5%", "First struggles"], names.Where(n => n is "Expected call" or "Slowest 5%" or "First struggles"));
+        Assert.Contains("Busy", names);
+        Assert.Contains("Waiting", names);
+        Assert.Contains("Not measured", names);
+        Assert.Contains("A call that fails", names);
+        var marks = panel.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("sw")).SelectMany(b => b.Classes).ToList();
+        foreach (var mark in new[] { "p50", "p95", "heat", "queue", "none", "call", "bad", "busy" }) Assert.Contains(mark, marks);
+        Assert.Single(panel.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Line>(), l => l.Classes.Contains("knee"));
+        Assert.DoesNotContain("Blue:", string.Join("|", names)); // a legend of colour names is the thing the marks replace
+
+        Show(panel, folder, "calm", 1);
+        Assert.DoesNotContain(panel.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Line>(), l => l.Classes.Contains("knee"));
+        Assert.DoesNotContain("First struggles", panel.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text));
     }
 
     [AvaloniaFact]
