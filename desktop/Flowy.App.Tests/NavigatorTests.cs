@@ -10,7 +10,7 @@ using Xunit;
 namespace Flowy.App.Tests;
 
 /// <summary>
-/// The rail, the Flows list and the Explorer tree, on the Plum demo (36 shapes, 3 flows: one at the top, one in Ordering, one in Delivery):
+/// The rail, the Flows list and the Explorer tree, on the Plum demo (36 shapes, 4 flows: one at the top, one in Ordering, one in Order API, one in Delivery):
 /// what is on them, what a click on a row does, the keys, the filter, and what is remembered.
 /// </summary>
 public class NavigatorTests
@@ -36,7 +36,7 @@ public class NavigatorTests
     {
         var (window, reader) = Open();
         var icons = reader.Rail.Shown.ToList();
-        Assert.Equal(["Explorer, 36", "Flows, 3"], icons.Select(i => i.Name));
+        Assert.Equal(["Explorer, 36", "Flows, 4"], icons.Select(i => i.Name));
         Assert.All(icons, i => Assert.True(i.Visible));
         Assert.Equal(["Details"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name)); // Performance is there only where there is a run
         Assert.False(reader.HasPanel); // nothing is open until an icon is picked
@@ -89,7 +89,7 @@ public class NavigatorTests
         var (_, reader) = Open();
         reader.ClickRail(PanelTab.Explorer);
         var explorer = reader.Navigator.Explorer;
-        Assert.Equal("36 shapes · 3 flows", explorer.SummaryText);
+        Assert.Equal("36 shapes · 4 flows", explorer.SummaryText);
         Assert.Equal("shape:root", explorer.Rows[0].Key);
         Assert.Equal(36, explorer.Rows[0].Shapes);
         Assert.Contains(explorer.Rows, r => r.Key == "shape:ordering" && r.Depth == 1 && r.Expandable && !r.Expanded);
@@ -140,7 +140,7 @@ public class NavigatorTests
         reader.GoTo("delivery");
         reader.ClickRail(PanelTab.Flows);
         var listed = reader.Navigator.Flows.Listed;
-        Assert.Equal(3, listed.Count);
+        Assert.Equal(4, listed.Count);
         Assert.Equal("delivery", listed[0].View); // the flows in this level come first
         reader.Navigator.Flows.Open("place-order");
         Assert.Equal("ordering", reader.View);
@@ -198,7 +198,7 @@ public class NavigatorTests
         var explorer = reader.Navigator.Explorer;
         explorer.Filter = "order api";
         Assert.Equal(["Overview", "Ordering", "Order API"], explorer.Rows.Select(r => r.Name));
-        Assert.Equal("36 shapes · 3 flows", explorer.SummaryText); // the totals are of the whole model
+        Assert.Equal("36 shapes · 4 flows", explorer.SummaryText); // the totals are of the whole model
         explorer.Filter = "zzzzz";
         Assert.Empty(explorer.Rows);
         explorer.Filter = "";

@@ -80,6 +80,10 @@
           "text": "sequenceDiagram\n  actor n0 as Customer\n  participant n1 as Customer app\n  participant n2 as Order API\n  participant n3 as Stripe\n  participant n4 as Orders DB\n  participant n5 as Order events\n  participant n6 as Delivery\n  participant n7 as Kitchen tablet\n  n0->>n1: Fills a basket and taps Place order\n  n1->>n2: POST /orders with the basket\n  n2->>n3: Holds the amount on the card\n  n2->>n4: Saves the order as placed\n  n2->>n5: Announces the order\n  n5->>n6: Dispatch starts looking for a courier\n  n2->>n7: The restaurant's tablet rings\n"
         },
         {
+          "flow": "price-a-deal",
+          "text": "sequenceDiagram\n  participant n0 as Basket\n  participant n1 as Pricing\n  n0->>n1: Asks for the total of a basket that holds a meal deal\n  n1->>n1: Prices the deal by pricing each of its parts, and a part can be a deal too\n  n1->>n0: Hands back the total\n"
+        },
+        {
           "flow": "refund",
           "text": "sequenceDiagram\n  actor n0 as Support agent\n  participant n1 as Back office\n  participant n2 as Ordering\n  participant n3 as Stripe\n  participant n4 as Notifications\n  participant n5 as Twilio\n  n0->>n1: Finds the order in the support console\n  n1->>n2: Asks for a refund\n  n2->>n3: The money goes back to the card\n  n2->>n4: Asks for a confirmation to be sent\n  n4->>n5: The customer gets an SMS\n"
         }

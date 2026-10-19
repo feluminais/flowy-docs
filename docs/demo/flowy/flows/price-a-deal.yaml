@@ -1,0 +1,14 @@
+name: Pricing a meal deal
+view: order-api
+steps:
+  - { from: basket, to: pricing, text: Asks for the total of a basket that holds a meal deal }
+  - from: pricing
+    text: Prices the deal by pricing each of its parts, and a part can be a deal too
+    animation: { kind: recurse, depth: 3, carries: deal, returns: price }
+    description: |
+      A plain item has a price, and that is where it stops. A deal holds items and other deals, so
+      Pricing asks itself about each part and adds up what comes back.
+
+      The menu editor allows deals inside deals three deep at most. The picture shows three levels
+      because that is the limit.
+  - { from: pricing, to: basket, text: Hands back the total }

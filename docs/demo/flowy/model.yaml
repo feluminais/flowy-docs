@@ -131,6 +131,8 @@ objects:
       Works out the total: items, delivery fee (by distance) and any promotion.
 
       The delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.
+
+      A meal deal is priced by pricing each of its parts, and a part can be a deal too.
   checkout:
     type: component
     in: order-api

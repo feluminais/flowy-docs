@@ -152,7 +152,7 @@
       "type": "component",
       "name": "Pricing",
       "in": "order-api",
-      "description": "Works out the total: items, delivery fee (by distance) and any promotion.\n\nThe delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n",
+      "description": "Works out the total: items, delivery fee (by distance) and any promotion.\n\nThe delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n\nA meal deal is priced by pricing each of its parts, and a part can be a deal too.\n",
       "code": [
         "services/order-api/src/pricing.ts"
       ]
@@ -670,6 +670,49 @@
             "kitchen-tablet"
           ],
           "ends": "Order API → Kitchen tablet"
+        }
+      ]
+    },
+    {
+      "id": "price-a-deal",
+      "name": "Pricing a meal deal",
+      "view": "order-api",
+      "steps": [
+        {
+          "from": "basket",
+          "to": "pricing",
+          "text": "Asks for the total of a basket that holds a meal deal",
+          "placed": [
+            "basket",
+            "pricing"
+          ],
+          "ends": "Basket → Pricing"
+        },
+        {
+          "from": "pricing",
+          "text": "Prices the deal by pricing each of its parts, and a part can be a deal too",
+          "description": "A plain item has a price, and that is where it stops. A deal holds items and other deals, so\nPricing asks itself about each part and adds up what comes back.\n\nThe menu editor allows deals inside deals three deep at most. The picture shows three levels\nbecause that is the limit.\n",
+          "animation": {
+            "kind": "recurse",
+            "depth": "3",
+            "carries": "deal",
+            "returns": "price"
+          },
+          "placed": [
+            "pricing",
+            "pricing"
+          ],
+          "ends": "Pricing"
+        },
+        {
+          "from": "pricing",
+          "to": "basket",
+          "text": "Hands back the total",
+          "placed": [
+            "pricing",
+            "basket"
+          ],
+          "ends": "Pricing → Basket"
         }
       ]
     },
