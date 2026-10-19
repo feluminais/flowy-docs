@@ -141,19 +141,20 @@ internal sealed class SidePanel : Border
     {
         var external = Model.IsExternal(o);
         var chips = new WrapPanel { Orientation = Orientation.Horizontal };
-        chips.Children.Add(Spaced(Chrome.Chip(string.IsNullOrEmpty(o.Type) ? "box" : o.Type, Icons.ForType(o.Type), KindOf(o.Type))));
+        chips.Children.Add(Spaced(Chrome.Chip(string.IsNullOrEmpty(o.Type) ? "shape" : o.Type, Icons.ForType(o.Type), KindOf(o.Type))));
         if (!string.IsNullOrEmpty(o.Tech)) chips.Children.Add(Spaced(Chrome.Chip(o.Tech, Icons.Code)));
         if (external) chips.Children.Add(Spaced(Chrome.Chip("external", Icons.Cloud, "external")));
         if (problems > 0) chips.Children.Add(Spaced(Chrome.Chip(problems == 1 ? "1 problem" : $"{problems} problems", Icons.Alert, "warn")));
         var name = new TextBlock { Text = string.IsNullOrEmpty(o.Name) ? id : o.Name, FontSize = 20, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 26, 0) };
         var text = new StackPanel { Spacing = 8, VerticalAlignment = VerticalAlignment.Center, Children = { name, chips } };
-        var tile = Chrome.TypeTile(o.Type, external, 48);
+        var tile = Chrome.ObjectTile(model, o, 48);
         tile.VerticalAlignment = VerticalAlignment.Top;
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 14, Children = { tile, text } };
         Grid.SetColumn(text, 1);
         var hero = new Border { Child = grid };
         hero.Classes.Add("hero");
         hero.Classes.Add(external ? "external" : KindOf(o.Type));
+        if (Look.IsColor(o.Color) && Look.ColorPair(o.Color) is { } pair) hero.Background = ThemeBrushes.For(pair.Light, pair.Dark, 0.14);
         return hero;
     }
 
@@ -231,7 +232,7 @@ internal sealed class SidePanel : Border
         {
             Orientation = Orientation.Horizontal,
             Spacing = 8,
-            Children = { Chrome.TypeTile(other?.Type, other is not null && Model.IsExternal(other), 22), Link(Views.NameOf(model, line.Other), () => pick(line.Other)) },
+            Children = { Chrome.ObjectTile(model, other, 22), Link(Views.NameOf(model, line.Other), () => pick(line.Other)) },
         };
         var body = new StackPanel { Spacing = 4, Children = { head } };
         if (line.Connections.Count == 1)
@@ -282,7 +283,7 @@ internal sealed class SidePanel : Border
         {
             var o = model.GetObject(id);
             var name = new TextBlock { Text = Views.NameOf(model, id), FontWeight = FontWeight.SemiBold, TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap };
-            var tile = Chrome.TypeTile(o?.Type, o is not null && Model.IsExternal(o), 40);
+            var tile = Chrome.ObjectTile(model, o, 40);
             tile.HorizontalAlignment = HorizontalAlignment.Center;
             return new StackPanel { Spacing = 8, Children = { tile, name } };
         }

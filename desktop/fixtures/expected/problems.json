@@ -351,7 +351,7 @@
     },
     {
       "file": "flows/steps.yaml",
-      "message": "step 2: goes from an object to itself (leave out \"to\" for a step one box does on its own)",
+      "message": "step 2: goes from an object to itself (leave out \"to\" for a step one shape does on its own)",
       "step": 1
     },
     {

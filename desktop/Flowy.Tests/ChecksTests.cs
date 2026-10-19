@@ -131,7 +131,7 @@ public class ChecksTests
                 "view \"nowhere\" must be \"root\" or an object with children",
                 "has no steps",
                 "step 1: customer → shop can't be shown in view \"shop\"",
-                "step 2: goes from an object to itself (leave out \"to\" for a step one box does on its own)",
+                "step 2: goes from an object to itself (leave out \"to\" for a step one shape does on its own)",
                 "step 3: unknown object \"ghost\"",
                 "step 5: unknown object \"ghost\"",
                 "step 5: text is missing",

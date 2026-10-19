@@ -114,6 +114,6 @@ public class FolderLoaderTests
         using var temp = new TempDir();
         temp.Write("flowy/model.yaml", "objects:\n  a: { type: actor, name: A }\n  b: { type: app, name: B }\n");
         var text = Summary.Describe(FolderLoader.Load(Path.Combine(temp.Dir, "flowy")));
-        Assert.Equal("2 boxes, 0 connections, 0 flows, 1 problem\n  model.yaml: b: app must be inside system", text);
+        Assert.Equal("2 shapes, 0 connections, 0 flows, 1 problem\n  model.yaml: b: app must be inside system", text);
     }
 }

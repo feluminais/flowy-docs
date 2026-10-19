@@ -15,7 +15,7 @@ test('putObject creates with fields in a stable order, whatever order they come 
 })
 
 test('putObject ignores keys it does not know', () => {
-  const input = JSON.parse('{"id":"cache","type":"store","name":"Cache","in":"shop","color":"red","__proto__":{"polluted":"yes"}}')
+  const input = JSON.parse('{"id":"cache","type":"store","name":"Cache","in":"shop","flavor":"red","__proto__":{"polluted":"yes"}}')
   const cache = putObject(shop(), input as ObjectInput).objects.cache
   assert.deepEqual(Object.keys(cache), ['type', 'name', 'in'])
   assert.equal(Object.getPrototypeOf(cache), Object.prototype)

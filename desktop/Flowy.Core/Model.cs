@@ -26,7 +26,17 @@ public static partial class Names
 /// <c>""</c> means it's there with nothing after it. <c>Code</c> is what the file held: a list of paths if it is
 /// well formed, which the checks report when it isn't.
 /// </summary>
-public sealed record FlowyObject(string? Type, string? Name, string? In, string? External, string? Tech, string? Description, object? Code);
+public sealed record FlowyObject(string? Type, string? Name, string? In, string? External, string? Tech, string? Description, object? Code)
+{
+    /// <summary>How the object is drawn (see <see cref="Look"/>): <c>shape:</c>, <c>color:</c>, <c>opacity:</c> and <c>icon:</c>, plain text when present.</summary>
+    public string? Shape { get; init; }
+
+    public string? Color { get; init; }
+
+    public string? Opacity { get; init; }
+
+    public string? Icon { get; init; }
+}
 
 public sealed record Connection(string? From, string? To, string? Label);
 

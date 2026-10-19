@@ -8,7 +8,7 @@ namespace Flowy.Core;
 /// </summary>
 public static class ModelFiles
 {
-    private static readonly string[] ObjectFields = ["type", "name", "in", "external", "tech", "description"];
+    private static readonly string[] ObjectFields = ["type", "name", "in", "external", "shape", "color", "opacity", "icon", "tech", "description"];
     private static readonly string[] ConnectionFields = ["from", "to", "label"];
     private static readonly string[] FlowFields = ["name", "view"];
     private static readonly string[] StepFields = ["from", "to", "text", "description"];
@@ -52,7 +52,10 @@ public static class ModelFiles
         {
             var m = (OrderedDictionary<string, object?>)o!;
             m.TryGetValue("code", out var code);
-            map.Add(id, new FlowyObject(Text(m, "type"), Text(m, "name"), Text(m, "in"), Text(m, "external"), Text(m, "tech"), Text(m, "description"), code));
+            map.Add(id, new FlowyObject(Text(m, "type"), Text(m, "name"), Text(m, "in"), Text(m, "external"), Text(m, "tech"), Text(m, "description"), code)
+            {
+                Shape = Text(m, "shape"), Color = Text(m, "color"), Opacity = Text(m, "opacity"), Icon = Text(m, "icon"),
+            });
         }
         var list = connectionList.Select(c =>
         {

@@ -42,11 +42,11 @@ internal sealed partial class ReaderView
             button.Click += (_, _) => click();
         }
         Make(_editButton, Icons.Pencil, "Edit", "Edit", "Edit mode (E)", () => SetEditing(!Editing));
-        Make(_addButton, Icons.Plus, "Add", "Add", "Add a box here (N)", OpenAdd);
+        Make(_addButton, Icons.Plus, "Add", "Add", "Add a shape here (N)", OpenAdd);
         Make(_newFlowButton, Icons.Route, "New flow", "New flow", "Record a flow", NewFlow);
         Make(_undoButton, Icons.Undo, null, "Undo", "Undo the last change (Ctrl+Z)", () => _ = UndoAsync());
         Make(_redoButton, Icons.Redo, null, "Redo", "Redo what you undid (Ctrl+Y or Ctrl+Shift+Z)", () => _ = RedoAsync());
-        Make(_tidyButton, Icons.Grid, "Tidy", "Tidy", "Forget where boxes here were dragged, and lay this view out again", () => _ = TidyAsync());
+        Make(_tidyButton, Icons.Grid, "Tidy", "Tidy", "Forget where shapes here were dragged, and lay this view out again", () => _ = TidyAsync());
         foreach (var b in new[] { _newFlowButton, _addButton, _undoButton, _redoButton, _tidyButton }) _editTools.Children.Add(b);
     }
 

@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
+using Flowy.Core;
 using Avalonia.Media;
 using Path = Avalonia.Controls.Shapes.Path;
 
@@ -46,6 +47,9 @@ internal static class Icons
     public const string Check = "M5 12l5 5l10 -10";
     public const string Fit = "M4 9v-3a2 2 0 0 1 2 -2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1 -2 2h-3M9 20h-3a2 2 0 0 1 -2 -2v-3";
 
+    /// <summary>The heading icon of an object's look (shape, colour, icon).</summary>
+    public static string Sparkles => LookData.Icons["sparkles"];
+
     /// <summary>The icon for an object type; a type nobody knows gets the system's.</summary>
     public static string ForType(string? type) => type switch
     {
@@ -57,9 +61,22 @@ internal static class Icons
     };
 
     /// <summary>An icon at <paramref name="size"/>; <paramref name="cssClass"/> picks its stroke colour in Styles.axaml.</summary>
-    public static Control Make(string data, string cssClass, double size)
+    public static Control Make(string data, string cssClass, double size) => Make(data, cssClass, size, out _);
+
+    /// <summary>The same, with the path it draws, for a caller that colours it itself (an object that names a colour).</summary>
+    public static Control Make(string data, string cssClass, double size, out Path path)
     {
-        var path = new Path { Data = Geometry.Parse(data) };
+        // A model's own icons are checked to be path data, but not to parse; one that doesn't draws nothing.
+        Geometry geometry;
+        try
+        {
+            geometry = Geometry.Parse(data);
+        }
+        catch (Exception e) when (e is FormatException or ArgumentException or InvalidOperationException)
+        {
+            geometry = new StreamGeometry();
+        }
+        path = new Path { Data = geometry };
         path.Classes.Add(cssClass);
         // A Viewbox scales the 24-unit grid, stroke included, so the line stays as thick as in the browser's SVG.
         return new Viewbox { Width = size, Height = size, Child = new Avalonia.Controls.Canvas { Width = 24, Height = 24, Children = { path } } };

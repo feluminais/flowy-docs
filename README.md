@@ -16,13 +16,13 @@
 
 ![The overview of Plum, a food-delivery service, in the Flowy Docs app: customers, restaurants, couriers and support agents, four systems and three outside services](docs/images/desktop-overview.png)
 
-Readers start at the big picture and open only the box they care about. The model is plain YAML in a `flowy/` folder:
+Readers start at the big picture and open only the shape they care about. The model is plain YAML in a `flowy/` folder:
 people, systems, apps, stores and components, the connections between them, and step-by-step flows. It sits in git next
 to the code it describes.
 
 The screenshots show Plum, a made-up delivery service, in the desktop app. Its model is in [docs/demo/flowy](docs/demo/flowy).
 
-What to write in it, box by box, is in [Writing good Flowy docs](docs/writing.md).
+What to write in it, shape by shape, is in [Writing good Flowy docs](docs/writing.md).
 
 ## Get it
 
@@ -43,11 +43,11 @@ be open on the same model at once.
 
 ## Zoom in
 
-![Inside Ordering: a frame wraps its apps and stores, and faded dashed boxes around it are what they connect to](docs/images/desktop-zoom.png)
+![Inside Ordering: a frame wraps its apps and stores, and faded dashed shapes around it are what they connect to](docs/images/desktop-zoom.png)
 
-Boxes show their type as a coloured icon, and a box that holds others says how many ("7 inside"). Double-click it, or
-select it and press Enter, to zoom in. A frame named after the box wraps what's inside, and the faded dashed boxes
-around it are what something inside connects to. Esc, Backspace, **Z** or the breadcrumb zoom back out. A faded box that
+Shapes show an icon in a colour, and a shape that holds others says how many ("7 inside"). Double-click it, or
+select it and press Enter, to zoom in. A frame named after the shape wraps what's inside, and the faded dashed shapes
+around it are what something inside connects to. Esc, Backspace, **Z** or the breadcrumb zoom back out. A faded shape that
 opens sits beside you rather than inside, so opening it slides across instead.
 
 | Type | What it is | Lives |
@@ -58,27 +58,31 @@ opens sits beside you rather than inside, so opening it slides across instead.
 | Store | A database, a cache, a queue | Inside a system, and holds components |
 | Component | A part of an app or store | Inside an app or a store |
 
+The type sets what a shape may sit inside. How it looks is separate: each type has a shape, a colour and an icon, and any shape can
+choose its own from 13 shapes (a diamond for a decision, a queue, a document, a cloud), any colour with an opacity for its
+background, and about 150 icons or ones you define. [The guide](docs/guide.md#shapes-colour-and-icons) says which shape fits what.
+
 Outside services you don't own (a payment provider, an SMS gateway) are marked `external: true` and show grey with a cloud.
 
 ## Details on demand
 
 ![Order API's panel with its description, the folder it lives in, and every connection out, one of them opened to list five](docs/images/desktop-panel.png)
 
-Hover a box for its short description. Click it for the full text, the files it lives in, and every connection out and
+Hover a shape for its short description. Click it for the full text, the files it lives in, and every connection out and
 in. A line that stands for several connections opens to list them, and pointing at a row lights its line on the canvas.
-Lines show their labels when you point at one, or when you select a box.
+Lines show their labels when you point at one, or when you select a shape.
 
-A box can list the files and folders it lives in. When the repo's `origin` is on GitHub or GitLab they link there, and a
+A shape can list the files and folders it lives in. When the repo's `origin` is on GitHub or GitLab they link there, and a
 path that doesn't exist shows up as a problem, so the model can't quietly point at code that's gone.
 
-A box can also link to its long documents, such as a runbook or a decision record, so Flowy stays the map and the
+A shape can also link to its long documents, such as a runbook or a decision record, so Flowy stays the map and the
 documents stay documents.
 
 ## Flows
 
 ![A flow playing: Customer app to Order API is lit, and a card says what happens and has a More with the detail](docs/images/desktop-flow.png)
 
-Pick a flow in the top bar to play it step by step. A step is one box handing something to another, or one box doing
+Pick a flow in the top bar to play it step by step. A step is one shape handing something to another, or one shape doing
 something on its own, and a step with more to say has a **More**. In the browser the address follows what's on screen, so
 `#ordering/place-order` plays Customer places an order; send it to someone and they land on the same step.
 
@@ -86,7 +90,7 @@ something on its own, and a step with more to say has a **More**. In the browser
 
 ![Search open with "re" typed: Restaurant, Refunds in Order API, and Data warehouse in Back office](docs/images/desktop-search.png)
 
-**Ctrl+K** or **/** finds a box anywhere in the model by name. Pick one and the canvas opens the level it's on, with its
+**Ctrl+K** or **/** finds a shape anywhere in the model by name. Pick one and the canvas opens the level it's on, with its
 panel open.
 
 ## Let Claude build it
@@ -98,7 +102,7 @@ claude mcp add flowy -- npx flowy-docs mcp
 ```
 
 Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and `flowy/flows/*.yaml`, points
-each box at the code it lives in, marks outside services, and refuses any change that would break the model. Keep the
+each shape at the code it lives in, marks outside services, and refuses any change that would break the model. Keep the
 model open in the app, and it updates by itself as Claude saves.
 
 You can write the files by hand too. This is Checkout from the demo:
@@ -115,22 +119,22 @@ connections:
   - { from: checkout, to: stripe, label: holds the card }
 ```
 
-Saving rewrites a file, so YAML comments aren't kept. Put notes in a box's `description` instead.
+Saving rewrites a file, so YAML comments aren't kept. Put notes in a shape's `description` instead.
 
 ## Edit it
 
-![Edit mode in the app: the bar with New flow, Add, Undo, Redo and Tidy, a dot under each box to connect it, and a box's fields in the panel](docs/images/desktop-edit.png)
+![Edit mode in the app: the bar with New flow, Add, Undo, Redo and Tidy, a dot under each shape to connect it, and a shape's fields in the panel](docs/images/desktop-edit.png)
 
 Press **E**, or the Edit button, in the app or in the browser. They edit the same files, through the same checks, and write them
 the same way, so git sees no difference between a change made in one and a change made in the other.
 
-- Drag boxes to arrange a view. Positions go to `flowy/layout.yaml`.
-- Drag from the dot under a box onto another box to connect them, then type a label.
+- Drag shapes to arrange a view. Positions go to `flowy/layout.yaml`.
+- Drag from the dot under a shape onto another shape to connect them, then type a label.
 - **Add** offers only the types that fit where you are: actors and systems at the top, apps and stores inside a system, components
   inside an app or store.
-- Click a box to change its name, type, tech, description and code. A field saves when you leave it.
-- **Tidy** forgets where boxes were dragged and lays the view out again with as few crossing lines as it finds.
-- **New flow** records a walkthrough: click the box where a step starts and the box it goes to, type what happens, press
+- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and code. A field saves when you leave it.
+- **Tidy** forgets where shapes were dragged and lays the view out again with as few crossing lines as it finds.
+- **New flow** records a walkthrough: click the shape where a step starts and the shape it goes to, type what happens, press
   Enter, repeat.
 
 Every save goes through the same checks as Claude's edits: a change that would add a problem is refused, and nothing is
@@ -175,8 +179,8 @@ sequenceDiagram
 
 | Shortcut | Action |
 | --- | --- |
-| Ctrl+K or / | Find a box |
-| Enter | Open the selected box |
+| Ctrl+K or / | Find a shape |
+| Enter | Open the selected shape |
 | Esc | Close what's open, then go up a level |
 | Backspace, Z | Zoom out: go up a level |
 | F | Fit the view |
@@ -184,10 +188,10 @@ sequenceDiagram
 | Home, End | First and last step |
 | Ctrl+O, F5 | Open a folder, reload it (app) |
 | E | Edit mode on and off |
-| N | Add a box |
-| Delete | Delete the open box or line |
+| N | Add a shape |
+| Delete | Delete the open shape or line |
 | Ctrl+Z, Ctrl+Y | Undo and redo |
-| Esc, Backspace | Right after dragging a box (editing): take the drag back |
+| Esc, Backspace | Right after dragging a shape (editing): take the drag back |
 | ? | List every shortcut |
 
 ## The desktop app
@@ -272,7 +276,7 @@ reports and feature requests go to [Issues](https://github.com/feluminais/flowy-
 
 ## License
 
-[MIT](LICENSE). The box icons are from [Tabler Icons](https://tabler.io/icons), also MIT; their notice ships with the
+[MIT](LICENSE). The shape icons are from [Tabler Icons](https://tabler.io/icons), also MIT; their notice ships with the
 canvas and the app.
 
 Plum is made up. Stripe, Twilio and Mapbox appear in it as examples of outside services, and have no tie to Flowy Docs.

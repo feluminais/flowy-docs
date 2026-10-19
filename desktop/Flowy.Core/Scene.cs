@@ -8,7 +8,11 @@ public sealed record Focus(string? Box = null, string? Line = null, string? Hove
 
 public enum BoxMode { Normal, Lit, Dim }
 
-public sealed record SceneBox(string Id, FlowyObject Object, Rect Rect, int Inside, bool Outsider, BoxMode Mode, bool Problem);
+public sealed record SceneBox(string Id, FlowyObject Object, Rect Rect, int Inside, bool Outsider, BoxMode Mode, bool Problem)
+{
+    /// <summary>The path data of the icon the box shows (the model's own icons are part of the model, so the box can't look them up alone).</summary>
+    public string Icon { get; init; } = "";
+}
 
 [Flags]
 public enum EdgeFlags
@@ -102,7 +106,7 @@ public static class SceneBuilder
             id, model.Objects[id], new Rect(at[id].X, at[id].Y, Layout.BoxWidth, Layout.BoxHeight), inside.GetValueOrDefault(id),
             !isMember.Contains(id),
             !dimming ? BoxMode.Normal : lit is { } l && (l.From == id || l.To == id) ? BoxMode.Lit : BoxMode.Dim,
-            badBoxes.Contains(id))).ToList();
+            badBoxes.Contains(id)) { Icon = Look.IconData(model, model.Objects[id]) }).ToList();
 
         var lines = new List<(string Id, string From, string To, string? Label, EdgeFlags Flags)>();
         foreach (var e in computed.Edges)

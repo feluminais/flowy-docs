@@ -46,7 +46,7 @@ objects:
     code: [flowy/]
     description: |
       `model.yaml` (objects and connections), `flows/<id>.yaml` (one walkthrough each) and
-      `layout.yaml` (where boxes were dragged).
+      `layout.yaml` (where shapes were dragged).
 
       Saving rewrites a file, so YAML comments don't survive: notes belong in an object's
       `description`. This repo documents itself with the folder you're reading now.
@@ -107,17 +107,21 @@ objects:
     tech: Avalonia
     code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs]
     description: |
-      Boxes are controls on a stage that moves with the camera, with one layer behind them for the
+      Shapes are controls on a stage that moves with the camera, with one layer behind them for the
       frame and the lines. The reader holds what you've chosen: the view, the open panel, the flow
       playing.
 
+      A shape is its outline (one of 13, drawn from the same path data as the browser's) with a tint
+      of its own colour over it, then its tile, name and how many it holds. A line meets the outline,
+      not the box around it.
+
       The chrome around them is made of a few pieces in the colour of what they are about: a tile
       with the icon of a type on a tint of its colour, chips, section headings with a count, and
-      cards. The side panel opens on a header in the box's own colour, then its description, code
+      cards. The side panel opens on a header in the shape's own colour, then its description, code
       and lines as cards, and the bar's buttons carry icons. All colours come from the stylesheet,
       so light and dark follow the system.
 
-      Opening a box is a short fly-off and settle-in, one step per screen refresh (the window's own
+      Opening a shape is a short fly-off and settle-in, one step per screen refresh (the window's own
       animation-frame callback, not a timer, which ticks unevenly), and instant when the system asks
       for less motion.
 
@@ -167,7 +171,7 @@ objects:
     tech: React, React Flow
     code: [ui/]
     description: |
-      The page: boxes you zoom into, lines that stay quiet until you point at them, flows that play
+      The page: shapes you zoom into, lines that stay quiet until you point at them, flows that play
       step by step, and edit mode behind E.
 
       The same bundle is served by the local server and shipped in an export; on an exported page
@@ -186,7 +190,7 @@ objects:
       it wrote. A write that loses a race on the file is retried once.
 
       Its instructions hand Claude the writing rules: survey the repo and check the list first, what
-      earns a box, and how to word a description, a label and a flow step.
+      earns a shape, and how to word a description, a label and a flow step.
   exporter:
     type: app
     in: flowy
@@ -241,10 +245,10 @@ objects:
     name: Canvas page
     code: [ui/src/App.tsx, ui/src/Camera.tsx]
     description: |
-      The view you're in, the box or line you picked, the flow playing, and edit mode. It keeps the
+      The view you're in, the shape or line you picked, the flow playing, and edit mode. It keeps the
       address in step, so a link opens where it says and Back goes back.
 
-      The camera fits a view when you arrive and pans a box out from under the side panel, but never
+      The camera fits a view when you arrive and pans a shape out from under the side panel, but never
       undoes your own panning.
   graph:
     type: component
@@ -252,10 +256,10 @@ objects:
     name: Layout
     code: [ui/src/graph.ts, ui/src/Box.tsx, ui/src/Line.tsx]
     description: |
-      Turns a view into boxes and lines: dagre places what hasn't been dragged, and the boxes that
+      Turns a view into shapes and lines: dagre places what hasn't been dragged, and the shapes that
       live elsewhere wait around the edges, each on the side that crosses fewest lines.
 
-      A dragged box keeps its saved place; the rest flow around it.
+      A dragged shape keeps its saved place; the rest flow around it.
   sync:
     type: component
     in: canvas
@@ -273,9 +277,9 @@ objects:
     name: Side panel
     code: [ui/src/Panel.tsx, ui/src/Chrome.tsx, ui/src/icons.tsx, ui/src/Search.tsx]
     description: |
-      A box's description, code links and connections (out and in) while reading; the fields, the flow recorder and Add while editing. Search finds a box anywhere in the model.
+      A shape's description, code links and connections (out and in) while reading; the fields, the flow recorder and Add while editing. Search finds a shape anywhere in the model.
 
-      It looks like the desktop app: a header in the box's own colour with its tile and chips, then
+      It looks like the desktop app: a header in the shape's own colour with its tile and chips, then
       section headings and cards, and icons on the bar's buttons.
   model:
     type: component
@@ -294,8 +298,9 @@ objects:
     name: Checks
     code: [src/core/check.ts]
     description: |
-      Every problem in the model, never throwing: a missing name, a box in a type that can't hold
-      it, a line to nothing, a flow step the view can't show, a `code` path that isn't there.
+      Every problem in the model, never throwing: a missing name, a shape in a type that can't hold
+      it, an unknown shape, colour or icon, a line to nothing, a flow step the view can't show, a
+      `code` path that isn't there.
 
       Problems are shown, not fixed. A file edited by hand keeps its problems until someone deals
       with them.
@@ -305,10 +310,10 @@ objects:
     name: Views
     code: [src/core/views.ts]
     description: |
-      What one level shows: the boxes inside it, the boxes elsewhere that lines reach, and where a
+      What one level shows: the shapes inside it, the shapes elsewhere that lines reach, and where a
       line between two of them lands.
 
-      A line between boxes deeper down is drawn between the boxes that stand for them here, and
+      A line between shapes deeper down is drawn between the shapes that stand for them here, and
       several such lines merge into one, labelled "N connections".
   ops:
     type: component
@@ -316,17 +321,30 @@ objects:
     name: Edits
     code: [src/core/ops.ts]
     description: |
-      Every change anything may make: add or change a box, connect, disconnect, put or delete a
-      flow, place boxes, pick a line style.
+      Every change anything may make: add or change a shape (its type, shape, colour, opacity and icon
+      too), connect, disconnect, put or delete a flow or a custom icon, place shapes, pick a line style.
 
       Each one returns a new model, and a change that would add a problem is refused before
       anything is written.
+  look:
+    type: component
+    in: core
+    name: Look
+    tech: TypeScript
+    code: [src/core/look.ts, src/core/icons.ts]
+    description: |
+      How a shape is drawn: 13 outlines (each with the room its text has and the polygon a line
+      meets), named colours with a light and a dark form, how strong a fill is, and about 150
+      built-in icons plus the ones a model defines under `icons:`.
+
+      The type picks a default for each (an actor is a pill, a store a cylinder). The desktop app
+      writes its own copy of these tables from these two files, and a fixture checks the copy.
   mermaid:
     type: component
     in: core
     name: Mermaid
     code: [src/core/mermaid.ts]
-    description: A view as a flowchart, a flow as a sequence diagram, fenced and ready to paste where GitHub or GitLab draws it.
+    description: A view as a flowchart, a flow as a sequence diagram, fenced and ready to paste where GitHub or GitLab draws it. A shape becomes the closest Mermaid node, and a colour a style line.
 connections:
   - { from: reader, to: cli, label: npx flowy-docs }
   - { from: reader, to: desktop, label: opens folders in a window }
@@ -350,7 +368,7 @@ connections:
   - { from: shell, to: panel, label: what is selected }
   - { from: shell, to: ops, label: the edit the reader made }
   - { from: panel, to: forge, label: links code paths }
-  - { from: graph, to: views, label: "boxes, outsiders and lines" }
+  - { from: graph, to: views, label: "shapes, outsiders and lines" }
   - { from: api, to: filestore, label: reads and writes }
   - { from: api, to: gitlink, label: where code links point }
   - { from: filestore, to: folder, label: one file at a time }
@@ -364,6 +382,9 @@ connections:
   - { from: check, to: views, label: can this view show it }
   - { from: views, to: model, label: reads }
   - { from: mermaid, to: views, label: what the view holds }
+  - { from: mermaid, to: look, label: how each shape is drawn }
+  - { from: check, to: look, label: whether a shape, colour or icon exists }
+  - { from: graph, to: look, label: outline, colour and icon of each shape }
   - { from: exporter, to: filestore, label: loads the model }
   - { from: exporter, to: canvas, label: copies the built page }
   - { from: exporter, to: host, label: writes a read-only copy }

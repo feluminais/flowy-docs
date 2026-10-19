@@ -390,7 +390,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         {editing && <button className="icon" aria-label="Undo" title="Undo the last change (Ctrl+Z)" onClick={() => void takeBack()}><Undo size={16} /></button>}
         {editing && <button className="icon" aria-label="Redo" title="Redo what you undid (Ctrl+Y or Ctrl+Shift+Z)" onClick={() => void bringBack()}><Redo size={16} /></button>}
         {editing && (
-          <button title="Forget where boxes here were dragged, and lay this view out again" onClick={() => void run(m => forgetLayout(m, view)).then(saved => {
+          <button title="Forget where shapes here were dragged, and lay this view out again" onClick={() => void run(m => forgetLayout(m, view)).then(saved => {
             if (!saved) return
             setMoved(new Map())
             setTidied(n => n + 1)
@@ -409,7 +409,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
           {LINE_STYLES.map(s => <option key={s} value={s}>Lines: {LINE_NAMES[s]}</option>)}
         </select>
         {/* mousedown would blur the open field, closing it, and the click would open it again */}
-        <button title="Find a box (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => setSearching(!searching)}><SearchIcon size={16} />Search</button>
+        <button title="Find a shape (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => setSearching(!searching)}><SearchIcon size={16} />Search</button>
         <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={() => void copyMermaid()}><Copy size={16} />Mermaid</button>
         <button className="icon" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" aria-pressed={shortcuts} onClick={() => setShortcuts(!shortcuts)}><Help size={16} /></button>
         <Problems problems={problems} onPick={jump} />
@@ -471,7 +471,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         </LineStyleContext>
         {nodes.length === 0 && (
           <p className="empty">{editing
-            ? 'Nothing here yet. Press Add to put the first box here.'
+            ? 'Nothing here yet. Press Add to put the first shape here.'
             : live
               ? 'Nothing here yet. Ask Claude to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.'
               : 'Nothing here yet.'}</p>

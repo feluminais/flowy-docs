@@ -144,27 +144,37 @@ public class GeometryParityTests
     {
         var paths = Expected()["paths"]!.AsArray();
         Assert.Equal(48, paths.Count);
-        foreach (var p in paths)
-        {
-            var (a, b, style) = (R(p!["a"]!), R(p["b"]!), p["style"]!.GetValue<string>());
-            var what = $"{style} {p["a"]!.ToJsonString()} to {p["b"]!.ToJsonString()}";
-            var path = LinePaths.Build(style, a, b);
-            Assert.Equal(Commands(p["data"]!.GetValue<string>()), Commands(path.Data));
-            var (want, got) = (Numbers(p["data"]!.GetValue<string>()), Numbers(path.Data));
-            Assert.Equal(want.Count, got.Count);
-            for (var i = 0; i < want.Count; i++) Same(want[i], got[i], $"{what}, number {i} of the path");
-            Same(p["label"]![0]!.GetValue<double>(), path.Label.X, what + " label x");
-            Same(p["label"]![1]!.GetValue<double>(), path.Label.Y, what + " label y");
+        foreach (var p in paths) CheckLine(p!, null, null);
+    }
 
-            var (from, to) = BoxGeometry.LineEnds(a, b);
-            Same(p["ends"]![0]!, from, what + " line start");
-            Same(p["ends"]![1]!, to, what + " line end");
-            var ports = BoxGeometry.PortsBetween(a, b);
-            Assert.Equal(p["ports"]!["fromSide"]!.GetValue<string>(), ports.FromSide.ToString().ToLowerInvariant());
-            Assert.Equal(p["ports"]!["toSide"]!.GetValue<string>(), ports.ToSide.ToString().ToLowerInvariant());
-            Same(p["ports"]!["from"]!, ports.From, what + " port from");
-            Same(p["ports"]!["to"]!, ports.To, what + " port to");
-        }
+    [Fact]
+    public void Lines_meet_a_shape_on_its_outline_as_in_the_browser()
+    {
+        var paths = Expected()["shaped"]!.AsArray();
+        Assert.Equal(24, paths.Count);
+        foreach (var p in paths) CheckLine(p!, LookData.Shapes[p!["shapeA"]!.GetValue<string>()].Edge, LookData.Shapes[p["shapeB"]!.GetValue<string>()].Edge);
+    }
+
+    private static void CheckLine(JsonNode p, double[]? edgeA, double[]? edgeB)
+    {
+        var (a, b, style) = (R(p["a"]!), R(p["b"]!), p["style"]!.GetValue<string>());
+        var what = $"{style} {p["a"]!.ToJsonString()} to {p["b"]!.ToJsonString()}";
+        var path = LinePaths.Build(style, a, b, edgeA, edgeB);
+        Assert.Equal(Commands(p["data"]!.GetValue<string>()), Commands(path.Data));
+        var (want, got) = (Numbers(p["data"]!.GetValue<string>()), Numbers(path.Data));
+        Assert.Equal(want.Count, got.Count);
+        for (var i = 0; i < want.Count; i++) Same(want[i], got[i], $"{what}, number {i} of the path");
+        Same(p["label"]![0]!.GetValue<double>(), path.Label.X, what + " label x");
+        Same(p["label"]![1]!.GetValue<double>(), path.Label.Y, what + " label y");
+
+        var (from, to) = BoxGeometry.LineEnds(a, b, edgeA, edgeB);
+        Same(p["ends"]![0]!, from, what + " line start");
+        Same(p["ends"]![1]!, to, what + " line end");
+        var ports = BoxGeometry.PortsBetween(a, b, edgeA, edgeB);
+        Assert.Equal(p["ports"]!["fromSide"]!.GetValue<string>(), ports.FromSide.ToString().ToLowerInvariant());
+        Assert.Equal(p["ports"]!["toSide"]!.GetValue<string>(), ports.ToSide.ToString().ToLowerInvariant());
+        Same(p["ports"]!["from"]!, ports.From, what + " port from");
+        Same(p["ports"]!["to"]!, ports.To, what + " port to");
     }
 
     [Fact]

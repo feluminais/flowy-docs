@@ -202,7 +202,7 @@ internal sealed partial class ReaderView : Grid
         };
         _searchButton.Classes.Add("tool");
         Chrome.Fill(_searchButton, Icons.Search, "Search");
-        ToolTip.SetTip(_searchButton, "Search boxes and flows (Ctrl+K)");
+        ToolTip.SetTip(_searchButton, "Search shapes and flows (Ctrl+K)");
         _searchButton.Click += (_, _) => ToggleSearch();
         _helpButton.Classes.Add("tool");
         Chrome.Fill(_helpButton, Icons.Help, null, "Keyboard shortcuts");
@@ -308,8 +308,8 @@ internal sealed partial class ReaderView : Grid
         _empty.IsVisible = _folder is not null && !_banner.IsVisible && (_view == Names.Root || Editing) && _canvas.Scene is { Boxes.Count: 0 };
         _emptyTitle.Text = Editing ? "Nothing here yet" : "Nothing to show yet";
         _emptyBody.Text = Editing
-            ? "Press Add to put the first box here."
-            : "Add boxes to model.yaml, or ask Claude to map the repo. They appear here as soon as the file is saved. Press E to draw them yourself.";
+            ? "Press Add to put the first shape here."
+            : "Add shapes to model.yaml, or ask Claude to map the repo. They appear here as soon as the file is saved. Press E to draw them yourself.";
     }
 
     /// <summary>The view on screen, or the flow playing, as Mermaid text in a code fence: what the browser's Mermaid button copies.</summary>

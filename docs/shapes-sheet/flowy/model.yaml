@@ -1,0 +1,67 @@
+# The model behind docs/images/shapes.png: one object per shape, named for what it is typically used for.
+objects:
+  rectangle:
+    type: system
+    name: Order API
+    shape: rectangle
+    tech: rectangle
+  pill:
+    type: actor
+    name: Customer
+    tech: pill
+  ellipse:
+    type: system
+    name: Payment failed
+    shape: ellipse
+    tech: ellipse
+  diamond:
+    type: system
+    name: Paid?
+    shape: diamond
+    tech: diamond
+  hexagon:
+    type: system
+    name: Nightly settlement
+    shape: hexagon
+    tech: hexagon
+  parallelogram:
+    type: system
+    name: CSV import
+    shape: parallelogram
+    tech: parallelogram
+  cylinder:
+    type: system
+    name: Orders DB
+    shape: cylinder
+    tech: cylinder
+  queue:
+    type: system
+    name: Order events
+    shape: queue
+    tech: queue
+  document:
+    type: system
+    name: Invoice PDF
+    shape: document
+    tech: document
+  folder:
+    type: system
+    name: Compliance
+    shape: folder
+    tech: folder
+  note:
+    type: system
+    name: Manual step
+    shape: note
+    tech: note
+  cloud:
+    type: system
+    name: Partner network
+    shape: cloud
+    tech: cloud
+  arrow:
+    type: system
+    name: Build
+    shape: arrow
+    tech: arrow
+connections: []

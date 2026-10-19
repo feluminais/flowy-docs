@@ -5,10 +5,10 @@ import type { IconProps } from './icons.tsx'
 
 /** The keyboard shortcuts, as App's key handler has them. Keep the two in step. */
 const READING: [string, string][] = [
-  ['Enter', 'Open the selected box'],
+  ['Enter', 'Open the selected shape'],
   ['Esc', "Close what's open, then go up a level"],
   ['Backspace  Z', 'Zoom out: go up a level'],
-  ['Ctrl+K or /', 'Find a box'],
+  ['Ctrl+K or /', 'Find a shape'],
   ['F', 'Fit the view'],
   ['?', 'Show these shortcuts'],
 ]
@@ -19,10 +19,10 @@ const FLOWS: [string, string][] = [
 ]
 const EDITING: [string, string][] = [
   ['E', 'Edit mode on and off'],
-  ['N', 'Add a box'],
-  ['Delete', 'Delete the selected box or line'],
+  ['N', 'Add a shape'],
+  ['Delete', 'Delete the selected shape or line'],
   ['Ctrl+Z', 'Undo'],
-  ['Esc  Backspace', 'Straight after dragging a box: take the drag back'],
+  ['Esc  Backspace', 'Straight after dragging a shape: take the drag back'],
   ['Ctrl+Y', 'Redo (Ctrl+Shift+Z works too)'],
 ]
 

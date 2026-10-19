@@ -138,13 +138,20 @@ svg { flex: none; }
   .canvas .react-flow__renderer, .canvas .frame { animation: none !important; }
 }
 
-/* Keep width and height in sync with BOX in graph.ts. */
+/* Keep width and height in sync with BOX in graph.ts. Every shape is drawn in this area; its outline is the .shape svg behind the content, and its padding comes from the shape (Box.tsx). */
 .box {
   position: relative; display: flex; align-items: center; gap: 10px;
-  width: 200px; height: 72px; box-sizing: border-box; padding: 0 14px 0 12px;
-  border: 1px solid var(--line); border-radius: 8px; background: var(--box); color: var(--fg);
+  width: 200px; height: 72px; box-sizing: border-box; padding: 0 14px 0 12px; color: var(--on, var(--fg));
 }
-.box-actor { border-radius: 36px; padding-left: 16px; --c: var(--actor); }
+.shape { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.shape path { fill: var(--box); stroke: var(--line); stroke-width: 1; stroke-linejoin: round; }
+/* A colour or an opacity of its own: the fill holds --o of --c over the plain surface, and a colour also draws the outline. */
+.box.tinted .shape path { fill: color-mix(in srgb, var(--c) var(--o), var(--box)); }
+.box.colored .shape path { stroke: var(--c); stroke-width: 1.5; }
+/* A fill dark or strong enough that the usual text would not read: --on is the text colour that does (lookVars in Chrome.tsx). */
+.box.on .box-meta, .box.on .inside { color: color-mix(in srgb, var(--on) 78%, transparent); }
+.box.on .tile { color: var(--on); background: color-mix(in srgb, var(--on) 16%, transparent); }
+.box-actor { --c: var(--actor); }
 .box-system { --c: var(--system); }
 .box-app { --c: var(--app); }
 .box-store { --c: var(--store); }
@@ -161,13 +168,14 @@ svg { flex: none; }
 .inside svg { width: 12px; height: 12px; }
 .react-flow__handle { visibility: hidden; }
 .react-flow__node.outsider { opacity: 0.55; }
-.react-flow__node.outsider .box { border: 1.5px dashed var(--muted); }
-.react-flow__node.selected .box { border-color: var(--accent); }
+.react-flow__node.outsider .shape path { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.react-flow__node.selected .shape path { stroke: var(--accent); stroke-width: 1.5; }
 .react-flow__node.dim, .react-flow__edge.dim { opacity: 0.15; }
 .react-flow__edge.faint { opacity: 0.25; }
 /* A playing flow: the step's boxes at full strength, outsiders too, and its line bold, glowing, over everything. */
 .react-flow__node.lit { opacity: 1; }
-.react-flow__node.lit .box { border: 1.5px solid var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.react-flow__node.lit .shape { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 70%, transparent)); }
+.react-flow__node.lit .shape path { stroke: var(--accent); stroke-width: 2; stroke-dasharray: none; }
 .react-flow__edge.active .react-flow__edge-path, .react-flow__edge.step .react-flow__edge-path {
   stroke: var(--accent); stroke-width: 3; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 70%, transparent));
 }
@@ -286,6 +294,7 @@ svg { flex: none; }
 .form input:focus, .form select:focus, .form textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--tint); }
 .form textarea { resize: vertical; }
 .form label.check { display: flex; align-items: center; gap: 8px; color: var(--fg); font-size: 14px; }
+.form input[type="color"] { flex: none; width: 40px; height: 32px; padding: 2px; cursor: pointer; }
 .form label.check input { display: inline; width: auto; margin: 0; }
 .select-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
 .select-row select { flex: 1; margin-top: 0; }

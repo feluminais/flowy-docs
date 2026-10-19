@@ -73,6 +73,12 @@ fail on a "desktop" test, run that command, look at `git diff desktop/fixtures/e
 now fails means Flowy.Core needs the same change. A new rule in `src/core` should come with a case under `desktop/fixtures/cases`.
 Positions of boxes you haven't dragged are the one thing that isn't compared: dagre has no C# twin, so `LayeredLayout` stands in.
 
+Shapes, colours and icons live in two TypeScript files, `src/core/look.ts` (the shapes' outlines, content room and the polygon a line meets,
+the named colours, the rules) and `src/core/icons.ts` (the built-in icons, from Tabler). The desktop app never copies them by hand:
+`node desktop/tools/make-look-data.ts` writes them to `desktop/Flowy.Core/LookData.cs`, so run it after changing either file. The `look`
+case and `appearance.json` check that the two sides resolve every shape, colour, opacity and icon alike, and `geometry.json` that a
+straight line meets each shape on its outline. `docs/shapes-sheet` is the model behind `docs/images/shapes.png`.
+
 Packaging is Velopack: `dotnet tool restore` (from `desktop/`), then
 
 ```bash

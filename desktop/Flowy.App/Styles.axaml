@@ -336,31 +336,45 @@
   <Style Selector="Path.rowicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Path.warnicon"><Setter Property="Stroke" Value="{DynamicResource WarnFgBrush}" /></Style>
 
-  <!-- A box: an outline shape (so an outsider's border can be dashed), the tile, the name, how many are inside. -->
+  <!-- A box: its shape (a fill, a tint of its own colour, an outline, and a coloured outline over it), the tile, the name, how many are inside. -->
   <Style Selector=":is(Grid).box">
     <Setter Property="Width" Value="200" />
     <Setter Property="Height" Value="72" />
   </Style>
-  <Style Selector=":is(Grid).box Rectangle.outline">
+  <Style Selector=":is(Grid).box Path.fillbase">
     <Setter Property="Fill" Value="{DynamicResource BoxBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box Path.tint">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector=":is(Grid).box.tinted Path.tint">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector=":is(Grid).box Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource LineBrush}" />
     <Setter Property="StrokeThickness" Value="1" />
-    <Setter Property="RadiusX" Value="8" />
-    <Setter Property="RadiusY" Value="8" />
+    <Setter Property="StrokeJoin" Value="Round" />
   </Style>
-  <Style Selector=":is(Grid).box.actor Rectangle.outline">
-    <Setter Property="RadiusX" Value="36" />
-    <Setter Property="RadiusY" Value="36" />
+  <Style Selector=":is(Grid).box Path.colorline">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="StrokeThickness" Value="1.5" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box.colored Path.colorline">
+    <Setter Property="IsVisible" Value="True" />
   </Style>
   <Style Selector=":is(Grid).box.outsider">
     <Setter Property="Opacity" Value="0.55" />
   </Style>
-  <Style Selector=":is(Grid).box.outsider Rectangle.outline">
+  <Style Selector=":is(Grid).box.outsider Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource MutedBrush}" />
     <Setter Property="StrokeThickness" Value="1.5" />
     <Setter Property="StrokeDashArray" Value="4,3" />
   </Style>
-  <Style Selector=":is(Grid).box.selected Rectangle.outline">
+  <Style Selector=":is(Grid).box.outsider Path.colorline, :is(Grid).box.selected Path.colorline, :is(Grid).box.lit Path.colorline">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector=":is(Grid).box.selected Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
   </Style>
   <Style Selector=":is(Grid).box.dim">
@@ -369,15 +383,18 @@
   <Style Selector=":is(Grid).box.lit">
     <Setter Property="Opacity" Value="1" />
   </Style>
-  <Style Selector=":is(Grid).box.lit Rectangle.outline">
+  <Style Selector=":is(Grid).box.lit Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
     <Setter Property="StrokeThickness" Value="1.5" />
     <Setter Property="StrokeDashArray" Value="" />
   </Style>
-  <Style Selector=":is(Grid).box Border.glow">
+  <Style Selector=":is(Grid).box Path.glow">
     <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Stroke" Value="#402563eb" />
+    <Setter Property="StrokeThickness" Value="7" />
+    <Setter Property="StrokeJoin" Value="Round" />
   </Style>
-  <Style Selector=":is(Grid).box.lit Border.glow">
+  <Style Selector=":is(Grid).box.lit Path.glow">
     <Setter Property="IsVisible" Value="True" />
   </Style>
   <Style Selector=":is(Grid).box Border.tile">
@@ -428,7 +445,7 @@
   <Style Selector=":is(Grid).box.problem Border.badge">
     <Setter Property="IsVisible" Value="True" />
   </Style>
-  <Style Selector=":is(Grid).box:focus-visible Rectangle.outline">
+  <Style Selector=":is(Grid).box:focus-visible Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
     <Setter Property="StrokeThickness" Value="2" />
   </Style>

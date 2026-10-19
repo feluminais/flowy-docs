@@ -27,6 +27,35 @@ public static partial class Mermaid
         return map;
     }
 
+    /// <summary>
+    /// A shape as the closest Mermaid node. The newer ones (queue, document, note, cloud) use the <c>@{ shape: }</c> form, which Mermaid 11.3 and
+    /// later draw, as GitHub and GitLab do; a folder has no Mermaid shape and stays a rectangle.
+    /// </summary>
+    private static string Node(string shape, string id, string label) => shape switch
+    {
+        "pill" => $"{id}([\"{label}\"])",
+        "ellipse" => $"{id}((\"{label}\"))",
+        "diamond" => $"{id}{{\"{label}\"}}",
+        "hexagon" => $"{id}{{{{\"{label}\"}}}}",
+        "parallelogram" => $"{id}[/\"{label}\"/]",
+        "cylinder" => $"{id}[(\"{label}\")]",
+        "arrow" => $"{id}>\"{label}\"]",
+        "queue" => $"{id}@{{ shape: h-cyl, label: \"{label}\" }}",
+        "document" => $"{id}@{{ shape: doc, label: \"{label}\" }}",
+        "note" => $"{id}@{{ shape: fold-rect, label: \"{label}\" }}",
+        "cloud" => $"{id}@{{ shape: cloud, label: \"{label}\" }}",
+        _ => $"{id}[\"{label}\"]",
+    };
+
+    /// <summary>A <c>style</c> line for an object that sets a colour or an opacity: its fill at that opacity, and its outline in the colour when one is set.</summary>
+    private static IEnumerable<string> StyleLine(Model model, string id, string node)
+    {
+        var o = model.GetObject(id)!;
+        if (!Look.IsColor(o.Color) && !Look.IsOpacity(o.Opacity)) yield break;
+        var hex = Look.ColorPair(Look.IsColor(o.Color) ? o.Color : Look.TypeColor(o))!.Value.Light;
+        yield return $"  style {node} fill:{hex},fill-opacity:{(Look.FillOpacity(o) / 100.0).ToString(System.Globalization.CultureInfo.InvariantCulture)}{(Look.IsColor(o.Color) ? $",stroke:{hex}" : "")}";
+    }
+
     /// <summary>A view as a flowchart: its boxes, the boxes around it drawn dashed, and its merged lines.</summary>
     public static string View(Model model, string view)
     {
@@ -38,16 +67,12 @@ public static partial class Mermaid
             var o = model.GetObject(id)!;
             // A box with no type (the checker reports it) reads "undefined" in the browser's diagram too, which is kept so the two agree.
             var label = $"{NameOf(model, id)}<br/>{Text(o.Type ?? "undefined")}{(string.IsNullOrEmpty(o.Tech) ? "" : $" · {Text(o.Tech)}")}";
-            return o.Type switch
-            {
-                "actor" => $"  {n[id]}([\"{label}\"])",
-                "store" => $"  {n[id]}[(\"{label}\")]",
-                _ => $"  {n[id]}[\"{label}\"]",
-            };
+            return $"  {Node(Look.ShapeOf(o), n[id], label)}";
         }
         var lines = new List<string> { "flowchart TB" };
         lines.AddRange(n.Keys.Select(Box));
         lines.AddRange(v.Edges.Select(e => $"  {n[e.From]} {(e.Label == "" ? "" : $"-- \"{Text(e.Label)}\" ")}--> {n[e.To]}"));
+        lines.AddRange(n.SelectMany(kv => StyleLine(model, kv.Key, kv.Value)));
         if (v.Outsiders.Count > 0) lines.AddRange(["  classDef outsider stroke-dasharray: 4 3", $"  class {string.Join(',', v.Outsiders.Select(id => n[id]))} outsider"]);
         return string.Join('\n', lines) + "\n";
     }

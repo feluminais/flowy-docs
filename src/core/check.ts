@@ -1,3 +1,4 @@
+import { COLOR_NAMES, iconProblem, isColor, isKnownIcon, isOpacity, isShape, SHAPES } from './look.ts'
 import { getObject, ID_RULE, isValidId, LINE_STYLES, OBJECT_TYPES, ROOT } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
 import { isView, placeStep } from './views.ts'
@@ -32,8 +33,8 @@ const missing = (v: unknown) => v === undefined || v === ''
 export const isRepoPath = (path: string): boolean =>
   !/^\/|\\|:/.test(path) && path.split('/').every((part, i, all) => (part !== '' || (i === all.length - 1 && i > 0)) && part !== '.' && part !== '..')
 
-/** A web address as a link takes it: http or https, then a host. The desktop app (Checks.cs) uses the same pattern, so the two never disagree about a parse. */
-export const isWebAddress = (url: string): boolean => /^https?:\/\/[^\s\/?#]+\S*$/i.test(url)
+/** A web address as a link takes it: http or https, then a host. Checks.cs spells the same pattern out character for character, so the two never disagree about a parse. */
+export const isWebAddress = (url: string): boolean => /^https?:\/\/[^\t\n\v\f\r \/?#][^\t\n\v\f\r ]*$/i.test(url)
 
 /** A `links` entry whose known fields are text. A missing `url` is reported separately, as "a link has no url". */
 const isLinkEntry = (l: unknown): l is { url?: string; title?: string } => {
@@ -66,11 +67,24 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
   if (model.meta.lines !== undefined && !LINE_STYLES.some(s => s === model.meta.lines))
     add('model.yaml', undefined, 'lines must be straight, curved or angled')
 
+  const icons = model.meta.icons
+  if (icons !== undefined && icons !== '') {
+    if (typeof icons !== 'object' || icons === null || Array.isArray(icons)) add('model.yaml', undefined, 'icons must map names to SVG path data')
+    else for (const [name, d] of Object.entries(icons)) {
+      const why = iconProblem(name, d)
+      if (why) add('model.yaml', undefined, `icon ${name}: ${why}`)
+    }
+  }
+
   for (const [id, o] of Object.entries(model.objects)) {
     const p = (message: string) => add('model.yaml', id, `${id}: ${message}`)
     if (!isValidId(id)) p(`ids ${ID_RULE}`)
     if (!nonEmpty(o.name)) p('name is missing')
     if (o.external !== undefined && o.external !== 'true' && o.external !== 'false') p('external must be true or false')
+    if (!missing(o.shape) && !isShape(o.shape)) p(`unknown shape "${o.shape}" (use ${SHAPES.join(', ')})`)
+    if (!missing(o.color) && !isColor(o.color)) p(`color "${o.color}" must be a name (${COLOR_NAMES.join(', ')}) or a hex like #3b82f6`)
+    if (!missing(o.opacity) && !isOpacity(o.opacity)) p(`opacity "${o.opacity}" must be a whole number from 0 to 100`)
+    if (!missing(o.icon) && !isKnownIcon(model.meta, o.icon)) p(`unknown icon "${o.icon}" (use a built-in name, or define it under icons: in model.yaml)`)
     if (o.code !== undefined) {
       if (!Array.isArray(o.code) || o.code.some(c => typeof c !== 'string')) p('code must be a list of paths')
       else for (const path of o.code as string[]) {
@@ -135,7 +149,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
         if (viewOk && getObject(model, s.from) && !placeStep(model, f.view, s)) sp(`${s.from} can't be shown in view "${f.view}"`)
         return
       }
-      if (!missing(s.from) && s.from === s.to) sp('goes from an object to itself (leave out "to" for a step one box does on its own)')
+      if (!missing(s.from) && s.from === s.to) sp('goes from an object to itself (leave out "to" for a step one shape does on its own)')
       else if (viewOk && getObject(model, s.from) && getObject(model, s.to) && !placeStep(model, f.view, s))
         sp(`${s.from} → ${s.to} can't be shown in view "${f.view}"`)
     })
