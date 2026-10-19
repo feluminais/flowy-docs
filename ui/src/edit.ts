@@ -1,7 +1,7 @@
 import type { Problem } from '../../src/core/check.ts'
 import { changedFiles, fileData, getObject, isValidId, ROOT, serializeLayout } from '../../src/core/model.ts'
 import type { Connection, Model } from '../../src/core/model.ts'
-import { chain, computeView, isView, parentOf, placeEnds } from '../../src/core/views.ts'
+import { chain, isView, parentOf, placeEnds } from '../../src/core/views.ts'
 
 /** One write: a file's new content as PUT /api/file takes it, or null to delete the file. */
 export type Change = { file: string; data: unknown }
@@ -54,9 +54,17 @@ export type BoxLine = { from: string; to: string; other: string; connections: Co
  */
 export function linesOf(model: Model, id: string): { out: BoxLine[]; in: BoxLine[] } {
   const view = parentOf(model, id)
-  const lines = computeView(model, view).edges
-    .filter(e => e.from !== e.to && (e.from === id || e.to === id))
-    .map(e => ({ from: e.from, to: e.to, other: e.from === id ? e.to : e.from, connections: connectionsOf(model, view, e.from, e.to).map(c => c.connection) }))
+  // One pass, grouped by where each connection lands: asking connectionsOf per line rescans every connection each time.
+  const byEnds = new Map<string, BoxLine>()
+  for (const c of model.connections) {
+    const ends = placeEnds(model, view, c.from, c.to)
+    if (!ends || (ends[0] !== id && ends[1] !== id)) continue
+    const key = JSON.stringify(ends)
+    const line = byEnds.get(key) ?? { from: ends[0], to: ends[1], other: ends[0] === id ? ends[1] : ends[0], connections: [] }
+    line.connections.push(c)
+    byEnds.set(key, line)
+  }
+  const lines = [...byEnds.values()]
   return { out: lines.filter(l => l.from === id), in: lines.filter(l => l.to === id) }
 }
 

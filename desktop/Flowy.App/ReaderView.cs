@@ -656,8 +656,9 @@ internal sealed partial class ReaderView : Grid
             PickBox(rec, id);
             return;
         }
-        // Zooming into a box is a double-click, and its first click must not open the panel.
-        if (!CanOpen(id))
+        // Zooming into a box is a double-click, and its first click must not open the panel. With a panel already open there's
+        // nothing to open, only its box to change, so that goes at once: no wait between one box and the next.
+        if (!CanOpen(id) || _side is not null)
         {
             OpenObject(id);
             return;

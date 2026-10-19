@@ -10,6 +10,9 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- No ICU needed: nothing here depends on the culture's sort order or calendar, and a Linux install needs no libicu. -->
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- A publish for one system (-r) ships the code precompiled, so start-up doesn't spend its first second compiling it. Measured on
+         Windows: 1.3 s from launch to the first picture became 0.9 s, for 17 MB more on disk. Without -r there is nothing to precompile for. -->
+    <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
   </PropertyGroup>
   <ItemGroup>

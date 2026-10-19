@@ -195,6 +195,28 @@ public class ReaderTests
     }
 
     [AvaloniaFact]
+    public void A_click_on_a_box_that_opens_waits_for_a_double_click_only_while_no_panel_is_open()
+    {
+        var (window, reader) = Open();
+        void Click(string id)
+        {
+            window.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick(3);
+            var at = ((Visual)reader.Canvas.BoxControlFor(id)!).TranslatePoint(new Point(100, 25), window)!.Value;
+            window.MouseDown(at, MouseButton.Left);
+            window.MouseUp(at, MouseButton.Left);
+        }
+
+        Click("ordering"); // has boxes inside and nothing is open: its panel waits in case this is the first half of a double-click
+        Assert.False(reader.HasPanel);
+        Click("customer"); // nothing inside it: at once
+        Assert.Equal("customer", reader.SelectedBoxId);
+        Click("ordering"); // a panel is open, so there's nothing to wait for: the panel just changes
+        Assert.Equal("ordering", reader.SelectedBoxId);
+    }
+
+    [AvaloniaFact]
     public void A_reload_keeps_where_the_reader_is_and_closes_a_panel_whose_box_is_gone()
     {
         var (_, reader) = Open();
