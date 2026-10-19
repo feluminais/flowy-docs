@@ -81,7 +81,7 @@
         },
         {
           "flow": "price-a-deal",
-          "text": "sequenceDiagram\n  participant n0 as Basket\n  participant n1 as Pricing\n  n0->>n1: Asks for the total of a basket that holds a meal deal\n  n1->>n1: Prices the deal by pricing each of its parts, and a part can be a deal too\n  n1->>n0: Hands back the total\n"
+          "text": "sequenceDiagram\n  participant n0 as Basket\n  participant n1 as Pricing\n  n0->>n1: Asks for the total of a basket that holds a meal deal\n  n1->>n1: Prices a deal by pricing each of its parts, down to plain items that have a price\n  n1->>n0: Hands back the total\n"
         },
         {
           "flow": "refund",

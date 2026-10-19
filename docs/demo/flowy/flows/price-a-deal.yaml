@@ -3,7 +3,7 @@ view: order-api
 steps:
   - { from: basket, to: pricing, text: Asks for the total of a basket that holds a meal deal }
   - from: pricing
-    text: Prices the deal by pricing each of its parts, and a part can be a deal too
+    text: Prices a deal by pricing each of its parts, down to plain items that have a price
     animation: { kind: recurse, depth: 3, carries: deal, returns: price }
     description: |
       A plain item has a price, and that is where it stops. A deal holds items and other deals, so

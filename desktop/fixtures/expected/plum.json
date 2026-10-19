@@ -690,7 +690,7 @@
         },
         {
           "from": "pricing",
-          "text": "Prices the deal by pricing each of its parts, and a part can be a deal too",
+          "text": "Prices a deal by pricing each of its parts, down to plain items that have a price",
           "description": "A plain item has a price, and that is where it stops. A deal holds items and other deals, so\nPricing asks itself about each part and adds up what comes back.\n\nThe menu editor allows deals inside deals three deep at most. The picture shows three levels\nbecause that is the limit.\n",
           "animation": {
             "kind": "recurse",
