@@ -161,8 +161,22 @@ const queues = new Map<string, Promise<unknown>>()
  */
 export async function saveFile(dir: string, rel: string, text: string | null, expected: string | null | undefined): Promise<string | null> {
   if (!isAllowedPath(rel)) throw new Error(`refusing to write "${rel}"`)
+  return queued(dir, rel, () => saveNow(dir, rel, text, expected ?? null))
+}
+
+/**
+ * Like saveFile, for bytes: the file's version is the hash of its bytes, so a file that is not UTF-8 can be replaced (saveFile would
+ * refuse to read it). Used to put a past version of the files back. Same queue, same VersionConflict.
+ */
+export async function saveRaw(dir: string, rel: string, bytes: Uint8Array | null, expected: string | null): Promise<string | null> {
+  if (!isAllowedPath(rel)) throw new Error(`refusing to write "${rel}"`)
+  return queued(dir, rel, () => saveRawNow(dir, rel, bytes, expected))
+}
+
+/** Runs one save of a file after the saves already waiting on it. */
+async function queued(dir: string, rel: string, work: () => Promise<string | null>): Promise<string | null> {
   const key = resolve(dir, rel)
-  const run = (queues.get(key) ?? Promise.resolve()).catch(() => undefined).then(() => saveNow(dir, rel, text, expected ?? null))
+  const run = (queues.get(key) ?? Promise.resolve()).catch(() => undefined).then(work)
   queues.set(key, run)
   try {
     return await run
@@ -183,16 +197,39 @@ async function saveNow(dir: string, rel: string, text: string | null, expected: 
     await rm(path, { force: true, maxRetries: 4, retryDelay: 50 })
     return null
   }
+  await replaceFile(path, text)
+  return hashText(text)
+}
+
+async function saveRawNow(dir: string, rel: string, bytes: Uint8Array | null, expected: string | null): Promise<string | null> {
+  const path = join(dir, rel)
+  let current: Uint8Array | null = null
+  try {
+    current = await readFile(path)
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e
+  }
+  const version = current === null ? null : hashBytes(current)
+  if (version !== expected) throw new VersionConflict(rel, version)
+  if (bytes === null) {
+    await rm(path, { force: true, maxRetries: 4, retryDelay: 50 })
+    return null
+  }
+  await replaceFile(path, bytes)
+  return hashBytes(bytes)
+}
+
+/** Writes to a temporary file beside the target and moves it over, so a crash leaves the old file or the new one, never half of one. */
+async function replaceFile(path: string, data: string | Uint8Array): Promise<void> {
   await mkdir(dirname(path), { recursive: true })
   const tmp = `${path}.${randomUUID()}.tmp`
   try {
-    await writeFile(tmp, text)
+    await writeFile(tmp, data)
     await renameWithRetry(tmp, path)
   } catch (e) {
     await rm(tmp, { force: true }).catch(() => undefined) // keep the real error, not a cleanup one
     throw e
   }
-  return hashText(text)
 }
 
 /** Windows briefly locks files that editors, watchers or antivirus have open. */

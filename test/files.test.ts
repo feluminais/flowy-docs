@@ -5,7 +5,7 @@ import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ParseError } from '../src/core/model.ts'
-import { hashText, isAllowedPath, loadDir, loadState, missingPaths, saveFile, VersionConflict } from '../src/node/files.ts'
+import { hashBytes, hashText, isAllowedPath, loadDir, loadState, missingPaths, saveFile, saveRaw, VersionConflict } from '../src/node/files.ts'
 
 async function tempDir(t: TestContext) {
   const dir = await mkdtemp(join(tmpdir(), 'flowy-'))
@@ -114,6 +114,44 @@ test('null deletes', async t => {
   const version = await saveFile(dir, 'flows/a.yaml', 'name: A\n', null)
   assert.equal(await saveFile(dir, 'flows/a.yaml', null, version), null)
   assert.equal((await loadDir(dir)).model.flows.a, undefined)
+})
+
+test('saveRaw writes bytes, leaves no temp file, and returns hashBytes', async t => {
+  const dir = await tempDir(t)
+  const bytes = new TextEncoder().encode('objects: {}\n')
+  assert.equal(await saveRaw(dir, 'model.yaml', bytes, null), hashBytes(bytes))
+  assert.deepEqual(await readFile(join(dir, 'model.yaml')), Buffer.from(bytes))
+  assert.deepEqual(await readdir(dir), ['model.yaml'])
+})
+
+test('saveRaw replaces a file that is not UTF-8', async t => {
+  const dir = await tempDir(t)
+  const broken = new Uint8Array([0xff, 0xfe, 0x00])
+  await writeFile(join(dir, 'model.yaml'), broken)
+  const next = new TextEncoder().encode('objects: {}\n')
+  assert.equal(await saveRaw(dir, 'model.yaml', next, hashBytes(broken)), hashBytes(next))
+  assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), 'objects: {}\n')
+})
+
+test('saveRaw with null removes the file', async t => {
+  const dir = await tempDir(t)
+  const version = await saveRaw(dir, 'layout.yaml', new TextEncoder().encode('{}\n'), null)
+  assert.equal(await saveRaw(dir, 'layout.yaml', null, version), null)
+  assert.deepEqual(await readdir(dir), [])
+})
+
+test('saveRaw refuses a stale version and tells the version the file has', async t => {
+  const dir = await tempDir(t)
+  await writeFile(join(dir, 'model.yaml'), 'objects: {}\n')
+  await assert.rejects(saveRaw(dir, 'model.yaml', new Uint8Array([1]), 'not-the-version'), (e: unknown) => e instanceof VersionConflict && e.version === hashText('objects: {}\n'))
+  await assert.rejects(saveRaw(dir, 'model.yaml', new Uint8Array([1]), null), VersionConflict)
+  assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), 'objects: {}\n')
+})
+
+test('saveRaw writes only the flowy files', async t => {
+  const dir = await tempDir(t)
+  await assert.rejects(saveRaw(dir, '../evil.yaml', new Uint8Array([1]), null), /refusing/)
+  await assert.rejects(saveRaw(dir, 'flows/Bad_Flow.yaml', new Uint8Array([1]), null), /refusing/)
 })
 
 test('broken files are reported with their name, and never overwritten', async t => {

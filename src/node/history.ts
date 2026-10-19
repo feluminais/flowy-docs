@@ -6,7 +6,7 @@ import {
   sameFiles, stepId, stepInfos,
 } from '../core/history.ts'
 import type { Step, StepApp, StepInfo, StepSource } from '../core/history.ts'
-import { hashBytes, isAllowedPath } from './files.ts'
+import { hashBytes, isAllowedPath, saveRaw, VersionConflict } from './files.ts'
 import { defaultStateDir, historyKey, openStore } from './history-store.ts'
 
 /** The files a step covers, as they are on disk now: each path's version, and the bytes behind each version. */
@@ -59,9 +59,22 @@ export type History = {
   record(label: string | undefined, source: StepSource): Promise<Step | undefined>
   /** Before Flowy writes, or when something noticed a change: makes sure the files as they are now are the newest step. Never throws. */
   ensureCurrent(why: 'open' | 'watch' | 'write'): Promise<Ensured>
+  /**
+   * Puts the files of an earlier step back: every file the step has is written from its saved bytes, every file Flowy may write that the step
+   * lacks is removed, and "Restored" goes on top of the list. `seen` is the version of each file the caller last read (absent: the file was not
+   * there); if any file is different now, nothing is written. Works however broken the files are.
+   */
+  restore(id: string, seen: Record<string, string | null>, label: string): Promise<RestoreResult>
   /** Deletes the whole trail. Never throws. */
   clear(): Promise<void>
 }
+
+/** `before` is the step that holds the files as they were just before the restore, so a restore can be undone by restoring it. */
+export type RestoreResult =
+  | { ok: true; versions: Record<string, string | null>; before?: string }
+  | { ok: false; kind: 'unknown' | 'conflict' | 'unsaved' | 'failed'; message: string }
+
+const CHANGED_OUTSIDE = 'This file changed outside Flowy. Reloaded.'
 
 export function openHistory(dir: string, options: HistoryOptions): History {
   const root = join(options.stateDir ?? defaultStateDir(), 'history', historyKey(resolve(dir)))
@@ -129,6 +142,26 @@ export function openHistory(dir: string, options: HistoryOptions): History {
     return loaded
   }
 
+  const record: History['record'] = (label, source) => guarded(async () => {
+    const snap = await snapshot()
+    const newest = await store.latest()
+    if (!newest && Object.keys(snap.files).length === 0) return undefined
+    if (newest && sameFiles(newest.files, snap.files) && !(isLabelled(source) && !isLabelled(newest.source))) return undefined
+    return await append(snap, label ?? fallbackLabel(changedPaths(newest?.files ?? {}, snap.files)), source)
+  }, undefined)
+
+  const ensureCurrent: History['ensureCurrent'] = why => guarded<Ensured>(async () => {
+    const snap = await snapshot()
+    const newest = await store.latest()
+    if (!newest) {
+      if (Object.keys(snap.files).length === 0) return { saved: true }
+      return { saved: true, id: (await append(snap, FIRST_LABEL, 'first')).id }
+    }
+    if (sameFiles(newest.files, snap.files)) return { saved: true, id: collapseSteps(await store.steps()).at(-1)?.id }
+    const label = why === 'open' ? CLOSED_LABEL : outsideLabel(changedPaths(newest.files, snap.files))
+    return { saved: true, id: (await append(snap, label, 'outside')).id }
+  }, { saved: false })
+
   return {
     root,
     get failure() {
@@ -157,26 +190,43 @@ export function openHistory(dir: string, options: HistoryOptions): History {
       return before ? { step: info, files, previous: { id: visible[index - 1].id, files: before } } : { step: info, files }
     },
 
-    record: (label, source) => guarded(async () => {
-      const snap = await snapshot()
-      const newest = await store.latest()
-      if (!newest && Object.keys(snap.files).length === 0) return undefined
-      if (newest && sameFiles(newest.files, snap.files) && !(isLabelled(source) && !isLabelled(newest.source))) return undefined
-      return await append(snap, label ?? fallbackLabel(changedPaths(newest?.files ?? {}, snap.files)), source)
-    }, undefined),
+    record,
+    ensureCurrent,
 
-    ensureCurrent: why => guarded<Ensured>(async () => {
-      const snap = await snapshot()
-      const newest = await store.latest()
-      if (!newest) {
-        if (Object.keys(snap.files).length === 0) return { saved: true }
-        return { saved: true, id: (await append(snap, FIRST_LABEL, 'first')).id }
+    async restore(id, seen, label) {
+      const target = collapseSteps(await store.steps()).find(step => step.id === id)
+      if (!target) return { ok: false, kind: 'unknown', message: 'That version is gone.' }
+      // The files as they are now are saved first, so a restore can never lose work that was never recorded.
+      const ensured = await ensureCurrent('write')
+      if (!ensured.saved) return { ok: false, kind: 'unsaved', message: `Can't restore: history isn't being saved (${failure ?? 'unknown reason'}).` }
+      const before = await snapshot()
+      const paths = [...new Set([...Object.keys(target.files), ...Object.keys(before.files)])].sort(restoreOrder)
+      const conflict: RestoreResult = { ok: false, kind: 'conflict', message: CHANGED_OUTSIDE }
+      if (paths.some(path => (before.files[path] ?? null) !== (seen[path] ?? null))) return conflict
+      try {
+        for (const path of paths) {
+          const wanted = target.files[path]
+          if (wanted === before.files[path]) continue
+          const bytes = wanted === undefined ? null : await store.blob(wanted)
+          if (bytes === undefined) throw new Error(`The saved copy of ${path} is gone.`)
+          await saveRaw(dir, path, bytes, before.files[path] ?? null)
+        }
+      } catch (e) {
+        if (e instanceof VersionConflict) {
+          await ensureCurrent('write') // a restore that stopped half way leaves a mix; keep it as a step
+          return conflict
+        }
+        return { ok: false, kind: 'failed', message: `Couldn't restore: ${e instanceof Error ? e.message : String(e)}` }
       }
-      if (sameFiles(newest.files, snap.files)) return { saved: true, id: collapseSteps(await store.steps()).at(-1)?.id }
-      const label = why === 'open' ? CLOSED_LABEL : outsideLabel(changedPaths(newest.files, snap.files))
-      return { saved: true, id: (await append(snap, label, 'outside')).id }
-    }, { saved: false }),
+      await record(label, 'restore')
+      const after = await snapshot()
+      return { ok: true, versions: Object.fromEntries(paths.map(path => [path, after.files[path] ?? null])), ...(ensured.id ? { before: ensured.id } : {}) }
+    },
 
     clear: () => guarded(() => store.clear(), undefined),
   }
 }
+
+/** model.yaml, layout.yaml, then the flows by name. */
+const restoreOrder = (a: string, b: string): number => rank(a) - rank(b) || (a < b ? -1 : a > b ? 1 : 0)
+const rank = (path: string): number => (path === 'model.yaml' ? 0 : path === 'layout.yaml' ? 1 : 2)
