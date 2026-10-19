@@ -25,6 +25,9 @@ public class EditOpsTests
 
     private static List<OrderedDictionary<string, object?>> Steps(JsonNode? steps) => Entries(steps);
 
+    /// <summary>The groups of a flow in a script: group id → options, as a tree. None if the script has none; {} is an empty set.</summary>
+    private static OrderedDictionary<string, object?>? Groups(JsonNode? groups) => groups is null ? null : (OrderedDictionary<string, object?>)YamlWriterTests.Tree(groups)!;
+
     private static EditDoc Apply(EditDoc doc, JsonNode s)
     {
         switch (Str(s, "op"))
@@ -38,8 +41,11 @@ public class EditOpsTests
             case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label")));
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));
             case "relabel": return EditOps.Relabel(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "label")!);
-            case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]));
-            case "updateFlow": return EditOps.UpdateFlow(doc, Str(s, "id")!, Str(s, "name"), s["steps"] is null ? null : Steps(s["steps"]));
+            case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]), Groups(s["groups"]));
+            case "updateFlow": return EditOps.UpdateFlow(doc, Str(s, "id")!, Str(s, "name"), s["steps"] is null ? null : Steps(s["steps"]), Groups(s["groups"]));
+            case "removeStep": return EditOps.RemoveStep(doc, Str(s, "id")!, s["index"]!.GetValue<int>());
+            case "putGroup": return EditOps.PutGroup(doc, Str(s, "id")!, Str(s, "group")!, (OrderedDictionary<string, object?>)YamlWriterTests.Tree(s["options"])!);
+            case "removeGroup": return EditOps.RemoveGroup(doc, Str(s, "id")!, Str(s, "group")!);
             case "deleteFlow": return EditOps.DeleteFlow(doc, Str(s, "id")!);
             case "placeBoxes":
                 return EditOps.PlaceBoxes(doc, Str(s, "view")!, s["boxes"]!.AsObject().Select(b => (b.Key, b.Value![0]!.GetValue<double>(), b.Value![1]!.GetValue<double>())));

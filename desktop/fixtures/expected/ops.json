@@ -628,6 +628,382 @@
     },
     {
       "spec": {
+        "op": "putFlow",
+        "id": "retry-pay",
+        "name": "Customer pays, with a retry",
+        "view": "root",
+        "groups": {
+          "retry": {
+            "kind": "repeat",
+            "times": 3
+          },
+          "result": {
+            "kind": "branch",
+            "text": "Depends on the bank"
+          }
+        },
+        "steps": [
+          {
+            "from": "customer",
+            "to": "shop",
+            "text": "Pays",
+            "group": "retry"
+          },
+          {
+            "from": "shop",
+            "to": "customer",
+            "text": "Asks again",
+            "group": "retry"
+          },
+          {
+            "from": "shop",
+            "text": "Accepts",
+            "group": "result",
+            "lane": "Accepted"
+          },
+          {
+            "from": "shop",
+            "text": "Writes it down",
+            "group": "result"
+          },
+          {
+            "from": "shop",
+            "text": "Declines",
+            "group": "result",
+            "lane": "Declined"
+          },
+          {
+            "from": "shop",
+            "to": "customer",
+            "text": "Done"
+          }
+        ]
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/retry-pay.yaml": "name: Customer pays, with a retry\nview: root\ngroups:\n  retry:\n    kind: repeat\n    times: 3\n  result:\n    kind: branch\n    text: Depends on the bank\nsteps:\n  - from: customer\n    to: shop\n    text: Pays\n    group: retry\n  - from: shop\n    to: customer\n    text: Asks again\n    group: retry\n  - from: shop\n    text: Accepts\n    group: result\n    lane: Accepted\n  - from: shop\n    text: Writes it down\n    group: result\n  - from: shop\n    text: Declines\n    group: result\n    lane: Declined\n  - from: shop\n    to: customer\n    text: Done\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "putFlow",
+        "id": "no-groups",
+        "name": "An empty set writes none",
+        "view": "root",
+        "groups": {},
+        "steps": [
+          {
+            "from": "customer",
+            "text": "Only step"
+          }
+        ]
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/retry-pay.yaml": "name: Customer pays, with a retry\nview: root\ngroups:\n  retry:\n    kind: repeat\n    times: 3\n  result:\n    kind: branch\n    text: Depends on the bank\nsteps:\n  - from: customer\n    to: shop\n    text: Pays\n    group: retry\n  - from: shop\n    to: customer\n    text: Asks again\n    group: retry\n  - from: shop\n    text: Accepts\n    group: result\n    lane: Accepted\n  - from: shop\n    text: Writes it down\n    group: result\n  - from: shop\n    text: Declines\n    group: result\n    lane: Declined\n  - from: shop\n    to: customer\n    text: Done\n",
+        "flows/no-groups.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "putFlow",
+        "id": "bad-groups",
+        "name": "A group nobody is in",
+        "view": "root",
+        "groups": {
+          "lonely": {
+            "kind": "branch"
+          }
+        },
+        "steps": [
+          {
+            "from": "customer",
+            "text": "x"
+          }
+        ]
+      },
+      "error": "Refused, nothing saved. This would add:\n- flows/bad-groups.yaml: group \"lonely\": no step belongs to it"
+    },
+    {
+      "spec": {
+        "op": "removeStep",
+        "id": "retry-pay",
+        "index": 1
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/retry-pay.yaml": "name: Customer pays, with a retry\nview: root\ngroups:\n  retry:\n    kind: repeat\n    times: 3\n  result:\n    kind: branch\n    text: Depends on the bank\nsteps:\n  - from: customer\n    to: shop\n    text: Pays\n    group: retry\n  - from: shop\n    text: Accepts\n    group: result\n    lane: Accepted\n  - from: shop\n    text: Writes it down\n    group: result\n  - from: shop\n    text: Declines\n    group: result\n    lane: Declined\n  - from: shop\n    to: customer\n    text: Done\n",
+        "flows/no-groups.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeStep",
+        "id": "retry-pay",
+        "index": 1
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/retry-pay.yaml": "name: Customer pays, with a retry\nview: root\ngroups:\n  retry:\n    kind: repeat\n    times: 3\n  result:\n    kind: branch\n    text: Depends on the bank\nsteps:\n  - from: customer\n    to: shop\n    text: Pays\n    group: retry\n  - from: shop\n    text: Writes it down\n    group: result\n    lane: Accepted\n  - from: shop\n    text: Declines\n    group: result\n    lane: Declined\n  - from: shop\n    to: customer\n    text: Done\n",
+        "flows/no-groups.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeStep",
+        "id": "retry-pay",
+        "index": 2
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/retry-pay.yaml": "name: Customer pays, with a retry\nview: root\ngroups:\n  retry:\n    kind: repeat\n    times: 3\n  result:\n    kind: branch\n    text: Depends on the bank\nsteps:\n  - from: customer\n    to: shop\n    text: Pays\n    group: retry\n  - from: shop\n    text: Writes it down\n    group: result\n    lane: Accepted\n  - from: shop\n    to: customer\n    text: Done\n",
+        "flows/no-groups.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeStep",
+        "id": "retry-pay",
+        "index": 9
+      },
+      "error": "flow \"retry-pay\" has no step 10"
+    },
+    {
+      "spec": {
+        "op": "removeStep",
+        "id": "retry-pay",
+        "index": -1
+      },
+      "error": "flow \"retry-pay\" has no step 0"
+    },
+    {
+      "spec": {
+        "op": "removeStep",
+        "id": "nope",
+        "index": 0
+      },
+      "error": "unknown flow \"nope\""
+    },
+    {
+      "spec": {
+        "op": "putGroup",
+        "id": "retry-pay",
+        "group": "retry",
+        "options": {
+          "kind": "repeat",
+          "until": "the bank answers",
+          "times": "  ",
+          "text": "Every second"
+        }
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/retry-pay.yaml": "name: Customer pays, with a retry\nview: root\ngroups:\n  retry:\n    kind: repeat\n    until: the bank answers\n    text: Every second\n  result:\n    kind: branch\n    text: Depends on the bank\nsteps:\n  - from: customer\n    to: shop\n    text: Pays\n    group: retry\n  - from: shop\n    text: Writes it down\n    group: result\n    lane: Accepted\n  - from: shop\n    to: customer\n    text: Done\n",
+        "flows/no-groups.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "putGroup",
+        "id": "retry-pay",
+        "group": "poll",
+        "options": {
+          "kind": "repeat",
+          "times": "5"
+        }
+      },
+      "error": "Refused, nothing saved. This would add:\n- flows/retry-pay.yaml: group \"poll\": no step belongs to it"
+    },
+    {
+      "spec": {
+        "op": "putGroup",
+        "id": "retry-pay",
+        "group": "Bad Id",
+        "options": {
+          "kind": "branch"
+        }
+      },
+      "error": "\"Bad Id\" is not a valid group id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+    },
+    {
+      "spec": {
+        "op": "putGroup",
+        "id": "nope",
+        "group": "x",
+        "options": {
+          "kind": "branch"
+        }
+      },
+      "error": "unknown flow \"nope\""
+    },
+    {
+      "spec": {
+        "op": "putGroup",
+        "id": "retry-pay",
+        "group": "result",
+        "options": {
+          "kind": "parallel"
+        }
+      },
+      "error": "Refused, nothing saved. This would add:\n- flows/retry-pay.yaml: group \"result\": a parallel group needs at least two lanes"
+    },
+    {
+      "spec": {
+        "op": "removeGroup",
+        "id": "retry-pay",
+        "group": "result"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/retry-pay.yaml": "name: Customer pays, with a retry\nview: root\ngroups:\n  retry:\n    kind: repeat\n    until: the bank answers\n    text: Every second\nsteps:\n  - from: customer\n    to: shop\n    text: Pays\n    group: retry\n  - from: shop\n    text: Writes it down\n  - from: shop\n    to: customer\n    text: Done\n",
+        "flows/no-groups.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeGroup",
+        "id": "retry-pay",
+        "group": "nope"
+      },
+      "error": "unknown group \"nope\""
+    },
+    {
+      "spec": {
+        "op": "removeGroup",
+        "id": "browse",
+        "group": "together"
+      },
+      "error": "unknown group \"together\""
+    },
+    {
+      "spec": {
+        "op": "updateFlow",
+        "id": "retry-pay",
+        "groups": {
+          "retry": {
+            "kind": "repeat",
+            "times": "4"
+          }
+        }
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/retry-pay.yaml": "name: Customer pays, with a retry\nview: root\ngroups:\n  retry:\n    kind: repeat\n    times: 4\nsteps:\n  - from: customer\n    to: shop\n    text: Pays\n    group: retry\n  - from: shop\n    text: Writes it down\n  - from: shop\n    to: customer\n    text: Done\n",
+        "flows/no-groups.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "updateFlow",
+        "id": "retry-pay",
+        "name": "Customer pays again"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/retry-pay.yaml": "name: Customer pays again\nview: root\ngroups:\n  retry:\n    kind: repeat\n    times: 4\nsteps:\n  - from: customer\n    to: shop\n    text: Pays\n    group: retry\n  - from: shop\n    text: Writes it down\n  - from: shop\n    to: customer\n    text: Done\n",
+        "flows/no-groups.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "updateFlow",
+        "id": "retry-pay",
+        "groups": {}
+      },
+      "error": "Refused, nothing saved. This would add:\n- flows/retry-pay.yaml: step 1: group \"retry\" is not declared under groups"
+    },
+    {
+      "spec": {
+        "op": "removeStep",
+        "id": "retry-pay",
+        "index": 0
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/retry-pay.yaml": "name: Customer pays again\nview: root\nsteps:\n  - from: shop\n    text: Writes it down\n  - from: shop\n    to: customer\n    text: Done\n",
+        "flows/no-groups.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeStep",
+        "id": "browse",
+        "index": 0
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/retry-pay.yaml": "name: Customer pays again\nview: root\nsteps:\n  - from: shop\n    text: Writes it down\n  - from: shop\n    to: customer\n    text: Done\n",
+        "flows/no-groups.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeStep",
+        "id": "browse",
+        "index": 0
+      },
+      "error": "Refused, nothing saved. This would add:\n- flows/browse.yaml: has no steps"
+    },
+    {
+      "spec": {
+        "op": "deleteFlow",
+        "id": "retry-pay"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/no-groups.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "deleteFlow",
+        "id": "no-groups"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
         "op": "placeBoxes",
         "view": "root",
         "boxes": {
@@ -647,7 +1023,7 @@
       },
       "files": {
         "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n"
       }
@@ -669,7 +1045,7 @@
       },
       "files": {
         "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
       }
@@ -687,7 +1063,7 @@
       },
       "files": {
         "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
       }
@@ -699,7 +1075,7 @@
       },
       "files": {
         "model.yaml": "lines: angled\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
       }
@@ -711,7 +1087,7 @@
       },
       "files": {
         "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
       }
@@ -723,7 +1099,7 @@
       },
       "files": {
         "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
       }
@@ -734,7 +1110,7 @@
       },
       "files": {
         "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
       }
@@ -746,7 +1122,7 @@
       },
       "files": {
         "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
       }
@@ -770,7 +1146,7 @@
         "op": "deleteObject",
         "id": "customer"
       },
-      "error": "\"customer\" is used by flows browse, order. Change or delete those first."
+      "error": "\"customer\" is used by flow order. Change or delete those first."
     },
     {
       "spec": {
@@ -786,7 +1162,7 @@
       },
       "files": {
         "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
       }
@@ -798,7 +1174,7 @@
       },
       "files": {
         "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
       }
@@ -810,7 +1186,7 @@
       },
       "files": {
         "model.yaml": "owner: platform-team\nobjects:\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
       }
