@@ -33,9 +33,15 @@ export type Step = {
   description?: string
   /** How the step plays: a kind, or a mapping with a kind (see animation.ts). Read it with animationOf; check() reports a wrong one. */
   animation?: unknown
+  /** The group this step belongs to (a key of the flow's `groups`), the lane it starts, and the flow its story continues in (see structure.ts). */
+  group?: string
+  lane?: string
+  flow?: string
   [extra: string]: unknown
 }
-export type Flow = { name: string; view: string; steps: Step[]; [extra: string]: unknown }
+/** A stretch of neighbouring steps that repeat, branch or run in parallel (see structure.ts). Every known option is text when present; check() reports what is wrong. */
+export type Group = { kind?: string; text?: string; times?: string; until?: string; [extra: string]: unknown }
+export type Flow = { name: string; view: string; steps: Step[]; groups?: Record<string, Group>; [extra: string]: unknown }
 export type Layout = Record<string, Record<string, [number, number]>>
 
 export type Model = {
@@ -118,7 +124,8 @@ const TEXT_FIELDS = {
   object: ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description'],
   connection: ['from', 'to', 'label'],
   flow: ['name', 'view'],
-  step: ['from', 'to', 'text', 'description'],
+  step: ['from', 'to', 'text', 'description', 'group', 'lane', 'flow'],
+  group: ['kind', 'text', 'times', 'until'],
 } as const
 
 /**
@@ -155,7 +162,14 @@ export function parseFlowFile(id: string, text: string): Flow {
   const steps = orEmpty(doc.steps, [])
   if (!Array.isArray(steps)) throw new ParseError(file, '"steps" must be a list')
   steps.forEach((s, i) => checkEntry(file, `step ${i + 1}`, s, TEXT_FIELDS.step))
-  return { ...doc, steps } as Flow
+  const groups = orEmpty(doc.groups, undefined)
+  if (groups !== undefined) {
+    if (!isMap(groups)) throw new ParseError(file, '"groups" must map ids to mappings')
+    for (const [id, g] of Object.entries(groups)) checkEntry(file, `group "${id}"`, g, TEXT_FIELDS.group)
+  }
+  const flow = { ...doc, steps } as Flow
+  if (groups === undefined) delete flow.groups // a blank section is no section
+  return flow
 }
 
 function toPoint(v: unknown): [number, number] | undefined {

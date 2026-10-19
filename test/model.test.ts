@@ -199,3 +199,39 @@ test('readYaml keeps every value as the text typed and names a merge conflict by
     (e: unknown) => e instanceof ParseError && e.file === 'x.yaml' && e.line === 2 && e.reason === 'unresolved merge conflict',
   )
 })
+
+const GROUPED = `name: Pays
+view: shop
+groups:
+  charge: { kind: repeat, times: 3, text: Backs off }
+steps:
+  - { from: a, to: b, text: Charges, group: charge, lane: First, flow: other }
+`
+
+test('a flow reads its groups and a step\'s group, lane and flow, all as text', () => {
+  const flow = parseFlowFile('pays', GROUPED)
+  assert.deepEqual(flow.groups, { charge: { kind: 'repeat', times: '3', text: 'Backs off' } })
+  assert.deepEqual(flow.steps[0], { from: 'a', to: 'b', text: 'Charges', group: 'charge', lane: 'First', flow: 'other' })
+})
+
+test('a flow with groups saves and reads back equal, with its groups before its steps', () => {
+  const flow = parseFlowFile('pays', GROUPED)
+  assert.deepEqual(Object.keys(flow), ['name', 'view', 'groups', 'steps'])
+  const again = parseFlowFile('pays', serializeFlow(flow))
+  assert.deepEqual(again, flow)
+  assert.deepEqual(Object.keys(again), ['name', 'view', 'groups', 'steps'])
+})
+
+test('a blank groups section is no groups', () => {
+  for (const blank of ['', '~', 'null']) assert.equal('groups' in parseFlowFile('x', `name: X\nview: root\ngroups: ${blank}\nsteps: []\n`), false)
+})
+
+test('a wrongly shaped groups section is refused when the file is read', () => {
+  const file = (groups: string) => `name: X\nview: root\ngroups: ${groups}\nsteps: []\n`
+  assert.throws(() => parseFlowFile('x', file('[a]')), /"groups" must map ids to mappings/)
+  assert.throws(() => parseFlowFile('x', file('{ x: [a] }')), /group "x" must be a mapping/)
+  assert.throws(() => parseFlowFile('x', file('{ x: { kind: [a] } }')), /group "x": "kind" must be plain text, not a list or a mapping/)
+  assert.throws(() => parseFlowFile('x', file('{ x: { times: { a: b } } }')), /group "x": "times" must be plain text/)
+  assert.throws(() => parseFlowFile('x', 'name: X\nview: root\nsteps:\n  - { from: a, text: t, lane: [a] }\n'), /step 1: "lane" must be plain text/)
+  assert.throws(() => parseFlowFile('x', file('[a]')), (e: unknown) => e instanceof ParseError && e.file === 'flows/x.yaml')
+})
