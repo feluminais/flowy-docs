@@ -90,8 +90,65 @@ public static partial class Mermaid
         var n = Ids(steps.SelectMany(s => new[] { s.A, s.B }));
         var lines = new List<string> { "sequenceDiagram" };
         lines.AddRange(n.Select(kv => $"  {(model.GetObject(kv.Key)?.Type == "actor" ? "actor" : "participant")} {kv.Value} as {NameOf(model, kv.Key)}"));
-        // A step one box does on its own is a note over it.
-        lines.AddRange(steps.Select(s => s.A == s.B ? $"  Note over {n[s.A]}: {s.Text}" : $"  {n[s.A]}->>{n[s.B]}: {s.Text}"));
+
+        // A step one box does on its own is a note over it. A step that continues in another flow says so in a note over its end.
+        List<string> Line(int i, string indent)
+        {
+            var (a, b, text) = steps[i];
+            var step = new List<string> { a == b ? $"{indent}Note over {n[a]}: {text}" : $"{indent}{n[a]}->>{n[b]}: {text}" };
+            var link = Structure.Blank(flow.Steps[i].FlowId) ? null : Structure.JsTrim(flow.Steps[i].FlowId!);
+            if (link is not null && model.Flows.TryGetValue(link, out var target))
+                step.Add($"{indent}Note over {n[b]}: {Text($"Continues in \"{(string.IsNullOrEmpty(target.Name) ? link : target.Name)}\"")}");
+            return step;
+        }
+        static string Keyword(string word, string label) => $"  {word}{(label == "" ? "" : " " + label)}";
+
+        // A group is Mermaid's own block, one level: a repeat is a loop, a branch is alt and else (opt for one lane), parallel lanes are par and and.
+        List<string> Block(GroupRun run)
+        {
+            List<string> Inside(IEnumerable<int> from) => from.SelectMany(i => Line(i, "    ")).ToList();
+            if (run.Kind == "repeat")
+            {
+                OrderedDictionary<string, object?>? g = null;
+                if (flow.Groups is not null && flow.Groups.TryGetValue(run.Group, out var declared)) g = declared as OrderedDictionary<string, object?>;
+                string Part(string key)
+                {
+                    object? v = null;
+                    g?.TryGetValue(key, out v);
+                    return Structure.Blank(v) ? "" : Structure.JsTrim((string)v!);
+                }
+                var times = Part("times");
+                var until = Part("until");
+                var head = string.Join(", ", new[] { times == "" ? "" : $"Up to {times} times", until == "" ? "" : $"{(times == "" ? "Until" : "until")} {until}" }.Where(w => w != ""));
+                var label = string.Join(": ", new[] { head, Part("text") }.Where(w => w != ""));
+                return [Keyword("loop", Text(label)), .. Inside(Enumerable.Range(run.Start, run.End - run.Start + 1)), "  end"];
+            }
+            var (first, next) = run.Kind == "branch" ? (run.Lanes.Count > 1 ? "alt" : "opt", "else") : ("par", "and");
+            var block = new List<string>();
+            for (var k = 0; k < run.Lanes.Count; k++)
+            {
+                block.Add(Keyword(k == 0 ? first : next, Text(run.Lanes[k].Label)));
+                block.AddRange(Inside(run.Lanes[k].Steps));
+            }
+            block.Add("  end");
+            return block;
+        }
+
+        var runs = Structure.Runs(flow);
+        for (var i = 0; i < steps.Count;)
+        {
+            var run = runs.FirstOrDefault(r => r.Start == i);
+            if (run is null)
+            {
+                lines.AddRange(Line(i, "  "));
+                i++;
+            }
+            else
+            {
+                lines.AddRange(Block(run));
+                i = run.End + 1;
+            }
+        }
         return string.Join('\n', lines) + "\n";
     }
 }
