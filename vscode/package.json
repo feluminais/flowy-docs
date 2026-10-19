@@ -20,14 +20,70 @@
     "Other"
   ],
   "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "workspaceContains:**/flowy/model.yaml",
+    "onWebviewPanel:flowy.docs"
+  ],
   "contributes": {
     "commands": [
       {
         "command": "flowy.open",
         "category": "Flowy",
         "title": "Open Docs"
+      },
+      {
+        "command": "flowy.openFlow",
+        "category": "Flowy",
+        "title": "Open Flow…"
+      },
+      {
+        "command": "flowy.goToShape",
+        "category": "Flowy",
+        "title": "Go to Shape…"
+      },
+      {
+        "command": "flowy.showFile",
+        "category": "Flowy",
+        "title": "Show This File in the Docs"
       }
-    ]
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "flowy.openFlow",
+          "when": "flowy.hasDocs"
+        },
+        {
+          "command": "flowy.goToShape",
+          "when": "flowy.hasDocs"
+        },
+        {
+          "command": "flowy.showFile",
+          "when": "flowy.hasDocs"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "flowy.showFile",
+          "when": "flowy.hasDocs && resourceScheme == file",
+          "group": "navigation@100"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "flowy.showFile",
+          "when": "flowy.hasDocs && resourceScheme == file",
+          "group": "navigation@100"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "flowy.showFile",
+          "when": "flowy.hasDocs && resourceScheme == file",
+          "group": "1_flowy"
+        }
+      ]
+    }
   },
   "capabilities": {
     "virtualWorkspaces": {

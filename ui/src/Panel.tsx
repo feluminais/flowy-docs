@@ -14,6 +14,7 @@ import { Description } from './Box.tsx'
 import { connectionsOf, linesOf, newId, problemsOf, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
 import { lineId } from './graph.ts'
+import { openInEditor, vscode } from './host.ts'
 import { Chip, kindClass, lookVars, ObjectTile, Section, TypeTile } from './Chrome.tsx'
 import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Text, Trash, Close } from './icons.tsx'
 
@@ -139,7 +140,26 @@ function ColorField({ color, onSave }: { color?: string; onSave: (color: string)
 
 type Common = { model: Model; run: Run; onClose: () => void }
 
-/** The paths an object's `code` lists, as links when the repo is on GitHub or GitLab. Anything else in `code` is left to the problem list. */
+/**
+ * A path in the repo, as the link its text is. In VS Code it opens in the editor (with Ctrl or Cmd held, the repo host's page
+ * instead, when there is one). Anywhere else it is the repo host's page when the repo is on GitHub or GitLab, and plain text otherwise.
+ */
+function RepoPath({ path, codeBase, children }: { path: string; codeBase?: string; children: ReactNode }) {
+  const href = codeBase ? codeBase + encodePath(path) : undefined
+  if (!vscode) return href ? <a href={href} target="_blank" rel="noreferrer">{children}</a> : <span>{children}</span>
+  return (
+    <a href={href ?? '#'} target="_blank" rel="noreferrer" title="Open in the editor"
+      onClick={e => {
+        if (href && (e.ctrlKey || e.metaKey)) return
+        e.preventDefault()
+        openInEditor(path)
+      }}>
+      {children}
+    </a>
+  )
+}
+
+/** The paths an object's `code` lists, as links to the editor in VS Code and to the repo host when it is GitHub or GitLab. Anything else in `code` is left to the problem list. */
 function CodeList({ object, codeBase }: { object: FlowyObject; codeBase?: string }) {
   const paths = Array.isArray(object.code) ? object.code.filter((p): p is string => typeof p === 'string') : []
   if (paths.length === 0) return null
@@ -150,7 +170,7 @@ function CodeList({ object, codeBase }: { object: FlowyObject; codeBase?: string
         {paths.map((p, i) => (
           <li key={i}>
             {p.endsWith('/') ? <Folder size={16} /> : <File size={16} />}
-            {codeBase ? <a href={codeBase + encodePath(p)} target="_blank" rel="noreferrer"><code>{p}</code></a> : <code>{p}</code>}
+            <RepoPath path={p} codeBase={codeBase}><code>{p}</code></RepoPath>
           </li>
         ))}
       </ul>
@@ -159,8 +179,8 @@ function CodeList({ object, codeBase }: { object: FlowyObject; codeBase?: string
 }
 
 /**
- * The links an object lists. A web address opens in a new tab. A path in the repo links to the repo host when the origin is
- * GitHub or GitLab, and is plain text otherwise; check() reports one that doesn't exist. Anything else in `links` is left to the problem list.
+ * The links an object lists. A web address opens in a new tab. A path in the repo opens in the editor in VS Code, links to the repo
+ * host when the origin is GitHub or GitLab, and is plain text otherwise; check() reports one that doesn't exist. Anything else in `links` is left to the problem list.
  */
 function LinkList({ object, codeBase }: { object: FlowyObject; codeBase?: string }) {
   const links = linksOf(object)
@@ -171,12 +191,11 @@ function LinkList({ object, codeBase }: { object: FlowyObject; codeBase?: string
       <ul>
         {links.map((l, i) => {
           const web = isWebAddress(l.url)
-          const href = web ? l.url : codeBase && isRepoPath(l.url) ? codeBase + encodePath(l.url) : undefined
           const text = l.title || l.url
           return (
             <li key={i}>
               <LinkIcon size={16} />
-              {href ? <a href={href} target="_blank" rel="noreferrer">{text}</a> : <span>{text}</span>}
+              {web ? <a href={l.url} target="_blank" rel="noreferrer">{text}</a> : isRepoPath(l.url) ? <RepoPath path={l.url} codeBase={codeBase}>{text}</RepoPath> : <span>{text}</span>}
               {!web && l.title && <code className="muted">{l.url}</code>}
             </li>
           )

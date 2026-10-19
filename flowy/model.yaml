@@ -253,6 +253,13 @@ objects:
       code the local server runs, version check and all, and tells the page whenever anything under the
       folder changes, so a save from the editor, the app, the canvas or Claude shows at once.
 
+      It is at home in the editor. A path in a shape's `code` (or a link to a path in the repo) opens in
+      the editor beside the panel, and a folder shows in the Explorer. `Show This File in the Docs`, on a
+      file's right-click menu, finds the shape whose `code` lists it (the nearest listing, or a pick
+      between shapes that list it equally) and shows it. `Open Flow…` and `Go to Shape…` jump to a flow
+      or a shape from the palette. The reader's place and settings are kept in the webview's state, so
+      a panel VS Code brings back after a restart opens where it was.
+
       The editor's own theme colours the canvas, and the Mermaid button asks the editor to write to the
       clipboard, because a webview can't count on doing it itself. It needs a trusted, local workspace:
       it runs git in the folder. It keeps no step history, and a file open with unsaved changes in the
