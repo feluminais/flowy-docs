@@ -37,15 +37,15 @@ type Props = {
 function Bar({ progress, now }: { progress: Progress; now: number }) {
   const columns = `repeat(${progress.cols}, 1fr)`
   return (
-    <div aria-hidden="true">
+    <div>
       <div className="progress" style={{ gridTemplateColumns: columns, gridTemplateRows: `repeat(${progress.rows}, 4px)` }}>
-        {progress.cells.map(c => <span key={c.stop} className={c.stop <= now ? 'done' : undefined} style={{ gridColumn: c.col + 1, gridRow: c.row + 1 }} />)}
+        {progress.cells.map(c => <span key={c.stop} title={c.title || undefined} className={c.stop <= now ? 'done' : undefined} style={{ gridColumn: c.col + 1, gridRow: c.row + 1 }} />)}
       </div>
       {progress.brackets.length > 0 && (
         <div className="brackets" style={{ gridTemplateColumns: columns }}>
           {progress.brackets.map((b, i) => {
             const Icon = KIND_ICON[b.kind]
-            return <span key={i} className={`bracket ${b.kind}`} style={{ gridColumn: `${b.from + 1} / ${b.to + 2}` }}><Icon size={11} />{b.text}</span>
+            return <span key={i} title={b.title} className={`bracket ${b.kind}`} style={{ gridColumn: `${b.from + 1} / ${b.to + 2}` }}><Icon size={11} />{b.text}</span>
           })}
         </div>
       )}

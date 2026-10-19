@@ -52,19 +52,21 @@ test('the progress bar has a column for each stop, the branch\'s lanes on rows o
     cols: 5,
     rows: 2,
     cells: [
-      { stop: 0, col: 0, row: 0 }, { stop: 1, col: 1, row: 0 },
-      { stop: 2, col: 2, row: 0 }, { stop: 3, col: 3, row: 0 }, { stop: 4, col: 2, row: 1 },
-      { stop: 5, col: 4, row: 0 },
+      { stop: 0, col: 0, row: 0, title: '' }, { stop: 1, col: 1, row: 0, title: '' },
+      { stop: 2, col: 2, row: 0, title: 'Card accepted' }, { stop: 3, col: 3, row: 0, title: 'Card accepted' }, { stop: 4, col: 2, row: 1, title: 'Card declined' },
+      { stop: 5, col: 4, row: 0, title: 'Billing + Dispatch' },
     ],
     brackets: [
-      { kind: 'repeat', from: 0, to: 1, text: '×3' },
-      { kind: 'branch', from: 2, to: 3, text: 'one of 2' },
-      { kind: 'parallel', from: 4, to: 4, text: 'together' },
+      { kind: 'repeat', from: 0, to: 1, text: '×3', title: 'Repeats up to 3 times' },
+      { kind: 'branch', from: 2, to: 3, text: 'one of 2 lanes', title: 'Alternatives: only one of these lanes happens' },
+      { kind: 'parallel', from: 4, to: 4, text: 'at once', title: 'These steps happen at the same time' },
     ],
   })
-  assert.deepEqual(progressOf(flowOf(undefined, [step(), step()]), stopsOf(flowOf(undefined, [step(), step()]))), { cols: 2, rows: 1, cells: [{ stop: 0, col: 0, row: 0 }, { stop: 1, col: 1, row: 0 }], brackets: [] })
+  assert.deepEqual(progressOf(flowOf(undefined, [step(), step()]), stopsOf(flowOf(undefined, [step(), step()]))), { cols: 2, rows: 1, cells: [{ stop: 0, col: 0, row: 0, title: '' }, { stop: 1, col: 1, row: 0, title: '' }], brackets: [] })
   const lone = flowOf({ b: { kind: 'branch' } }, [step({ group: 'b', lane: 'x' })])
-  assert.equal(progressOf(lone, stopsOf(lone)).brackets[0].text, 'only if')
+  assert.deepEqual([progressOf(lone, stopsOf(lone)).brackets[0].text, progressOf(lone, stopsOf(lone)).brackets[0].title], ['only if', 'Happens only if: x'])
+  const until = flowOf({ r: { kind: 'repeat', until: 'it works' } }, [step({ group: 'r' })])
+  assert.deepEqual([progressOf(until, stopsOf(until)).brackets[0].text, progressOf(until, stopsOf(until)).brackets[0].title], ['', 'Repeats until it works'])
 })
 
 test('stopIndexOf finds the stop that holds a step, and answers the first stop for a step that is nowhere', () => {

@@ -227,102 +227,122 @@
           {
             "stop": 0,
             "col": 0,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 1,
             "col": 1,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 2,
             "col": 2,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 3,
             "col": 3,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 4,
             "col": 4,
-            "row": 0
+            "row": 0,
+            "title": "A"
           },
           {
             "stop": 5,
             "col": 5,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 6,
             "col": 6,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 7,
             "col": 7,
-            "row": 0
+            "row": 0,
+            "title": "only"
           },
           {
             "stop": 8,
             "col": 8,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 9,
             "col": 9,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 10,
             "col": 9,
-            "row": 1
+            "row": 1,
+            "title": "A"
           },
           {
             "stop": 11,
             "col": 9,
-            "row": 2
+            "row": 2,
+            "title": "A"
           },
           {
             "stop": 12,
             "col": 10,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 13,
             "col": 11,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 14,
             "col": 12,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 15,
             "col": 13,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 16,
             "col": 14,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 17,
             "col": 15,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 18,
             "col": 16,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 19,
             "col": 17,
-            "row": 0
+            "row": 0,
+            "title": ""
           }
         ],
         "brackets": [
@@ -330,73 +350,85 @@
             "kind": "repeat",
             "from": 0,
             "to": 0,
-            "text": "×2"
+            "text": "×2",
+            "title": "Repeats up to 2 times"
           },
           {
             "kind": "repeat",
             "from": 3,
             "to": 3,
-            "text": "×2"
+            "text": "×2",
+            "title": "Repeats up to 2 times"
           },
           {
             "kind": "branch",
             "from": 4,
             "to": 4,
-            "text": "only if"
+            "text": "only if",
+            "title": "Happens only if: A"
           },
           {
             "kind": "repeat",
             "from": 5,
             "to": 5,
-            "text": "×1"
+            "text": "×1",
+            "title": "Repeats up to 1 times"
           },
           {
             "kind": "repeat",
             "from": 6,
             "to": 6,
-            "text": ""
+            "text": "",
+            "title": "Repeats"
           },
           {
             "kind": "parallel",
             "from": 7,
             "to": 7,
-            "text": "together"
+            "text": "at once",
+            "title": "These steps happen at the same time"
           },
           {
             "kind": "repeat",
             "from": 8,
             "to": 8,
-            "text": "×2"
+            "text": "×2",
+            "title": "Repeats up to 2 times"
           },
           {
             "kind": "branch",
             "from": 9,
             "to": 9,
-            "text": "one of 3"
+            "text": "one of 3 lanes",
+            "title": "Alternatives: only one of these lanes happens"
           },
           {
             "kind": "repeat",
             "from": 10,
             "to": 10,
-            "text": "×2"
+            "text": "×2",
+            "title": "Repeats up to 2 times"
           },
           {
             "kind": "repeat",
             "from": 11,
             "to": 11,
-            "text": "×2"
+            "text": "×2",
+            "title": "Repeats up to 2 times"
           },
           {
             "kind": "repeat",
             "from": 12,
             "to": 12,
-            "text": "×2"
+            "text": "×2",
+            "title": "Repeats up to 2 times"
           },
           {
             "kind": "repeat",
             "from": 13,
             "to": 13,
-            "text": "×2"
+            "text": "×2",
+            "title": "Repeats up to 2 times"
           }
         ]
       }
@@ -454,22 +486,26 @@
           {
             "stop": 0,
             "col": 0,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 1,
             "col": 1,
-            "row": 0
+            "row": 0,
+            "title": "ok"
           },
           {
             "stop": 2,
             "col": 2,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 3,
             "col": 3,
-            "row": 0
+            "row": 0,
+            "title": ""
           }
         ],
         "brackets": [
@@ -477,7 +513,8 @@
             "kind": "branch",
             "from": 1,
             "to": 1,
-            "text": "only if"
+            "text": "only if",
+            "title": "Happens only if: ok"
           }
         ]
       }
@@ -513,12 +550,14 @@
           {
             "stop": 0,
             "col": 0,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 1,
             "col": 1,
-            "row": 0
+            "row": 0,
+            "title": ""
           }
         ],
         "brackets": []
@@ -565,17 +604,20 @@
           {
             "stop": 0,
             "col": 0,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 1,
             "col": 1,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 2,
             "col": 2,
-            "row": 0
+            "row": 0,
+            "title": ""
           }
         ],
         "brackets": []
@@ -665,32 +707,38 @@
           {
             "stop": 0,
             "col": 0,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 1,
             "col": 1,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 2,
             "col": 2,
-            "row": 0
+            "row": 0,
+            "title": "Card accepted"
           },
           {
             "stop": 3,
             "col": 3,
-            "row": 0
+            "row": 0,
+            "title": "Card accepted"
           },
           {
             "stop": 4,
             "col": 2,
-            "row": 1
+            "row": 1,
+            "title": "Card declined"
           },
           {
             "stop": 5,
             "col": 4,
-            "row": 0
+            "row": 0,
+            "title": "Billing + Dispatch"
           }
         ],
         "brackets": [
@@ -698,19 +746,22 @@
             "kind": "repeat",
             "from": 0,
             "to": 1,
-            "text": "×3"
+            "text": "×3",
+            "title": "Repeats up to 3 times"
           },
           {
             "kind": "branch",
             "from": 2,
             "to": 3,
-            "text": "one of 2"
+            "text": "one of 2 lanes",
+            "title": "Alternatives: only one of these lanes happens"
           },
           {
             "kind": "parallel",
             "from": 4,
             "to": 4,
-            "text": "together"
+            "text": "at once",
+            "title": "These steps happen at the same time"
           }
         ]
       }
@@ -846,52 +897,62 @@
           {
             "stop": 0,
             "col": 0,
-            "row": 0
+            "row": 0,
+            "title": "Billing + Dispatch"
           },
           {
             "stop": 1,
             "col": 1,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 2,
             "col": 2,
-            "row": 0
+            "row": 0,
+            "title": "A + B + C"
           },
           {
             "stop": 3,
             "col": 3,
-            "row": 0
+            "row": 0,
+            "title": "A + C"
           },
           {
             "stop": 4,
             "col": 4,
-            "row": 0
+            "row": 0,
+            "title": "C"
           },
           {
             "stop": 5,
             "col": 5,
-            "row": 0
+            "row": 0,
+            "title": "A courier is wanted"
           },
           {
             "stop": 6,
             "col": 6,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 7,
             "col": 7,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 8,
             "col": 8,
-            "row": 0
+            "row": 0,
+            "title": ""
           },
           {
             "stop": 9,
             "col": 9,
-            "row": 0
+            "row": 0,
+            "title": "Last"
           }
         ],
         "brackets": [
@@ -899,37 +960,43 @@
             "kind": "parallel",
             "from": 0,
             "to": 0,
-            "text": "together"
+            "text": "at once",
+            "title": "These steps happen at the same time"
           },
           {
             "kind": "parallel",
             "from": 2,
             "to": 4,
-            "text": "together"
+            "text": "at once",
+            "title": "These steps happen at the same time"
           },
           {
             "kind": "branch",
             "from": 5,
             "to": 5,
-            "text": "only if"
+            "text": "only if",
+            "title": "Happens only if: A courier is wanted"
           },
           {
             "kind": "repeat",
             "from": 6,
             "to": 6,
-            "text": ""
+            "text": "",
+            "title": "Repeats until the job is done"
           },
           {
             "kind": "repeat",
             "from": 7,
             "to": 8,
-            "text": "×2"
+            "text": "×2",
+            "title": "Repeats up to 2 times"
           },
           {
             "kind": "branch",
             "from": 9,
             "to": 9,
-            "text": "only if"
+            "text": "only if",
+            "title": "Happens only if: Last"
           }
         ]
       }
