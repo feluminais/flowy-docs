@@ -219,7 +219,8 @@ svg { flex: none; }
 .hero { position: relative; display: flex; align-items: center; gap: 14px; padding: 0 0 18px; }
 .hero::after {
   content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 1px;
-  background: linear-gradient(90deg, var(--c, var(--accent)), transparent 75%); box-shadow: 0 0 10px color-mix(in srgb, var(--c, var(--accent)) 45%, transparent);
+  background: linear-gradient(90deg, var(--c, var(--accent)), transparent 75%);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--c, var(--accent)) 60%, transparent)); /* follows the fade; a box-shadow is cut out under the box and leaves a dark hole */
 }
 .hero h2 { margin: 0 28px 6px 0; font-size: 22px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.2; overflow-wrap: anywhere; }
 .hero.ends { justify-content: space-around; padding: 4px 0 18px; }
@@ -384,7 +385,7 @@ svg { flex: none; }
 .shortcuts .close { position: absolute; top: 12px; right: 12px; }
 .shortcuts h2 { margin: 0 32px 0 0; font-size: 17px; }
 .shortcuts .section { margin: 16px 0 8px; }
-.shortcuts dl { display: grid; grid-template-columns: 8.5em 1fr; gap: 6px 14px; margin: 0; align-items: baseline; } /* one key width for every group, so the columns line up */
+.shortcuts dl { display: grid; grid-template-columns: 11.5em 1fr; gap: 6px 14px; margin: 0; align-items: baseline; } /* one key width for every group, so the columns line up */
 .shortcuts dt { display: flex; gap: 4px; }
 .shortcuts dd { margin: 0; }
 kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--bg); font: 12px/1.6 ui-monospace, monospace; white-space: nowrap; }

@@ -204,7 +204,7 @@ internal sealed class ShortcutsCard : Border
         ("Enter", "Open the selected shape"),
         ("Esc", "Close what's open, then go up a level"),
         ("Backspace  Z", "Zoom out: go up a level"),
-        ("Ctrl+K or /", "Find a shape"),
+        ("Ctrl+K  /", "Find a shape"),
         ("F", "Fit the view"),
         ("L", "Show every flow, and play one"),
         ("O", "Show everything as a tree"),
@@ -227,7 +227,7 @@ internal sealed class ShortcutsCard : Border
         ("Delete", "Delete the open shape or line"),
         ("Ctrl+Z", "Undo the last change"),
         ("Esc  Backspace", "Straight after dragging a shape: take the drag back"),
-        ("Ctrl+Y", "Redo (or Ctrl+Shift+Z)"),
+        ("Ctrl+Y  Ctrl+Shift+Z", "Redo"),
     ];
 
     public ShortcutsCard(Action close)
@@ -255,7 +255,7 @@ internal sealed class ShortcutsCard : Border
         var heading = Chrome.Section(icon, title);
         heading.Margin = new Thickness(2, 12, 0, 4);
         into.Children.Add(heading);
-        var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(new GridLength(130)), new ColumnDefinition(GridLength.Star)], RowSpacing = 6, ColumnSpacing = 14 };
+        var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(new GridLength(170)), new ColumnDefinition(GridLength.Star)], RowSpacing = 6, ColumnSpacing = 14 };
         for (var i = 0; i < keys.Length; i++)
         {
             grid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
