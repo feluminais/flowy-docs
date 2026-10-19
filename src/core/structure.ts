@@ -189,3 +189,17 @@ export function stopIndexOf(stops: Stop[], step: number): number {
   const at = stops.findIndex(s => s.steps.includes(step))
   return at === -1 ? 0 : at
 }
+
+/**
+ * For stop `k` of a branch: the file steps of the lanes it is not in, the ones a player draws faint. The branch is the run of stops around `k`
+ * in the same group. Nothing for a stop that is not in a branch.
+ */
+export function otherLaneSteps(stops: Stop[], k: number): number[] {
+  const s = stops[k]
+  if (s === undefined || s.kind !== 'branch' || s.group === undefined) return []
+  let from = k
+  let to = k
+  while (from > 0 && stops[from - 1].group === s.group) from--
+  while (to + 1 < stops.length && stops[to + 1].group === s.group) to++
+  return stops.slice(from, to + 1).filter(t => t.lanes?.[0] !== s.lanes?.[0]).flatMap(t => t.steps)
+}
