@@ -12,7 +12,7 @@ import { chain, hasChildren, nameOf, parentOf, placeEnds, placeStep, stepEnds } 
 import { Box, Description, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
 import { Chip } from './Chrome.tsx'
-import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Help, Home, Pencil, Play, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
+import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pencil, Play, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
 import { connectionsOf, locate, moveBetween } from './edit.ts'
 import type { Move } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
@@ -411,7 +411,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         {/* mousedown would blur the open field, closing it, and the click would open it again */}
         <button title="Find a box (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => setSearching(!searching)}><SearchIcon size={16} />Search</button>
         <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={() => void copyMermaid()}><Copy size={16} />Mermaid</button>
-        <button className="icon" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" aria-pressed={shortcuts} onClick={() => setShortcuts(!shortcuts)}><Help size={16} /></button>
+        <button className="icon" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" aria-pressed={shortcuts} onClick={() => setShortcuts(!shortcuts)}><Keyboard size={16} /></button>
         <Problems problems={problems} onPick={jump} />
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}><Pencil size={16} />Edit</button>}
       </header>
