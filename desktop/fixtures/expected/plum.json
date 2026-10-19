@@ -691,7 +691,7 @@
         {
           "from": "backoffice",
           "to": "ordering",
-          "text": "Asks for a refund",
+          "text": "Asks for a refund, in full or by line",
           "placed": [
             "backoffice",
             "ordering"

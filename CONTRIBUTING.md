@@ -31,8 +31,10 @@ npm run dev:ui
 ```
 
 `docs/demo/` is Plum, the made-up delivery service in the README's screenshots. `node src/cli.ts --dir docs/demo/flowy`
-opens it. Its `code:` paths point at placeholder files beside it, so the canvas shows no problems. The screenshots in
-`docs/images/` are of that model in the light theme, 1100 by 700 (1280 by 760 for the edit one) at twice the pixel density.
+opens it. Its `code:` paths point at placeholder files beside it, so the canvas shows no problems. Its `flowy/perf/` holds
+two load-test runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute, and
+the same test after a fix); they name shapes and connections of the model, so a rename there is a run problem. The screenshots in
+`docs/images/` are of that model in the light theme, 1100 by 700 (1280 by 760 for the edit and performance ones) at twice the pixel density.
 Retake them when the canvas changes how it looks.
 
 ## The performance lab
@@ -122,7 +124,8 @@ Before merging a change to the app, look at what it could affect, in a real wind
       the first window forward; `FlowyDocs.exe <folder>` from a terminal opens it in the running app, not a second one.
 - [ ] With the system's animation effects off (Settings › Accessibility › Visual effects), opening a box is instant. With them on, it
       is smooth: no stutter on the way in or out, and a second double-click during the move doesn't break it.
-- [ ] Help › Open the Demo shows Plum with no problems. View › Copy as Mermaid, pasted into an editor, starts with `` ```mermaid ``;
+- [ ] Help › Open the Demo shows Plum with no problems and a Performance button with a 2 on it; T opens the panel on 900 orders/min,
+      "ETA at 90% of capacity", with Delivery outlined red. View › Copy as Mermaid, pasted into an editor, starts with `` ```mermaid ``;
       View › Save Picture… writes a PNG of the diagram alone. An empty `model.yaml` says "Nothing to show yet".
 - [ ] Close a window after resizing it, open the app again: it opens at that size.
 - [ ] Delete the open `flowy/` folder: a banner says it is gone. Put it back and open it again: the model returns.
