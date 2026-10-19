@@ -174,5 +174,20 @@ internal sealed class TempFolder : IDisposable
 {
     public string Path { get; } = Directory.CreateTempSubdirectory("flowy-app-test-").FullName;
 
-    public void Dispose() => Directory.Delete(Path, true);
+    public void Dispose()
+    {
+        // The reader looks for the repo's git origin in the background when a folder opens, and Windows won't delete a folder a process is still in.
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                Directory.Delete(Path, true);
+                return;
+            }
+            catch (IOException) when (attempt < 20)
+            {
+                Thread.Sleep(50);
+            }
+        }
+    }
 }

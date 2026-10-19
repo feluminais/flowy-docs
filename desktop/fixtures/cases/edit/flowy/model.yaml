@@ -1,0 +1,28 @@
+# A model with hand-written extras that an edit has to keep: comments are lost on a save, extra keys are not.
+lines: curved
+owner: platform-team
+objects:
+  customer: { type: actor, name: Customer, owner: sales }
+  shop:
+    type: system
+    name: Shop
+    description: |
+      Sells things online.
+
+      Second paragraph.
+    status: live
+  web: { type: app, in: shop, name: Web app, tech: React, code: [apps/web/] }
+  api:
+    type: app
+    in: shop
+    name: API
+    tech: Node
+  db: { type: store, in: shop, name: Orders DB, tech: Postgres }
+  "2": { type: actor, name: Second }
+  "10": { type: actor, name: Tenth }
+  pay: { type: system, name: Payments, external: "true" }
+connections:
+  - { from: customer, to: web, label: browses, note: hand-written }
+  - { from: web, to: api, label: REST }
+  - { from: api, to: db }
+  - { from: api, to: pay, label: charges }

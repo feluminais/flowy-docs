@@ -16,7 +16,7 @@ namespace Flowy.App;
 /// It holds what the reader has chosen: the view they are in, the box or line open in the panel, the flow playing and its step, the line
 /// the pointer is on.
 /// </summary>
-internal sealed class ReaderView : Grid
+internal sealed partial class ReaderView : Grid
 {
     private const int DoubleClickMilliseconds = 250;
 
@@ -25,23 +25,25 @@ internal sealed class ReaderView : Grid
     private const double LeaveMilliseconds = 140;
     private const double ArriveMilliseconds = 230;
 
-    private enum SideKind { Object, Line }
+    private enum SideKind { Object, Line, Add, Flow }
 
-    private sealed record Side(SideKind Kind, string? Id = null, string? From = null, string? To = null);
+    private sealed record Side(SideKind Kind, string? Id = null, string? From = null, string? To = null, string? FlowName = null);
 
     private readonly CanvasView _canvas = new();
     private readonly Border _motionHost;
     private readonly StackPanel _empty;
+    private readonly TextBlock _emptyTitle = new() { Text = "Nothing to show yet", FontSize = 18, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center };
+    private readonly TextBlock _emptyBody = new() { TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Classes = { "muted" } };
     private readonly SidePanel _panel = new();
     private readonly PlayerCard _player = new();
     private readonly Grid _overlay = new();
     private readonly Border _banner = new();
     private readonly TextBlock _bannerText = new() { TextWrapping = TextWrapping.Wrap };
     private readonly StackPanel _crumbs = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-    private readonly ComboBox _flowPicker = new() { PlaceholderText = "▶ Play a flow", MinWidth = 180 };
+    private readonly ComboBox _flowPicker = new() { PlaceholderText = "Play a flow", MinWidth = 180 };
     private readonly ComboBox _linePicker = new();
-    private readonly Button _searchButton = new() { Content = "Search" };
-    private readonly Button _helpButton = new() { Content = "?" };
+    private readonly Button _searchButton = new();
+    private readonly Button _helpButton = new();
     private readonly Button _problemsButton = new();
 
     private Folder? _folder;
@@ -83,21 +85,15 @@ internal sealed class ReaderView : Grid
         {
             Spacing = 6, IsVisible = false, IsHitTestVisible = false, MaxWidth = 440,
             HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
-            Children =
-            {
-                new TextBlock { Text = "Nothing to show yet", FontSize = 18, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center },
-                new TextBlock
-                {
-                    Text = "Add boxes to model.yaml, or ask Claude to map the repo. They appear here as soon as the file is saved.",
-                    TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Classes = { "muted" },
-                },
-            },
+            Children = { _emptyTitle, _emptyBody },
         };
         var stage = new Grid { Children = { _motionHost, _empty, ZoomButtons(), _panel, _player, _overlay } };
         SetRow(stage, 2);
         Children.Add(stage);
 
         _canvas.BoxClicked += BoxClicked;
+        _canvas.BoxesMoved += moved => _ = MoveBoxesAsync(moved);
+        _canvas.ConnectRequested += (from, to) => _ = ConnectAsync(from, to);
         _canvas.BoxDoubleClicked += id =>
         {
             if (CanOpen(id)) ZoomInto(id);
@@ -105,6 +101,7 @@ internal sealed class ReaderView : Grid
         _canvas.EdgeClicked += id =>
         {
             if (_folder is null) return;
+            _undoMove = false;
             _opening?.Stop();
             var edge = Scene()?.Edges.FirstOrDefault(e => e.Id == id);
             if (edge is null) return;
@@ -115,6 +112,13 @@ internal sealed class ReaderView : Grid
         _canvas.PaneClicked += () =>
         {
             _opening?.Stop();
+            _undoMove = false;
+            if (Recording is { } rec)
+            {
+                _side = _side! with { From = null, To = null };
+                Refresh();
+                return;
+            }
             _side = null;
             Refresh();
             Focus();
@@ -160,10 +164,11 @@ internal sealed class ReaderView : Grid
 
     public CanvasView Canvas => _canvas;
 
-    public string LineStyle => _ownLines ?? _folder?.Model.LineStyle ?? "straight";
+    public string LineStyle => Editing ? _folder?.Model.LineStyle ?? "straight" : _ownLines ?? _folder?.Model.LineStyle ?? "straight";
 
     private Control BuildBar()
     {
+        BuildEditBar();
         _linePicker.Items.Add("Lines: project default");
         _linePicker.Items.Add("Lines: straight");
         _linePicker.Items.Add("Lines: curved");
@@ -172,6 +177,13 @@ internal sealed class ReaderView : Grid
         _linePicker.SelectionChanged += (_, _) =>
         {
             if (_syncing) return;
+            if (Editing)
+            {
+                // In edit mode the picker sets the project's style, which everyone sees (lines: in model.yaml).
+                var style = _linePicker.SelectedIndex switch { 1 => "curved", 2 => "angled", _ => "straight" };
+                _ = RunAsync(d => EditOps.SetLines(d, style));
+                return;
+            }
             _ownLines = _linePicker.SelectedIndex switch { 1 => "straight", 2 => "curved", 3 => "angled", _ => null };
             LinesPicked?.Invoke(_ownLines);
             Refresh();
@@ -179,19 +191,28 @@ internal sealed class ReaderView : Grid
         _flowPicker.SelectionChanged += (_, _) =>
         {
             if (_syncing || _flowPicker.SelectedIndex < 0 || _flowPicker.SelectedIndex >= _flowIds.Count) return;
-            Play(_flowIds[_flowPicker.SelectedIndex]);
-            Focus();
+            var id = _flowIds[_flowPicker.SelectedIndex];
+            // After this event: redrawing the bar empties the very list that is announcing its selection.
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (Editing) EditFlow(id);
+                else Play(id);
+                Focus();
+            });
         };
         _searchButton.Classes.Add("tool");
+        Chrome.Fill(_searchButton, Icons.Search, "Search");
+        ToolTip.SetTip(_searchButton, "Search boxes and flows (Ctrl+K)");
         _searchButton.Click += (_, _) => ToggleSearch();
         _helpButton.Classes.Add("tool");
+        Chrome.Fill(_helpButton, Icons.Help, null, "Keyboard shortcuts");
+        ToolTip.SetTip(_helpButton, "Keyboard shortcuts (?)");
         _helpButton.Click += (_, _) => ToggleShortcuts();
-        Avalonia.Automation.AutomationProperties.SetName(_helpButton, "Keyboard shortcuts");
         _problemsButton.Classes.Add("problems");
         _problemsButton.IsVisible = false;
 
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, VerticalAlignment = VerticalAlignment.Center, Children = { _crumbs, _flowPicker } };
-        var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, HorizontalAlignment = HorizontalAlignment.Right, Children = { _linePicker, _searchButton, _helpButton, _problemsButton } };
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, VerticalAlignment = VerticalAlignment.Center, Children = { _crumbs, _flowPicker, _editTools } };
+        var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, HorizontalAlignment = HorizontalAlignment.Right, Children = { _linePicker, _searchButton, _helpButton, _problemsButton, _editButton } };
         var dock = new DockPanel { LastChildFill = false };
         DockPanel.SetDock(right, Dock.Right);
         dock.Children.Add(right);
@@ -201,12 +222,13 @@ internal sealed class ReaderView : Grid
 
     private Control ZoomButtons()
     {
-        Button Make(string text, string name, Action click)
+        Button Make(string icon, string name, Action click)
         {
-            var b = new Button { Content = text };
+            var b = new Button { Content = Icons.Make(icon, "zoomicon", 16) };
             b.Classes.Add("zoom");
             b.Click += (_, _) => click();
             Avalonia.Automation.AutomationProperties.SetName(b, name);
+            ToolTip.SetTip(b, name);
             return b;
         }
         return new StackPanel
@@ -217,9 +239,9 @@ internal sealed class ReaderView : Grid
             Spacing = 2,
             Children =
             {
-                Make("+", "Zoom in", () => _canvas.ZoomBy(1.25)),
-                Make("−", "Zoom out", () => _canvas.ZoomBy(0.8)),
-                Make("⤢", "Fit the view", FitNow),
+                Make(Icons.Plus, "Zoom in", () => _canvas.ZoomBy(1.25)),
+                Make(Icons.Minus, "Zoom out", () => _canvas.ZoomBy(0.8)),
+                Make(Icons.Fit, "Fit the view", FitNow),
             },
         };
     }
@@ -229,6 +251,8 @@ internal sealed class ReaderView : Grid
     public void Load(Folder folder, string dir)
     {
         _folder = folder;
+        _session = new EditSession(dir);
+        _editMode = false;
         _view = Names.Root;
         _side = null;
         _playing = null;
@@ -279,7 +303,14 @@ internal sealed class ReaderView : Grid
     }
 
     /// <summary>A model with nothing in it shows a few words about what to do, not a blank canvas. A file that can't be read has its banner already.</summary>
-    private void UpdateEmpty() => _empty.IsVisible = _folder is not null && !_banner.IsVisible && _view == Names.Root && _canvas.Scene is { Boxes.Count: 0 };
+    private void UpdateEmpty()
+    {
+        _empty.IsVisible = _folder is not null && !_banner.IsVisible && (_view == Names.Root || Editing) && _canvas.Scene is { Boxes.Count: 0 };
+        _emptyTitle.Text = Editing ? "Nothing here yet" : "Nothing to show yet";
+        _emptyBody.Text = Editing
+            ? "Press Add to put the first box here."
+            : "Add boxes to model.yaml, or ask Claude to map the repo. They appear here as soon as the file is saved. Press E to draw them yourself.";
+    }
 
     /// <summary>The view on screen, or the flow playing, as Mermaid text in a code fence: what the browser's Mermaid button copies.</summary>
     public string? MermaidText() =>
@@ -322,12 +353,15 @@ internal sealed class ReaderView : Grid
     // ---- derived state -----------------------------------------------------------------------------------------
 
     /// <summary>A box with children opens.</summary>
-    private bool CanOpen(string id) => _folder is { } f && Views.HasChildren(f.Model, id);
+    private bool CanOpen(string id) => _folder is { } f && (Views.HasChildren(f.Model, id) || (Editing && Checks.TypesIn(f.Model, id).Count > 0));
 
     /// <summary>The view shown: after a reload the view's object may be gone or empty, and the nearest one that still exists stands in.</summary>
     private string CurrentView() => _folder is null ? Names.Root : Views.Chain(_folder.Model, _view).FirstOrDefault(v => v == Names.Root || CanOpen(v)) ?? Names.Root;
 
     private string? SelectedBox => _side is { Kind: SideKind.Object } s ? s.Id : null;
+
+    /// <summary>The boxes drawn as selected: the open box, or the two picked for the step being recorded.</summary>
+    private IEnumerable<string> SelectedBoxes => Recording is { } r ? new[] { r.From, r.To }.OfType<string>() : SelectedBox is { } b ? [b] : [];
 
     private Scene? Scene() => _canvas.Scene;
 
@@ -335,10 +369,10 @@ internal sealed class ReaderView : Grid
     {
         if (_folder is null) return [];
         var view = CurrentView();
-        return _folder.Model.Flows.Where(kv => kv.Value.View == view && kv.Value.Steps.Count > 0).Select(kv => (kv.Key, kv.Value)).ToList();
+        return _folder.Model.Flows.Where(kv => kv.Value.View == view && (kv.Value.Steps.Count > 0 || Editing)).Select(kv => (kv.Key, kv.Value)).ToList();
     }
 
-    private (string Id, Flow Flow)? PlayingFlow() => _playing is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
+    private (string Id, Flow Flow)? PlayingFlow() => Editing ? null : _playing is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
 
     private int StepIndex() => PlayingFlow() is { } f && _playing is { } p ? Math.Max(0, Math.Min(p.Step, f.Flow.Steps.Count - 1)) : 0;
 
@@ -364,6 +398,7 @@ internal sealed class ReaderView : Grid
         }
 
         RefreshBar(model, view, flow);
+        RefreshEdit();
         RefreshPanel(model, view);
         RefreshPlayer(model, view, flow, index, shown);
     }
@@ -374,9 +409,10 @@ internal sealed class ReaderView : Grid
         var model = folder.Model;
         Playing? shown = null;
         if (flow is { } f) shown = new Playing(f.Flow.Steps.Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList(), index);
+        else if (Recording is { } rec) shown = RecordingShown(model, view, rec);
         var line = _side is { Kind: SideKind.Line } l ? SceneBuilder.LineId(l.From!, l.To!) : null;
         var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover));
-        _canvas.SetScene(scene, LineStyle, SelectedBox);
+        _canvas.SetScene(scene, LineStyle, SelectedBoxes);
         return shown;
     }
 
@@ -385,8 +421,20 @@ internal sealed class ReaderView : Grid
         _crumbs.Children.Clear();
         foreach (var id in Views.Chain(model, view).AsEnumerable().Reverse())
         {
-            if (_crumbs.Children.Count > 0) _crumbs.Children.Add(new TextBlock { Text = "›", Margin = new Thickness(8, 0), Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center });
-            var crumb = new Button { Content = Views.NameOf(model, id), IsEnabled = id != view };
+            var first = _crumbs.Children.Count == 0;
+            if (!first)
+            {
+                var chevron = Icons.Make(Icons.ChevronRight, "crumbsep", 14);
+                chevron.Margin = new Thickness(2, 0);
+                chevron.VerticalAlignment = VerticalAlignment.Center;
+                _crumbs.Children.Add(chevron);
+            }
+            // The overview, where it all starts, is a house; the boxes zoomed into after it are only their names.
+            var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7 };
+            if (first) label.Children.Add(Icons.Make(Icons.Home, "crumbicon", 16));
+            label.Children.Add(new TextBlock { Text = Views.NameOf(model, id), VerticalAlignment = VerticalAlignment.Center });
+            var crumb = new Button { Content = label, IsEnabled = id != view };
+            Avalonia.Automation.AutomationProperties.SetName(crumb, Views.NameOf(model, id));
             crumb.Classes.Add("crumb");
             var target = id;
             crumb.Click += (_, _) => ZoomOut(target);
@@ -399,14 +447,15 @@ internal sealed class ReaderView : Grid
         _flowPicker.IsVisible = flows.Count > 0;
         _flowPicker.Items.Clear();
         foreach (var (id, f) in flows) _flowPicker.Items.Add(string.IsNullOrEmpty(f.Name) ? id : f.Name);
-        _flowPicker.SelectedIndex = flow is { } playing ? _flowIds.IndexOf(playing.Id) : -1;
-        _linePicker.Items[0] = $"Lines: project default ({LineName(model.LineStyle)})";
-        _linePicker.SelectedIndex = _ownLines switch { "straight" => 1, "curved" => 2, "angled" => 3, _ => 0 };
+        _flowPicker.PlaceholderText = Editing ? "Edit a flow" : "Play a flow";
+        var chosen = Recording?.Id ?? flow?.Id;
+        _flowPicker.SelectedIndex = string.IsNullOrEmpty(chosen) ? -1 : _flowIds.IndexOf(chosen);
+        SyncLinePicker(model);
         _syncing = false;
 
         var problems = _folder!.Problems;
         _problemsButton.IsVisible = problems.Count > 0;
-        _problemsButton.Content = $"{problems.Count} problem{(problems.Count == 1 ? "" : "s")}";
+        Chrome.Fill(_problemsButton, Icons.Alert, $"{problems.Count} problem{(problems.Count == 1 ? "" : "s")}");
         var list = new StackPanel { Spacing = 0, MaxWidth = 380 };
         foreach (var p in problems)
         {
@@ -429,11 +478,24 @@ internal sealed class ReaderView : Grid
     {
         switch (_side)
         {
+            case { Kind: SideKind.Object, Id: { } id } when Editing:
+                _panel.ShowObjectEditor(model, id, _folder!.Problems, RunAsync, OpenObject, SetHover, CloseSide);
+                break;
             case { Kind: SideKind.Object, Id: { } id }:
                 _panel.ShowObject(model, id, _folder!.Problems, _codeBase, OpenObject, SetHover);
                 break;
+            case { Kind: SideKind.Line, From: { } from, To: { } to } when Editing:
+                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide);
+                break;
             case { Kind: SideKind.Line, From: { } from, To: { } to }:
                 _panel.ShowLine(model, view, from, to, _folder!.Problems);
+                break;
+            case { Kind: SideKind.Add } when Editing:
+                _panel.ShowAdd(model, view, RunAsync, OpenObject);
+                break;
+            case { Kind: SideKind.Flow } side when Editing:
+                _panel.ShowRecorder(model, view, new Recording(side.Id ?? "", side.FlowName ?? "", side.From, side.To), RunAsync,
+                    r => SetRecording(r), name => Navigation.NewId(name, model.Flows.Keys, "flow"), CloseSide);
                 break;
             default:
                 _panel.Clear();
@@ -467,6 +529,7 @@ internal sealed class ReaderView : Grid
     public void GoTo(string view)
     {
         if (_folder is null) return;
+        _undoMove = false;
         _opening?.Stop();
         _motion?.Dispose();
         _moving = false;
@@ -489,6 +552,7 @@ internal sealed class ReaderView : Grid
     private void ZoomInto(string id)
     {
         _opening?.Stop();
+        _undoMove = false;
         _side = null;
         var rect = _canvas.RectOf(id);
         var origin = rect is { } r ? _canvas.Viewport.ToScreen(r.Center) : new Pt(_canvas.Bounds.Width / 2, _canvas.Bounds.Height / 2);
@@ -551,6 +615,12 @@ internal sealed class ReaderView : Grid
     private void BoxClicked(string id)
     {
         _opening?.Stop();
+        _undoMove = false;
+        if (Recording is { } rec)
+        {
+            PickBox(rec, id);
+            return;
+        }
         // Zooming into a box is a double-click, and its first click must not open the panel.
         if (!CanOpen(id))
         {
@@ -569,6 +639,7 @@ internal sealed class ReaderView : Grid
     public void OpenObject(string id)
     {
         if (_folder?.Model.GetObject(id) is null) return;
+        _undoMove = false;
         _side = new Side(SideKind.Object, Id: id);
         Refresh();
         _canvas.Reveal(id);
@@ -579,6 +650,7 @@ internal sealed class ReaderView : Grid
     /// <summary>Shows the panel of a line of the current view.</summary>
     public void OpenLine(string from, string to)
     {
+        _undoMove = false;
         _side = new Side(SideKind.Line, From: from, To: to);
         Refresh();
     }
@@ -587,6 +659,7 @@ internal sealed class ReaderView : Grid
 
     public void Play(string flow, int step = 0)
     {
+        if (Editing) return;
         _playing = (flow, step);
         Refresh();
     }
@@ -683,6 +756,9 @@ internal sealed class ReaderView : Grid
             // The search field closes itself on Escape; this is for when the focus has slipped out of it.
             CloseSearch(true);
         }
+        else if (e.Key == Key.Escape && _canvas.CancelGesture()) { }
+        else if (UndoMoveKey(e)) { }
+        else if (e.Key == Key.Escape && ResetPick()) { }
         else if (e.Key == Key.Escape)
         {
             switch (Navigation.Escape(_shortcuts is not null, flow is not null, _side is not null, view != Names.Root))
@@ -697,11 +773,12 @@ internal sealed class ReaderView : Grid
                 default: return;
             }
         }
+        else if (EditKey(e)) { }
         else if (flow is not null && e.Key == Key.Right) StepTo(StepIndex() + 1);
         else if (flow is not null && e.Key == Key.Left) StepTo(StepIndex() - 1);
         else if (flow is not null && e.Key == Key.Home) StepTo(0);
         else if (flow is not null && e.Key == Key.End) StepTo(flow.Value.Flow.Steps.Count - 1);
-        else if (e.Key == Key.Enter)
+        else if (e.Key == Key.Enter && Recording is null)
         {
             // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
             var id = (TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() as BoxControl)?.Id ?? SelectedBox;
@@ -712,7 +789,8 @@ internal sealed class ReaderView : Grid
         else if (e.KeySymbol == "?") ToggleShortcuts();
         else if ((e.PhysicalKey == PhysicalKey.K && e.KeyModifiers == KeyModifiers.Control) || e.KeySymbol == "/" || (e.PhysicalKey == PhysicalKey.Slash && e.KeyModifiers == KeyModifiers.None)) OpenSearch();
         else if (e.PhysicalKey == PhysicalKey.F && plain) FitNow();
-        else if (e.Key == Key.Back && plain && view != Names.Root) Up();
+        // Z zooms out, always: in edit mode Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
+        else if ((e.Key == Key.Back || e.PhysicalKey == PhysicalKey.Z) && plain && view != Names.Root && Recording is null) Up();
         else return;
         e.Handled = true;
     }

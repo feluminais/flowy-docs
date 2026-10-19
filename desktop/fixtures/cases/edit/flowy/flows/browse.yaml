@@ -1,0 +1,4 @@
+name: Customer browses
+view: root
+steps:
+  - { from: customer, to: web, text: Opens the site }

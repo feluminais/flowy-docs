@@ -108,12 +108,15 @@ public partial class MainWindow : Window
         fit.Click += (_, _) => _reader.FitNow();
         var shortcuts = new NativeMenuItem("Keyboard Shortcuts");
         shortcuts.Click += (_, _) => _reader.ShowShortcuts();
+        var editMode = new NativeMenuItem("Edit Mode");
+        editMode.Click += (_, _) => _reader.SetEditing(!_reader.Editing);
+        _needsModel.Add(editMode);
         var mermaid = new NativeMenuItem("Copy as Mermaid");
         mermaid.Click += async (_, _) => await CopyMermaidAsync();
         var picture = new NativeMenuItem("Save Picture…");
         picture.Click += async (_, _) => await SavePictureAsync();
         _needsModel.AddRange([mermaid, picture]);
-        var view = new NativeMenuItem("View") { Menu = new NativeMenu { Items = { fit, shortcuts, new NativeMenuItemSeparator(), mermaid, picture } } };
+        var view = new NativeMenuItem("View") { Menu = new NativeMenu { Items = { editMode, new NativeMenuItemSeparator(), fit, shortcuts, new NativeMenuItemSeparator(), mermaid, picture } } };
 
         var demo = new NativeMenuItem("Open the Demo (Plum)") { IsEnabled = Shell.DemoDir is not null };
         demo.Click += (_, _) => _shell.OpenDemo();
@@ -160,8 +163,10 @@ public partial class MainWindow : Window
 
     private Control Welcome()
     {
-        var button = new Button { Content = "Open folder…", HorizontalAlignment = HorizontalAlignment.Center };
+        var button = new Button { HorizontalAlignment = HorizontalAlignment.Center };
         button.Classes.Add("tool");
+        button.Classes.Add("primary");
+        Chrome.Fill(button, Flowy.App.Canvas.Icons.Folder, "Open folder…");
         button.Click += async (_, _) => await _shell.ChooseAsync(this);
         return new StackPanel
         {
@@ -180,8 +185,9 @@ public partial class MainWindow : Window
 
     private Control Demo()
     {
-        var demo = new Button { Content = "Open the demo", HorizontalAlignment = HorizontalAlignment.Center, IsVisible = Shell.DemoDir is not null };
+        var demo = new Button { HorizontalAlignment = HorizontalAlignment.Center, IsVisible = Shell.DemoDir is not null };
         demo.Classes.Add("tool");
+        Chrome.Fill(demo, Flowy.App.Canvas.Icons.Play, "Open the demo");
         demo.Click += (_, _) => _shell.OpenDemo();
         return demo;
     }
@@ -210,6 +216,9 @@ public partial class MainWindow : Window
             _frame.Children.RemoveAt(_frame.Children.Count - 1);
             _frame.Children.Add(_reader);
         }
+        // The sample that ships with the app sits in the install folder, which is not for writing.
+        var demo = Shell.DemoDir;
+        _reader.CanEdit = demo is null || !string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(dir)), Path.TrimEndingDirectorySeparator(Path.GetFullPath(demo)), StringComparison.OrdinalIgnoreCase);
         _reader.Load(folder, dir);
         foreach (var item in _needsModel) item.IsEnabled = true;
         if (_shell.State.Lines is { } lines) _reader.PickLines(lines);
@@ -322,10 +331,13 @@ public partial class MainWindow : Window
     private void Apply(LaunchOptions options)
     {
         if (_reader.Folder is null) return;
+        if (options.Has("--edit")) _reader.SetEditing(true);
         if (options.Value("--lines") is { } lines) _reader.PickLines(lines);
         if (options.Value("--view") is { } view) _reader.GoTo(view);
         if (options.Value("--flow") is { } flow) _reader.Play(flow, int.TryParse(options.Value("--step"), out var step) ? step : 0);
         if (options.Value("--select") is { } select) _reader.Select(select);
+        if (options.Has("--add")) _reader.OpenAddPanel();
+        if (options.Value("--edit-flow") is { } editFlow) _reader.OpenFlowEditor(editFlow);
         if (options.Value("--line") is { } line && line.Split(' ') is [var from, var to]) _reader.OpenLine(from, to);
         if (options.Value("--hover") is { } hover) _reader.SetHover(hover);
         if (options.Value("--search") is { } search) _reader.OpenSearch(search);

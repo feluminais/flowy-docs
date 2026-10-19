@@ -37,14 +37,17 @@ Retake them when the canvas changes how it looks.
 
 ## The desktop app
 
-`desktop/` is a native, read-only reader for `flowy/` folders, built with .NET 10 and Avalonia; the browser canvas stays as it is. It
+`desktop/` is a native reader and editor for `flowy/` folders, built with .NET 10 and Avalonia; the browser canvas stays as it is. It
 needs the .NET 10 SDK. The pieces:
 
 - `Flowy.Core`: no UI. A C# port of the reading half of `src/core` and `src/node` (YAML read as text, parsing, views, checks, the folder
   loader, code links) plus what the canvas decides (geometry and line paths, layout, the scene, search, navigation) and the shell's rules
-  (which folder a pick means, recents, saved state, the folder watcher) and the Mermaid text.
+  (which folder a pick means, recents, saved state, the folder watcher) and the Mermaid text. It also holds what editing needs, all on
+  the files' YAML and never on the typed model, so a key it doesn't know (`owner:`, `links:`) is kept: `YamlWriter` (the `yaml` package's
+  output, byte for byte), `EditOps` (a twin of `src/core/ops.ts`), `FileStore` (versioned, atomic writes) and `EditSession` (apply, refuse
+  new problems, write, undo and redo).
 - `Flowy.App`: the Avalonia app. `Canvas/` draws a view (boxes as controls, one layer behind them for the frame and lines, a camera);
-  `ReaderView` holds what the reader has chosen; `Shell` owns the windows; `Updates`, `ExplorerEntries` and `SingleInstance` are the
+  `ReaderView` holds what the reader has chosen (`ReaderView.Edit.cs` is edit mode); `SidePanel`, `EditPanels.cs` and `Recorder.cs` are the forms; `Shell` owns the windows; `Updates`, `ExplorerEntries` and `SingleInstance` are the
   installer-side parts.
 - `Flowy.Tests` (xUnit): the Core, including parity with the TypeScript. `Flowy.App.Tests` (xUnit v3, Avalonia's headless platform):
   keys, clicks, the wheel, windows, the menu, single instance, Explorer entries (in a throwaway registry key, never the real one).
@@ -62,7 +65,9 @@ are the browser canvas on the same model. `FLOWY_REDUCE_MOTION=1` turns animatio
 
 **Two readers must agree.** `dotnet test desktop` compares Flowy.Core with the TypeScript on the folders in
 `desktop/fixtures/fixtures.json` (`example/`, `docs/demo` and crafted cases) and on the canvas's own functions (line paths, camera fits,
-`arrange` and `untangle`, the scene's classes, the panels' lines, search, Mermaid text). What the TypeScript says is in `desktop/fixtures/expected`,
+`arrange` and `untangle`, the scene's classes, the panels' lines, search, Mermaid text) and on the whole of editing: `yaml-write.ts` writes
+awkward text, collections and every fixture file with the `yaml` package, and `ops.ts` runs a script of every edit; the C# must write the
+same bytes and refuse with the same words. What the TypeScript says is in `desktop/fixtures/expected`,
 written by `node desktop/fixtures/generate.ts`. If a change to `src/core`, `ui/src/graph.ts`, `example/` or `docs/demo` makes `npm test`
 fail on a "desktop" test, run that command, look at `git diff desktop/fixtures/expected`, then run `dotnet test desktop`: a C# test that
 now fails means Flowy.Core needs the same change. A new rule in `src/core` should come with a case under `desktop/fixtures/cases`.
@@ -101,6 +106,12 @@ Before merging a change to the app, look at what it could affect, in a real wind
       View › Save Picture… writes a PNG of the diagram alone. An empty `model.yaml` says "Nothing to show yet".
 - [ ] Close a window after resizing it, open the app again: it opens at that size.
 - [ ] Delete the open `flowy/` folder: a banner says it is gone. Put it back and open it again: the model returns.
+- [ ] Edit on a copy of `docs/demo` (the sample inside the app can't be edited): E turns edit mode on; rename a box in its panel and click
+      elsewhere; add a box with N; drag a box and a second one; draw a connection from the dot under one box onto another and type a label;
+      record a flow with two clicks and a line of text per step. Ctrl+Z walks it all back, Ctrl+Y forward. Open the same folder in the
+      browser (`npx flowy-docs --dir <copy>`): it shows the same, and `git diff` shows only the lines you changed.
+- [ ] While the app has a model open, change it in the browser (or save from an editor): the app shows it without a reload, and an edit
+      made in the app after that starts from what is on disk.
 - [ ] Light and dark: change the system's theme while the app is open.
 
 ## Canvas checklist
@@ -115,7 +126,9 @@ Reading:
       service is grey with a cloud and reads "external", and Shop says "3 inside". Double-click Shop:
       the view zooms into it, the breadcrumb reads Overview › Shop, a frame labelled Shop wraps Web
       app, API and Orders DB, and Customer and Mail service are faded and dashed outside it.
-- [ ] Double-click API, then press Backspace twice quickly: it zooms back out to the overview.
+- [ ] Double-click API, then press Backspace twice quickly: it zooms back out to the overview. Z does the same from any level.
+- [ ] In edit mode, drag a box and press Esc (then try Backspace on another drag): the box goes back and the level stays; the next press goes
+      up. A click in between, or a second edit, turns that off. In the app, press Esc while still holding a drag: the box returns, nothing is saved.
       Clicking the breadcrumb works too. The zoom buttons in the corner don't move while it zooms.
 - [ ] Click Shop and press Enter: it zooms in. Double-click API, click Auth (its panel opens),
       then press Esc three times: the panel closes, then it zooms out to Shop, then to the

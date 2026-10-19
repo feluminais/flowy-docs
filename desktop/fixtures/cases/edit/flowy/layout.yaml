@@ -1,0 +1,6 @@
+root:
+  customer: [10, 20]
+  shop: [300, 40.5]
+  gone: [1, 1]
+shop:
+  web: [0, 0]

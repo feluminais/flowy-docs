@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Flowy.App.Canvas;
 using Flowy.Core;
 
 namespace Flowy.App;
@@ -24,18 +25,42 @@ internal sealed class PlayerCard : Border
         IsVisible = false;
     }
 
-    private Button Tool(string text, Action click, bool enabled = true)
+    private Button Tool(string icon, string text, Action click, bool enabled = true, bool primary = false)
     {
-        var button = new Button { Content = text, IsEnabled = enabled };
+        var button = new Button { IsEnabled = enabled };
         button.Classes.Add("tool");
+        if (primary) button.Classes.Add("primary");
+        Chrome.Fill(button, icon, text);
         button.Click += (_, _) => click();
         return button;
     }
 
+    /// <summary>One segment a step, filled up to the step shown.</summary>
+    private static Control Progress(int index, int count)
+    {
+        var grid = new Grid { ColumnSpacing = 3, Margin = new Thickness(0, 2) };
+        for (var i = 0; i < count; i++)
+        {
+            grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+            var segment = new Border();
+            segment.Classes.Add("seg");
+            if (i <= index) segment.Classes.Add("done");
+            Grid.SetColumn(segment, i);
+            grid.Children.Add(segment);
+        }
+        return grid;
+    }
+
     public void Show(string flowName, int index, int count, string ends, string text, string? description)
     {
-        var column = new StackPanel { Spacing = 6 };
-        column.Children.Add(new TextBlock { Text = $"{flowName} · Step {index + 1} of {count}", Classes = { "muted" }, TextWrapping = TextWrapping.Wrap });
+        var column = new StackPanel { Spacing = 8 };
+        var chips = new WrapPanel { Orientation = Orientation.Horizontal };
+        var flowChip = Chrome.Chip(flowName, Icons.Play);
+        flowChip.Margin = new Thickness(0, 0, 6, 0);
+        chips.Children.Add(flowChip);
+        chips.Children.Add(Chrome.Chip($"Step {index + 1} of {count}", null, "accent"));
+        column.Children.Add(chips);
+        column.Children.Add(Progress(index, count));
         column.Children.Add(new TextBlock { Text = ends, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
         column.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap });
         if (!string.IsNullOrEmpty(description))
@@ -51,10 +76,11 @@ internal sealed class PlayerCard : Border
             column.Children.Add(new StackPanel { Children = { header, more } });
         }
         var buttons = new DockPanel { Margin = new Thickness(0, 6, 0, 0), LastChildFill = false };
-        var stop = Tool("Stop", () => Stop?.Invoke());
+        var stop = Tool(Icons.Close, "Stop", () => Stop?.Invoke());
+        stop.Margin = new Thickness(16, 0, 0, 0);
         DockPanel.SetDock(stop, Dock.Right);
         buttons.Children.Add(stop);
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { Tool("← Back", () => Back?.Invoke(), index > 0), Tool("Next →", () => Next?.Invoke(), index < count - 1) } };
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { Tool(Icons.ArrowLeft, "Back", () => Back?.Invoke(), index > 0), Tool(Icons.ArrowRight, "Next", () => Next?.Invoke(), index < count - 1, primary: true) } };
         buttons.Children.Add(left);
         column.Children.Add(buttons);
         Child = column;
@@ -89,7 +115,12 @@ internal sealed class SearchBox : Border
         MaxWidth = 10000;
         Margin = new Thickness(16, 12);
         Padding = new Thickness(8);
-        Child = new StackPanel { Children = { _input, _results } };
+        var glass = Icons.Make(Icons.Search, "rowicon", 18);
+        glass.VerticalAlignment = VerticalAlignment.Center;
+        glass.Margin = new Thickness(6, 0, 4, 0);
+        var field = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], Children = { glass, _input } };
+        Grid.SetColumn(_input, 1);
+        Child = new StackPanel { Children = { field, _results } };
         Avalonia.Automation.AutomationProperties.SetName(_input, "Find a box by name");
         _input.TextChanged += (_, _) =>
         {
@@ -119,8 +150,19 @@ internal sealed class SearchBox : Border
         {
             var id = _found[i];
             var parent = Views.ParentOf(_model, id);
-            var where = $"{_model.Objects[id].Type}{(parent == Names.Root ? "" : $" in {Views.NameOf(_model, parent)}")}";
-            var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new TextBlock { Text = Views.NameOf(_model, id) }, new TextBlock { Text = where, Classes = { "muted" } } } };
+            var o = _model.Objects[id];
+            var where = $"{o.Type}{(parent == Names.Root ? "" : $" in {Views.NameOf(_model, parent)}")}";
+            var row = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 10,
+                Children =
+                {
+                    Chrome.TypeTile(o.Type, Model.IsExternal(o), 26),
+                    new TextBlock { Text = Views.NameOf(_model, id), FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center },
+                    new TextBlock { Text = where, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center },
+                },
+            };
             // Not focusable, so a click doesn't take the focus from the field (which would close the box before the click lands).
             var button = new Button { Content = row, Focusable = false };
             button.Classes.Add("result");
@@ -162,9 +204,10 @@ internal sealed class ShortcutsCard : Border
     [
         ("Enter", "Open the selected box"),
         ("Esc", "Close what's open, then go up a level"),
-        ("Backspace", "Go up a level"),
+        ("Backspace  Z", "Zoom out: go up a level"),
         ("Ctrl+K or /", "Find a box"),
         ("F", "Fit the view"),
+        ("E", "Edit mode on and off"),
         ("?", "Show these shortcuts"),
     ];
 
@@ -175,6 +218,15 @@ internal sealed class ShortcutsCard : Border
         ("Esc", "Stop the flow"),
     ];
 
+    private static readonly (string, string)[] Editing =
+    [
+        ("N", "Add a box here"),
+        ("Delete", "Delete the open box or line"),
+        ("Ctrl+Z", "Undo the last change"),
+        ("Esc  Backspace", "Straight after dragging a box: take the drag back"),
+        ("Ctrl+Y", "Redo (or Ctrl+Shift+Z)"),
+    ];
+
     public ShortcutsCard(Action close)
     {
         Classes.Add("card");
@@ -183,9 +235,11 @@ internal sealed class ShortcutsCard : Border
         MaxWidth = 440;
         Margin = new Thickness(16, 12);
         var column = new StackPanel { Spacing = 4 };
-        AddGroup(column, "Getting around", Reading);
-        AddGroup(column, "Flows", Flows);
-        var closeButton = new Button { Content = "×", HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, FontSize = 22 };
+        column.Children.Add(new TextBlock { Text = "Keyboard shortcuts", FontSize = 17, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 0, 32, 0) });
+        AddGroup(column, Icons.Search, "Getting around", Reading);
+        AddGroup(column, Icons.Play, "Flows", Flows);
+        AddGroup(column, Icons.Pencil, "In edit mode", Editing);
+        var closeButton = new Button { Content = Icons.Make(Icons.Close, "closeicon", 16), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top };
         closeButton.Classes.Add("close");
         closeButton.Click += (_, _) => close();
         Avalonia.Automation.AutomationProperties.SetName(closeButton, "Close");
@@ -193,15 +247,24 @@ internal sealed class ShortcutsCard : Border
         Avalonia.Automation.AutomationProperties.SetName(this, "Keyboard shortcuts");
     }
 
-    private static void AddGroup(StackPanel into, string title, (string Key, string What)[] keys)
+    private static void AddGroup(StackPanel into, string icon, string title, (string Key, string What)[] keys)
     {
-        into.Children.Add(new TextBlock { Text = title, FontSize = 12, FontWeight = FontWeight.SemiBold, Classes = { "muted" }, Margin = new Thickness(0, 10, 0, 4) });
+        var heading = Chrome.Section(icon, title);
+        heading.Margin = new Thickness(2, 12, 0, 4);
+        into.Children.Add(heading);
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(new GridLength(130)), new ColumnDefinition(GridLength.Star)], RowSpacing = 6, ColumnSpacing = 14 };
         for (var i = 0; i < keys.Length; i++)
         {
             grid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-            var key = new Border { Child = new TextBlock { Text = keys[i].Key, FontSize = 12, FontFamily = new FontFamily("Cascadia Mono, Consolas, Menlo, monospace") }, HorizontalAlignment = HorizontalAlignment.Left };
-            key.Classes.Add("kbd");
+            // Two spaces between keys that do the same thing: each is its own cap.
+            var caps = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+            foreach (var name in keys[i].Key.Split("  "))
+            {
+                var cap = new Border { Child = new TextBlock { Text = name, FontSize = 12, FontFamily = new FontFamily("Cascadia Mono, Consolas, Menlo, monospace") } };
+                cap.Classes.Add("kbd");
+                caps.Children.Add(cap);
+            }
+            var key = caps;
             var what = new TextBlock { Text = keys[i].What, TextWrapping = TextWrapping.Wrap };
             Grid.SetRow(key, i);
             Grid.SetRow(what, i);
@@ -216,14 +279,17 @@ internal sealed class ShortcutsCard : Border
 /// <summary>A message in the corner of the canvas that the reader can dismiss.</summary>
 internal sealed class Notice : Border
 {
+    public string Text { get; }
+
     public Notice(string text, Action dismiss)
     {
+        Text = text;
         Classes.Add("notice");
         HorizontalAlignment = HorizontalAlignment.Left;
         VerticalAlignment = VerticalAlignment.Top;
         Margin = new Thickness(16, 12);
         MaxWidth = 520;
-        var close = new Button { Content = "×", FontSize = 18 };
+        var close = new Button { Content = Icons.Make(Icons.Close, "closeicon", 16), VerticalAlignment = VerticalAlignment.Center };
         close.Classes.Add("close");
         close.Click += (_, _) => dismiss();
         Avalonia.Automation.AutomationProperties.SetName(close, "Dismiss");

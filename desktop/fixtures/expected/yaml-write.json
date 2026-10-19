@@ -1,0 +1,2869 @@
+{
+  "strings": [
+    {
+      "s": "",
+      "value": {
+        "text": "k:\n"
+      },
+      "item": {
+        "text": "k:\n  - \n"
+      },
+      "key": {
+        "text": ": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c:\n      d: x\n"
+      }
+    },
+    {
+      "s": " ",
+      "value": {
+        "text": "k: \" \"\n"
+      },
+      "item": {
+        "text": "k:\n  - \" \"\n"
+      },
+      "key": {
+        "text": "\" \": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \" \"\n      d: x\n"
+      }
+    },
+    {
+      "s": "  ",
+      "value": {
+        "text": "k: \"  \"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"  \"\n"
+      },
+      "key": {
+        "text": "\"  \": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"  \"\n      d: x\n"
+      }
+    },
+    {
+      "s": "plain",
+      "value": {
+        "text": "k: plain\n"
+      },
+      "item": {
+        "text": "k:\n  - plain\n"
+      },
+      "key": {
+        "text": "plain: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: plain\n      d: x\n"
+      }
+    },
+    {
+      "s": "with space",
+      "value": {
+        "text": "k: with space\n"
+      },
+      "item": {
+        "text": "k:\n  - with space\n"
+      },
+      "key": {
+        "text": "with space: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: with space\n      d: x\n"
+      }
+    },
+    {
+      "s": " leading",
+      "value": {
+        "text": "k: \" leading\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \" leading\"\n"
+      },
+      "key": {
+        "text": "\" leading\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \" leading\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "trailing ",
+      "value": {
+        "text": "k: \"trailing \"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"trailing \"\n"
+      },
+      "key": {
+        "text": "\"trailing \": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"trailing \"\n      d: x\n"
+      }
+    },
+    {
+      "s": "  both  ",
+      "value": {
+        "text": "k: \"  both  \"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"  both  \"\n"
+      },
+      "key": {
+        "text": "\"  both  \": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"  both  \"\n      d: x\n"
+      }
+    },
+    {
+      "s": "a: b",
+      "value": {
+        "text": "k: \"a: b\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"a: b\"\n"
+      },
+      "key": {
+        "text": "\"a: b\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"a: b\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "a:b",
+      "value": {
+        "text": "k: a:b\n"
+      },
+      "item": {
+        "text": "k:\n  - a:b\n"
+      },
+      "key": {
+        "text": "a:b: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a:b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a #b",
+      "value": {
+        "text": "k: \"a #b\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"a #b\"\n"
+      },
+      "key": {
+        "text": "\"a #b\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"a #b\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "a#b",
+      "value": {
+        "text": "k: a#b\n"
+      },
+      "item": {
+        "text": "k:\n  - a#b\n"
+      },
+      "key": {
+        "text": "a#b: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a#b\n      d: x\n"
+      }
+    },
+    {
+      "s": "#x",
+      "value": {
+        "text": "k: \"#x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"#x\"\n"
+      },
+      "key": {
+        "text": "\"#x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"#x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "- x",
+      "value": {
+        "text": "k: \"- x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"- x\"\n"
+      },
+      "key": {
+        "text": "\"- x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"- x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "-",
+      "value": {
+        "text": "k: \"-\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"-\"\n"
+      },
+      "key": {
+        "text": "\"-\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"-\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "-x",
+      "value": {
+        "text": "k: -x\n"
+      },
+      "item": {
+        "text": "k:\n  - -x\n"
+      },
+      "key": {
+        "text": "-x: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: -x\n      d: x\n"
+      }
+    },
+    {
+      "s": "--",
+      "value": {
+        "text": "k: --\n"
+      },
+      "item": {
+        "text": "k:\n  - --\n"
+      },
+      "key": {
+        "text": "--: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: --\n      d: x\n"
+      }
+    },
+    {
+      "s": "? x",
+      "value": {
+        "text": "k: \"? x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"? x\"\n"
+      },
+      "key": {
+        "text": "\"? x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"? x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "?x",
+      "value": {
+        "text": "k: ?x\n"
+      },
+      "item": {
+        "text": "k:\n  - ?x\n"
+      },
+      "key": {
+        "text": "?x: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: ?x\n      d: x\n"
+      }
+    },
+    {
+      "s": ":x",
+      "value": {
+        "text": "k: :x\n"
+      },
+      "item": {
+        "text": "k:\n  - :x\n"
+      },
+      "key": {
+        "text": ":x: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: :x\n      d: x\n"
+      }
+    },
+    {
+      "s": "x:",
+      "value": {
+        "text": "k: \"x:\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"x:\"\n"
+      },
+      "key": {
+        "text": "\"x:\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"x:\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "x::",
+      "value": {
+        "text": "k: \"x::\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"x::\"\n"
+      },
+      "key": {
+        "text": "\"x::\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"x::\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "[x]",
+      "value": {
+        "text": "k: \"[x]\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"[x]\"\n"
+      },
+      "key": {
+        "text": "\"[x]\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"[x]\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "{x}",
+      "value": {
+        "text": "k: \"{x}\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"{x}\"\n"
+      },
+      "key": {
+        "text": "\"{x}\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"{x}\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "a [b]",
+      "value": {
+        "text": "k: a [b]\n"
+      },
+      "item": {
+        "text": "k:\n  - a [b]\n"
+      },
+      "key": {
+        "text": "a [b]: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a [b]\n      d: x\n"
+      }
+    },
+    {
+      "s": "a {b}",
+      "value": {
+        "text": "k: a {b}\n"
+      },
+      "item": {
+        "text": "k:\n  - a {b}\n"
+      },
+      "key": {
+        "text": "a {b}: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a {b}\n      d: x\n"
+      }
+    },
+    {
+      "s": "a, b",
+      "value": {
+        "text": "k: a, b\n"
+      },
+      "item": {
+        "text": "k:\n  - a, b\n"
+      },
+      "key": {
+        "text": "a, b: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a, b\n      d: x\n"
+      }
+    },
+    {
+      "s": ",x",
+      "value": {
+        "text": "k: \",x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \",x\"\n"
+      },
+      "key": {
+        "text": "\",x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \",x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "&x",
+      "value": {
+        "text": "k: \"&x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"&x\"\n"
+      },
+      "key": {
+        "text": "\"&x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"&x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "*x",
+      "value": {
+        "text": "k: \"*x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"*x\"\n"
+      },
+      "key": {
+        "text": "\"*x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"*x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "!x",
+      "value": {
+        "text": "k: \"!x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"!x\"\n"
+      },
+      "key": {
+        "text": "\"!x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"!x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "!!x",
+      "value": {
+        "text": "k: \"!!x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"!!x\"\n"
+      },
+      "key": {
+        "text": "\"!!x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"!!x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "|x",
+      "value": {
+        "text": "k: \"|x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"|x\"\n"
+      },
+      "key": {
+        "text": "\"|x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"|x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": ">x",
+      "value": {
+        "text": "k: \">x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \">x\"\n"
+      },
+      "key": {
+        "text": "\">x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \">x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "'x'",
+      "value": {
+        "text": "k: \"'x'\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"'x'\"\n"
+      },
+      "key": {
+        "text": "\"'x'\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"'x'\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "\"x\"",
+      "value": {
+        "text": "k: '\"x\"'\n"
+      },
+      "item": {
+        "text": "k:\n  - '\"x\"'\n"
+      },
+      "key": {
+        "text": "'\"x\"': v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: '\"x\"'\n      d: x\n"
+      }
+    },
+    {
+      "s": "say \"hi\"",
+      "value": {
+        "text": "k: say \"hi\"\n"
+      },
+      "item": {
+        "text": "k:\n  - say \"hi\"\n"
+      },
+      "key": {
+        "text": "say \"hi\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: say \"hi\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "it's",
+      "value": {
+        "text": "k: it's\n"
+      },
+      "item": {
+        "text": "k:\n  - it's\n"
+      },
+      "key": {
+        "text": "it's: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: it's\n      d: x\n"
+      }
+    },
+    {
+      "s": "a'b\"c",
+      "value": {
+        "text": "k: a'b\"c\n"
+      },
+      "item": {
+        "text": "k:\n  - a'b\"c\n"
+      },
+      "key": {
+        "text": "a'b\"c: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a'b\"c\n      d: x\n"
+      }
+    },
+    {
+      "s": "\"",
+      "value": {
+        "text": "k: '\"'\n"
+      },
+      "item": {
+        "text": "k:\n  - '\"'\n"
+      },
+      "key": {
+        "text": "'\"': v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: '\"'\n      d: x\n"
+      }
+    },
+    {
+      "s": "'",
+      "value": {
+        "text": "k: \"'\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"'\"\n"
+      },
+      "key": {
+        "text": "\"'\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"'\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "%x",
+      "value": {
+        "text": "k: \"%x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"%x\"\n"
+      },
+      "key": {
+        "text": "\"%x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"%x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "@x",
+      "value": {
+        "text": "k: \"@x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"@x\"\n"
+      },
+      "key": {
+        "text": "\"@x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"@x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "`x",
+      "value": {
+        "text": "k: \"`x\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"`x\"\n"
+      },
+      "key": {
+        "text": "\"`x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"`x\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "= x",
+      "value": {
+        "text": "k: = x\n"
+      },
+      "item": {
+        "text": "k:\n  - = x\n"
+      },
+      "key": {
+        "text": "= x: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: = x\n      d: x\n"
+      }
+    },
+    {
+      "s": "<<",
+      "value": {
+        "text": "k: <<\n"
+      },
+      "item": {
+        "text": "k:\n  - <<\n"
+      },
+      "key": {
+        "text": "<<: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: <<\n      d: x\n"
+      }
+    },
+    {
+      "s": "* ",
+      "value": {
+        "text": "k: \"* \"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"* \"\n"
+      },
+      "key": {
+        "text": "\"* \": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"* \"\n      d: x\n"
+      }
+    },
+    {
+      "s": "null",
+      "value": {
+        "text": "k: null\n"
+      },
+      "item": {
+        "text": "k:\n  - null\n"
+      },
+      "key": {
+        "text": "null: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: null\n      d: x\n"
+      }
+    },
+    {
+      "s": "true",
+      "value": {
+        "text": "k: true\n"
+      },
+      "item": {
+        "text": "k:\n  - true\n"
+      },
+      "key": {
+        "text": "true: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: true\n      d: x\n"
+      }
+    },
+    {
+      "s": "false",
+      "value": {
+        "text": "k: false\n"
+      },
+      "item": {
+        "text": "k:\n  - false\n"
+      },
+      "key": {
+        "text": "false: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: false\n      d: x\n"
+      }
+    },
+    {
+      "s": "007",
+      "value": {
+        "text": "k: 007\n"
+      },
+      "item": {
+        "text": "k:\n  - 007\n"
+      },
+      "key": {
+        "text": "007: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: 007\n      d: x\n"
+      }
+    },
+    {
+      "s": "3.10",
+      "value": {
+        "text": "k: 3.10\n"
+      },
+      "item": {
+        "text": "k:\n  - 3.10\n"
+      },
+      "key": {
+        "text": "3.10: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: 3.10\n      d: x\n"
+      }
+    },
+    {
+      "s": "~",
+      "value": {
+        "text": "k: ~\n"
+      },
+      "item": {
+        "text": "k:\n  - ~\n"
+      },
+      "key": {
+        "text": "~: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: ~\n      d: x\n"
+      }
+    },
+    {
+      "s": "yes",
+      "value": {
+        "text": "k: yes\n"
+      },
+      "item": {
+        "text": "k:\n  - yes\n"
+      },
+      "key": {
+        "text": "yes: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: yes\n      d: x\n"
+      }
+    },
+    {
+      "s": "no",
+      "value": {
+        "text": "k: no\n"
+      },
+      "item": {
+        "text": "k:\n  - no\n"
+      },
+      "key": {
+        "text": "no: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: no\n      d: x\n"
+      }
+    },
+    {
+      "s": "1e3",
+      "value": {
+        "text": "k: 1e3\n"
+      },
+      "item": {
+        "text": "k:\n  - 1e3\n"
+      },
+      "key": {
+        "text": "1e3: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: 1e3\n      d: x\n"
+      }
+    },
+    {
+      "s": "0x10",
+      "value": {
+        "text": "k: 0x10\n"
+      },
+      "item": {
+        "text": "k:\n  - 0x10\n"
+      },
+      "key": {
+        "text": "0x10: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: 0x10\n      d: x\n"
+      }
+    },
+    {
+      "s": ".inf",
+      "value": {
+        "text": "k: .inf\n"
+      },
+      "item": {
+        "text": "k:\n  - .inf\n"
+      },
+      "key": {
+        "text": ".inf: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: .inf\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\nb",
+      "value": {
+        "text": "k: |-\n  a\n  b\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    a\n    b\n"
+      },
+      "key": {
+        "text": "\"a\\nb\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        a\n        b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\nb\n",
+      "value": {
+        "text": "k: |\n  a\n  b\n"
+      },
+      "item": {
+        "text": "k:\n  - |\n    a\n    b\n"
+      },
+      "key": {
+        "text": "\"a\\nb\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |\n        a\n        b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\nb\n\n",
+      "value": {
+        "text": "k: |+\n  a\n  b\n\n"
+      },
+      "item": {
+        "text": "k:\n  - |+\n    a\n    b\n\n"
+      },
+      "key": {
+        "text": "\"a\\nb\\n\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |+\n        a\n        b\n\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\nb\n\n\n",
+      "value": {
+        "text": "k: |+\n  a\n  b\n\n\n"
+      },
+      "item": {
+        "text": "k:\n  - |+\n    a\n    b\n\n\n"
+      },
+      "key": {
+        "text": "\"a\\nb\\n\\n\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |+\n        a\n        b\n\n\n      d: x\n"
+      }
+    },
+    {
+      "s": "\nstart",
+      "value": {
+        "text": "k: |-\n  \n  start\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    \n    start\n"
+      },
+      "key": {
+        "text": "\"\\nstart\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        \n        start\n      d: x\n"
+      }
+    },
+    {
+      "s": "\n\nstart",
+      "value": {
+        "text": "k: |-\n  \n\n  start\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    \n\n    start\n"
+      },
+      "key": {
+        "text": "\"\\n\\nstart\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        \n\n        start\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\n\nb",
+      "value": {
+        "text": "k: |-\n  a\n\n  b\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    a\n\n    b\n"
+      },
+      "key": {
+        "text": "\"a\\n\\nb\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        a\n\n        b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\n\n\nb",
+      "value": {
+        "text": "k: |-\n  a\n\n\n  b\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    a\n\n\n    b\n"
+      },
+      "key": {
+        "text": "\"a\\n\\n\\nb\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        a\n\n\n        b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\n  indented\nb",
+      "value": {
+        "text": "k: |-\n  a\n    indented\n  b\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    a\n      indented\n    b\n"
+      },
+      "key": {
+        "text": "\"a\\n  indented\\nb\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        a\n          indented\n        b\n      d: x\n"
+      }
+    },
+    {
+      "s": " lead\nb",
+      "value": {
+        "text": "k: |2-\n   lead\n  b\n"
+      },
+      "item": {
+        "text": "k:\n  - |2-\n     lead\n    b\n"
+      },
+      "key": {
+        "text": "\" lead\\nb\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |2-\n         lead\n        b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\n lead2",
+      "value": {
+        "text": "k: |-\n  a\n   lead2\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    a\n     lead2\n"
+      },
+      "key": {
+        "text": "\"a\\n lead2\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        a\n         lead2\n      d: x\n"
+      }
+    },
+    {
+      "s": "  two\nb",
+      "value": {
+        "text": "k: |2-\n    two\n  b\n"
+      },
+      "item": {
+        "text": "k:\n  - |2-\n      two\n    b\n"
+      },
+      "key": {
+        "text": "\"  two\\nb\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |2-\n          two\n        b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\n",
+      "value": {
+        "text": "k: |\n  a\n"
+      },
+      "item": {
+        "text": "k:\n  - |\n    a\n"
+      },
+      "key": {
+        "text": "\"a\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |\n        a\n      d: x\n"
+      }
+    },
+    {
+      "s": "\n",
+      "value": {
+        "text": "k: |+\n  \n"
+      },
+      "item": {
+        "text": "k:\n  - |+\n    \n"
+      },
+      "key": {
+        "text": "\"\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |+\n        \n      d: x\n"
+      }
+    },
+    {
+      "s": "\n\n",
+      "value": {
+        "text": "k: |+\n  \n\n"
+      },
+      "item": {
+        "text": "k:\n  - |+\n    \n\n"
+      },
+      "key": {
+        "text": "\"\\n\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |+\n        \n\n      d: x\n"
+      }
+    },
+    {
+      "s": "a \nb",
+      "value": {
+        "text": "k: |-\n  a \n  b\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    a \n    b\n"
+      },
+      "key": {
+        "text": "\"a\\ \\nb\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        a \n        b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\nb \n",
+      "value": {
+        "text": "k: |\n  a\n  b \n"
+      },
+      "item": {
+        "text": "k:\n  - |\n    a\n    b \n"
+      },
+      "key": {
+        "text": "\"a\\nb\\ \\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |\n        a\n        b \n      d: x\n"
+      }
+    },
+    {
+      "s": "a\n \nb",
+      "value": {
+        "text": "k: |-\n  a\n   \n  b\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    a\n     \n    b\n"
+      },
+      "key": {
+        "text": "\"a\\n\\ \\nb\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        a\n         \n        b\n      d: x\n"
+      }
+    },
+    {
+      "s": "tab\there",
+      "value": {
+        "text": "k: tab\there\n"
+      },
+      "item": {
+        "text": "k:\n  - tab\there\n"
+      },
+      "key": {
+        "text": "tab\there: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: tab\there\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\tb",
+      "value": {
+        "text": "k: a\tb\n"
+      },
+      "item": {
+        "text": "k:\n  - a\tb\n"
+      },
+      "key": {
+        "text": "a\tb: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a\tb\n      d: x\n"
+      }
+    },
+    {
+      "s": "\ttab",
+      "value": {
+        "text": "k: \"\\ttab\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\ttab\"\n"
+      },
+      "key": {
+        "text": "\"\\ttab\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\ttab\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "trailing tab\t",
+      "value": {
+        "text": "k: \"trailing tab\\t\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"trailing tab\\t\"\n"
+      },
+      "key": {
+        "text": "\"trailing tab\\t\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"trailing tab\\t\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\n\tb",
+      "value": {
+        "text": "k: |-\n  a\n  \tb\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    a\n    \tb\n"
+      },
+      "key": {
+        "text": "\"a\\n\\tb\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        a\n        \tb\n      d: x\n"
+      }
+    },
+    {
+      "s": "back\\slash",
+      "value": {
+        "text": "k: back\\slash\n"
+      },
+      "item": {
+        "text": "k:\n  - back\\slash\n"
+      },
+      "key": {
+        "text": "back\\slash: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: back\\slash\n      d: x\n"
+      }
+    },
+    {
+      "s": "unicode é ü ✓ 日本",
+      "value": {
+        "text": "k: unicode é ü ✓ 日本\n"
+      },
+      "item": {
+        "text": "k:\n  - unicode é ü ✓ 日本\n"
+      },
+      "key": {
+        "text": "unicode é ü ✓ 日本: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: unicode é ü ✓ 日本\n      d: x\n"
+      }
+    },
+    {
+      "s": "emoji 😀",
+      "value": {
+        "text": "k: emoji 😀\n"
+      },
+      "item": {
+        "text": "k:\n  - emoji 😀\n"
+      },
+      "key": {
+        "text": "emoji 😀: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: emoji 😀\n      d: x\n"
+      }
+    },
+    {
+      "s": "---",
+      "value": {
+        "text": "k: ---\n"
+      },
+      "item": {
+        "text": "k:\n  - ---\n"
+      },
+      "key": {
+        "text": "\"---\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: ---\n      d: x\n"
+      }
+    },
+    {
+      "s": "...",
+      "value": {
+        "text": "k: ...\n"
+      },
+      "item": {
+        "text": "k:\n  - ...\n"
+      },
+      "key": {
+        "text": "\"...\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: ...\n      d: x\n"
+      }
+    },
+    {
+      "s": "--- x",
+      "value": {
+        "text": "k: --- x\n"
+      },
+      "item": {
+        "text": "k:\n  - --- x\n"
+      },
+      "key": {
+        "text": "\"--- x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: --- x\n      d: x\n"
+      }
+    },
+    {
+      "s": "... x",
+      "value": {
+        "text": "k: ... x\n"
+      },
+      "item": {
+        "text": "k:\n  - ... x\n"
+      },
+      "key": {
+        "text": "\"... x\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: ... x\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\r\nb",
+      "value": {
+        "text": "k: \"a\\r\\nb\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"a\\r\\nb\"\n"
+      },
+      "key": {
+        "text": "\"a\\r\\nb\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"a\\r\\nb\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\rb",
+      "value": {
+        "text": "k: \"a\\rb\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"a\\rb\"\n"
+      },
+      "key": {
+        "text": "\"a\\rb\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"a\\rb\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "x y",
+      "value": {
+        "text": "k: x y\n"
+      },
+      "item": {
+        "text": "k:\n  - x y\n"
+      },
+      "key": {
+        "text": "x y: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: x y\n      d: x\n"
+      }
+    },
+    {
+      "s": "x y",
+      "value": {
+        "text": "k: x y\n"
+      },
+      "item": {
+        "text": "k:\n  - x y\n"
+      },
+      "key": {
+        "text": "x y: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: x y\n      d: x\n"
+      }
+    },
+    {
+      "s": "xy",
+      "value": {
+        "text": "k: \"xy\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"xy\"\n"
+      },
+      "key": {
+        "text": "\"xy\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"xy\"\n      d: x\n"
+      }
+    },
+    {
+      "s": " nbsp",
+      "value": {
+        "text": "k:  nbsp\n"
+      },
+      "item": {
+        "text": "k:\n  -  nbsp\n"
+      },
+      "key": {
+        "text": " nbsp: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c:  nbsp\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\u0007b",
+      "value": {
+        "text": "k: \"a\\ab\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"a\\ab\"\n"
+      },
+      "key": {
+        "text": "\"a\\ab\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"a\\ab\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "\u001bx",
+      "value": {
+        "text": "k: \"\\ex\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\ex\"\n"
+      },
+      "key": {
+        "text": "\"\\ex\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\ex\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "a\u0000b",
+      "value": {
+        "text": "k: \"a\\0b\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"a\\0b\"\n"
+      },
+      "key": {
+        "text": "\"a\\0b\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"a\\0b\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "﻿bom",
+      "value": {
+        "text": "k: ﻿bom\n"
+      },
+      "item": {
+        "text": "k:\n  - ﻿bom\n"
+      },
+      "key": {
+        "text": "﻿bom: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: ﻿bom\n      d: x\n"
+      }
+    },
+    {
+      "s": "Line one\nLine two\n- a list\n- of things\n\n```ts\nconst x = 1\n```\n",
+      "value": {
+        "text": "k: |\n  Line one\n  Line two\n  - a list\n  - of things\n\n  ```ts\n  const x = 1\n  ```\n"
+      },
+      "item": {
+        "text": "k:\n  - |\n    Line one\n    Line two\n    - a list\n    - of things\n\n    ```ts\n    const x = 1\n    ```\n"
+      },
+      "key": {
+        "text": "\"Line one\\nLine two\\n- a list\\n- of things\\n\\n```ts\\nconst x = 1\\n```\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |\n        Line one\n        Line two\n        - a list\n        - of things\n\n        ```ts\n        const x = 1\n        ```\n      d: x\n"
+      }
+    },
+    {
+      "s": "key: value\nsecond: line",
+      "value": {
+        "text": "k: |-\n  key: value\n  second: line\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    key: value\n    second: line\n"
+      },
+      "key": {
+        "text": "\"key: value\\nsecond: line\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        key: value\n        second: line\n      d: x\n"
+      }
+    },
+    {
+      "s": "# comment\nline",
+      "value": {
+        "text": "k: |-\n  # comment\n  line\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    # comment\n    line\n"
+      },
+      "key": {
+        "text": "\"# comment\\nline\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        # comment\n        line\n      d: x\n"
+      }
+    },
+    {
+      "s": "text with `code` and **bold**",
+      "value": {
+        "text": "k: text with `code` and **bold**\n"
+      },
+      "item": {
+        "text": "k:\n  - text with `code` and **bold**\n"
+      },
+      "key": {
+        "text": "text with `code` and **bold**: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: text with `code` and **bold**\n      d: x\n"
+      }
+    },
+    {
+      "s": "GET /menus/:restaurant reads a menu",
+      "value": {
+        "text": "k: GET /menus/:restaurant reads a menu\n"
+      },
+      "item": {
+        "text": "k:\n  - GET /menus/:restaurant reads a menu\n"
+      },
+      "key": {
+        "text": "GET /menus/:restaurant reads a menu: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: GET /menus/:restaurant reads a menu\n      d: x\n"
+      }
+    },
+    {
+      "s": "POST /orders → places",
+      "value": {
+        "text": "k: POST /orders → places\n"
+      },
+      "item": {
+        "text": "k:\n  - POST /orders → places\n"
+      },
+      "key": {
+        "text": "POST /orders → places: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: POST /orders → places\n      d: x\n"
+      }
+    },
+    {
+      "s": "a — b",
+      "value": {
+        "text": "k: a — b\n"
+      },
+      "item": {
+        "text": "k:\n  - a — b\n"
+      },
+      "key": {
+        "text": "a — b: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a — b\n      d: x\n"
+      }
+    },
+    {
+      "s": "x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z",
+      "value": {
+        "text": "k: x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z\n"
+      },
+      "item": {
+        "text": "k:\n  - x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z\n"
+      },
+      "key": {
+        "text": "x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z\n      d: x\n"
+      }
+    },
+    {
+      "s": "one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words",
+      "value": {
+        "text": "k: one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words\n"
+      },
+      "item": {
+        "text": "k:\n  - one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words\n"
+      },
+      "key": {
+        "text": "one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words\n      d: x\n"
+      }
+    },
+    {
+      "s": "a: b\n",
+      "value": {
+        "text": "k: |\n  a: b\n"
+      },
+      "item": {
+        "text": "k:\n  - |\n    a: b\n"
+      },
+      "key": {
+        "text": "\"a: b\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |\n        a: b\n      d: x\n"
+      }
+    },
+    {
+      "s": "- a\n- b",
+      "value": {
+        "text": "k: |-\n  - a\n  - b\n"
+      },
+      "item": {
+        "text": "k:\n  - |-\n    - a\n    - b\n"
+      },
+      "key": {
+        "text": "\"- a\\n- b\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: |-\n        - a\n        - b\n      d: x\n"
+      }
+    },
+    {
+      "s": "{\"json\": true}",
+      "value": {
+        "text": "k: '{\"json\": true}'\n"
+      },
+      "item": {
+        "text": "k:\n  - '{\"json\": true}'\n"
+      },
+      "key": {
+        "text": "'{\"json\": true}': v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: '{\"json\": true}'\n      d: x\n"
+      }
+    },
+    {
+      "s": "[1, 2]",
+      "value": {
+        "text": "k: \"[1, 2]\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"[1, 2]\"\n"
+      },
+      "key": {
+        "text": "\"[1, 2]\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"[1, 2]\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "http://example.com/a?b=c#d",
+      "value": {
+        "text": "k: http://example.com/a?b=c#d\n"
+      },
+      "item": {
+        "text": "k:\n  - http://example.com/a?b=c#d\n"
+      },
+      "key": {
+        "text": "http://example.com/a?b=c#d: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: http://example.com/a?b=c#d\n      d: x\n"
+      }
+    },
+    {
+      "s": "C:\\path\\file",
+      "value": {
+        "text": "k: C:\\path\\file\n"
+      },
+      "item": {
+        "text": "k:\n  - C:\\path\\file\n"
+      },
+      "key": {
+        "text": "C:\\path\\file: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: C:\\path\\file\n      d: x\n"
+      }
+    },
+    {
+      "s": "a | b",
+      "value": {
+        "text": "k: a | b\n"
+      },
+      "item": {
+        "text": "k:\n  - a | b\n"
+      },
+      "key": {
+        "text": "a | b: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a | b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a > b",
+      "value": {
+        "text": "k: a > b\n"
+      },
+      "item": {
+        "text": "k:\n  - a > b\n"
+      },
+      "key": {
+        "text": "a > b: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a > b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a ? b",
+      "value": {
+        "text": "k: a ? b\n"
+      },
+      "item": {
+        "text": "k:\n  - a ? b\n"
+      },
+      "key": {
+        "text": "a ? b: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a ? b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a & b",
+      "value": {
+        "text": "k: a & b\n"
+      },
+      "item": {
+        "text": "k:\n  - a & b\n"
+      },
+      "key": {
+        "text": "a & b: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a & b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a * b",
+      "value": {
+        "text": "k: a * b\n"
+      },
+      "item": {
+        "text": "k:\n  - a * b\n"
+      },
+      "key": {
+        "text": "a * b: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a * b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a ! b",
+      "value": {
+        "text": "k: a ! b\n"
+      },
+      "item": {
+        "text": "k:\n  - a ! b\n"
+      },
+      "key": {
+        "text": "a ! b: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a ! b\n      d: x\n"
+      }
+    },
+    {
+      "s": "a @ b",
+      "value": {
+        "text": "k: a @ b\n"
+      },
+      "item": {
+        "text": "k:\n  - a @ b\n"
+      },
+      "key": {
+        "text": "a @ b: v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: a @ b\n      d: x\n"
+      }
+    }
+  ],
+  "shapes": [
+    {
+      "name": "empty map",
+      "data": {},
+      "text": "{}\n"
+    },
+    {
+      "name": "empty list in map",
+      "data": {
+        "items": []
+      },
+      "text": "items: []\n"
+    },
+    {
+      "name": "empty map in map",
+      "data": {
+        "a": {}
+      },
+      "text": "a: {}\n"
+    },
+    {
+      "name": "list of maps",
+      "data": {
+        "connections": [
+          {
+            "from": "a",
+            "to": "b"
+          },
+          {
+            "from": "a",
+            "to": "c",
+            "label": "two words"
+          }
+        ]
+      },
+      "text": "connections:\n  - from: a\n    to: b\n  - from: a\n    to: c\n    label: two words\n"
+    },
+    {
+      "name": "list of lists",
+      "data": {
+        "m": [
+          [
+            "a",
+            "b"
+          ],
+          [],
+          [
+            "c"
+          ]
+        ]
+      },
+      "text": "m:\n  - - a\n    - b\n  - []\n  - - c\n"
+    },
+    {
+      "name": "list in list in map",
+      "data": {
+        "m": [
+          [
+            [
+              "x"
+            ]
+          ]
+        ]
+      },
+      "text": "m:\n  - - - x\n"
+    },
+    {
+      "name": "map in list in map",
+      "data": {
+        "m": [
+          {
+            "a": {
+              "b": {
+                "c": "d"
+              }
+            }
+          }
+        ]
+      },
+      "text": "m:\n  - a:\n      b:\n        c: d\n"
+    },
+    {
+      "name": "list of maps with lists",
+      "data": {
+        "steps": [
+          {
+            "from": "a",
+            "code": [
+              "x/y",
+              "z"
+            ],
+            "text": "hi"
+          },
+          {
+            "text": "second",
+            "more": []
+          }
+        ]
+      },
+      "text": "steps:\n  - from: a\n    code:\n      - x/y\n      - z\n    text: hi\n  - text: second\n    more: []\n"
+    },
+    {
+      "name": "nested maps",
+      "data": {
+        "objects": {
+          "a": {
+            "type": "system",
+            "name": "A"
+          },
+          "b": {
+            "type": "app",
+            "in": "a",
+            "name": "B",
+            "code": [
+              "x/"
+            ]
+          }
+        }
+      },
+      "text": "objects:\n  a:\n    type: system\n    name: A\n  b:\n    type: app\n    in: a\n    name: B\n    code:\n      - x/\n"
+    },
+    {
+      "name": "integer-like keys",
+      "data": {
+        "2": "b",
+        "10": "a",
+        "x": "c",
+        "007": "d"
+      },
+      "text": "2: b\n10: a\nx: c\n007: d\n"
+    },
+    {
+      "name": "odd keys",
+      "data": {
+        "a b": "1",
+        "a: b": "2",
+        "": "3",
+        "#k": "4",
+        "- k": "5",
+        "[k]": "6",
+        "k:": "7",
+        "\"q\"": "8",
+        "it's": "9",
+        "é": "10"
+      },
+      "text": "a b: 1\n\"a: b\": 2\n: 3\n\"#k\": 4\n\"- k\": 5\n\"[k]\": 6\n\"k:\": 7\n'\"q\"': 8\nit's: 9\né: 10\n"
+    },
+    {
+      "name": "multiline in list in map",
+      "data": {
+        "items": [
+          "a\nb",
+          "c",
+          "d\ne\n"
+        ]
+      },
+      "text": "items:\n  - |-\n    a\n    b\n  - c\n  - |\n    d\n    e\n"
+    },
+    {
+      "name": "multiline in nested map",
+      "data": {
+        "objects": {
+          "a": {
+            "description": "Line one\n\nLine two\n"
+          }
+        }
+      },
+      "text": "objects:\n  a:\n    description: |\n      Line one\n\n      Line two\n"
+    },
+    {
+      "name": "multiline in list item map",
+      "data": {
+        "steps": [
+          {
+            "text": "x",
+            "description": "More\nlines here\n"
+          }
+        ]
+      },
+      "text": "steps:\n  - text: x\n    description: |\n      More\n      lines here\n"
+    },
+    {
+      "name": "top-level list",
+      "data": [
+        "a",
+        "b",
+        {
+          "c": "d"
+        }
+      ],
+      "text": "- a\n- b\n- c: d\n"
+    }
+  ],
+  "layouts": [
+    {
+      "layout": {},
+      "text": "{}\n"
+    },
+    {
+      "layout": {
+        "root": {
+          "a": [
+            "10",
+            "20"
+          ]
+        }
+      },
+      "text": "root:\n  a: [10, 20]\n"
+    },
+    {
+      "layout": {
+        "root": {
+          "a": [
+            "10",
+            "20"
+          ],
+          "b": [
+            "-5",
+            "7.5"
+          ]
+        },
+        "shop": {
+          "web": [
+            "0",
+            "0"
+          ]
+        }
+      },
+      "text": "root:\n  a: [10, 20]\n  b: [-5, 7.5]\nshop:\n  web: [0, 0]\n"
+    }
+  ],
+  "files": [
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\example",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\empty\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\problems\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\text\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\layout\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\bad-syntax\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\duplicate-key\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\merge-conflict\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-objects\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-field\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-steps\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-layout\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {
+          "customer": {
+            "type": "actor",
+            "name": "Customer",
+            "description": "Someone hungry, ordering from the Plum app or the website."
+          },
+          "restaurant": {
+            "type": "actor",
+            "name": "Restaurant",
+            "description": "The kitchen staff who accept an order and mark it ready."
+          },
+          "courier": {
+            "type": "actor",
+            "name": "Courier",
+            "description": "Rides or drives the order from the restaurant to the customer's door."
+          },
+          "support": {
+            "type": "actor",
+            "name": "Support agent",
+            "description": "Answers customers and couriers when something goes wrong."
+          },
+          "ordering": {
+            "type": "system",
+            "name": "Ordering",
+            "description": "Everything a customer touches: browsing menus, building a basket, paying.\n\nThe **Order API** is the only way in. It keeps orders in Postgres and announces every new\norder on the **Order events** bus, which is how **Delivery** hears about it.\n"
+          },
+          "delivery": {
+            "type": "system",
+            "name": "Delivery",
+            "description": "Finds a courier for each order and follows it to the door.\n\nDispatch matches and offers. Live tracking keeps the customer's map moving.\n"
+          },
+          "notifications": {
+            "type": "system",
+            "name": "Notifications",
+            "description": "Push, SMS and email, from one place, so no other system talks to a messaging provider."
+          },
+          "backoffice": {
+            "type": "system",
+            "name": "Back office",
+            "description": "Tools for Plum's own staff. Nothing here is visible to customers or couriers."
+          },
+          "stripe": {
+            "type": "system",
+            "name": "Stripe",
+            "external": "true",
+            "description": "Takes card payments and sends refunds. Plum never sees a card number.\n\n[Provider status](https://status.stripe.com)\n"
+          },
+          "twilio": {
+            "type": "system",
+            "name": "Twilio",
+            "external": "true",
+            "description": "Sends the SMS messages."
+          },
+          "mapbox": {
+            "type": "system",
+            "name": "Mapbox",
+            "external": "true",
+            "description": "Maps, address lookup and travel times."
+          },
+          "customer-app": {
+            "type": "app",
+            "in": "ordering",
+            "name": "Customer app",
+            "tech": "React Native",
+            "code": [
+              "apps/customer/"
+            ],
+            "description": "The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\nKeeps nothing but the basket and the session.\n"
+          },
+          "web": {
+            "type": "app",
+            "in": "ordering",
+            "name": "Website",
+            "tech": "Next.js",
+            "description": "The same ordering flow in a browser. Menus are rendered on the server so search engines see them."
+          },
+          "kitchen-tablet": {
+            "type": "app",
+            "in": "ordering",
+            "name": "Kitchen tablet",
+            "tech": "Android",
+            "description": "Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected."
+          },
+          "order-api": {
+            "type": "app",
+            "in": "ordering",
+            "name": "Order API",
+            "tech": "Node, Fastify",
+            "code": [
+              "services/order-api/"
+            ],
+            "description": "Every client talks to this, and nothing else talks to the **Orders DB**.\n\n- `GET /menus/:restaurant` reads a menu\n- `POST /orders` places an order\n- `POST /orders/:id/refund` refunds one\n"
+          },
+          "orders-db": {
+            "type": "store",
+            "in": "ordering",
+            "name": "Orders DB",
+            "tech": "Postgres",
+            "description": "Orders, baskets and refunds. The source of truth for what a customer owes and was charged."
+          },
+          "menu-cache": {
+            "type": "store",
+            "in": "ordering",
+            "name": "Menu cache",
+            "tech": "Redis",
+            "description": "Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires."
+          },
+          "events": {
+            "type": "store",
+            "in": "ordering",
+            "name": "Order events",
+            "tech": "Kafka",
+            "description": "One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\nDispatch reads from it, and so does the warehouse.\n"
+          },
+          "menu": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Menu",
+            "description": "Serves a restaurant's menu from the cache, and from the database when the cache is cold."
+          },
+          "basket": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Basket",
+            "description": "Holds what the customer picked and asks **Pricing** for the running total."
+          },
+          "pricing": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Pricing",
+            "code": [
+              "services/order-api/src/pricing.ts"
+            ],
+            "description": "Works out the total: items, delivery fee (by distance) and any promotion.\n\nThe delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n"
+          },
+          "checkout": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Checkout",
+            "code": [
+              "services/order-api/src/checkout.ts"
+            ],
+            "description": "Prices the basket, authorises the card and places the order.\n\nNothing is charged until the restaurant accepts. A rejected order releases the hold.\n"
+          },
+          "status": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Order status",
+            "description": "Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step."
+          },
+          "refunds": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Refunds",
+            "description": "Returns money to the card, then marks the order refunded. Support can refund in full or by line."
+          },
+          "courier-app": {
+            "type": "app",
+            "in": "delivery",
+            "name": "Courier app",
+            "tech": "Kotlin, Swift",
+            "description": "Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open."
+          },
+          "dispatch": {
+            "type": "app",
+            "in": "delivery",
+            "name": "Dispatch",
+            "tech": "Go",
+            "code": [
+              "services/dispatch/"
+            ],
+            "description": "Turns each new order into a courier on the way.\n\nIt reads `placed` events and offers the job to couriers one at a time, nearest first.\n"
+          },
+          "tracking": {
+            "type": "app",
+            "in": "delivery",
+            "name": "Live tracking",
+            "tech": "Go, WebSocket",
+            "description": "Passes the courier's position to the customer's map. A position older than a minute is dropped."
+          },
+          "fleet-db": {
+            "type": "store",
+            "in": "delivery",
+            "name": "Fleet DB",
+            "tech": "Postgres, PostGIS",
+            "description": "Couriers, their vehicles, and their last known position."
+          },
+          "matcher": {
+            "type": "component",
+            "in": "dispatch",
+            "name": "Matcher",
+            "code": [
+              "services/dispatch/matcher.go"
+            ],
+            "description": "Ranks the idle couriers near a restaurant by how soon each could be there."
+          },
+          "eta": {
+            "type": "component",
+            "in": "dispatch",
+            "name": "ETA",
+            "description": "Estimates travel time from distance, traffic and the courier's vehicle."
+          },
+          "offers": {
+            "type": "component",
+            "in": "dispatch",
+            "name": "Offers",
+            "description": "Offers a job to one courier at a time and waits 30 seconds for an answer.\n\nA refusal or a timeout moves on to the next courier.\n"
+          },
+          "notifier": {
+            "type": "app",
+            "in": "notifications",
+            "name": "Notifier",
+            "tech": "Node",
+            "description": "Picks push, SMS or email for each message and sends it. Never blocks the caller."
+          },
+          "templates": {
+            "type": "store",
+            "in": "notifications",
+            "name": "Message templates",
+            "tech": "Postgres",
+            "description": "The wording of every message, per language."
+          },
+          "admin": {
+            "type": "app",
+            "in": "backoffice",
+            "name": "Admin dashboard",
+            "tech": "React",
+            "description": "Restaurants, delivery zones, promotions and the weekly reports."
+          },
+          "support-console": {
+            "type": "app",
+            "in": "backoffice",
+            "name": "Support console",
+            "tech": "React",
+            "description": "Look up an order, see where the courier is, issue a refund."
+          },
+          "warehouse": {
+            "type": "store",
+            "in": "backoffice",
+            "name": "Data warehouse",
+            "tech": "ClickHouse",
+            "description": "Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**."
+          }
+        },
+        "connections": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "label": "orders on a phone"
+          },
+          {
+            "from": "customer",
+            "to": "web",
+            "label": "orders in a browser"
+          },
+          {
+            "from": "restaurant",
+            "to": "kitchen-tablet",
+            "label": "accepts orders"
+          },
+          {
+            "from": "courier",
+            "to": "courier-app",
+            "label": "takes deliveries"
+          },
+          {
+            "from": "support",
+            "to": "support-console",
+            "label": "handles tickets"
+          },
+          {
+            "from": "support",
+            "to": "admin",
+            "label": "looks up couriers"
+          },
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "label": "REST"
+          },
+          {
+            "from": "web",
+            "to": "order-api",
+            "label": "REST"
+          },
+          {
+            "from": "kitchen-tablet",
+            "to": "order-api",
+            "label": "accepts, marks ready"
+          },
+          {
+            "from": "menu",
+            "to": "menu-cache",
+            "label": "reads menus"
+          },
+          {
+            "from": "menu",
+            "to": "orders-db",
+            "label": "on a cache miss"
+          },
+          {
+            "from": "basket",
+            "to": "orders-db",
+            "label": "saves the basket"
+          },
+          {
+            "from": "basket",
+            "to": "pricing",
+            "label": "asks for totals"
+          },
+          {
+            "from": "pricing",
+            "to": "mapbox",
+            "label": "delivery distance"
+          },
+          {
+            "from": "checkout",
+            "to": "pricing",
+            "label": "gets the total"
+          },
+          {
+            "from": "checkout",
+            "to": "stripe",
+            "label": "holds the card"
+          },
+          {
+            "from": "checkout",
+            "to": "orders-db",
+            "label": "writes the order"
+          },
+          {
+            "from": "checkout",
+            "to": "events",
+            "label": "announces placed"
+          },
+          {
+            "from": "status",
+            "to": "orders-db",
+            "label": "moves the order on"
+          },
+          {
+            "from": "status",
+            "to": "events",
+            "label": "announces each step"
+          },
+          {
+            "from": "status",
+            "to": "notifier",
+            "label": "order updates"
+          },
+          {
+            "from": "refunds",
+            "to": "stripe",
+            "label": "refunds the charge"
+          },
+          {
+            "from": "refunds",
+            "to": "orders-db",
+            "label": "marks refunded"
+          },
+          {
+            "from": "refunds",
+            "to": "notifier",
+            "label": "confirms by message"
+          },
+          {
+            "from": "dispatch",
+            "to": "events",
+            "label": "reads placed orders"
+          },
+          {
+            "from": "matcher",
+            "to": "fleet-db",
+            "label": "finds idle couriers"
+          },
+          {
+            "from": "matcher",
+            "to": "eta",
+            "label": "asks who is quickest"
+          },
+          {
+            "from": "matcher",
+            "to": "offers",
+            "label": "hands over the ranking"
+          },
+          {
+            "from": "eta",
+            "to": "mapbox",
+            "label": "travel times"
+          },
+          {
+            "from": "offers",
+            "to": "notifier",
+            "label": "sends the offer"
+          },
+          {
+            "from": "courier-app",
+            "to": "dispatch",
+            "label": "accepts or refuses"
+          },
+          {
+            "from": "courier-app",
+            "to": "tracking",
+            "label": "position every 5 s"
+          },
+          {
+            "from": "courier-app",
+            "to": "status",
+            "label": "picked up, delivered"
+          },
+          {
+            "from": "courier-app",
+            "to": "mapbox",
+            "label": "navigation"
+          },
+          {
+            "from": "tracking",
+            "to": "fleet-db",
+            "label": "stores positions"
+          },
+          {
+            "from": "tracking",
+            "to": "customer-app",
+            "label": "live map"
+          },
+          {
+            "from": "tracking",
+            "to": "web",
+            "label": "live map"
+          },
+          {
+            "from": "notifier",
+            "to": "twilio",
+            "label": "SMS"
+          },
+          {
+            "from": "notifier",
+            "to": "templates",
+            "label": "reads the wording"
+          },
+          {
+            "from": "support-console",
+            "to": "order-api",
+            "label": "looks up orders"
+          },
+          {
+            "from": "support-console",
+            "to": "refunds",
+            "label": "issues refunds"
+          },
+          {
+            "from": "admin",
+            "to": "order-api",
+            "label": "menus and promotions"
+          },
+          {
+            "from": "admin",
+            "to": "warehouse",
+            "label": "weekly reports"
+          },
+          {
+            "from": "events",
+            "to": "warehouse",
+            "label": "streams every event"
+          }
+        ]
+      },
+      "text": "objects:\n  customer:\n    type: actor\n    name: Customer\n    description: Someone hungry, ordering from the Plum app or the website.\n  restaurant:\n    type: actor\n    name: Restaurant\n    description: The kitchen staff who accept an order and mark it ready.\n  courier:\n    type: actor\n    name: Courier\n    description: Rides or drives the order from the restaurant to the customer's door.\n  support:\n    type: actor\n    name: Support agent\n    description: Answers customers and couriers when something goes wrong.\n  ordering:\n    type: system\n    name: Ordering\n    description: |\n      Everything a customer touches: browsing menus, building a basket, paying.\n\n      The **Order API** is the only way in. It keeps orders in Postgres and announces every new\n      order on the **Order events** bus, which is how **Delivery** hears about it.\n  delivery:\n    type: system\n    name: Delivery\n    description: |\n      Finds a courier for each order and follows it to the door.\n\n      Dispatch matches and offers. Live tracking keeps the customer's map moving.\n  notifications:\n    type: system\n    name: Notifications\n    description: Push, SMS and email, from one place, so no other system talks to a messaging provider.\n  backoffice:\n    type: system\n    name: Back office\n    description: Tools for Plum's own staff. Nothing here is visible to customers or couriers.\n  stripe:\n    type: system\n    name: Stripe\n    external: true\n    description: |\n      Takes card payments and sends refunds. Plum never sees a card number.\n\n      [Provider status](https://status.stripe.com)\n  twilio:\n    type: system\n    name: Twilio\n    external: true\n    description: Sends the SMS messages.\n  mapbox:\n    type: system\n    name: Mapbox\n    external: true\n    description: Maps, address lookup and travel times.\n  customer-app:\n    type: app\n    in: ordering\n    name: Customer app\n    tech: React Native\n    code:\n      - apps/customer/\n    description: |\n      The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\n      Keeps nothing but the basket and the session.\n  web:\n    type: app\n    in: ordering\n    name: Website\n    tech: Next.js\n    description: The same ordering flow in a browser. Menus are rendered on the server so search engines see them.\n  kitchen-tablet:\n    type: app\n    in: ordering\n    name: Kitchen tablet\n    tech: Android\n    description: Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected.\n  order-api:\n    type: app\n    in: ordering\n    name: Order API\n    tech: Node, Fastify\n    code:\n      - services/order-api/\n    description: |\n      Every client talks to this, and nothing else talks to the **Orders DB**.\n\n      - `GET /menus/:restaurant` reads a menu\n      - `POST /orders` places an order\n      - `POST /orders/:id/refund` refunds one\n  orders-db:\n    type: store\n    in: ordering\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds. The source of truth for what a customer owes and was charged.\n  menu-cache:\n    type: store\n    in: ordering\n    name: Menu cache\n    tech: Redis\n    description: Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires.\n  events:\n    type: store\n    in: ordering\n    name: Order events\n    tech: Kafka\n    description: |\n      One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\n      Dispatch reads from it, and so does the warehouse.\n  menu:\n    type: component\n    in: order-api\n    name: Menu\n    description: Serves a restaurant's menu from the cache, and from the database when the cache is cold.\n  basket:\n    type: component\n    in: order-api\n    name: Basket\n    description: Holds what the customer picked and asks **Pricing** for the running total.\n  pricing:\n    type: component\n    in: order-api\n    name: Pricing\n    code:\n      - services/order-api/src/pricing.ts\n    description: |\n      Works out the total: items, delivery fee (by distance) and any promotion.\n\n      The delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n  checkout:\n    type: component\n    in: order-api\n    name: Checkout\n    code:\n      - services/order-api/src/checkout.ts\n    description: |\n      Prices the basket, authorises the card and places the order.\n\n      Nothing is charged until the restaurant accepts. A rejected order releases the hold.\n  status:\n    type: component\n    in: order-api\n    name: Order status\n    description: Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step.\n  refunds:\n    type: component\n    in: order-api\n    name: Refunds\n    description: Returns money to the card, then marks the order refunded. Support can refund in full or by line.\n  courier-app:\n    type: app\n    in: delivery\n    name: Courier app\n    tech: Kotlin, Swift\n    description: Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open.\n  dispatch:\n    type: app\n    in: delivery\n    name: Dispatch\n    tech: Go\n    code:\n      - services/dispatch/\n    description: |\n      Turns each new order into a courier on the way.\n\n      It reads `placed` events and offers the job to couriers one at a time, nearest first.\n  tracking:\n    type: app\n    in: delivery\n    name: Live tracking\n    tech: Go, WebSocket\n    description: Passes the courier's position to the customer's map. A position older than a minute is dropped.\n  fleet-db:\n    type: store\n    in: delivery\n    name: Fleet DB\n    tech: Postgres, PostGIS\n    description: Couriers, their vehicles, and their last known position.\n  matcher:\n    type: component\n    in: dispatch\n    name: Matcher\n    code:\n      - services/dispatch/matcher.go\n    description: Ranks the idle couriers near a restaurant by how soon each could be there.\n  eta:\n    type: component\n    in: dispatch\n    name: ETA\n    description: Estimates travel time from distance, traffic and the courier's vehicle.\n  offers:\n    type: component\n    in: dispatch\n    name: Offers\n    description: |\n      Offers a job to one courier at a time and waits 30 seconds for an answer.\n\n      A refusal or a timeout moves on to the next courier.\n  notifier:\n    type: app\n    in: notifications\n    name: Notifier\n    tech: Node\n    description: Picks push, SMS or email for each message and sends it. Never blocks the caller.\n  templates:\n    type: store\n    in: notifications\n    name: Message templates\n    tech: Postgres\n    description: The wording of every message, per language.\n  admin:\n    type: app\n    in: backoffice\n    name: Admin dashboard\n    tech: React\n    description: Restaurants, delivery zones, promotions and the weekly reports.\n  support-console:\n    type: app\n    in: backoffice\n    name: Support console\n    tech: React\n    description: Look up an order, see where the courier is, issue a refund.\n  warehouse:\n    type: store\n    in: backoffice\n    name: Data warehouse\n    tech: ClickHouse\n    description: Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**.\nconnections:\n  - from: customer\n    to: customer-app\n    label: orders on a phone\n  - from: customer\n    to: web\n    label: orders in a browser\n  - from: restaurant\n    to: kitchen-tablet\n    label: accepts orders\n  - from: courier\n    to: courier-app\n    label: takes deliveries\n  - from: support\n    to: support-console\n    label: handles tickets\n  - from: support\n    to: admin\n    label: looks up couriers\n  - from: customer-app\n    to: order-api\n    label: REST\n  - from: web\n    to: order-api\n    label: REST\n  - from: kitchen-tablet\n    to: order-api\n    label: accepts, marks ready\n  - from: menu\n    to: menu-cache\n    label: reads menus\n  - from: menu\n    to: orders-db\n    label: on a cache miss\n  - from: basket\n    to: orders-db\n    label: saves the basket\n  - from: basket\n    to: pricing\n    label: asks for totals\n  - from: pricing\n    to: mapbox\n    label: delivery distance\n  - from: checkout\n    to: pricing\n    label: gets the total\n  - from: checkout\n    to: stripe\n    label: holds the card\n  - from: checkout\n    to: orders-db\n    label: writes the order\n  - from: checkout\n    to: events\n    label: announces placed\n  - from: status\n    to: orders-db\n    label: moves the order on\n  - from: status\n    to: events\n    label: announces each step\n  - from: status\n    to: notifier\n    label: order updates\n  - from: refunds\n    to: stripe\n    label: refunds the charge\n  - from: refunds\n    to: orders-db\n    label: marks refunded\n  - from: refunds\n    to: notifier\n    label: confirms by message\n  - from: dispatch\n    to: events\n    label: reads placed orders\n  - from: matcher\n    to: fleet-db\n    label: finds idle couriers\n  - from: matcher\n    to: eta\n    label: asks who is quickest\n  - from: matcher\n    to: offers\n    label: hands over the ranking\n  - from: eta\n    to: mapbox\n    label: travel times\n  - from: offers\n    to: notifier\n    label: sends the offer\n  - from: courier-app\n    to: dispatch\n    label: accepts or refuses\n  - from: courier-app\n    to: tracking\n    label: position every 5 s\n  - from: courier-app\n    to: status\n    label: picked up, delivered\n  - from: courier-app\n    to: mapbox\n    label: navigation\n  - from: tracking\n    to: fleet-db\n    label: stores positions\n  - from: tracking\n    to: customer-app\n    label: live map\n  - from: tracking\n    to: web\n    label: live map\n  - from: notifier\n    to: twilio\n    label: SMS\n  - from: notifier\n    to: templates\n    label: reads the wording\n  - from: support-console\n    to: order-api\n    label: looks up orders\n  - from: support-console\n    to: refunds\n    label: issues refunds\n  - from: admin\n    to: order-api\n    label: menus and promotions\n  - from: admin\n    to: warehouse\n    label: weekly reports\n  - from: events\n    to: warehouse\n    label: streams every event\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "flows/deliver-order.yaml",
+      "data": {
+        "name": "A courier delivers it",
+        "view": "delivery",
+        "steps": [
+          {
+            "from": "events",
+            "to": "dispatch",
+            "text": "Hears that an order was placed"
+          },
+          {
+            "from": "dispatch",
+            "to": "fleet-db",
+            "text": "Finds idle couriers near the restaurant"
+          },
+          {
+            "from": "dispatch",
+            "text": "Ranks them by how soon each could arrive",
+            "description": "The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the\nvehicle. The quickest one is offered the job first.\n"
+          },
+          {
+            "from": "dispatch",
+            "to": "notifier",
+            "text": "Sends the offer as a push"
+          },
+          {
+            "from": "courier",
+            "to": "courier-app",
+            "text": "Accepts within 30 seconds"
+          },
+          {
+            "from": "courier-app",
+            "to": "tracking",
+            "text": "Streams its position every 5 seconds",
+            "description": "Only while a job is open. A position older than a minute is dropped, so a courier who loses\nsignal stops moving on the customer's map instead of jumping when it comes back.\n"
+          },
+          {
+            "from": "tracking",
+            "to": "customer-app",
+            "text": "The customer watches the courier come"
+          },
+          {
+            "from": "courier-app",
+            "to": "order-api",
+            "text": "Marks the order delivered"
+          }
+        ]
+      },
+      "text": "name: A courier delivers it\nview: delivery\nsteps:\n  - from: events\n    to: dispatch\n    text: Hears that an order was placed\n  - from: dispatch\n    to: fleet-db\n    text: Finds idle couriers near the restaurant\n  - from: dispatch\n    text: Ranks them by how soon each could arrive\n    description: |\n      The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the\n      vehicle. The quickest one is offered the job first.\n  - from: dispatch\n    to: notifier\n    text: Sends the offer as a push\n  - from: courier\n    to: courier-app\n    text: Accepts within 30 seconds\n  - from: courier-app\n    to: tracking\n    text: Streams its position every 5 seconds\n    description: |\n      Only while a job is open. A position older than a minute is dropped, so a courier who loses\n      signal stops moving on the customer's map instead of jumping when it comes back.\n  - from: tracking\n    to: customer-app\n    text: The customer watches the courier come\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "flows/place-order.yaml",
+      "data": {
+        "name": "Customer places an order",
+        "view": "ordering",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Fills a basket and taps Place order"
+          },
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "text": "POST /orders with the basket",
+            "description": "The app sends an idempotency key with the request, so a double tap or a retry on a bad\nconnection places one order, not two.\n"
+          },
+          {
+            "from": "order-api",
+            "to": "stripe",
+            "text": "Holds the amount on the card",
+            "description": "**Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\nonce the restaurant accepts, and the hold is released if it refuses.\n"
+          },
+          {
+            "from": "order-api",
+            "to": "orders-db",
+            "text": "Saves the order as placed"
+          },
+          {
+            "from": "order-api",
+            "to": "events",
+            "text": "Announces the order"
+          },
+          {
+            "from": "events",
+            "to": "dispatch",
+            "text": "Dispatch starts looking for a courier"
+          },
+          {
+            "from": "order-api",
+            "to": "kitchen-tablet",
+            "text": "The restaurant's tablet rings",
+            "description": "The kitchen has two minutes to accept. After that the order is cancelled, the hold is\nreleased and the customer is told.\n"
+          }
+        ]
+      },
+      "text": "name: Customer places an order\nview: ordering\nsteps:\n  - from: customer\n    to: customer-app\n    text: Fills a basket and taps Place order\n  - from: customer-app\n    to: order-api\n    text: POST /orders with the basket\n    description: |\n      The app sends an idempotency key with the request, so a double tap or a retry on a bad\n      connection places one order, not two.\n  - from: order-api\n    to: stripe\n    text: Holds the amount on the card\n    description: |\n      **Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\n      once the restaurant accepts, and the hold is released if it refuses.\n  - from: order-api\n    to: orders-db\n    text: Saves the order as placed\n  - from: order-api\n    to: events\n    text: Announces the order\n  - from: events\n    to: dispatch\n    text: Dispatch starts looking for a courier\n  - from: order-api\n    to: kitchen-tablet\n    text: The restaurant's tablet rings\n    description: |\n      The kitchen has two minutes to accept. After that the order is cancelled, the hold is\n      released and the customer is told.\n"
+    },
+    {
+      "folder": "example",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {
+          "customer": {
+            "type": "actor",
+            "name": "Customer",
+            "description": "Someone buying things on the shop's website."
+          },
+          "shop": {
+            "type": "system",
+            "name": "Shop",
+            "description": "Sells things online.\n\nA web app in front of an API. Orders are kept in Postgres, and receipts go out\nthrough the **Mail service**.\n"
+          },
+          "web": {
+            "type": "app",
+            "in": "shop",
+            "name": "Web app",
+            "tech": "React",
+            "description": "The storefront customers browse.\n\nTalks to the API over REST. Keeps nothing but the cart.\n"
+          },
+          "api": {
+            "type": "app",
+            "in": "shop",
+            "name": "API",
+            "tech": "Node",
+            "description": "Handles orders and sign-in.\n\n- `POST /orders` places an order\n- `POST /login` signs a customer in\n"
+          },
+          "db": {
+            "type": "store",
+            "in": "shop",
+            "name": "Orders DB",
+            "tech": "Postgres"
+          },
+          "auth": {
+            "type": "component",
+            "in": "api",
+            "name": "Auth",
+            "description": "Checks passwords and starts sessions."
+          },
+          "orders": {
+            "type": "component",
+            "in": "api",
+            "name": "Orders",
+            "description": "Checks and saves orders, then asks for a receipt."
+          },
+          "mail": {
+            "type": "system",
+            "name": "Mail service",
+            "external": "true",
+            "description": "Sends our email. Run by an outside provider.\n\n[Provider status](https://example.com/status)\n"
+          }
+        },
+        "connections": [
+          {
+            "from": "customer",
+            "to": "web",
+            "label": "browses"
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "label": "REST"
+          },
+          {
+            "from": "orders",
+            "to": "db",
+            "label": "reads/writes"
+          },
+          {
+            "from": "auth",
+            "to": "db",
+            "label": "checks users"
+          },
+          {
+            "from": "orders",
+            "to": "mail",
+            "label": "sends receipts"
+          }
+        ]
+      },
+      "text": "objects:\n  customer:\n    type: actor\n    name: Customer\n    description: Someone buying things on the shop's website.\n  shop:\n    type: system\n    name: Shop\n    description: |\n      Sells things online.\n\n      A web app in front of an API. Orders are kept in Postgres, and receipts go out\n      through the **Mail service**.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n    description: |\n      The storefront customers browse.\n\n      Talks to the API over REST. Keeps nothing but the cart.\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    description: |\n      Handles orders and sign-in.\n\n      - `POST /orders` places an order\n      - `POST /login` signs a customer in\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n    description: Checks passwords and starts sessions.\n  orders:\n    type: component\n    in: api\n    name: Orders\n    description: Checks and saves orders, then asks for a receipt.\n  mail:\n    type: system\n    name: Mail service\n    external: true\n    description: |\n      Sends our email. Run by an outside provider.\n\n      [Provider status](https://example.com/status)\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n"
+    },
+    {
+      "folder": "example",
+      "rel": "flows/checkout.yaml",
+      "data": {
+        "name": "Customer checks out",
+        "view": "shop",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "web",
+            "text": "Clicks \"Buy\""
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "text": "POST /orders"
+          },
+          {
+            "from": "orders",
+            "text": "Checks that every item is in stock",
+            "description": "Stock comes from the **Orders DB**. An item that ran out fails the whole order,\nand the customer sees which one.\n"
+          },
+          {
+            "from": "orders",
+            "to": "db",
+            "text": "Saves the order"
+          },
+          {
+            "from": "orders",
+            "to": "mail",
+            "text": "Asks for a receipt email"
+          }
+        ]
+      },
+      "text": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: orders\n    text: Checks that every item is in stock\n    description: |\n      Stock comes from the **Orders DB**. An item that ran out fails the whole order,\n      and the customer sees which one.\n  - from: orders\n    to: db\n    text: Saves the order\n  - from: orders\n    to: mail\n    text: Asks for a receipt email\n"
+    },
+    {
+      "folder": "example",
+      "rel": "flows/sign-in.yaml",
+      "data": {
+        "name": "Customer signs in",
+        "view": "api",
+        "steps": [
+          {
+            "from": "web",
+            "to": "auth",
+            "text": "POST /login"
+          },
+          {
+            "from": "auth",
+            "to": "db",
+            "text": "Looks up the user and checks the password"
+          }
+        ]
+      },
+      "text": "name: Customer signs in\nview: api\nsteps:\n  - from: web\n    to: auth\n    text: POST /login\n  - from: auth\n    to: db\n    text: Looks up the user and checks the password\n"
+    }
+  ]
+}
