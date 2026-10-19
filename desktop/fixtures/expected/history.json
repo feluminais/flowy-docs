@@ -1,0 +1,1296 @@
+{
+  "diffs": [
+    {
+      "name": "identical",
+      "base": "a\nb\n",
+      "next": "a\nb\n",
+      "marks": [
+        {
+          "kind": "same",
+          "text": "a",
+          "line": 1
+        },
+        {
+          "kind": "same",
+          "text": "b",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "a changed line",
+      "base": "a\nb\nc\n",
+      "next": "a\nB\nc\n",
+      "marks": [
+        {
+          "kind": "same",
+          "text": "a",
+          "line": 1
+        },
+        {
+          "kind": "remove",
+          "text": "b"
+        },
+        {
+          "kind": "add",
+          "text": "B",
+          "line": 2
+        },
+        {
+          "kind": "same",
+          "text": "c",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "name": "a tie goes to the removal",
+      "base": "a\nx\n",
+      "next": "x\na\n",
+      "marks": [
+        {
+          "kind": "remove",
+          "text": "a"
+        },
+        {
+          "kind": "same",
+          "text": "x",
+          "line": 1
+        },
+        {
+          "kind": "add",
+          "text": "a",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "empty base",
+      "base": "",
+      "next": "a\nb\n",
+      "marks": [
+        {
+          "kind": "add",
+          "text": "a",
+          "line": 1
+        },
+        {
+          "kind": "add",
+          "text": "b",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "empty next",
+      "base": "a\nb\n",
+      "next": "",
+      "marks": [
+        {
+          "kind": "remove",
+          "text": "a"
+        },
+        {
+          "kind": "remove",
+          "text": "b"
+        }
+      ]
+    },
+    {
+      "name": "both empty",
+      "base": "",
+      "next": "",
+      "marks": []
+    },
+    {
+      "name": "line endings and the final newline",
+      "base": "a\r\nb",
+      "next": "a\nb\n",
+      "marks": [
+        {
+          "kind": "same",
+          "text": "a",
+          "line": 1
+        },
+        {
+          "kind": "same",
+          "text": "b",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "a blank line",
+      "base": "a\n\nb\n",
+      "next": "a\nb\n",
+      "marks": [
+        {
+          "kind": "same",
+          "text": "a",
+          "line": 1
+        },
+        {
+          "kind": "remove",
+          "text": ""
+        },
+        {
+          "kind": "same",
+          "text": "b",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "a moved block",
+      "base": "a\nb\nc\nd\n",
+      "next": "c\nd\na\nb\n",
+      "marks": [
+        {
+          "kind": "remove",
+          "text": "a"
+        },
+        {
+          "kind": "remove",
+          "text": "b"
+        },
+        {
+          "kind": "same",
+          "text": "c",
+          "line": 1
+        },
+        {
+          "kind": "same",
+          "text": "d",
+          "line": 2
+        },
+        {
+          "kind": "add",
+          "text": "a",
+          "line": 3
+        },
+        {
+          "kind": "add",
+          "text": "b",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "name": "no final newline on either side",
+      "base": "a\nb",
+      "next": "a\nc",
+      "marks": [
+        {
+          "kind": "same",
+          "text": "a",
+          "line": 1
+        },
+        {
+          "kind": "remove",
+          "text": "b"
+        },
+        {
+          "kind": "add",
+          "text": "c",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "a line added at the start and one at the end",
+      "base": "b\nc\n",
+      "next": "a\nb\nc\nd\n",
+      "marks": [
+        {
+          "kind": "add",
+          "text": "a",
+          "line": 1
+        },
+        {
+          "kind": "same",
+          "text": "b",
+          "line": 2
+        },
+        {
+          "kind": "same",
+          "text": "c",
+          "line": 3
+        },
+        {
+          "kind": "add",
+          "text": "d",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "name": "a change in the middle of thirty lines",
+      "base": "line 0\nline 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15 changed\nline 16\nline 17\nline 18\nline 19\nline 20\nline 21\nline 22\nline 23\nline 24\nline 25\nline 26\nline 27\nline 28\nline 29\n",
+      "next": "line 0\nline 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\nline 21\nline 22\nline 23\nline 24\nline 25\nline 26\nline 27\nline 28\nline 29\n",
+      "marks": [
+        {
+          "kind": "same",
+          "text": "line 0",
+          "line": 1
+        },
+        {
+          "kind": "same",
+          "text": "line 1",
+          "line": 2
+        },
+        {
+          "kind": "same",
+          "text": "line 2",
+          "line": 3
+        },
+        {
+          "kind": "same",
+          "text": "line 3",
+          "line": 4
+        },
+        {
+          "kind": "same",
+          "text": "line 4",
+          "line": 5
+        },
+        {
+          "kind": "same",
+          "text": "line 5",
+          "line": 6
+        },
+        {
+          "kind": "same",
+          "text": "line 6",
+          "line": 7
+        },
+        {
+          "kind": "same",
+          "text": "line 7",
+          "line": 8
+        },
+        {
+          "kind": "same",
+          "text": "line 8",
+          "line": 9
+        },
+        {
+          "kind": "same",
+          "text": "line 9",
+          "line": 10
+        },
+        {
+          "kind": "same",
+          "text": "line 10",
+          "line": 11
+        },
+        {
+          "kind": "same",
+          "text": "line 11",
+          "line": 12
+        },
+        {
+          "kind": "same",
+          "text": "line 12",
+          "line": 13
+        },
+        {
+          "kind": "same",
+          "text": "line 13",
+          "line": 14
+        },
+        {
+          "kind": "same",
+          "text": "line 14",
+          "line": 15
+        },
+        {
+          "kind": "remove",
+          "text": "line 15 changed"
+        },
+        {
+          "kind": "add",
+          "text": "line 15",
+          "line": 16
+        },
+        {
+          "kind": "same",
+          "text": "line 16",
+          "line": 17
+        },
+        {
+          "kind": "same",
+          "text": "line 17",
+          "line": 18
+        },
+        {
+          "kind": "same",
+          "text": "line 18",
+          "line": 19
+        },
+        {
+          "kind": "same",
+          "text": "line 19",
+          "line": 20
+        },
+        {
+          "kind": "same",
+          "text": "line 20",
+          "line": 21
+        },
+        {
+          "kind": "same",
+          "text": "line 21",
+          "line": 22
+        },
+        {
+          "kind": "same",
+          "text": "line 22",
+          "line": 23
+        },
+        {
+          "kind": "same",
+          "text": "line 23",
+          "line": 24
+        },
+        {
+          "kind": "same",
+          "text": "line 24",
+          "line": 25
+        },
+        {
+          "kind": "same",
+          "text": "line 25",
+          "line": 26
+        },
+        {
+          "kind": "same",
+          "text": "line 26",
+          "line": 27
+        },
+        {
+          "kind": "same",
+          "text": "line 27",
+          "line": 28
+        },
+        {
+          "kind": "same",
+          "text": "line 28",
+          "line": 29
+        },
+        {
+          "kind": "same",
+          "text": "line 29",
+          "line": 30
+        }
+      ]
+    },
+    {
+      "name": "repeated lines",
+      "base": "x\nx\nx\n",
+      "next": "x\nx\n",
+      "marks": [
+        {
+          "kind": "same",
+          "text": "x",
+          "line": 1
+        },
+        {
+          "kind": "same",
+          "text": "x",
+          "line": 2
+        },
+        {
+          "kind": "remove",
+          "text": "x"
+        }
+      ]
+    },
+    {
+      "name": "yaml with a renamed key",
+      "base": "objects:\n  shop:\n    type: system\n    name: Shop\n",
+      "next": "objects:\n  shop:\n    type: system\n    name: Web shop\n",
+      "marks": [
+        {
+          "kind": "same",
+          "text": "objects:",
+          "line": 1
+        },
+        {
+          "kind": "same",
+          "text": "  shop:",
+          "line": 2
+        },
+        {
+          "kind": "same",
+          "text": "    type: system",
+          "line": 3
+        },
+        {
+          "kind": "remove",
+          "text": "    name: Shop"
+        },
+        {
+          "kind": "add",
+          "text": "    name: Web shop",
+          "line": 4
+        }
+      ]
+    }
+  ],
+  "fallback": {
+    "lines": 2100,
+    "removes": 2100,
+    "adds": 2100,
+    "firstAdd": {
+      "kind": "add",
+      "text": "b0",
+      "line": 1
+    }
+  },
+  "collapse": [
+    {
+      "name": "an outside step equal to the labelled one before it",
+      "steps": [
+        {
+          "id": "1",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "you 1",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "aaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "id": "2",
+          "time": "2026-10-20T10:00:02.000Z",
+          "label": "outside 2",
+          "source": "outside",
+          "app": "browser",
+          "files": {
+            "model.yaml": "aaaaaaaaaaaaaaaa"
+          }
+        }
+      ],
+      "visible": [
+        "1"
+      ],
+      "infos": [
+        {
+          "id": "1",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "you 1",
+          "source": "you",
+          "app": "browser",
+          "changed": [
+            "model.yaml"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a labelled step over the identical outside one",
+      "steps": [
+        {
+          "id": "1",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "you 1",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "aaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "id": "2",
+          "time": "2026-10-20T10:00:02.000Z",
+          "label": "outside 2",
+          "source": "outside",
+          "app": "browser",
+          "files": {
+            "model.yaml": "bbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "id": "3",
+          "time": "2026-10-20T10:00:03.000Z",
+          "label": "you 3",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "bbbbbbbbbbbbbbbb"
+          }
+        }
+      ],
+      "visible": [
+        "1",
+        "3"
+      ],
+      "infos": [
+        {
+          "id": "3",
+          "time": "2026-10-20T10:00:03.000Z",
+          "label": "you 3",
+          "source": "you",
+          "app": "browser",
+          "changed": [
+            "model.yaml"
+          ]
+        },
+        {
+          "id": "1",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "you 1",
+          "source": "you",
+          "app": "browser",
+          "changed": [
+            "model.yaml"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a labelled step over the first-seen step",
+      "steps": [
+        {
+          "id": "1",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "first 1",
+          "source": "first",
+          "app": "browser",
+          "files": {
+            "model.yaml": "aaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "id": "2",
+          "time": "2026-10-20T10:00:02.000Z",
+          "label": "claude 2",
+          "source": "claude",
+          "app": "browser",
+          "files": {
+            "model.yaml": "aaaaaaaaaaaaaaaa"
+          }
+        }
+      ],
+      "visible": [
+        "2"
+      ],
+      "infos": [
+        {
+          "id": "2",
+          "time": "2026-10-20T10:00:02.000Z",
+          "label": "claude 2",
+          "source": "claude",
+          "app": "browser",
+          "changed": [
+            "model.yaml"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "two labelled steps with equal files",
+      "steps": [
+        {
+          "id": "1",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "you 1",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "aaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "id": "2",
+          "time": "2026-10-20T10:00:02.000Z",
+          "label": "claude 2",
+          "source": "claude",
+          "app": "browser",
+          "files": {
+            "model.yaml": "aaaaaaaaaaaaaaaa"
+          }
+        }
+      ],
+      "visible": [
+        "1"
+      ],
+      "infos": [
+        {
+          "id": "1",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "you 1",
+          "source": "you",
+          "app": "browser",
+          "changed": [
+            "model.yaml"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "files that come and go",
+      "steps": [
+        {
+          "id": "1",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "you 1",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "aaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "id": "2",
+          "time": "2026-10-20T10:00:02.000Z",
+          "label": "you 2",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "aaaaaaaaaaaaaaaa",
+            "flows/a.yaml": "bbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "id": "3",
+          "time": "2026-10-20T10:00:03.000Z",
+          "label": "restore 3",
+          "source": "restore",
+          "app": "browser",
+          "files": {
+            "model.yaml": "aaaaaaaaaaaaaaaa"
+          }
+        }
+      ],
+      "visible": [
+        "1",
+        "2",
+        "3"
+      ],
+      "infos": [
+        {
+          "id": "3",
+          "time": "2026-10-20T10:00:03.000Z",
+          "label": "restore 3",
+          "source": "restore",
+          "app": "browser",
+          "changed": [
+            "flows/a.yaml"
+          ]
+        },
+        {
+          "id": "2",
+          "time": "2026-10-20T10:00:02.000Z",
+          "label": "you 2",
+          "source": "you",
+          "app": "browser",
+          "changed": [
+            "flows/a.yaml"
+          ]
+        },
+        {
+          "id": "1",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "you 1",
+          "source": "you",
+          "app": "browser",
+          "changed": [
+            "model.yaml"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "nothing",
+      "steps": [],
+      "visible": [],
+      "infos": []
+    }
+  ],
+  "retention": [
+    {
+      "keep": 3,
+      "steps": [
+        {
+          "id": "1",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "you 1",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "cd36b49d7b2a8b5e",
+            "layout.yaml": "1dc5ae5b68174891"
+          }
+        },
+        {
+          "id": "2",
+          "time": "2026-10-20T10:00:02.000Z",
+          "label": "you 2",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "97e2521720cb4b38",
+            "layout.yaml": "1dc5ae5b68174891"
+          }
+        },
+        {
+          "id": "3",
+          "time": "2026-10-20T10:00:03.000Z",
+          "label": "you 3",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "a63f0dfe98cc2a03",
+            "layout.yaml": "1dc5ae5b68174891"
+          }
+        },
+        {
+          "id": "4",
+          "time": "2026-10-20T10:00:04.000Z",
+          "label": "you 4",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "47b98be17c1c80f2",
+            "layout.yaml": "1dc5ae5b68174891"
+          }
+        },
+        {
+          "id": "5",
+          "time": "2026-10-20T10:00:05.000Z",
+          "label": "you 5",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "7aeb12053cb40562",
+            "layout.yaml": "1dc5ae5b68174891"
+          }
+        }
+      ],
+      "dropSteps": [
+        "1",
+        "2"
+      ],
+      "keepBlobs": [
+        "1dc5ae5b68174891",
+        "47b98be17c1c80f2",
+        "7aeb12053cb40562",
+        "a63f0dfe98cc2a03"
+      ]
+    },
+    {
+      "keep": 9,
+      "steps": [
+        {
+          "id": "1",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "you 1",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "cd36b49d7b2a8b5e",
+            "layout.yaml": "1dc5ae5b68174891"
+          }
+        },
+        {
+          "id": "2",
+          "time": "2026-10-20T10:00:02.000Z",
+          "label": "you 2",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "97e2521720cb4b38",
+            "layout.yaml": "1dc5ae5b68174891"
+          }
+        },
+        {
+          "id": "3",
+          "time": "2026-10-20T10:00:03.000Z",
+          "label": "you 3",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "a63f0dfe98cc2a03",
+            "layout.yaml": "1dc5ae5b68174891"
+          }
+        },
+        {
+          "id": "4",
+          "time": "2026-10-20T10:00:04.000Z",
+          "label": "you 4",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "47b98be17c1c80f2",
+            "layout.yaml": "1dc5ae5b68174891"
+          }
+        },
+        {
+          "id": "5",
+          "time": "2026-10-20T10:00:05.000Z",
+          "label": "you 5",
+          "source": "you",
+          "app": "browser",
+          "files": {
+            "model.yaml": "7aeb12053cb40562",
+            "layout.yaml": "1dc5ae5b68174891"
+          }
+        }
+      ],
+      "dropSteps": [],
+      "keepBlobs": [
+        "1dc5ae5b68174891",
+        "47b98be17c1c80f2",
+        "7aeb12053cb40562",
+        "97e2521720cb4b38",
+        "a63f0dfe98cc2a03",
+        "cd36b49d7b2a8b5e"
+      ]
+    }
+  ],
+  "changed": [
+    {
+      "before": {
+        "a": "1",
+        "b": "2",
+        "c": "3"
+      },
+      "after": {
+        "a": "1",
+        "b": "9",
+        "d": "4"
+      },
+      "changed": [
+        "b",
+        "c",
+        "d"
+      ]
+    },
+    {
+      "before": {},
+      "after": {
+        "a": "1"
+      },
+      "changed": [
+        "a"
+      ]
+    },
+    {
+      "before": {
+        "a": "1"
+      },
+      "after": {
+        "a": "1"
+      },
+      "changed": []
+    }
+  ],
+  "labels": {
+    "files": [
+      {
+        "files": [],
+        "outside": "Changed outside Flowy",
+        "fallback": "Changed files"
+      },
+      {
+        "files": [
+          "model.yaml"
+        ],
+        "outside": "Changed outside Flowy: model.yaml",
+        "fallback": "Changed model.yaml"
+      },
+      {
+        "files": [
+          "model.yaml",
+          "layout.yaml"
+        ],
+        "outside": "Changed outside Flowy: model.yaml, layout.yaml",
+        "fallback": "Changed model.yaml, layout.yaml"
+      },
+      {
+        "files": [
+          "model.yaml",
+          "layout.yaml",
+          "flows/a.yaml"
+        ],
+        "outside": "Changed outside Flowy: model.yaml, layout.yaml, flows/a.yaml",
+        "fallback": "Changed model.yaml, layout.yaml, flows/a.yaml"
+      },
+      {
+        "files": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "outside": "Changed outside Flowy: 4 files",
+        "fallback": "Changed 4 files"
+      }
+    ],
+    "mcp": [
+      {
+        "tool": "put_object",
+        "input": {
+          "id": "cart"
+        },
+        "label": "Claude: put_object cart"
+      },
+      {
+        "tool": "connect",
+        "input": {
+          "from": "a",
+          "to": "b"
+        },
+        "label": "Claude: connect a → b"
+      },
+      {
+        "tool": "disconnect",
+        "input": {
+          "from": "a",
+          "to": "b",
+          "label": "x"
+        },
+        "label": "Claude: disconnect a → b"
+      },
+      {
+        "tool": "put_icon",
+        "input": {
+          "name": "stripe"
+        },
+        "label": "Claude: put_icon stripe"
+      },
+      {
+        "tool": "put_flow",
+        "input": {
+          "id": "checkout"
+        },
+        "label": "Claude: put_flow checkout"
+      },
+      {
+        "tool": "get_model",
+        "input": {},
+        "label": "Claude: get_model"
+      },
+      {
+        "tool": "put_object",
+        "input": {
+          "id": 5
+        },
+        "label": "Claude: put_object"
+      },
+      {
+        "tool": "connect",
+        "input": {
+          "from": "a"
+        },
+        "label": "Claude: connect"
+      }
+    ]
+  },
+  "keys": [
+    {
+      "path": "M:\\Projects\\Flowy Docs\\flowy",
+      "platform": "win32",
+      "key": "eef856184a5d9f78"
+    },
+    {
+      "path": "m:\\projects\\flowy docs\\flowy\\",
+      "platform": "win32",
+      "key": "eef856184a5d9f78"
+    },
+    {
+      "path": "/home/a/Shop/flowy",
+      "platform": "linux",
+      "key": "955f13a1920fe43e"
+    },
+    {
+      "path": "/home/a/shop/flowy",
+      "platform": "linux",
+      "key": "14af14f323ebcdc2"
+    },
+    {
+      "path": "/Users/a/Shop/flowy/",
+      "platform": "darwin",
+      "key": "1f4f598674bca155"
+    },
+    {
+      "path": "/USERS/A/SHOP/FLOWY",
+      "platform": "darwin",
+      "key": "1f4f598674bca155"
+    },
+    {
+      "path": "C:\\p\\é a\\flowy",
+      "platform": "win32",
+      "key": "e898442d68f00fc7"
+    },
+    {
+      "path": "C:\\p\\É a\\flowy",
+      "platform": "win32",
+      "key": "1176bfd1d254bfb3"
+    }
+  ],
+  "stateDirs": [
+    {
+      "env": {
+        "FLOWY_STATE_DIR": "/state"
+      },
+      "platform": "linux",
+      "home": "/h",
+      "dir": "/state"
+    },
+    {
+      "env": {
+        "FLOWY_STATE_DIR": ""
+      },
+      "platform": "linux",
+      "home": "/h",
+      "dir": "/h/.config/Flowy Docs"
+    },
+    {
+      "env": {
+        "APPDATA": "C:\\Users\\a\\AppData\\Roaming"
+      },
+      "platform": "win32",
+      "home": "C:\\Users\\a",
+      "dir": "C:\\Users\\a\\AppData\\Roaming\\Flowy Docs"
+    },
+    {
+      "env": {},
+      "platform": "win32",
+      "home": "C:\\Users\\a",
+      "dir": "C:\\Users\\a\\AppData\\Roaming\\Flowy Docs"
+    },
+    {
+      "env": {
+        "XDG_CONFIG_HOME": "/x"
+      },
+      "platform": "linux",
+      "home": "/h",
+      "dir": "/x/Flowy Docs"
+    },
+    {
+      "env": {},
+      "platform": "linux",
+      "home": "/h",
+      "dir": "/h/.config/Flowy Docs"
+    },
+    {
+      "env": {},
+      "platform": "darwin",
+      "home": "/Users/a",
+      "dir": "/Users/a/.config/Flowy Docs"
+    }
+  ],
+  "trail": {
+    "folder": "history-trail",
+    "files": [
+      "blobs/077fa80da98f29b0",
+      "blobs/566729b9c9c51813",
+      "blobs/6ef4c360b43183fe",
+      "blobs/ba778c0261008c8f",
+      "blobs/d6e535dce926c983",
+      "steps/20261020T100000000Z-000000.json",
+      "steps/20261020T100001000Z-000001.json",
+      "steps/20261020T100002000Z-000002.json",
+      "steps/20261020T100003000Z-000003.json",
+      "steps/20261020T100004000Z-000004.json",
+      "steps/20261020T100005000Z-000005.json"
+    ],
+    "list": [
+      {
+        "id": "20261020T100005000Z-000005",
+        "time": "2026-10-20T10:00:05.000Z",
+        "label": "Claude: put_object cart",
+        "source": "claude",
+        "app": "mcp",
+        "changed": [
+          "model.yaml"
+        ]
+      },
+      {
+        "id": "20261020T100003000Z-000003",
+        "time": "2026-10-20T10:00:03.000Z",
+        "label": "Restored the version from 10:00",
+        "source": "restore",
+        "app": "browser",
+        "changed": [
+          "model.yaml"
+        ]
+      },
+      {
+        "id": "20261020T100002000Z-000002",
+        "time": "2026-10-20T10:00:02.000Z",
+        "label": "Changed outside Flowy: model.yaml",
+        "source": "outside",
+        "app": "desktop",
+        "changed": [
+          "model.yaml"
+        ]
+      },
+      {
+        "id": "20261020T100001000Z-000001",
+        "time": "2026-10-20T10:00:01.000Z",
+        "label": "Added the Shop system",
+        "source": "you",
+        "app": "browser",
+        "changed": [
+          "layout.yaml",
+          "model.yaml"
+        ]
+      },
+      {
+        "id": "20261020T100000000Z-000000",
+        "time": "2026-10-20T10:00:00.000Z",
+        "label": "First seen",
+        "source": "first",
+        "app": "browser",
+        "changed": [
+          "model.yaml"
+        ]
+      }
+    ],
+    "reads": [
+      {
+        "step": {
+          "id": "20261020T100005000Z-000005",
+          "time": "2026-10-20T10:00:05.000Z",
+          "label": "Claude: put_object cart",
+          "source": "claude",
+          "app": "mcp",
+          "changed": [
+            "model.yaml"
+          ]
+        },
+        "files": {
+          "model.yaml": {
+            "text": "objects:\n  shop: { type: system, name: Shop }\n  cart: { type: system, name: Cart }\nconnections: []\n"
+          },
+          "layout.yaml": {
+            "text": "root:\n  shop: [10, 20]\n"
+          }
+        },
+        "previous": {
+          "id": "20261020T100003000Z-000003",
+          "files": {
+            "model.yaml": {
+              "text": "objects:\n  shop: { type: system, name: Shop }\nconnections: []\n"
+            },
+            "layout.yaml": {
+              "text": "root:\n  shop: [10, 20]\n"
+            }
+          }
+        }
+      },
+      {
+        "step": {
+          "id": "20261020T100003000Z-000003",
+          "time": "2026-10-20T10:00:03.000Z",
+          "label": "Restored the version from 10:00",
+          "source": "restore",
+          "app": "browser",
+          "changed": [
+            "model.yaml"
+          ]
+        },
+        "files": {
+          "model.yaml": {
+            "text": "objects:\n  shop: { type: system, name: Shop }\nconnections: []\n"
+          },
+          "layout.yaml": {
+            "text": "root:\n  shop: [10, 20]\n"
+          }
+        },
+        "previous": {
+          "id": "20261020T100002000Z-000002",
+          "files": {
+            "model.yaml": {
+              "notText": true
+            },
+            "layout.yaml": {
+              "text": "root:\n  shop: [10, 20]\n"
+            }
+          }
+        }
+      },
+      {
+        "step": {
+          "id": "20261020T100002000Z-000002",
+          "time": "2026-10-20T10:00:02.000Z",
+          "label": "Changed outside Flowy: model.yaml",
+          "source": "outside",
+          "app": "desktop",
+          "changed": [
+            "model.yaml"
+          ]
+        },
+        "files": {
+          "model.yaml": {
+            "notText": true
+          },
+          "layout.yaml": {
+            "text": "root:\n  shop: [10, 20]\n"
+          }
+        },
+        "previous": {
+          "id": "20261020T100001000Z-000001",
+          "files": {
+            "model.yaml": {
+              "text": "objects:\n  shop: { type: system, name: Shop }\nconnections: []\n"
+            },
+            "layout.yaml": {
+              "text": "root:\n  shop: [10, 20]\n"
+            }
+          }
+        }
+      },
+      {
+        "step": {
+          "id": "20261020T100001000Z-000001",
+          "time": "2026-10-20T10:00:01.000Z",
+          "label": "Added the Shop system",
+          "source": "you",
+          "app": "browser",
+          "changed": [
+            "layout.yaml",
+            "model.yaml"
+          ]
+        },
+        "files": {
+          "model.yaml": {
+            "text": "objects:\n  shop: { type: system, name: Shop }\nconnections: []\n"
+          },
+          "layout.yaml": {
+            "text": "root:\n  shop: [10, 20]\n"
+          }
+        },
+        "previous": {
+          "id": "20261020T100000000Z-000000",
+          "files": {
+            "model.yaml": {
+              "text": "objects: {}\nconnections: []\n"
+            }
+          }
+        }
+      },
+      {
+        "step": {
+          "id": "20261020T100000000Z-000000",
+          "time": "2026-10-20T10:00:00.000Z",
+          "label": "First seen",
+          "source": "first",
+          "app": "browser",
+          "changed": [
+            "model.yaml"
+          ]
+        },
+        "files": {
+          "model.yaml": {
+            "text": "objects: {}\nconnections: []\n"
+          }
+        }
+      }
+    ]
+  }
+}

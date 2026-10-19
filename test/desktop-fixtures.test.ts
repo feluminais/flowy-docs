@@ -1,9 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 import { dumpBeats } from '../desktop/fixtures/beats.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from '../desktop/fixtures/dump.ts'
 import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
+import { buildTrail, dumpHistory } from '../desktop/fixtures/history.ts'
 import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
 import { dumpOutline } from '../desktop/fixtures/outline.ts'
@@ -85,4 +87,18 @@ test('desktop runs and stops of a flow\'s groups still match what the TypeScript
 test('desktop captions and progress bars still match what the TypeScript core says', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('captions'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(await dumpCaptions())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop history rules still match the TypeScript ones: diff, list, retention, labels, keys', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('history'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpHistory())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('the sample history trail is what openHistory writes, byte for byte', async () => {
+  const folder = join(dirname(expectedPath('history')), 'history-trail')
+  const onDisk: Record<string, Uint8Array> = {}
+  for (const sub of ['steps', 'blobs']) {
+    for (const name of await readdir(join(folder, sub))) onDisk[`${sub}/${name}`] = new Uint8Array(await readFile(join(folder, sub, name)))
+  }
+  assert.deepEqual(onDisk, (await buildTrail()).files, 'run: node desktop/fixtures/generate.ts')
 })

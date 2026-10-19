@@ -1,0 +1,4 @@
+objects:
+  shop: { type: system, name: Shop }
+  cart: { type: system, name: Cart }
+connections: []
