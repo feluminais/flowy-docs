@@ -140,9 +140,9 @@ objects:
       and the shapes ringing, flashing or squashing. The same frame-driven clock runs it and Autoplay's
       waits, and nothing moves when the system asks for less motion.
 
-      A rail of icons on the left edge opens the navigator, as on the canvas: every flow grouped by
-      where it plays, and the whole documentation as a tree drawn a window of rows at a time, shapes
-      that hold others first and then by name. Details opens on the right, from its own rail or by
+      A rail of icons on the left edge opens the navigator, as on the canvas: the whole documentation
+      as a tree drawn a window of rows at a time, shapes that hold others first and then by name, and
+      every flow grouped by where it plays. Details opens on the right, from its own rail or by
       picking a shape. Both panels are dragged wider or narrower by their inner edge, and a
       double-click puts the width back. Each project's open tab, open rows and panel widths are
       remembered in the app's state file.
@@ -205,8 +205,8 @@ objects:
       A step tagged with an `animation:` plays as a pipe with a blob running through it, and Autoplay
       steps through a flow on its own. A Performance tab plays a load-test run back over the diagram.
 
-      A rail of icons on the left edge opens a panel with two tabs: every flow in the documentation,
-      and the whole documentation as a tree. Details opens on the right, from its own rail or by
+      A rail of icons on the left edge opens a panel with two tabs: the whole documentation as a
+      tree, and every flow in it. Details opens on the right, from its own rail or by
       picking a shape, and where the folder has load-test runs the right rail has a Performance
       button that puts its panel in Details' place. Both panels are dragged wider or narrower by
       their inner edge, as in VS Code, and a double-click puts the width back.
@@ -325,8 +325,8 @@ objects:
     name: Navigator
     code: [ui/src/Navigator.tsx, ui/src/navstate.ts, ui/src/navstore.ts, ui/src/window.ts]
     description: |
-      The rail of icons on the left edge and the tabs it opens: every flow, grouped by where it plays,
-      and the whole documentation as a tree drawn a window of rows at a time. It asks core for the rows,
+      The rail of icons on the left edge and the tabs it opens: the whole documentation as a tree
+      drawn a window of rows at a time, and every flow, grouped by where it plays. It asks core for the rows,
       which come in VS Code's order: shapes that hold others first, then the rest, each by name.
 
       The edges of this panel and of the Details panel are sashes you drag to resize them.

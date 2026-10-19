@@ -83,7 +83,8 @@ documents stay documents.
 
 ![A flow playing: Customer app to Order API is lit, and a card says what happens, with a More for the detail and Back, Next, Autoplay and Stop](docs/images/desktop-flow.png)
 
-Open the Flows tab (the icons on the left edge, or **L**) to see every flow and pick one to play it step by step; the Explorer (**O**) shows the whole documentation as a tree. A step is one shape handing something to another, or one shape doing
+The icons on the left edge open the Explorer (**O**), the whole documentation as a tree, and the Flows tab (**L**), which lists
+every flow so you can pick one and play it step by step. A step is one shape handing something to another, or one shape doing
 something on its own, and a step with more to say has a **More**. In the browser the address follows what's on screen, so
 `#ordering/place-order` plays Customer places an order; send it to someone and they land on the same step.
 
@@ -91,6 +92,12 @@ A step can also say how it travels. Tag it `animation: call` and its line turns 
 through it and back while the sender waits; `send` and `event` go one way, and `callback` shows what set it off. **R** plays the
 step again, and **Autoplay** (**P**) steps through the flow on its own. Nothing moves when the system asks for less motion, and
 the step's text still says the same thing. The app and the browser play them alike.
+
+Neighbouring steps can also belong together. A flow file can mark them as a `repeat` that runs up to a stated number of times,
+a `branch` of lanes of which one happens, or `parallel` lanes that all happen at once, and a step can say that another flow
+tells the rest of its story (`flow:`). Flowy checks all of it, and the Mermaid copy draws it as `loop`, `alt` and `par` blocks.
+The player doesn't draw these marks yet, so it still steps through a flow in file order. The format is in
+[the guide](docs/guide.md#repeats-branches-and-parallel-steps).
 
 ## Performance
 
@@ -203,6 +210,8 @@ sequenceDiagram
 | Shortcut | Action |
 | --- | --- |
 | Ctrl+K, / | Find a shape |
+| O | The Explorer: everything as a tree |
+| L | The Flows tab: every flow, and play one |
 | Enter | Open the selected shape |
 | Esc | Close what's open, then go up a level |
 | Backspace, Z | Zoom out: go up a level |
