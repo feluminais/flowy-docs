@@ -259,4 +259,22 @@ public class ReaderTests
         reader.PickLines(null);
         Assert.Equal("straight", reader.LineStyle);
     }
+
+    [AvaloniaFact]
+    public void Picking_a_line_style_in_the_picker_keeps_its_list_and_follows_the_pick()
+    {
+        var (_, reader) = Open();
+        var picker = reader.LinePicker;
+        Assert.Equal(4, picker.Items.Count);
+
+        foreach (var (index, style) in new[] { (2, "curved"), (3, "angled"), (1, "straight"), (0, "straight") })
+        {
+            picker.IsDropDownOpen = true;
+            picker.SelectedIndex = index;
+            picker.IsDropDownOpen = false;
+            Assert.Equal(4, picker.Items.Count);
+            Assert.Equal(index, picker.SelectedIndex);
+            Assert.Equal(style, reader.LineStyle);
+        }
+    }
 }
