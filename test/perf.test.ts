@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ParseError } from '../src/core/model.ts'
-import { checkRun, interpolate, knee, kneeText, parseRun, rollUp, strain } from '../src/core/perf.ts'
+import { checkRun, interpolate, knee, kneeText, parseRun, rollUp, strain, traffic } from '../src/core/perf.ts'
 import { shop } from './fixtures.ts'
 
 /** Three levels of a run against the shop fixture (test/fixtures.ts): api and db are measured, and orders inside api. */
@@ -257,4 +257,38 @@ test('a run that never struggles has no knee', () => {
     l.overall.p95 = 100
   }
   assert.equal(knee(run), undefined)
+})
+
+test('traffic turns a load into what each shape and line looks like', () => {
+  const t = traffic(shop(), ramp(), 400, 'shop')
+  assert.deepEqual(t.boxes.db, { strain: 0.97, queue: 0 })
+  assert.deepEqual(t.boxes.api, { strain: 0.95, queue: 40 })
+  assert.deepEqual(t.lines, [
+    { from: 'web', to: 'api', width: 5.22, perSecond: 11.41, travelMs: 1345, failed: 0.08 },
+    { from: 'api', to: 'db', width: 5.15, perSecond: 11.23, travelMs: 1278, failed: 0 },
+  ])
+})
+
+test('traffic grows with load: more particles, thicker lines, slower trips', () => {
+  const run = ramp()
+  const low = traffic(shop(), run, 100, 'shop').lines[0]
+  const high = traffic(shop(), run, 400, 'shop').lines[0]
+  assert.ok(high.perSecond > low.perSecond && high.width > low.width && high.travelMs > low.travelMs)
+})
+
+test('traffic caps what a screen can draw, and floors a failure that would not show', () => {
+  const { run } = parseRun('r', `name: R
+levels:
+  - load: 1
+    connections: [{ from: web, to: api, rate: 1000000, p50: 100000, errors: 0.004 }, { from: auth, to: db, rate: 10, errors: 0.02 }, { from: orders, to: mail, p50: 10 }]
+  - load: 2
+    connections: [{ from: web, to: api, rate: 1000000, p50: 100000, errors: 0.004 }, { from: auth, to: db, rate: 10, errors: 0.02 }, { from: orders, to: mail, p50: 10 }]
+`)
+  const t = traffic(shop(), run, 1, 'shop')
+  assert.deepEqual(t.boxes, {}) // nothing was measured on a shape, so none is drawn
+  assert.deepEqual(t.lines, [
+    { from: 'web', to: 'api', width: 6, perSecond: 14, travelMs: 4000, failed: 0 }, // capped; 0.4% failing is below what shows
+    { from: 'api', to: 'db', width: 3.06, perSecond: 5.67, travelMs: 1000, failed: 0.05 }, // no p50: a middling trip; 2% failing shows as 5%
+    // orders → mail has no rate, so no line of traffic
+  ])
 })

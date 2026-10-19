@@ -301,3 +301,41 @@ export function kneeText(run: Run, k: Knee, nameOf: (id: string) => string): str
   if ('by' in k) return `First struggles at ${at}: ${nameOf(k.by.id)} ${k.by.kind === 'util' ? `at ${pct(k.by.share)} of capacity` : `failing ${pct(k.by.share)} of calls`}`
   return `Latency passes ${KNEE_LATENCY}× its starting point at ${at}: overall p95 goes from ${Math.round(k.latency.from)} ms to ${Math.round(k.latency.to)} ms`
 }
+
+export type BoxTraffic = { strain?: number; queue: number }
+/** How a line looks: how thick, how many particles a second, how long one takes to cross (ms), and the share of them that fail. */
+export type LineTraffic = { from: string; to: string; width: number; perSecond: number; travelMs: number; failed: number }
+export type Traffic = { boxes: Record<string, BoxTraffic>; lines: LineTraffic[] }
+
+const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
+const round2 = (n: number) => Math.round(n * 100) / 100
+
+/** A line that carried `rate` calls a second. Starting values, tuned on the lab's run in phase 3; a screen can't draw 1000 particles a second, so these are logarithmic and capped. */
+function lineTraffic(l: Pair, rate: number): LineTraffic {
+  const errors = round2(l.errors ?? 0)
+  return {
+    from: l.from,
+    to: l.to,
+    width: round2(clamp(1.5 + 1.5 * Math.log10(1 + rate), 1.5, 6)),
+    perSecond: rate > 0 ? round2(clamp(1.5 + 4 * Math.log10(1 + rate), 1.5, 14)) : 0,
+    travelMs: l.p50 === undefined ? 1000 : Math.round(clamp(500 + 1000 * Math.log10(1 + l.p50 / 10), 500, 4000)),
+    failed: errors >= 0.01 ? Math.max(errors, 0.05) : errors,
+  }
+}
+
+/**
+ * Everything the Performance tab draws for one view at one load, as plain numbers so a renderer needs no logic.
+ * `boxes` has the strain (0 green to 1 red, left out when nothing was measured) and queue of each shape that was
+ * measured or holds something that was; `lines` has the traffic on each line that has a rate. Shapes and lines
+ * with nothing measured are left out: they stay neutral, never drawn as zero. `load` is clamped to the tested range.
+ */
+export function traffic(model: Model, run: Run, load: number, view: string): Traffic {
+  const { objects, lines } = rollUp(model, interpolate(run, load), view)
+  const boxes: Record<string, BoxTraffic> = {}
+  for (const [id, m] of Object.entries(objects)) {
+    const s = strain(m)?.value
+    if (s === undefined && m.queue === undefined) continue
+    put(boxes, id, { ...(s === undefined ? {} : { strain: round2(s) }), queue: Math.round(m.queue ?? 0) })
+  }
+  return { boxes, lines: lines.flatMap(l => (l.rate === undefined ? [] : [lineTraffic(l, l.rate)])) }
+}
