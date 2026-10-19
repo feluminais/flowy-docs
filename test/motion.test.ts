@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { active, bump, dashAround, distance, ease, progress, tubeOpacity } from '../ui/src/motion.ts'
+import { animationOf } from '../src/core/animation.ts'
+import { active, bump, dashAround, distance, drawable, ease, progress, tubeOpacity } from '../ui/src/motion.ts'
 
 const beat = { at: 100, dur: 400 }
 
@@ -55,4 +56,10 @@ test('a blob runs forward from the start of the line and back from its end', () 
 test('dashAround leaves one stretch of the path drawn, centred on a point', () => {
   assert.deepEqual(dashAround(100, 300, 40), { array: '40 640', offset: -80 })
   assert.deepEqual(dashAround(0, 300, 40), { array: '40 640', offset: 20 })
+})
+
+test('a kind the browser does not draw yet reads as no animation', () => {
+  for (const kind of ['send', 'call', 'callback', 'event']) assert.deepEqual(drawable(animationOf({ to: 'b', animation: kind })), { kind, trigger: 'inside' })
+  assert.equal(drawable(animationOf({ animation: 'recurse' })), undefined)
+  assert.equal(drawable(undefined), undefined)
 })
