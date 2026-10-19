@@ -4,7 +4,7 @@ import { Controls, ReactFlow } from '@xyflow/react'
 import type { FitViewOptions, NodeChange, XYPosition } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
-import { LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
+import { getObject, LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
 import type { LineStyle, Model, Step } from '../../src/core/model.ts'
 import { connect, deleteObjects, forgetLayout, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
@@ -45,7 +45,8 @@ import { closeFlow, followBack, openFlow as leaveFlow } from './trail.ts'
 import type { Spot } from './trail.ts'
 import type { Recording, Run } from './Panel.tsx'
 import { copyMessage } from '../../src/core/host.ts'
-import { vscode } from './host.ts'
+import { saveState, vscode } from './host.ts'
+import { useReveal } from './reveal.ts'
 import { useColorMode } from './hosttheme.ts'
 import { useModel } from './useModel.ts'
 import type { Edit, Loaded } from './useModel.ts'
@@ -374,6 +375,16 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
     if (editing) show({ kind: 'flow', id, name: f.name })
     else setPlaying({ flow: id, step: 0 })
   }
+  // VS Code asks to show a shape (the one a file belongs to, or a pick from its list) or a flow.
+  useReveal(target => {
+    if ('shape' in target) {
+      if (!getObject(model, target.shape)) return setNotice("That shape isn't in the model any more.")
+      setSearching(false)
+      go(parentOf(model, target.shape)) // the view the box sits in
+      show({ kind: 'object', id: target.shape })
+    } else if (Object.hasOwn(model.flows, target.flow)) openFlow(target.flow)
+    else setNotice("That flow isn't in the model any more.")
+  })
   /** A click in the Explorer: show the shape where it is drawn and select it (its Details open on the right), or play the flow. */
   const pickRow = (row: OutlineRow) => {
     if (row.kind === 'flow') return openFlow(row.id)
@@ -555,6 +566,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       history[quiet.current || view !== viewId || alongRun ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
     }
     quiet.current = false
+    saveState({ hash: address }) // a VS Code panel that is restored opens where the reader was
   })
 
   // Back, Forward, or an address typed in: show what it names. Added again on every render, like the keys below.

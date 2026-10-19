@@ -59,3 +59,30 @@ export function responseOf(data: unknown): { id: number; outcome: Outcome } | un
 export const changedMessage = () => ({ type: CHANGED_MESSAGE })
 
 export const isChanged = (data: unknown): boolean => isObject(data) && data.type === CHANGED_MESSAGE
+
+export const OPEN_MESSAGE = 'flowy-open'
+
+/** The message that asks the host to open `path`, a path in the repo as `code` lists it (a trailing "/" is a folder), in the editor. */
+export const openMessage = (path: string) => ({ type: OPEN_MESSAGE, path })
+
+/** The path a message asks the host to open, or undefined when `data` is some other message. */
+export function pathToOpen(data: unknown): string | undefined {
+  if (!isObject(data) || data.type !== OPEN_MESSAGE) return undefined
+  return typeof data.path === 'string' && data.path !== '' ? data.path : undefined
+}
+
+/** What the host can ask the page to show: a shape (it is drawn where it sits and selected) or a flow (it plays). */
+export type Target = { shape: string } | { flow: string }
+export const REVEAL_MESSAGE = 'flowy-reveal'
+
+/** The message that asks the page to show `target`. */
+export const revealMessage = (target: Target) => ({ type: REVEAL_MESSAGE, target })
+
+/** The target a message asks the page to show, or undefined when `data` is some other message. */
+export function revealOf(data: unknown): Target | undefined {
+  if (!isObject(data) || data.type !== REVEAL_MESSAGE || !isObject(data.target)) return undefined
+  const { shape, flow } = data.target
+  if (typeof shape === 'string' && shape !== '') return { shape }
+  if (typeof flow === 'string' && flow !== '') return { flow }
+  return undefined
+}

@@ -51,9 +51,16 @@ the page's side).
 A change to `ui/` shows after `npm run build:vscode` and closing and reopening the panel; a change to `vscode/src` also needs
 `Developer: Reload Window` in the new window.
 
+The extension's commands (`Open Flow…`, `Go to Shape…`, `Show This File in the Docs`) are in `vscode/src/commands.ts`, and what they offer is worked out in
+`src/core/finder.ts` (which shape a file belongs to, the picker lists). A path link on the canvas asks the extension to open it (`openInEditor` in
+`ui/src/host.ts`; `vscode/src/paths.ts` keeps it inside the repo), and the extension asks the canvas to show a shape or a flow with a `flowy-reveal`
+message (`ui/src/reveal.ts`). The canvas's small settings and its address live in the webview's state (`ui/src/store.ts`, `ui/src/host.ts`), which is
+how a restored panel opens where it was. Try them in the F5 window on the repo: open a file that a shape's `code` lists and run
+`Show This File in the Docs` from its right-click menu.
+
 `test/vscode-page.test.ts` covers the page the extension builds (the policy that lets only the canvas script run), `test/host-message.test.ts`
-and `test/transport.test.ts` the messages and the page's side of them, and `test/writes.test.ts` what a write does.
-What happens inside VS Code (the webview loading, the theme, editing, the Mermaid copy) has no test: check it in the window.
+and `test/transport.test.ts` the messages and the page's side of them, `test/writes.test.ts` what a write does, `test/finder.test.ts` and `test/vscode-paths.test.ts` the matching of files to shapes and paths to disk.
+What happens inside VS Code (the webview loading, the theme, editing, opening files, the commands, restoring a panel) has no test: check it in the window.
 
 ## The performance lab
 

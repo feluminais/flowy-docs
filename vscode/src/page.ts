@@ -5,14 +5,18 @@ export type PageOptions = {
   cspSource: string
   /** A fresh random value for each page, which the canvas script has to carry to run. */
   nonce: string
+  /** The flowy/ folder the page shows. The page keeps it in its saved state, so VS Code can restore the panel on the same folder. */
+  folder: string
 }
+
+const escapeAttribute = (text: string) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 /**
  * The built canvas (`dist/ui/index.html`) as a VS Code webview takes it: its files loaded from the extension's
  * media folder, and a policy that lets only the canvas script run and nothing connect anywhere. The page carries
  * no model: it asks the extension for it (see host.ts in core). Throws when `indexHtml` isn't the built canvas.
  */
-export function webviewPage(indexHtml: string, { assetRoot, cspSource, nonce }: PageOptions): string {
+export function webviewPage(indexHtml: string, { assetRoot, cspSource, nonce, folder }: PageOptions): string {
   if (!/<script\b[^>]*\bsrc="\.\/assets\//.test(indexHtml)) throw new Error("The built canvas isn't in the extension's media folder. Run: npm run build")
   const policy = [
     "default-src 'none'",
@@ -25,5 +29,5 @@ export function webviewPage(indexHtml: string, { assetRoot, cspSource, nonce }: 
   return indexHtml
     .replace(/(\s(?:src|href)=")\.\/(assets\/[^"]*")/g, (_, start: string, path: string) => `${start}${assetRoot}/${path}`)
     .replace(/<script\b(?=[^>]*\bsrc=)/g, () => `<script nonce="${nonce}"`)
-    .replace('<head>', () => `<head>\n    <meta http-equiv="Content-Security-Policy" content="${policy}">`)
+    .replace('<head>', () => `<head>\n    <meta http-equiv="Content-Security-Policy" content="${policy}">\n    <meta name="flowy-folder" content="${escapeAttribute(folder)}">`)
 }

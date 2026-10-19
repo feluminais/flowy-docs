@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { changedMessage, copyMessage, isChanged, requestMessage, requestOf, responseMessage, responseOf, textToCopy } from '../src/core/host.ts'
+import { changedMessage, copyMessage, isChanged, openMessage, pathToOpen, requestMessage, requestOf, responseMessage, responseOf, revealMessage, revealOf, textToCopy } from '../src/core/host.ts'
 
 test('a page asks its host to copy text, and the host reads it back', () => {
   assert.equal(textToCopy(copyMessage('```mermaid\ngraph TD\n```\n')), '```mermaid\ngraph TD\n```\n')
@@ -45,4 +45,19 @@ test('the host tells the page the folder changed', () => {
   assert.equal(isChanged(changedMessage()), true)
   for (const data of [undefined, null, {}, 'flowy-changed', { type: 'flowy-request' }])
     assert.equal(isChanged(data), false, JSON.stringify(data))
+})
+
+test('a page asks its host to open a path in the editor, and the host reads it back', () => {
+  assert.equal(pathToOpen(openMessage('apps/web/src/cart.ts')), 'apps/web/src/cart.ts')
+  assert.equal(pathToOpen(openMessage('apps/web/')), 'apps/web/')
+  for (const data of [undefined, null, 'flowy-open', {}, { type: 'other', path: 'a' }, { type: 'flowy-open' }, { type: 'flowy-open', path: 3 }, { type: 'flowy-open', path: '' }])
+    assert.equal(pathToOpen(data), undefined, JSON.stringify(data))
+})
+
+test('the host tells the page to show a shape or a flow, and the page reads it back', () => {
+  assert.deepEqual(revealOf(revealMessage({ shape: 'cart' })), { shape: 'cart' })
+  assert.deepEqual(revealOf(revealMessage({ flow: 'buy' })), { flow: 'buy' })
+  for (const data of [undefined, null, {}, { type: 'other', target: { shape: 'a' } }, { type: 'flowy-reveal' }, { type: 'flowy-reveal', target: null },
+    { type: 'flowy-reveal', target: {} }, { type: 'flowy-reveal', target: { shape: 3 } }, { type: 'flowy-reveal', target: { shape: '' } }, { type: 'flowy-reveal', target: { flow: [] } }])
+    assert.equal(revealOf(data), undefined, JSON.stringify(data))
 })

@@ -7,6 +7,7 @@ import { isView, stepEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { Chip } from './Chrome.tsx'
 import { ArrowLeft, ArrowRight, ArrowsSplit, Close, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
+import { store } from './store.ts'
 
 /** The icon of a kind of group, in the chip, the bracket and the mark on the canvas. */
 export const KIND_ICON = { repeat: Repeat, branch: GitFork, parallel: ArrowsSplit } as const satisfies Record<GroupKind, unknown>
@@ -17,7 +18,7 @@ const LEGEND_KEY = 'flowy.legend'
 /** Whether the legend was left open, from last time. Storage may be blocked or empty: the legend then starts closed. */
 function legendWasOpen(): boolean {
   try {
-    return localStorage.getItem(LEGEND_KEY) === 'open'
+    return store.get(LEGEND_KEY) === 'open'
   } catch {
     return false
   }
@@ -73,7 +74,7 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, auto
   const toggleLegend = () => {
     setLegend(open => {
       try {
-        localStorage.setItem(LEGEND_KEY, open ? 'closed' : 'open')
+        store.set(LEGEND_KEY, open ? 'closed' : 'open')
       } catch {
         // not remembered: it still opens and closes
       }
