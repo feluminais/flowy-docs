@@ -11,8 +11,10 @@ export const BOX = { width: 200, height: 72 }
 /** A node's size as the browser measured it, or BOX until it has. */
 export const sizeOf = (n: { measured?: { width?: number; height?: number } }) =>
   ({ width: n.measured?.width ?? BOX.width, height: n.measured?.height ?? BOX.height })
-/** Width of the side panel at most. Keep in sync with .panel in style.css. */
+/** Width of the details panel to begin with: you can drag it wider or narrower. Keep in sync with .panel in style.css. */
 export const PANEL = 380
+/** Width of the navigator panel on the left to begin with. Keep in sync with .navpanel in style.css. */
+export const NAV = 320
 
 const NEAR = 80 // between the members and the outsiders around them
 const STACK = 30 // between boxes stacked in a column or row
@@ -484,22 +486,22 @@ export function frameNode(name: string, rects: Rect[]): FrameNode {
   }
 }
 
-/** What fitView is given: room for the side panel and the flow player, when they're there. */
-export const fitOptions = (panel: boolean, player: boolean): FitViewOptions => ({
+/** What fitView is given: room for the details panel (right) and the navigator (left), each as wide as it is or 0 when closed, and for the flow player. */
+export const fitOptions = (panel: number, player: boolean, nav = 0): FitViewOptions => ({
   maxZoom: 1,
-  padding: { top: '40px', left: '40px', right: `${panel ? PANEL + 40 : 40}px`, bottom: `${player ? 200 : 40}px` },
+  padding: { top: '40px', left: `${nav > 0 ? nav + 40 : 40}px`, right: `${panel > 0 ? panel + 40 : 40}px`, bottom: `${player ? 200 : 40}px` },
 })
 
 /**
- * Where to move the viewport so `box` shows left of the side panel, or undefined when it already
- * does. `size` is the canvas. A box wider than the room keeps its left edge in sight.
+ * Where to move the viewport so `box` shows between the navigator (`nav` wide, 0 when closed) and the details panel, or undefined when
+ * it already does. `size` is the canvas. A box wider than the room keeps its left edge in sight.
  */
-export function panIntoView(box: Rect, view: Viewport, size: { width: number; height: number }, panel = PANEL, margin = 24): Viewport | undefined {
+export function panIntoView(box: Rect, view: Viewport, size: { width: number; height: number }, panel = PANEL, margin = 24, nav = 0): Viewport | undefined {
   const room = size.width - Math.min(panel, size.width)
   const left = box.x * view.zoom + view.x
   const top = box.y * view.zoom + view.y
-  const shift = (from: number, to: number, limit: number) => Math.max(margin - from, Math.min(0, limit - margin - to))
-  const dx = shift(left, left + box.width * view.zoom, room)
+  const shift = (from: number, to: number, limit: number, start = 0) => Math.max(start + margin - from, Math.min(0, limit - margin - to))
+  const dx = shift(left, left + box.width * view.zoom, room, nav)
   const dy = shift(top, top + box.height * view.zoom, size.height)
   return dx === 0 && dy === 0 ? undefined : { ...view, x: view.x + dx, y: view.y + dy }
 }

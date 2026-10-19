@@ -18,16 +18,17 @@ import { Chip } from './Chrome.tsx'
 import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pause, Pencil, Play, Plus, Redo, Reload, Route, Search as SearchIcon, Undo } from './icons.tsx'
 import { connectionsOf, locate, moveBetween } from './edit.ts'
 import type { Move } from './edit.ts'
-import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
+import { fitOptions, focusEdges, frameNode, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
 import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
 import { Line, LineStyleContext } from './Line.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { DWELL, GAP } from './motion.ts'
+import { clampWidth } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { keepNav, loadNav } from './navstore.ts'
-import { Explorer, FlowsTab, NavPanel, NavTabs, NavTabsContext, Rail } from './Navigator.tsx'
+import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, Sash } from './Navigator.tsx'
 import { AddPanel, LinePanel, ObjectPanel, OverviewPanel, Recorder } from './Panel.tsx'
 import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
@@ -99,9 +100,13 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
   const [viewId, setViewId] = useState(() => readHash(location.hash).view)
   const [side, setSide] = useState<Side>()
-  // The right-hand panel's tab. Details shows `side`, or the level you are in; Flows and Explorer are the navigator. Without one the panel follows `side`.
+  // The left-hand panel's tab (the navigator: Flows or Explorer), and whether the right-hand Details panel was opened from its rail. Details shows
+  // `side`, or the level you are in, so a `side` opens it too.
   const [remembered] = useState(loadNav)
   const [tab, setTab] = useState<NavTab | undefined>(remembered.tab)
+  const [details, setDetails] = useState(false)
+  const [navWidth, setNavWidth] = useState(remembered.navWidth ?? NAV) // dragged by the sashes on the panels' edges
+  const [detailsWidth, setDetailsWidth] = useState(remembered.detailsWidth ?? PANEL)
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set([ROOT, ...remembered.expanded])) // the project's own row starts open
   const [playing, setPlaying] = useState<{ flow: string; step: number; auto?: boolean } | undefined>(() => {
     const { flow } = readHash(location.hash)
@@ -147,7 +152,8 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   const step = flow?.steps[stepIndex]
   const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
   const showFlows = totals.flows > 0 || editing // the Flows tab is there whenever there is a flow to find
-  const shownTab: NavTab | undefined = (tab === 'flows' && !showFlows ? undefined : tab) ?? (side ? 'details' : undefined)
+  const nav: NavTab | undefined = tab === 'flows' && !showFlows ? undefined : tab
+  const detailsOpen = details || side !== undefined
 
   // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
   // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
@@ -184,7 +190,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   useEffect(() => {
     if (selectedBox !== undefined) reveal(selectedBox, false)
   }, [selectedBox])
-  useEffect(() => keepNav({ tab: tab === 'flows' || tab === 'explorer' ? tab : undefined, expanded: [...expanded] }), [tab, expanded])
+  useEffect(() => keepNav({ tab, expanded: [...expanded], navWidth, detailsWidth }), [tab, expanded, navWidth, detailsWidth])
 
   const run: Run = async op => {
     justMoved.current = false
@@ -194,16 +200,13 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     return message === undefined
   }
   const close = () => setSide(undefined)
-  const closePanel = () => {
+  const closeDetails = () => {
     setSide(undefined)
-    setTab(undefined)
+    setDetails(false)
   }
-  /** Shows what a click on the canvas, a problem or a button points at, in the panel's Details tab. */
-  const show = (s: Side | undefined) => {
-    setSide(s)
-    setTab(undefined)
-  }
-  const toggleTab = (t: NavTab) => (shownTab === t ? closePanel() : setTab(t))
+  /** Shows what a click on the canvas, a problem or a button points at, in the Details panel on the right. */
+  const show = (s: Side | undefined) => setSide(s)
+  const toggleTab = (t: NavTab) => setTab(nav === t ? undefined : t)
   const takeBack = async () => {
     justMoved.current = false
     setNotice(undefined)
@@ -273,7 +276,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     if (editing) show({ kind: 'flow', id, name: f.name })
     else setPlaying({ flow: id, step: 0 })
   }
-  /** A click in the Explorer: show the shape where it is drawn and select it, or play the flow. The panel stays on the Explorer. */
+  /** A click in the Explorer: show the shape where it is drawn and select it (its Details open on the right), or play the flow. */
   const pickRow = (row: OutlineRow) => {
     if (row.kind === 'flow') return openFlow(row.id)
     if (row.id === ROOT) {
@@ -418,11 +421,14 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         void takeBack()
       }
       else if (e.key === 'Escape') {
-        const layer = escapeStep({ shortcuts, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: shownTab !== undefined, inside: view !== ROOT })
+        const layer = escapeStep({ shortcuts, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: detailsOpen || nav !== undefined, inside: view !== ROOT })
         if (layer === 'shortcuts') setShortcuts(false)
         else if (layer === 'flow') setPlaying(undefined)
         else if (layer === 'step' && recording) setSide({ ...recording, from: undefined, to: undefined })
-        else if (layer === 'panel') closePanel()
+        else if (layer === 'panel') {
+          if (detailsOpen) closeDetails() // the panel you are working in first, then the navigator
+          else setTab(undefined)
+        }
         else if (layer === 'up') up()
         else return
       }
@@ -442,7 +448,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
       // ? before the slash key's fallback: some layouts type ? on that key without Shift.
       else if (e.key === '?') setShortcuts(open => !open)
       else if ((key === 'k' && (e.ctrlKey || e.metaKey)) || e.key === '/' || (e.code === 'Slash' && !e.shiftKey)) setSearching(true)
-      else if (key === 'f' && plain) fitNow.current?.({ ...fitOptions(shownTab !== undefined, flow !== undefined), duration: 300 })
+      else if (key === 'f' && plain) fitNow.current?.({ ...fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0), duration: 300 })
       else if (key === 'l' && plain && !e.repeat && showFlows) toggleTab('flows')
       else if (key === 'o' && plain && !e.repeat) toggleTab('explorer')
       else if (key === 'e' && plain && !e.repeat && !readOnly) toggleEdit()
@@ -459,7 +465,9 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  const navTabs = <NavTabs tab={shownTab ?? 'details'} showFlows={showFlows} onPick={setTab} />
+  /** What the canvas can give one panel: all of it but a strip to look at, and what the other panel takes. */
+  const spare = (other: number) => (canvas.current?.clientWidth ?? Infinity) - 160 - other
+  const navTabs = <NavTabs tab={nav ?? 'explorer'} showFlows={showFlows} onPick={setTab} />
   return (
     <>
       <header className="bar">
@@ -502,8 +510,9 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}><Pencil size={16} />Edit</button>}
       </header>
       <div className="stage">
-        <main ref={canvas} className={['canvas', editing && 'editing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
-          style={motion && ({ '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` } as CSSProperties)}>
+        <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} onPick={toggleTab} />
+        <main ref={canvas} className={['canvas', editing && 'editing', nav && 'nav', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
+          style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           <LineStyleContext value={lines}>
             <ReactFlow
               key={view} // a fresh canvas per view
@@ -552,9 +561,9 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
                 setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
               }}
             >
-              <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} />
+              <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} panel={detailsWidth} nav={nav ? navWidth : 0} />
               {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
-              <Controls showInteractive={false} fitViewOptions={fitOptions(shownTab !== undefined, flow !== undefined)} />
+              <Controls showInteractive={false} fitViewOptions={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
               {flow && animation && placed && <StepMotion key={stepKey} ends={placed} animation={animation} afterLanding={followsLanding(shown?.ends[stepIndex - 1], placed)} onDone={() => setSettledKey(stepKey)} />}
             </ReactFlow>
           </LineStyleContext>
@@ -579,33 +588,33 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
               <button aria-label="Dismiss" onClick={() => setNotice(undefined)}><Close size={16} /></button>
             </div>
           )}
-          <NavTabsContext value={navTabs}>
-            {shownTab === 'details' && (side?.kind === 'object' || (side === undefined && view !== ROOT)) && (
-              <ObjectPanel model={model} id={side?.kind === 'object' ? side.id : view} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={closePanel}
-                onPick={id => setSide({ kind: 'object', id })} onHover={setHovered} />
-            )}
-            {shownTab === 'details' && side === undefined && view === ROOT && <OverviewPanel totals={totals} onClose={closePanel} />}
-            {shownTab === 'details' && side?.kind === 'line' && (
-              <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closePanel} />
-            )}
-            {shownTab === 'details' && editing && side?.kind === 'add' && (
-              <AddPanel model={model} view={view} run={run} onAdded={id => setSide({ kind: 'object', id })} onClose={closePanel} />
-            )}
-            {shownTab === 'details' && recording && (
-              <Recorder model={model} view={view} rec={recording} onChange={rec => setSide({ kind: 'flow', ...rec })} run={run} onClose={closePanel} />
-            )}
-          </NavTabsContext>
-          {shownTab === 'flows' && (
-            <NavPanel tabs={navTabs} onClose={closePanel}>
+          {detailsOpen && (side?.kind === 'object' || (side === undefined && view !== ROOT)) && (
+            <ObjectPanel model={model} id={side?.kind === 'object' ? side.id : view} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={closeDetails}
+              onPick={id => setSide({ kind: 'object', id })} onHover={setHovered} />
+          )}
+          {detailsOpen && side === undefined && view === ROOT && <OverviewPanel totals={totals} onClose={closeDetails} />}
+          {detailsOpen && side?.kind === 'line' && (
+            <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closeDetails} />
+          )}
+          {detailsOpen && editing && side?.kind === 'add' && (
+            <AddPanel model={model} view={view} run={run} onAdded={id => setSide({ kind: 'object', id })} onClose={closeDetails} />
+          )}
+          {detailsOpen && recording && (
+            <Recorder model={model} view={view} rec={recording} onChange={rec => setSide({ kind: 'flow', ...rec })} run={run} onClose={closeDetails} />
+          )}
+          {nav === 'flows' && (
+            <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
               <FlowsTab model={model} view={view} editing={editing} current={recording?.id || (flow ? playing?.flow : undefined)} onOpen={f => openFlow(f.id)} />
             </NavPanel>
           )}
-          {shownTab === 'explorer' && (
-            <NavPanel tabs={navTabs} onClose={closePanel}>
+          {nav === 'explorer' && (
+            <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
               <Explorer model={model} problems={problems} editing={editing} expanded={expanded} onToggle={toggleOpen} here={view} selected={selectedBox}
                 playing={flow ? playing?.flow : undefined} onPick={pickRow} onOpen={openRow} />
             </NavPanel>
           )}
+          {nav && <Sash side="nav" width={navWidth} onResize={w => setNavWidth(clampWidth(w, spare(detailsOpen ? detailsWidth : 0)))} onReset={() => setNavWidth(NAV)} />}
+          {detailsOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && step && (
             <section className="player" aria-live="polite">
               <div className="chips">
@@ -631,7 +640,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
             </section>
           )}
         </main>
-        <Rail tab={shownTab} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} onPick={toggleTab} />
+        <DetailsRail open={detailsOpen} onToggle={() => (detailsOpen ? closeDetails() : setDetails(true))} />
       </div>
     </>
   )
