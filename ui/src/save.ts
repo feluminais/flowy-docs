@@ -2,6 +2,7 @@ import type { Problem } from '../../src/core/check.ts'
 import { fileData } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
 import { refuseNewProblems } from '../../src/core/ops.ts'
+import type { Run } from '../../src/core/perf.ts'
 import type { State } from '../../src/core/state.ts'
 import { changesBetween } from './edit.ts'
 
@@ -10,12 +11,12 @@ export const CHANGED_OUTSIDE = 'This file changed outside Flowy. Reloaded.'
 const text = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 /** A State as the canvas's model, its problems, and where code links go. Throws with a message for the user when a file can't be read. */
-export function fromState(state: State): { model: Model; versions: Record<string, string | null>; problems: Problem[]; codeBase?: string } {
+export function fromState(state: State): { model: Model; versions: Record<string, string | null>; problems: Problem[]; codeBase?: string; runs: Record<string, Run>; runProblems: Problem[] } {
   if ('parseError' in state) {
     const { file, line, message } = state.parseError
     throw new Error(`Can't read ${file}${line === undefined ? '' : ` (line ${line})`}: ${message}. Fix the file and this page updates.`)
   }
-  return { model: { ...state.model, flows: state.flows, layout: state.layout }, versions: state.versions, problems: state.problems, codeBase: state.codeBase }
+  return { model: { ...state.model, flows: state.flows, layout: state.layout }, versions: state.versions, problems: state.problems, codeBase: state.codeBase, runs: state.runs ?? {}, runProblems: state.runProblems ?? [] }
 }
 
 /** GET /api/state as a model. Throws with a message for the user when the server or a file can't be read. */
