@@ -21,12 +21,12 @@ test('collapsed, only the project shows, with the totals of everything in it', (
   assert.equal(rows[0].parent, undefined)
 })
 
-test('open, a shape shows what is in it in the order the model declares them, and then its flows', () => {
-  assert.deepEqual(lines(shop(), open()), ['Overview -', '  Customer', '  Shop +', '  Mail service'])
+test('open, a shape shows what is in it, shapes that hold others first and then by name, and then its flows', () => {
+  assert.deepEqual(lines(shop(), open()), ['Overview -', '  Shop +', '  Customer', '  Mail service'])
   assert.deepEqual(lines(shop(), open('shop')), [
-    'Overview -', '  Customer', '  Shop -', '    Web app', '    API +', '    Orders DB', '    Customer checks out (flow)', '  Mail service',
+    'Overview -', '  Shop -', '    API +', '    Orders DB', '    Web app', '    Customer checks out (flow)', '  Customer', '  Mail service',
   ])
-  assert.deepEqual(lines(shop(), open('shop', 'api')).slice(4, 7), ['    API -', '      Auth', '      Orders'])
+  assert.deepEqual(lines(shop(), open('shop', 'api')).slice(2, 5), ['    API -', '      Auth', '      Orders'])
 })
 
 test('a row counts the shapes and flows inside it at every level, and says what it is', () => {
@@ -62,7 +62,7 @@ test('a flow with no steps is listed only while editing, and one whose view cann
 test('a flow at the top level hangs from the project', () => {
   const m = shop()
   m.flows.tour = { name: 'A tour', view: ROOT, steps: [{ from: 'customer', to: 'shop', text: 'x' }] }
-  assert.deepEqual(lines(m, open()), ['Overview -', '  Customer', '  Shop +', '  Mail service', '  A tour (flow)'])
+  assert.deepEqual(lines(m, open()), ['Overview -', '  Shop +', '  Customer', '  Mail service', '  A tour (flow)'])
 })
 
 test('a flow that shares a shape\'s id still has its own row', () => {
@@ -91,7 +91,7 @@ test('a filter shows matches with the shapes that hold them, all open, and says 
   assert.deepEqual(rows.map(r => r.match), [false, false, false, true, true])
   assert.deepEqual(lines(shop(), new Set(), { filter: 'checks' }), ['Overview -', '  Shop -', '    Customer checks out (flow)'])
   assert.deepEqual(lines(shop(), new Set(), { filter: 'zzz' }), [])
-  assert.deepEqual(lines(shop(), open(), { filter: '  ' }), ['Overview -', '  Customer', '  Shop +', '  Mail service'])
+  assert.deepEqual(lines(shop(), open(), { filter: '  ' }), ['Overview -', '  Shop +', '  Customer', '  Mail service'])
   assert.equal(outline(shop(), { expanded: new Set(), filter: 'web' }).totals.shapes, 8) // the totals are of the whole model
 })
 
@@ -114,7 +114,17 @@ test('a very deep chain does not overflow the stack', () => {
   const { rows, totals } = outline(m, { expanded })
   assert.equal(rows.length, 1 + 8 + 20000 + 1) // the project, the shop's eight shapes, the chain, the flow
   assert.equal(totals.shapes, 8 + 20000)
-  assert.equal(rows.at(-1)!.depth, 20000)
+  assert.ok(rows.some(r => r.depth === 20000))
+})
+
+test('names sort as in VS Code: any case, and numbers as numbers', () => {
+  const m = shop()
+  for (const name of ['step 10', 'Step 2', 'step 1', 'Step 02', 'alpha']) m.objects[name] = { type: 'system', name, in: 'api' }
+  m.objects.zeta = { type: 'system', name: 'Zeta', in: 'api' }
+  m.objects.zeta2 = { type: 'system', name: 'Zeta', in: 'api' }
+  const rows = outline(m, { expanded: open('shop', 'api') }).rows.filter(r => r.parent === 'api')
+  assert.deepEqual(rows.map(r => r.name), ['alpha', 'Auth', 'Orders', 'step 1', 'Step 02', 'Step 2', 'step 10', 'Zeta', 'Zeta'])
+  assert.deepEqual(rows.filter(r => r.name === 'Zeta').map(r => r.id), ['zeta', 'zeta2'], 'the same name falls back to the id')
 })
 
 test('expandTo opens what holds a shape, and itself when asked', () => {
