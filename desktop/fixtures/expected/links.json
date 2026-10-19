@@ -1,0 +1,186 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "good",
+      "type": "system",
+      "name": "Good",
+      "links": [
+        {
+          "title": "Real document",
+          "url": "docs/real.md"
+        },
+        {
+          "url": "docs/"
+        },
+        {
+          "title": "Web",
+          "url": "https://example.com/a?x=1#y"
+        },
+        {
+          "url": "HTTP://EXAMPLE.COM"
+        }
+      ]
+    },
+    {
+      "id": "missing",
+      "type": "system",
+      "name": "Missing",
+      "links": [
+        {
+          "title": "Gone",
+          "url": "docs/gone.md"
+        }
+      ]
+    },
+    {
+      "id": "schemes",
+      "type": "system",
+      "name": "Schemes",
+      "links": [
+        {
+          "url": "file:///etc/passwd"
+        },
+        {
+          "url": "mailto:a@b.c"
+        },
+        {
+          "url": "javascript:alert(1)"
+        },
+        {
+          "url": "/etc/passwd"
+        },
+        {
+          "url": "C:/x"
+        },
+        {
+          "url": "../up"
+        },
+        {
+          "url": "https://"
+        },
+        {
+          "url": "ftp://x.dev/f"
+        }
+      ]
+    },
+    {
+      "id": "noaddress",
+      "type": "system",
+      "name": "No address",
+      "links": [
+        {
+          "title": "No address"
+        },
+        {
+          "url": "  "
+        }
+      ]
+    },
+    {
+      "id": "notalist",
+      "type": "system",
+      "name": "Not a list",
+      "links": "docs/real.md"
+    },
+    {
+      "id": "badentries",
+      "type": "system",
+      "name": "Bad entries",
+      "links": [
+        "docs/real.md",
+        {
+          "title": [
+            "x"
+          ],
+          "url": "docs/real.md"
+        }
+      ]
+    }
+  ],
+  "connections": [],
+  "layout": {},
+  "flows": [],
+  "problems": [
+    {
+      "file": "model.yaml",
+      "id": "missing",
+      "message": "missing: link path \"docs/gone.md\" doesn't exist"
+    },
+    {
+      "file": "model.yaml",
+      "id": "schemes",
+      "message": "schemes: link \"file:///etc/passwd\" must be a web address (http or https) or a path in the repo, relative, with / between folders and no \".\" or \"..\" parts"
+    },
+    {
+      "file": "model.yaml",
+      "id": "schemes",
+      "message": "schemes: link \"mailto:a@b.c\" must be a web address (http or https) or a path in the repo, relative, with / between folders and no \".\" or \"..\" parts"
+    },
+    {
+      "file": "model.yaml",
+      "id": "schemes",
+      "message": "schemes: link \"javascript:alert(1)\" must be a web address (http or https) or a path in the repo, relative, with / between folders and no \".\" or \"..\" parts"
+    },
+    {
+      "file": "model.yaml",
+      "id": "schemes",
+      "message": "schemes: link \"/etc/passwd\" must be a web address (http or https) or a path in the repo, relative, with / between folders and no \".\" or \"..\" parts"
+    },
+    {
+      "file": "model.yaml",
+      "id": "schemes",
+      "message": "schemes: link \"C:/x\" must be a web address (http or https) or a path in the repo, relative, with / between folders and no \".\" or \"..\" parts"
+    },
+    {
+      "file": "model.yaml",
+      "id": "schemes",
+      "message": "schemes: link \"../up\" must be a web address (http or https) or a path in the repo, relative, with / between folders and no \".\" or \"..\" parts"
+    },
+    {
+      "file": "model.yaml",
+      "id": "schemes",
+      "message": "schemes: link \"https://\" must be a web address (http or https) or a path in the repo, relative, with / between folders and no \".\" or \"..\" parts"
+    },
+    {
+      "file": "model.yaml",
+      "id": "schemes",
+      "message": "schemes: link \"ftp://x.dev/f\" must be a web address (http or https) or a path in the repo, relative, with / between folders and no \".\" or \"..\" parts"
+    },
+    {
+      "file": "model.yaml",
+      "id": "noaddress",
+      "message": "noaddress: a link has no url"
+    },
+    {
+      "file": "model.yaml",
+      "id": "noaddress",
+      "message": "noaddress: a link has no url"
+    },
+    {
+      "file": "model.yaml",
+      "id": "notalist",
+      "message": "notalist: links must be a list of entries with a url and, if you like, a title"
+    },
+    {
+      "file": "model.yaml",
+      "id": "badentries",
+      "message": "badentries: links must be a list of entries with a url and, if you like, a title"
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "good",
+        "missing",
+        "schemes",
+        "noaddress",
+        "notalist",
+        "badentries"
+      ],
+      "outsiders": [],
+      "edges": []
+    }
+  }
+}

@@ -23,10 +23,10 @@ public static partial class Names
 
 /// <summary>
 /// One box. Every known field is plain text when present; <c>null</c> means the key isn't there and
-/// <c>""</c> means it's there with nothing after it. <c>Code</c> is what the file held: a list of paths if it is
+/// <c>""</c> means it's there with nothing after it. <c>Code</c> and <c>Links</c> are what the file held: a list if it is
 /// well formed, which the checks report when it isn't.
 /// </summary>
-public sealed record FlowyObject(string? Type, string? Name, string? In, string? External, string? Tech, string? Description, object? Code);
+public sealed record FlowyObject(string? Type, string? Name, string? In, string? External, string? Tech, string? Description, object? Code, object? Links = null);
 
 public sealed record Connection(string? From, string? To, string? Label);
 

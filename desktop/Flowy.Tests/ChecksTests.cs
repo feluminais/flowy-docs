@@ -149,4 +149,77 @@ public class ChecksTests
         Assert.Equal(["lines must be straight, curved or angled"], Messages(m));
         Assert.Empty(Checks.Run(TestModels.FromYaml("lines: curved\nobjects:\n  a: { type: actor, name: A }\n")));
     }
+
+    [Theory]
+    [InlineData("https://example.com")]
+    [InlineData("http://localhost:4321/#a/b")]
+    [InlineData("HTTPS://EXAMPLE.COM/a?x=1#y")]
+    public void A_web_address_is_http_or_https_with_a_host(string url) => Assert.True(Checks.IsWebAddress(url));
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("https://")]
+    [InlineData("https:///x")]
+    [InlineData("ftp://x.dev")]
+    [InlineData("mailto:a@b.c")]
+    [InlineData("file:///x")]
+    [InlineData("javascript:alert(1)")]
+    [InlineData("//example.com")]
+    [InlineData("example.com")]
+    [InlineData("https://a b.com")]
+    [InlineData("https://a.b\n")]
+    [InlineData("https://a.b\tc")]
+    [InlineData("docs/a.md")]
+    public void Anything_else_is_not_a_web_address(string url) => Assert.False(Checks.IsWebAddress(url));
+
+    [Fact]
+    public void Links_are_web_addresses_and_repo_paths_that_exist()
+    {
+        var m = TestModels.FromYaml("""
+            objects:
+              a: { type: actor, name: A, links: docs/a.md }
+              b:
+                type: actor
+                name: B
+                links:
+                  - docs/a.md
+                  - { url: docs/a.md }
+                  - { title: [x], url: docs/a.md }
+              c:
+                type: actor
+                name: C
+                links:
+                  - { title: No address }
+                  - { url: "  " }
+              d:
+                type: actor
+                name: D
+                links:
+                  - { url: "file:///etc/passwd" }
+                  - { url: "mailto:a@b.c" }
+                  - { url: "javascript:alert(1)" }
+                  - { url: /etc/passwd }
+                  - { url: "C:/x" }
+                  - { url: ../up }
+                  - { url: "https://" }
+                  - { url: "ftp://x.dev/f" }
+              e:
+                type: actor
+                name: E
+                links:
+                  - { title: Docs, url: docs/ }
+                  - { url: docs/gone.md }
+                  - { title: Web, url: "https://example.com/a?x=1#y" }
+                  - { url: "HTTP://EXAMPLE.COM" }
+            connections:
+            """);
+        var messages = Messages(m, new HashSet<string> { "docs/gone.md" });
+        const string shape = "links must be a list of entries with a url and, if you like, a title";
+        Assert.Contains($"a: {shape}", messages);
+        Assert.Contains($"b: {shape}", messages);
+        Assert.Equal(2, messages.Count(msg => msg == "c: a link has no url"));
+        foreach (var bad in new[] { "file:///etc/passwd", "mailto:a@b.c", "javascript:alert(1)", "/etc/passwd", "C:/x", "../up", "https://", "ftp://x.dev/f" })
+            Assert.Contains($"d: link \"{bad}\" must be a web address (http or https) or a path in the repo, relative, with / between folders and no \".\" or \"..\" parts", messages);
+        Assert.Equal(["e: link path \"docs/gone.md\" doesn't exist"], messages.Where(msg => msg.StartsWith("e:")));
+    }
 }

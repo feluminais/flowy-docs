@@ -172,4 +172,21 @@ public class UserStateTests
             Environment.SetEnvironmentVariable("FLOWY_STATE_DIR", null);
         }
     }
+
+    [Fact]
+    public void The_app_chosen_for_linked_files_is_kept_while_it_exists_and_forgotten_when_it_is_gone_or_not_text()
+    {
+        using var temp = new TempDir();
+        var app = temp.Write("editor.exe", "");
+        var store = new UserStateStore(Path.Combine(temp.Dir, "state.json"));
+        Assert.Null(UserState.Default.OpenFilesWith);
+        store.Save(UserState.Default with { OpenFilesWith = app });
+        Assert.Equal(app, store.Load().OpenFilesWith);
+        File.Delete(app);
+        Assert.Null(store.Load().OpenFilesWith);
+        temp.Write("state.json", "{ \"openFilesWith\": 5 }");
+        Assert.Null(store.Load().OpenFilesWith);
+        temp.Write("state.json", "{ \"openFilesWith\": \"\" }");
+        Assert.Null(store.Load().OpenFilesWith);
+    }
 }
