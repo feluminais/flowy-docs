@@ -7,6 +7,9 @@ import { extname, join, resolve, sep } from 'node:path'
 import { json } from 'node:stream/consumers'
 import { ParseError, parseFile, serializeFile } from '../core/model.ts'
 import { isAllowedPath, loadDir, loadState, saveFile, VersionConflict } from './files.ts'
+import type { History } from './history.ts'
+import { createHistoryApi } from './history-api.ts'
+import type { HistoryApi } from './history-api.ts'
 
 export type Running = { port: number; close: () => Promise<void> }
 
@@ -27,7 +30,7 @@ function send(res: ServerResponse, status: number, body: unknown) {
 }
 
 /** PUT /api/file/<path> { version, data } writes a file; DELETE /api/file/flows/<id>.yaml { version } removes a flow. */
-async function write(dir: string, req: IncomingMessage, res: ServerResponse, rel: string) {
+async function write(dir: string, req: IncomingMessage, res: ServerResponse, rel: string, history?: HistoryApi) {
   if (!isAllowedPath(rel) || (req.method === 'DELETE' && !rel.startsWith('flows/')))
     return send(res, 400, { error: `can't write "${rel}"` })
   const body = (await json(req).catch(() => undefined)) as { version?: unknown; data?: unknown } | undefined
@@ -51,6 +54,7 @@ async function write(dir: string, req: IncomingMessage, res: ServerResponse, rel
     }
   }
   try {
+    await history?.beforeWrite() // the files as they are now become a step before this edit changes them
     send(res, 200, { version: await saveFile(dir, rel, text, version) })
   } catch (e) {
     if (e instanceof VersionConflict) return send(res, 409, { version: e.version })
@@ -86,10 +90,13 @@ function listen(server: Server, port: number): Promise<number> {
 /**
  * The local server behind the canvas, on 127.0.0.1 only, at `port` or the next free one (0 = any).
  * `dir` is the flowy/ folder, created if missing so it can be watched. `ui` is the built canvas.
+ * `history` turns on the step history: the routes under /api/history, recording of the page's edits and of changes made outside.
+ * `gateMs` is how long an edit the page never labels waits before it is recorded without one.
  */
-export async function startServer({ dir, ui, port }: { dir: string; ui: string; port: number }): Promise<Running> {
+export async function startServer({ dir, ui, port, history, gateMs }: { dir: string; ui: string; port: number; history?: History; gateMs?: number }): Promise<Running> {
   const uiDir = resolve(ui) // serveUi's containment check needs a normalized path
   const clients = new Set<ServerResponse>()
+  const steps = history ? createHistoryApi(history, { gateMs }) : undefined
   let actualPort = 0
 
   const server = createServer(async (req, res) => {
@@ -110,8 +117,10 @@ export async function startServer({ dir, ui, port }: { dir: string; ui: string; 
       if ((req.method === 'PUT' || req.method === 'DELETE') && url.pathname.startsWith('/api/file/')) {
         // Browsers only let a page send a custom header to its own origin, so other sites can't write.
         if (req.headers['x-flowy'] !== '1') return send(res, 403, { error: 'missing X-Flowy: 1 header' })
-        return await write(dir, req, res, url.pathname.slice('/api/file/'.length))
+        return await write(dir, req, res, url.pathname.slice('/api/file/'.length), steps)
       }
+      const answer = await steps?.handle(req, url)
+      if (answer) return send(res, answer.status, answer.body)
       if (url.pathname.startsWith('/api/')) return send(res, 404, { error: 'not found' })
       if (req.method === 'GET' || req.method === 'HEAD') return await serveUi(uiDir, res, url.pathname)
       send(res, 405, { error: 'method not allowed' })
@@ -122,12 +131,14 @@ export async function startServer({ dir, ui, port }: { dir: string; ui: string; 
   })
 
   await mkdir(dir, { recursive: true })
+  await steps?.opened() // the first look at a folder, or what changed while nothing was watching, is a step before the first request is answered
   let timer: ReturnType<typeof setTimeout> | undefined
   const watcher = watch(dir, { recursive: true }, (_event, name) => {
     if (name?.endsWith('.tmp')) return // saveFile's temp files; the rename that follows is reported on its own
     clearTimeout(timer)
     timer = setTimeout(() => {
       for (const client of clients) client.write('data: changed\n\n')
+      void steps?.filesChanged().catch(() => undefined) // a change nobody labelled
     }, 100)
   })
   watcher.on('error', e => console.error(`Stopped watching ${dir} (${e.message}). Restart flowy to get live updates.`))
@@ -149,6 +160,7 @@ export async function startServer({ dir, ui, port }: { dir: string; ui: string; 
     close: () => new Promise(done => {
       watcher.close()
       clearTimeout(timer)
+      steps?.close()
       server.close(() => done())
       server.closeAllConnections()
     }),

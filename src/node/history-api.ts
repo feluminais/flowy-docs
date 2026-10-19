@@ -30,7 +30,24 @@ async function objectBody(req: IncomingMessage): Promise<Record<string, unknown>
 
 const isLabel = (value: unknown): value is string => typeof value === 'string' && value.length >= 1 && value.length <= MAX_LABEL
 
-export function createHistoryApi(history: History, _options: { gateMs?: number } = {}): HistoryApi {
+/**
+ * `gateMs`: how long a page's edit may stay unfinished. The page writes one file per request, so the server cannot tell where one edit ends;
+ * the first write of an edit opens a gate (after recording the files as they were), the page's label closes it and records the step, and a
+ * page that never says is given `gateMs` before the step is recorded without one. While the gate is open the folder watcher stays quiet,
+ * because those changes are the edit's own.
+ */
+export function createHistoryApi(history: History, options: { gateMs?: number } = {}): HistoryApi {
+  const gateMs = options.gateMs ?? 5000
+  /** Set while the gate is open: settles once the files as they were are recorded. */
+  let gate: Promise<void> | undefined
+  let timer: ReturnType<typeof setTimeout> | undefined
+
+  const closeGate = () => {
+    clearTimeout(timer)
+    timer = undefined
+    gate = undefined
+  }
+
   async function post(req: IncomingMessage, pathname: string): Promise<Answer | undefined> {
     if (pathname !== '/api/history/steps' && pathname !== '/api/history/restore' && pathname !== '/api/history/clear') return undefined
     // Browsers only let a page send a custom header to its own origin, so other sites can't write.
@@ -43,6 +60,7 @@ export function createHistoryApi(history: History, _options: { gateMs?: number }
     const body = await objectBody(req)
     if (pathname === '/api/history/steps') {
       if (!body || !isLabel(body.label)) return bad(`the body needs "label": a sentence of 1 to ${MAX_LABEL} characters`)
+      closeGate()
       return { status: 200, body: { recorded: (await history.record(body.label, 'you')) !== undefined } }
     }
 
@@ -73,9 +91,22 @@ export function createHistoryApi(history: History, _options: { gateMs?: number }
       if (pathname === '/api/yaml') return { status: 200, body: await history.now() }
       return undefined
     },
-    async beforeWrite() {},
-    async filesChanged() {},
-    async opened() {},
-    close() {},
+    beforeWrite() {
+      if (!gate) {
+        gate = history.ensureCurrent('write').then(() => undefined)
+        timer = setTimeout(() => {
+          closeGate()
+          void history.record(undefined, 'you')
+        }, gateMs)
+      }
+      return gate
+    },
+    async filesChanged() {
+      if (!gate) await history.ensureCurrent('watch')
+    },
+    async opened() {
+      await history.ensureCurrent('open')
+    },
+    close: closeGate,
   }
 }
