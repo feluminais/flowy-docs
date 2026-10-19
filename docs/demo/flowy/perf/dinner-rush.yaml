@@ -1,0 +1,295 @@
+name: "Dinner rush"
+about: "Made-up numbers for the demo. A dinner rush on Plum, from 100 to 1,200 orders a minute, five minutes at each level. Delivery gives way first: every order makes six Mapbox travel-time calls, the plan allows about 100 a second, and Order events fills up behind Dispatch."
+unit: orders/min
+entry: customer-app
+levels:
+  - load: 100
+    overall: { rate: 16.7, p50: 42, p95: 118, errors: 0 }
+    objects:
+      order-api: { util: 0.08 }
+      orders-db: { util: 0.08 }
+      menu-cache: { util: 0.03 }
+      menu: { util: 0.04 }
+      basket: { util: 0.05 }
+      pricing: { util: 0.05 }
+      checkout: { util: 0.06 }
+      status: { util: 0.06 }
+      dispatch: { util: 0.07 }
+      matcher: { util: 0.05 }
+      eta: { util: 0.09, errors: 0 }
+      offers: { util: 0.04 }
+      fleet-db: { util: 0.05 }
+      tracking: { util: 0.08 }
+      notifier: { util: 0.04 }
+      templates: { util: 0.01 }
+      events: { queue: 0 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 11.67, p50: 40, p95: 112.41, errors: 0 }
+      - { from: web, to: order-api, rate: 5, p50: 55.68, p95: 141.62, errors: 0 }
+      - { from: kitchen-tablet, to: order-api, rate: 3.33, p50: 38.85, p95: 94.92, errors: 0 }
+      - { from: menu, to: menu-cache, rate: 8.33, p50: 1.23, p95: 2.96, errors: 0 }
+      - { from: menu, to: orders-db, rate: 0.67, p50: 6.18, p95: 17.59, errors: 0 }
+      - { from: basket, to: orders-db, rate: 3.33, p50: 5.13, p95: 14.57, errors: 0 }
+      - { from: basket, to: pricing, rate: 3.33, p50: 3.05, p95: 7.76, errors: 0 }
+      - { from: pricing, to: mapbox, rate: 1.17, p50: 85.45, p95: 155.97, errors: 0 }
+      - { from: checkout, to: pricing, rate: 1.67, p50: 3.97, p95: 11.8, errors: 0 }
+      - { from: checkout, to: stripe, rate: 1.67, p50: 314.04, p95: 696.85, errors: 0 }
+      - { from: checkout, to: orders-db, rate: 1.67, p50: 7.79, p95: 25.2, errors: 0 }
+      - { from: checkout, to: events, rate: 1.67, p50: 3.88, p95: 12.23, errors: 0 }
+      - { from: status, to: orders-db, rate: 6.67, p50: 4.86, p95: 15.41, errors: 0 }
+      - { from: status, to: events, rate: 6.67, p50: 3.92, p95: 12.36, errors: 0 }
+      - { from: status, to: notifier, rate: 5, p50: 5.94, p95: 18.5, errors: 0 }
+      - { from: refunds, to: stripe, rate: 0.07, p50: 380.78, p95: 918.43, errors: 0 }
+      - { from: refunds, to: orders-db, rate: 0.07, p50: 8.11, p95: 25.24, errors: 0 }
+      - { from: refunds, to: notifier, rate: 0.07, p50: 6.14, p95: 17.95, errors: 0 }
+      - { from: dispatch, to: events, rate: 1.67, p50: 6.18, p95: 14.78, errors: 0 }
+      - { from: matcher, to: fleet-db, rate: 1.67, p50: 9.27, p95: 24.39, errors: 0 }
+      - { from: matcher, to: eta, rate: 10, p50: 5.12, p95: 13.59, errors: 0 }
+      - { from: matcher, to: offers, rate: 1.67, p50: 2.03, p95: 5.82, errors: 0 }
+      - { from: eta, to: mapbox, rate: 10, p50: 60.2, p95: 136.64, errors: 0 }
+      - { from: offers, to: notifier, rate: 2.67, p50: 5.94, p95: 17.74, errors: 0 }
+      - { from: courier-app, to: dispatch, rate: 2.33, p50: 11.76, p95: 34.91, errors: 0 }
+      - { from: courier-app, to: tracking, rate: 333.33, p50: 2.92, p95: 9.09, errors: 0 }
+      - { from: courier-app, to: status, rate: 3.33, p50: 14.55, p95: 40.83, errors: 0 }
+      - { from: courier-app, to: mapbox, rate: 6.67, p50: 68.1, p95: 154.17, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 100, p50: 1.96, p95: 6.18, errors: 0 }
+      - { from: tracking, to: customer-app, rate: 100, p50: 3.97, p95: 10.27, errors: 0 }
+      - { from: tracking, to: web, rate: 41.67, p50: 4.02, p95: 10.19, errors: 0 }
+      - { from: notifier, to: twilio, rate: 2, p50: 223.51, p95: 604.62, errors: 0 }
+      - { from: notifier, to: templates, rate: 5, p50: 1.54, p95: 3.98, errors: 0 }
+      - { from: support-console, to: order-api, rate: 0.17, p50: 41.18, p95: 108.17, errors: 0 }
+      - { from: support-console, to: refunds, rate: 0.07, p50: 61.74, p95: 155.93, errors: 0 }
+      - { from: admin, to: order-api, rate: 0.03, p50: 46.05, p95: 116.43, errors: 0 }
+      - { from: events, to: warehouse, rate: 8.33, p50: 9.12, p95: 24.28, errors: 0 }
+  - load: 300
+    overall: { rate: 50, p50: 44, p95: 126, errors: 0 }
+    objects:
+      order-api: { util: 0.22 }
+      orders-db: { util: 0.24 }
+      menu-cache: { util: 0.09 }
+      menu: { util: 0.12 }
+      basket: { util: 0.14 }
+      pricing: { util: 0.15 }
+      checkout: { util: 0.18 }
+      status: { util: 0.17 }
+      dispatch: { util: 0.2 }
+      matcher: { util: 0.15 }
+      eta: { util: 0.28, errors: 0 }
+      offers: { util: 0.12 }
+      fleet-db: { util: 0.14 }
+      tracking: { util: 0.22 }
+      notifier: { util: 0.12 }
+      templates: { util: 0.03 }
+      events: { queue: 0 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 35, p50: 41.37, p95: 111.88, errors: 0 }
+      - { from: web, to: order-api, rate: 15, p50: 55.8, p95: 145.13, errors: 0 }
+      - { from: kitchen-tablet, to: order-api, rate: 10, p50: 38.4, p95: 99.17, errors: 0 }
+      - { from: menu, to: menu-cache, rate: 25, p50: 1.17, p95: 3.01, errors: 0 }
+      - { from: menu, to: orders-db, rate: 2, p50: 6.79, p95: 22.35, errors: 0 }
+      - { from: basket, to: orders-db, rate: 10, p50: 5.83, p95: 18.45, errors: 0 }
+      - { from: basket, to: pricing, rate: 10, p50: 2.93, p95: 9.27, errors: 0 }
+      - { from: pricing, to: mapbox, rate: 3.5, p50: 84.8, p95: 169.77, errors: 0 }
+      - { from: checkout, to: pricing, rate: 5, p50: 3.99, p95: 13.3, errors: 0 }
+      - { from: checkout, to: stripe, rate: 5, p50: 325.43, p95: 719.4, errors: 0 }
+      - { from: checkout, to: orders-db, rate: 5, p50: 9.19, p95: 30.03, errors: 0 }
+      - { from: checkout, to: events, rate: 5, p50: 4.11, p95: 13.84, errors: 0 }
+      - { from: status, to: orders-db, rate: 20, p50: 6.18, p95: 17.61, errors: 0 }
+      - { from: status, to: events, rate: 20, p50: 4.11, p95: 13.6, errors: 0 }
+      - { from: status, to: notifier, rate: 15, p50: 6.11, p95: 19.4, errors: 0 }
+      - { from: refunds, to: stripe, rate: 0.2, p50: 384.71, p95: 886.21, errors: 0 }
+      - { from: refunds, to: orders-db, rate: 0.2, p50: 8.95, p95: 29.47, errors: 0 }
+      - { from: refunds, to: notifier, rate: 0.2, p50: 5.9, p95: 19.87, errors: 0 }
+      - { from: dispatch, to: events, rate: 5, p50: 5.85, p95: 16.1, errors: 0 }
+      - { from: matcher, to: fleet-db, rate: 5, p50: 9.7, p95: 28.5, errors: 0 }
+      - { from: matcher, to: eta, rate: 30, p50: 5.83, p95: 18.47, errors: 0 }
+      - { from: matcher, to: offers, rate: 5, p50: 1.96, p95: 6.18, errors: 0 }
+      - { from: eta, to: mapbox, rate: 30, p50: 61.25, p95: 154.25, errors: 0 }
+      - { from: offers, to: notifier, rate: 8, p50: 6, p95: 20.44, errors: 0 }
+      - { from: courier-app, to: dispatch, rate: 7, p50: 13.16, p95: 40.46, errors: 0 }
+      - { from: courier-app, to: tracking, rate: 1000, p50: 3.07, p95: 9.99, errors: 0 }
+      - { from: courier-app, to: status, rate: 10, p50: 16.46, p95: 43.42, errors: 0 }
+      - { from: courier-app, to: mapbox, rate: 20, p50: 73.11, p95: 151.41, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 300, p50: 2.05, p95: 6.8, errors: 0 }
+      - { from: tracking, to: customer-app, rate: 300, p50: 4.07, p95: 10.67, errors: 0 }
+      - { from: tracking, to: web, rate: 125, p50: 4.02, p95: 10.72, errors: 0 }
+      - { from: notifier, to: twilio, rate: 6, p50: 220.33, p95: 600.18, errors: 0 }
+      - { from: notifier, to: templates, rate: 15, p50: 1.47, p95: 3.98, errors: 0 }
+      - { from: support-console, to: order-api, rate: 0.5, p50: 39.9, p95: 115.95, errors: 0 }
+      - { from: support-console, to: refunds, rate: 0.2, p50: 60.14, p95: 173.3, errors: 0 }
+      - { from: admin, to: order-api, rate: 0.1, p50: 44.72, p95: 129.41, errors: 0 }
+      - { from: events, to: warehouse, rate: 25, p50: 8.81, p95: 27.81, errors: 0 }
+  - load: 600
+    overall: { rate: 100, p50: 46, p95: 145, errors: 0 }
+    objects:
+      order-api: { util: 0.42 }
+      orders-db: { util: 0.45 }
+      menu-cache: { util: 0.17 }
+      menu: { util: 0.24 }
+      basket: { util: 0.28 }
+      pricing: { util: 0.3 }
+      checkout: { util: 0.35 }
+      status: { util: 0.34 }
+      dispatch: { util: 0.4 }
+      matcher: { util: 0.3 }
+      eta: { util: 0.58, errors: 0 }
+      offers: { util: 0.24 }
+      fleet-db: { util: 0.3 }
+      tracking: { util: 0.42 }
+      notifier: { util: 0.24 }
+      templates: { util: 0.05 }
+      events: { queue: 1 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 70, p50: 42.26, p95: 133.86, errors: 0 }
+      - { from: web, to: order-api, rate: 30, p50: 57.67, p95: 169.19, errors: 0 }
+      - { from: kitchen-tablet, to: order-api, rate: 20, p50: 40.28, p95: 111.83, errors: 0 }
+      - { from: menu, to: menu-cache, rate: 50, p50: 1.32, p95: 4.02, errors: 0 }
+      - { from: menu, to: orders-db, rate: 4, p50: 8.21, p95: 29.77, errors: 0 }
+      - { from: basket, to: orders-db, rate: 20, p50: 7.21, p95: 25.51, errors: 0 }
+      - { from: basket, to: pricing, rate: 20, p50: 4.11, p95: 9.73, errors: 0 }
+      - { from: pricing, to: mapbox, rate: 7, p50: 89.88, p95: 174.6, errors: 0 }
+      - { from: checkout, to: pricing, rate: 10, p50: 5.05, p95: 14.58, errors: 0 }
+      - { from: checkout, to: stripe, rate: 10, p50: 324.46, p95: 724.64, errors: 0 }
+      - { from: checkout, to: orders-db, rate: 10, p50: 9.86, p95: 41.58, errors: 0 }
+      - { from: checkout, to: events, rate: 10, p50: 4.88, p95: 18.04, errors: 0 }
+      - { from: status, to: orders-db, rate: 40, p50: 6.8, p95: 26.38, errors: 0 }
+      - { from: status, to: events, rate: 40, p50: 4.85, p95: 18.43, errors: 0 }
+      - { from: status, to: notifier, rate: 30, p50: 6.83, p95: 26.76, errors: 0 }
+      - { from: refunds, to: stripe, rate: 0.4, p50: 379.01, p95: 967.61, errors: 0 }
+      - { from: refunds, to: orders-db, rate: 0.4, p50: 9.96, p95: 43.02, errors: 0 }
+      - { from: refunds, to: notifier, rate: 0.4, p50: 7.06, p95: 26.39, errors: 0 }
+      - { from: dispatch, to: events, rate: 10, p50: 7.14, p95: 20.06, errors: 0 }
+      - { from: matcher, to: fleet-db, rate: 10, p50: 12.33, p95: 37.63, errors: 0 }
+      - { from: matcher, to: eta, rate: 60, p50: 9.27, p95: 34.28, errors: 0 }
+      - { from: matcher, to: offers, rate: 10, p50: 3.08, p95: 7.78, errors: 0 }
+      - { from: eta, to: mapbox, rate: 60, p50: 71.39, p95: 194, errors: 0 }
+      - { from: offers, to: notifier, rate: 16, p50: 7.06, p95: 25.3, errors: 0 }
+      - { from: courier-app, to: dispatch, rate: 14, p50: 15.94, p95: 53.94, errors: 0 }
+      - { from: courier-app, to: tracking, rate: 2000, p50: 3.94, p95: 13.89, errors: 0 }
+      - { from: courier-app, to: status, rate: 20, p50: 17.55, p95: 55.25, errors: 0 }
+      - { from: courier-app, to: mapbox, rate: 40, p50: 71.81, p95: 172.77, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 600, p50: 2.91, p95: 10.25, errors: 0 }
+      - { from: tracking, to: customer-app, rate: 600, p50: 4.88, p95: 15.44, errors: 0 }
+      - { from: tracking, to: web, rate: 250, p50: 4.93, p95: 15.43, errors: 0 }
+      - { from: notifier, to: twilio, rate: 12, p50: 225.64, p95: 654.72, errors: 0 }
+      - { from: notifier, to: templates, rate: 30, p50: 1.62, p95: 5.07, errors: 0 }
+      - { from: support-console, to: order-api, rate: 1, p50: 43.92, p95: 130.1, errors: 0 }
+      - { from: support-console, to: refunds, rate: 0.4, p50: 67.86, p95: 187.8, errors: 0 }
+      - { from: admin, to: order-api, rate: 0.2, p50: 49.44, p95: 138.88, errors: 0 }
+      - { from: events, to: warehouse, rate: 50, p50: 10.26, p95: 33.03, errors: 0 }
+  - load: 900
+    overall: { rate: 150, p50: 52, p95: 195, errors: 0 }
+    objects:
+      order-api: { util: 0.62 }
+      orders-db: { util: 0.66 }
+      menu-cache: { util: 0.26 }
+      menu: { util: 0.36 }
+      basket: { util: 0.42 }
+      pricing: { util: 0.45 }
+      checkout: { util: 0.52 }
+      status: { util: 0.5 }
+      dispatch: { util: 0.62 }
+      matcher: { util: 0.46 }
+      eta: { util: 0.9, errors: 0.03 }
+      offers: { util: 0.36 }
+      fleet-db: { util: 0.45 }
+      tracking: { util: 0.6 }
+      notifier: { util: 0.36 }
+      templates: { util: 0.08 }
+      events: { queue: 14 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 105, p50: 49.15, p95: 164.97, errors: 0 }
+      - { from: web, to: order-api, rate: 45, p50: 64.92, p95: 203.9, errors: 0 }
+      - { from: kitchen-tablet, to: order-api, rate: 30, p50: 44.1, p95: 136.73, errors: 0 }
+      - { from: menu, to: menu-cache, rate: 75, p50: 1.48, p95: 5.92, errors: 0 }
+      - { from: menu, to: orders-db, rate: 6, p50: 10.77, p95: 47.93, errors: 0 }
+      - { from: basket, to: orders-db, rate: 30, p50: 9.72, p95: 45.5, errors: 0 }
+      - { from: basket, to: pricing, rate: 30, p50: 3.88, p95: 14.3, errors: 0 }
+      - { from: pricing, to: mapbox, rate: 10.5, p50: 89.54, p95: 215.92, errors: 0 }
+      - { from: checkout, to: pricing, rate: 15, p50: 5.89, p95: 22.66, errors: 0 }
+      - { from: checkout, to: stripe, rate: 15, p50: 332.5, p95: 841.59, errors: 0 }
+      - { from: checkout, to: orders-db, rate: 15, p50: 14.07, p95: 71.27, errors: 0 }
+      - { from: checkout, to: events, rate: 15, p50: 6.1, p95: 26.17, errors: 0 }
+      - { from: status, to: orders-db, rate: 60, p50: 10.26, p95: 44.73, errors: 0 }
+      - { from: status, to: events, rate: 60, p50: 6.18, p95: 25.54, errors: 0 }
+      - { from: status, to: notifier, rate: 45, p50: 9.26, p95: 38.96, errors: 0 }
+      - { from: refunds, to: stripe, rate: 0.6, p50: 403.92, p95: 989.56, errors: 0 }
+      - { from: refunds, to: orders-db, rate: 0.6, p50: 14.17, p95: 68.01, errors: 0 }
+      - { from: refunds, to: notifier, rate: 0.6, p50: 9, p95: 39.12, errors: 0 }
+      - { from: dispatch, to: events, rate: 15, p50: 8.89, p95: 29.65, errors: 0 }
+      - { from: matcher, to: fleet-db, rate: 15, p50: 17.6, p95: 70.05, errors: 0 }
+      - { from: matcher, to: eta, rate: 90, p50: 68, p95: 263.36, errors: 0.01 }
+      - { from: matcher, to: offers, rate: 15, p50: 2.91, p95: 10.23, errors: 0 }
+      - { from: eta, to: mapbox, rate: 90, p50: 116.91, p95: 535, errors: 0.03 }
+      - { from: offers, to: notifier, rate: 24, p50: 8.85, p95: 41.19, errors: 0 }
+      - { from: courier-app, to: dispatch, rate: 21, p50: 27.85, p95: 123.03, errors: 0 }
+      - { from: courier-app, to: tracking, rate: 3000, p50: 6.04, p95: 25.41, errors: 0 }
+      - { from: courier-app, to: status, rate: 30, p50: 24.44, p95: 90.42, errors: 0 }
+      - { from: courier-app, to: mapbox, rate: 60, p50: 82.12, p95: 208.33, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 900, p50: 4.12, p95: 17.66, errors: 0 }
+      - { from: tracking, to: customer-app, rate: 900, p50: 7.2, p95: 25.3, errors: 0 }
+      - { from: tracking, to: web, rate: 375, p50: 7.15, p95: 25.22, errors: 0 }
+      - { from: notifier, to: twilio, rate: 18, p50: 242.54, p95: 700.03, errors: 0 }
+      - { from: notifier, to: templates, rate: 45, p50: 1.8, p95: 5.88, errors: 0 }
+      - { from: support-console, to: order-api, rate: 1.5, p50: 47.33, p95: 168.33, errors: 0 }
+      - { from: support-console, to: refunds, rate: 0.6, p50: 72.25, p95: 240.65, errors: 0 }
+      - { from: admin, to: order-api, rate: 0.3, p50: 52.43, p95: 187.73, errors: 0 }
+      - { from: events, to: warehouse, rate: 75, p50: 11.65, p95: 56.33, errors: 0 }
+  - load: 1200
+    overall: { rate: 200, p50: 66, p95: 300, errors: 0 }
+    objects:
+      order-api: { util: 0.8 }
+      orders-db: { util: 0.82 }
+      menu-cache: { util: 0.34 }
+      menu: { util: 0.48 }
+      basket: { util: 0.56 }
+      pricing: { util: 0.6 }
+      checkout: { util: 0.7 }
+      status: { util: 0.66 }
+      dispatch: { util: 0.78 }
+      matcher: { util: 0.6 }
+      eta: { util: 1, errors: 0.17 }
+      offers: { util: 0.45 }
+      fleet-db: { util: 0.58 }
+      tracking: { util: 0.78 }
+      notifier: { util: 0.48 }
+      templates: { util: 0.1 }
+      events: { queue: 1000 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 140, p50: 58.31, p95: 266.93, errors: 0 }
+      - { from: web, to: order-api, rate: 60, p50: 76.32, p95: 329.59, errors: 0 }
+      - { from: kitchen-tablet, to: order-api, rate: 40, p50: 51.42, p95: 205.59, errors: 0 }
+      - { from: menu, to: menu-cache, rate: 100, p50: 2, p95: 10.21, errors: 0 }
+      - { from: menu, to: orders-db, rate: 8, p50: 16.22, p95: 85.88, errors: 0 }
+      - { from: basket, to: orders-db, rate: 40, p50: 15.35, p95: 79.83, errors: 0 }
+      - { from: basket, to: pricing, rate: 40, p50: 5.15, p95: 19.72, errors: 0 }
+      - { from: pricing, to: mapbox, rate: 14, p50: 102.96, p95: 253.81, errors: 0 }
+      - { from: checkout, to: pricing, rate: 20, p50: 8.2, p95: 33.98, errors: 0 }
+      - { from: checkout, to: stripe, rate: 20, p50: 365.72, p95: 970.56, errors: 0 }
+      - { from: checkout, to: orders-db, rate: 20, p50: 22.09, p95: 117.06, errors: 0 }
+      - { from: checkout, to: events, rate: 20, p50: 8.92, p95: 44.32, errors: 0 }
+      - { from: status, to: orders-db, rate: 80, p50: 14.71, p95: 79.74, errors: 0 }
+      - { from: status, to: events, rate: 80, p50: 8.76, p95: 45.42, errors: 0 }
+      - { from: status, to: notifier, rate: 60, p50: 12.61, p95: 71.42, errors: 0 }
+      - { from: refunds, to: stripe, rate: 0.8, p50: 408.45, p95: 1233.05, errors: 0 }
+      - { from: refunds, to: orders-db, rate: 0.8, p50: 21.56, p95: 123.6, errors: 0 }
+      - { from: refunds, to: notifier, rate: 0.8, p50: 12.88, p95: 71.9, errors: 0 }
+      - { from: dispatch, to: events, rate: 16.67, p50: 14.05, p95: 61.17, errors: 0 }
+      - { from: matcher, to: fleet-db, rate: 16.67, p50: 40.61, p95: 161.35, errors: 0 }
+      - { from: matcher, to: eta, rate: 100, p50: 532.76, p95: 1792.55, errors: 0.12 }
+      - { from: matcher, to: offers, rate: 16.67, p50: 4.12, p95: 14.76, errors: 0 }
+      - { from: eta, to: mapbox, rate: 100, p50: 391.09, p95: 2144.99, errors: 0.17 }
+      - { from: offers, to: notifier, rate: 26.67, p50: 14.33, p95: 67.93, errors: 0 }
+      - { from: courier-app, to: dispatch, rate: 23.33, p50: 91.27, p95: 436.96, errors: 0 }
+      - { from: courier-app, to: tracking, rate: 4000, p50: 10.02, p95: 48.84, errors: 0 }
+      - { from: courier-app, to: status, rate: 40, p50: 39.58, p95: 157.86, errors: 0 }
+      - { from: courier-app, to: mapbox, rate: 80, p50: 92.99, p95: 299.65, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 1200, p50: 7.78, p95: 40.45, errors: 0 }
+      - { from: tracking, to: customer-app, rate: 1200, p50: 11.64, p95: 56.19, errors: 0 }
+      - { from: tracking, to: web, rate: 500, p50: 11.68, p95: 56.56, errors: 0 }
+      - { from: notifier, to: twilio, rate: 24, p50: 264.99, p95: 926.91, errors: 0 }
+      - { from: notifier, to: templates, rate: 60, p50: 2.38, p95: 9.24, errors: 0 }
+      - { from: support-console, to: order-api, rate: 2, p50: 60.32, p95: 264.66, errors: 0 }
+      - { from: support-console, to: refunds, rate: 0.8, p50: 96.62, p95: 332.13, errors: 0 }
+      - { from: admin, to: order-api, rate: 0.4, p50: 67.69, p95: 278.28, errors: 0 }
+      - { from: events, to: warehouse, rate: 100, p50: 18.54, p95: 108.06, errors: 0 }

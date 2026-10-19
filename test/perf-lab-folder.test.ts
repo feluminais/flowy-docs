@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
 import { modelFiles } from '../src/core/model.ts'
+import { knee } from '../src/core/perf.ts'
 import { loadState } from '../src/node/files.ts'
 
 test('the lab documents itself, and its two committed runs fit its model', async () => {
@@ -13,8 +14,23 @@ test('the lab documents itself, and its two committed runs fit its model', async
   for (const run of Object.values(state.runs ?? {})) assert.ok(run.levels.length >= 5, `${run.name} has ${run.levels.length} levels`)
 })
 
+test('the demo, Plum, has two made-up runs that fit its model: the first is where Delivery gives way, the second the same test after a fix', async () => {
+  const state = await loadState(join(import.meta.dirname, '../docs/demo/flowy'))
+  assert.ok('problems' in state)
+  assert.deepEqual(state.problems, [])
+  assert.equal('runProblems' in state, false)
+  assert.deepEqual(Object.keys(state.runs ?? {}), ['dinner-rush', 'eta-batched'])
+  const [rush, batched] = Object.values(state.runs ?? {})
+  assert.deepEqual(rush.levels.map(l => l.load), [100, 300, 600, 900, 1200])
+  assert.deepEqual(batched.levels.map(l => l.load), [100, 300, 600, 900, 1200])
+  assert.deepEqual(knee(rush), { index: 3, load: 900, by: { id: 'eta', kind: 'util', share: 0.9 } })
+  assert.equal(knee(batched), undefined)
+  assert.match(rush.about ?? '', /made-up/i) // the demo says its numbers are invented
+  assert.match(batched.about ?? '', /made-up/i)
+})
+
 test('the folders the repo ships can be edited in the canvas: their files can all be written out again', async () => {
-  for (const dir of ['../perf-lab/flowy', '../flowy', '../example']) {
+  for (const dir of ['../perf-lab/flowy', '../flowy', '../example', '../docs/demo/flowy']) {
     const state = await loadState(join(import.meta.dirname, dir))
     assert.ok('model' in state, dir)
     // a flow-style line with an unquoted comma in a label reads as a stray key with no value, which the writer refuses
