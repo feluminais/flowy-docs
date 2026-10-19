@@ -1,7 +1,7 @@
 name: Opening the canvas
 view: flowy
 steps:
-  - { from: reader, to: cli, text: Runs npx flowy-docs in the repo }
+  - { from: reader, to: cli, text: Runs node dist/cli.js in the repo }
   - from: cli
     to: server
     text: Starts the local server and opens the browser

@@ -388,10 +388,11 @@ load generator that measures it and writes runs of this shape: `npm run lab:run`
 
 ## Let Claude build it
 
-From the root of the repo you want to document:
+From the root of the repo you want to document, once the clone is built as the
+[README](../README.md#the-browser-version) says:
 
 ```bash
-claude mcp add flowy -- npx flowy-docs mcp
+claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
 Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and
@@ -422,7 +423,7 @@ notes in an object's `description` instead.
 People without the repo can read the model too:
 
 ```bash
-npx flowy-docs export
+node /path/to/flowy-docs/dist/cli.js export
 ```
 
 It writes a read-only copy of the canvas to `./flowy-site`, with the model inside its `index.html`.
@@ -442,7 +443,7 @@ rectangle, and the queue, document, note and cloud shapes need Mermaid 11.3 or l
 from the command line, or for Claude through MCP (`get_mermaid`):
 
 ```bash
-npx flowy-docs mermaid --view ordering
+node /path/to/flowy-docs/dist/cli.js mermaid --view ordering
 ```
 
 `--flow <id>` prints a flow as a sequence diagram instead. A flow's repeats, branches and parallel lanes come out as `loop`, `alt` and

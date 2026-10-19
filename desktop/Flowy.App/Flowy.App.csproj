@@ -5,7 +5,7 @@
     <RootNamespace>Flowy.App</RootNamespace>
     <Product>Flowy Docs</Product>
     <Version>0.1.0</Version>
-    <Copyright>MIT License</Copyright>
+    <Copyright>Copyright (c) 2026 feluminais</Copyright>
     <ApplicationIcon>Assets/icon.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- No ICU needed: nothing here depends on the culture's sort order or calendar, and a Linux install needs no libicu. -->
@@ -30,6 +30,7 @@
     <!-- Plum, the sample model: Help > Open the Demo, and the welcome window's button. Its code paths need the folders beside flowy/. -->
     <Content Include="../../docs/demo/**" Link="Demo/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../THIRD-PARTY-LICENCE-TEXTS.txt" Link="THIRD-PARTY-LICENCE-TEXTS.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <!-- SkiaSharp and HarfBuzz ship their native symbols (100 MB) inside the package; a release has no use for them. -->
   <Target Name="DropNativeSymbols" AfterTargets="ComputeResolvedFilesToPublishList">
