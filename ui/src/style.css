@@ -554,10 +554,22 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .reading .value { font-weight: 600; font-variant-numeric: tabular-nums; }
 .reading svg { width: 120px; height: 28px; }
 .reading path { stroke: var(--accent); stroke-width: 1.75; }
-.key { display: grid; grid-template-columns: 22px 1fr; gap: 6px 10px; margin: 0; }
-.key dd { margin: 0; color: var(--muted); }
-.key .swatch { display: block; width: 20px; height: 10px; margin-top: 5px; border-radius: 5px; background: linear-gradient(90deg, hsl(150 70% 40%), hsl(75 70% 42%), hsl(0 70% 45%)); }
-.key .dot { display: block; width: 8px; height: 8px; margin: 5px auto; border-radius: 4px; background: var(--accent); }
+/* A key draws each mark the way it looks on the chart or the canvas, with its name beside it. */
+.keyrow { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--muted); }
+.keyrow li { display: flex; align-items: center; gap: 6px; }
+.keyrow .swatch { display: inline-flex; align-items: center; }
+.sw { flex: none; display: inline-block; box-sizing: border-box; }
+.sw.p50, .sw.p95, .sw.busy { width: 18px; height: 0; border-top: 2px solid var(--accent); border-radius: 1px; }
+.sw.p95 { border-top-color: var(--warn); }
+.sw.busy { border-top: 4px solid var(--muted); }
+.sw.knee { width: 2px; height: 14px; background: repeating-linear-gradient(to bottom, var(--danger) 0 3px, transparent 3px 6px); }
+.sw.heat { width: 20px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, hsl(150 70% 40%), hsl(75 70% 42%), hsl(0 70% 45%)); }
+.sw.none { width: 20px; height: 10px; border: 1px solid var(--line); border-radius: 3px; }
+.sw.queue { min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--warn); color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; }
+.sw.call { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.sw.call.bad { background: var(--danger); }
+.hint { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.hint kbd:not(:first-child) { margin-left: 6px; }
 .perf ul.plain { margin: 0; padding-left: 18px; }
 .stripfig { margin: 0; }
-.stripfig figcaption { font-size: 12px; margin-top: 2px; }
+.stripfig figcaption { margin-top: 4px; }

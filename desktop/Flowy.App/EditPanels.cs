@@ -121,7 +121,7 @@ internal sealed class ObjectEditor : StackPanel
         _links = new FieldBox("Links (one per line: title | address)", "", true, v => Put(new ObjectInput(id, Links: LinkText.Parse(v, _rawLinks))));
         _code = new FieldBox("Code (one path per line)", "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())));
         _hex = new FieldBox("Custom color (#rrggbb)", "", false, v => Put(new ObjectInput(id, Color: v.Trim())));
-        _opacity = new FieldBox("Opacity of the colour, 0 to 100", "", false, v => Put(new ObjectInput(id, Opacity: v.Trim())));
+        _opacity = new FieldBox("Opacity (0 to 100)", "", false, v => Put(new ObjectInput(id, Opacity: v.Trim())));
         _shape.ItemTemplate = new FuncDataTemplate<string>((shape, _) => new TextBlock { Text = shape == Default ? $"Default ({_defaultShape})" : shape, VerticalAlignment = VerticalAlignment.Center });
         _color.ItemTemplate = new FuncDataTemplate<string>((color, _) => new TextBlock { Text = color == Default ? "Default (the type's)" : color, VerticalAlignment = VerticalAlignment.Center });
         _icon.ItemTemplate = new FuncDataTemplate<string>((icon, _) => new StackPanel

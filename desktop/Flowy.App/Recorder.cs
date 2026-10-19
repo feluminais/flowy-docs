@@ -243,7 +243,7 @@ internal sealed class Recorder : StackPanel
         {
             _pick.Children.Add(Chrome.Section(Icons.Plus, "Next step"));
             _pick.Children.Add(Chrome.Card(_owner.Muted(rec.From is not null
-                ? $"From {Views.NameOf(model, rec.From)}. Now click the shape it goes to, or the same shape for a step it does on its own."
+                ? $"From {Views.NameOf(model, rec.From)}. Click where it goes, or the same shape if it acts alone."
                 : "Click the shape where the next step starts.")));
         }
 
@@ -422,7 +422,7 @@ internal sealed class Recorder : StackPanel
 
         var text = new FieldBox(Ends(model, shown[i].From, shown[i].To), "", false, v => Change(steps => steps[i]["text"] = v));
         // An empty detail removes the key, so the step stays as short as it can be.
-        var detail = new FieldBox("Detail a reader can open (Markdown)", "", true, v => Change(steps =>
+        var detail = new FieldBox("More (Markdown)", "", true, v => Change(steps =>
         {
             if (v.Trim() == "") steps[i].Remove("description");
             else steps[i]["description"] = v;
@@ -469,7 +469,7 @@ internal sealed class Recorder : StackPanel
         var groupChoice = new Choice<string>("Group", groupChoices, group,
             g => g == "" ? "None" : groups.ContainsKey(g) ? $"{g} · {KindName(KindOf(groups, g))}" : $"{g} · not declared",
             g => Edit(flowId, d => EditOps.SetStepGroup(d, flowId, i, g)));
-        var lane = new FieldBox("Lane (a new lane starts at a step that names it)", "", false, v => Change(steps =>
+        var lane = new FieldBox("Lane (a new lane starts here)", "", false, v => Change(steps =>
         {
             if (Structure.JsTrim(v) == "") steps[i].Remove("lane");
             else steps[i]["lane"] = Structure.JsTrim(v);
@@ -572,8 +572,8 @@ internal sealed class Recorder : StackPanel
         var body = new StackPanel { Spacing = 8, Children = { head, Captioned("Kind", kindBox) } };
         if (kind == "repeat")
         {
-            card.Times = new FieldBox("Times (a whole number from 2 to 99)", "", false, v => Option("times", Structure.JsTrim(v)));
-            card.Until = new FieldBox("Until (what ends it, instead of a count)", "", false, v => Option("until", v));
+            card.Times = new FieldBox("Times (2 to 99)", "", false, v => Option("times", Structure.JsTrim(v)));
+            card.Until = new FieldBox("Until (instead of a count)", "", false, v => Option("until", v));
             body.Children.Add(card.Times);
             body.Children.Add(card.Until);
         }

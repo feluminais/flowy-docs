@@ -89,7 +89,7 @@ internal sealed class SidePanel : Border
     {
         static string Count(int n, string word) => $"{n} {word}{(n == 1 ? "" : "s")}";
         var summary = $"{Count(totals.Shapes, "shape")} · {Count(totals.Flows, "flow")}{(totals.Problems > 0 ? $" · {Count(totals.Problems, "problem")}" : "")}";
-        var advice = new TextBlock { Text = "Pick a shape on the canvas to read about it here, or open the Explorer to see everything at once.", TextWrapping = TextWrapping.Wrap };
+        var advice = new TextBlock { Text = "Pick a shape to read about it. Press O for the Explorer.", TextWrapping = TextWrapping.Wrap };
         Show(new StackPanel { Spacing = 14, Children = { Heading("Overview"), Muted(summary), advice } }, "overview");
     }
 

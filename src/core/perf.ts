@@ -299,7 +299,7 @@ const pct = (n: number) => `${Math.round(n * 100)}%`
 export function kneeText(run: Run, k: Knee, nameOf: (id: string) => string): string {
   const at = `${k.load} ${run.unit}`
   if ('by' in k) return `First struggles at ${at}: ${nameOf(k.by.id)} ${k.by.kind === 'util' ? `at ${pct(k.by.share)} of capacity` : `failing ${pct(k.by.share)} of calls`}`
-  return `Latency passes ${KNEE_LATENCY}× its starting point at ${at}: overall p95 goes from ${Math.round(k.latency.from)} ms to ${Math.round(k.latency.to)} ms`
+  return `First struggles at ${at}: the slowest 5% of calls go from ${Math.round(k.latency.from)} ms to ${Math.round(k.latency.to)} ms`
 }
 
 export type BoxTraffic = { strain?: number; queue: number }

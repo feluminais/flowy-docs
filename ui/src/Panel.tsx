@@ -36,7 +36,7 @@ export function OverviewPanel({ totals, onClose }: { totals: { shapes: number; f
     <Panel onClose={onClose}>
       <h2>Overview</h2>
       <p className="muted">{count(totals.shapes, 'shape')} · {count(totals.flows, 'flow')}{totals.problems > 0 && ` · ${count(totals.problems, 'problem')}`}</p>
-      <p>Pick a shape on the canvas to read about it here, or open the Explorer to see everything at once.</p>
+      <p>Pick a shape to read about it. Press O for the Explorer.</p>
     </Panel>
   )
 }
@@ -285,7 +285,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
             </select>
           </label>
           <ColorField color={object.color} onSave={color => save({ color })} />
-          <Field label="Opacity of the colour, 0 to 100" value={object.opacity ?? ''} placeholder={String(fillOpacity(object))}
+          <Field label="Opacity (0 to 100)" value={object.opacity ?? ''} placeholder={String(fillOpacity(object))}
             onSave={text => save({ opacity: text.trim() === '' ? '' : Number(text) })} />
           <label>
             Icon
@@ -423,7 +423,7 @@ function StepStructure({ step, self, groups, others, onGroup, onLane, onFlow }: 
             {gid !== '' && !ids.includes(gid) && <option value={gid}>{gid} · not declared</option>}
           </select>
         </label>
-        {hasLanes(groups[gid]) && <Field label="Lane (a new lane starts at a step that names it)" value={String(step.lane ?? '')} placeholder="e.g. The card is declined" onSave={onLane} />}
+        {hasLanes(groups[gid]) && <Field label="Lane (a new lane starts here)" value={String(step.lane ?? '')} placeholder="e.g. The card is declined" onSave={onLane} />}
         <label>
           Opens flow
           <select value={target} onChange={e => void onFlow(e.target.value)}>
@@ -482,8 +482,8 @@ function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps:
                 </label>
                 {g.kind === 'repeat' && (
                   <>
-                    <Field label="Times (a whole number from 2 to 99)" value={String(g.times ?? '')} onSave={value => save('times', value.trim())} />
-                    <Field label="Until (what ends it, instead of a count)" value={String(g.until ?? '')} onSave={value => save('until', value)} />
+                    <Field label="Times (2 to 99)" value={String(g.times ?? '')} onSave={value => save('times', value.trim())} />
+                    <Field label="Until (instead of a count)" value={String(g.until ?? '')} onSave={value => save('until', value)} />
                   </>
                 )}
                 <Field label="Text the player shows" value={String(g.text ?? '')} onSave={value => save('text', value)} />
@@ -558,7 +558,7 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
             <details className="more" open={Boolean(s.description) || undefined}>
               <summary>More</summary>
               {/* An empty field removes the detail, so the step's file stays as short as it can be. */}
-              <Field label="Detail a reader can open (markdown)" value={String(s.description ?? '')} multiline onSave={description => change(all => all.with(i, withDescription(all[i], description)))} />
+              <Field label="More (Markdown)" value={String(s.description ?? '')} multiline onSave={description => change(all => all.with(i, withDescription(all[i], description)))} />
             </details>
             <StepStructure
               step={s} self={rec.id} groups={groups} others={others}
@@ -582,7 +582,7 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
           </label>
         </form>
       ) : (
-        <p className="muted card">{rec.from ? `From ${nameOf(model, rec.from)}. Now click the shape it goes to, or the same shape for a step it does on its own.` : 'Click the shape where the next step starts.'}</p>
+        <p className="muted card">{rec.from ? `From ${nameOf(model, rec.from)}. Click where it goes, or the same shape if it acts alone.` : 'Click the shape where the next step starts.'}</p>
       )}
       {flow && <GroupsSection flowId={rec.id} steps={steps} groups={groups} edit={edit} />}
       <div className="panel-buttons">
