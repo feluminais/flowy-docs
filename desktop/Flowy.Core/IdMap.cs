@@ -43,19 +43,5 @@ public sealed class IdMap<T> : IEnumerable<KeyValuePair<string, T>>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private static bool IsIndex(string s, out uint n) =>
-        uint.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out n) && n != uint.MaxValue && (s.Length == 1 || s[0] != '0');
-
-    private static List<string> Order(List<string> added)
-    {
-        var indexes = new List<(uint N, string Id)>();
-        var rest = new List<string>();
-        foreach (var id in added)
-        {
-            if (IsIndex(id, out var n)) indexes.Add((n, id));
-            else rest.Add(id);
-        }
-        indexes.Sort((a, b) => a.N.CompareTo(b.N));
-        return [.. indexes.Select(i => i.Id), .. rest];
-    }
+    private static List<string> Order(List<string> added) => JsKeys.Order(added);
 }

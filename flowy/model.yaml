@@ -19,8 +19,11 @@ objects:
       export, and Mermaid on the command line. They all read and write the same YAML through the
       same checks, so none of them can leave the folder in a state the others refuse.
 
-      A native desktop app, built separately, reads the same folders and draws them with its own
-      renderer. It only reads: editing stays here, in the canvas and with Claude.
+      A native desktop app, built separately, reads and edits the same folders and draws them with
+      its own renderer. It writes the same text through the same checks.
+    links:
+      - { title: Guide, url: docs/guide.md }
+      - { title: Writing good Flowy docs, url: docs/writing.md }
   repo:
     type: system
     name: Your repo
@@ -67,25 +70,32 @@ objects:
     tech: Avalonia, .NET 10
     code: [desktop/]
     description: |
-      A native reader for the same folders: it reads the YAML itself and draws it with its own
-      renderer, so there is no server and no browser behind it. It shows what the canvas shows (zoom
+      A native reader and editor for the same folders: it reads the YAML itself and draws it with its
+      own renderer, so there is no server and no browser behind it. It shows what the canvas shows (zoom
       through the levels, the side panel, flows, search, problems, light and dark) and reloads as the
       files change. One window per model, opened from a menu, a drop, Open Recent, a path on the
       command line or a right-click in Explorer, at the size it was last closed at. A sample model
       (Plum) ships with it, and View copies a diagram as Mermaid or saves it as a picture.
 
-      Read-only: the checks that stop a bad edit would need a second copy. A folder with no model is
-      refused, and it never creates files in a repo.
+      Press E to edit: the forms, dragging, connecting, recording flows, Undo and Redo of the
+      canvas. Every edit goes through the same checks as the browser's and Claude's, and a file
+      changed elsewhere since it was read is never overwritten. Opening never creates files in a
+      repo; only an edit does.
   desktop-core:
     type: component
     in: desktop
-    name: Reading core
+    name: Core
     tech: C#
     code: [desktop/Flowy.Core/]
     description: |
-      A C# port of what `src/core` and the folder loader do for reading, plus what the canvas
-      decides: line paths, the camera, layout, the scene, search, the Mermaid text of a view or a
-      flow, and which folder a pick means.
+      A C# port of what `src/core` and the folder loader do, plus what the canvas decides: line
+      paths, the camera, layout, the scene, search, the Mermaid text of a view or a flow, and which
+      folder a pick means.
+
+      It also edits, on the files' YAML and not on the typed model, so a key it doesn't know is kept.
+      A writer produces the `yaml` package's text byte for byte, the edits twin `src/core/ops.ts`,
+      and a session applies one, refuses it if it would add a problem, and writes the changed files
+      only if they are still as they were read.
 
       Two readers must give the same answers, so a Node script runs the TypeScript over fixture
       folders and the canvas's own functions, and the C# tests must reproduce every number. A root
@@ -95,11 +105,17 @@ objects:
     in: desktop
     name: Canvas and reader
     tech: Avalonia
-    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/MarkdownView.cs]
+    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs]
     description: |
       Boxes are controls on a stage that moves with the camera, with one layer behind them for the
       frame and the lines. The reader holds what you've chosen: the view, the open panel, the flow
       playing.
+
+      The chrome around them is made of a few pieces in the colour of what they are about: a tile
+      with the icon of a type on a tint of its colour, chips, section headings with a count, and
+      cards. The side panel opens on a header in the box's own colour, then its description, code
+      and lines as cards, and the bar's buttons carry icons. All colours come from the stylesheet,
+      so light and dark follow the system.
 
       Opening a box is a short fly-off and settle-in, one step per screen refresh (the window's own
       animation-frame callback, not a timer, which ticks unevenly), and instant when the system asks
@@ -255,8 +271,12 @@ objects:
     type: component
     in: canvas
     name: Side panel
-    code: [ui/src/Panel.tsx, ui/src/Search.tsx]
-    description: A box's description, code links and connections (out and in) while reading; the fields, the flow recorder and Add while editing. Search finds a box anywhere in the model.
+    code: [ui/src/Panel.tsx, ui/src/Chrome.tsx, ui/src/icons.tsx, ui/src/Search.tsx]
+    description: |
+      A box's description, code links and connections (out and in) while reading; the fields, the flow recorder and Add while editing. Search finds a box anywhere in the model.
+
+      It looks like the desktop app: a header in the box's own colour with its tile and chips, then
+      section headings and cards, and icons on the bar's buttons.
   model:
     type: component
     in: core
@@ -316,7 +336,7 @@ connections:
   - { from: cli, to: server, label: serves the canvas }
   - { from: desktop-canvas, to: desktop-core, label: what to draw }
   - { from: desktop-shell, to: desktop-canvas, label: one reader per window }
-  - { from: desktop-core, to: folder, label: reads and watches }
+  - { from: desktop-core, to: folder, label: reads and watches, and writes edits }
   - { from: desktop-core, to: core, label: ported from; fixtures keep the answers equal }
   - { from: desktop-install, to: forge, label: checks for a new release }
   - { from: desktop-shell, to: desktop-install, label: Help › Check for Updates }

@@ -37,8 +37,9 @@ Open the Demo** shows Plum.
 npx flowy-docs
 ```
 
-The app only reads. To change a model, ask Claude ([below](#let-claude-build-it)) or [edit it in the browser](#edit-it), and
-the app shows each save as it happens.
+Both read, and both edit. Press **E** to change a model by hand ([below](#edit-it)), or ask Claude
+([below](#let-claude-build-it)). Whichever one has the folder open shows every save as it happens, so the app and a browser can
+be open on the same model at once.
 
 ## Zoom in
 
@@ -46,7 +47,7 @@ the app shows each save as it happens.
 
 Boxes show their type as a coloured icon, and a box that holds others says how many ("7 inside"). Double-click it, or
 select it and press Enter, to zoom in. A frame named after the box wraps what's inside, and the faded dashed boxes
-around it are what something inside connects to. Esc, Backspace or the breadcrumb zoom back out. A faded box that
+around it are what something inside connects to. Esc, Backspace, **Z** or the breadcrumb zoom back out. A faded box that
 opens sits beside you rather than inside, so opening it slides across instead.
 
 | Type | What it is | Lives |
@@ -69,6 +70,9 @@ Lines show their labels when you point at one, or when you select a box.
 
 A box can list the files and folders it lives in. When the repo's `origin` is on GitHub or GitLab they link there, and a
 path that doesn't exist shows up as a problem, so the model can't quietly point at code that's gone.
+
+A box can also link to its long documents, such as a runbook or a decision record, so Flowy stays the map and the
+documents stay documents.
 
 ## Flows
 
@@ -115,9 +119,10 @@ Saving rewrites a file, so YAML comments aren't kept. Put notes in a box's `desc
 
 ## Edit it
 
-![Edit mode in the browser: the toolbar with New flow, Add, Undo, Redo and Tidy, dots under each box to connect it, and a box's fields in the panel](docs/images/edit.png)
+![Edit mode in the app: the bar with New flow, Add, Undo, Redo and Tidy, a dot under each box to connect it, and a box's fields in the panel](docs/images/desktop-edit.png)
 
-Editing happens on the browser canvas: run `npx flowy-docs`, then press **E**, or the Edit button.
+Press **E**, or the Edit button, in the app or in the browser. They edit the same files, through the same checks, and write them
+the same way, so git sees no difference between a change made in one and a change made in the other.
 
 - Drag boxes to arrange a view. Positions go to `flowy/layout.yaml`.
 - Drag from the dot under a box onto another box to connect them, then type a label.
@@ -173,25 +178,29 @@ sequenceDiagram
 | Ctrl+K or / | Find a box |
 | Enter | Open the selected box |
 | Esc | Close what's open, then go up a level |
-| Backspace | Go up a level |
+| Backspace, Z | Zoom out: go up a level |
 | F | Fit the view |
 | ← → | Previous and next step of the flow playing |
 | Home, End | First and last step |
 | Ctrl+O, F5 | Open a folder, reload it (app) |
-| E | Edit mode on and off (browser) |
-| N | Add a box (browser) |
-| Ctrl+Z, Ctrl+Y | Undo and redo (browser) |
+| E | Edit mode on and off |
+| N | Add a box |
+| Delete | Delete the open box or line |
+| Ctrl+Z, Ctrl+Y | Undo and redo |
+| Esc, Backspace | Right after dragging a box (editing): take the drag back |
 | ? | List every shortcut |
 
 ## The desktop app
 
-It is a native reader, not a browser in a window: it reads a repo's `flowy/` folder itself and draws it with its own renderer
+It is a native app, not a browser in a window: it reads a repo's `flowy/` folder itself and draws it with its own renderer
 (Avalonia, on .NET), so there is no server behind it. It shows what the canvas shows, from zooming through the levels to the
 side panel, flows, search and problems, in light or dark, and it reloads when the files change. A file that breaks keeps the
-last good model on screen, with the file and line in a banner.
+last good model on screen, with the file and line in a banner, and stays read-only until it is fixed. It edits too: **E** turns on
+the same forms, dragging, connecting and flow recording as the browser, with Undo and Redo.
 
 - **File › Open Folder** (Ctrl+O), a folder dropped on the window, or **Open Recent**. Give it a repo and it opens the repo's
-  `flowy/` folder. A folder with no model is refused with a message, and the app never creates files in your repo.
+  `flowy/` folder. A folder with no model is refused with a message. Opening never creates a file; only an edit does, and only `model.yaml`,
+  `layout.yaml` and `flows/*.yaml` in the model folder.
 - One window per model, and the window opens at the size you left it. Opening a model that's already open brings it forward, and
   `FlowyDocs.exe path\to\repo` from a terminal opens the folder in the app that's already running.
 - On Windows, right-click a folder (under *Show more options* on Windows 11) and choose **Open with Flowy Docs**.
@@ -237,7 +246,8 @@ Flowy runs on your machine and touches only its model folder.
   `127.0.0.1` or `localhost` on its own port, and it saves only when a request carries a header that a web page open in
   another tab can't send. A website can't change your files through it.
 - Saving, from the canvas or from Claude, writes `model.yaml`, `layout.yaml` and `flows/*.yaml` in the model folder and
-  nothing else. `export` writes only to its output folder. The desktop app never writes into a model folder at all.
+  nothing else. `export` writes only to its output folder. The desktop app writes only when you edit, and only those same files, each
+  through a temporary file and only if the file is still as it was read, so it can't overwrite a change made elsewhere.
 - It never opens your code. For `code:` paths it checks that they exist, and it runs `git` with fixed arguments to read
   the `origin` URL and the branch for the links.
 - It makes no network requests of its own: no telemetry, no CDN, no fonts. The page talks only to its local server.

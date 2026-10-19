@@ -1,0 +1,9 @@
+name: Customer orders
+view: root
+owner: product
+steps:
+  - { from: customer, to: shop, text: Places an order, note: x }
+  - from: shop
+    text: Takes payment
+    description: |
+      Details about it.

@@ -18,6 +18,14 @@ public static class Checks
         ["component"] = ["app", "store"],
     };
 
+    /// <summary>The types an object may have when it sits right inside <paramref name="view"/> (the top level, or an object's id).</summary>
+    public static List<string> TypesIn(Model model, string view)
+    {
+        var parent = view == Names.Root ? null : model.GetObject(view);
+        if (view != Names.Root && parent is null) return [];
+        return Names.ObjectTypes.Where(t => parent is null ? Parents[t].Length == 0 : Parents[t].Contains(parent.Type ?? "")).ToList();
+    }
+
     private static bool NonEmpty(string? v) => !string.IsNullOrWhiteSpace(v);
 
     /// <summary>Absent, or a key with nothing after it (<c>type:</c>), which reads as "".</summary>

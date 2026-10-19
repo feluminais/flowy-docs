@@ -5,6 +5,8 @@ import { dumpFolder, expectedPath, fixtureDirs } from '../desktop/fixtures/dump.
 import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
 import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
+import { dumpOps } from '../desktop/fixtures/ops.ts'
+import { dumpYamlWrite } from '../desktop/fixtures/yaml-write.ts'
 import { dumpNavigation, dumpScenes } from '../desktop/fixtures/scene.ts'
 
 // The desktop app's tests compare the C# reader with desktop/fixtures/expected. These tests keep that folder honest:
@@ -32,6 +34,16 @@ test('desktop navigation still matches the panels and the search', async () => {
 test('desktop mermaid still matches the text the browser copies', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('mermaid'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(await dumpMermaid())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop yaml writer still matches what the yaml package writes', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('yaml-write'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpYamlWrite())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop edits still write what the TypeScript ops write', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('ops'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpOps())), expected, 'run: node desktop/fixtures/generate.ts')
 })
 
 for (const [name, dir] of Object.entries(fixtureDirs())) {

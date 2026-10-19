@@ -9,7 +9,7 @@ What to write in it, box by box, is in [Writing good Flowy docs](writing.md).
 - Each box shows its type as a coloured icon: person, system, app, store, component. Outside
   services you don't own are grey with a cloud. "3 inside" means a box opens: double-click it, or
   select it and press Enter, to zoom in. Esc zooms back out, one level per press, once it has
-  closed whatever is open (a flow, the side panel). Backspace and the breadcrumb zoom out too.
+  closed whatever is open (a flow, the side panel). Backspace, Z and the breadcrumb zoom out too.
   Inside a box, a frame named after it wraps what's in it. A faded box that opens sits beside the
   one you're in, not inside it, so opening it slides across instead of zooming in.
 - Hover a box for its short description. Click it for the full text and its connections: every
@@ -25,6 +25,10 @@ What to write in it, box by box, is in [Writing good Flowy docs](writing.md).
   fewer lines cross) while what's inside sits in the middle.
 - A box can list the files and folders it lives in, under its description. When the repo's
   `origin` is on GitHub or GitLab, they link there.
+- A box can list links to its long documents (a runbook, a decision record, a wiki page) in a Links
+  section under its description. A web address opens in a new tab. A path in the repo links to the
+  file when the repo's `origin` is on GitHub or GitLab, and a path that doesn't exist shows up as a
+  problem.
 - Ctrl+K or / (or Search) finds a box anywhere in the model by name. Pick one and the canvas
   opens the level it's on, with its panel open.
 - Pick a flow in the top bar to play it step by step: ← and → move, Home and End jump to the first
@@ -40,7 +44,8 @@ The page follows the files: when Claude or your editor changes them, it updates 
 
 ## Edit it
 
-Press E, or the Edit button.
+Press E, or the Edit button. The browser canvas and the [desktop app](#the-desktop-app) both do everything below, through the same
+checks, and write the same text, so a change made in one looks the same in git as one made in the other.
 
 - Drag boxes to arrange the view. Positions go to `flowy/layout.yaml`.
 - Drag from the dot under a box onto another box to connect them, then type a label in the panel.
@@ -50,11 +55,17 @@ Press E, or the Edit button.
 - Click a box to change its name, type, tech, description and code. A field saves when you leave
   it. Code takes one path per line, relative to the folder that holds `flowy/`. A path that
   doesn't exist shows up as a problem.
+- Links takes one per line, as `title | address`, or an address alone. An address is a web address
+  (http or https) or a path in the repo, relative to the folder that holds `flowy/`. Anything else
+  is refused.
 - "Outside service" in a box's panel marks it `external: true`, for things you use but don't own.
 - Delete (the key, or the button in the panel) removes the selected box or line. A box that still
   contains others, or that a flow uses, stays, and a notice says why.
 - Lines, in edit mode, sets the project's style for everyone: a `lines:` key at the top of
   `model.yaml`, which takes `straight` (the default, so it's left out), `curved` or `angled`.
+- Esc or Backspace, straight after dragging a box, take the drag back: whoever has just moved a box and got it wrong reaches for them.
+  Once anything else is done (a click, another edit, a move to another level) they close the panel and go up again, as in reading.
+  **Z** zooms out whatever you have just done, and Ctrl+Z undoes the last change of any kind.
 - Tidy forgets where boxes in this view were dragged, so Flowy lays it out again, picking the
   layout with the fewest crossing lines it finds. Ctrl+Z brings your positions back.
 - New flow records a walkthrough: name it, click the box where a step starts and the box it goes
@@ -87,6 +98,9 @@ after `mcp` to keep the files somewhere other than `./flowy`.
 Claude can also note where each box lives in the code (`code: [src/api/]`). A path that doesn't
 exist is refused, so the model can't quietly point at code that's gone. When code moves later,
 the box gets a "!" until someone fixes the path.
+
+Claude can also link a box to its long documents (`links: [{ title: Runbook, url: docs/runbook.md }]`).
+A repo path must exist, and a web address is taken as given.
 
 Claude marks outside services (a payment provider, a third-party API) with `external: true`, so
 they show grey.
@@ -134,8 +148,16 @@ does this too.
 ## The desktop app
 
 The desktop app is a native reader for the same folders: it reads the YAML itself and draws it with its own renderer, so there is
-no server and no browser behind it. It is read-only. Editing stays on the browser canvas and with Claude, and the app shows their
-changes as the files are saved. A file that can't be read leaves the last good model on screen with the reason in a banner.
+no server and no browser behind it. It reads and it edits: [Edit it](#edit-it) above is as true of the app as of the browser, and
+what it saves, the browser and Claude see, and the other way round. A file that can't be read leaves the last good model on screen
+with the reason in a banner, and while it is there editing is off.
+
+Editing in the app: **E** (or the Edit button) turns it on, and the bar gains New flow, Add, Undo, Redo and Tidy. A box's panel becomes
+a form (name, type, outside service, tech, description, code), and a line's panel has a label field and a delete for each connection it
+stands for. Drag a box to move it; the dot under a box starts a connection, which you drop on another box. Each edit is checked first:
+one that would add a problem is refused and a notice says why. A file changed elsewhere since the app read it is never overwritten: the
+edit is dropped, and the view reloads. **Ctrl+Z** and **Ctrl+Y** undo and redo, but only where the files are still as that edit left
+them. The sample model that ships with the app can't be edited.
 
 What it has, as the canvas does: zoom into a box (double-click it, or select it and press Enter; Esc and Backspace go back up, and
 the breadcrumb works too), a frame around the box you're inside, boxes that belong to another level faded and dashed, wheel to
@@ -149,7 +171,7 @@ What it adds is a way to choose the model:
 
 - **File › Open Folder** (Ctrl+O) takes a repo or its `flowy/` folder. A folder called `flowy` is
   used as it is; otherwise the `flowy/` inside it, and with none of those, the folder itself if it holds `model.yaml`. If there is
-  none, the app says so. It never creates files.
+  none, the app says so. Opening never creates files; only an edit does.
 - Drop a folder on a window, pick one from **File › Open Recent**, or start the app with a path: `FlowyDocs.exe path\to\repo`. If
   the app is already running, the folder opens there.
 - On Windows the installer adds **Open with Flowy Docs** to the right-click menu of a folder and of a folder's empty space (under

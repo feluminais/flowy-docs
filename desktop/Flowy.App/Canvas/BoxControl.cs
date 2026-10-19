@@ -22,6 +22,7 @@ internal sealed class BoxControl : Grid
     private readonly StackPanel _inside = new();
     private readonly TextBlock _insideText = new();
     private readonly Border _tile = new();
+    private readonly Ellipse _handle = new() { Width = 10, Height = 10, IsHitTestVisible = false, IsVisible = false, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 3) };
     private string? _teaser;
     private bool _external;
     private string _type = "";
@@ -32,6 +33,7 @@ internal sealed class BoxControl : Grid
     {
         Id = box.Id;
         Classes.Add("box");
+        Background = Brushes.Transparent; // the whole tile takes the pointer, not only the outline shape
         Focusable = true;
         IsTabStop = true;
 
@@ -78,6 +80,8 @@ internal sealed class BoxControl : Grid
         Children.Add(content);
         Children.Add(_inside);
         Children.Add(badge);
+        _handle.Classes.Add("handle");
+        Children.Add(_handle);
         Update(box);
     }
 
@@ -121,6 +125,13 @@ internal sealed class BoxControl : Grid
             ToolTip.SetShowDelay(this, 400);
         }
         AutomationProperties.SetName(this, $"{_name.Text}, {(external ? "external " : "")}{o.Type}");
+    }
+
+    /// <summary>Edit mode: a dot at the bottom edge to draw a connection from, and a cursor that says the box can be moved.</summary>
+    public void SetEditable(bool editable)
+    {
+        _handle.IsVisible = editable;
+        Cursor = editable ? new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.SizeAll) : null;
     }
 
     /// <summary>Called by the canvas as the selection changes.</summary>

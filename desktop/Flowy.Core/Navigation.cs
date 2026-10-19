@@ -90,6 +90,31 @@ public static partial class Navigation
         return hits.Where(Starts).Concat(hits.Where(id => !Starts(id))).Take(limit).ToList();
     }
 
+    /// <summary>An id made from a name ("Orders DB" becomes "orders-db"), with -2, -3 and so on when it is taken, in any letter case.</summary>
+    public static string NewId(string name, IEnumerable<string> taken, string fallback)
+    {
+        var plain = name;
+        try
+        {
+            plain = new string(name.Normalize(System.Text.NormalizationForm.FormKD).Where(c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) is not
+                (System.Globalization.UnicodeCategory.NonSpacingMark or System.Globalization.UnicodeCategory.SpacingCombiningMark or System.Globalization.UnicodeCategory.EnclosingMark)).ToArray());
+        }
+        catch (Exception e) when (e is PlatformNotSupportedException or ArgumentException)
+        {
+            // no normalization data on this system: accents then stay as they are, and become dashes below
+        }
+        var lower = plain.ToLowerInvariant();
+        var dashed = Regex.Replace(lower, "[^a-z0-9]+", "-");
+        var baseId = (dashed.Length > 40 ? dashed[..40] : dashed).Trim('-');
+        if (baseId == "") baseId = fallback;
+        var used = taken.Select(id => id.ToLowerInvariant()).ToHashSet();
+        for (var n = 1; ; n++)
+        {
+            var id = n == 1 ? baseId : $"{baseId}-{n}";
+            if (Names.IsValidId(id) && !used.Contains(id)) return id;
+        }
+    }
+
     /// <summary>The first paragraph of a description: everything up to the first blank line.</summary>
     public static string? Teaser(string? description) =>
         description is null ? null : Regex.Split(description.Trim(), @"\n\s*\n")[0];
