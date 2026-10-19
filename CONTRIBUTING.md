@@ -42,14 +42,18 @@ and `--search re` for the search. Retake them when the app changes how it looks.
 ## The VS Code extension
 
 `vscode/` is an extension that opens a repo's `flowy/` folder in a panel inside VS Code (command `Flowy: Open Docs`). It has its own
-`package.json` and `npm install`, and it reuses `src/core`, `src/node/files.ts` and the built canvas: `npm run build:vscode` builds
+`package.json` and `npm install`, and it reuses `src/core`, `src/node/files.ts`, `src/node/writes.ts` and the built canvas: `npm run build:vscode` builds
 the canvas, bundles the extension into `vscode/dist` and copies the canvas to `vscode/media`. To try it, open the `vscode/` folder in
-VS Code and press F5; the new window opens this repo, so `Flowy: Open Docs` shows the model you're reading now. The panel is read-only so far.
+VS Code and press F5; the new window opens this repo, so `Flowy: Open Docs` shows the model you're reading now, and its edits write to
+your working copy: try them on a scratch copy of `docs/demo` instead. The panel reads and edits like the browser version; it has no
+server, so the canvas asks the extension for the state and for each write (`src/core/host.ts` is the message format, `ui/src/transport.ts`
+the page's side).
 A change to `ui/` shows after `npm run build:vscode` and closing and reopening the panel; a change to `vscode/src` also needs
 `Developer: Reload Window` in the new window.
 
-`test/vscode-page.test.ts` covers the page the extension builds (the policy that lets only the canvas script run, the state inlined).
-What happens inside VS Code (the webview loading, the theme, the Mermaid copy) has no test: check it in the window.
+`test/vscode-page.test.ts` covers the page the extension builds (the policy that lets only the canvas script run), `test/host-message.test.ts`
+and `test/transport.test.ts` the messages and the page's side of them, and `test/writes.test.ts` what a write does.
+What happens inside VS Code (the webview loading, the theme, editing, the Mermaid copy) has no test: check it in the window.
 
 ## The performance lab
 

@@ -5,6 +5,8 @@ import { refuseNewProblems } from '../../src/core/ops.ts'
 import type { Run } from '../../src/core/perf.ts'
 import type { State } from '../../src/core/state.ts'
 import { changesBetween } from './edit.ts'
+import { httpTransport } from './transport.ts'
+import type { Reply, Transport } from './transport.ts'
 
 export const CHANGED_OUTSIDE = 'This file changed outside Flowy. Reloaded.'
 
@@ -20,32 +22,17 @@ export function fromState(state: State): { model: Model; versions: Record<string
 }
 
 /**
- * The State an exported page (or a VS Code webview) carries as text, as the page shows it: the model, or why it can't be shown.
- * A folder that was already broken when a webview opened says which file; anything else is an export gone wrong.
+ * How the canvas reaches the folder: a Transport, or a string, which is the local server's address (for tests).
+ * Left out, it is the page's own server.
  */
-export function fromEmbedded(json: string): { loaded?: ReturnType<typeof fromState>; banner?: string } {
-  const unreadable = { banner: "This page's model can't be read. Export it again." }
-  let state: unknown
-  try {
-    state = JSON.parse(json)
-  } catch {
-    return unreadable
-  }
-  if (typeof state !== 'object' || state === null) return unreadable
-  try {
-    return { loaded: fromState(state as State) }
-  } catch (e) {
-    return 'parseError' in state ? { banner: text(e) } : unreadable
-  }
-}
+export type Via = Transport | string
+const transportOf = (via: Via): Transport => (typeof via === 'string' ? httpTransport(via) : via)
 
-/** GET /api/state as a model. Throws with a message for the user when the server or a file can't be read. */
-export async function fetchModel(base = ''): Promise<ReturnType<typeof fromState>> {
+/** The folder's State as a model. Throws with a message for the user when the server or a file can't be read. */
+export async function fetchModel(via: Via = ''): Promise<ReturnType<typeof fromState>> {
   let state: State
   try {
-    const res = await fetch(`${base}/api/state`)
-    if (!res.ok) throw new Error(`the server answered ${res.status}`)
-    state = (await res.json()) as State
+    state = await transportOf(via).state()
   } catch (e) {
     throw new Error(`Can't load the model: ${text(e)}`)
   }
@@ -53,13 +40,12 @@ export async function fetchModel(base = ''): Promise<ReturnType<typeof fromState
 }
 
 /** PUT a file's content, or DELETE it when `data` is null, but only if it's still at `version`. */
-const write = (base: string, file: string, data: unknown, version: string | null) => fetch(`${base}/api/file/${file}`, {
-  method: data === null ? 'DELETE' : 'PUT',
-  headers: { 'Content-Type': 'application/json', 'X-Flowy': '1' },
-  body: JSON.stringify(data === null ? { version } : { version, data }),
-})
-const failed = async (what: string, file: string, res: Response) =>
-  `Couldn't ${what} ${file}: ${((await res.json().catch(() => ({}))) as { error?: string }).error ?? `the server answered ${res.status}`}`
+const write = (transport: Transport, file: string, data: unknown, version: string | null) =>
+  data === null ? transport.write('DELETE', file, { version }) : transport.write('PUT', file, { version, data })
+const ok = (reply: Reply) => reply.status >= 200 && reply.status < 300
+const errorOf = (reply: Reply) => (reply.body as { error?: string } | null)?.error
+const versionOf = (reply: Reply) => (reply.body as { version: string | null }).version
+const failed = (what: string, file: string, reply: Reply) => `Couldn't ${what} ${file}: ${errorOf(reply) ?? `the server answered ${reply.status}`}`
 
 /**
  * How to take one saved edit back: per file, newest write first, what to put back (`data`), what the
@@ -76,21 +62,22 @@ export const REDO_STALE = stale('redo')
 /**
  * One canvas edit, done the way MCP does it: read the files fresh, apply `op`, refuse new problems,
  * then write each changed file with the version just read. Resolves to what to tell the user,
- * or undefined once it's saved, and then hands `onSaved` how to undo it. `base` is the server's address, for tests.
+ * or undefined once it's saved, and then hands `onSaved` how to undo it.
  */
-export async function saveEdit(op: (model: Model) => Model, base = '', onSaved?: (undo: Undo) => void): Promise<string | undefined> {
+export async function saveEdit(op: (model: Model) => Model, via: Via = '', onSaved?: (undo: Undo) => void): Promise<string | undefined> {
   try {
-    const { model, versions } = await fetchModel(base)
+    const transport = transportOf(via)
+    const { model, versions } = await fetchModel(transport)
     const next = op(model)
     refuseNewProblems(model, next)
     const undo: Undo = []
     for (const { file, data } of changesBetween(model, next)) {
-      const res = await write(base, file, data, versions[file] ?? null)
-      if (res.status === 409) return CHANGED_OUTSIDE
-      if (!res.ok) return await failed('save', file, res)
+      const reply = await write(transport, file, data, versions[file] ?? null)
+      if (reply.status === 409) return CHANGED_OUTSIDE
+      if (!ok(reply)) return failed('save', file, reply)
       // A flow that didn't exist goes away again. model.yaml and layout.yaml can't be deleted, so they go back to empty.
       const before = versions[file] == null && file.startsWith('flows/') ? null : fileData(model, file)
-      undo.unshift({ file, data: before, now: data, version: ((await res.json()) as { version: string | null }).version })
+      undo.unshift({ file, data: before, now: data, version: versionOf(reply) })
     }
     if (undo.length) onSaved?.(undo)
   } catch (e) {
@@ -104,18 +91,19 @@ export async function saveEdit(op: (model: Model) => Model, base = '', onSaved?:
  * once it's done, and then hands `onDone` how to take this back in turn (a redo, or an undo of a redo).
  * `word` names it in messages.
  */
-export async function undoEdit(undo: Undo, base = '', onDone?: (back: Undo) => void, word: 'undo' | 'redo' = 'undo'): Promise<string | undefined> {
+export async function undoEdit(undo: Undo, via: Via = '', onDone?: (back: Undo) => void, word: 'undo' | 'redo' = 'undo'): Promise<string | undefined> {
   try {
+    const transport = transportOf(via)
     const back: Undo = []
     for (const { file, data, now, version } of undo) {
-      const res = await write(base, file, data, version)
+      const reply = await write(transport, file, data, version)
       // The server answers 409 both for a file that moved on and, with an error, while any file can't be read.
-      if (res.status === 409) {
-        const { error } = (await res.json().catch(() => ({}))) as { error?: string }
+      if (reply.status === 409) {
+        const error = errorOf(reply)
         return error === undefined ? stale(word) : `Can't ${word} while a file can't be read: ${error}`
       }
-      if (!res.ok) return await failed(word, file, res)
-      back.unshift({ file, data: now, now: data, version: ((await res.json()) as { version: string | null }).version })
+      if (!ok(reply)) return failed(word, file, reply)
+      back.unshift({ file, data: now, now: data, version: versionOf(reply) })
     }
     onDone?.(back)
   } catch (e) {
