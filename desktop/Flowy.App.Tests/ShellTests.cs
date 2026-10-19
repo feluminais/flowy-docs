@@ -69,22 +69,27 @@ public class ShellTests
         using var temp = new TempFolder();
         var store = new UserStateStore(Path.Combine(temp.Path, "state.json"));
         var shell = new Shell(store);
-        shell.RememberNavigator(Plum, new NavigatorState("explorer", ["root", "ordering"]));
+        shell.RememberNavigator(Plum, new NavigatorState("explorer", ["root", "ordering"], 300, 450));
         shell.RememberNavigator(Example, new NavigatorState(null, ["root"]));
         var again = new Shell(new UserStateStore(store.File));
         Assert.Equal("explorer", again.NavigatorFor(Plum)!.Tab);
         Assert.Equal(["root", "ordering"], again.NavigatorFor(Plum)!.Expanded);
+        Assert.Equal((300.0, 450.0), (again.NavigatorFor(Plum)!.NavWidth, again.NavigatorFor(Plum)!.DetailsWidth));
         Assert.Null(again.NavigatorFor(Example)!.Tab);
+        Assert.Null(again.NavigatorFor(Example)!.NavWidth); // never dragged: the panel begins at its usual width
         Assert.Null(again.NavigatorFor(Path.Combine(temp.Path, "never-opened")));
 
         // A hand-edited file: a tab that is not one, ids that are not text, and far too many ids are all cut down.
         var ids = new object?[] { "x", 1, null }.Concat(Enumerable.Range(0, 3000).Select(i => (object?)$"s{i}")).ToArray();
-        File.WriteAllText(store.File, System.Text.Json.JsonSerializer.Serialize(new { navigators = new Dictionary<string, object> { ["a"] = new { tab = "details", expanded = ids }, ["b"] = 5 } }));
+        File.WriteAllText(store.File, System.Text.Json.JsonSerializer.Serialize(new { navigators = new Dictionary<string, object> { ["a"] = new { tab = "details", expanded = ids, navWidth = 5, detailsWidth = 99999 }, ["b"] = 5, ["c"] = new { navWidth = "wide", detailsWidth = 333.4 } } }));
         var loaded = store.Load().Navigators!;
-        Assert.Single(loaded);
+        Assert.Equal(2, loaded.Count);
         Assert.Null(loaded["a"].Tab);
         Assert.Equal(NavigatorState.MaxExpanded, loaded["a"].Expanded.Count);
         Assert.Equal("x", loaded["a"].Expanded[0]);
+        // A width is kept between the narrowest and the widest a panel gets, and one that is not a number is dropped.
+        Assert.Equal((NavigatorState.MinWidth, NavigatorState.MaxWidth), (loaded["a"].NavWidth, loaded["a"].DetailsWidth));
+        Assert.Equal((null, 333.0), (loaded["c"].NavWidth, loaded["c"].DetailsWidth));
     }
 
     [AvaloniaFact]

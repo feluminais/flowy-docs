@@ -5,15 +5,16 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Flowy.App.Canvas;
+using Flowy.Core;
 
 namespace Flowy.App;
 
-/// <summary>The tabs of the right-hand panel: what a click picked (Details), every flow, and the whole documentation as a tree.</summary>
+/// <summary>What a rail button opens: the Details panel on the right, or one tab of the navigator on the left (every flow, or the whole documentation as a tree).</summary>
 internal enum PanelTab { Details, Flows, Explorer }
 
 /// <summary>
-/// The slim column of icons on the right edge. It is always there, and the counts on it say how much the documentation holds: the flows
-/// and the shapes in all. A click opens the panel on that tab, and a click on the open one closes it (ReaderView decides).
+/// A slim column of icons on an edge, always there. The left one holds Flows and Explorer, and the counts on it say how much the documentation
+/// holds: the flows and the shapes in all. The right one holds Details. A click opens that panel, and a click on the open one closes it (ReaderView decides).
 /// </summary>
 internal sealed class NavRail : Border
 {
@@ -23,14 +24,18 @@ internal sealed class NavRail : Border
 
     public event Action<PanelTab>? Picked;
 
-    public NavRail()
+    public NavRail(bool navigator)
     {
         Classes.Add("rail");
+        if (navigator) Classes.Add("railleft");
         Width = 44;
         var column = new StackPanel { Spacing = 6, Margin = new Thickness(0, 10, 0, 0), HorizontalAlignment = HorizontalAlignment.Center };
-        Add(column, PanelTab.Details, Icons.Info, "Details", null);
-        Add(column, PanelTab.Flows, Icons.Route, "Flows", "L");
-        Add(column, PanelTab.Explorer, Icons.Sitemap, "Explorer", "O");
+        if (navigator)
+        {
+            Add(column, PanelTab.Flows, Icons.Route, "Flows", "L");
+            Add(column, PanelTab.Explorer, Icons.Sitemap, "Explorer", "O");
+        }
+        else Add(column, PanelTab.Details, Icons.Info, "Details", null);
         Child = column;
     }
 
@@ -59,6 +64,7 @@ internal sealed class NavRail : Border
     public void Update(PanelTab? shown, int flows, int shapes, bool showFlows)
     {
         foreach (var (tab, entry) in _entries) entry.Button.Classes.Set("active", shown == tab);
+        if (!_entries.ContainsKey(PanelTab.Flows)) return;
         _entries[PanelTab.Flows].Button.IsVisible = showFlows;
         SetCount(PanelTab.Flows, "Flows", flows);
         SetCount(PanelTab.Explorer, "Explorer", shapes);
@@ -79,7 +85,7 @@ internal sealed class NavRail : Border
     internal void Press(PanelTab tab) => Picked?.Invoke(tab);
 }
 
-/// <summary>The strip of tabs on top of the panel, in each panel that has one.</summary>
+/// <summary>The strip of tabs on top of the navigator: Flows and Explorer.</summary>
 internal sealed class NavTabs : StackPanel
 {
     private readonly Dictionary<PanelTab, Button> _buttons = [];
@@ -91,7 +97,7 @@ internal sealed class NavTabs : StackPanel
         Orientation = Orientation.Horizontal;
         Spacing = 2;
         Classes.Add("navtabs");
-        foreach (var (tab, label) in new[] { (PanelTab.Details, "Details"), (PanelTab.Flows, "Flows"), (PanelTab.Explorer, "Explorer") })
+        foreach (var (tab, label) in new[] { (PanelTab.Flows, "Flows"), (PanelTab.Explorer, "Explorer") })
         {
             var button = new Button { Content = label };
             button.Classes.Add("navtab");
@@ -109,7 +115,7 @@ internal sealed class NavTabs : StackPanel
     }
 }
 
-/// <summary>The panel of the Flows and Explorer tabs. It does no scrolling of its own: each tab scrolls what it holds.</summary>
+/// <summary>The panel of the Flows and Explorer tabs, on the left. It does no scrolling of its own: each tab scrolls what it holds.</summary>
 internal sealed class NavigatorPanel : Border
 {
     private readonly ContentControl _body = new();
@@ -126,8 +132,8 @@ internal sealed class NavigatorPanel : Border
     {
         Classes.Add("panel");
         Classes.Add("navpanel");
-        Width = SidePanel.Width380;
-        HorizontalAlignment = HorizontalAlignment.Right;
+        Width = Camera.Nav;
+        HorizontalAlignment = HorizontalAlignment.Left;
         IsVisible = false;
         Focusable = false;
         Tabs.Margin = new Thickness(16, 10, 52, 0);
