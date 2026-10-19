@@ -46,6 +46,15 @@ internal sealed class Shell
 
     public void RememberWindow(WindowSize size) => Remember(_state with { Window = size });
 
+    public event Action? OpenFilesWithChanged;
+
+    /// <summary>The app that opens a box's linked files, or null for the system's default. Every window's menu follows.</summary>
+    public void RememberOpenFilesWith(string? app)
+    {
+        Remember(_state with { OpenFilesWith = app });
+        OpenFilesWithChanged?.Invoke();
+    }
+
     /// <summary>The sample model that ships with the app (Plum, a made-up delivery service), or null when this build has none beside it.</summary>
     public static string? DemoDir => Path.Combine(AppContext.BaseDirectory, "Demo", "flowy") is var dir && Directory.Exists(dir) ? dir : null;
 

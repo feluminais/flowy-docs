@@ -106,6 +106,38 @@ public class EditModeTests
     }
 
     [AvaloniaFact]
+    public async Task The_links_field_writes_links_title_first_and_clearing_it_removes_them()
+    {
+        var (temp, dir, _, reader) = Open();
+        using var _ = temp;
+        Directory.CreateDirectory(Path.Combine(temp.Path, "docs"));
+        File.WriteAllText(Path.Combine(temp.Path, "docs", "runbook.md"), "x");
+        reader.SetEditing(true);
+        reader.GoTo("shop");
+        reader.OpenObject("api");
+        var form = reader.Panel.CurrentObjectEditor!;
+        form.LinksField.Text = "Runbook | docs/runbook.md\nhttps://status.example.com";
+        await form.LinksField.Commit();
+        await Until(() => LinkText.Format(reader.Folder!.Model.GetObject("api")!) == "Runbook | docs/runbook.md\nhttps://status.example.com");
+        Assert.Contains("- title: Runbook\n        url: docs/runbook.md", Model(dir));
+        Assert.Contains("- url: https://status.example.com", Model(dir));
+        Assert.Equal("Runbook | docs/runbook.md\nhttps://status.example.com", form.LinksField.Text);
+
+        form.LinksField.Text = "file:///etc/passwd"; // neither a web address nor a path in the repo: refused, and the old text comes back
+        await form.LinksField.Commit();
+        Assert.Equal("Runbook | docs/runbook.md\nhttps://status.example.com", form.LinksField.Text);
+        Assert.DoesNotContain("file:///", Model(dir));
+
+        form.LinksField.Text = "docs/missing.md"; // a path that isn't there is saved, as a missing code path is, and shows up as a problem
+        await form.LinksField.Commit();
+        await Until(() => reader.Folder!.Problems.Any(p => p.Message == "api: link path \"docs/missing.md\" doesn't exist"));
+
+        form.LinksField.Text = "";
+        await form.LinksField.Commit();
+        await Until(() => !Model(dir).Contains("links:"));
+    }
+
+    [AvaloniaFact]
     public async Task A_refused_edit_says_why_puts_the_old_text_back_and_changes_no_file()
     {
         var (temp, dir, _, reader) = Open();

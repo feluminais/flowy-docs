@@ -1,0 +1,43 @@
+objects:
+  good:
+    type: system
+    name: Good
+    links:
+      - { title: Real document, url: docs/real.md }
+      - { url: docs/ }
+      - { title: Web, url: "https://example.com/a?x=1#y" }
+      - { url: "HTTP://EXAMPLE.COM" }
+  missing:
+    type: system
+    name: Missing
+    links:
+      - { title: Gone, url: docs/gone.md }
+  schemes:
+    type: system
+    name: Schemes
+    links:
+      - { url: "file:///etc/passwd" }
+      - { url: "mailto:a@b.c" }
+      - { url: "javascript:alert(1)" }
+      - { url: /etc/passwd }
+      - { url: "C:/x" }
+      - { url: ../up }
+      - { url: "https://" }
+      - { url: "ftp://x.dev/f" }
+  noaddress:
+    type: system
+    name: No address
+    links:
+      - { title: No address }
+      - { url: "  " }
+  notalist:
+    type: system
+    name: Not a list
+    links: docs/real.md
+  badentries:
+    type: system
+    name: Bad entries
+    links:
+      - docs/real.md
+      - { title: [x], url: docs/real.md }
+connections: []

@@ -48,12 +48,12 @@ public static class FolderLoader
         return Path.GetDirectoryName(full) ?? full;
     }
 
-    /// <summary>The <c>code</c> paths in this model that don't exist. A missing folder or file counts as empty.</summary>
+    /// <summary>The <c>code</c> and <c>links</c> paths in this model that don't exist. A missing folder or file counts as empty.</summary>
     public static HashSet<string> MissingPaths(string dir, Model model)
     {
         var root = RepoRoot(dir);
         return model.Objects
-            .SelectMany(o => o.Value.Code is List<object?> list ? list.OfType<string>() : [])
+            .SelectMany(o => (o.Value.Code is List<object?> list ? list.OfType<string>() : []).Concat(Links.Of(o.Value).Select(l => l.Url)))
             .Where(p => Checks.IsRepoPath(p) && !File.Exists(Path.Combine(root, p)) && !Directory.Exists(Path.Combine(root, p)))
             .ToHashSet();
     }

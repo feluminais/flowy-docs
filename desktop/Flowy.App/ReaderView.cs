@@ -48,6 +48,7 @@ internal sealed partial class ReaderView : Grid
 
     private Folder? _folder;
     private string? _codeBase;
+    private string? _repoRoot;
     private string _view = Names.Root;
     private Side? _side;
     private (string Flow, int Step)? _playing;
@@ -64,6 +65,12 @@ internal sealed partial class ReaderView : Grid
     private bool _moving;
 
     public event Action<string?>? LinesPicked;
+
+    /// <summary>The app the person chose to open linked files with, or null for the system's default. Read at every click.</summary>
+    internal Func<string?> CustomApp { get; set; } = () => null;
+
+    /// <summary>What carries out a link's action; null means <see cref="LinkLauncher"/>. A test sets it to see what would be opened. Returns what went wrong, or null.</summary>
+    internal Func<LinkAction, Task<string?>>? LinkRunner { get; set; }
 
     public ReaderView()
     {
@@ -258,10 +265,20 @@ internal sealed partial class ReaderView : Grid
         _playing = null;
         _hover = null;
         _codeBase = null;
+        _repoRoot = FolderLoader.RepoRoot(dir);
         SetBanner(null);
         Refresh();
         _ = LoadCodeBase(dir);
         Dispatcher.UIThread.Post(() => Focus());
+    }
+
+    /// <summary>Carries out a link's action, and says in a notice if it couldn't. An app that was chosen and has since gone is said so, since the link then opens the default way.</summary>
+    private async Task RunLink(LinkAction action)
+    {
+        if (CustomApp() is { } app && !File.Exists(app))
+            ShowNotice("The app chosen for opening links is gone, so links open the default way. Choose another under File > Open Files With.", 6);
+        var run = LinkRunner ?? (a => TopLevel.GetTopLevel(this) is { } top ? LinkLauncher.RunAsync(top, a) : Task.FromResult<string?>(null));
+        if (await run(action) is { } problem) ShowNotice(problem);
     }
 
     private async Task LoadCodeBase(string dir)
@@ -482,7 +499,7 @@ internal sealed partial class ReaderView : Grid
                 _panel.ShowObjectEditor(model, id, _folder!.Problems, RunAsync, OpenObject, SetHover, CloseSide);
                 break;
             case { Kind: SideKind.Object, Id: { } id }:
-                _panel.ShowObject(model, id, _folder!.Problems, _codeBase, OpenObject, SetHover);
+                _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover);
                 break;
             case { Kind: SideKind.Line, From: { } from, To: { } to } when Editing:
                 _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide);

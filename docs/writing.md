@@ -200,7 +200,7 @@ One rule keeps the two from drifting apart: **each fact lives in one place.** Th
 
 How a shape points to a document:
 
-- **Add it to `links:`.** Each entry has a `title` and a `url`, which is a web address or a path in the repo. They show in a Links section under the description. A repo path is checked, so one that has moved shows up as a problem, and on the canvas it links to the file on GitHub or GitLab. Without a GitHub or GitLab origin it shows as plain text and is still checked.
+- **Add it to `links:`.** Each entry has a `title` and a `url`, which is a web address or a path in the repo. They show in a Links section under the description. A repo path is checked, so one that has moved shows up as a problem, and on the canvas it links to the file on GitHub or GitLab. Without a GitHub or GitLab origin it shows as plain text and is still checked. The desktop app opens a repo path on your computer instead: a document in your default app, a folder in the file explorer, and anything that could run (a script, a program) is shown in its folder and not run. Under File › Open Files With you can pick the app that opens them.
 - **Use a web address** for a document that isn't in the repo, such as a wiki page or a status page. It opens in a new tab, and nothing checks it.
 - **Don't use a relative Markdown link** in a description, such as `[ADR 7](docs/adr/0007-hold-then-charge.md)`. The canvas resolves it against its own address, which answers "not found", and an export holds only the canvas, so it fails there too. Put the document in `links:`.
 
