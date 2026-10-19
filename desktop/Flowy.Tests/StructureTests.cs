@@ -45,7 +45,10 @@ public class StructureTests
             var id = f!["id"]!.GetValue<string>();
             var flow = model.Flows[id];
             Assert.Equal(JsonDump.Pretty(f["runs"]), JsonDump.Pretty(new JsonArray(Structure.Runs(flow).Select(RunNode).ToArray())));
-            Assert.Equal(JsonDump.Pretty(f["stops"]), JsonDump.Pretty(new JsonArray(Structure.Stops(flow).Select(StopNode).ToArray())));
+            var stops = Structure.Stops(flow);
+            Assert.Equal(JsonDump.Pretty(f["stops"]), JsonDump.Pretty(new JsonArray(stops.Select(StopNode).ToArray())));
+            Assert.Equal(JsonDump.Pretty(f["other"]), JsonDump.Pretty(new JsonArray(stops.Select((_, k) => (JsonNode?)Ints(Structure.OtherLaneSteps(stops, k))).ToArray())));
+            Assert.Equal(JsonDump.Pretty(f["stopOfStep"]), JsonDump.Pretty(Ints(flow.Steps.Select((_, i) => Structure.StopIndexOf(stops, i)))));
         }
     }
 

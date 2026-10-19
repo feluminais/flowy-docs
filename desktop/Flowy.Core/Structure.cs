@@ -127,6 +127,27 @@ public static partial class Structure
         return stops;
     }
 
+    /// <summary>The stop that holds file step <paramref name="step"/>, or the first stop when none does (a stale step number never leaves the player nowhere).</summary>
+    public static int StopIndexOf(IReadOnlyList<Stop> stops, int step)
+    {
+        for (var i = 0; i < stops.Count; i++)
+            if (stops[i].Steps.Contains(step)) return i;
+        return 0;
+    }
+
+    /// <summary>For stop <paramref name="k"/> of a branch: the file steps of the lanes it is not in, the ones a player draws faint. Nothing for a stop that is not in a branch.</summary>
+    public static List<int> OtherLaneSteps(IReadOnlyList<Stop> stops, int k)
+    {
+        if (k < 0 || k >= stops.Count || stops[k].Kind != "branch" || stops[k].Group is null) return [];
+        var s = stops[k];
+        var from = k;
+        var to = k;
+        while (from > 0 && stops[from - 1].Group == s.Group) from--;
+        while (to + 1 < stops.Count && stops[to + 1].Group == s.Group) to++;
+        int? mine = s.Lanes is { Count: > 0 } own ? own[0] : null;
+        return stops.Skip(from).Take(to - from + 1).Where(t => (t.Lanes is { Count: > 0 } lanes ? lanes[0] : (int?)null) != mine).SelectMany(t => t.Steps).ToList();
+    }
+
     /// <summary>
     /// What is wrong with a flow's groups, lanes and flow links, in this order: each declared group's own problems (in JavaScript's key order),
     /// then each step's, then each declared group that no step uses (or that has too few lanes). A step's problem has its 0-based step number
