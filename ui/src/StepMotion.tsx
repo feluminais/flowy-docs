@@ -7,7 +7,12 @@ import type { Rect } from './graph.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
 import { active, bump, dashAround, distance, DWELL, ease, progress, tubeOpacity } from './motion.ts'
 
-const GLYPHS: Record<Glyph, string> = { envelope: '✉', bolt: '⚡', bell: '🔔' }
+// The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
+const GLYPHS: Record<Glyph, string> = {
+  envelope: 'M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10zM3 7l9 6l9 -6',
+  bolt: 'M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11',
+  bell: 'M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6M9 17v1a3 3 0 0 0 6 0v-1',
+}
 const SWELL = 46 // px of tube that bulges around a blob
 const HIDDEN = { display: 'none' } as const
 
@@ -26,7 +31,9 @@ function shape(b: Beat, i: number, from: Rect, to: Rect): ReactNode {
             {b.label === undefined
               ? <circle r={15} />
               : <rect x={-(b.label.length * 4 + 10)} y={-13} width={b.label.length * 8 + 20} height={26} rx={13} />}
-            <text textAnchor="middle" dominantBaseline="central">{b.label ?? GLYPHS[b.glyph!]}</text>
+            {b.label === undefined
+              ? <path className="glyph" d={GLYPHS[b.glyph!]} transform="translate(-9 -9) scale(0.75)" />
+              : <text textAnchor="middle" dominantBaseline="central">{b.label}</text>}
           </g>
         </g>
       )
@@ -37,7 +44,7 @@ function shape(b: Beat, i: number, from: Rect, to: Rect): ReactNode {
     case 'wait':
       return <g key={i} data-beat={i} className="dots" style={HIDDEN}>{[-12, 0, 12].map(dx => <circle key={dx} cx={r.x + r.width / 2 + dx} cy={r.y - 14} r={3.5} />)}</g>
     case 'drop':
-      return <text key={i} data-beat={i} className="drop" x={r.x + r.width / 2} textAnchor="middle" style={HIDDEN}>{GLYPHS[b.glyph!]}</text>
+      return <path key={i} data-beat={i} className="glyph drop" d={GLYPHS[b.glyph!]} style={HIDDEN} />
     default:
       return null
   }
@@ -119,7 +126,7 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
         else if (beat.do === 'wait') [...node.children].forEach((dot, k) => ((dot as SVGElement).style.opacity = Math.floor(t / 150) % 3 === k ? '1' : '0.3'))
         else if (beat.do === 'drop') {
           const r = beat.on === 'to' ? b : a
-          node.setAttribute('y', String(r.y - 50 + 50 * ease(p)))
+          node.setAttribute('transform', `translate(${r.x + r.width / 2 - 13} ${r.y - 50 + 50 * ease(p) - 13}) scale(1.08)`)
           node.style.opacity = String(1 - Math.max(0, (p - 0.8) / 0.2))
         }
       })

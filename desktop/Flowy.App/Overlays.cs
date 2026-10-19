@@ -14,23 +14,25 @@ internal sealed class PlayerCard : Border
     public event Action? Back;
     public event Action? Next;
     public event Action? Stop;
+    public event Action? Auto;
+    public event Action? Replay;
 
     public PlayerCard()
     {
         Classes.Add("card");
         HorizontalAlignment = HorizontalAlignment.Center;
         VerticalAlignment = VerticalAlignment.Bottom;
-        MaxWidth = 460;
+        MaxWidth = 520;
         Margin = new Thickness(16, 0, 16, 24);
         IsVisible = false;
     }
 
-    private Button Tool(string icon, string text, Action click, bool enabled = true, bool primary = false)
+    private Button Tool(string icon, string? text, Action click, bool enabled = true, bool primary = false, string? name = null)
     {
         var button = new Button { IsEnabled = enabled };
         button.Classes.Add("tool");
         if (primary) button.Classes.Add("primary");
-        Chrome.Fill(button, icon, text);
+        Chrome.Fill(button, icon, text, name);
         button.Click += (_, _) => click();
         return button;
     }
@@ -51,7 +53,7 @@ internal sealed class PlayerCard : Border
         return grid;
     }
 
-    public void Show(string flowName, int index, int count, string ends, string text, string? description)
+    public void Show(string flowName, int index, int count, string ends, string text, string? description, bool auto = false, bool moves = false)
     {
         var column = new StackPanel { Spacing = 8 };
         column.Children.Add(Chrome.Chips(Chrome.Chip(flowName, Icons.Play), Chrome.Chip($"Step {index + 1} of {count}", null, "accent")));
@@ -76,6 +78,8 @@ internal sealed class PlayerCard : Border
         DockPanel.SetDock(stop, Dock.Right);
         buttons.Children.Add(stop);
         var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { Tool(Icons.ArrowLeft, "Back", () => Back?.Invoke(), index > 0), Tool(Icons.ArrowRight, "Next", () => Next?.Invoke(), index < count - 1, primary: true) } };
+        left.Children.Add(auto ? Tool(Icons.Pause, "Pause", () => Auto?.Invoke()) : Tool(Icons.Play, "Autoplay", () => Auto?.Invoke()));
+        if (moves) left.Children.Add(Tool(Icons.Reload, null, () => Replay?.Invoke(), name: "Replay this step"));
         buttons.Children.Add(left);
         column.Children.Add(buttons);
         Child = column;
@@ -210,6 +214,8 @@ internal sealed class ShortcutsCard : Border
     [
         ("→  ←", "Next and previous step"),
         ("Home  End", "First and last step"),
+        ("P", "Step through the flow on its own, or pause"),
+        ("R", "Replay the step"),
         ("Esc", "Stop the flow"),
     ];
 

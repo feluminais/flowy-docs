@@ -98,7 +98,8 @@ objects:
       only if they are still as they were read.
 
       Two readers must give the same answers, so a Node script runs the TypeScript over fixture
-      folders and the canvas's own functions, and the C# tests must reproduce every number. A root
+      folders and the canvas's own functions, and the C# tests must reproduce every number. That
+      includes the beats of a step's animation and the maths that draws them. A root
       test fails if the TypeScript changes without the fixtures being written again.
   desktop-canvas:
     type: component
@@ -120,6 +121,10 @@ objects:
       Opening a box is a short fly-off and settle-in, one step per screen refresh (the window's own
       animation-frame callback, not a timer, which ticks unevenly), and instant when the system asks
       for less motion.
+
+      A tagged flow step plays over the boxes: a pipe along its line, something running through it,
+      and the boxes ringing, flashing or squashing. The same frame-driven clock runs it and Autoplay's
+      waits, and nothing moves when the system asks for less motion.
 
       Descriptions are drawn by a small Markdown renderer: raw HTML is dropped, an image shows as
       its description in brackets and is never fetched, and a link opens only if it is http or https.

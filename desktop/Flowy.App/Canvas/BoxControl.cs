@@ -136,4 +136,11 @@ internal sealed class BoxControl : Grid
 
     /// <summary>Called by the canvas as the selection changes.</summary>
     public void SetSelected(bool selected) => Classes.Set("selected", selected);
+
+    /// <summary>A step's gulp: 0 is the box as it is, 1 is squashed as far as it goes (a little wider and flatter). Taking something in, or giving it up.</summary>
+    public void SetSquash(double amount)
+    {
+        RenderTransformOrigin = RelativePoint.Center;
+        RenderTransform = amount > 0 ? new ScaleTransform(1 + 0.07 * amount, 1 - 0.1 * amount) : null;
+    }
 }
