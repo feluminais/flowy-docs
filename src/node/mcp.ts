@@ -213,8 +213,8 @@ export function createMcpServer(dir: string): McpServer {
         description: z.string().optional().describe('Optional longer detail in markdown, shown only when a reader asks for more'),
         animation: z.union([
           z.string(),
-          z.strictObject({ kind: z.string(), trigger: z.string().optional(), carries: z.string().optional() }),
-        ]).optional().describe(`How the step plays when a reader steps to it: ${ANIMATION_KINDS.join(', ')}, or { kind, trigger: "inside" | "outside" (callback only), carries: a word }. Optional: a step without one does not move.`),
+          z.strictObject({ kind: z.string(), trigger: z.string().optional(), carries: z.string().optional(), depth: z.union([z.number(), z.string()]).optional(), returns: z.string().optional() }),
+        ]).optional().describe(`How the step plays when a reader steps to it: ${ANIMATION_KINDS.filter(k => k !== 'recurse').join(', ')}, or { kind, trigger: "inside" | "outside" (callback only), carries: a word }. Optional: a step without one does not move.`), // recurse is left out of the description until the canvas draws it
       })).min(1),
     },
   }, input => write(m => putFlow(m, input), before => readout(before, input))) // a flow changes no box, so `before` places it right

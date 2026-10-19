@@ -243,3 +243,13 @@ test('a step keeps its animation through putFlow and updateFlow', () => {
   const edited = updateFlow(put, 'tagged', { steps: put.flows.tagged.steps.map((s, i) => (i === 0 ? { ...s, text: 'Taps' } : s)) })
   assert.deepEqual(edited.flows.tagged.steps[0], { from: 'customer', to: 'web', text: 'Taps', animation: 'call' })
 })
+
+test('putFlow writes a numeric depth as text, and leaves its input alone', () => {
+  const walk = { from: 'api', text: 'Walks', animation: { kind: 'recurse', depth: 4, carries: 'x' } }
+  const plain = { from: 'web', to: 'api', text: 'Posts', animation: 'call' }
+  const mapped = { from: 'web', to: 'api', text: 'Posts again', animation: { kind: 'send', carries: 'order' } }
+  const put = putFlow(shop(), { id: 'walk', name: 'Walk', view: 'shop', steps: [walk, plain, mapped] })
+  assert.deepEqual(put.flows.walk.steps[0].animation, { kind: 'recurse', depth: '4', carries: 'x' })
+  assert.equal(walk.animation.depth, 4)
+  assert.deepEqual(put.flows.walk.steps.slice(1), [plain, mapped])
+})

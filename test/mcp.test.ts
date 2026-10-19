@@ -247,3 +247,25 @@ test('put_flow takes a step animation, and refuses one that is not a kind', asyn
   const misspelled = await call('put_flow', { id: 'bad', name: 'Bad', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x', animation: { kind: 'send', carry: 'x' } }] })
   assert.equal(misspelled.error, true)
 })
+
+test('put_flow takes a recursive step, and refuses a wrong one', async t => {
+  const { call } = await setup(t)
+  await call('put_object', { id: 'customer', type: 'actor', name: 'Customer' })
+  await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
+  const saved = await call('put_flow', { id: 'walk', name: 'Walk', view: 'root', steps: [
+    { from: 'shop', text: 'Walks the tree', animation: { kind: 'recurse', depth: 4, carries: 'node', returns: 'total' } },
+  ] })
+  assert.equal(saved.error, false, saved.text)
+  const flow = JSON.parse((await call('get_model')).text).flows.walk
+  assert.deepEqual(flow.steps[0].animation, { kind: 'recurse', depth: '4', carries: 'node', returns: 'total' })
+
+  const deep = await call('put_flow', { id: 'bad', name: 'Bad', view: 'root', steps: [{ from: 'shop', text: 'x', animation: { kind: 'recurse', depth: 9 } }] })
+  assert.equal(deep.error, true)
+  assert.match(deep.text, /depth must be a whole number from 2 to 5/)
+  const withTo = await call('put_flow', { id: 'bad', name: 'Bad', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x', animation: 'recurse' }] })
+  assert.equal(withTo.error, true)
+  assert.match(withTo.text, /leave out "to"/)
+  const wrongKind = await call('put_flow', { id: 'bad', name: 'Bad', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x', animation: { kind: 'call', returns: 'x' } }] })
+  assert.equal(wrongKind.error, true)
+  assert.match(wrongKind.text, /returns only applies to recurse/)
+})

@@ -129,7 +129,11 @@ export function putFlow(model: Model, { id, name, view, steps }: FlowInput): Mod
   // A blank detail is no detail, as on the canvas, so the file stays as short as it can be.
   const copy = (s: Step): Step => {
     const { description, ...rest } = s
-    return typeof description === 'string' && !description.trim() ? rest as Step : { ...s }
+    const step = typeof description === 'string' && !description.trim() ? rest as Step : { ...s }
+    // Files hold text, and the writer refuses a number, so a depth that arrives as one (from MCP) is written as the text it spells.
+    const animation = step.animation
+    if (typeof animation === 'object' && animation !== null && 'depth' in animation && typeof animation.depth === 'number') return { ...step, animation: { ...animation, depth: String(animation.depth) } }
+    return step
   }
   return { ...model, flows: { ...model.flows, [id]: { name, view, steps: steps.map(copy) } } }
 }
