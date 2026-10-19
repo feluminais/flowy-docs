@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseNav } from '../ui/src/navstate.ts'
+import { clampWidth, MAX_WIDTH, MIN_WIDTH, parseNav } from '../ui/src/navstate.ts'
 import { scrollToRow, visibleRows } from '../ui/src/window.ts'
 
 test('a window shows the rows in view and a few more each side, and never more than there are', () => {
@@ -31,4 +31,12 @@ test('stored navigator state is read as far as it can be trusted', () => {
   assert.deepEqual(parseNav('{"tab":"details","expanded":"all"}'), { expanded: [] }) // details is never remembered
   assert.deepEqual(parseNav('{"expanded":["a",1,null,"b"]}'), { expanded: ['a', 'b'] })
   assert.equal(parseNav(JSON.stringify({ expanded: Array.from({ length: 5000 }, (_, i) => `s${i}`) })).expanded.length, 2000)
+})
+
+test('dragged widths are remembered, kept between the narrowest and widest, and anything else is dropped', () => {
+  assert.deepEqual(parseNav('{"navWidth":300,"detailsWidth":450.4}'), { expanded: [], navWidth: 300, detailsWidth: 450 })
+  assert.deepEqual(parseNav('{"navWidth":5,"detailsWidth":99999}'), { expanded: [], navWidth: MIN_WIDTH, detailsWidth: MAX_WIDTH })
+  assert.deepEqual(parseNav('{"navWidth":"wide","detailsWidth":null}'), { expanded: [] })
+  assert.equal(clampWidth(400, 100), MIN_WIDTH, 'a small window never squeezes a panel below the narrowest')
+  assert.equal(clampWidth(500, 350), 350, 'and the other panel and the canvas set the limit')
 })

@@ -265,7 +265,7 @@ internal sealed partial class ReaderView
         if (await RunAsync(d => EditOps.Connect(d, new ConnectionInput(from, to)))) OpenLine(from, to);
     }
 
-    private void CloseSide() => CloseTab();
+    private void CloseSide() => CloseDetails();
 
     /// <summary>Delete: the open box, or the open line when it stands for just one connection.</summary>
     internal async Task DeleteSelectedAsync()

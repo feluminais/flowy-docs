@@ -1,14 +1,15 @@
+using Avalonia;
 using Flowy.Core;
 
 namespace Flowy.App;
 
-/// <summary>The right-hand panel's tabs: the rail, the Flows list and the Explorer tree, and what a click in them does.</summary>
+/// <summary>The navigator on the left (its rail, the Flows list and the Explorer tree), the Details panel on the right and its rail, how wide the two panels are dragged, and what a click in them does.</summary>
 internal sealed partial class ReaderView
 {
     private string? _revealedView; // the level and the shape the tree last followed, so it follows a change and not every redraw
     private string? _revealedBox;
 
-    /// <summary>What the navigator remembers for this project changed: the tab, or which shapes are open in the tree.</summary>
+    /// <summary>What the navigator remembers for this project changed: the tab, which shapes are open in the tree, or how wide a panel is.</summary>
     public event Action<NavigatorState>? NavigatorChanged;
 
     private OutlineTotals Totals()
@@ -22,8 +23,11 @@ internal sealed partial class ReaderView
     /// <summary>The Flows tab is there whenever there is a flow to find, and always while editing.</summary>
     private bool ShowFlows => _folder is not null && (Totals().Flows > 0 || Editing);
 
-    /// <summary>The tab showing: the one chosen on the rail or a tab strip, else Details while something is picked, else none.</summary>
-    private PanelTab? ShownTab => (_tab == PanelTab.Flows && !ShowFlows ? null : _tab) ?? (_side is not null ? PanelTab.Details : null);
+    /// <summary>The navigator's tab showing (Flows or Explorer): the one chosen on its rail or its strip, else none.</summary>
+    private PanelTab? ShownTab => _tab == PanelTab.Flows && !ShowFlows ? null : _tab;
+
+    /// <summary>Whether the Details panel on the right is open: from its rail, or because something is picked.</summary>
+    private bool DetailsOpen => _details || _side is not null;
 
     private void SetTab(PanelTab tab)
     {
@@ -32,20 +36,67 @@ internal sealed partial class ReaderView
         Remember();
     }
 
-    /// <summary>A click on the rail: open that tab, or close the panel when it is the one open.</summary>
+    /// <summary>A click on a rail: open that panel, or close it when it is the one open.</summary>
     private void ToggleTab(PanelTab tab)
     {
-        if (ShownTab == tab) CloseTab();
+        if (tab == PanelTab.Details)
+        {
+            if (DetailsOpen) CloseDetails();
+            else
+            {
+                _details = true;
+                Refresh();
+            }
+        }
+        else if (ShownTab == tab) CloseNav();
         else SetTab(tab);
     }
 
-    private void CloseTab()
+    private void CloseNav()
     {
-        _side = null;
         _tab = null;
         Refresh();
         Focus();
         Remember();
+    }
+
+    private void CloseDetails()
+    {
+        _side = null;
+        _details = false;
+        Refresh();
+        Focus();
+    }
+
+    /// <summary>What the canvas can give one panel: all of it but a strip to look at, and what the other panel takes. Unknown before the canvas is laid out.</summary>
+    private double Spare(double other) => (_canvas.Bounds.Width > 0 ? _canvas.Bounds.Width : double.PositiveInfinity) - 160 - other;
+
+    private void ResizeNav(double width)
+    {
+        _navWidth = NavigatorState.Clamp(width, Spare(_panel.IsVisible ? _detailsWidth : 0));
+        ApplyWidths();
+    }
+
+    private void ResizeDetails(double width)
+    {
+        _detailsWidth = NavigatorState.Clamp(width, Spare(ShownTab is not null ? _navWidth : 0));
+        ApplyWidths();
+    }
+
+    private Thickness NoticeMargin => new(16 + (ShownTab is not null ? _navWidth : 0), 12, 16, 12);
+
+    /// <summary>Puts the panels and their sashes at the widths dragged, and keeps what sits beside the navigator (the zoom buttons, a notice) clear of it.</summary>
+    private void ApplyWidths()
+    {
+        var nav = ShownTab is not null;
+        _nav.Width = _navWidth;
+        _panel.Width = _detailsWidth;
+        _navSash.IsVisible = nav;
+        _navSash.Margin = new Thickness(_navWidth - 3, 0, 0, 0);
+        _detailsSash.IsVisible = _panel.IsVisible;
+        _detailsSash.Margin = new Thickness(0, 0, _detailsWidth - 3, 0);
+        if (_zoomButtons is not null) _zoomButtons.Margin = new Thickness(16 + (nav ? _navWidth : 0), 16, 16, 16);
+        if (_notice is not null) _notice.Margin = NoticeMargin;
     }
 
     /// <summary>Plays a flow where it plays (going to its level first), or while editing opens it to edit.</summary>
@@ -57,7 +108,7 @@ internal sealed partial class ReaderView
         else Play(id);
     }
 
-    /// <summary>A click in the Explorer: show the shape where it is drawn and select it, or play the flow. The panel stays on the Explorer.</summary>
+    /// <summary>A click in the Explorer: show the shape where it is drawn and select it (its Details open on the right), or play the flow.</summary>
     private void PickRow(OutlineRow row)
     {
         if (_folder is null) return;
@@ -75,15 +126,7 @@ internal sealed partial class ReaderView
         }
         var parent = Views.ParentOf(_folder.Model, row.Id);
         if (parent != CurrentView()) GoTo(parent);
-        _keepTab = true;
-        try
-        {
-            OpenObject(row.Id);
-        }
-        finally
-        {
-            _keepTab = false;
-        }
+        OpenObject(row.Id);
     }
 
     /// <summary>Enter or a double-click in the Explorer: go into a shape that opens, else the same as a click.</summary>
@@ -131,18 +174,19 @@ internal sealed partial class ReaderView
         var tab = ShownTab;
         var showFlows = ShowFlows;
         _rail.Update(tab, totals.Flows, totals.Shapes, showFlows);
-        _panel.Tabs.Update(PanelTab.Details, showFlows);
-        if (tab is PanelTab.Flows or PanelTab.Explorer) _nav.Show(tab.Value, showFlows);
+        _detailsRail.Update(DetailsOpen ? PanelTab.Details : null, 0, 0, false);
+        if (tab is { } open) _nav.Show(open, showFlows);
         else _nav.Hide();
+        ApplyWidths();
         if (tab == PanelTab.Flows) _nav.Flows.Update(model, view, Editing, Recording?.Id ?? flow?.Id);
         else if (tab == PanelTab.Explorer) _nav.Explorer.Update(model, _folder!.Problems, Editing, _expanded, view, SelectedBox, flow?.Id);
     }
 
     private void Remember() => NavigatorChanged?.Invoke(new NavigatorState(
         _tab switch { PanelTab.Flows => "flows", PanelTab.Explorer => "explorer", _ => null },
-        _expanded.Order(StringComparer.Ordinal).Take(NavigatorState.MaxExpanded).ToList()));
+        _expanded.Order(StringComparer.Ordinal).Take(NavigatorState.MaxExpanded).ToList(), _navWidth, _detailsWidth));
 
-    /// <summary>Brings back what this project's navigator remembered: the tab that was open and which shapes were open in the tree.</summary>
+    /// <summary>Brings back what this project's navigator remembered: the tab that was open, which shapes were open in the tree, and how wide the panels were.</summary>
     public void RestoreNavigator(NavigatorState? saved)
     {
         _expanded.Clear();
@@ -150,6 +194,8 @@ internal sealed partial class ReaderView
         _revealedView = null;
         _revealedBox = null;
         _tab = saved?.Tab switch { "flows" => PanelTab.Flows, "explorer" => PanelTab.Explorer, _ => null };
+        _navWidth = saved?.NavWidth ?? Camera.Nav;
+        _detailsWidth = saved?.DetailsWidth ?? Camera.Panel;
         foreach (var id in saved?.Expanded ?? []) _expanded.Add(id);
         Refresh();
     }
@@ -157,16 +203,28 @@ internal sealed partial class ReaderView
     // What a test can look at.
     internal PanelTab? ShownTabNow => ShownTab;
 
+    internal bool DetailsOpenNow => DetailsOpen;
+
     internal NavRail Rail => _rail;
+
+    internal NavRail DetailsRail => _detailsRail;
 
     internal NavigatorPanel Navigator => _nav;
 
-    internal void ClickRail(PanelTab tab) => _rail.Press(tab);
+    internal (double Nav, double Details) Widths => (_navWidth, _detailsWidth);
 
-    /// <summary>Opens a tab by name ("details", "flows" or "explorer"), for a picture (--tab). Anything else is ignored.</summary>
+    internal (Sash Nav, Sash Details) Sashes => (_navSash, _detailsSash);
+
+    internal (double Nav, double Details) PanelWidthsOnScreen => (_nav.Width, _panel.Width);
+
+    internal void ClickRail(PanelTab tab) => (tab == PanelTab.Details ? _detailsRail : _rail).Press(tab);
+
+    /// <summary>Opens a panel by name ("details", "flows" or "explorer"), for a picture (--tab). Anything else is ignored.</summary>
     public void OpenTab(string name)
     {
-        if (Enum.TryParse<PanelTab>(name, true, out var tab)) SetTab(tab);
+        if (!Enum.TryParse<PanelTab>(name, true, out var tab)) return;
+        if (tab != PanelTab.Details) SetTab(tab);
+        else if (!DetailsOpen) ToggleTab(tab);
     }
 
     internal void OpenFlowById(string id) => OpenFlow(id);

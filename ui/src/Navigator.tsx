@@ -1,4 +1,4 @@
-import { createContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode, Ref } from 'react'
 import type { Problem } from '../../src/core/check.ts'
 import { ROOT } from '../../src/core/model.ts'
@@ -8,6 +8,7 @@ import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
 import { Activity, ChevronRight, Close, Home, Info, Pencil, Play, Route, Search as SearchIcon, Sitemap } from './icons.tsx'
+import { MAX_WIDTH, MIN_WIDTH } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { scrollToRow, visibleRows } from './window.ts'
 
@@ -16,16 +17,8 @@ const ROW = 30 // px: every row of the tree is this tall, which is what lets it 
 const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-/** The tab strip that tops every panel. App provides it, so each panel (Details has several) shows it without being told. */
-export const NavTabsContext = createContext<ReactNode>(null)
-
-export function NavTabs({ tab, showFlows, showPerf, onPick }: { tab: NavTab; showFlows: boolean; showPerf: boolean; onPick: (tab: NavTab) => void }) {
-  const tabs: [NavTab, string][] = [
-    ['details', 'Details'],
-    ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []),
-    ['explorer', 'Explorer'],
-    ...(showPerf ? [['performance', 'Performance'] as [NavTab, string]] : []),
-  ]
+export function NavTabs({ tab, showFlows, onPick }: { tab: NavTab; showFlows: boolean; onPick: (tab: NavTab) => void }) {
+  const tabs: [NavTab, string][] = [...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []), ['explorer', 'Explorer']]
   return (
     <div className="navtabs" role="tablist" aria-label="Panel">
       {tabs.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => onPick(id)}>{label}</button>)}
@@ -33,25 +26,65 @@ export function NavTabs({ tab, showFlows, showPerf, onPick }: { tab: NavTab; sho
   )
 }
 
-/** The slim column of icons on the right edge. It is always there, and the counts on it say how much the documentation holds. */
-export function Rail({ tab, flows, shapes, runs, showFlows, showPerf, onPick }: { tab: NavTab | undefined; flows: number; shapes: number; runs: number; showFlows: boolean; showPerf: boolean; onPick: (tab: NavTab) => void }) {
-  const button = (id: NavTab, label: string, key: string | undefined, Icon: typeof Info, count?: number) => (
-    <button key={id} aria-pressed={tab === id} aria-label={count === undefined ? label : `${label}, ${count}`} title={key ? `${label} (${key})` : label} onClick={() => onPick(id)}>
+function RailButton({ label, hint, Icon, pressed, count, onClick }: { label: string; hint?: string; Icon: typeof Info; pressed: boolean; count?: number; onClick: () => void }) {
+  return (
+    <button aria-pressed={pressed} aria-label={count === undefined ? label : `${label}, ${count}`} title={hint ? `${label} (${hint})` : label} onClick={onClick}>
       <Icon size={18} />
       {count !== undefined && <span className="count" aria-hidden="true">{count > 999 ? '999+' : count}</span>}
     </button>
   )
+}
+
+/** The slim column of icons on the left edge for the Flows list and the Explorer tree. It is always there, and the counts on it say how much the documentation holds. */
+export function NavRail({ tab, flows, shapes, showFlows, onPick }: { tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean; onPick: (tab: NavTab) => void }) {
   return (
-    <nav className="rail" aria-label="Panels">
-      {button('details', 'Details', undefined, Info)}
-      {showFlows && button('flows', 'Flows', 'L', Route, flows)}
-      {button('explorer', 'Explorer', 'O', Sitemap, shapes)}
-      {showPerf && button('performance', 'Performance', 'T', Activity, runs)}
+    <nav className="rail left" aria-label="Navigator">
+      {showFlows && <RailButton label="Flows" hint="L" Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
+      <RailButton label="Explorer" hint="O" Icon={Sitemap} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
     </nav>
   )
 }
 
-/** The panel of the Flows and Explorer tabs. It has no scrolling of its own: each tab scrolls what it holds. */
+/** The slim column on the right edge: a button for the Details panel, and below it one for Performance where there is a load-test run to show (it takes Details' place). */
+export function DetailsRail({ open, onToggle, perf }: { open: boolean; onToggle: () => void; perf?: { open: boolean; runs: number; onToggle: () => void } }) {
+  return (
+    <nav className="rail" aria-label={perf ? 'Details and performance' : 'Details'}>
+      <RailButton label="Details" Icon={Info} pressed={open} onClick={onToggle} />
+      {perf && <RailButton label="Performance" hint="T" Icon={Activity} count={perf.runs} pressed={perf.open} onClick={perf.onToggle} />}
+    </nav>
+  )
+}
+
+/**
+ * The edge of a side panel you drag to resize it, as in VS Code: it lights up under the pointer, a double-click puts the width back, and the
+ * arrow keys nudge it. `side` is the panel it belongs to: the navigator grows as its edge goes right, Details as its edge goes left.
+ */
+export function Sash({ side, width, onResize, onReset }: { side: 'nav' | 'details'; width: number; onResize: (width: number) => void; onReset: () => void }) {
+  const drag = useRef<{ x: number; width: number }>(undefined)
+  const sign = side === 'nav' ? 1 : -1
+  const label = side === 'nav' ? 'Resize the navigator' : 'Resize the details panel'
+  return (
+    <div className={`sash ${side}`} role="separator" aria-orientation="vertical" aria-label={label} aria-valuenow={width} aria-valuemin={MIN_WIDTH} aria-valuemax={MAX_WIDTH} tabIndex={0}
+      onPointerDown={e => {
+        e.currentTarget.setPointerCapture(e.pointerId) // the drag goes on over the canvas, and nothing there sees it
+        drag.current = { x: e.clientX, width }
+        e.preventDefault()
+      }}
+      onPointerMove={e => drag.current && onResize(drag.current.width + sign * (e.clientX - drag.current.x))}
+      onPointerUp={() => { drag.current = undefined }}
+      onPointerCancel={() => { drag.current = undefined }}
+      onDoubleClick={onReset}
+      onKeyDown={e => {
+        const step = e.key === 'ArrowRight' ? 16 : e.key === 'ArrowLeft' ? -16 : 0
+        if (step === 0) return
+        onResize(width + sign * step)
+        e.preventDefault()
+        e.stopPropagation() // the arrows of a flow playing are not meant for the sash
+      }} />
+  )
+}
+
+/** The panel of the Flows and Explorer tabs, on the left. It has no scrolling of its own: each tab scrolls what it holds. */
 export function NavPanel({ tabs, onClose, children }: { tabs: ReactNode; onClose: () => void; children: ReactNode }) {
   return (
     <aside className="panel navpanel">

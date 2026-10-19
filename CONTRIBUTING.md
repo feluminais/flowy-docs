@@ -165,6 +165,10 @@ Reading:
       and the others fade. If the panel would cover the box you click, the view moves it aside.
 - [ ] Hover API: after a moment its first paragraph appears under it. Click API: the side panel
       shows the whole description with its bullet list. Esc, ×, or a click on empty canvas closes it.
+- [ ] Press O: the Explorer opens on the left, folders first and then by name. Click API in it: the
+      view goes to API and its Details open on the right, beside the Explorer. Drag the edge of either
+      panel (it lights up under the pointer): it resizes, and a double-click puts the width back.
+      Esc closes Details first, then the Explorer. Reopen the project: the widths are as you left them.
 - [ ] In Shop, play "Customer checks out". Only the current step's two boxes stay lit, with a blue border, and its line is bold and drawn over the faded boxes. Customer, outside Shop, lights up fully in step 1.
       → and ← move, End and Home jump to the last and first step, the buttons match, Esc stops
       (and a second Esc zooms out). Step 3 lights API alone, with no line, and its
@@ -189,14 +193,15 @@ Reading:
 
 Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
 
-- [ ] The rail has a Performance button with a 2 on it, and T opens the tab on the load where the Fulfilment worker first struggles (200
+- [ ] The right rail has a Performance button under Details with a 2 on it, and T opens its panel (in Details' place) on the load where the Fulfilment worker first struggles (200
       req/s on the ramp), with `#shop/perf/ramp/4` in the address. In Shop lab, shapes that carry numbers are outlined from green to red
       along their own outline (SQLite's cylinder, Upload folder's folder, the boxes of Web API and the worker), Order queue carries a
       number but no colour, busy lines are thicker and carry more dots, and Catalog cache (a hexagon with no numbers) and Payment gateway
       stay plain. ← → move between loads, Home and End jump (Home gives `#shop/perf/ramp/0`), and the address follows. Esc closes the
-      tab; Back closes it too if you opened it with T (after Esc, Back opens it again).
-- [ ] Click Fulfilment worker: the tab stays, and its panel reads Busy and Failing with a curve each. Click the line from Order queue to
-      it: its numbers show. Pick Slow gateway in the run picker, then click the canvas background so the keys work again: the struggle is
+      panel; Back closes it too if you opened it with T (after Esc, Back opens it again). With Explorer open on the left as well, both
+      panels show and the diagram still fits; the Details button swaps Details back in, and Esc closes whichever is showing.
+- [ ] Click Fulfilment worker: the panel stays and reads Busy and Failing with a curve each. Click the line from Order queue to
+      it: its numbers show. Pick Slow gateway in the run picker: the struggle is
       at a lower load. Press Home, then P (or click Ramp): the load sweeps up through the levels in about 30 s (from a later load it
       covers the rest at the same pace) and stops at the highest; the slider and the strip's cursor move with it, and touching the
       slider stops it. At the 400 level a few red dots fade out part-way along the lines into Payment gateway. After you move, Go there
@@ -205,7 +210,7 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
       worst outline inside is the same colour. Pick each style in the Lines picker: the dots follow every line. To check a moved shape
       without writing into `perf-lab/`, copy it (`node -e "require('node:fs').cpSync('perf-lab', require('node:os').tmpdir() + '/lab-copy', { recursive: true })"`),
       serve its `flowy` folder (`--dir "$TEMP/lab-copy/flowy"`), press E, drag Web API, press E again and T: the dots follow the moved lines.
-- [ ] Press E in the Performance tab: the tab closes and the button leaves the rail; E again brings the button back. Open
+- [ ] Press E with the Performance panel open: it closes and the button leaves the rail; E again brings the button back. Open
       `#shop/perf/ramp/2` in a new tab: it opens on that load. With the system's reduce-motion setting on there are no dots, no Ramp
       button and no easing between loads, and the outlines, thickness, badges and numbers still show. Light and dark both read.
 

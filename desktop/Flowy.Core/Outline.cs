@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace Flowy.Core;
 
 /// <summary>One line of the navigator's tree: the project, a shape, or a flow. <c>Key</c> is <c>shape:id</c> or <c>flow:id</c>.</summary>
@@ -24,6 +26,34 @@ public static class Outlines
 {
     private sealed record Tree(Dictionary<string, List<string>> Kids, Dictionary<string, List<string>> FlowsIn, List<string> Preorder);
 
+    private static string Lower(string text) => text.ToLowerInvariant();
+
+    /// <summary>-1, 0 or 1 by name as VS Code's Explorer sorts: any case, and a run of digits counts as a number ("step 2" before "step 10"). Ordinal, like the TypeScript.</summary>
+    public static int ByName(string a, string b)
+    {
+        var x = Regex.Split(Lower(a), "([0-9]+)");
+        var y = Regex.Split(Lower(b), "([0-9]+)");
+        for (var i = 0; i < Math.Min(x.Length, y.Length); i++)
+        {
+            if (x[i] == y[i]) continue;
+            if (i % 2 == 1) // both are digit runs
+            {
+                var (m, n) = (Number(x[i]), Number(y[i]));
+                if (m.Length != n.Length) return m.Length < n.Length ? -1 : 1;
+                var c = string.CompareOrdinal(m, n);
+                if (c != 0) return Math.Sign(c);
+                continue; // 007 and 7 are the same number
+            }
+            return string.CompareOrdinal(x[i], y[i]) < 0 ? -1 : 1;
+        }
+        return Math.Sign(x.Length - y.Length); // one is the start of the other
+    }
+
+    private static string Number(string digits) => digits.TrimStart('0') is { Length: > 0 } t ? t : "0"; // without leading zeros, but 000 is 0
+
+    private static Comparison<string> ByNameThenId(Func<string, string> name) =>
+        (a, b) => ByName(name(a), name(b)) is var c and not 0 ? c : Math.Sign(string.CompareOrdinal(a, b));
+
     private static Tree TreeOf(Model model, bool editing)
     {
         var kids = new Dictionary<string, List<string>>();
@@ -43,6 +73,13 @@ public static class Outlines
             if (!flowsIn.TryGetValue(view, out var list)) flowsIn[view] = list = [];
             list.Add(id);
         }
+        // As in VS Code's Explorer: a shape that holds others comes first, as a folder does, then the rest, each group by name.
+        bool Folder(string id) => kids.ContainsKey(id) || flowsIn.ContainsKey(id);
+        var byShape = ByNameThenId(id => Views.NameOf(model, id));
+        foreach (var list in kids.Values)
+            list.Sort((a, b) => Folder(a) == Folder(b) ? byShape(a, b) : Folder(a) ? -1 : 1);
+        var byFlow = ByNameThenId(id => model.Flows[id].Name is { Length: > 0 } name ? name : id);
+        foreach (var list in flowsIn.Values) list.Sort(byFlow);
         // A loop of shapes inside each other is never reached from the project, and a stack (not recursion) keeps a long chain from overflowing.
         var preorder = new List<string>();
         var stack = new Stack<string>();
@@ -102,8 +139,6 @@ public static class Outlines
         if (problems.Count > 0) shapes.Add(Names.Root);
         return (shapes, flows);
     }
-
-    private static string Lower(string text) => text.ToLowerInvariant();
 
     /// <summary>The rows to draw, top to bottom. With a filter, only matching rows and the shapes holding them show, all open.</summary>
     public static Outline Build(Model model, IReadOnlyList<Problem> problems, IReadOnlySet<string> expanded, string? filter = null, bool editing = false)
