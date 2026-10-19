@@ -1,0 +1,115 @@
+objects:
+  shopper:
+    type: actor
+    name: Shopper
+    description: Someone browsing the catalog, placing orders and uploading receipts. The load generator plays them.
+  shop:
+    type: system
+    name: Shop lab
+    description: |
+      A made-up, mid-sized shop that really runs, so Flowy has something to measure.
+
+      Every part is real code with a limit of its own (a pool of workers, a number of write slots, a
+      rate limit on the payment gateway), so under load the same parts give way in the same order.
+      The numbers in `perf/` were measured on one machine; the order they give way in is the point.
+  payments:
+    type: system
+    name: Payment gateway
+    external: true
+    shape: cloud
+    code: [src/gateway.ts]
+    description: |
+      A stand-in for a payment provider, run as its own process. Each call takes about 90 ms, and
+      past 100 calls in a second it answers 429 at once, the way a real provider rate-limits.
+  web-api:
+    type: app
+    in: shop
+    name: Web API
+    tech: Node
+    code: [src/lab.ts]
+    description: |
+      Serves the catalog, takes orders and builds reports, all on one event loop. Its utilisation is
+      the loop's own, so a slow disk or a heavy report shows here even when nothing is queued.
+  catalog:
+    type: component
+    in: web-api
+    name: Catalog
+    code: [src/lab.ts, src/cache.ts]
+    description: Serves a page of products from the cache, and from the database when the page isn't cached.
+  orders:
+    type: component
+    in: web-api
+    name: Orders
+    code: [src/lab.ts]
+    description: |
+      Saves an order, asks the gateway to authorize the amount, and puts the order on the queue.
+
+      A gateway that answers 429 fails the order, so this is where rate limiting reaches the shopper.
+  reports:
+    type: component
+    in: web-api
+    name: Report export
+    code: [src/lab.ts]
+    description: Reads the latest orders and hashes them, which is CPU work on the same loop as everything else.
+  file-api:
+    type: app
+    in: shop
+    name: File API
+    tech: Node
+    code: [src/lab.ts]
+    description: Takes uploads of about 200 KB and streams a file back. Uploads wait for one of 8 write slots.
+  worker:
+    type: app
+    in: shop
+    name: Fulfilment worker
+    tech: Node
+    code: [src/queue.ts, src/lab.ts]
+    description: |
+      Takes an order off the queue, captures the payment and marks the order fulfilled. Four jobs
+      run at once, and each one waits on the gateway, so this is what fills first.
+  sqlite:
+    type: store
+    in: shop
+    name: SQLite
+    tech: node:sqlite
+    code: [src/db.ts]
+    description: |
+      One connection, every call synchronous, every commit waiting for the disk (`synchronous=FULL`).
+      A slow disk stalls the whole server, which is what this part is here to show.
+  cache:
+    type: store
+    in: shop
+    name: Catalog cache
+    shape: hexagon
+    tech: in memory
+    code: [src/cache.ts]
+    description: Keeps the 20 most recently used catalog pages of 60. Nothing about it is measured except its calls, so it stays neutral.
+  queue:
+    type: store
+    in: shop
+    name: Order queue
+    shape: queue
+    tech: in memory
+    code: [src/queue.ts]
+    description: Orders waiting for a worker. Its depth is what the Performance tab shows as a badge.
+  files:
+    type: store
+    in: shop
+    name: Upload folder
+    shape: folder
+    tech: disk
+    code: [src/lab.ts]
+    description: Where uploads are written, flushed to disk before the upload is answered.
+connections:
+  - { from: shopper, to: web-api, label: browses, orders and asks for reports }
+  - { from: shopper, to: file-api, label: uploads and downloads }
+  - { from: catalog, to: cache, label: looks a page up }
+  - { from: catalog, to: sqlite, label: reads a page on a miss }
+  - { from: orders, to: sqlite, label: saves and updates the order }
+  - { from: orders, to: payments, label: authorizes the amount }
+  - { from: orders, to: queue, label: enqueues the order }
+  - { from: queue, to: worker, label: hands out the next order }
+  - { from: worker, to: sqlite, label: reads and updates the order }
+  - { from: worker, to: payments, label: captures the payment }
+  - { from: file-api, to: files, label: writes and reads files }
+  - { from: reports, to: sqlite, label: reads the latest orders }

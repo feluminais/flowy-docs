@@ -1,0 +1,11 @@
+name: A shopper places an order
+view: shop
+steps:
+  - { from: shopper, to: orders, text: Sends the basket with POST /orders }
+  - { from: orders, to: sqlite, text: Saves the order as placed }
+  - { from: orders, to: payments, text: Asks the gateway to authorize the amount, animation: call }
+  - { from: orders, to: sqlite, text: Marks the order authorized }
+  - { from: orders, to: queue, text: Puts the order on the queue for fulfilment, animation: send }
+  - { from: queue, to: worker, text: Hands it to a free worker, animation: send }
+  - { from: worker, to: payments, text: Captures the payment, animation: call }
+  - { from: worker, to: sqlite, text: Marks the order fulfilled }
