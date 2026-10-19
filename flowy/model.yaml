@@ -333,6 +333,19 @@ objects:
 
       Nothing here draws. The canvas and the desktop app each draw the beats, so a new kind is a
       recipe here and not new drawing code in both.
+  perf:
+    type: component
+    in: core
+    name: Performance runs
+    code: [src/core/perf.ts]
+    description: |
+      A load test as numbers: for each load level that was tested, what each shape and each
+      connection measured. It reads a run file, checks it against the model, and works out what the
+      Performance tab will show at a load: the numbers between two tested levels, the worst of what
+      a shape holds, where things first struggle, and how busy each line is.
+
+      It replays what was measured and never predicts: above the highest tested load there is
+      nothing to show.
   views:
     type: component
     in: core
@@ -420,3 +433,6 @@ connections:
   - { from: exporter, to: filestore, label: loads the model }
   - { from: exporter, to: canvas, label: copies the built page }
   - { from: exporter, to: host, label: writes a read-only copy }
+  - { from: filestore, to: perf, label: reads the runs in perf/ }
+  - { from: perf, to: views, label: which line a connection lands in }
+  - { from: perf, to: model, label: reads files the same way }
