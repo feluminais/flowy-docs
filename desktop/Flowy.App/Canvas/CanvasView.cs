@@ -111,6 +111,17 @@ internal sealed class CanvasView : Border
     /// </summary>
     internal (string Id, int Depth)? Resting => _resting;
 
+    /// <summary>
+    /// Makes the resting counter match the step now showing. A reload can change the step's tag or depth without changing which step it is, and the
+    /// motion is not started again for the same step, so the reader calls this every time it refreshes.
+    /// </summary>
+    internal void SetResting((string Id, int Depth)? now)
+    {
+        if (Nullable.Equals(_resting, now)) return;
+        _resting = now;
+        _motion.SetRest(now is { } r ? RectOf(r.Id) : null, now?.Depth ?? 0);
+    }
+
     /// <summary>Where the resting counter's box is in the scene on screen now, so a reload that moves the box moves the counter with it.</summary>
     internal Flowy.Core.Rect? RestingRect => _resting is { } r ? RectOf(r.Id) : null;
 

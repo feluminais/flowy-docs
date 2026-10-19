@@ -40,7 +40,12 @@ internal sealed partial class ReaderView
     private void UpdateMotion((string Id, Flow Flow)? flow, int index, Playing? shown)
     {
         var key = flow is { } f ? $"{f.Id}:{index}:{_replays}" : "";
-        if (key == _stepKey) return;
+        // A change on disk can take a recursion's tag off the step showing, or change its depth, without changing the step: the counter follows.
+        if (key == _stepKey)
+        {
+            _canvas.SetResting(flow is { } now && shown?.Ends[index] is { } at && Animations.Read(now.Flow.Steps[index]) is { Kind: "recurse" } a ? (at.From, a.Depth ?? Animations.DepthDefault) : null);
+            return;
+        }
         _stepKey = key;
         _canvas.StopStep();
         if (flow is { } playing && shown?.Ends[index] is { } placed && Animations.Read(playing.Flow.Steps[index]) is { } animation)

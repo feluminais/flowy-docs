@@ -180,6 +180,62 @@ public class AnimationTests
         Assert.Equal(("api", 4), reader.Canvas.Resting!.Value);
     }
 
+    /// <summary>A copy of the recursion folder in a temporary place, its flow file changed by <paramref name="edit"/>: what a reload finds after someone saves.</summary>
+    private static string EditedCopy(Func<string, string> edit)
+    {
+        var copy = Path.Combine(Path.GetTempPath(), "flowy-recursion-" + Guid.NewGuid().ToString("N"));
+        foreach (var file in Directory.EnumerateFiles(Recursion, "*", SearchOption.AllDirectories))
+        {
+            var target = Path.Combine(copy, Path.GetRelativePath(Recursion, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            var text = File.ReadAllText(file);
+            File.WriteAllText(target, Path.GetFileName(file) == "recursion.yaml" ? edit(text) : text);
+        }
+        return copy;
+    }
+
+    [AvaloniaFact]
+    public void A_reload_that_takes_the_tag_off_the_step_takes_its_counter_away()
+    {
+        var (_, reader) = Open("0", Recursion);
+        var copy = EditedCopy(text => text.Replace("Walks the category tree, animation: recurse }", "Walks the category tree }"));
+        try
+        {
+            reader.Play("recursion");
+            Run(() => !reader.StepMoving);
+            Assert.NotNull(reader.Canvas.Resting);
+            reader.Reload(FolderLoader.Load(copy)); // the same flow and step are showing, but the step is no longer a recursion
+            Assert.Equal("recursion", reader.PlayingFlowId);
+            Assert.Equal(0, reader.PlayingStep);
+            Assert.Null(reader.Canvas.Resting);
+        }
+        finally
+        {
+            Directory.Delete(copy, true);
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_reload_that_changes_the_depth_changes_the_counter()
+    {
+        var (_, reader) = Open("0", Recursion);
+        var copy = EditedCopy(text => text.Replace("Walks the category tree, animation: recurse }", "Walks the category tree, animation: { kind: recurse, depth: 5 } }"));
+        try
+        {
+            reader.Play("recursion");
+            Run(() => !reader.StepMoving);
+            Assert.Equal(("api", 3), reader.Canvas.Resting!.Value);
+            reader.Reload(FolderLoader.Load(copy));
+            Assert.Equal(("api", 5), reader.Canvas.Resting!.Value);
+        }
+        finally
+        {
+            Directory.Delete(copy, true);
+            Finish();
+        }
+    }
+
     [AvaloniaFact]
     public void The_counter_follows_a_box_that_moves_under_it()
     {
