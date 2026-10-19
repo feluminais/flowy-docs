@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { Controls, ReactFlow } from '@xyflow/react'
 import type { FitViewOptions, NodeChange, XYPosition } from '@xyflow/react'
@@ -11,12 +11,14 @@ import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { chain, hasChildren, nameOf, parentOf, placeEnds, placeStep, stepEnds } from '../../src/core/views.ts'
 import { Box, Description, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
+import { Chip } from './Chrome.tsx'
+import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Help, Home, Pencil, Play, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
 import { connectionsOf, locate, moveBetween } from './edit.ts'
 import type { Move } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
-import { escapeStep, letter, takesEnter } from './keys.ts'
+import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
 import { Line, LineStyleContext } from './Line.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
@@ -68,7 +70,7 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
   if (problems.length === 0) return null
   return (
     <details className="problems">
-      <summary>{problems.length} problem{problems.length === 1 ? '' : 's'}</summary>
+      <summary><Alert size={14} />{problems.length} problem{problems.length === 1 ? '' : 's'}</summary>
       <ul>
         {problems.map((p, i) => (
           <li key={i}>
@@ -102,6 +104,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   // has measured it again: they'd blink away for a frame on every drag, click and hover.
   const sizes = useRef(new Map<string, { width: number; height: number }>())
   const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
+  const justMoved = useRef(false) // the last thing done was dragging a box, and nothing has been done since: Esc or Backspace take it back
   const [hovered, setHovered] = useState<string>() // the line the pointer is on
   const [searching, setSearching] = useState(false)
   const [shortcuts, setShortcuts] = useState(false) // the list ? opens
@@ -153,6 +156,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   const edges = useMemo(() => focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }), [graph, selectedBox, selectedLine, hovered])
 
   const run: Run = async op => {
+    justMoved.current = false
     setNotice(undefined)
     const message = await edit(op)
     setNotice(message)
@@ -160,11 +164,13 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   }
   const close = () => setSide(undefined)
   const takeBack = async () => {
+    justMoved.current = false
     setNotice(undefined)
     setNotice((await undo()) ?? 'Undone.')
     setMoved(new Map()) // a box dragged back shows where the file says
   }
   const bringBack = async () => {
+    justMoved.current = false
     setNotice(undefined)
     setNotice((await redo()) ?? 'Redone.')
     setMoved(new Map())
@@ -180,6 +186,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     }
   }
   const go = (id: string) => {
+    justMoved.current = false
     clearTimeout(opening.current)
     clearTimeout(motionTimer.current)
     setMotion(undefined)
@@ -227,6 +234,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     else own(style)
   }
   const toggleEdit = () => {
+    justMoved.current = false
     quiet.current = true // E isn't a step to go back to
     setEditMode(!editing)
     setNotice(undefined) // "Press E to fix this flow" is stale the moment E is pressed
@@ -270,9 +278,10 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     }))
     // Arrow keys queue a save per press. Clearing `moved` after an early one would snap the box back mid-way.
     layoutSaves.current++
-    void run(m => placeBoxes(m, view, boxes)).then(() => {
+    void run(m => placeBoxes(m, view, boxes)).then(saved => {
       layoutSaves.current--
       if (layoutSaves.current === 0) setMoved(new Map())
+      justMoved.current = saved
     })
   }
 
@@ -313,7 +322,10 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return
       // A second press while a zoom out is still leaving goes up from where that one is heading.
       const up = () => zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view))
-      if (e.key === 'Escape') {
+      if (undoesMove(e, { editing, justMoved: justMoved.current, shortcuts, plain })) {
+        void takeBack()
+      }
+      else if (e.key === 'Escape') {
         const layer = escapeStep({ shortcuts, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: side !== undefined, inside: view !== ROOT })
         if (layer === 'shortcuts') setShortcuts(false)
         else if (layer === 'flow') setPlaying(undefined)
@@ -342,7 +354,8 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
       else if (editing && e.key === 'Delete') remove()
       else if (editing && control && ((key === 'z' && e.shiftKey) || key === 'y')) void bringBack()
       else if (editing && control && key === 'z') void takeBack()
-      else if (e.key === 'Backspace' && view !== ROOT && !recording) up()
+      // Z zooms out, always: Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
+      else if ((e.key === 'Backspace' || (key === 'z' && plain)) && view !== ROOT && !recording) up()
       else return
       e.preventDefault()
     }
@@ -354,8 +367,11 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     <>
       <header className="bar">
         <nav className="crumbs" aria-label="Zoom level">
-          {chain(model, view).reverse().map(id => (
-            <button key={id} disabled={id === view} onClick={() => zoomOut(id)}>{nameOf(model, id)}</button>
+          {chain(model, view).reverse().map((id, i) => (
+            <Fragment key={id}>
+              {i > 0 && <ChevronRight size={14} />}
+              <button disabled={id === view} onClick={() => zoomOut(id)}>{i === 0 && <Home size={16} />}{nameOf(model, id)}</button>
+            </Fragment>
           ))}
         </nav>
         {flowsHere.length > 0 && (
@@ -365,21 +381,21 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
             else setPlaying({ flow: id, step: 0 })
             e.target.blur() // so ← and → step through the flow instead of changing this list
           }}>
-            <option value="" disabled>{editing ? '✎ Edit a flow' : '▶ Play a flow'}</option>
+            <option value="" disabled>{editing ? 'Edit a flow' : 'Play a flow'}</option>
             {flowsHere.map(([id, f]) => <option key={id} value={id}>{f.name || id}</option>)}
           </select>
         )}
-        {editing && <button onClick={() => setSide({ kind: 'flow', id: '', name: '' })}>New flow</button>}
-        {editing && <button onClick={() => setSide({ kind: 'add' })}>Add</button>}
-        {editing && <button title="Undo the last change (Ctrl+Z)" onClick={() => void takeBack()}>Undo</button>}
-        {editing && <button title="Redo what you undid (Ctrl+Y or Ctrl+Shift+Z)" onClick={() => void bringBack()}>Redo</button>}
+        {editing && <button onClick={() => setSide({ kind: 'flow', id: '', name: '' })}><Route size={16} />New flow</button>}
+        {editing && <button onClick={() => setSide({ kind: 'add' })}><Plus size={16} />Add</button>}
+        {editing && <button className="icon" aria-label="Undo" title="Undo the last change (Ctrl+Z)" onClick={() => void takeBack()}><Undo size={16} /></button>}
+        {editing && <button className="icon" aria-label="Redo" title="Redo what you undid (Ctrl+Y or Ctrl+Shift+Z)" onClick={() => void bringBack()}><Redo size={16} /></button>}
         {editing && (
           <button title="Forget where boxes here were dragged, and lay this view out again" onClick={() => void run(m => forgetLayout(m, view)).then(saved => {
             if (!saved) return
             setMoved(new Map())
             setTidied(n => n + 1)
           })}>
-            Tidy
+            <Grid size={16} />Tidy
           </button>
         )}
         <span className="grow" />
@@ -393,11 +409,11 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
           {LINE_STYLES.map(s => <option key={s} value={s}>Lines: {LINE_NAMES[s]}</option>)}
         </select>
         {/* mousedown would blur the open field, closing it, and the click would open it again */}
-        <button title="Find a box (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => setSearching(!searching)}>Search</button>
-        <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={() => void copyMermaid()}>Mermaid</button>
-        <button title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" aria-pressed={shortcuts} onClick={() => setShortcuts(!shortcuts)}>?</button>
+        <button title="Find a box (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => setSearching(!searching)}><SearchIcon size={16} />Search</button>
+        <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={() => void copyMermaid()}><Copy size={16} />Mermaid</button>
+        <button className="icon" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" aria-pressed={shortcuts} onClick={() => setShortcuts(!shortcuts)}><Help size={16} /></button>
         <Problems problems={problems} onPick={jump} />
-        {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}>Edit</button>}
+        {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}><Pencil size={16} />Edit</button>}
       </header>
       <main ref={canvas} className={['canvas', editing && 'editing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
         style={motion && ({ '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` } as CSSProperties)}>
@@ -421,6 +437,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
               .then(saved => saved && setSide({ kind: 'line', from: c.source, to: c.target }))}
             onNodeClick={(_, node) => {
               if (node.type !== 'box') return // the frame takes no pointer events, this is a guard
+              justMoved.current = false
               clearTimeout(opening.current)
               if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
               const open = () => setSide({ kind: 'object', id: node.id })
@@ -435,10 +452,14 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
             onInit={instance => {
               fitNow.current = options => void instance.fitView(options)
             }}
-            onEdgeClick={(_, e) => !recording && e.id !== 'step' && setSide({ kind: 'line', from: e.source, to: e.target })}
+            onEdgeClick={(_, e) => {
+              justMoved.current = false
+              if (!recording && e.id !== 'step') setSide({ kind: 'line', from: e.source, to: e.target })
+            }}
             onEdgeMouseEnter={(_, e) => setHovered(e.id)}
             onEdgeMouseLeave={() => setHovered(undefined)}
             onPaneClick={() => {
+              justMoved.current = false
               clearTimeout(opening.current)
               setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
             }}
@@ -466,7 +487,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         {notice && (
           <div className="notice" role="status">
             <span>{notice}</span>
-            <button aria-label="Dismiss" onClick={() => setNotice(undefined)}>×</button>
+            <button aria-label="Dismiss" onClick={() => setNotice(undefined)}><Close size={16} /></button>
           </div>
         )}
         {side?.kind === 'object' && (
@@ -484,7 +505,11 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         )}
         {flow && step && (
           <section className="player" aria-live="polite">
-            <p className="muted">{flow.name} · Step {stepIndex + 1} of {flow.steps.length}</p>
+            <div className="chips">
+              <Chip icon={Play}>{flow.name}</Chip>
+              <Chip kind="accent">Step {stepIndex + 1} of {flow.steps.length}</Chip>
+            </div>
+            <div className="progress" aria-hidden="true">{flow.steps.map((_, i) => <span key={i} className={i <= stepIndex ? 'done' : undefined} />)}</div>
             <p className="player-ends">{stepEnds(model, step, shown?.ends[stepIndex])}</p>
             <p>{step.text}</p>
             {step.description && (
@@ -494,9 +519,9 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
               </details>
             )}
             <div className="player-buttons">
-              <button disabled={stepIndex === 0} onClick={() => stepTo(stepIndex - 1)}>← Back</button>
-              <button disabled={stepIndex === flow.steps.length - 1} onClick={() => stepTo(stepIndex + 1)}>Next →</button>
-              <button onClick={() => setPlaying(undefined)}>Stop</button>
+              <button disabled={stepIndex === 0} onClick={() => stepTo(stepIndex - 1)}><ArrowLeft size={16} />Back</button>
+              <button className="primary" disabled={stepIndex === flow.steps.length - 1} onClick={() => stepTo(stepIndex + 1)}><ArrowRight size={16} />Next</button>
+              <button onClick={() => setPlaying(undefined)}><Close size={16} />Stop</button>
             </div>
           </section>
         )}

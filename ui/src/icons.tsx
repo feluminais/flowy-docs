@@ -3,13 +3,17 @@
 import type { JSX, ReactNode } from 'react'
 import type { ObjectType } from '../../src/core/model.ts'
 
-const icon = (paths: ReactNode) => function Icon(): JSX.Element {
+/** An icon at `size` pixels (18 unless it says), in the colour of the text around it. */
+export type IconProps = { size?: number }
+
+const icon = (paths: ReactNode) => function Icon({ size = 18 }: IconProps = {}): JSX.Element {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {paths}
     </svg>
   )
 }
+const one = (d: string) => icon(<path d={d} />)
 
 export const User = icon(<><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></>)
 export const Cube = icon(<><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5" /><path d="M12 12l8 -4.5" /><path d="M12 12l0 9" /><path d="M12 12l-8 -4.5" /></>)
@@ -19,4 +23,35 @@ export const Puzzle = icon(<path d="M4 7h3a1 1 0 0 0 1 -1v-1a2 2 0 0 1 4 0v1a1 1
 export const Cloud = icon(<path d="M6.657 18c-2.572 0 -4.657 -2.007 -4.657 -4.483c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 1.927 -1.551 3.487 -3.465 3.487h-11.878" />)
 export const ZoomIn = icon(<><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M7 10l6 0" /><path d="M10 7l0 6" /><path d="M21 21l-6 -6" /></>)
 
-export const TYPE_ICONS: Record<ObjectType, () => JSX.Element> = { actor: User, system: Cube, app: AppWindow, store: Database, component: Puzzle }
+// The controls and the panel's headings. The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs).
+export const Home = one('M5 12l-2 0l9 -9l9 9l-2 0M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6')
+export const ChevronRight = one('M9 6l6 6l-6 6')
+export const ArrowRight = one('M5 12l14 0M15 16l4 -4M15 8l4 4')
+export const ArrowLeft = one('M5 12l14 0M5 12l4 4M5 12l4 -4')
+export const ArrowUp = one('M12 5l0 14M18 11l-6 -6M6 11l6 -6')
+export const ArrowDown = one('M12 5l0 14M18 13l-6 6M6 13l6 6')
+export const File = one('M14 3v4a1 1 0 0 0 1 1h4M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z')
+export const Folder = one('M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2')
+export const Code = one('M7 8l-4 4l4 4M17 8l4 4l-4 4M14 4l-4 16')
+export const Text = one('M4 6l16 0M4 12l10 0M4 18l14 0')
+export const Pencil = one('M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4M13.5 6.5l4 4')
+export const Plus = one('M12 5l0 14M5 12l14 0')
+export const Minus = one('M5 12l14 0')
+export const Undo = one('M9 14l-4 -4l4 -4M5 10h11a4 4 0 1 1 0 8h-1')
+export const Redo = one('M15 14l4 -4l-4 -4M19 10h-11a4 4 0 1 0 0 8h1')
+export const Search = one('M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M21 21l-6 -6')
+export const Route = one('M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M18 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M12 19h4.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h3.5')
+export const Grid = one('M4 4h6v6h-6zM14 4h6v6h-6zM4 14h6v6h-6zM14 14h6v6h-6z')
+export const Alert = one('M12 9v4M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0zM12 16h.01')
+export const Trash = one('M4 7l16 0M10 11l0 6M14 11l0 6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3')
+export const Play = one('M7 4v16l13 -8z')
+export const Help = one('M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M12 17l0 .01M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4')
+export const Close = one('M18 6l-12 12M6 6l12 12')
+export const Check = one('M5 12l5 5l10 -10')
+export const Copy = one('M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667zM4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1')
+export const Link = one('M9 15l6 -6M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463')
+
+export const TYPE_ICONS: Record<ObjectType, (props?: IconProps) => JSX.Element> = { actor: User, system: Cube, app: AppWindow, store: Database, component: Puzzle }
+
+/** The icon of an object type. A type the checker doesn't know gets the system's. */
+export const iconOf = (type: string, external = false) => (external ? Cloud : Object.hasOwn(TYPE_ICONS, type) ? TYPE_ICONS[type as ObjectType] : TYPE_ICONS.system)
