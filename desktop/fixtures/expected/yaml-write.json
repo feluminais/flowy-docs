@@ -2201,6 +2201,15 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\perf\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
       "folder": "docs/demo/flowy",
       "rel": "model.yaml",
       "data": {

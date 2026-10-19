@@ -1,0 +1,212 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web",
+      "in": "shop"
+    },
+    {
+      "id": "orders",
+      "type": "component",
+      "name": "Orders",
+      "in": "web"
+    },
+    {
+      "id": "auth",
+      "type": "component",
+      "name": "Auth",
+      "in": "web"
+    },
+    {
+      "id": "db",
+      "type": "store",
+      "name": "Orders DB",
+      "in": "shop"
+    },
+    {
+      "id": "queue",
+      "type": "store",
+      "name": "Order queue",
+      "in": "shop",
+      "shape": "queue"
+    },
+    {
+      "id": "worker",
+      "type": "app",
+      "name": "Worker",
+      "in": "shop"
+    },
+    {
+      "id": "gateway",
+      "type": "system",
+      "name": "Payment gateway",
+      "external": "true"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "orders",
+      "to": "db",
+      "label": "saves"
+    },
+    {
+      "from": "auth",
+      "to": "db",
+      "label": "looks up"
+    },
+    {
+      "from": "orders",
+      "to": "queue",
+      "label": "queues"
+    },
+    {
+      "from": "queue",
+      "to": "worker",
+      "label": "hands over"
+    },
+    {
+      "from": "worker",
+      "to": "gateway",
+      "label": "captures"
+    },
+    {
+      "from": "orders",
+      "to": "gateway",
+      "label": "authorizes"
+    }
+  ],
+  "layout": {},
+  "flows": [],
+  "problems": [],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "shop",
+        "gateway"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "shop",
+          "to": "gateway",
+          "label": "2 connections",
+          "count": 2
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "db",
+        "queue",
+        "worker"
+      ],
+      "outsiders": [
+        "customer",
+        "gateway"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "db",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "web",
+          "to": "queue",
+          "label": "queues",
+          "count": 1
+        },
+        {
+          "from": "queue",
+          "to": "worker",
+          "label": "hands over",
+          "count": 1
+        },
+        {
+          "from": "worker",
+          "to": "gateway",
+          "label": "captures",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "gateway",
+          "label": "authorizes",
+          "count": 1
+        }
+      ]
+    },
+    "web": {
+      "id": "web",
+      "members": [
+        "orders",
+        "auth"
+      ],
+      "outsiders": [
+        "db",
+        "queue",
+        "gateway"
+      ],
+      "edges": [
+        {
+          "from": "orders",
+          "to": "db",
+          "label": "saves",
+          "count": 1
+        },
+        {
+          "from": "auth",
+          "to": "db",
+          "label": "looks up",
+          "count": 1
+        },
+        {
+          "from": "orders",
+          "to": "queue",
+          "label": "queues",
+          "count": 1
+        },
+        {
+          "from": "orders",
+          "to": "gateway",
+          "label": "authorizes",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

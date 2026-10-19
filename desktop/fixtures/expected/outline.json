@@ -15017,6 +15017,1073 @@
           ]
         }
       ]
+    },
+    "perf": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 9,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 9,
+            "flows": 0,
+            "problems": 0
+          }
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 9,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 6,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:gateway",
+              "kind": "shape",
+              "id": "gateway",
+              "parent": "root",
+              "depth": 1,
+              "name": "Payment gateway",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 9,
+            "flows": 0,
+            "problems": 0
+          }
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "shop"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 9,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 6,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:queue",
+              "kind": "shape",
+              "id": "queue",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Order queue",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:worker",
+              "kind": "shape",
+              "id": "worker",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Worker",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:gateway",
+              "kind": "shape",
+              "id": "gateway",
+              "parent": "root",
+              "depth": 1,
+              "name": "Payment gateway",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 9,
+            "flows": 0,
+            "problems": 0
+          }
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "web",
+            "orders",
+            "auth",
+            "db",
+            "queue",
+            "worker",
+            "gateway"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 9,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 6,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "web",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:orders",
+              "kind": "shape",
+              "id": "orders",
+              "parent": "web",
+              "depth": 3,
+              "name": "Orders",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:queue",
+              "kind": "shape",
+              "id": "queue",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Order queue",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:worker",
+              "kind": "shape",
+              "id": "worker",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Worker",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:gateway",
+              "kind": "shape",
+              "id": "gateway",
+              "parent": "root",
+              "depth": 1,
+              "name": "Payment gateway",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 9,
+            "flows": 0,
+            "problems": 0
+          }
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "web",
+            "orders",
+            "auth",
+            "db",
+            "queue",
+            "worker",
+            "gateway"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 9,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 6,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "web",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:orders",
+              "kind": "shape",
+              "id": "orders",
+              "parent": "web",
+              "depth": 3,
+              "name": "Orders",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:queue",
+              "kind": "shape",
+              "id": "queue",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Order queue",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:worker",
+              "kind": "shape",
+              "id": "worker",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Worker",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:gateway",
+              "kind": "shape",
+              "id": "gateway",
+              "parent": "root",
+              "depth": 1,
+              "name": "Payment gateway",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 9,
+            "flows": 0,
+            "problems": 0
+          }
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 9,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 6,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "web",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:gateway",
+              "kind": "shape",
+              "id": "gateway",
+              "parent": "root",
+              "depth": 1,
+              "name": "Payment gateway",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 9,
+            "flows": 0,
+            "problems": 0
+          }
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 9,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 6,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 9,
+            "flows": 0,
+            "problems": 0
+          }
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 9,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 6,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:gateway",
+              "kind": "shape",
+              "id": "gateway",
+              "parent": "root",
+              "depth": 1,
+              "name": "Payment gateway",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 9,
+            "flows": 0,
+            "problems": 0
+          }
+        }
+      ],
+      "groups": [
+        {
+          "view": "root",
+          "editing": false,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        },
+        {
+          "view": "root",
+          "editing": true,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        },
+        {
+          "view": "shop",
+          "editing": false,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        },
+        {
+          "view": "shop",
+          "editing": true,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        },
+        {
+          "view": "web",
+          "editing": false,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        },
+        {
+          "view": "web",
+          "editing": true,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": true,
+          "opened": [
+            "customer",
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": true,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": true,
+          "opened": [
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "orders",
+          "self": false,
+          "opened": [
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "orders",
+          "self": true,
+          "opened": [
+            "orders",
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "auth",
+          "self": false,
+          "opened": [
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "auth",
+          "self": true,
+          "opened": [
+            "auth",
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "db",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": true,
+          "opened": [
+            "db",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "queue",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "queue",
+          "self": true,
+          "opened": [
+            "queue",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "worker",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "worker",
+          "self": true,
+          "opened": [
+            "root",
+            "shop",
+            "worker"
+          ]
+        },
+        {
+          "id": "gateway",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "gateway",
+          "self": true,
+          "opened": [
+            "gateway",
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
     }
   },
   "keys": {

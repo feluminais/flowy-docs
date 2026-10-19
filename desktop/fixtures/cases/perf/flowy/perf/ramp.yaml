@@ -1,0 +1,69 @@
+name: Ramp
+about: A made-up ramp for the fixtures. The worker fills first, then the gateway turns calls away.
+unit: req/s
+entry: customer
+levels:
+  - load: 10
+    overall: { rate: 10, p50: 20, p95: 80, errors: 0 }
+    objects:
+      web: { util: 0.1, queue: 0, errors: 0 }
+      orders: { util: 0.05 }
+      db: { util: 0.2 }
+      queue: { queue: 0 }
+      worker: { util: 0.1, errors: 0 }
+    connections:
+      - { from: customer, to: web, rate: 10, p50: 5, p95: 12, errors: 0 }
+      - { from: orders, to: db, rate: 8, p50: 1, p95: 3, errors: 0 }
+      - { from: auth, to: db, rate: 6, p50: 1, p95: 2, errors: 0 }
+      - { from: orders, to: queue, rate: 2, p50: 0.2, p95: 0.4, errors: 0 }
+      - { from: queue, to: worker, rate: 2, p50: 0, p95: 0, errors: 0 }
+      - { from: worker, to: gateway, rate: 2, p50: 90, p95: 120, errors: 0 }
+      - { from: orders, to: gateway, rate: 2, p50: 90, p95: 120, errors: 0 }
+  - load: 25
+    overall: { rate: 25, p50: 22, p95: 90, errors: 0 }
+    objects:
+      web: { util: 0.25, queue: 0, errors: 0 }
+      orders: { util: 0.1 }
+      db: { util: 0.3 }
+      queue: { queue: 0 }
+      worker: { util: 0.3, errors: 0 }
+    connections:
+      - { from: customer, to: web, rate: 25, p50: 5, p95: 14, errors: 0 }
+      - { from: orders, to: db, rate: 20, p50: 1.5, p95: 4, errors: 0 }
+      - { from: auth, to: db, rate: 15, p50: 1, p95: 3, errors: 0 }
+      - { from: orders, to: queue, rate: 5, p50: 0.2, p95: 0.5, errors: 0 }
+      - { from: queue, to: worker, rate: 5, p50: 0.1, p95: 0.2, errors: 0 }
+      - { from: worker, to: gateway, rate: 5, p50: 92, p95: 125, errors: 0 }
+      - { from: orders, to: gateway, rate: 5, p50: 92, p95: 125, errors: 0 }
+  - load: 50
+    overall: { rate: 50, p50: 30, p95: 160, errors: 0.002 }
+    objects:
+      web: { util: 0.5, queue: 1, errors: 0 }
+      orders: { util: 0.3 }
+      db: { util: 0.55 }
+      queue: { queue: 4 }
+      worker: { util: 0.7, errors: 0 }
+    connections:
+      - { from: customer, to: web, rate: 50, p50: 8, p95: 30, errors: 0 }
+      - { from: orders, to: db, rate: 40, p50: 2, p95: 6, errors: 0 }
+      - { from: auth, to: db, rate: 30, p50: 1, p95: 4, errors: 0 }
+      - { from: orders, to: queue, rate: 10, p50: 0.3, p95: 0.7, errors: 0 }
+      - { from: queue, to: worker, rate: 9, p50: 300, p95: 700, errors: 0 }
+      - { from: worker, to: gateway, rate: 9, p50: 95, p95: 140, errors: 0.004 }
+      - { from: orders, to: gateway, rate: 10, p50: 95, p95: 140, errors: 0.004 }
+  - load: 100
+    overall: { rate: 98, p50: 60, p95: 400, errors: 0.01 }
+    objects:
+      web: { util: 0.8, queue: 3, errors: 0.01 }
+      orders: { util: 0.6 }
+      db: { util: 0.7 }
+      queue: { queue: 40 }
+      worker: { util: 0.97, errors: 0.01 }
+    connections:
+      - { from: customer, to: web, rate: 98, p50: 25, p95: 120, errors: 0.01 }
+      - { from: orders, to: db, rate: 80, p50: 4, p95: 12, errors: 0 }
+      - { from: auth, to: db, rate: 60, p50: 2, p95: 8, errors: 0 }
+      - { from: orders, to: queue, rate: 20, p50: 0.4, p95: 1, errors: 0 }
+      - { from: queue, to: worker, rate: 5, p50: 4000, p95: 9000, errors: 0 }
+      - { from: worker, to: gateway, rate: 5, p50: 100, p95: 180, errors: 0.03 }
+      - { from: orders, to: gateway, rate: 20, p50: 100, p95: 180, errors: 0.02 }
