@@ -20,7 +20,7 @@ internal sealed class SidePanel : Border
 
     public const double Width380 = 380;
 
-    private readonly StackPanel _holder = new() { Margin = new Thickness(20, 16, 20, 20) };
+    private readonly StackPanel _holder = new() { Margin = new Thickness(22, 22, 22, 28) };
     private readonly ScrollViewer _scroll = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
     private string? _shown; // what the holder has in it, by name, so a redraw of the same thing keeps its scroll
     private ObjectEditor? _objectEditor;
@@ -47,7 +47,7 @@ internal sealed class SidePanel : Border
         IsVisible = false;
         Focusable = false;
         _scroll.Content = _holder;
-        var close = new Button { Content = Icons.Make(Icons.Close, "closeicon", 16), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 12, 12, 0) };
+        var close = new Button { Content = Icons.Make(Icons.Close, "closeicon", 16), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 14, 14, 0) };
         close.Classes.Add("close");
         close.Click += (_, _) => Closed?.Invoke();
         Avalonia.Automation.AutomationProperties.SetName(close, "Close");
@@ -89,7 +89,7 @@ internal sealed class SidePanel : Border
     internal Control IconHeading(string icon, string text)
     {
         var badge = new Border { Child = Icons.Make(icon, "dirnicon", 14), VerticalAlignment = VerticalAlignment.Center };
-        badge.Classes.Add("dirn");
+        badge.Classes.Add("badge");
         badge.Child!.HorizontalAlignment = HorizontalAlignment.Center;
         badge.Child.VerticalAlignment = VerticalAlignment.Center;
         var title = Heading(text);
@@ -105,11 +105,8 @@ internal sealed class SidePanel : Border
 
     private static string KindOf(string? type) => Kinds.Contains(type ?? "") ? type! : "system";
 
-    private static Control Spaced(Control chip)
-    {
-        chip.Margin = new Thickness(0, 0, 6, 6);
-        return chip;
-    }
+    /// <summary>The colour of an object type (or of an outside service), for the rule under a title.</summary>
+    private IBrush KindBrush(string kind) => Resource($"{char.ToUpperInvariant(kind[0])}{kind[1..]}Brush");
 
     /// <summary>What is wrong with a box or a line, in the warning colours with an alert icon; nothing at all when all is well.</summary>
     internal Control Problems(IEnumerable<string> messages)
@@ -123,7 +120,9 @@ internal sealed class SidePanel : Border
         icon.Margin = new Thickness(0, 1, 0, 0);
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { icon, items } };
         Grid.SetColumn(items, 1);
-        return new Border { Background = Resource("WarnBgBrush"), CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 10), Child = grid };
+        var callout = new Border { Child = grid };
+        callout.Classes.Add("callout");
+        return callout;
     }
 
     internal Button Link(string text, Action click, bool mono = false)
@@ -136,25 +135,21 @@ internal sealed class SidePanel : Border
 
     internal static string Describe(Model model, Connection c) => $"{Views.NameOf(model, c.From ?? "")} → {Views.NameOf(model, c.To ?? "")}";
 
-    /// <summary>The top of a box's panel: its tile, its name, and chips for its type, its tech, whether it is outside, and what is wrong with it. Tinted in the type's colour.</summary>
+    /// <summary>The title of a box's panel: its tile and name, its type, tech, whether it is outside and what is wrong with it as small words under the name, and a rule in the type's colour.</summary>
     internal Control Header(Model model, string id, FlowyObject o, int problems)
     {
         var external = Model.IsExternal(o);
-        var chips = new WrapPanel { Orientation = Orientation.Horizontal };
-        chips.Children.Add(Spaced(Chrome.Chip(string.IsNullOrEmpty(o.Type) ? "box" : o.Type, Icons.ForType(o.Type), KindOf(o.Type))));
-        if (!string.IsNullOrEmpty(o.Tech)) chips.Children.Add(Spaced(Chrome.Chip(o.Tech, Icons.Code)));
-        if (external) chips.Children.Add(Spaced(Chrome.Chip("external", Icons.Cloud, "external")));
-        if (problems > 0) chips.Children.Add(Spaced(Chrome.Chip(problems == 1 ? "1 problem" : $"{problems} problems", Icons.Alert, "warn")));
-        var name = new TextBlock { Text = string.IsNullOrEmpty(o.Name) ? id : o.Name, FontSize = 20, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 26, 0) };
-        var text = new StackPanel { Spacing = 8, VerticalAlignment = VerticalAlignment.Center, Children = { name, chips } };
+        var chips = new List<Control> { Chrome.Chip(string.IsNullOrEmpty(o.Type) ? "box" : o.Type, Icons.ForType(o.Type), KindOf(o.Type)) };
+        if (!string.IsNullOrEmpty(o.Tech)) chips.Add(Chrome.Chip(o.Tech, Icons.Code));
+        if (external) chips.Add(Chrome.Chip("external", Icons.Cloud, "external"));
+        if (problems > 0) chips.Add(Chrome.Chip(problems == 1 ? "1 problem" : $"{problems} problems", Icons.Alert, "warn"));
+        var name = new TextBlock { Text = string.IsNullOrEmpty(o.Name) ? id : o.Name, FontSize = 22, FontWeight = FontWeight.SemiBold, LetterSpacing = -0.2, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 26, 0) };
+        var text = new StackPanel { Spacing = 6, VerticalAlignment = VerticalAlignment.Center, Children = { name, Chrome.Chips(chips.ToArray()) } };
         var tile = Chrome.TypeTile(o.Type, external, 48);
-        tile.VerticalAlignment = VerticalAlignment.Top;
+        tile.VerticalAlignment = VerticalAlignment.Center;
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 14, Children = { tile, text } };
         Grid.SetColumn(text, 1);
-        var hero = new Border { Child = grid };
-        hero.Classes.Add("hero");
-        hero.Classes.Add(external ? "external" : KindOf(o.Type));
-        return hero;
+        return new StackPanel { Spacing = 18, Children = { grid, Chrome.Rule(KindBrush(external ? "external" : KindOf(o.Type))) } };
     }
 
     /// <summary>A box: its header, any problems, its description, the files it lives in, and every line out and in.</summary>
@@ -166,11 +161,11 @@ internal sealed class SidePanel : Border
             return;
         }
         var mine = Navigation.ProblemsOf(model, problems, id);
-        var column = new StackPanel { Spacing = 12 };
+        var column = new StackPanel { Spacing = 14 };
         column.Children.Add(Header(model, id, o, mine.Count));
         if (mine.Count > 0) column.Children.Add(Problems(mine.Select(p => p.Message)));
         column.Children.Add(Chrome.Section(Icons.Text, "Description"));
-        column.Children.Add(Chrome.Card(string.IsNullOrEmpty(o.Description) ? Muted("No description yet.") : new MarkdownView(o.Description)));
+        column.Children.Add(string.IsNullOrEmpty(o.Description) ? Muted("No description yet.") : new MarkdownView(o.Description, 14.5));
 
         var boxLinks = Links.Of(o);
         if (boxLinks.Count > 0)
@@ -196,7 +191,7 @@ internal sealed class SidePanel : Border
     /// </summary>
     private Control LinkList(IReadOnlyList<BoxLink> links, LinkContext context)
     {
-        var list = new StackPanel { Spacing = 6 };
+        var list = new StackPanel { Spacing = 0 };
         foreach (var link in links)
         {
             var web = Checks.IsWebAddress(link.Url);
@@ -225,7 +220,7 @@ internal sealed class SidePanel : Border
                 Grid.SetColumn(show, 2);
                 grid.Children.Add(show);
             }
-            var row = new Border { Child = grid, Padding = new Thickness(10, 7) };
+            var row = new Border { Child = grid };
             row.Classes.Add("row");
             list.Children.Add(row);
         }
@@ -235,7 +230,7 @@ internal sealed class SidePanel : Border
     /// <summary>The files and folders a box lives in: a chip each with a file or folder icon, a link when the repo's origin is on a host that has them.</summary>
     private Control CodeList(List<string> paths, string? codeBase)
     {
-        var list = new StackPanel { Spacing = 6 };
+        var list = new StackPanel { Spacing = 0 };
         foreach (var path in paths)
         {
             // A path the checks flag (../..) is shown, not linked: the address would be built from it.
@@ -248,7 +243,7 @@ internal sealed class SidePanel : Border
             var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { icon, label } };
             Grid.SetColumn(label, 1);
             label.VerticalAlignment = VerticalAlignment.Center;
-            var row = new Border { Child = grid, Padding = new Thickness(10, 7) };
+            var row = new Border { Child = grid };
             row.Classes.Add("row");
             list.Children.Add(row);
         }
@@ -258,7 +253,7 @@ internal sealed class SidePanel : Border
     /// <summary>Every line out and in of a box, as cards: the other box's name opens its panel, and pointing at a card lights its line.</summary>
     internal Control LinesOf(Model model, string id, Action<string> pick, Action<string?> hover)
     {
-        var column = new StackPanel { Spacing = 12 };
+        var column = new StackPanel { Spacing = 14 };
         var (outgoing, incoming) = Navigation.LinesOf(model, id);
         if (outgoing.Count > 0) column.Children.Add(Lines(model, "Out", Icons.ArrowRight, outgoing, pick, hover));
         if (incoming.Count > 0) column.Children.Add(Lines(model, "In", Icons.ArrowLeft, incoming, pick, hover));
@@ -267,7 +262,7 @@ internal sealed class SidePanel : Border
 
     private Control Lines(Model model, string title, string arrow, List<BoxLine> lines, Action<string> pick, Action<string?> hover)
     {
-        var section = new StackPanel { Spacing = 8 };
+        var section = new StackPanel { Spacing = 2 };
         section.Children.Add(Chrome.Section(arrow, title, lines.Count));
         foreach (var line in lines) section.Children.Add(Row(model, line, arrow, pick, hover));
         return section;
@@ -299,6 +294,7 @@ internal sealed class SidePanel : Border
         Grid.SetColumn(body, 1);
         var row = new Border { Child = grid };
         row.Classes.Add("row");
+        row.Classes.Add("lines");
         row.PointerEntered += (_, _) => hover(lineId);
         row.PointerExited += (_, _) => hover(null);
         return row;
@@ -344,9 +340,7 @@ internal sealed class SidePanel : Border
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], Children = { left, arrow, right } };
         Grid.SetColumn(arrow, 1);
         Grid.SetColumn(right, 2);
-        var hero = new Border { Child = grid };
-        hero.Classes.Add("hero");
-        return hero;
+        return new StackPanel { Spacing = 18, Children = { grid, Chrome.Rule(Resource("AccentBrush")) } };
     }
 
     /// <summary>A line in the view: its two ends, and the connections it stands for, each with its label and problems.</summary>
@@ -358,7 +352,7 @@ internal sealed class SidePanel : Border
             Clear();
             return;
         }
-        var column = new StackPanel { Spacing = 12 };
+        var column = new StackPanel { Spacing = 14 };
         column.Children.Add(LineHeader(model, from, to));
         column.Children.Add(Chrome.Section(Icons.Route, lines.Count == 1 ? "Connection" : "Connections", lines.Count));
         foreach (var (index, c) in lines)

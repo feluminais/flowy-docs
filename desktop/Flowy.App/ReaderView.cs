@@ -212,14 +212,16 @@ internal sealed partial class ReaderView : Grid
         ToolTip.SetTip(_searchButton, "Search boxes and flows (Ctrl+K)");
         _searchButton.Click += (_, _) => ToggleSearch();
         _helpButton.Classes.Add("tool");
-        Chrome.Fill(_helpButton, Icons.Help, null, "Keyboard shortcuts");
+        Chrome.Fill(_helpButton, Icons.Keyboard, null, "Keyboard shortcuts");
         ToolTip.SetTip(_helpButton, "Keyboard shortcuts (?)");
         _helpButton.Click += (_, _) => ToggleShortcuts();
         _problemsButton.Classes.Add("problems");
         _problemsButton.IsVisible = false;
 
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, VerticalAlignment = VerticalAlignment.Center, Children = { _crumbs, _flowPicker, _editTools } };
-        var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, HorizontalAlignment = HorizontalAlignment.Right, Children = { _linePicker, _searchButton, _helpButton, _problemsButton, _editButton } };
+        _flowPicker.Classes.Add("flat");
+        _linePicker.Classes.Add("flat");
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _crumbs, _flowPicker, _editTools } };
+        var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, HorizontalAlignment = HorizontalAlignment.Right, Children = { _linePicker, _searchButton, _helpButton, _problemsButton, _editButton } };
         var dock = new DockPanel { LastChildFill = false };
         DockPanel.SetDock(right, Dock.Right);
         dock.Children.Add(right);
@@ -238,19 +240,23 @@ internal sealed partial class ReaderView : Grid
             ToolTip.SetTip(b, name);
             return b;
         }
-        return new StackPanel
+        var group = new Border
         {
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Bottom,
             Margin = new Thickness(16),
-            Spacing = 2,
-            Children =
+            Child = new StackPanel
             {
-                Make(Icons.Plus, "Zoom in", () => _canvas.ZoomBy(1.25)),
-                Make(Icons.Minus, "Zoom out", () => _canvas.ZoomBy(0.8)),
-                Make(Icons.Fit, "Fit the view", FitNow),
+                Children =
+                {
+                    Make(Icons.Plus, "Zoom in", () => _canvas.ZoomBy(1.25)),
+                    Make(Icons.Minus, "Zoom out", () => _canvas.ZoomBy(0.8)),
+                    Make(Icons.Fit, "Fit the view", FitNow),
+                },
             },
         };
+        group.Classes.Add("zoomgroup");
+        return group;
     }
 
     // ---- what is loaded ----------------------------------------------------------------------------------------
@@ -442,13 +448,13 @@ internal sealed partial class ReaderView : Grid
             if (!first)
             {
                 var chevron = Icons.Make(Icons.ChevronRight, "crumbsep", 14);
-                chevron.Margin = new Thickness(2, 0);
+                chevron.Margin = new Thickness(2, 2, 2, 0);
                 chevron.VerticalAlignment = VerticalAlignment.Center;
                 _crumbs.Children.Add(chevron);
             }
             // The overview, where it all starts, is a house; the boxes zoomed into after it are only their names.
             var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7 };
-            if (first) label.Children.Add(Icons.Make(Icons.Home, "crumbicon", 16));
+            if (first) label.Children.Add(Pushed(Icons.Make(Icons.Home, "crumbicon", 16)));
             label.Children.Add(new TextBlock { Text = Views.NameOf(model, id), VerticalAlignment = VerticalAlignment.Center });
             var crumb = new Button { Content = label, IsEnabled = id != view };
             Avalonia.Automation.AutomationProperties.SetName(crumb, Views.NameOf(model, id));
@@ -487,6 +493,13 @@ internal sealed partial class ReaderView : Grid
             list.Children.Add(row);
         }
         _problemsButton.Flyout = new Flyout { Content = new ScrollViewer { Content = list, MaxHeight = 420 }, Placement = PlacementMode.BottomEdgeAlignedRight };
+    }
+
+    /// <summary>An icon beside words, a little lower than the middle of its line, where the words' own middle is.</summary>
+    private static Control Pushed(Control icon)
+    {
+        icon.Margin = new Thickness(0, 2, 0, 0);
+        return icon;
     }
 
     private static string LineName(string style) => style == "angled" ? "right-angled" : style;

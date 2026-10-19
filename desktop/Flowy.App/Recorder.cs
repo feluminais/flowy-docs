@@ -312,7 +312,7 @@ internal sealed class Recorder : StackPanel
         _rows.Add(new Row { Text = text, Detail = detail });
         // A number before each step, so the order reads at a glance.
         var number = new Border { Child = new TextBlock { Text = (i + 1).ToString() }, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 22, 0, 0) };
-        number.Classes.Add("dirn");
+        number.Classes.Add("badge");
         var top = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { number, text } };
         Grid.SetColumn(text, 1);
         return Chrome.Card(new StackPanel { Spacing = 8, Children = { top, more, detail, buttons } });

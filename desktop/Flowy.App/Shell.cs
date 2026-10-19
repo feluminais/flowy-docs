@@ -166,6 +166,7 @@ internal static class MessageDialog
         var accept = new Button { Content = yes, IsDefault = true, HorizontalContentAlignment = HorizontalAlignment.Center, MinWidth = 80 };
         var decline = new Button { Content = no, IsCancel = true, HorizontalContentAlignment = HorizontalAlignment.Center, MinWidth = 80 };
         accept.Classes.Add("tool");
+        accept.Classes.Add("primary");
         decline.Classes.Add("tool");
         var dialog = new Window
         {
@@ -207,6 +208,7 @@ internal static class MessageDialog
         if (owner is { IsVisible: false }) owner = null;
         var ok =new Button { Content = "OK", HorizontalAlignment = HorizontalAlignment.Right, IsDefault = true, MinWidth = 80, HorizontalContentAlignment = HorizontalAlignment.Center };
         ok.Classes.Add("tool");
+        ok.Classes.Add("primary");
         var dialog = new Window
         {
             Title = title,

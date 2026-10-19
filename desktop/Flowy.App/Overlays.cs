@@ -54,12 +54,7 @@ internal sealed class PlayerCard : Border
     public void Show(string flowName, int index, int count, string ends, string text, string? description)
     {
         var column = new StackPanel { Spacing = 8 };
-        var chips = new WrapPanel { Orientation = Orientation.Horizontal };
-        var flowChip = Chrome.Chip(flowName, Icons.Play);
-        flowChip.Margin = new Thickness(0, 0, 6, 0);
-        chips.Children.Add(flowChip);
-        chips.Children.Add(Chrome.Chip($"Step {index + 1} of {count}", null, "accent"));
-        column.Children.Add(chips);
+        column.Children.Add(Chrome.Chips(Chrome.Chip(flowName, Icons.Play), Chrome.Chip($"Step {index + 1} of {count}", null, "accent")));
         column.Children.Add(Progress(index, count));
         column.Children.Add(new TextBlock { Text = ends, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
         column.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap });
@@ -100,7 +95,7 @@ internal sealed class SearchBox : Border
     private readonly Model _model;
     private readonly Action<string> _pick;
     private readonly Action _close;
-    private readonly TextBox _input = new() { PlaceholderText = "Find a box by name" };
+    private readonly TextBox _input = new() { PlaceholderText = "Find a box by name", Classes = { "bare" } };
     private readonly StackPanel _results = new() { Margin = new Thickness(0, 6, 0, 0) };
     private List<string> _found = [];
     private int _at;
