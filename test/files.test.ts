@@ -168,3 +168,44 @@ test('missing link paths count like missing code paths, and web addresses are no
   assert.ok('problems' in state)
   assert.deepEqual(state.problems.map(p => p.message), ['api: link path "docs/gone.md" doesn\'t exist'])
 })
+
+const RUN_MODEL = 'objects:\n  web: { type: actor, name: Web }\n  api: { type: actor, name: API }\nconnections:\n  - { from: web, to: api, label: calls }\n'
+const RUN_GOOD = 'name: Ramp\nunit: req/s\nlevels:\n  - { load: 10, objects: { api: { util: 0.2 } }, connections: [{ from: web, to: api, rate: 10 }] }\n  - { load: 20, objects: { api: { util: 0.4 } } }\n'
+
+test('a folder with no perf folder has no runs in its state', async t => {
+  const dir = await tempDir(t)
+  await writeFile(join(dir, 'model.yaml'), RUN_MODEL)
+  const state = await loadState(dir)
+  assert.ok('problems' in state)
+  assert.equal('runs' in state, false)
+  assert.equal('runProblems' in state, false)
+})
+
+test('runs load from perf/, and a file that cannot be used becomes a run problem and never stops the model', async t => {
+  const dir = await tempDir(t)
+  await writeFile(join(dir, 'model.yaml'), RUN_MODEL)
+  await mkdir(join(dir, 'perf'))
+  await writeFile(join(dir, 'perf/ramp.yaml'), RUN_GOOD)
+  await writeFile(join(dir, 'perf/bad.yaml'), '<<<<<<< HEAD\nname: x\n')
+  await writeFile(join(dir, 'perf/ghost.yaml'), 'name: Ghost\nlevels:\n  - { load: 1, objects: { nope: { util: 0.1 } } }\n  - { load: 2, objects: { nope: { util: 0.2 } } }\n')
+  await writeFile(join(dir, 'perf/old.yml'), RUN_GOOD)
+  await writeFile(join(dir, 'perf/Not Valid.yaml'), RUN_GOOD)
+  await writeFile(join(dir, 'perf/ramp.yaml.1234.tmp'), RUN_GOOD)
+  await writeFile(join(dir, 'perf/binary.yaml'), Buffer.from([0xff, 0xfe, 0x00]))
+  const state = await loadState(dir)
+  assert.ok('problems' in state)
+  assert.deepEqual(state.problems, []) // the model's own problems are untouched
+  assert.deepEqual(Object.keys(state.runs ?? {}), ['ghost', 'ramp'])
+  assert.equal(state.runs?.ramp.levels[1].objects.api.util, 0.4)
+  assert.deepEqual(state.runProblems?.map(p => `${p.file} ${p.message}`), [
+    'perf/Not Valid.yaml "Not Valid" is not a valid run id: the file name must use lowercase letters, digits and dashes, not starting with a dash ("root" is reserved)',
+    'perf/bad.yaml line 1: unresolved merge conflict',
+    'perf/binary.yaml is not UTF-8 text. Save it as UTF-8 and try again.',
+    'perf/ghost.yaml unknown object "nope"',
+    'perf/old.yml Flowy reads run files that end in .yaml, so this one is ignored. Rename it to old.yaml.',
+  ])
+})
+
+test('runs are read, never written: perf/ is not a path the server or MCP may save', () => {
+  assert.equal(isAllowedPath('perf/ramp.yaml'), false)
+})
