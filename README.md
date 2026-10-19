@@ -232,7 +232,8 @@ sequenceDiagram
 | Ctrl+O, F5 | Open a folder, reload it (app) |
 | E | Edit mode on and off |
 | N | Add a shape |
-| Delete | Delete the open shape or line |
+| Delete | Delete the open shapes or line |
+| Ctrl+click, Shift+drag, Ctrl+A | Select several shapes (editing): add one, draw a box round some, or take them all. Drag any of them to move them together |
 | Ctrl+Z, Ctrl+Y | Undo and redo |
 | Esc, Backspace | Right after dragging a shape (editing): take the drag back |
 | ? | List every shortcut |

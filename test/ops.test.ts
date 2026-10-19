@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  connect, deleteFlow, deleteObject, disconnect, forgetLayout, OpError, placeBoxes, putFlow, putObject, refuseNewProblems,
+  connect, deleteFlow, deleteObject, deleteObjects, disconnect, forgetLayout, OpError, placeBoxes, putFlow, putObject, refuseNewProblems,
   relabel, removeConnection, setLines, updateFlow,
 } from '../src/core/ops.ts'
 import type { ObjectInput } from '../src/core/ops.ts'
@@ -77,6 +77,32 @@ test('deleteObject removes the object and every connection touching it', () => {
   assert.equal(m.connections.length, 4)
   const n = deleteObject(shop(), 'orders')
   assert.deepEqual(n.connections.map(c => `${c.from}>${c.to}`), ['customer>web', 'web>api', 'auth>db'])
+})
+
+test('deleteObjects removes several objects and their connections in one edit', () => {
+  const m = deleteObjects(shop(), ['mail', 'orders'])
+  assert.equal(m.objects.mail, undefined)
+  assert.equal(m.objects.orders, undefined)
+  assert.deepEqual(m.connections.map(c => `${c.from}>${c.to}`), ['customer>web', 'web>api', 'auth>db'])
+  assert.deepEqual(deleteObjects(shop(), ['mail', 'mail']).objects.mail, undefined, 'an object picked twice goes once')
+  assert.deepEqual(deleteObjects(shop(), []), shop())
+})
+
+test('deleteObjects takes a box together with what is inside it, the inner ones first', () => {
+  const nested = putObject(putObject(shop(), { id: 'cache', type: 'store', name: 'Cache', in: 'shop' }), { id: 'hot', type: 'component', name: 'Hot', in: 'cache' })
+  const gone = deleteObjects(nested, ['cache', 'hot']) // the box first, the inner one second, as picked
+  assert.equal(gone.objects.cache, undefined)
+  assert.equal(gone.objects.hot, undefined)
+  assert.throws(() => deleteObject(nested, 'cache'), /still contains hot/, 'one at a time it would have been refused')
+})
+
+test('deleteObjects stops the lot when one refuses, and leaves the model as it was', () => {
+  const m = shop()
+  const copy = structuredClone(m)
+  assert.throws(() => deleteObjects(m, ['mail', 'customer']), /used by flow checkout/)
+  assert.throws(() => deleteObjects(m, ['mail', 'shop']), /still contains web, api, db/)
+  assert.throws(() => deleteObjects(m, ['mail', 'ghost']), /unknown object "ghost"/)
+  assert.deepEqual(m, copy)
 })
 
 test('connect checks both ends, and an empty label means no label', () => {

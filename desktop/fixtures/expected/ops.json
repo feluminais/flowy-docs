@@ -1620,6 +1620,100 @@
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
       }
+    },
+    {
+      "spec": {
+        "op": "deleteObjects",
+        "ids": [
+          "weird",
+          "pay"
+        ]
+      },
+      "files": {
+        "model.yaml": "owner: platform-team\nobjects:\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: web\n    to: api\n    label: REST again\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "deleteObjects",
+        "ids": [
+          "checkout",
+          "customer"
+        ]
+      },
+      "error": "\"customer\" is used by flow order. Change or delete those first."
+    },
+    {
+      "spec": {
+        "op": "deleteObjects",
+        "ids": [
+          "db",
+          "ghost"
+        ]
+      },
+      "error": "unknown object \"ghost\""
+    },
+    {
+      "spec": {
+        "op": "deleteObjects",
+        "ids": [
+          "shop",
+          "web"
+        ]
+      },
+      "error": "\"web\" is used by flow browse. Change or delete those first."
+    },
+    {
+      "spec": {
+        "op": "deleteObjects",
+        "ids": []
+      },
+      "files": {
+        "model.yaml": "owner: platform-team\nobjects:\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: web\n    to: api\n    label: REST again\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "deleteFlow",
+        "id": "browse"
+      },
+      "files": {
+        "model.yaml": "owner: platform-team\nobjects:\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: web\n    to: api\n    label: REST again\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "deleteFlow",
+        "id": "order"
+      },
+      "files": {
+        "model.yaml": "owner: platform-team\nobjects:\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: web\n    to: api\n    label: REST again\n",
+        "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "deleteObjects",
+        "ids": [
+          "shop",
+          "api",
+          "web",
+          "db",
+          "checkout"
+        ]
+      },
+      "files": {
+        "model.yaml": "owner: platform-team\nobjects:\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\nconnections: []\n",
+        "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
+      }
     }
   ],
   "ids": [
