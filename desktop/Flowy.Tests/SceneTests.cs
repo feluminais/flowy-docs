@@ -69,6 +69,50 @@ public class SceneTests
     }
 
     [Fact]
+    public void A_stop_of_several_steps_lights_every_step_and_dims_the_rest()
+    {
+        var ends = new (string, string)?[] { ("web", "api"), ("api", "db"), ("api", "mail") };
+        var scene = SceneBuilder.Build(TestModels.Shop(), "shop", new Playing(ends, Steps: [0, 1]));
+        Assert.All(new[] { "web", "api", "db" }, id => Assert.Equal(BoxMode.Lit, Box(scene, id).Mode));
+        Assert.Equal(BoxMode.Dim, Box(scene, "mail").Mode);
+        Assert.True(Edge(scene, "web api").Flags.HasFlag(EdgeFlags.Active));
+        Assert.True(Edge(scene, "api db").Flags.HasFlag(EdgeFlags.Active));
+        Assert.True(Edge(scene, "api mail").Flags.HasFlag(EdgeFlags.Dim));
+    }
+
+    [Fact]
+    public void Lit_steps_with_no_line_of_their_own_get_dashed_ones_the_click_handler_can_tell_apart()
+    {
+        var scene = SceneBuilder.Build(TestModels.Shop(), "shop", new Playing(new (string, string)?[] { ("web", "db"), ("mail", "db") }, Steps: [0, 1]));
+        Assert.Equal(["step", "step-1"], scene.Edges.Where(e => e.Id.StartsWith("step")).Select(e => e.Id));
+        Assert.All(scene.Edges.Where(e => e.Id.StartsWith("step")), e => Assert.True(e.Flags.HasFlag(EdgeFlags.Step)));
+    }
+
+    [Fact]
+    public void The_steps_of_other_lanes_are_drawn_faint_and_dashed_and_their_boxes_stay_dim()
+    {
+        var ends = new (string, string)?[] { ("web", "api"), ("api", "mail"), ("web", "db") };
+        var scene = SceneBuilder.Build(TestModels.Shop(), "shop", new Playing(ends, Steps: [0], Faint: [1, 2]));
+        Assert.True(Edge(scene, "web api").Flags.HasFlag(EdgeFlags.Active));
+        Assert.True(Edge(scene, "api mail").Flags.HasFlag(EdgeFlags.Lane));
+        var extra = Edge(scene, "lane-2");
+        Assert.Equal(("web", "db"), (extra.From, extra.To));
+        Assert.True(extra.Flags.HasFlag(EdgeFlags.Lane));
+        Assert.Equal(BoxMode.Dim, Box(scene, "mail").Mode);
+    }
+
+    [Fact]
+    public void A_step_the_view_cannot_show_is_skipped_and_one_step_is_as_it_always_was()
+    {
+        var m = TestModels.Shop();
+        Assert.Equal(BoxMode.Lit, Box(SceneBuilder.Build(m, "shop", new Playing(new (string, string)?[] { null, ("web", "api") }, Steps: [0, 1])), "web").Mode);
+        var one = SceneBuilder.Build(m, "shop", new Playing(new (string, string)?[] { ("web", "api") }, 0));
+        var same = SceneBuilder.Build(m, "shop", new Playing(new (string, string)?[] { ("web", "api") }, Steps: [0]));
+        Assert.Equal(one.Edges.Select(e => (e.Id, e.Flags)), same.Edges.Select(e => (e.Id, e.Flags)));
+        Assert.Equal(one.Boxes.Select(b => (b.Id, b.Mode)), same.Boxes.Select(b => (b.Id, b.Mode)));
+    }
+
+    [Fact]
     public void A_flow_that_is_not_at_a_step_shows_its_boxes_and_lights_nothing()
     {
         var scene = SceneBuilder.Build(TestModels.Shop(), "shop", new Playing(new (string, string)?[] { ("web", "api") }));
@@ -277,7 +321,8 @@ public class SceneParityTests
             var folder = Load(s!["folder"]!.GetValue<string>());
             var view = s["view"]!.GetValue<string>();
             Playing? playing = s["playing"] is { } p
-                ? new Playing(p["ends"]!.AsArray().Select(e => e is null ? ((string, string)?)null : (e[0]!.GetValue<string>(), e[1]!.GetValue<string>())).ToList(), p["step"]?.GetValue<int>())
+                ? new Playing(p["ends"]!.AsArray().Select(e => e is null ? ((string, string)?)null : (e[0]!.GetValue<string>(), e[1]!.GetValue<string>())).ToList(), p["step"]?.GetValue<int>(),
+                    p["steps"]?.AsArray().Select(i => i!.GetValue<int>()).ToList(), p["faint"]?.AsArray().Select(i => i!.GetValue<int>()).ToList())
                 : null;
             var f = s["focus"]!;
             var focus = new Focus(f["box"]?.GetValue<string>(), f["line"]?.GetValue<string>(), f["hover"]?.GetValue<string>());

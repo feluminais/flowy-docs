@@ -79,7 +79,7 @@ internal sealed class BackLayer : Control
     private IBrush Brush(string key) =>
         this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
 
-    private static double Fade(SceneEdge e) => e.Flags.HasFlag(EdgeFlags.Dim) ? 0.15 : e.Flags.HasFlag(EdgeFlags.Faint) ? 0.25 : 1;
+    private static double Fade(SceneEdge e) => e.Flags.HasFlag(EdgeFlags.Dim) ? 0.15 : e.Flags.HasFlag(EdgeFlags.Lane) ? 0.55 : e.Flags.HasFlag(EdgeFlags.Faint) ? 0.25 : 1;
 
     public override void Render(DrawingContext context)
     {
@@ -114,7 +114,7 @@ internal sealed class BackLayer : Control
         var emphasised = lit || e.Selected || e.Flags.HasFlag(EdgeFlags.Hover);
         var brush = e.Flags.HasFlag(EdgeFlags.Problem) && !lit ? Brush("WarnBrush") : emphasised ? accent : Brush("EdgeBrush");
         var thickness = ThicknessOf(lit, e.Selected || e.Flags.HasFlag(EdgeFlags.Hover), WidthOf(e.Id));
-        var dash = e.Flags.HasFlag(EdgeFlags.Step) ? new DashStyle([8 / thickness, 5 / thickness], 0) : null;
+        var dash = e.Flags.HasFlag(EdgeFlags.Step) ? new DashStyle([8 / thickness, 5 / thickness], 0) : e.Flags.HasFlag(EdgeFlags.Lane) ? new DashStyle([4 / thickness, 5 / thickness], 0) : null;
         using var opacity = context.PushOpacity(Fade(e));
         if (lit) // a soft glow under it
         {
