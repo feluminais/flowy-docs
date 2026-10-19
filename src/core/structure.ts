@@ -6,7 +6,7 @@
  * Nothing here draws, and nothing needs a browser. desktop/Flowy.Core/Structure.cs is a port, and
  * desktop/fixtures/structure.ts keeps the two equal.
  */
-import { isMap } from './model.ts'
+import { ID_RULE, isMap, isValidId } from './model.ts'
 import type { Flow } from './model.ts'
 
 export const GROUP_KINDS = ['repeat', 'branch', 'parallel'] as const
@@ -105,4 +105,81 @@ export function stopsOf(flow: Flow): Stop[] {
     r++
   }
   return stops
+}
+
+/** Every option a group may hold. Which of them a kind takes is checked below; `in` is kept back for nesting. */
+const GROUP_OPTIONS = ['kind', 'text', 'times', 'until'] as const
+const TIMES_MIN = 2
+const TIMES_MAX = 99
+
+/** `times` is digits only, from 2 to 99: files hold text, and put_flow turns a number into text before it is written. */
+const timesOk = (v: unknown): boolean => typeof v === 'string' && /^[0-9]+$/.test(v) && Number(v) >= TIMES_MIN && Number(v) <= TIMES_MAX
+
+/**
+ * What is wrong with a flow's groups, lanes and flow links, in this order: each declared group's own problems (in the order the
+ * file lists them), then each step's, then each declared group that no step uses (or that has too few lanes). A step's problem has
+ * its 0-based `step` and is worded to follow "step N: "; the others stand alone. `hasFlow` says whether a flow id exists.
+ */
+export function structureProblems(flow: Flow, hasFlow: (id: string) => boolean): { step?: number; message: string }[] {
+  const out: { step?: number; message: string }[] = []
+  const groups = isMap(flow.groups) ? flow.groups : {}
+  const ids = Object.keys(groups)
+  const kinds = GROUP_KINDS.join(', ')
+
+  for (const id of ids) {
+    const add = (message: string) => out.push({ message: `group "${id}": ${message}` })
+    const body = isMap(groups[id]) ? groups[id] : {}
+    const kind = body.kind
+    if (!isValidId(id)) add(`ids ${ID_RULE}`)
+    if (blank(kind)) add(`kind is missing (use ${kinds})`)
+    else if (!isGroupKind(kind)) add(`unknown kind "${String(kind)}" (use ${kinds})`)
+    const extra = Object.keys(body).find(k => !GROUP_OPTIONS.some(o => o === k))
+    if (extra !== undefined) add(`unknown option "${extra}" (use ${GROUP_OPTIONS.join(', ')})`)
+    if (!isGroupKind(kind)) continue
+    if (kind !== 'repeat') {
+      if (!blank(body.times)) add('times only applies to repeat')
+      if (!blank(body.until)) add('until only applies to repeat')
+    } else {
+      if (!blank(body.times) && !timesOk(body.times)) add(`times must be a whole number from ${TIMES_MIN} to ${TIMES_MAX}`)
+      if (blank(body.times) && blank(body.until)) add('a repeat needs times or until')
+    }
+  }
+
+  const members = new Map<string, number[]>()
+  flow.steps.forEach((_, i) => {
+    const g = stepGroup(flow, i)
+    if (g !== '') members.set(g, [...(members.get(g) ?? []), i])
+  })
+  const laneOf = (i: number): string => (blank(flow.steps[i].lane) ? '' : String(flow.steps[i].lane).trim())
+
+  flow.steps.forEach((s, i) => {
+    const at = (message: string) => out.push({ step: i, message })
+    const gid = stepGroup(flow, i)
+    const declared = gid !== '' && Object.hasOwn(groups, gid)
+    const kind = declared ? kindOf(flow, gid) : undefined
+    const lane = laneOf(i)
+    if (gid !== '' && !declared) at(`group "${gid}" is not declared under groups`)
+    if (lane !== '' && gid === '') at('lane needs a group')
+    if (declared && kind === 'repeat' && lane !== '') at('lane only applies to branch and parallel')
+    if (declared && (kind === 'branch' || kind === 'parallel')) {
+      const mine = members.get(gid) ?? []
+      if (mine[0] === i && lane === '') at(`the first step of group "${gid}" needs a lane`)
+      if (lane !== '' && mine.some(j => j < i && laneOf(j) === lane)) at(`lane "${lane}" is already used in group "${gid}"`)
+    }
+    for (const id of ids) {
+      const m = members.get(id) ?? []
+      if (m.length >= 2 && i > m[0] && i < m[m.length - 1] && gid !== id) at(`sits inside the stretch of group "${id}" without belonging to it`)
+    }
+    if (!blank(s.flow)) {
+      const to = String(s.flow).trim()
+      if (!hasFlow(to)) at(`unknown flow "${to}"`)
+    }
+  })
+
+  for (const id of ids) {
+    const m = members.get(id) ?? []
+    if (m.length === 0) out.push({ message: `group "${id}": no step belongs to it` })
+    else if (kindOf(flow, id) === 'parallel' && m.filter(j => laneOf(j) !== '').length < 2) out.push({ message: `group "${id}": a parallel group needs at least two lanes` })
+  }
+  return out
 }

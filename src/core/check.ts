@@ -2,6 +2,7 @@ import { COLOR_NAMES, iconProblem, isColor, isKnownIcon, isOpacity, isShape, SHA
 import { getObject, ID_RULE, isValidId, LINE_STYLES, OBJECT_TYPES, ROOT } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
 import { animationProblem } from './animation.ts'
+import { structureProblems } from './structure.ts'
 import { isView, placeStep } from './views.ts'
 
 /**
@@ -156,6 +157,10 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       else if (viewOk && getObject(model, s.from) && getObject(model, s.to) && !placeStep(model, f.view, s))
         sp(`${s.from} → ${s.to} can't be shown in view "${f.view}"`)
     })
+    for (const sq of structureProblems(f, id => Object.hasOwn(model.flows, id))) {
+      if (sq.step === undefined) p(sq.message)
+      else p(`step ${sq.step + 1}: ${sq.message}`, { step: sq.step })
+    }
   }
   return problems
 }
