@@ -185,7 +185,7 @@ sequenceDiagram
 
 | Shortcut | Action |
 | --- | --- |
-| Ctrl+K or / | Find a shape |
+| Ctrl+K, / | Find a shape |
 | Enter | Open the selected shape |
 | Esc | Close what's open, then go up a level |
 | Backspace, Z | Zoom out: go up a level |
