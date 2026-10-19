@@ -382,3 +382,18 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 
 .more { margin: 6px 0; }
 .more summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+
+/* A tagged step playing (see StepMotion.tsx): a pipe along the step's line, a blob running through it, and rings and flashes on the boxes. */
+.motion { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+.motion path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.motion .wall { stroke: color-mix(in srgb, var(--accent) 65%, var(--fg)); stroke-width: 15; }
+.motion .bore { stroke: var(--bg); stroke-width: 10; }
+.motion .bulge.wall { stroke-width: 23; }
+.motion .bulge.bore { stroke-width: 18; }
+.motion .blob circle, .motion .blob rect { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
+.motion .blob.reply circle, .motion .blob.reply rect { fill: var(--app); }
+.motion .blob text { fill: var(--bg); font-size: 15px; font-weight: 600; }
+.motion rect.ring { fill: none; stroke: var(--accent); stroke-width: 3; }
+.motion rect.flash { fill: var(--accent); }
+.motion .dots circle { fill: var(--accent); }
+.motion text.drop { font-size: 22px; }

@@ -170,6 +170,9 @@ objects:
       The page: boxes you zoom into, lines that stay quiet until you point at them, flows that play
       step by step, and edit mode behind E.
 
+      A step tagged with an `animation:` plays as a pipe with a blob running through it, and Autoplay
+      steps through a flow on its own.
+
       The same bundle is served by the local server and shipped in an export; on an exported page
       the model comes from the HTML and there is nothing to save to.
   mcp:
@@ -256,6 +259,16 @@ objects:
       live elsewhere wait around the edges, each on the side that crosses fewest lines.
 
       A dragged box keeps its saved place; the rest flow around it.
+  motion:
+    type: component
+    in: canvas
+    name: Step motion
+    code: [ui/src/StepMotion.tsx, ui/src/motion.ts]
+    description: |
+      Draws a tagged step over the canvas: the line as a pipe, a blob running through it, and rings,
+      flashes and squashes on the boxes. It asks core for the beats and knows nothing about kinds.
+
+      Nothing moves when the system asks for less motion; Autoplay then waits a few seconds on each step.
   sync:
     type: component
     in: canvas
@@ -359,6 +372,8 @@ connections:
   - { from: shell, to: sync, label: "saves edits, takes them back" }
   - { from: shell, to: graph, label: what to draw }
   - { from: shell, to: panel, label: what is selected }
+  - { from: shell, to: motion, label: the step playing }
+  - { from: motion, to: animation, label: asks for the beats }
   - { from: shell, to: ops, label: the edit the reader made }
   - { from: panel, to: forge, label: links code paths }
   - { from: graph, to: views, label: "boxes, outsiders and lines" }
