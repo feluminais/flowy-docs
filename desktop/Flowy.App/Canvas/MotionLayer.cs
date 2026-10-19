@@ -20,7 +20,7 @@ internal sealed class MotionLayer : Control
 
     private static readonly Dictionary<string, Geometry> Glyphs = [];
 
-    private Run? _run;
+    private IReadOnlyList<Run> _runs = [];
     private double _t;
     private Viewport _viewport = new(0, 0, 1);
 
@@ -40,15 +40,28 @@ internal sealed class MotionLayer : Control
         }
     }
 
-    /// <summary>Gets ready to draw a step: the line between its boxes in <paramref name="style"/>, and the beats for how long it is. Returns the beats and how long they last.</summary>
-    public (IReadOnlyList<Beat> Beats, int Total) Start(StepAnimation animation, bool afterLanding, string style, CoreRect from, CoreRect to, double[]? outlineFrom = null, double[]? outlineTo = null)
+    /// <summary>One step to draw: its animation, whether it follows a landing, the line style, and the two boxes (with the outline each shape has).</summary>
+    public sealed record RunSpec(StepAnimation Animation, bool AfterLanding, string Style, CoreRect From, CoreRect To, double[]? OutlineFrom = null, double[]? OutlineTo = null);
+
+    /// <summary>
+    /// Gets ready to draw several steps at once, each on the line between its boxes in its style, with the beats for how long it is.
+    /// Returns each step's beats and how long they last, in the order given.
+    /// </summary>
+    public IReadOnlyList<(IReadOnlyList<Beat> Beats, int Total)> Start(IReadOnlyList<RunSpec> specs)
     {
-        var line = Geometry.Parse(LinePaths.Build(style, from, to, outlineFrom, outlineTo).Data);
-        var (beats, total) = Animations.BeatsFor(animation, line.ContourLength, afterLanding);
-        _run = new Run(beats, line, line.ContourLength, from, to);
+        var runs = new List<Run>();
+        var started = new List<(IReadOnlyList<Beat> Beats, int Total)>();
+        foreach (var s in specs)
+        {
+            var line = Geometry.Parse(LinePaths.Build(s.Style, s.From, s.To, s.OutlineFrom, s.OutlineTo).Data);
+            var (beats, total) = Animations.BeatsFor(s.Animation, line.ContourLength, s.AfterLanding);
+            runs.Add(new Run(beats, line, line.ContourLength, s.From, s.To));
+            started.Add((beats, total));
+        }
+        _runs = runs;
         _t = 0;
         InvalidateVisual();
-        return (beats, total);
+        return started;
     }
 
     /// <summary>Draws the step as it is <paramref name="t"/> ms in.</summary>
@@ -60,7 +73,7 @@ internal sealed class MotionLayer : Control
 
     public void Clear()
     {
-        _run = null;
+        _runs = [];
         InvalidateVisual();
     }
 
@@ -79,18 +92,21 @@ internal sealed class MotionLayer : Control
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        if (_run is not { } run) return;
+        if (_runs.Count == 0) return;
         var matrix = Matrix.CreateScale(_viewport.Zoom, _viewport.Zoom) * Matrix.CreateTranslation(_viewport.X, _viewport.Y);
         using var _ = context.PushTransform(matrix);
 
-        foreach (var beat in run.Beats.Where(b => b.Do == "pipe"))
+        foreach (var run in _runs)
         {
-            using var fade = context.PushOpacity(MotionMath.TubeOpacity(beat, _t));
-            context.DrawGeometry(null, Round(Brush("AccentBrush"), 15), run.Line);
-            context.DrawGeometry(null, Round(Brush("BgBrush"), 10), run.Line);
+            foreach (var beat in run.Beats.Where(b => b.Do == "pipe"))
+            {
+                using var fade = context.PushOpacity(MotionMath.TubeOpacity(beat, _t));
+                context.DrawGeometry(null, Round(Brush("AccentBrush"), 15), run.Line);
+                context.DrawGeometry(null, Round(Brush("BgBrush"), 10), run.Line);
+            }
+            foreach (var beat in run.Beats.Where(b => b.Do == "blob" && MotionMath.Active(b, _t))) DrawBlob(context, run, beat);
+            foreach (var beat in run.Beats.Where(b => b.Do is "ring" or "flash" or "wait" or "drop" && MotionMath.Active(b, _t))) DrawEffect(context, run, beat);
         }
-        foreach (var beat in run.Beats.Where(b => b.Do == "blob" && MotionMath.Active(b, _t))) DrawBlob(context, run, beat);
-        foreach (var beat in run.Beats.Where(b => b.Do is "ring" or "flash" or "wait" or "drop" && MotionMath.Active(b, _t))) DrawEffect(context, run, beat);
     }
 
     private void DrawBlob(DrawingContext context, Run run, Beat beat)

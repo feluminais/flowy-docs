@@ -19,6 +19,7 @@ internal sealed class CanvasView : Border
 
     private readonly BackLayer _back = new();
     private readonly MotionLayer _motion = new();
+    private readonly MarksLayer _marks = new();
     private readonly TrafficLayer _traffic = new();
     private Traffic? _load; // the load being shown, if the Performance panel is open
     private IDisposable? _step;
@@ -64,7 +65,7 @@ internal sealed class CanvasView : Border
     {
         ClipToBounds = true;
         Background = Brushes.Transparent;
-        Child = new Grid { Children = { _back, _stage, _traffic, _motion } };
+        Child = new Grid { Children = { _back, _stage, _traffic, _motion, _marks } };
     }
 
     public Scene? Scene => _scene;
@@ -107,26 +108,66 @@ internal sealed class CanvasView : Border
     /// boxes reacting. <paramref name="done"/> is called once when it has finished, and not if <see cref="StopStep"/> or another call cuts
     /// it off. Returns false, and draws nothing, when motion is reduced or an end isn't on screen.
     /// </summary>
-    public bool PlayStep(StepAnimation animation, string from, string to, bool afterLanding, Action? done)
+    public bool PlayStep(StepAnimation animation, string from, string to, bool afterLanding, Action? done) =>
+        PlaySteps([new StepRun(animation, from, to, afterLanding)], done);
+
+    /// <summary>One step of a stop to play: its animation, its two boxes, and whether the stop before it ended at its source.</summary>
+    public sealed record StepRun(StepAnimation Animation, string From, string To, bool AfterLanding);
+
+    /// <summary>
+    /// Plays the steps of a stop together on one clock, each as a pipe between its boxes with something running through it and the boxes
+    /// reacting. A box several steps squash takes the largest squash. <paramref name="done"/> is called once when the longest has finished,
+    /// and not if <see cref="StopStep"/> or another call cuts it off. Returns false, and draws nothing, when motion is reduced or no step has
+    /// both its ends on screen; a step with an end off screen is left out.
+    /// </summary>
+    public bool PlaySteps(IReadOnlyList<StepRun> runs, Action? done)
     {
         StopStep();
-        if (MotionSettings.Reduced || RectOf(from) is not { } a || RectOf(to) is not { } b) return false;
+        if (MotionSettings.Reduced) return false;
         var outline = (string id) => _scene!.Boxes.First(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Edge : null; // the pipe meets each shape on its outline, as the line does
-        var (beats, total) = _motion.Start(animation, afterLanding, LineStyle, a, b, outline(from), outline(to));
+        var playing = runs.Where(r => RectOf(r.From) is not null && RectOf(r.To) is not null).ToList();
+        if (playing.Count == 0) return false;
+        var started = _motion.Start(playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To))).ToList());
+        var total = started.Max(s => s.Total);
         StepMoving = true;
         _step = Anim.Run(this, total, t => t, t =>
         {
             var now = t * total;
             _motion.Show(now);
-            var (squashFrom, squashTo) = MotionMath.Squash(beats, now);
-            Squash(from, squashFrom);
-            Squash(to, squashTo);
+            var asked = new Dictionary<string, List<double>>();
+            for (var i = 0; i < playing.Count; i++)
+            {
+                var (squashFrom, squashTo) = MotionMath.Squash(started[i].Beats, now);
+                foreach (var (id, amount) in new[] { (playing[i].From, squashFrom), (playing[i].To, squashTo) })
+                {
+                    if (!asked.TryGetValue(id, out var list)) asked[id] = list = [];
+                    list.Add(amount);
+                }
+            }
+            foreach (var (id, amounts) in asked) Squash(id, MotionMath.Largest(amounts));
         }, () =>
         {
             StopStep();
             done?.Invoke();
         });
         return true;
+    }
+
+    /// <summary>What a group says about a lit step, to draw on its line (above the box's corner for a step on one box).</summary>
+    public sealed record Mark(string From, string To, string Text, string Kind);
+
+    /// <summary>Shows these marks over the canvas, or none.</summary>
+    public void SetMarks(IReadOnlyList<Mark> marks)
+    {
+        var outline = (string id) => _scene is { } s && s.Boxes.FirstOrDefault(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Edge : null;
+        var at = new List<MarkSpec>();
+        foreach (var m in marks)
+        {
+            if (RectOf(m.From) is not { } a || RectOf(m.To) is not { } b) continue;
+            var (x, y) = m.From == m.To ? (a.X + a.Width - 24, a.Y) : (LinePaths.Build(LineStyle, a, b, outline(m.From), outline(m.To)).Label.X, LinePaths.Build(LineStyle, a, b, outline(m.From), outline(m.To)).Label.Y);
+            at.Add(new MarkSpec(m.Text, m.Kind, x, y));
+        }
+        _marks.Set(at);
     }
 
     /// <summary>Stops the step's animation where it is and puts the boxes back.</summary>
@@ -281,6 +322,7 @@ internal sealed class CanvasView : Border
         _stage.RenderTransform = new MatrixTransform(Matrix.CreateScale(viewport.Zoom, viewport.Zoom) * Matrix.CreateTranslation(viewport.X, viewport.Y));
         _back.Viewport = viewport;
         _motion.Viewport = viewport;
+        _marks.Viewport = viewport;
         _traffic.Viewport = viewport;
     }
 
