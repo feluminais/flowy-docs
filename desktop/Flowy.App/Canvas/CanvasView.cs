@@ -47,13 +47,28 @@ internal sealed class CanvasView : Border
     private Gesture _gesture;
     private string? _gestureBox;
     private Point _gestureStart;
-    private CorePt _gestureBoxStart;
+    private Dictionary<string, CorePt> _gestureStarts = []; // every box the drag carries (one, or all the boxes picked), where each was
     private bool _gestureActive;
     private Line? _rubber;
     private IPointer? _pointer;
     private bool _editable;
 
+    // Shift and drag on empty space draws a box round boxes to pick them, instead of panning.
+    private bool _marqueeMode;
+    private bool _marqueeActive;
+    private List<string> _marqueeIds = [];
+    private IPointer? _panPointer;
+    private readonly Border _marquee = new()
+    {
+        Background = new SolidColorBrush(Color.FromArgb(36, 30, 144, 255)), BorderBrush = Brushes.DodgerBlue, BorderThickness = new Thickness(1),
+        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top, IsHitTestVisible = false, IsVisible = false,
+    };
+
     public event Action<string>? BoxClicked;
+    /// <summary>A box was clicked with Ctrl, Cmd or Shift held in edit mode: it joins the boxes picked, or leaves them.</summary>
+    public event Action<string>? BoxToggled;
+    /// <summary>A box was drawn round boxes with Shift held and the pointer was let go: these are the boxes it took in (none: it took in nothing).</summary>
+    public event Action<IReadOnlyList<string>>? BoxesPicked;
     /// <summary>A box was dragged and dropped: where every box of the view now is (top-left corners). The reader saves them.</summary>
     public event Action<IReadOnlyList<(string Id, double X, double Y)>>? BoxesMoved;
     /// <summary>A line was drawn from one box's handle to another box.</summary>
@@ -70,7 +85,7 @@ internal sealed class CanvasView : Border
     {
         ClipToBounds = true;
         Background = Brushes.Transparent;
-        Child = new Grid { Children = { _back, _stage, _traffic, _motion, _marks } };
+        Child = new Grid { Children = { _back, _stage, _traffic, _motion, _marks, _marquee } };
     }
 
     public Scene? Scene => _scene;
@@ -212,6 +227,7 @@ internal sealed class CanvasView : Border
                 control.PointerReleased += (_, e) => OnBoxReleased(box.Id, e);
                 control.DoubleTapped += (_, e) =>
                 {
+                    if (_editable && AddsToPick(e.KeyModifiers)) return; // two Ctrl+clicks pick and unpick, they don't open the box
                     BoxDoubleClicked?.Invoke(box.Id);
                     e.Handled = true;
                 };
@@ -301,6 +317,13 @@ internal sealed class CanvasView : Border
     /// <summary>Esc while a box is being dragged, or a line drawn from a handle: forget it, and put the box back. True if there was one.</summary>
     public bool CancelGesture()
     {
+        if (_marqueeActive)
+        {
+            _pressedAt = null;
+            _panPointer?.Capture(null);
+            EndMarquee();
+            return true;
+        }
         if (_gesture == Gesture.None || !_gestureActive) return false;
         var wasDrag = _gesture == Gesture.Drag;
         if (_rubber is not null) _stage.Children.Remove(_rubber);
@@ -314,11 +337,42 @@ internal sealed class CanvasView : Border
         return true;
     }
 
+    /// <summary>Whether a click with these keys held adds to the boxes picked instead of replacing them.</summary>
+    private static bool AddsToPick(KeyModifiers keys) => (keys & (KeyModifiers.Control | KeyModifiers.Meta | KeyModifiers.Shift)) != 0;
+
     private void OnBoxReleased(string id, PointerReleasedEventArgs e)
     {
         if (e.InitialPressMouseButton != MouseButton.Left || _dragged) return;
-        BoxClicked?.Invoke(id);
+        if (_editable && AddsToPick(e.KeyModifiers)) BoxToggled?.Invoke(id);
+        else BoxClicked?.Invoke(id);
         e.Handled = true;
+    }
+
+    /// <summary>Draws the box being pulled out over empty space, and lights the boxes (this view's own) that are wholly inside it.</summary>
+    private void DrawMarquee(Point from, Point to)
+    {
+        var (x, y) = (Math.Min(from.X, to.X), Math.Min(from.Y, to.Y));
+        var (width, height) = (Math.Abs(to.X - from.X), Math.Abs(to.Y - from.Y));
+        _marquee.Margin = new Thickness(x, y, 0, 0);
+        _marquee.Width = width;
+        _marquee.Height = height;
+        _marquee.IsVisible = true;
+        _marqueeActive = true;
+        var (topLeft, bottomRight) = (ToScene(new Point(x, y)), ToScene(new Point(x + width, y + height)));
+        _marqueeIds = _scene is null ? [] : _scene.Boxes
+            .Where(b => _scene.Members.Contains(b.Id) && b.Rect.X >= topLeft.X && b.Rect.Y >= topLeft.Y && b.Rect.Right <= bottomRight.X && b.Rect.Bottom <= bottomRight.Y)
+            .Select(b => b.Id).ToList();
+        foreach (var (id, control) in _boxes) control.SetSelected(_marqueeIds.Contains(id));
+    }
+
+    /// <summary>Takes the marquee away; the boxes show as picked again as they were before it, unless the reader is about to say otherwise.</summary>
+    private void EndMarquee()
+    {
+        _marquee.IsVisible = false;
+        _marqueeActive = false;
+        _marqueeMode = false;
+        _marqueeIds = [];
+        foreach (var (id, control) in _boxes) control.SetSelected(_selected.Contains(id));
     }
 
     private void SetViewport(Viewport viewport)
@@ -410,7 +464,9 @@ internal sealed class CanvasView : Border
             _gesture = onHandle ? Gesture.Connect : Gesture.Drag;
             _gestureBox = box.Id;
             _gestureStart = e.GetPosition(this);
-            _gestureBoxStart = new CorePt(rect.X, rect.Y);
+            // Dragging one of several boxes picked takes them all along; any other box goes alone.
+            var group = _selected.Count > 1 && _selected.Contains(box.Id) ? _selected : [box.Id];
+            _gestureStarts = group.Distinct().Where(id => RectOf(id) is not null).ToDictionary(id => id, id => new CorePt(RectOf(id)!.Value.X, RectOf(id)!.Value.Y));
             _gestureActive = false;
             return;
         }
@@ -418,6 +474,8 @@ internal sealed class CanvasView : Border
         _animation?.Dispose();
         _pressedAt = e.GetPosition(this);
         _pressedViewport = _viewport;
+        _marqueeMode = _editable && (e.KeyModifiers & KeyModifiers.Shift) != 0;
+        _panPointer = e.Pointer;
         e.Pointer.Capture(this);
     }
 
@@ -446,7 +504,8 @@ internal sealed class CanvasView : Border
             }
             if (_gesture == Gesture.Drag)
             {
-                _moved[gestureBox] = new CorePt(_gestureBoxStart.X + (p.X - _gestureStart.X) / _viewport.Zoom, _gestureBoxStart.Y + (p.Y - _gestureStart.Y) / _viewport.Zoom);
+                foreach (var (id, origin) in _gestureStarts)
+                    _moved[id] = new CorePt(origin.X + (p.X - _gestureStart.X) / _viewport.Zoom, origin.Y + (p.Y - _gestureStart.Y) / _viewport.Zoom);
                 ShowMoved();
             }
             else if (_rubber is not null && RectOf(gestureBox) is { } from)
@@ -462,6 +521,11 @@ internal sealed class CanvasView : Border
             var (dx, dy) = (p.X - start.X, p.Y - start.Y);
             if (!_dragged && Math.Abs(dx) + Math.Abs(dy) < DragSlop) return;
             _dragged = true;
+            if (_marqueeMode)
+            {
+                DrawMarquee(start, p);
+                return;
+            }
             _fitOnResize = false;
             SetViewport(_pressedViewport with { X = _pressedViewport.X + dx, Y = _pressedViewport.Y + dy });
             return;
@@ -508,6 +572,15 @@ internal sealed class CanvasView : Border
         if (_pressedAt is null) return;
         _pressedAt = null;
         e.Pointer.Capture(null);
+        if (_marqueeActive)
+        {
+            var picked = _marqueeIds;
+            EndMarquee();
+            BoxesPicked?.Invoke(picked);
+            e.Handled = true;
+            return;
+        }
+        _marqueeMode = false;
         if (_dragged) return;
         var pressed = e.GetPosition(this);
         if (_back.EdgeAt(pressed) is { } edge) EdgeClicked?.Invoke(edge);
