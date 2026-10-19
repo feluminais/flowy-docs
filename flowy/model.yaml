@@ -388,6 +388,18 @@ objects:
 
       Nothing here draws. The canvas and the desktop app each draw the beats, so a new kind is a
       recipe here and not new drawing code in both.
+  structure:
+    type: component
+    in: core
+    name: Flow structure
+    code: [src/core/structure.ts, desktop/Flowy.Core/Structure.cs]
+    description: |
+      How the steps of a flow relate. A stretch of neighbouring steps can repeat, be one of several
+      lanes, or run in parallel, and a step can say that another flow tells the rest. Written as runs
+      and stops, the steps a reader sees at once.
+
+      Nothing here draws. The checker reports a wrong group, and Mermaid turns a good one into a
+      loop, alt or par block, so the rules live here once for the browser and the desktop app.
   perf:
     type: component
     in: core
@@ -453,7 +465,7 @@ objects:
     in: core
     name: Mermaid
     code: [src/core/mermaid.ts]
-    description: A view as a flowchart, a flow as a sequence diagram, fenced and ready to paste where GitHub or GitLab draws it. A shape becomes the closest Mermaid node, and a colour a style line.
+    description: A view as a flowchart, a flow as a sequence diagram (a group of steps becomes a loop, alt or par block), fenced and ready to paste where GitHub or GitLab draws it. A shape becomes the closest Mermaid node, and a colour a style line.
 connections:
   - { from: reader, to: cli, label: npx flowy-docs }
   - { from: reader, to: desktop, label: opens folders in a window }
@@ -497,6 +509,8 @@ connections:
   - { from: ops, to: model, label: writes it back as YAML }
   - { from: check, to: views, label: can this view show it }
   - { from: check, to: animation, label: asks if a step's tag is right }
+  - { from: check, to: structure, label: asks if a flow's groups and links are right }
+  - { from: mermaid, to: structure, label: draws a group as a block }
   - { from: views, to: model, label: reads }
   - { from: outline, to: views, label: asks what each shape holds }
   - { from: mermaid, to: views, label: what the view holds }
