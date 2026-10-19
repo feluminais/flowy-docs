@@ -3,8 +3,11 @@ import { existsSync } from 'node:fs'
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { check, isRepoPath } from '../core/check.ts'
-import { emptyModel, isValidId, linksOf, ParseError, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/model.ts'
+import type { Problem } from '../core/check.ts'
+import { emptyModel, ID_RULE, isValidId, linksOf, ParseError, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
+import { checkRun, parseRun } from '../core/perf.ts'
+import type { Run } from '../core/perf.ts'
 import type { State } from '../core/state.ts'
 import { codeBase } from './git.ts'
 
@@ -86,6 +89,45 @@ export function missingPaths(dir: string, ...models: Model[]): Set<string> {
   return new Set(paths.filter((p): p is string => typeof p === 'string' && isRepoPath(p) && !existsSync(join(root, p))))
 }
 
+/**
+ * The load-test runs in the folder's perf/, with what is wrong with them. A run that can't be read, or whose name
+ * isn't an id, becomes a problem and is skipped: the architecture view is worth more than the numbers, so a file here
+ * never stops a model loading. Only loadState reads runs, so a file of numbers can't get in the way of a save.
+ */
+export async function loadRuns(dir: string, model: Model): Promise<{ runs: Record<string, Run>; problems: Problem[] }> {
+  const runs: Record<string, Run> = {}
+  const problems: Problem[] = []
+  const entries = await readdir(join(dir, 'perf'), { withFileTypes: true }).catch((e: NodeJS.ErrnoException) => {
+    if (e.code !== 'ENOENT' && e.code !== 'ENOTDIR') problems.push({ file: 'perf', message: `can't be read: ${e.message}` })
+    return []
+  })
+  for (const name of entries.filter(e => e.isFile() || e.isSymbolicLink()).map(e => e.name).sort()) {
+    const file = `perf/${name}`
+    if (name.endsWith('.yml')) {
+      problems.push({ file, message: `Flowy reads run files that end in .yaml, so this one is ignored. Rename it to ${name.replace(/\.yml$/, '.yaml')}.` })
+      continue
+    }
+    if (!name.endsWith('.yaml')) continue
+    const id = name.slice(0, -'.yaml'.length)
+    if (!isValidId(id)) {
+      problems.push({ file, message: `"${id}" is not a valid run id: the file name must ${ID_RULE}` })
+      continue
+    }
+    try {
+      const text = await readText(dir, file)
+      if (text === null) continue
+      const parsed = parseRun(id, text)
+      runs[id] = parsed.run // ids pass isValidId, so "__proto__" can't get here
+      problems.push(...parsed.problems, ...checkRun(id, parsed.run, model))
+    } catch (e) {
+      // Any failure is this file's problem: an unreadable one must not stop the model loading either.
+      const message = e instanceof ParseError ? (e.line === undefined ? e.reason : `line ${e.line}: ${e.reason}`) : `can't be read: ${e instanceof Error ? e.message : String(e)}`
+      problems.push({ file, message })
+    }
+  }
+  return { runs, problems }
+}
+
 /** The folder as the canvas reads it, or the file that can't be read: what GET /api/state answers and an export carries. */
 export async function loadState(dir: string): Promise<State> {
   try {
@@ -94,7 +136,13 @@ export async function loadState(dir: string): Promise<State> {
     const base = await codeBase(dirname(resolve(dir)))
     // A flow file that isn't read is no part of the model, so it isn't a problem check() can see.
     const skipped = ignored.map(file => ({ file, message: `Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to ${file.replace(/\.yml$/, '.yaml')}.` }))
-    return { model: rest, layout, flows, problems: [...check(model, missingPaths(dir, model)), ...skipped], versions, ...(base ? { codeBase: base } : {}) }
+    const { runs, problems: runProblems } = await loadRuns(dir, model)
+    return {
+      model: rest, layout, flows, problems: [...check(model, missingPaths(dir, model)), ...skipped], versions,
+      ...(base ? { codeBase: base } : {}),
+      ...(Object.keys(runs).length > 0 ? { runs } : {}),
+      ...(runProblems.length > 0 ? { runProblems } : {}),
+    }
   } catch (e) {
     if (e instanceof ParseError) return { parseError: { file: e.file, line: e.line, message: e.reason } }
     throw e
