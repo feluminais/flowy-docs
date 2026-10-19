@@ -15,7 +15,8 @@ export function loadNav(): NavSaved {
 
 export function keepNav(saved: NavSaved): void {
   try {
-    localStorage.setItem(key(), JSON.stringify({ ...(saved.tab === undefined ? {} : { tab: saved.tab }), expanded: saved.expanded.slice(0, MAX_OPEN) }))
+    const { tab, navWidth, detailsWidth } = saved
+    localStorage.setItem(key(), JSON.stringify({ ...(tab === undefined ? {} : { tab }), expanded: saved.expanded.slice(0, MAX_OPEN), navWidth, detailsWidth }))
   } catch {
     // nothing to do: the tree still holds in this page
   }
