@@ -165,6 +165,10 @@ Reading:
       and the others fade. If the panel would cover the box you click, the view moves it aside.
 - [ ] Hover API: after a moment its first paragraph appears under it. Click API: the side panel
       shows the whole description with its bullet list. Esc, ×, or a click on empty canvas closes it.
+- [ ] Press O: the Explorer opens on the left, folders first and then by name. Click API in it: the
+      view goes to API and its Details open on the right, beside the Explorer. Drag the edge of either
+      panel (it lights up under the pointer): it resizes, and a double-click puts the width back.
+      Esc closes Details first, then the Explorer. Reopen the project: the widths are as you left them.
 - [ ] In Shop, play "Customer checks out". Only the current step's two boxes stay lit, with a blue border, and its line is bold and drawn over the faded boxes. Customer, outside Shop, lights up fully in step 1.
       → and ← move, End and Home jump to the last and first step, the buttons match, Esc stops
       (and a second Esc zooms out). Step 3 lights API alone, with no line, and its
