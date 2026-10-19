@@ -193,10 +193,11 @@ objects:
       step by step, and edit mode behind E.
 
       A step tagged with an `animation:` plays as a pipe with a blob running through it, and Autoplay
-      steps through a flow on its own.
+      steps through a flow on its own. A Performance tab plays a load-test run back over the diagram.
 
       A rail of icons on the right edge opens a panel with three tabs: Details, every flow in the
-      documentation, and the whole documentation as a tree.
+      documentation, and the whole documentation as a tree. A fourth, Performance, joins them when
+      the folder has load-test runs.
 
       The same bundle is served by the local server and shipped in an export; on an exported page
       the model comes from the HTML and there is nothing to save to.
@@ -294,6 +295,18 @@ objects:
       flashes and squashes on the shapes. It asks core for the beats and knows nothing about kinds.
 
       Nothing moves when the system asks for less motion; Autoplay then waits a few seconds on each step.
+  perf-tab:
+    type: component
+    in: canvas
+    name: Performance tab
+    code: [ui/src/Performance.tsx, ui/src/perfview.ts, ui/src/TrafficLayer.tsx, ui/src/traffic.ts, ui/src/pathpoints.ts]
+    description: |
+      Plays a load-test run back over the canvas: dots run along the lines as often and as slowly as the
+      calls were, a shape's outline goes from green to red as it fills up, and the panel reads out the
+      load, where things first struggle, and the numbers of what is selected.
+
+      The dots are drawn on one canvas from each line's path, flattened once, and during a ramp the
+      screen gets a new position at most every 50 ms. Nothing moves when the system asks for less motion.
   navigator:
     type: component
     in: canvas
@@ -448,6 +461,8 @@ connections:
   - { from: shell, to: graph, label: what to draw }
   - { from: shell, to: panel, label: what is selected }
   - { from: shell, to: motion, label: the step playing }
+  - { from: shell, to: perf-tab, label: which run, how far along it, what is selected }
+  - { from: perf-tab, to: perf, label: the numbers at a load }
   - { from: motion, to: animation, label: asks for the beats }
   - { from: shell, to: navigator, label: the panel's tabs }
   - { from: navigator, to: outline, label: asks for the rows }

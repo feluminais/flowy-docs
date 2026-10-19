@@ -32,7 +32,8 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   problem.
 - Ctrl+K or / (or Search) finds a shape anywhere in the model by name. Pick one and the canvas
   opens the level it's on, with its panel open.
-- The icons on the right edge open a panel with three tabs. Details is what a click on a shape or a
+- The icons on the right edge open a panel with three tabs (four when the folder has load-test runs:
+  see [Performance](#performance)). Details is what a click on a shape or a
   line shows. Flows (L) lists every flow: first those in the level you're in, then all the others under
   the level they play in, and a click goes there and plays it. Explorer (O) shows everything as a tree,
   with how many shapes and flows are inside each, a dot where something is wrong, and a filter. A click
@@ -217,6 +218,57 @@ lowercase letters, digits and dashes, and can't be one of the built-in names. Cl
 `delete_icon` tools, and `get_model` lists the ones a model has. An icon that is still in use can't be deleted. There are no
 colour or image icons: an icon takes the colour of the shape that shows it.
 
+## Performance
+
+A run is a load test, summarised: for each load that was tested, what each shape and each connection measured. It lives in
+`flowy/perf/<name>.yaml` (the name follows the same rule as a flow's file name), and a folder can hold several: a ramp, a spike,
+the same test before and after a fix.
+
+```yaml
+name: Ramp, 20 s per level
+about: Node 22, 4 cores, the load generator on the same machine
+unit: req/s
+levels:
+  - load: 100
+    overall: { rate: 98, p50: 60, p95: 140, errors: 0 }
+    objects:
+      web-api: { util: 0.35, queue: 0, errors: 0 }
+    connections:
+      - { from: web-api, to: payments, rate: 40, p50: 90, p95: 180, errors: 0 }
+  - load: 200
+    overall: { rate: 190, p50: 70, p95: 150, errors: 0.01 }
+    objects:
+      web-api: { util: 0.7, queue: 2, errors: 0 }
+    connections:
+      - { from: web-api, to: payments, rate: 80, p50: 95, p95: 260, errors: 0.01 }
+```
+
+Every number is optional except a level's `load`. On a shape, `util` is how much of what it can do is in use (0 to 1), `queue` how many are waiting, and
+`errors` the share that fail (0 to 1). On a connection, and in `overall` (what the entry point measured), `rate` is calls a
+second, `p50` and `p95` are milliseconds (the typical call, and the slowest 1 in 20) and `errors` is the share that fail.
+Levels go up in load, and a run needs at least two. A number that isn't there isn't drawn as zero: that shape or line stays
+plain. `unit` says what a load counts, and `entry` can name the shape the load comes in at.
+
+Flowy checks a run the way it checks `code:` paths: a shape or connection it names that isn't in the model, or a number that
+isn't one, is a problem. A run it can't read at all is a problem too, listed in the Performance tab, and it never stops the model
+from loading. Flowy only reads runs. Tools write them, and nothing in Flowy changes a run file.
+
+**Reading it.** Open the Performance tab on the right edge, or press **T**. Pick a run if there are several. The slider has a stop
+for each tested load; ← and → move between them, and **Ramp** (**P**) sweeps up to the highest, at a pace that would cover the whole run in half a minute. Between two
+tested loads the numbers are blended from the two, and the tab says so. Click a shape or a line to read its numbers at this load,
+with a small curve of each across all of them. A shape that holds others takes the worst of what is inside it, so at the overview
+you see which system is struggling and zoom in to find where. The tab opens on the load where things first struggle, if anything
+does, and **Go there** gets back to it.
+
+**What to remember.** This is a replay. Flowy never predicts a load nobody tested, so the slider stops at the highest one. How
+strained a shape looks is its `util`, or its failure rate counted twenty times (5% failing is as bad as full), whichever is
+worse. Nothing moves when the system asks for less motion; the colours, thickness, badges and numbers stay. An exported page
+carries the runs, so its Performance tab works too. The desktop app doesn't read runs yet.
+
+**Making one.** Any tool that can write this file works. `perf-lab/` in the Flowy repo is a small shop that really runs, with a
+load generator that measures it and writes runs of this shape: `npm run lab:run` makes one, and
+`node src/cli.ts --dir perf-lab/flowy` opens it.
+
 ## Let Claude build it
 
 From the root of the repo you want to document:
@@ -259,7 +311,7 @@ npx flowy-docs export
 It writes a read-only copy of the canvas to `./flowy-site`, with the model inside its `index.html`.
 Put the folder on any static host, such as GitHub Pages, and send the link. Browsers won't run it
 straight from disk. To show it in Notion or Confluence, embed the link. `--dir` picks the model
-folder and `--out` the export folder.
+folder and `--out` the export folder. An export carries any load-test runs too.
 
 Export again after the model changes. Only what the export wrote is replaced, so a `.git` or a
 `CNAME` you keep next to it stays. A folder with other files in it is left alone, and so is one

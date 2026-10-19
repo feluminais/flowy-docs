@@ -92,6 +92,20 @@ through it and back while the sender waits; `send` and `event` go one way, and `
 step again, and **Autoplay** (**P**) steps through the flow on its own. Nothing moves when the system asks for less motion, and
 the step's text still says the same thing. The app and the browser play them alike.
 
+## Performance
+
+Flowy can also play back how a system behaved under load. Put a load test's results in `flowy/perf/<name>.yaml`, and a Performance
+tab joins the icons on the right edge (or press **T**). The diagram then shows the load: dots run along the lines as often, and as
+slowly, as the calls were, a line gets thicker with traffic, a shape's outline goes from green to red as it fills up, and a number
+on it says how many are waiting. Move the slider (← →) to another tested load, or press **Ramp** (**P**) to sweep up through them.
+The tab says where things first struggle ("First struggles at 200 req/s: Fulfilment worker at 100% of capacity"), plots latency
+against load, and reads out the numbers of the shape or line you click.
+
+It plays back what was measured and nothing more: between two tested loads it blends the two, past the highest there is nothing
+to show, and a shape nobody measured stays plain. The file format is in [the guide](docs/guide.md#performance). `perf-lab/` is a
+small shop that really runs, with a load generator that writes these files (`npm run lab:run`, then
+`node src/cli.ts --dir perf-lab/flowy` to look at it). The browser version shows runs; the desktop app doesn't yet.
+
 ## Find anything
 
 ![Search open with "re" typed: Restaurant, Refunds in Order API, and Data warehouse in Back office](docs/images/desktop-search.png)
@@ -156,7 +170,7 @@ npx flowy-docs export
 ```
 
 It writes a read-only copy of the canvas to `./flowy-site`. Put the folder on any static host, such as GitHub Pages, and
-send the link. Embed the link to show it in Notion or Confluence.
+send the link. Embed the link to show it in Notion or Confluence. The export carries any load-test runs too.
 
 For a README or a pull request, the app's **View › Copy as Mermaid** (the browser's **Mermaid** button) copies the view on
 screen, or the flow playing, as a Mermaid diagram that GitHub and GitLab draw. **View › Save Picture** saves the diagram as a
@@ -190,10 +204,11 @@ sequenceDiagram
 | Esc | Close what's open, then go up a level |
 | Backspace, Z | Zoom out: go up a level |
 | F | Fit the view |
-| ← → | Previous and next step of the flow playing |
-| Home, End | First and last step |
-| P | Autoplay: step through the flow on its own, or pause |
+| ← → | Previous and next step of the flow playing, or previous and next tested load |
+| Home, End | First and last step, or lowest and highest load |
+| P | Autoplay: step through the flow on its own, or pause. In Performance, ramp the load up on its own |
 | R | Replay the step's animation |
+| T | The Performance tab, where a folder has load-test runs |
 | Ctrl+O, F5 | Open a folder, reload it (app) |
 | E | Edit mode on and off |
 | N | Add a shape |
@@ -260,7 +275,7 @@ Flowy runs on your machine and touches only its model folder.
   `127.0.0.1` or `localhost` on its own port, and it saves only when a request carries a header that a web page open in
   another tab can't send. A website can't change your files through it.
 - Saving, from the canvas or from Claude, writes `model.yaml`, `layout.yaml` and `flows/*.yaml` in the model folder and
-  nothing else. `export` writes only to its output folder. The desktop app writes only when you edit, and only those same files, each
+  nothing else; the load-test runs in `perf/` are only ever read. `export` writes only to its output folder. The desktop app writes only when you edit, and only those same files, each
   through a temporary file and only if the file is still as it was read, so it can't overwrite a change made elsewhere.
 - It never opens your code. For `code:` paths it checks that they exist, and it runs `git` with fixed arguments to read
   the `origin` URL and the branch for the links.
