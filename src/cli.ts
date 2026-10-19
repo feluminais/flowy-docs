@@ -7,6 +7,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { flowToMermaid, viewToMermaid } from './core/mermaid.ts'
 import { exportSite } from './node/export.ts'
 import { loadDir } from './node/files.ts'
+import { openHistory } from './node/history.ts'
 import { createMcpServer } from './node/mcp.ts'
 import { startServer } from './node/server.ts'
 
@@ -45,7 +46,8 @@ const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? on
 const mermaidFlags = args?.values.flow !== undefined || args?.values.view !== undefined
 
 if (args?.positionals[0] === 'mcp') {
-  await createMcpServer(resolve(args.values.dir)).connect(new StdioServerTransport())
+  const dir = resolve(args.values.dir)
+  await createMcpServer(dir, openHistory(dir, { app: 'mcp' })).connect(new StdioServerTransport())
 } else if (args?.positionals[0] === 'export' && args.positionals.length === 1 && !mermaidFlags) {
   const out = resolve(args.values.out)
   try {
@@ -68,7 +70,7 @@ if (args?.positionals[0] === 'mcp') {
 } else if (args?.positionals.length === 0 && !mermaidFlags && /^\d{1,5}$/.test(args.values.port) && Number(args.values.port) <= 65535) {
   try {
     const dir = resolve(args.values.dir)
-    const { port } = await startServer({ dir, ui, port: Number(args.values.port) })
+    const { port } = await startServer({ dir, ui, port: Number(args.values.port), history: openHistory(dir, { app: 'browser' }) })
     const url = `http://127.0.0.1:${port}/`
     console.log(`Flowy Docs: ${url}\nShowing ${dir}. Press Ctrl+C to stop.`)
     if (args.values.open) openBrowser(url)

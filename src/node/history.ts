@@ -82,6 +82,7 @@ export function openHistory(dir: string, options: HistoryOptions): History {
   const clock = options.now ?? (() => new Date())
   const random = options.random ?? (() => randomBytes(3).toString('hex'))
   let failure: string | undefined
+  let lastMs = 0
 
   async function snapshot(): Promise<Snapshot> {
     const files: Record<string, string> = {}
@@ -113,7 +114,9 @@ export function openHistory(dir: string, options: HistoryOptions): History {
 
   /** Writes a step for a snapshot, then trims the trail when it has grown past the limit. */
   async function append(snap: Snapshot, label: string, source: StepSource): Promise<Step> {
-    const time = clock()
+    // Never earlier than, or the same millisecond as, the step this program wrote before, so ids keep the order the steps were made in.
+    const time = new Date(Math.max(clock().getTime(), lastMs + 1))
+    lastMs = time.getTime()
     const step: Step = { id: stepId(time, random()), time: time.toISOString(), label, source, app: options.app, files: snap.files }
     await store.putStep(step, snap.bytes)
     failure = undefined

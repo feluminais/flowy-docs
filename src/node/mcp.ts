@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { ANIMATION_KINDS } from '../core/animation.ts'
 import { check } from '../core/check.ts'
+import { mcpLabel } from '../core/history.ts'
 import { ICON_GROUPS } from '../core/icons.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
 import { changedFiles, getObject, OBJECT_TYPES, parseFile, ROOT } from '../core/model.ts'
@@ -12,6 +13,7 @@ import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
 import { GROUP_KINDS } from '../core/structure.ts'
 import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
 import { loadDir, missingPaths, saveFile, VersionConflict } from './files.ts'
+import type { History } from './history.ts'
 
 const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML files in the repo.
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
@@ -62,7 +64,8 @@ const ok = (value: unknown): Result => ({
 })
 const fail = (e: unknown): Result => ({ ...ok(e instanceof Error ? e.message : String(e)), isError: true })
 
-export function createMcpServer(dir: string): McpServer {
+/** `history`: when given, every write is also a step in the folder's history. A history that can't be written never fails a tool call. */
+export function createMcpServer(dir: string, history?: History): McpServer {
   const server = new McpServer({ name: 'flowy-docs', version: '0.1.0' }, { instructions: INSTRUCTIONS })
 
   // AI clients often send several tool calls at once. Run them one at a time, in arrival
@@ -82,8 +85,11 @@ export function createMcpServer(dir: string): McpServer {
     }
   })
 
-  /** Load fresh, apply, refuse new problems, write changed files. Retries once if a file changed underneath. */
-  const write = (op: (model: Model) => Model, done: string | ((before: Model) => string)) => inOrder(async () => {
+  /**
+   * Load fresh, apply, refuse new problems, write changed files. Retries once if a file changed underneath. With history on, the files as
+   * they were become a step first, and `label` is the step the write makes.
+   */
+  const write = (op: (model: Model) => Model, done: string | ((before: Model) => string), label: string) => inOrder(async () => {
     for (let attempt = 1; ; attempt++) {
       try {
         const { model, versions } = await loadDir(dir)
@@ -97,7 +103,9 @@ export function createMcpServer(dir: string): McpServer {
         } catch (e) {
           return fail(`Refused, nothing saved. The result couldn't be read back: ${e instanceof Error ? e.message : String(e)}`)
         }
+        await history?.ensureCurrent('write')
         for (const [rel, text] of changes) await saveFile(dir, rel, text, versions[rel] ?? null)
+        await history?.record(label, 'claude')
         return ok(typeof done === 'function' ? done(model) : done)
       } catch (e) {
         if (!(e instanceof VersionConflict)) return fail(e)
@@ -169,7 +177,7 @@ export function createMcpServer(dir: string): McpServer {
       links: z.array(z.object({ url: z.string(), title: z.string().optional() })).optional()
         .describe('Long documents and pages that belong to this object (a runbook, a decision record, a spec, a wiki page). url is a web address (http or https) or a path in the repo, relative to the folder that holds flowy/, which must exist. title is what the reader sees. [] removes them.'),
     },
-  }, input => write(m => putObject(m, input), before => `${getObject(before, input.id) ? 'Updated' : 'Created'} ${input.id}.`))
+  }, input => write(m => putObject(m, input), before => `${getObject(before, input.id) ? 'Updated' : 'Created'} ${input.id}.`, mcpLabel('put_object', input)))
 
   server.registerTool('put_icon', {
     description: `Define a custom icon for objects to use with put_object's icon. It is SVG path data on a 24x24 grid, drawn as a 2px round line like the built-in ones (copy the "d" of a Tabler or Lucide icon, joining several paths). Built-in names, which can't be reused: ${ICON_GROUPS.map(g => `${g.group}: ${g.names.join(', ')}`).join('. ')}.`,
@@ -177,30 +185,30 @@ export function createMcpServer(dir: string): McpServer {
       name: z.string().max(64).describe('Lowercase letters, digits and dashes, e.g. "stripe"'),
       path: z.string().max(4000).describe('SVG path data, e.g. "M4 4h16v16h-16z". Replaces the icon of that name.'),
     },
-  }, input => write(m => putIcon(m, input.name, input.path), `Saved icon ${input.name}.`))
+  }, input => write(m => putIcon(m, input.name, input.path), `Saved icon ${input.name}.`, mcpLabel('put_icon', input)))
 
   server.registerTool('delete_icon', {
     description: 'Delete a custom icon. Refused while an object uses it.',
     inputSchema: { name: z.string().max(64).describe('The icon\'s name') },
     annotations: destructive,
-  }, input => write(m => deleteIcon(m, input.name), `Deleted icon ${input.name}.`))
+  }, input => write(m => deleteIcon(m, input.name), `Deleted icon ${input.name}.`, mcpLabel('delete_icon', input)))
 
   server.registerTool('delete_object', {
     description: 'Delete an object and its connections. Refused while it has children or a flow uses it.',
     inputSchema: { id: id('Object id') },
     annotations: destructive,
-  }, input => write(m => deleteObject(m, input.id), `Deleted ${input.id}.`))
+  }, input => write(m => deleteObject(m, input.id), `Deleted ${input.id}.`, mcpLabel('delete_object', input)))
 
   server.registerTool('connect', {
     description: 'Add a connection. Direction matters: from → to. Duplicates and connecting an object to itself are refused.',
     inputSchema: { ...ends, label: z.string().optional().describe('What goes along it, e.g. "REST" or "reads/writes"') },
-  }, input => write(m => connect(m, input), `Connected ${input.from} → ${input.to}.`))
+  }, input => write(m => connect(m, input), `Connected ${input.from} → ${input.to}.`, mcpLabel('connect', input)))
 
   server.registerTool('disconnect', {
     description: 'Remove connections from → to.',
     inputSchema: { ...ends, label: z.string().optional().describe('Only remove the ones with this label; "" means only the unlabelled ones. Leave it out to remove all.') },
     annotations: destructive,
-  }, input => write(m => disconnect(m, input), `Disconnected ${input.from} → ${input.to}.`))
+  }, input => write(m => disconnect(m, input), `Disconnected ${input.from} → ${input.to}.`, mcpLabel('disconnect', input)))
 
   server.registerTool('put_flow', {
     description: 'Create or replace a flow: a step-by-step walkthrough played on one view. Answers with how each step reads there.',
@@ -228,13 +236,13 @@ export function createMcpServer(dir: string): McpServer {
         flow: z.string().max(64).optional().describe('The id of another flow that tells what happens next. It must exist.'),
       })).min(1),
     },
-  }, input => write(m => putFlow(m, input), before => readout(before, input))) // a flow changes no box, so `before` places it right
+  }, input => write(m => putFlow(m, input), before => readout(before, input), mcpLabel('put_flow', input))) // a flow changes no box, so `before` places it right
 
   server.registerTool('delete_flow', {
     description: 'Delete a flow.',
     inputSchema: { id: id('Flow id (its file name without .yaml)') },
     annotations: destructive,
-  }, input => write(m => deleteFlow(m, input.id), `Deleted flow ${input.id}.`))
+  }, input => write(m => deleteFlow(m, input.id), `Deleted flow ${input.id}.`, mcpLabel('delete_flow', input)))
 
   return server
 }
