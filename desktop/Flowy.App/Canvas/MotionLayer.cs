@@ -71,7 +71,7 @@ internal sealed class MotionLayer : Control
 
     private static Geometry Glyph(string? glyph)
     {
-        var data = glyph switch { "envelope" => Icons.Mail, "bolt" => Icons.Bolt, _ => Icons.Bell };
+        var data = glyph switch { "envelope" => Icons.Mail, "bolt" => Icons.Bolt, "flag" => Icons.Flag, _ => Icons.Bell };
         if (!Glyphs.TryGetValue(data, out var geometry)) Glyphs[data] = geometry = Geometry.Parse(data);
         return geometry;
     }

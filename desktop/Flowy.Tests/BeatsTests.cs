@@ -9,12 +9,15 @@ public class BeatsTests
 {
     private static JsonNode Expected() => JsonNode.Parse(File.ReadAllText(Path.Combine(Repo.Root, "desktop", "fixtures", "expected", "beats.json")))!;
 
-    private static Step Tagged(JsonNode? animation) => new("a", "x", "t", null, YamlWriterTests.Tree(animation));
+    /// <summary>A step with the tag, with a "to" or without one: recurse takes none and the other kinds need one.</summary>
+    private static Step Tagged(JsonNode? animation, bool to) => new("a", to ? "x" : null, "t", null, YamlWriterTests.Tree(animation));
 
     private static JsonObject Json(StepAnimation a)
     {
         var o = new JsonObject { ["kind"] = a.Kind, ["trigger"] = a.Trigger };
         if (a.Carries is not null) o["carries"] = a.Carries;
+        if (a.Depth is not null) o["depth"] = a.Depth;
+        if (a.Returns is not null) o["returns"] = a.Returns;
         return o;
     }
 
@@ -25,6 +28,7 @@ public class BeatsTests
         if (b.Glyph is not null) o["glyph"] = b.Glyph;
         if (b.Tone is not null) o["tone"] = b.Tone;
         if (b.Label is not null) o["label"] = b.Label;
+        if (b.Level is not null) o["level"] = b.Level;
         return o;
     }
 
@@ -54,7 +58,7 @@ public class BeatsTests
     {
         foreach (var r in Expected()["reads"]!.AsArray())
         {
-            var read = Animations.Read(Tagged(r!["animation"]));
+            var read = Animations.Read(Tagged(r!["animation"], r["to"]!.GetValue<bool>()));
             Assert.Equal(JsonDump.Pretty(r["read"]), JsonDump.Pretty(read is null ? null : Json(read)));
         }
     }
@@ -66,7 +70,7 @@ public class BeatsTests
         Assert.True(all.Count > 100);
         foreach (var b in all)
         {
-            var a = Animations.Read(Tagged(b!["animation"]))!;
+            var a = Animations.Read(Tagged(b!["animation"], b["to"]!.GetValue<bool>()))!;
             var (beats, total) = Animations.BeatsFor(a, b["length"]!.GetValue<double>(), b["afterLanding"]!.GetValue<bool>());
             Assert.Equal(b["total"]!.GetValue<int>(), total);
             Assert.Equal(JsonDump.Pretty(b["beats"]), JsonDump.Pretty(new JsonArray(beats.Select(x => (JsonNode?)Json(x)).ToArray())));

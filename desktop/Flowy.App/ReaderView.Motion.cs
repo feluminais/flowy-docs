@@ -43,7 +43,8 @@ internal sealed partial class ReaderView
         if (key == _stepKey) return;
         _stepKey = key;
         _canvas.StopStep();
-        if (flow is { } playing && shown?.Ends[index] is { } placed && Animations.Read(playing.Flow.Steps[index]) is { } animation)
+        // A recursion is not drawn here yet, so it plays like a step with no tag. The desktop phase removes the Kind condition.
+        if (flow is { } playing && shown?.Ends[index] is { } placed && Animations.Read(playing.Flow.Steps[index]) is { Kind: not "recurse" } animation)
         {
             var after = index > 0 && Animations.Follows(shown.Ends[index - 1], placed);
             _canvas.PlayStep(animation, placed.From, placed.To, after, () =>

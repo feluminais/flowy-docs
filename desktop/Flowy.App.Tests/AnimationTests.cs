@@ -17,13 +17,16 @@ public class AnimationTests
 {
     private static string Tags => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "animation", "flowy");
 
-    private static (Window Window, ReaderView Reader) Open(string motion)
+    private static string Recursion => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "recurse", "flowy");
+
+    private static (Window Window, ReaderView Reader) Open(string motion, string? folder = null)
     {
+        folder ??= Tags;
         Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", motion);
         var reader = new ReaderView();
         var window = new Window { Width = 1100, Height = 700, Content = reader };
         window.Show();
-        reader.Load(FolderLoader.Load(Tags), Tags);
+        reader.Load(FolderLoader.Load(folder), folder);
         reader.GoTo("shop");
         return (window, reader);
     }
@@ -92,6 +95,21 @@ public class AnimationTests
         try
         {
             reader.Play("tags", 5); // "sned"
+            Assert.False(reader.StepMoving);
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_recurse_step_does_not_move_until_the_desktop_draws_it()
+    {
+        var (_, reader) = Open("0", Recursion);
+        try
+        {
+            reader.Play("recursion"); // "Walks the category tree", a good recurse tag
             Assert.False(reader.StepMoving);
         }
         finally
