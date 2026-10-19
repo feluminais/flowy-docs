@@ -32,7 +32,7 @@ public sealed class FolderWatcher : IDisposable
 
     private void Touch(string? name)
     {
-        if (name is not null && (name.EndsWith(".tmp", StringComparison.Ordinal) || name.Split('\\', '/')[0] is not ("model.yaml" or "layout.yaml" or "flows"))) return;
+        if (name is not null && (name.EndsWith(".tmp", StringComparison.Ordinal) || name.Split('\\', '/')[0] is not ("model.yaml" or "layout.yaml" or "flows" or "perf"))) return;
         _timer.Change(_wait, Timeout.InfiniteTimeSpan);
     }
 
