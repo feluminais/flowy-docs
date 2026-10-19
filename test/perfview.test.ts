@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseRun } from '../src/core/perf.ts'
 import {
-  boxAt, boxSeries, clampPos, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, levelLabels, lineAt, lineSeries, loadAt, METRICS, pathOf, RAMP_MS, rampPos, scaleOf, snap, top, xAt, yAt,
+  activeRun, boxAt, boxSeries, clampPos, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, levelLabels, lineAt, lineSeries, loadAt, METRICS, pathOf, RAMP_MS, rampFrom, rampPos, scaleOf, snap, top, xAt, yAt,
 } from '../ui/src/perfview.ts'
 import { shop } from './fixtures.ts'
 
@@ -48,6 +48,20 @@ test('a ramp takes RAMP_MS to go from the first level to the last, whatever the 
   near(rampPos(run, 0, RAMP_MS / 2), 1)
   assert.equal(rampPos(run, 1.9, RAMP_MS), 2)
   near(rampPos(run, 0, 0), 0)
+})
+
+test('a ramp from the top starts again from the bottom, and from anywhere else carries on from there', () => {
+  assert.equal(rampFrom(run, 2), 0)
+  assert.equal(rampFrom(run, 1.5), 1.5)
+  assert.equal(rampFrom(run, 0), 0)
+})
+
+test('the run on show is the one asked for if there is such a run, else the first, else none', () => {
+  const runs = { ramp: run, spike: run }
+  assert.equal(activeRun(runs, 'spike'), 'spike')
+  assert.equal(activeRun(runs, 'gone'), 'ramp') // a run that was renamed or deleted while the tab was open
+  assert.equal(activeRun({}, 'ramp'), '')
+  assert.equal(activeRun(runs, '__proto__'), 'ramp')
 })
 
 test('numbers are written the way a reader says them', () => {

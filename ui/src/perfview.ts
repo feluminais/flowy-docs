@@ -32,6 +32,12 @@ export const isTested = (pos: number): boolean => Math.abs(pos - Math.round(pos)
 /** The position `ms` further on in a ramp (it stops at the last level). */
 export const rampPos = (run: Run, pos: number, ms: number): number => clampPos(run, pos + (ms * top(run)) / RAMP_MS)
 
+/** Where a ramp starts: from the bottom when it is at the top already, else from where it is. */
+export const rampFrom = (run: Run, pos: number): number => (pos >= top(run) ? 0 : pos)
+
+/** The run the tab shows: the one asked for if there is such a run, else the first, else none (a run can come and go while the tab is open). */
+export const activeRun = (runs: Record<string, Run>, id: string): string => (Object.hasOwn(runs, id) ? id : Object.keys(runs)[0] ?? '')
+
 /** A position as the slider can hold it, snapped to a tested level. */
 export const snap = (run: Run, pos: number): number => Math.round(clampPos(run, pos))
 
