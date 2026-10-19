@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { HISTORY_LIMIT } from '../src/core/history.ts'
@@ -183,6 +183,102 @@ test('more than HISTORY_LIMIT steps are pruned to the newest', async t => {
   assert.equal(list.length, HISTORY_LIMIT)
   assert.equal(list[0].label, `Step ${HISTORY_LIMIT + 5}`)
   assert.equal(list[list.length - 1].label, 'Step 6')
+})
+
+test('restore puts an older version back, removes a flow added since, and brings back one removed', async t => {
+  const { dir, history, put } = await setup(t)
+  await put('model.yaml', 'a: 1\n')
+  await put('flows/old.yaml', 'name: Old\n')
+  const one = await history.record('One', 'you')
+  await put('model.yaml', 'a: 2\n')
+  await rm(join(dir, 'flows', 'old.yaml'))
+  await put('flows/new.yaml', 'name: New\n')
+  const two = await history.record('Two', 'you')
+  assert.ok(one && two)
+
+  const result = await history.restore(one.id, (await history.now()).versions, 'Restored the version from 10:00')
+  assert.deepEqual(result, {
+    ok: true,
+    versions: { 'flows/new.yaml': null, 'flows/old.yaml': hashText('name: Old\n'), 'model.yaml': hashText('a: 1\n') },
+    before: two.id,
+  })
+  assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), 'a: 1\n')
+  assert.equal(await readFile(join(dir, 'flows', 'old.yaml'), 'utf8'), 'name: Old\n')
+  assert.deepEqual(await readdir(join(dir, 'flows')), ['old.yaml'])
+})
+
+test('restore records itself on top of the list', async t => {
+  const { history, put } = await setup(t)
+  await put('model.yaml', 'a: 1\n')
+  const one = await history.record('One', 'you')
+  await put('model.yaml', 'a: 2\n')
+  await history.record('Two', 'you')
+  assert.ok(one)
+  await history.restore(one.id, (await history.now()).versions, 'Restored the version from 10:00')
+  const [top, ...rest] = await history.list()
+  assert.deepEqual([top.label, top.source, top.changed], ['Restored the version from 10:00', 'restore', ['model.yaml']])
+  assert.deepEqual(rest.map(s => s.label), ['Two', 'One'])
+})
+
+test('restore refuses when a file changed since it was seen, and writes nothing', async t => {
+  const { dir, history, put } = await setup(t)
+  await put('model.yaml', 'a: 1\n')
+  const one = await history.record('One', 'you')
+  await put('model.yaml', 'a: 2\n')
+  await history.record('Two', 'you')
+  const seen = (await history.now()).versions
+  await put('model.yaml', 'a: 3\n') // changed by someone else after the panel read it
+  assert.ok(one)
+  assert.deepEqual(await history.restore(one.id, seen, 'x'), { ok: false, kind: 'conflict', message: 'This file changed outside Flowy. Reloaded.' })
+  assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), 'a: 3\n')
+})
+
+test('restore of an unknown id is unknown', async t => {
+  const { history } = await setup(t)
+  assert.deepEqual(await history.restore('nope', {}, 'x'), { ok: false, kind: 'unknown', message: 'That version is gone.' })
+})
+
+test('restore refuses while the history cannot be written, and changes nothing', async t => {
+  const { dir, history, put } = await setup(t)
+  await put('model.yaml', 'a: 1\n')
+  const one = await history.record('One', 'you')
+  await put('model.yaml', 'a: 2\n')
+  await history.record('Two', 'you')
+  assert.ok(one)
+  await rm(join(history.root, 'blobs'), { recursive: true })
+  await writeFile(join(history.root, 'blobs'), 'in the way') // writing a step now fails
+  await put('model.yaml', 'a: 3\n')
+  const result = await history.restore(one.id, (await history.now()).versions, 'x')
+  assert.equal(result.ok, false)
+  assert.ok(!result.ok && result.kind === 'unsaved' && /history isn't being saved/.test(result.message))
+  assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), 'a: 3\n')
+})
+
+test('restore works from files that are not UTF-8 or not YAML', async t => {
+  const { dir, history, put } = await setup(t)
+  await put('model.yaml', 'objects: {}\n')
+  const good = await history.record('Good', 'you')
+  assert.ok(good)
+  await put('model.yaml', new Uint8Array([0xff, 0xfe, 0x00]))
+  await put('layout.yaml', 'a: [\n')
+  const result = await history.restore(good.id, (await history.now()).versions, 'Restored')
+  assert.equal(result.ok, true)
+  assert.equal(await readFile(join(dir, 'model.yaml'), 'utf8'), 'objects: {}\n')
+  assert.deepEqual(await readdir(dir), ['model.yaml'])
+})
+
+test('restore leaves the files Flowy does not write alone', async t => {
+  const { dir, history, put } = await setup(t)
+  await put('model.yaml', 'a: 1\n')
+  await put('flows/Bad_Flow.yaml', 'name: Bad\n')
+  await put('flows/old.yml', 'name: Old\n')
+  const one = await history.record('One', 'you')
+  await put('model.yaml', 'a: 2\n')
+  await history.record('Two', 'you')
+  assert.ok(one)
+  assert.equal((await history.restore(one.id, (await history.now()).versions, 'x')).ok, true)
+  assert.equal(await readFile(join(dir, 'flows', 'Bad_Flow.yaml'), 'utf8'), 'name: Bad\n')
+  assert.equal(await readFile(join(dir, 'flows', 'old.yml'), 'utf8'), 'name: Old\n')
 })
 
 test('clear empties the trail', async t => {
