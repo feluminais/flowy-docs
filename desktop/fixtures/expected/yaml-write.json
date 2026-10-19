@@ -2070,6 +2070,15 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
+      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\links\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
       "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\text\\flowy",
       "rel": "model.yaml",
       "data": {

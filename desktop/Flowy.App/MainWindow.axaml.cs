@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     private readonly ReaderView _reader = new();
     private readonly DockPanel _frame = new();
     private readonly NativeMenuItem _recentMenu = new("Open Recent") { Menu = new NativeMenu() };
+    private readonly NativeMenuItem _openWithMenu = new("Open Files With") { Menu = new NativeMenu() };
     private FolderWatcher? _watcher;
     private int _loads;
     private bool _watchFailed;
@@ -55,11 +56,14 @@ public partial class MainWindow : Window
         Content = _frame;
         _frame.Children.Add(Welcome());
         _reader.LinesPicked += _shell.RememberLines;
+        _reader.CustomApp = () => _shell.State.OpenFilesWith;
         _shell.RecentChanged += RebuildRecent;
+        _shell.OpenFilesWithChanged += RebuildOpenWith;
         Closed += (_, _) =>
         {
             _watcher?.Dispose();
             _shell.RecentChanged -= RebuildRecent;
+            _shell.OpenFilesWithChanged -= RebuildOpenWith;
         };
 
         // A folder dropped on the window opens in a window of its own.
@@ -102,7 +106,7 @@ public partial class MainWindow : Window
         close.Click += (_, _) => Close();
         var quit = new NativeMenuItem(OperatingSystem.IsMacOS() ? "Quit Flowy Docs" : "Exit") { Gesture = new KeyGesture(Key.Q, Command) };
         quit.Click += (_, _) => _shell.Quit();
-        var file = new NativeMenuItem("File") { Menu = new NativeMenu { Items = { open, _recentMenu, new NativeMenuItemSeparator(), reload, showFolder, new NativeMenuItemSeparator(), close, quit } } };
+        var file = new NativeMenuItem("File") { Menu = new NativeMenu { Items = { open, _recentMenu, new NativeMenuItemSeparator(), reload, showFolder, _openWithMenu, new NativeMenuItemSeparator(), close, quit } } };
 
         var fit = new NativeMenuItem("Fit the View");
         fit.Click += (_, _) => _reader.FitNow();
@@ -138,7 +142,35 @@ public partial class MainWindow : Window
         DockPanel.SetDock(bar, Dock.Top);
         _frame.Children.Insert(0, bar);
         RebuildRecent();
+        RebuildOpenWith();
         foreach (var item in _needsModel) item.IsEnabled = false; // until a folder is open
+    }
+
+    /// <summary>The Open Files With submenu: the system's default, the app that was chosen (marked), and a picker. Rebuilt whenever the choice changes.</summary>
+    private void RebuildOpenWith()
+    {
+        var items = _openWithMenu.Menu!.Items;
+        items.Clear();
+        var chosen = _shell.State.OpenFilesWith;
+        var system = new NativeMenuItem("Default App") { ToggleType = MenuItemToggleType.Radio, IsChecked = chosen is null };
+        system.Click += (_, _) => _shell.RememberOpenFilesWith(null);
+        items.Add(system);
+        if (chosen is not null) items.Add(new NativeMenuItem(Path.GetFileNameWithoutExtension(chosen)) { ToggleType = MenuItemToggleType.Radio, IsChecked = true });
+        items.Add(new NativeMenuItemSeparator());
+        var choose = new NativeMenuItem("Choose App…");
+        choose.Click += async (_, _) => await ChooseOpenWithAsync();
+        items.Add(choose);
+    }
+
+    private async Task ChooseOpenWithAsync()
+    {
+        var picked = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Choose the app that opens linked files",
+            AllowMultiple = false,
+            FileTypeFilter = OperatingSystem.IsWindows() ? [new FilePickerFileType("Programs") { Patterns = ["*.exe"] }] : null,
+        });
+        if (picked.Count == 1 && picked[0].TryGetLocalPath() is { } path && File.Exists(path)) _shell.RememberOpenFilesWith(path);
     }
 
     private void RebuildRecent()

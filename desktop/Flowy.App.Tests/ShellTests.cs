@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Flowy.Core;
 using Xunit;
@@ -84,6 +85,34 @@ public class ShellTests
         var next = new Shell(new UserStateStore(store.File)).Show(Plum);
         Assert.Equal("curved", next.Reader.LineStyle);
         next.Close();
+    }
+
+    [AvaloniaFact]
+    public void The_app_chosen_for_linked_files_is_remembered_reaches_the_reader_and_is_in_the_File_menu()
+    {
+        using var temp = new TempFolder();
+        var app = Path.Combine(temp.Path, "Editor.exe");
+        File.WriteAllText(app, "");
+        var store = new UserStateStore(Path.Combine(temp.Path, "state.json"));
+        var shell = new Shell(store);
+        var window = shell.Show(Plum);
+        Assert.Null(window.Reader.CustomApp());
+        shell.RememberOpenFilesWith(app);
+        Assert.Equal(app, window.Reader.CustomApp());
+        Assert.Equal(app, new Shell(new UserStateStore(store.File)).State.OpenFilesWith);
+
+        var file = NativeMenu.GetMenu(window)!.Items.OfType<NativeMenuItem>().Single(i => i.Header == "File");
+        var openWith = file.Menu!.Items.OfType<NativeMenuItem>().Single(i => i.Header == "Open Files With");
+        var items = openWith.Menu!.Items.OfType<NativeMenuItem>().Where(i => i is not NativeMenuItemSeparator).ToList();
+        Assert.Equal(["Default App", "Editor", "Choose App…"], items.Select(i => i.Header));
+        Assert.False(items[0].IsChecked);
+        Assert.True(items[1].IsChecked);
+
+        shell.RememberOpenFilesWith(null);
+        items = openWith.Menu!.Items.OfType<NativeMenuItem>().Where(i => i is not NativeMenuItemSeparator).ToList();
+        Assert.Equal(["Default App", "Choose App…"], items.Select(i => i.Header));
+        Assert.True(items[0].IsChecked);
+        window.Close();
     }
 
     [AvaloniaFact]

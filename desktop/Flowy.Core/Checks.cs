@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace Flowy.Core;
 
 /// <summary>
@@ -39,7 +41,18 @@ public static class Checks
         return parts.Select((part, i) => (part != "" || (i == parts.Length - 1 && i > 0)) && part != "." && part != "..").All(ok => ok);
     }
 
-    /// <param name="absent">The <c>code</c> paths that don't exist. Only the file system can tell, so the loader fills it in.</param>
+    private static readonly Regex WebAddressPattern = new(@"^https?://[^\t\n\v\f\r /?#][^\t\n\v\f\r ]*\z", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    /// <summary>A web address as a link takes it: http or https, then a host. The same pattern as <c>isWebAddress</c> in src/core/check.ts, character for character (<c>\z</c> where JavaScript's <c>$</c> means the end).</summary>
+    public static bool IsWebAddress(string url) => WebAddressPattern.IsMatch(url);
+
+    /// <summary>A <c>links</c> entry whose known fields are text. A missing <c>url</c> is reported separately, as "a link has no url".</summary>
+    private static bool IsLinkEntry(object? l) =>
+        l is OrderedDictionary<string, object?> map
+        && (!map.TryGetValue("url", out var url) || url is string)
+        && (!map.TryGetValue("title", out var title) || title is string);
+
+    /// <param name="absent">The <c>code</c> and <c>links</c> paths that don't exist. Only the file system can tell, so the loader fills it in.</param>
     public static List<Problem> Run(Model model, ISet<string>? absent = null)
     {
         absent ??= new HashSet<string>();
@@ -83,6 +96,21 @@ public static class Checks
                     {
                         if (!IsRepoPath(path)) P($"code path \"{path}\" must be relative, with / between folders and no \".\" or \"..\" parts");
                         else if (absent.Contains(path)) P($"code path \"{path}\" doesn't exist");
+                    }
+            }
+            if (o.Links is not null)
+            {
+                if (o.Links is not List<object?> links || !links.All(IsLinkEntry)) P("links must be a list of entries with a url and, if you like, a title");
+                else
+                    foreach (var entry in links.Cast<OrderedDictionary<string, object?>>())
+                    {
+                        entry.TryGetValue("url", out var raw);
+                        if (raw is not string url || string.IsNullOrWhiteSpace(url)) P("a link has no url");
+                        else if (!IsWebAddress(url))
+                        {
+                            if (!IsRepoPath(url)) P($"link \"{url}\" must be a web address (http or https) or a path in the repo, relative, with / between folders and no \".\" or \"..\" parts");
+                            else if (absent.Contains(url)) P($"link path \"{url}\" doesn't exist");
+                        }
                     }
             }
             if (Missing(o.Type))

@@ -159,7 +159,7 @@ internal sealed class SidePanel : Border
     }
 
     /// <summary>A box: its header, any problems, its description, the files it lives in, and every line out and in.</summary>
-    public void ShowObject(Model model, string id, IReadOnlyList<Problem> problems, string? codeBase, Action<string> pick, Action<string?> hover)
+    public void ShowObject(Model model, string id, IReadOnlyList<Problem> problems, string? codeBase, LinkContext links, Action<string> pick, Action<string?> hover)
     {
         if (model.GetObject(id) is not { } o)
         {
@@ -173,6 +173,13 @@ internal sealed class SidePanel : Border
         column.Children.Add(Chrome.Section(Icons.Text, "Description"));
         column.Children.Add(Chrome.Card(string.IsNullOrEmpty(o.Description) ? Muted("No description yet.") : new MarkdownView(o.Description)));
 
+        var boxLinks = Links.Of(o);
+        if (boxLinks.Count > 0)
+        {
+            column.Children.Add(Chrome.Section(Icons.Link, "Links", boxLinks.Count));
+            column.Children.Add(LinkList(boxLinks, links));
+        }
+
         var paths = o.Code is List<object?> code ? code.OfType<string>().ToList() : [];
         if (paths.Count > 0)
         {
@@ -181,6 +188,49 @@ internal sealed class SidePanel : Border
         }
         column.Children.Add(LinesOf(model, id, pick, hover));
         Show(column, $"object:{id}");
+    }
+
+    /// <summary>
+    /// A row each. A web address opens in the browser; a path in the repo opens on this computer as <see cref="LinkOpening"/> decides, judged again
+    /// at the click; one that points at nothing it may open is plain text (a missing path is already a problem in the list). A file also has a small
+    /// button that shows it in its folder and runs nothing.
+    /// </summary>
+    private Control LinkList(IReadOnlyList<BoxLink> links, LinkContext context)
+    {
+        var list = new StackPanel { Spacing = 6 };
+        foreach (var link in links)
+        {
+            var web = Checks.IsWebAddress(link.Url);
+            var now = LinkOpening.Decide(link.Url, context.RepoRoot, context.CustomApp());
+            var text = string.IsNullOrEmpty(link.Title) ? link.Url : link.Title;
+            Control label = now.Kind == LinkKind.Refused
+                ? new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, Foreground = Resource("MutedBrush") }
+                : Link(text, () => _ = context.Run(LinkOpening.Decide(link.Url, context.RepoRoot, context.CustomApp())));
+            var body = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { label } };
+            if (!web && !string.IsNullOrEmpty(link.Title))
+                body.Children.Add(new TextBlock { Text = link.Url, FontFamily = Mono, FontSize = 12, Foreground = Resource("MutedBrush"), TextWrapping = TextWrapping.Wrap });
+            var icon = Icons.Make(web ? Icons.Link : link.Url.EndsWith('/') ? Icons.Folder : Icons.File, "rowicon", 16);
+            icon.VerticalAlignment = VerticalAlignment.Center;
+            var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { icon, body } };
+            Grid.SetColumn(body, 1);
+            if (now.Kind is LinkKind.DefaultApp or LinkKind.CustomApp)
+            {
+                var show = new Button { Content = Icons.Make(Icons.Folder, "rowicon", 14), VerticalAlignment = VerticalAlignment.Center };
+                show.Classes.Add("tool");
+                Avalonia.Automation.AutomationProperties.SetName(show, "Show in folder");
+                ToolTip.SetTip(show, "Show in folder");
+                show.Click += (_, _) =>
+                {
+                    if (LinkOpening.Locate(context.RepoRoot, link.Url) is { } real) _ = context.Run(new LinkAction(LinkKind.ShowInFolder, real));
+                };
+                Grid.SetColumn(show, 2);
+                grid.Children.Add(show);
+            }
+            var row = new Border { Child = grid, Padding = new Thickness(10, 7) };
+            row.Classes.Add("row");
+            list.Children.Add(row);
+        }
+        return list;
     }
 
     /// <summary>The files and folders a box lives in: a chip each with a file or folder icon, a link when the repo's origin is on a host that has them.</summary>
@@ -393,3 +443,9 @@ internal sealed class SidePanel : Border
         if (TopLevel.GetTopLevel(this) is { } top) _ = top.Launcher.LaunchUriAsync(new Uri(address));
     }
 }
+
+/// <summary>
+/// What the Links section needs to decide and carry out a click: the folder that holds <c>flowy/</c>, the app the person chose (read at
+/// the click, so a change applies at once), and what to do with the decision.
+/// </summary>
+internal sealed record LinkContext(string RepoRoot, Func<string?> CustomApp, Func<LinkAction, Task> Run);

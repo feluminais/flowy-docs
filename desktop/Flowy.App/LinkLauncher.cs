@@ -1,0 +1,63 @@
+using System.ComponentModel;
+using System.Diagnostics;
+using Avalonia.Controls;
+using Avalonia.Platform.Storage;
+using Flowy.Core;
+
+namespace Flowy.App;
+
+/// <summary>
+/// Carries out what <see cref="LinkOpening"/> decided. The decisions and the checks behind them are Core's; this only starts things, and the
+/// descriptions of the processes it starts are built by plain functions so a test can read them.
+/// </summary>
+internal static class LinkLauncher
+{
+    internal enum Os { Windows, MacOs, Other }
+
+    internal static Os Current => OperatingSystem.IsWindows() ? Os.Windows : OperatingSystem.IsMacOS() ? Os.MacOs : Os.Other;
+
+    /// <summary>The chosen app with the file as its one argument: no shell, so nothing in the path is read as a command.</summary>
+    internal static ProcessStartInfo CustomAppStart(string app, string path) => new(app) { UseShellExecute = false, ArgumentList = { path } };
+
+    /// <summary>Explorer or Finder with the file selected, running nothing. Null where there is no such thing (the caller opens the folder).</summary>
+    internal static ProcessStartInfo? ShowInFolderStart(string path, Os os) => os switch
+    {
+        Os.Windows => new ProcessStartInfo("explorer.exe") { UseShellExecute = false, Arguments = $"/select,\"{path}\"" },
+        Os.MacOs => new ProcessStartInfo("open") { UseShellExecute = false, ArgumentList = { "-R", path } },
+        _ => null,
+    };
+
+    /// <summary>Does it. Returns what went wrong in words, or null when it started.</summary>
+    internal static async Task<string?> RunAsync(TopLevel top, LinkAction action)
+    {
+        try
+        {
+            switch (action.Kind)
+            {
+                case LinkKind.Web:
+                    await top.Launcher.LaunchUriAsync(new Uri(action.Target));
+                    break;
+                case LinkKind.Folder:
+                    await top.Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(action.Target));
+                    break;
+                case LinkKind.DefaultApp:
+                    await top.Launcher.LaunchFileInfoAsync(new FileInfo(action.Target));
+                    break;
+                case LinkKind.CustomApp:
+                    Process.Start(CustomAppStart(action.App!, action.Target))?.Dispose();
+                    break;
+                case LinkKind.ShowInFolder:
+                    if (ShowInFolderStart(action.Target, Current) is { } start) Process.Start(start)?.Dispose();
+                    else await top.Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(Path.GetDirectoryName(action.Target)!));
+                    break;
+                default:
+                    return "That link doesn't point at anything Flowy can open.";
+            }
+            return null;
+        }
+        catch (Exception e) when (e is Win32Exception or InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+            return $"Couldn't open it: {e.Message}";
+        }
+    }
+}

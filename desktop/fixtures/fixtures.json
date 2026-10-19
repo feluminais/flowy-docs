@@ -3,6 +3,7 @@
   "plum": "docs/demo/flowy",
   "empty": "desktop/fixtures/cases/empty/flowy",
   "problems": "desktop/fixtures/cases/problems/flowy",
+  "links": "desktop/fixtures/cases/links/flowy",
   "text": "desktop/fixtures/cases/text/flowy",
   "layout": "desktop/fixtures/cases/layout/flowy",
   "bad-syntax": "desktop/fixtures/cases/bad-syntax/flowy",

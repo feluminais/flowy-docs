@@ -65,7 +65,7 @@ internal static class JsonDump
             ("objects", Arr(m.Objects.Select(kv => Obj(
                 ("id", kv.Key), ("type", kv.Value.Type), ("name", kv.Value.Name), ("in", kv.Value.In), ("external", kv.Value.External),
                 ("shape", kv.Value.Shape), ("color", kv.Value.Color), ("opacity", kv.Value.Opacity), ("icon", kv.Value.Icon),
-                ("tech", kv.Value.Tech), ("description", kv.Value.Description), ("code", Raw(kv.Value.Code)))))),
+                ("tech", kv.Value.Tech), ("description", kv.Value.Description), ("code", Raw(kv.Value.Code)), ("links", Raw(kv.Value.Links)))))),
             ("icons", m.Meta.TryGetValue("icons", out var icons) ? Raw(icons) : null),
             ("connections", Arr(m.Connections.Select(c => Obj(("from", c.From), ("to", c.To), ("label", c.Label))))),
             ("layout", new JsonObject(m.Layout.Select(view => KeyValuePair.Create(view.Key, (JsonNode?)new JsonObject(
