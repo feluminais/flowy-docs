@@ -56,6 +56,10 @@ public partial class MainWindow : Window
         Content = _frame;
         _frame.Children.Add(Welcome());
         _reader.LinesPicked += _shell.RememberLines;
+        _reader.NavigatorChanged += navigator =>
+        {
+            if (Dir is not null) _shell.RememberNavigator(Dir, navigator);
+        };
         _reader.CustomApp = () => _shell.State.OpenFilesWith;
         _shell.RecentChanged += RebuildRecent;
         _shell.OpenFilesWithChanged += RebuildOpenWith;
@@ -252,6 +256,7 @@ public partial class MainWindow : Window
         var demo = Shell.DemoDir;
         _reader.CanEdit = demo is null || !string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(dir)), Path.TrimEndingDirectorySeparator(Path.GetFullPath(demo)), StringComparison.OrdinalIgnoreCase);
         _reader.Load(folder, dir);
+        _reader.RestoreNavigator(_shell.NavigatorFor(dir));
         foreach (var item in _needsModel) item.IsEnabled = true;
         if (_shell.State.Lines is { } lines) _reader.PickLines(lines);
         if (problem is not null) _reader.SetBanner(problem);
@@ -368,6 +373,7 @@ public partial class MainWindow : Window
         if (options.Value("--view") is { } view) _reader.GoTo(view);
         if (options.Value("--flow") is { } flow) _reader.Play(flow, int.TryParse(options.Value("--step"), out var step) ? step : 0);
         if (options.Value("--select") is { } select) _reader.Select(select);
+        if (options.Value("--tab") is { } tab) _reader.OpenTab(tab);
         if (options.Has("--add")) _reader.OpenAddPanel();
         if (options.Value("--edit-flow") is { } editFlow) _reader.OpenFlowEditor(editFlow);
         if (options.Value("--line") is { } line && line.Split(' ') is [var from, var to]) _reader.OpenLine(from, to);

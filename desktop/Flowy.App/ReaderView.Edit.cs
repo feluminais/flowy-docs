@@ -265,12 +265,7 @@ internal sealed partial class ReaderView
         if (await RunAsync(d => EditOps.Connect(d, new ConnectionInput(from, to)))) OpenLine(from, to);
     }
 
-    private void CloseSide()
-    {
-        _side = null;
-        Refresh();
-        Focus();
-    }
+    private void CloseSide() => CloseTab();
 
     /// <summary>Delete: the open box, or the open line when it stands for just one connection.</summary>
     internal async Task DeleteSelectedAsync()
@@ -347,7 +342,6 @@ internal sealed partial class ReaderView
 
     internal ComboBox LinePicker => _linePicker;
 
-    internal ComboBox FlowPicker => _flowPicker;
 
     internal Recording? RecordingNow => Recording is { } r ? new Recording(r.Id ?? "", r.FlowName ?? "", r.From, r.To) : null;
 

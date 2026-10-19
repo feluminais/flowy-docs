@@ -79,8 +79,17 @@ public static class Recents
 /// <summary>How big the window was, so the next one opens the same: its size when not maximized, and whether it was.</summary>
 public readonly record struct WindowSize(double Width, double Height, bool Maximized);
 
-/// <summary>What the app remembers between runs. <c>OpenFilesWith</c> is the app the person chose to open a box's linked files with; null means the system's default.</summary>
-public sealed record UserState(IReadOnlyList<string> Recent, string? Lines, bool CheckForUpdates, WindowSize? Window = null, string? OpenFilesWith = null)
+/// <summary>What the navigator remembers for one project: the panel tab that was open ("flows" or "explorer", else none) and which shapes were open in the tree.</summary>
+public sealed record NavigatorState(string? Tab, IReadOnlyList<string> Expanded)
+{
+    /// <summary>The most shapes remembered open for one project, and the most projects remembered, so a runaway entry never grows the file without bound.</summary>
+    public const int MaxExpanded = 2000;
+
+    public const int MaxProjects = 50;
+}
+
+/// <summary>What the app remembers between runs. <c>OpenFilesWith</c> is the app the person chose to open a box's linked files with; null means the system's default. <c>Navigators</c> is what each project's navigator remembers, by <see cref="ModelFolders.Key"/>.</summary>
+public sealed record UserState(IReadOnlyList<string> Recent, string? Lines, bool CheckForUpdates, WindowSize? Window = null, string? OpenFilesWith = null, IReadOnlyDictionary<string, NavigatorState>? Navigators = null)
 {
     public static UserState Default { get; } = new([], null, true);
 }
@@ -120,7 +129,22 @@ public sealed class UserStateStore(string file)
                 window = new WindowSize(width, height, w.TryGetProperty("maximized", out var m) && m.ValueKind == JsonValueKind.True);
             // The app a person chose for linked files. One that is not text, or is gone, is forgotten.
             var openWith = root.TryGetProperty("openFilesWith", out var o) && o.ValueKind == JsonValueKind.String && o.GetString() is { Length: > 0 } app && System.IO.File.Exists(app) ? app : null;
-            return new UserState(recent, lines, updates, window, openWith);
+            // What each project's navigator remembered. Anything that is not text is dropped, and so is whatever is past the limits.
+            Dictionary<string, NavigatorState>? navigators = null;
+            if (root.TryGetProperty("navigators", out var n) && n.ValueKind == JsonValueKind.Object)
+            {
+                navigators = [];
+                foreach (var entry in n.EnumerateObject().Take(NavigatorState.MaxProjects))
+                {
+                    if (entry.Value.ValueKind != JsonValueKind.Object) continue;
+                    var tab = entry.Value.TryGetProperty("tab", out var t) && t.ValueKind == JsonValueKind.String && t.GetString() is "flows" or "explorer" ? t.GetString() : null;
+                    var open = entry.Value.TryGetProperty("expanded", out var x) && x.ValueKind == JsonValueKind.Array
+                        ? x.EnumerateArray().Where(e => e.ValueKind == JsonValueKind.String).Select(e => e.GetString()!).Take(NavigatorState.MaxExpanded).ToList()
+                        : [];
+                    navigators[entry.Name] = new NavigatorState(tab, open);
+                }
+            }
+            return new UserState(recent, lines, updates, window, openWith, navigators);
         }
         catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException or InvalidOperationException)
         {
@@ -135,7 +159,7 @@ public sealed class UserStateStore(string file)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(file)!);
             var temp = file + ".tmp";
-            System.IO.File.WriteAllText(temp, JsonSerializer.Serialize(new { recent = state.Recent, lines = state.Lines, checkForUpdates = state.CheckForUpdates, openFilesWith = state.OpenFilesWith, window = state.Window is { } w ? new { width = w.Width, height = w.Height, maximized = w.Maximized } : null }, Json));
+            System.IO.File.WriteAllText(temp, JsonSerializer.Serialize(new { recent = state.Recent, lines = state.Lines, checkForUpdates = state.CheckForUpdates, openFilesWith = state.OpenFilesWith, window = state.Window is { } w ? new { width = w.Width, height = w.Height, maximized = w.Maximized } : null, navigators = state.Navigators?.ToDictionary(k => k.Key, k => new { tab = k.Value.Tab, expanded = k.Value.Expanded }) }, Json));
             System.IO.File.Move(temp, file, true);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)

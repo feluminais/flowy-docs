@@ -39,6 +39,9 @@ internal sealed class SidePanel : Border
 
     public event Action? Closed;
 
+    /// <summary>The strip of tabs on top: Details, Flows and Explorer. ReaderView follows it.</summary>
+    public NavTabs Tabs { get; } = new();
+
     public SidePanel()
     {
         Classes.Add("panel");
@@ -51,7 +54,10 @@ internal sealed class SidePanel : Border
         close.Classes.Add("close");
         close.Click += (_, _) => Closed?.Invoke();
         Avalonia.Automation.AutomationProperties.SetName(close, "Close");
-        Child = new Grid { Children = { _scroll, close } };
+        Tabs.Margin = new Thickness(16, 10, 52, 0);
+        var column = new Grid { RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)], Children = { Tabs, _scroll } };
+        Grid.SetRow(_scroll, 1);
+        Child = new Grid { Children = { column, close } };
     }
 
     internal IBrush Resource(string key) =>
@@ -81,6 +87,15 @@ internal sealed class SidePanel : Border
         _shown = key;
         IsVisible = true;
         if (!same) _scroll.Offset = default;
+    }
+
+    /// <summary>What Details shows at the top level when nothing is picked: how much there is, and where to go next.</summary>
+    public void ShowOverview(OutlineTotals totals)
+    {
+        static string Count(int n, string word) => $"{n} {word}{(n == 1 ? "" : "s")}";
+        var summary = $"{Count(totals.Shapes, "shape")} · {Count(totals.Flows, "flow")}{(totals.Problems > 0 ? $" · {Count(totals.Problems, "problem")}" : "")}";
+        var advice = new TextBlock { Text = "Pick a shape on the canvas to read about it here, or open the Explorer to see everything at once.", TextWrapping = TextWrapping.Wrap };
+        Show(new StackPanel { Spacing = 14, Children = { Heading("Overview"), Muted(summary), advice } }, "overview");
     }
 
     internal Control Heading(string text) => new TextBlock { Text = text, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) };

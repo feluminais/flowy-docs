@@ -64,6 +64,30 @@ public class ShellTests
     }
 
     [AvaloniaFact]
+    public void What_each_projects_navigator_remembers_comes_back_and_is_read_with_care()
+    {
+        using var temp = new TempFolder();
+        var store = new UserStateStore(Path.Combine(temp.Path, "state.json"));
+        var shell = new Shell(store);
+        shell.RememberNavigator(Plum, new NavigatorState("explorer", ["root", "ordering"]));
+        shell.RememberNavigator(Example, new NavigatorState(null, ["root"]));
+        var again = new Shell(new UserStateStore(store.File));
+        Assert.Equal("explorer", again.NavigatorFor(Plum)!.Tab);
+        Assert.Equal(["root", "ordering"], again.NavigatorFor(Plum)!.Expanded);
+        Assert.Null(again.NavigatorFor(Example)!.Tab);
+        Assert.Null(again.NavigatorFor(Path.Combine(temp.Path, "never-opened")));
+
+        // A hand-edited file: a tab that is not one, ids that are not text, and far too many ids are all cut down.
+        var ids = new object?[] { "x", 1, null }.Concat(Enumerable.Range(0, 3000).Select(i => (object?)$"s{i}")).ToArray();
+        File.WriteAllText(store.File, System.Text.Json.JsonSerializer.Serialize(new { navigators = new Dictionary<string, object> { ["a"] = new { tab = "details", expanded = ids }, ["b"] = 5 } }));
+        var loaded = store.Load().Navigators!;
+        Assert.Single(loaded);
+        Assert.Null(loaded["a"].Tab);
+        Assert.Equal(NavigatorState.MaxExpanded, loaded["a"].Expanded.Count);
+        Assert.Equal("x", loaded["a"].Expanded[0]);
+    }
+
+    [AvaloniaFact]
     public void Recent_folders_that_are_gone_are_not_listed()
     {
         using var temp = new TempFolder();

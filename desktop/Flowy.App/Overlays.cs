@@ -206,6 +206,8 @@ internal sealed class ShortcutsCard : Border
         ("Backspace  Z", "Zoom out: go up a level"),
         ("Ctrl+K or /", "Find a shape"),
         ("F", "Fit the view"),
+        ("L", "Show every flow, and play one"),
+        ("O", "Show everything as a tree"),
         ("E", "Edit mode on and off"),
         ("?", "Show these shortcuts"),
     ];

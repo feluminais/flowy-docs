@@ -83,7 +83,7 @@ documents stay documents.
 
 ![A flow playing: Customer app to Order API is lit, and a card says what happens, with a More for the detail and Back, Next, Autoplay and Stop](docs/images/desktop-flow.png)
 
-Pick a flow in the top bar to play it step by step. A step is one shape handing something to another, or one shape doing
+Open the Flows tab (the icons on the right edge, or **L**) to see every flow and pick one to play it step by step; the Explorer (**O**) shows the whole documentation as a tree. A step is one shape handing something to another, or one shape doing
 something on its own, and a step with more to say has a **More**. In the browser the address follows what's on screen, so
 `#ordering/place-order` plays Customer places an order; send it to someone and they land on the same step.
 

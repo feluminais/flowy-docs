@@ -40,7 +40,8 @@ internal sealed partial class ReaderView : Grid
     private readonly Border _banner = new();
     private readonly TextBlock _bannerText = new() { TextWrapping = TextWrapping.Wrap };
     private readonly StackPanel _crumbs = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-    private readonly ComboBox _flowPicker = new() { PlaceholderText = "Play a flow", MinWidth = 180 };
+    private readonly NavigatorPanel _nav = new();
+    private readonly NavRail _rail = new();
     private readonly ComboBox _linePicker = new();
     private readonly Button _searchButton = new();
     private readonly Button _helpButton = new();
@@ -50,12 +51,26 @@ internal sealed partial class ReaderView : Grid
     private string? _codeBase;
     private string? _repoRoot;
     private string _view = Names.Root;
-    private Side? _side;
+    private Side? _sideValue;
+    private PanelTab? _tab; // the tab chosen on the rail or a tab strip; null: the panel follows what is picked
+    private bool _keepTab; // the Explorer selects a shape without taking the panel off the Explorer
+    private readonly HashSet<string> _expanded = [Names.Root]; // the shapes whose children show in the Explorer; the project's own row starts open
+    private (Model Model, bool Editing, OutlineTotals Totals)? _totals;
+
+    /// <summary>What is picked. Pointing at something shows it in Details, so setting one takes the panel off the Flows and Explorer tabs.</summary>
+    private Side? _side
+    {
+        get => _sideValue;
+        set
+        {
+            _sideValue = value;
+            if (value is not null && !_keepTab) _tab = null;
+        }
+    }
     private (string Flow, int Step)? _playing;
     private string? _hover;
     private string? _ownLines; // this reader's own pick of line style
     private string _fitKey = "";
-    private List<string> _flowIds = [];
     private bool _syncing;
     private SearchBox? _search;
     private ShortcutsCard? _shortcuts;
@@ -94,9 +109,11 @@ internal sealed partial class ReaderView : Grid
             HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
             Children = { _emptyTitle, _emptyBody },
         };
-        var stage = new Grid { Children = { _motionHost, _empty, ZoomButtons(), _panel, _player, _overlay } };
-        SetRow(stage, 2);
-        Children.Add(stage);
+        var stage = new Grid { Children = { _motionHost, _empty, ZoomButtons(), _panel, _nav, _player, _overlay } };
+        var beside = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { stage, _rail } };
+        SetColumn(_rail, 1);
+        SetRow(beside, 2);
+        Children.Add(beside);
 
         _canvas.BoxClicked += BoxClicked;
         _canvas.BoxesMoved += moved => _ = MoveBoxesAsync(moved);
@@ -130,12 +147,15 @@ internal sealed partial class ReaderView : Grid
             Refresh();
             Focus();
         };
-        _panel.Closed += () =>
-        {
-            _side = null;
-            Refresh();
-            Focus();
-        };
+        _panel.Closed += CloseTab;
+        _panel.Tabs.Picked += SetTab;
+        _nav.Tabs.Picked += SetTab;
+        _nav.Closed += CloseTab;
+        _rail.Picked += ToggleTab;
+        _nav.Flows.Opened += flow => OpenFlow(flow.Id);
+        _nav.Explorer.Picked += PickRow;
+        _nav.Explorer.Opened += OpenRow;
+        _nav.Explorer.Toggled += ToggleOpen;
         _player.Back += () => StepTo(StepIndex() - 1);
         _player.Next += () => StepTo(StepIndex() + 1);
         _player.Stop += Stop;
@@ -153,7 +173,7 @@ internal sealed partial class ReaderView : Grid
 
     // What a test can look at.
     internal string? SelectedBoxId => SelectedBox;
-    internal bool HasPanel => _side is not null;
+    internal bool HasPanel => ShownTab is not null;
     internal bool IsMoving => _moving;
     internal bool ShowsEmptyNote => _empty.IsVisible;
     internal string? BannerText => _banner.IsVisible ? _bannerText.Text : null;
@@ -197,18 +217,6 @@ internal sealed partial class ReaderView : Grid
             LinesPicked?.Invoke(_ownLines);
             Refresh();
         };
-        _flowPicker.SelectionChanged += (_, _) =>
-        {
-            if (_syncing || _flowPicker.SelectedIndex < 0 || _flowPicker.SelectedIndex >= _flowIds.Count) return;
-            var id = _flowIds[_flowPicker.SelectedIndex];
-            // After this event: redrawing the bar empties the very list that is announcing its selection.
-            Dispatcher.UIThread.Post(() =>
-            {
-                if (Editing) EditFlow(id);
-                else Play(id);
-                Focus();
-            });
-        };
         _searchButton.Classes.Add("tool");
         Chrome.Fill(_searchButton, Icons.Search, "Search");
         ToolTip.SetTip(_searchButton, "Search shapes and flows (Ctrl+K)");
@@ -220,9 +228,8 @@ internal sealed partial class ReaderView : Grid
         _problemsButton.Classes.Add("problems");
         _problemsButton.IsVisible = false;
 
-        _flowPicker.Classes.Add("flat");
         _linePicker.Classes.Add("flat");
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _crumbs, _flowPicker, _editTools } };
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _crumbs, _editTools } };
         var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, HorizontalAlignment = HorizontalAlignment.Right, Children = { _linePicker, _searchButton, _helpButton, _problemsButton, _editButton } };
         var dock = new DockPanel { LastChildFill = false };
         DockPanel.SetDock(right, Dock.Right);
@@ -410,6 +417,7 @@ internal sealed partial class ReaderView : Grid
         var view = CurrentView();
         var flow = PlayingFlow();
         var index = StepIndex();
+        FollowCanvas(model, view);
 
         var shown = DrawScene(folder, view, flow, index);
         UpdateEmpty();
@@ -427,6 +435,7 @@ internal sealed partial class ReaderView : Grid
         RefreshPanel(model, view);
         RefreshPlayer(model, view, flow, index, shown);
         UpdateMotion(flow, index, shown);
+        RefreshNavigator(model, view, flow);
     }
 
     /// <summary>The canvas alone: what pointing at a line changes. The panel keeps its scroll, its open rows and its selection.</summary>
@@ -468,14 +477,6 @@ internal sealed partial class ReaderView : Grid
         }
 
         _syncing = true;
-        var flows = FlowsHere();
-        _flowIds = flows.Select(f => f.Id).ToList();
-        _flowPicker.IsVisible = flows.Count > 0;
-        _flowPicker.Items.Clear();
-        foreach (var (id, f) in flows) _flowPicker.Items.Add(string.IsNullOrEmpty(f.Name) ? id : f.Name);
-        _flowPicker.PlaceholderText = Editing ? "Edit a flow" : "Play a flow";
-        var chosen = Recording?.Id ?? flow?.Id;
-        _flowPicker.SelectedIndex = string.IsNullOrEmpty(chosen) ? -1 : _flowIds.IndexOf(chosen);
         SyncLinePicker(model);
         _syncing = false;
 
@@ -509,6 +510,11 @@ internal sealed partial class ReaderView : Grid
 
     private void RefreshPanel(Model model, string view)
     {
+        if (ShownTab is PanelTab.Flows or PanelTab.Explorer)
+        {
+            _panel.Clear(); // the navigator draws itself (RefreshNavigator)
+            return;
+        }
         switch (_side)
         {
             case { Kind: SideKind.Object, Id: { } id } when Editing:
@@ -531,9 +537,18 @@ internal sealed partial class ReaderView : Grid
                     r => SetRecording(r), name => Navigation.NewId(name, model.Flows.Keys, "flow"), CloseSide);
                 break;
             default:
-                _panel.Clear();
+                ShowViewDetails(model, view);
                 break;
         }
+    }
+
+    /// <summary>Details with nothing picked, while that tab is chosen: the level you are inside, or the project's Overview at the top.</summary>
+    private void ShowViewDetails(Model model, string view)
+    {
+        if (_tab != PanelTab.Details) _panel.Clear();
+        else if (view == Names.Root) _panel.ShowOverview(Totals());
+        else if (Editing) _panel.ShowObjectEditor(model, view, _folder!.Problems, RunAsync, OpenObject, SetHover, CloseSide);
+        else _panel.ShowObject(model, view, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover);
     }
 
     private void RefreshPlayer(Model model, string view, (string Id, Flow Flow)? flow, int index, Playing? shown)
@@ -643,7 +658,7 @@ internal sealed partial class ReaderView : Grid
         _canvas.RenderTransform = new ScaleTransform(scale, scale);
     }
 
-    public void FitNow() => _canvas.Fit(_side is not null, PlayingFlow() is not null, 220);
+    public void FitNow() => _canvas.Fit(ShownTab is not null, PlayingFlow() is not null, 220);
 
     // ---- selecting ---------------------------------------------------------------------------------------------
 
@@ -785,6 +800,7 @@ internal sealed partial class ReaderView : Grid
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (_folder is not { } folder || e.Source is TextBox) return;
+        if (_nav.Explorer.Holds(e.Source) && e.Key != Key.Escape) return; // the tree has its own keys, and a letter typed in it goes to its filter
         var view = CurrentView();
         var plain = e.KeyModifiers == KeyModifiers.None;
         var flow = PlayingFlow();
@@ -800,13 +816,12 @@ internal sealed partial class ReaderView : Grid
         else if (e.Key == Key.Escape && ResetPick()) { }
         else if (e.Key == Key.Escape)
         {
-            switch (Navigation.Escape(_shortcuts is not null, flow is not null, _side is not null, view != Names.Root))
+            switch (Navigation.Escape(_shortcuts is not null, flow is not null, ShownTab is not null, view != Names.Root))
             {
                 case EscapeStep.Shortcuts: ShowShortcuts(false); break;
                 case EscapeStep.Flow: Stop(); break;
                 case EscapeStep.Panel:
-                    _side = null;
-                    Refresh();
+                    CloseTab();
                     break;
                 case EscapeStep.Up: Up(); break;
                 default: return;
@@ -830,6 +845,8 @@ internal sealed partial class ReaderView : Grid
         else if (e.KeySymbol == "?") ToggleShortcuts();
         else if ((e.PhysicalKey == PhysicalKey.K && e.KeyModifiers == KeyModifiers.Control) || e.KeySymbol == "/" || (e.PhysicalKey == PhysicalKey.Slash && e.KeyModifiers == KeyModifiers.None)) OpenSearch();
         else if (e.PhysicalKey == PhysicalKey.F && plain) FitNow();
+        else if (e.PhysicalKey == PhysicalKey.L && plain && ShowFlows) ToggleTab(PanelTab.Flows);
+        else if (e.PhysicalKey == PhysicalKey.O && plain) ToggleTab(PanelTab.Explorer);
         // Z zooms out, always: in edit mode Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
         else if ((e.Key == Key.Back || e.PhysicalKey == PhysicalKey.Z) && plain && view != Names.Root && Recording is null) Up();
         else return;
