@@ -2,6 +2,8 @@ import { colorPair, isColor, isOpacity, fillOpacity, shapeOf, typeColor } from '
 import type { Shape } from './look.ts'
 import { getObject, ROOT } from './model.ts'
 import type { Model } from './model.ts'
+import { blank, runsOf } from './structure.ts'
+import type { Run } from './structure.ts'
 import { computeView, placeStep } from './views.ts'
 
 /**
@@ -76,10 +78,44 @@ export function flowToMermaid(model: Model, flowId: string): string {
   // A step the view can't show (the checker reports it) keeps its own ends.
   const steps = flow.steps.map(s => ({ ends: placeStep(model, flow.view, s) ?? [s.from, s.to || s.from], text: mermaidText(String(s.text ?? '')) }))
   const n = ids([...new Set(steps.flatMap(s => s.ends))])
+  // A step one box does on its own is a note over it. A step that continues in another flow says so in a note over its end.
+  const line = (i: number, indent: string): string[] => {
+    const { ends: [a, b], text } = steps[i]
+    const out = [a === b ? `${indent}Note over ${n.get(a)}: ${text}` : `${indent}${n.get(a)}->>${n.get(b)}: ${text}`]
+    const link = blank(flow.steps[i].flow) ? undefined : String(flow.steps[i].flow).trim()
+    if (link !== undefined && Object.hasOwn(model.flows, link))
+      out.push(`${indent}Note over ${n.get(b)}: ${mermaidText(`Continues in "${String(model.flows[link].name || link)}"`)}`)
+    return out
+  }
+  const keyword = (word: string, label: string) => `  ${word}${label === '' ? '' : ` ${label}`}`
+  // A group is Mermaid's own block, one level: a repeat is a loop, a branch is alt and else (opt for one lane), parallel lanes are par and and.
+  const block = (run: Run): string[] => {
+    const inside = (from: number[]) => from.flatMap(i => line(i, '    '))
+    if (run.kind === 'repeat') {
+      const g = flow.groups?.[run.group] ?? {}
+      const part = (v: unknown) => (blank(v) ? '' : String(v).trim())
+      const times = part(g.times)
+      const until = part(g.until)
+      const head = [times === '' ? '' : `Up to ${times} times`, until === '' ? '' : `${times === '' ? 'Until' : 'until'} ${until}`].filter(w => w !== '').join(', ')
+      const label = [head, part(g.text)].filter(w => w !== '').join(': ')
+      return [keyword('loop', mermaidText(label)), ...inside(Array.from({ length: run.end - run.start + 1 }, (_, k) => run.start + k)), '  end']
+    }
+    const [first, next] = run.kind === 'branch' ? [run.lanes.length > 1 ? 'alt' : 'opt', 'else'] : ['par', 'and']
+    return [...run.lanes.flatMap((lane, k) => [keyword(k === 0 ? first : next, mermaidText(lane.label)), ...inside(lane.steps)]), '  end']
+  }
+  const runs = runsOf(flow)
+  const body: string[] = []
+  for (let i = 0; i < steps.length;) {
+    const run = runs.find(r => r.start === i)
+    if (run === undefined) body.push(...line(i++, '  '))
+    else {
+      body.push(...block(run))
+      i = run.end + 1
+    }
+  }
   return [
     'sequenceDiagram',
     ...[...n].map(([id, m]) => `  ${getObject(model, id)?.type === 'actor' ? 'actor' : 'participant'} ${m} as ${nameOf(model, id)}`),
-    // A step one box does on its own is a note over it.
-    ...steps.map(({ ends: [a, b], text }) => (a === b ? `  Note over ${n.get(a)}: ${text}` : `  ${n.get(a)}->>${n.get(b)}: ${text}`)),
+    ...body,
   ].join('\n') + '\n'
 }
