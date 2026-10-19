@@ -63,6 +63,39 @@ public class ModelFilesTests
     }
 
     [Fact]
+    public void A_flow_file_keeps_its_groups_and_a_steps_group_lane_and_flow()
+    {
+        var flow = ModelFiles.ParseFlow("pays", "name: Pays\nview: shop\ngroups:\n  charge: { kind: repeat, times: 3, text: Backs off }\nsteps:\n  - { from: a, to: b, text: Charges, group: charge, lane: First, flow: other }\n");
+        var charge = Assert.IsType<OrderedDictionary<string, object?>>(flow.Groups!["charge"]);
+        Assert.Equal(["kind", "times", "text"], charge.Keys.ToList());
+        Assert.Equal("3", charge["times"]);
+        Assert.Equal(new Step("a", "b", "Charges", null, null, "charge", "First", "other"), Assert.Single(flow.Steps));
+    }
+
+    [Theory]
+    [InlineData("groups:\n")]
+    [InlineData("groups: ~\n")]
+    [InlineData("groups: null\n")]
+    [InlineData("groups: \"\"\n")]
+    public void A_blank_groups_section_is_no_groups(string section)
+    {
+        Assert.Null(ModelFiles.ParseFlow("x", "name: X\nview: root\n" + section + "steps: []\n").Groups);
+    }
+
+    [Theory]
+    [InlineData("groups: [a]\n", "\"groups\" must map ids to mappings")]
+    [InlineData("groups:\n  x: [a]\n", "group \"x\" must be a mapping")]
+    [InlineData("groups:\n  x: { kind: [a] }\n", "group \"x\": \"kind\" must be plain text, not a list or a mapping")]
+    [InlineData("groups:\n  x: { times: { a: b } }\n", "group \"x\": \"times\" must be plain text, not a list or a mapping")]
+    [InlineData("steps:\n  - { from: a, text: t, lane: [a] }\n", "step 1: \"lane\" must be plain text, not a list or a mapping")]
+    public void A_wrongly_shaped_group_is_refused(string text, string reason)
+    {
+        var e = Assert.Throws<ParseError>(() => ModelFiles.ParseFlow("x", "name: X\nview: root\n" + text));
+        Assert.Equal("flows/x.yaml", e.File);
+        Assert.Equal(reason, e.Reason);
+    }
+
+    [Fact]
     public void An_empty_flow_file_is_a_flow_with_no_steps()
     {
         var flow = ModelFiles.ParseFlow("empty", "");

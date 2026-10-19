@@ -43,10 +43,15 @@ public sealed record Connection(string? From, string? To, string? Label);
 /// <summary>
 /// One step of a flow. Without <c>To</c>, the <c>From</c> box does something on its own. <c>Animation</c> is what the file
 /// held under <c>animation</c>: text, a mapping or a list, which <see cref="Animations"/> reads and the checks report on.
+/// <c>Group</c>, <c>Lane</c> and <c>FlowId</c> are the step's <c>group</c>, <c>lane</c> and <c>flow</c> keys, text when present (see Structure.cs).
 /// </summary>
-public sealed record Step(string? From, string? To, string? Text, string? Description, object? Animation = null);
+public sealed record Step(string? From, string? To, string? Text, string? Description, object? Animation = null, string? Group = null, string? Lane = null, string? FlowId = null);
 
-public sealed record Flow(string? Name, string? View, IReadOnlyList<Step> Steps);
+/// <summary>
+/// A flow. <c>Groups</c> is the flow's <c>groups:</c> as the file held it: each id's mapping, whose known options
+/// (<c>kind</c>, <c>text</c>, <c>times</c>, <c>until</c>) are text and whose other keys may hold anything; null when there is none.
+/// </summary>
+public sealed record Flow(string? Name, string? View, IReadOnlyList<Step> Steps, OrderedDictionary<string, object?>? Groups = null);
 
 public readonly record struct LayoutPoint(double X, double Y);
 

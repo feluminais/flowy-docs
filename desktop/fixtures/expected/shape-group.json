@@ -1,0 +1,6 @@
+{
+  "parseError": {
+    "file": "flows/f.yaml",
+    "message": "group \"g\": \"kind\" must be plain text, not a list or a mapping"
+  }
+}
