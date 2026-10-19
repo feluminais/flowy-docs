@@ -66,22 +66,24 @@ public class RecorderTests
 
     private static string FlowFile(string dir, string id) => File.ReadAllText(Path.Combine(dir, "flows", $"{id}.yaml"));
 
-    private static void EditFlow(ReaderView reader, string id)
-    {
-        var index = reader.Folder!.Model.Flows.Keys.ToList().IndexOf(id);
-        reader.FlowPicker.SelectedIndex = index;
-        Dispatcher.UIThread.RunJobs(); // the picker acts once its own event is over
-    }
+    private static void EditFlow(ReaderView reader, string id) => reader.OpenFlowById(id);
 
     [AvaloniaFact]
-    public void In_edit_mode_the_flow_picker_edits_instead_of_playing_and_new_flow_is_in_the_bar()
+    public void In_edit_mode_the_Flows_tab_edits_instead_of_playing_and_new_flow_is_in_the_bar()
     {
         var (temp, _, _, reader) = Open();
         using var _ = temp;
-        Assert.Equal("Edit a flow", reader.FlowPicker.PlaceholderText);
         Assert.NotNull(Labelled(reader, "New flow"));
+        reader.ClickRail(PanelTab.Flows);
+        Assert.Contains(reader.Navigator.Flows.Listed, f => f.Id == "browse");
+        reader.Navigator.Flows.Open("browse");
+        Assert.Equal("browse", reader.RecordingNow!.Id); // opened for editing, not played
+        Assert.Null(reader.PlayingFlowId);
         reader.SetEditing(false);
-        Assert.Equal("Play a flow", reader.FlowPicker.PlaceholderText);
+        reader.ClickRail(PanelTab.Flows);
+        reader.Navigator.Flows.Open("browse");
+        Assert.Equal("browse", reader.PlayingFlowId);
+        Assert.Null(reader.RecordingNow);
     }
 
     [AvaloniaFact]

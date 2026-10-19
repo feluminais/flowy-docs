@@ -46,6 +46,16 @@ internal sealed class Shell
 
     public void RememberWindow(WindowSize size) => Remember(_state with { Window = size });
 
+    /// <summary>What the navigator of the project in <paramref name="dir"/> remembered last, or null.</summary>
+    public NavigatorState? NavigatorFor(string dir) => _state.Navigators is { } all && all.TryGetValue(ModelFolders.Key(dir), out var saved) ? saved : null;
+
+    public void RememberNavigator(string dir, NavigatorState navigator)
+    {
+        var all = new Dictionary<string, NavigatorState>(_state.Navigators ?? new Dictionary<string, NavigatorState>()) { [ModelFolders.Key(dir)] = navigator };
+        while (all.Count > NavigatorState.MaxProjects) all.Remove(all.Keys.First(k => k != ModelFolders.Key(dir)));
+        Remember(_state with { Navigators = all });
+    }
+
     public event Action? OpenFilesWithChanged;
 
     /// <summary>The app that opens a box's linked files, or null for the system's default. Every window's menu follows.</summary>

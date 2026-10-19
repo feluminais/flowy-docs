@@ -99,14 +99,14 @@ objects:
 
       Two readers must give the same answers, so a Node script runs the TypeScript over fixture
       folders and the canvas's own functions, and the C# tests must reproduce every number. That
-      includes the beats of a step's animation and the maths that draws them. A root
+      includes the beats of a step's animation and the maths that draws them, and the navigator's rows, flow groups and keys. A root
       test fails if the TypeScript changes without the fixtures being written again.
   desktop-canvas:
     type: component
     in: desktop
     name: Canvas and reader
     tech: Avalonia
-    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs]
+    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs, desktop/Flowy.App/Navigator.cs, desktop/Flowy.App/ExplorerView.cs, desktop/Flowy.App/FlowsView.cs]
     description: |
       Shapes are controls on a stage that moves with the camera, with one layer behind them for the
       frame and the lines. The reader holds what you've chosen: the view, the open panel, the flow
@@ -129,6 +129,10 @@ objects:
       A tagged flow step plays over the shapes: a pipe along its line, something running through it,
       and the shapes ringing, flashing or squashing. The same frame-driven clock runs it and Autoplay's
       waits, and nothing moves when the system asks for less motion.
+
+      A rail of icons on the right edge opens the panel with three tabs, as on the canvas: Details,
+      every flow grouped by where it plays, and the whole documentation as a tree drawn a window of
+      rows at a time. Each project's open tab and open rows are remembered in the app's state file.
 
       Descriptions are drawn by a small Markdown renderer: raw HTML is dropped, an image shows as
       its description in brackets and is never fetched, and a link opens only if it is http or https.
@@ -420,6 +424,7 @@ connections:
   - { from: claude, to: mcp, label: writes the model }
   - { from: cli, to: server, label: serves the canvas }
   - { from: desktop-canvas, to: desktop-core, label: what to draw }
+  - { from: desktop-canvas, to: outline, label: asks for the navigator's rows }
   - { from: desktop-shell, to: desktop-canvas, label: one reader per window }
   - { from: desktop-core, to: folder, label: reads and watches, and writes edits }
   - { from: desktop-core, to: core, label: ported from; fixtures keep the answers equal }
