@@ -9,6 +9,8 @@ import type { LineStyle, Model, Step } from '../../src/core/model.ts'
 import { connect, deleteObject, forgetLayout, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { animationOf, followsLanding } from '../../src/core/animation.ts'
+import { expandTo, outline } from '../../src/core/outline.ts'
+import type { OutlineRow } from '../../src/core/outline.ts'
 import { chain, hasChildren, nameOf, parentOf, placeEnds, placeStep, stepEnds } from '../../src/core/views.ts'
 import { Box, Description, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
@@ -23,7 +25,10 @@ import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
 import { Line, LineStyleContext } from './Line.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { DWELL, GAP } from './motion.ts'
-import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
+import type { NavTab } from './navstate.ts'
+import { keepNav, loadNav } from './navstore.ts'
+import { Explorer, FlowsTab, NavPanel, NavTabs, NavTabsContext, Rail } from './Navigator.tsx'
+import { AddPanel, LinePanel, ObjectPanel, OverviewPanel, Recorder } from './Panel.tsx'
 import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
 import { StepMotion } from './StepMotion.tsx'
@@ -94,6 +99,10 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
   const [viewId, setViewId] = useState(() => readHash(location.hash).view)
   const [side, setSide] = useState<Side>()
+  // The right-hand panel's tab. Details shows `side`, or the level you are in; Flows and Explorer are the navigator. Without one the panel follows `side`.
+  const [remembered] = useState(loadNav)
+  const [tab, setTab] = useState<NavTab | undefined>(remembered.tab)
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set([ROOT, ...remembered.expanded])) // the project's own row starts open
   const [playing, setPlaying] = useState<{ flow: string; step: number; auto?: boolean } | undefined>(() => {
     const { flow } = readHash(location.hash)
     return flow === undefined ? undefined : { flow, step: 0 }
@@ -136,7 +145,9 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   const flow = editing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
   const stepIndex = flow && playing ? Math.min(playing.step, flow.steps.length - 1) : 0
   const step = flow?.steps[stepIndex]
-  const chosen = flow ? playing?.flow : recording?.id // what the flow list shows
+  const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
+  const showFlows = totals.flows > 0 || editing // the Flows tab is there whenever there is a flow to find
+  const shownTab: NavTab | undefined = (tab === 'flows' && !showFlows ? undefined : tab) ?? (side ? 'details' : undefined)
 
   // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
   // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
@@ -163,6 +174,17 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
   const selectedBox = side?.kind === 'object' ? side.id : undefined
   const edges = useMemo(() => focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }), [graph, selectedBox, selectedLine, hovered])
+  // The tree follows the canvas: going into a level opens it, and a selected shape is brought into view. It only ever opens rows.
+  const reveal = (id: string, self: boolean) =>
+    setExpanded(e => {
+      const next = expandTo(model, id, e, self)
+      return next.size === e.size ? e : next
+    })
+  useEffect(() => reveal(view, true), [view])
+  useEffect(() => {
+    if (selectedBox !== undefined) reveal(selectedBox, false)
+  }, [selectedBox])
+  useEffect(() => keepNav({ tab: tab === 'flows' || tab === 'explorer' ? tab : undefined, expanded: [...expanded] }), [tab, expanded])
 
   const run: Run = async op => {
     justMoved.current = false
@@ -172,6 +194,16 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     return message === undefined
   }
   const close = () => setSide(undefined)
+  const closePanel = () => {
+    setSide(undefined)
+    setTab(undefined)
+  }
+  /** Shows what a click on the canvas, a problem or a button points at, in the panel's Details tab. */
+  const show = (s: Side | undefined) => {
+    setSide(s)
+    setTab(undefined)
+  }
+  const toggleTab = (t: NavTab) => (shownTab === t ? closePanel() : setTab(t))
   const takeBack = async () => {
     justMoved.current = false
     setNotice(undefined)
@@ -234,6 +266,38 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     const r = canvas.current?.getBoundingClientRect()
     zoomTo(id, 'out', (r?.width ?? 0) / 2, (r?.height ?? 0) / 2)
   }
+  /** Play a flow where it plays (going to its level first), or while editing open it to edit. */
+  const openFlow = (id: string) => {
+    const f = model.flows[id]
+    if (f.view !== view) go(f.view)
+    if (editing) show({ kind: 'flow', id, name: f.name })
+    else setPlaying({ flow: id, step: 0 })
+  }
+  /** A click in the Explorer: show the shape where it is drawn and select it, or play the flow. The panel stays on the Explorer. */
+  const pickRow = (row: OutlineRow) => {
+    if (row.kind === 'flow') return openFlow(row.id)
+    if (row.id === ROOT) {
+      if (view !== ROOT) go(ROOT)
+      return setSide(undefined)
+    }
+    if (parentOf(model, row.id) !== view) go(parentOf(model, row.id))
+    setSide({ kind: 'object', id: row.id })
+  }
+  /** Enter or a double-click in the Explorer: zoom into a shape that opens, else the same as a click. */
+  const openRow = (row: OutlineRow) => {
+    if (row.kind === 'shape' && (row.id === ROOT || canOpen(row.id))) {
+      go(row.id)
+      return setSide(undefined)
+    }
+    pickRow(row)
+  }
+  const toggleOpen = (id: string, expand: boolean) =>
+    setExpanded(e => {
+      const next = new Set(e)
+      if (expand) next.add(id)
+      else next.delete(id)
+      return next
+    })
   const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, flow.steps.length - 1)), auto: false })
   const togglePlay = () => {
     if (!playing || !flow) return
@@ -280,9 +344,9 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   const jump = (p: Problem) => {
     const spot = locate(model, p)
     go(spot.view)
-    if (spot.object) setSide({ kind: 'object', id: spot.object })
-    else if (spot.line) setSide({ kind: 'line', from: spot.line[0], to: spot.line[1] })
-    else if (spot.flow !== undefined && editing) setSide({ kind: 'flow', id: spot.flow, name: model.flows[spot.flow].name })
+    if (spot.object) show({ kind: 'object', id: spot.object })
+    else if (spot.line) show({ kind: 'line', from: spot.line[0], to: spot.line[1] })
+    else if (spot.flow !== undefined && editing) show({ kind: 'flow', id: spot.flow, name: model.flows[spot.flow].name })
     else if (spot.flow !== undefined) {
       // The player only lists flows with steps in a view that opens (flowsHere); locate() falls back to ROOT for a bad view.
       const f = model.flows[spot.flow]
@@ -354,11 +418,11 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         void takeBack()
       }
       else if (e.key === 'Escape') {
-        const layer = escapeStep({ shortcuts, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: side !== undefined, inside: view !== ROOT })
+        const layer = escapeStep({ shortcuts, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: shownTab !== undefined, inside: view !== ROOT })
         if (layer === 'shortcuts') setShortcuts(false)
         else if (layer === 'flow') setPlaying(undefined)
         else if (layer === 'step' && recording) setSide({ ...recording, from: undefined, to: undefined })
-        else if (layer === 'panel') setSide(undefined)
+        else if (layer === 'panel') closePanel()
         else if (layer === 'up') up()
         else return
       }
@@ -373,14 +437,16 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         const id = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('.react-flow__node-box')?.dataset.id ?? selectedBox
         if (id === undefined) return
         if (canOpen(id)) zoomInto(id)
-        else setSide({ kind: 'object', id })
+        else show({ kind: 'object', id })
       }
       // ? before the slash key's fallback: some layouts type ? on that key without Shift.
       else if (e.key === '?') setShortcuts(open => !open)
       else if ((key === 'k' && (e.ctrlKey || e.metaKey)) || e.key === '/' || (e.code === 'Slash' && !e.shiftKey)) setSearching(true)
-      else if (key === 'f' && plain) fitNow.current?.({ ...fitOptions(side !== undefined, flow !== undefined), duration: 300 })
+      else if (key === 'f' && plain) fitNow.current?.({ ...fitOptions(shownTab !== undefined, flow !== undefined), duration: 300 })
+      else if (key === 'l' && plain && !e.repeat && showFlows) toggleTab('flows')
+      else if (key === 'o' && plain && !e.repeat) toggleTab('explorer')
       else if (key === 'e' && plain && !e.repeat && !readOnly) toggleEdit()
-      else if (editing && key === 'n' && plain && !recording) setSide({ kind: 'add' })
+      else if (editing && key === 'n' && plain && !recording) show({ kind: 'add' })
       else if (editing && e.key === 'Delete') remove()
       else if (editing && control && ((key === 'z' && e.shiftKey) || key === 'y')) void bringBack()
       else if (editing && control && key === 'z') void takeBack()
@@ -393,6 +459,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     return () => window.removeEventListener('keydown', onKey)
   })
 
+  const navTabs = <NavTabs tab={shownTab ?? 'details'} showFlows={showFlows} onPick={setTab} />
   return (
     <>
       <header className="bar">
@@ -404,19 +471,8 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
             </Fragment>
           ))}
         </nav>
-        {flowsHere.length > 0 && (
-          <select value={flowsHere.some(([id]) => id === chosen) ? chosen : ''} aria-label={editing ? 'Edit a flow' : 'Play a flow'} onChange={e => {
-            const id = e.target.value
-            if (editing) setSide({ kind: 'flow', id, name: model.flows[id].name })
-            else setPlaying({ flow: id, step: 0 })
-            e.target.blur() // so ← and → step through the flow instead of changing this list
-          }}>
-            <option value="" disabled>{editing ? 'Edit a flow' : 'Play a flow'}</option>
-            {flowsHere.map(([id, f]) => <option key={id} value={id}>{f.name || id}</option>)}
-          </select>
-        )}
-        {editing && <button onClick={() => setSide({ kind: 'flow', id: '', name: '' })}><Route size={16} />New flow</button>}
-        {editing && <button onClick={() => setSide({ kind: 'add' })}><Plus size={16} />Add</button>}
+        {editing && <button onClick={() => show({ kind: 'flow', id: '', name: '' })}><Route size={16} />New flow</button>}
+        {editing && <button onClick={() => show({ kind: 'add' })}><Plus size={16} />Add</button>}
         {editing && <button className="icon" aria-label="Undo" title="Undo the last change (Ctrl+Z)" onClick={() => void takeBack()}><Undo size={16} /></button>}
         {editing && <button className="icon" aria-label="Redo" title="Redo what you undid (Ctrl+Y or Ctrl+Shift+Z)" onClick={() => void bringBack()}><Redo size={16} /></button>}
         {editing && (
@@ -445,121 +501,138 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         <Problems problems={problems} onPick={jump} />
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}><Pencil size={16} />Edit</button>}
       </header>
-      <main ref={canvas} className={['canvas', editing && 'editing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
-        style={motion && ({ '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` } as CSSProperties)}>
-        <LineStyleContext value={lines}>
-          <ReactFlow
-            key={view} // a fresh canvas per view
-            nodes={[...frame, ...nodes]}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            minZoom={0.2} // the default 0.5 stops the fit short, so a wide diagram in a small window is cut off
-            colorMode="system"
-            defaultMarkerColor="var(--edge)"
-            nodesDraggable={editing && !recording}
-            nodesConnectable={editing && !recording}
-            zoomOnDoubleClick={false}
-            deleteKeyCode={null}
-            onNodesChange={onNodesChange}
-            isValidConnection={c => placeEnds(model, view, c.source, c.target) !== null} // only lines this view can show
-            onConnect={c => void run(m => connect(m, { from: c.source, to: c.target }))
-              .then(saved => saved && setSide({ kind: 'line', from: c.source, to: c.target }))}
-            onNodeClick={(_, node) => {
-              if (node.type !== 'box') return // the frame takes no pointer events, this is a guard
-              justMoved.current = false
-              clearTimeout(opening.current)
-              if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
-              const open = () => setSide({ kind: 'object', id: node.id })
-              // Zooming into a box is a double-click, and its first click must not open the panel. With a panel already open there's
-              // nothing to open, only its box to change, so that goes at once: no wait between one box and the next.
-              if (canOpen(node.id) && side === undefined) opening.current = setTimeout(open, DOUBLE_CLICK)
-              else open()
-            }}
-            onNodeDoubleClick={(_, node) => {
-              if (recording || node.type !== 'box' || !canOpen(node.id)) return
-              zoomInto(node.id)
-            }}
-            onInit={instance => {
-              fitNow.current = options => void instance.fitView(options)
-            }}
-            onEdgeClick={(_, e) => {
-              justMoved.current = false
-              if (!recording && e.id !== 'step') setSide({ kind: 'line', from: e.source, to: e.target })
-            }}
-            onEdgeMouseEnter={(_, e) => setHovered(e.id)}
-            onEdgeMouseLeave={() => setHovered(undefined)}
-            onPaneClick={() => {
-              justMoved.current = false
-              clearTimeout(opening.current)
-              setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
-            }}
-          >
-            <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} />
-            {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
-            <Controls showInteractive={false} fitViewOptions={fitOptions(side !== undefined, flow !== undefined)} />
-            {flow && animation && placed && <StepMotion key={stepKey} ends={placed} animation={animation} afterLanding={followsLanding(shown?.ends[stepIndex - 1], placed)} onDone={() => setSettledKey(stepKey)} />}
-          </ReactFlow>
-        </LineStyleContext>
-        {nodes.length === 0 && (
-          <p className="empty">{editing
-            ? 'Nothing here yet. Press Add to put the first shape here.'
-            : live
-              ? 'Nothing here yet. Ask Claude to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.'
-              : 'Nothing here yet.'}</p>
-        )}
-        {searching && (
-          <Search model={model} onClose={() => setSearching(false)} onPick={id => {
-            setSearching(false)
-            go(parentOf(model, id)) // the view the box sits in
-            setSide({ kind: 'object', id })
-          }} />
-        )}
-        {shortcuts && <Shortcuts editable={live && !readOnly} onClose={() => setShortcuts(false)} />}
-        {notice && (
-          <div className="notice" role="status">
-            <span>{notice}</span>
-            <button aria-label="Dismiss" onClick={() => setNotice(undefined)}><Close size={16} /></button>
-          </div>
-        )}
-        {side?.kind === 'object' && (
-          <ObjectPanel model={model} id={side.id} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={close}
-            onPick={id => setSide({ kind: 'object', id })} onHover={setHovered} />
-        )}
-        {side?.kind === 'line' && (
-          <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={close} />
-        )}
-        {editing && side?.kind === 'add' && (
-          <AddPanel model={model} view={view} run={run} onAdded={id => setSide({ kind: 'object', id })} onClose={close} />
-        )}
-        {recording && (
-          <Recorder model={model} view={view} rec={recording} onChange={rec => setSide({ kind: 'flow', ...rec })} run={run} onClose={close} />
-        )}
-        {flow && step && (
-          <section className="player" aria-live="polite">
-            <div className="chips">
-              <Chip icon={Play}>{flow.name}</Chip>
-              <Chip kind="accent">Step {stepIndex + 1} of {flow.steps.length}</Chip>
+      <div className="stage">
+        <main ref={canvas} className={['canvas', editing && 'editing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
+          style={motion && ({ '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` } as CSSProperties)}>
+          <LineStyleContext value={lines}>
+            <ReactFlow
+              key={view} // a fresh canvas per view
+              nodes={[...frame, ...nodes]}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              minZoom={0.2} // the default 0.5 stops the fit short, so a wide diagram in a small window is cut off
+              colorMode="system"
+              defaultMarkerColor="var(--edge)"
+              nodesDraggable={editing && !recording}
+              nodesConnectable={editing && !recording}
+              zoomOnDoubleClick={false}
+              deleteKeyCode={null}
+              onNodesChange={onNodesChange}
+              isValidConnection={c => placeEnds(model, view, c.source, c.target) !== null} // only lines this view can show
+              onConnect={c => void run(m => connect(m, { from: c.source, to: c.target }))
+                .then(saved => saved && show({ kind: 'line', from: c.source, to: c.target }))}
+              onNodeClick={(_, node) => {
+                if (node.type !== 'box') return // the frame takes no pointer events, this is a guard
+                justMoved.current = false
+                clearTimeout(opening.current)
+                if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
+                const open = () => show({ kind: 'object', id: node.id })
+                // Zooming into a box is a double-click, and its first click must not open the panel. With a panel already open there's
+                // nothing to open, only its box to change, so that goes at once: no wait between one box and the next.
+                if (canOpen(node.id) && side === undefined) opening.current = setTimeout(open, DOUBLE_CLICK)
+                else open()
+              }}
+              onNodeDoubleClick={(_, node) => {
+                if (recording || node.type !== 'box' || !canOpen(node.id)) return
+                zoomInto(node.id)
+              }}
+              onInit={instance => {
+                fitNow.current = options => void instance.fitView(options)
+              }}
+              onEdgeClick={(_, e) => {
+                justMoved.current = false
+                if (!recording && e.id !== 'step') show({ kind: 'line', from: e.source, to: e.target })
+              }}
+              onEdgeMouseEnter={(_, e) => setHovered(e.id)}
+              onEdgeMouseLeave={() => setHovered(undefined)}
+              onPaneClick={() => {
+                justMoved.current = false
+                clearTimeout(opening.current)
+                setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
+              }}
+            >
+              <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} />
+              {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
+              <Controls showInteractive={false} fitViewOptions={fitOptions(shownTab !== undefined, flow !== undefined)} />
+              {flow && animation && placed && <StepMotion key={stepKey} ends={placed} animation={animation} afterLanding={followsLanding(shown?.ends[stepIndex - 1], placed)} onDone={() => setSettledKey(stepKey)} />}
+            </ReactFlow>
+          </LineStyleContext>
+          {nodes.length === 0 && (
+            <p className="empty">{editing
+              ? 'Nothing here yet. Press Add to put the first shape here.'
+              : live
+                ? 'Nothing here yet. Ask Claude to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.'
+                : 'Nothing here yet.'}</p>
+          )}
+          {searching && (
+            <Search model={model} onClose={() => setSearching(false)} onPick={id => {
+              setSearching(false)
+              go(parentOf(model, id)) // the view the box sits in
+              show({ kind: 'object', id })
+            }} />
+          )}
+          {shortcuts && <Shortcuts editable={live && !readOnly} onClose={() => setShortcuts(false)} />}
+          {notice && (
+            <div className="notice" role="status">
+              <span>{notice}</span>
+              <button aria-label="Dismiss" onClick={() => setNotice(undefined)}><Close size={16} /></button>
             </div>
-            <div className="progress" aria-hidden="true">{flow.steps.map((_, i) => <span key={i} className={i <= stepIndex ? 'done' : undefined} />)}</div>
-            <p className="player-ends">{stepEnds(model, step, shown?.ends[stepIndex])}</p>
-            <p>{step.text}</p>
-            {step.description && (
-              <details key={stepIndex} className="more">
-                <summary>More</summary>
-                <Description text={String(step.description)} />
-              </details>
+          )}
+          <NavTabsContext value={navTabs}>
+            {shownTab === 'details' && (side?.kind === 'object' || (side === undefined && view !== ROOT)) && (
+              <ObjectPanel model={model} id={side?.kind === 'object' ? side.id : view} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={closePanel}
+                onPick={id => setSide({ kind: 'object', id })} onHover={setHovered} />
             )}
-            <div className="player-buttons">
-              <button disabled={stepIndex === 0} onClick={() => stepTo(stepIndex - 1)}><ArrowLeft size={16} />Back</button>
-              <button className="primary" disabled={stepIndex === flow.steps.length - 1} onClick={() => stepTo(stepIndex + 1)}><ArrowRight size={16} />Next</button>
-              <button onClick={togglePlay} title="Step through the flow on its own (P)">{playing?.auto ? <><Pause size={16} />Pause</> : <><Play size={16} />Autoplay</>}</button>
-              {moving && <button aria-label="Replay this step" title="Replay this step (R)" onClick={() => setReplays(n => n + 1)}><Reload size={16} /></button>}
-              <button onClick={() => setPlaying(undefined)}><Close size={16} />Stop</button>
-            </div>
-          </section>
-        )}
-      </main>
+            {shownTab === 'details' && side === undefined && view === ROOT && <OverviewPanel totals={totals} onClose={closePanel} />}
+            {shownTab === 'details' && side?.kind === 'line' && (
+              <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closePanel} />
+            )}
+            {shownTab === 'details' && editing && side?.kind === 'add' && (
+              <AddPanel model={model} view={view} run={run} onAdded={id => setSide({ kind: 'object', id })} onClose={closePanel} />
+            )}
+            {shownTab === 'details' && recording && (
+              <Recorder model={model} view={view} rec={recording} onChange={rec => setSide({ kind: 'flow', ...rec })} run={run} onClose={closePanel} />
+            )}
+          </NavTabsContext>
+          {shownTab === 'flows' && (
+            <NavPanel tabs={navTabs} onClose={closePanel}>
+              <FlowsTab model={model} view={view} editing={editing} current={recording?.id || (flow ? playing?.flow : undefined)} onOpen={f => openFlow(f.id)} />
+            </NavPanel>
+          )}
+          {shownTab === 'explorer' && (
+            <NavPanel tabs={navTabs} onClose={closePanel}>
+              <Explorer model={model} problems={problems} editing={editing} expanded={expanded} onToggle={toggleOpen} here={view} selected={selectedBox}
+                playing={flow ? playing?.flow : undefined} onPick={pickRow} onOpen={openRow} />
+            </NavPanel>
+          )}
+          {flow && step && (
+            <section className="player" aria-live="polite">
+              <div className="chips">
+                <Chip icon={Play}>{flow.name}</Chip>
+                <Chip kind="accent">Step {stepIndex + 1} of {flow.steps.length}</Chip>
+              </div>
+              <div className="progress" aria-hidden="true">{flow.steps.map((_, i) => <span key={i} className={i <= stepIndex ? 'done' : undefined} />)}</div>
+              <p className="player-ends">{stepEnds(model, step, shown?.ends[stepIndex])}</p>
+              <p>{step.text}</p>
+              {step.description && (
+                <details key={stepIndex} className="more">
+                  <summary>More</summary>
+                  <Description text={String(step.description)} />
+                </details>
+              )}
+              <div className="player-buttons">
+                <button disabled={stepIndex === 0} onClick={() => stepTo(stepIndex - 1)}><ArrowLeft size={16} />Back</button>
+                <button className="primary" disabled={stepIndex === flow.steps.length - 1} onClick={() => stepTo(stepIndex + 1)}><ArrowRight size={16} />Next</button>
+                <button onClick={togglePlay} title="Step through the flow on its own (P)">{playing?.auto ? <><Pause size={16} />Pause</> : <><Play size={16} />Autoplay</>}</button>
+                {moving && <button aria-label="Replay this step" title="Replay this step (R)" onClick={() => setReplays(n => n + 1)}><Reload size={16} /></button>}
+                <button onClick={() => setPlaying(undefined)}><Close size={16} />Stop</button>
+              </div>
+            </section>
+          )}
+        </main>
+        <Rail tab={shownTab} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} onPick={toggleTab} />
+      </div>
     </>
   )
 }
