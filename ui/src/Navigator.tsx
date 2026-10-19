@@ -194,7 +194,6 @@ export function Explorer({ model, problems, editing, expanded, onToggle, here, s
   const using = useRef(false) // the pointer is over the tree, or a key was just pressed in it
   const { rows, totals } = useMemo(() => outline(model, { expanded, filter, editing, problems }), [model, expanded, filter, editing, problems])
   const current = playing ? `flow:${playing}` : `shape:${selected ?? here}`
-  const levelKey = `shape:${here}`
 
   useEffect(() => {
     const el = list.current
@@ -264,7 +263,7 @@ export function Explorer({ model, problems, editing, expanded, onToggle, here, s
         <div className="tree-rows" style={{ height: rows.length * ROW }}>
           {rows.slice(start, end).map((r, k) => (
             <div key={r.key} id={`nav-${r.key}`} role="treeitem" aria-level={r.depth + 1} aria-expanded={r.expandable ? r.expanded : undefined} aria-selected={r.key === current}
-              className={classes('tree-row', r.key === current && 'sel', r.key === levelKey && 'here', r.key === focus && 'focus', !r.match && 'dim')}
+              className={classes('tree-row', r.key === current && 'sel', r.key === focus && 'focus', !r.match && 'dim')}
               style={{ top: (start + k) * ROW, paddingLeft: 6 + r.depth * 16 }}
               onClick={() => { setFocus(r.key); onPick(r) }} onDoubleClick={() => onOpen(r)}>
               {r.expandable

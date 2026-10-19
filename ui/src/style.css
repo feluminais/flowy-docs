@@ -526,7 +526,6 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .tree-rows { position: relative; }
 .tree-row { position: absolute; left: 0; right: 0; height: 30px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; padding-right: 8px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
 .tree-row:hover { background: var(--hover); }
-.tree-row.here { background: color-mix(in srgb, var(--fg) 5%, transparent); }
 .tree-row.sel { background: var(--tint); }
 .tree-row.sel .name { color: var(--accent); font-weight: 600; }
 .tree:focus-visible .tree-row.focus { outline: 2px solid var(--accent); outline-offset: -2px; }

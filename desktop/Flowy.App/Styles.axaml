@@ -777,7 +777,7 @@
     <Setter Property="BorderThickness" Value="2" />
   </Style>
   <Style Selector="Border.treerow"><Setter Property="Background" Value="Transparent" /></Style>
-  <Style Selector="Border.treerow:pointerover, Border.treerow.here"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
+  <Style Selector="Border.treerow:pointerover"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
   <Style Selector="Border.treerow.sel"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <Style Selector="Border.twist"><Setter Property="Background" Value="Transparent" /></Style>
   <Style Selector="TextBlock.treename.sel">

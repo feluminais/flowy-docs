@@ -29,7 +29,6 @@ internal sealed class ExplorerView : Grid
     private IReadOnlyList<OutlineRow> _rows = [];
     private Model? _model;
     private string _current = "";
-    private string _here = "";
     private string? _focus;
     private bool _using; // the pointer is over the tree, or a key was just pressed in it
     private bool _settingSelection;
@@ -118,7 +117,6 @@ internal sealed class ExplorerView : Grid
     public void Update(Model model, IReadOnlyList<Problem> problems, bool editing, IReadOnlySet<string> expanded, string here, string? selected, string? playing)
     {
         _model = model;
-        _here = $"shape:{here}";
         var current = playing is not null ? $"flow:{playing}" : $"shape:{selected ?? here}";
         var outline = Outlines.Build(model, problems, expanded, _find.Text, editing);
         _summary.Text = $"{Plural(outline.Totals.Shapes, "shape")} · {Plural(outline.Totals.Flows, "flow")}{(outline.Totals.Problems > 0 ? $" · {Plural(outline.Totals.Problems, "problem")}" : "")}";
@@ -251,7 +249,6 @@ internal sealed class ExplorerView : Grid
         var border = new Border { Child = grid, Padding = new Thickness(6 + row.Depth * 16, 0, 8, 0), CornerRadius = new CornerRadius(6) };
         border.Classes.Add("treerow");
         border.Classes.Set("sel", row.Key == _current);
-        border.Classes.Set("here", row.Key == _here);
         AutomationProperties.SetName(border, row.Name);
         border.PointerPressed += (_, e) =>
         {
