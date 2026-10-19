@@ -23,8 +23,9 @@
   background: var(--bg);
   color-scheme: light dark;
 }
+/* The system's dark colours, unless a host (VS Code) says light. A host that says dark gets the same ones below: keep the two in step. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #1c1917;
     --fg: #f5f5f4;
     --muted: #a8a29e;
@@ -46,6 +47,29 @@
     --hover: color-mix(in srgb, var(--fg) 10%, transparent);
   }
 }
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #1c1917;
+  --fg: #f5f5f4;
+  --muted: #a8a29e;
+  --line: #57534e;
+  --edge: #78716c;
+  --box: #292524;
+  --accent: #60a5fa;
+  --warn-bg: #451a03;
+  --warn-fg: #fde68a;
+  --warn: #f59e0b;
+  --danger: #f87171;
+  --actor: #afa9ec;
+  --system: #85b7eb;
+  --app: #5dcaa5;
+  --store: #ed93b1;
+  --component: #f0997b;
+  --external: #b4b2a9;
+  --tint: color-mix(in srgb, var(--accent) 16%, transparent);
+  --hover: color-mix(in srgb, var(--fg) 10%, transparent);
+}
+:root[data-theme='light'] { color-scheme: light; }
 html, body, #root { height: 100%; margin: 0; }
 button, select, input, textarea { font: inherit; }
 .app { height: 100%; display: flex; flex-direction: column; }

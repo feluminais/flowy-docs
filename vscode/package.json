@@ -1,0 +1,52 @@
+{
+  "name": "flowy-docs-vscode",
+  "displayName": "Flowy Docs",
+  "description": "Read a repo's flowy/ architecture docs as a diagram you zoom through, inside VS Code.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "feluminais",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/feluminais/flowy-docs.git",
+    "directory": "vscode"
+  },
+  "type": "module",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "main": "./dist/extension.cjs",
+  "contributes": {
+    "commands": [
+      {
+        "command": "flowy.open",
+        "category": "Flowy",
+        "title": "Open Docs"
+      }
+    ]
+  },
+  "capabilities": {
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "Flowy reads the flowy/ folder and the repo's git remote from disk."
+    },
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Flowy runs git in the folder to find where code links go, and a repo can configure git to run programs."
+    }
+  },
+  "scripts": {
+    "build": "node build.ts",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/vscode": "1.95.0",
+    "esbuild": "^0.28.2",
+    "typescript": "~5.9.3"
+  }
+}

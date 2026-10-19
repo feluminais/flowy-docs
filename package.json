@@ -24,6 +24,7 @@
     "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && vite build ui && tsc -p tsconfig.build.json",
     "build:ui": "vite build ui",
     "dev:ui": "vite ui",
+    "build:vscode": "npm run build:ui && npm run build --prefix vscode",
     "lab:run": "node perf-lab/load/run.ts",
     "lab:smoke": "node --test perf-lab/test/smoke.test.ts",
     "prepack": "npm run build",
