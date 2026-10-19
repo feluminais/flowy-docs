@@ -30,6 +30,35 @@ public static class MotionMath
     /// <summary>How far along a line of length <paramref name="length"/> a blob is at progress <paramref name="p"/>, running forward or back.</summary>
     public static double Distance(string? dir, double p, double length) => (dir == "back" ? 1 - Ease(p) : Ease(p)) * length;
 
+    /// <summary>
+    /// How many ghost cards show at <paramref name="t"/>, as a fraction while one slides in or out. Each <c>stack</c> beat that has started takes the
+    /// count from the level before it to its own over its duration; a beat that has not started yet changes nothing.
+    /// </summary>
+    public static double CardsAt(IEnumerable<Beat> beats, double t)
+    {
+        double before = 0, cards = 0;
+        foreach (var b in beats)
+        {
+            if (b.Do != "stack") continue;
+            if (t < b.At) break;
+            var level = b.Level ?? 0;
+            cards = before + (level - before) * Ease(Progress(b, t));
+            before = level;
+        }
+        return cards;
+    }
+
+    /// <summary>The rect of ghost card <paramref name="k"/> (1 is the nearest): 8 px lower and 7 px narrower on each side for every level down, scaled by how far it has slid in, 0 to 1.</summary>
+    public static Rect CardBox(Rect r, int k, double amount) => new(r.X + 7 * k * amount, r.Y + 8 * k * amount, r.Width - 14 * k * amount, r.Height);
+
+    /// <summary>The counter on a recursing box: the height of the stack while it plays, and how deep it went once it has finished. JavaScript rounds a half up, so this does too.</summary>
+    public static string PillText(bool playing, double cards, int depth) =>
+        playing ? $"↻ {(int)Math.Round(cards, MidpointRounding.AwayFromZero) + 1}" : $"↻ {depth} deep";
+
+    /// <summary>The squash for the <c>from</c> and <c>to</c> boxes. With one box at both ends the larger goes on it, so the empty second side never wipes the first.</summary>
+    public static (double From, double To) TileSquash(bool sameBox, (double From, double To) squash) =>
+        sameBox ? (Math.Max(squash.From, squash.To), 0) : squash;
+
     /// <summary>How hard each end of the step is squashed at <paramref name="t"/>: the strongest of the gulps running then.</summary>
     public static (double From, double To) Squash(IEnumerable<Beat> beats, double t)
     {

@@ -17374,6 +17374,3670 @@
         "p": 1,
         "distance": 0
       }
+    ],
+    "cards": [
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 0,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 50,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 100,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 150,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 200,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 250,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 300,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 350,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 400,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 450,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 500,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 550,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 600,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 650,
+        "cards": 0.03200000000000001
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 700,
+        "cards": 0.5934814814814815
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 750,
+        "cards": 0.9905185185185186
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 800,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 850,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 900,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 950,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1000,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1050,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1100,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1150,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1200,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1250,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1300,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1350,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1400,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1450,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1500,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1550,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1600,
+        "cards": 0.968
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1650,
+        "cards": 0.4065185185185185
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1700,
+        "cards": 0.009481481481481424
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1750,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1800,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1850,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1900,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 1950,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2000,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2050,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2100,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2150,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2200,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2250,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2300,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2350,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2400,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2450,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2500,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2550,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2600,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2650,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2700,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2750,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2800,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2850,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2900,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2950,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3000,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3050,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3100,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3150,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3200,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3250,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3300,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3350,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3400,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3450,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3500,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3550,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3600,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3650,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3700,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3750,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3800,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3850,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3900,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 3950,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4000,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4050,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4100,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4150,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4200,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4250,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4300,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4350,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4400,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4450,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4500,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4550,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4600,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4650,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4700,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4750,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4800,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4850,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4900,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 4950,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5000,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5050,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5100,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5150,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5200,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5250,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5300,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5350,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5400,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5450,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5500,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5550,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5600,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5650,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5700,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5750,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5800,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5850,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5900,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 5950,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 6000,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 619,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 695,
+        "cards": 0.5
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 770,
+        "cards": 1
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2265,
+        "cards": 0
+      },
+      {
+        "depth": 2,
+        "length": 250,
+        "t": 2960,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 0,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 50,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 100,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 150,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 200,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 250,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 300,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 350,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 400,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 450,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 500,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 550,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 600,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 650,
+        "cards": 0.03200000000000001
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 700,
+        "cards": 0.5934814814814815
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 750,
+        "cards": 0.9905185185185186
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 800,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 850,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 900,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 950,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1000,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1050,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1100,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1150,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1200,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1250,
+        "cards": 1.0011851851851852
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1300,
+        "cards": 1.256
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1350,
+        "cards": 1.9241481481481482
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1400,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1450,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1500,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1550,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1600,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1650,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1700,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1750,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1800,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1850,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1900,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 1950,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2000,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2050,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2100,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2150,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2200,
+        "cards": 1.9988148148148148
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2250,
+        "cards": 1.744
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2300,
+        "cards": 1.0758518518518518
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2350,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2400,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2450,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2500,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2550,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2600,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2650,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2700,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2750,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2800,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2850,
+        "cards": 0.9241481481481482
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2900,
+        "cards": 0.256
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2950,
+        "cards": 0.001185185185185178
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3000,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3050,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3100,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3150,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3200,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3250,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3300,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3350,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3400,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3450,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3500,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3550,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3600,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3650,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3700,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3750,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3800,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3850,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3900,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 3950,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4000,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4050,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4100,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4150,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4200,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4250,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4300,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4350,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4400,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4450,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4500,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4550,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4600,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4650,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4700,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4750,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4800,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4850,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4900,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 4950,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5000,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5050,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5100,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5150,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5200,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5250,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5300,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5350,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5400,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5450,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5500,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5550,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5600,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5650,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5700,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5750,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5800,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5850,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5900,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 5950,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 6000,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 619,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 695,
+        "cards": 0.5
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 770,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2265,
+        "cards": 1.5
+      },
+      {
+        "depth": 3,
+        "length": 250,
+        "t": 2960,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 0,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 50,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 100,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 150,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 200,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 250,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 300,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 350,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 400,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 450,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 500,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 550,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 600,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 650,
+        "cards": 0.03200000000000001
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 700,
+        "cards": 0.5934814814814815
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 750,
+        "cards": 0.9905185185185186
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 800,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 850,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 900,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 950,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1000,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1050,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1100,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1150,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1200,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1250,
+        "cards": 1.0011851851851852
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1300,
+        "cards": 1.256
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1350,
+        "cards": 1.9241481481481482
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1400,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1450,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1500,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1550,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1600,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1650,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1700,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1750,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1800,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1850,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1900,
+        "cards": 2.075851851851852
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 1950,
+        "cards": 2.7439999999999998
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2000,
+        "cards": 2.998814814814815
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2050,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2100,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2150,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2200,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2250,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2300,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2350,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2400,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2450,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2500,
+        "cards": 3.0094814814814814
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2550,
+        "cards": 3.4065185185185185
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2600,
+        "cards": 3.968
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2650,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2700,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2750,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2800,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2850,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2900,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2950,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3000,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3050,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3100,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3150,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3200,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3250,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3300,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3350,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3400,
+        "cards": 4
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3450,
+        "cards": 3.9905185185185186
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3500,
+        "cards": 3.5934814814814815
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3550,
+        "cards": 3.032
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3600,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3650,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3700,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3750,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3800,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3850,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3900,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 3950,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4000,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4050,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4100,
+        "cards": 2.851851851851852
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4150,
+        "cards": 2.148148148148148
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4200,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4250,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4300,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4350,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4400,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4450,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4500,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4550,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4600,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4650,
+        "cards": 2
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4700,
+        "cards": 1.968
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4750,
+        "cards": 1.4065185185185185
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4800,
+        "cards": 1.0094814814814814
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4850,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4900,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 4950,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5000,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5050,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5100,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5150,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5200,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5250,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5300,
+        "cards": 0.9988148148148148
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5350,
+        "cards": 0.744
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5400,
+        "cards": 0.07585185185185184
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5450,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5500,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5550,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5600,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5650,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5700,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5750,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5800,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5850,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5900,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 5950,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 6000,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 619,
+        "cards": 0
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 695,
+        "cards": 0.5
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 770,
+        "cards": 1
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2265,
+        "cards": 3
+      },
+      {
+        "depth": 5,
+        "length": 250,
+        "t": 2960,
+        "cards": 4
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 0,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 50,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 100,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 150,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 200,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 250,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 300,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 350,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 400,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 450,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 500,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 550,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 600,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 650,
+        "cards": 0.03200000000000001
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 700,
+        "cards": 0.5934814814814815
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 750,
+        "cards": 0.9905185185185186
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 800,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 850,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 900,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 950,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1000,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1050,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1100,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1150,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1200,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1250,
+        "cards": 1.0011851851851852
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1300,
+        "cards": 1.256
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1350,
+        "cards": 1.9241481481481482
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1400,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1450,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1500,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1550,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1600,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1650,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1700,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1750,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1800,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1850,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1900,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 1950,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2000,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2050,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2100,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2150,
+        "cards": 2
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2200,
+        "cards": 1.9988148148148148
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2250,
+        "cards": 1.744
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2300,
+        "cards": 1.0758518518518518
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2350,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2400,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2450,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2500,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2550,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2600,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2650,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2700,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2750,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2800,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2850,
+        "cards": 0.9241481481481482
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2900,
+        "cards": 0.256
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2950,
+        "cards": 0.001185185185185178
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3000,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3050,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3100,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3150,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3200,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3250,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3300,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3350,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3400,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3450,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3500,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3550,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3600,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3650,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3700,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3750,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3800,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3850,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3900,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 3950,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4000,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4050,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4100,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4150,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4200,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4250,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4300,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4350,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4400,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4450,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4500,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4550,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4600,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4650,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4700,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4750,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4800,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4850,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4900,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 4950,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5000,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5050,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5100,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5150,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5200,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5250,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5300,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5350,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5400,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5450,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5500,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5550,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5600,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5650,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5700,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5750,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5800,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5850,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5900,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 5950,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 6000,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 619,
+        "cards": 0
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 695,
+        "cards": 0.5
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 770,
+        "cards": 1
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2265,
+        "cards": 1.5
+      },
+      {
+        "depth": 3,
+        "length": 0,
+        "t": 2960,
+        "cards": 0
+      }
+    ],
+    "cardBoxes": [
+      {
+        "k": 1,
+        "amount": 0,
+        "box": {
+          "x": 10,
+          "y": 20,
+          "width": 200,
+          "height": 72
+        }
+      },
+      {
+        "k": 1,
+        "amount": 0.25,
+        "box": {
+          "x": 11.75,
+          "y": 22,
+          "width": 196.5,
+          "height": 72
+        }
+      },
+      {
+        "k": 1,
+        "amount": 0.5,
+        "box": {
+          "x": 13.5,
+          "y": 24,
+          "width": 193,
+          "height": 72
+        }
+      },
+      {
+        "k": 1,
+        "amount": 1,
+        "box": {
+          "x": 17,
+          "y": 28,
+          "width": 186,
+          "height": 72
+        }
+      },
+      {
+        "k": 2,
+        "amount": 0,
+        "box": {
+          "x": 10,
+          "y": 20,
+          "width": 200,
+          "height": 72
+        }
+      },
+      {
+        "k": 2,
+        "amount": 0.25,
+        "box": {
+          "x": 13.5,
+          "y": 24,
+          "width": 193,
+          "height": 72
+        }
+      },
+      {
+        "k": 2,
+        "amount": 0.5,
+        "box": {
+          "x": 17,
+          "y": 28,
+          "width": 186,
+          "height": 72
+        }
+      },
+      {
+        "k": 2,
+        "amount": 1,
+        "box": {
+          "x": 24,
+          "y": 36,
+          "width": 172,
+          "height": 72
+        }
+      },
+      {
+        "k": 3,
+        "amount": 0,
+        "box": {
+          "x": 10,
+          "y": 20,
+          "width": 200,
+          "height": 72
+        }
+      },
+      {
+        "k": 3,
+        "amount": 0.25,
+        "box": {
+          "x": 15.25,
+          "y": 26,
+          "width": 189.5,
+          "height": 72
+        }
+      },
+      {
+        "k": 3,
+        "amount": 0.5,
+        "box": {
+          "x": 20.5,
+          "y": 32,
+          "width": 179,
+          "height": 72
+        }
+      },
+      {
+        "k": 3,
+        "amount": 1,
+        "box": {
+          "x": 31,
+          "y": 44,
+          "width": 158,
+          "height": 72
+        }
+      },
+      {
+        "k": 4,
+        "amount": 0,
+        "box": {
+          "x": 10,
+          "y": 20,
+          "width": 200,
+          "height": 72
+        }
+      },
+      {
+        "k": 4,
+        "amount": 0.25,
+        "box": {
+          "x": 17,
+          "y": 28,
+          "width": 186,
+          "height": 72
+        }
+      },
+      {
+        "k": 4,
+        "amount": 0.5,
+        "box": {
+          "x": 24,
+          "y": 36,
+          "width": 172,
+          "height": 72
+        }
+      },
+      {
+        "k": 4,
+        "amount": 1,
+        "box": {
+          "x": 38,
+          "y": 52,
+          "width": 144,
+          "height": 72
+        }
+      }
+    ],
+    "pills": [
+      {
+        "playing": false,
+        "depth": 2,
+        "cards": 0,
+        "text": "↻ 2 deep"
+      },
+      {
+        "playing": false,
+        "depth": 2,
+        "cards": 0.5,
+        "text": "↻ 2 deep"
+      },
+      {
+        "playing": false,
+        "depth": 2,
+        "cards": 1,
+        "text": "↻ 2 deep"
+      },
+      {
+        "playing": false,
+        "depth": 2,
+        "cards": 1.4,
+        "text": "↻ 2 deep"
+      },
+      {
+        "playing": false,
+        "depth": 2,
+        "cards": 1.5,
+        "text": "↻ 2 deep"
+      },
+      {
+        "playing": false,
+        "depth": 2,
+        "cards": 1.6,
+        "text": "↻ 2 deep"
+      },
+      {
+        "playing": false,
+        "depth": 2,
+        "cards": 2.5,
+        "text": "↻ 2 deep"
+      },
+      {
+        "playing": false,
+        "depth": 2,
+        "cards": 3.4,
+        "text": "↻ 2 deep"
+      },
+      {
+        "playing": false,
+        "depth": 3,
+        "cards": 0,
+        "text": "↻ 3 deep"
+      },
+      {
+        "playing": false,
+        "depth": 3,
+        "cards": 0.5,
+        "text": "↻ 3 deep"
+      },
+      {
+        "playing": false,
+        "depth": 3,
+        "cards": 1,
+        "text": "↻ 3 deep"
+      },
+      {
+        "playing": false,
+        "depth": 3,
+        "cards": 1.4,
+        "text": "↻ 3 deep"
+      },
+      {
+        "playing": false,
+        "depth": 3,
+        "cards": 1.5,
+        "text": "↻ 3 deep"
+      },
+      {
+        "playing": false,
+        "depth": 3,
+        "cards": 1.6,
+        "text": "↻ 3 deep"
+      },
+      {
+        "playing": false,
+        "depth": 3,
+        "cards": 2.5,
+        "text": "↻ 3 deep"
+      },
+      {
+        "playing": false,
+        "depth": 3,
+        "cards": 3.4,
+        "text": "↻ 3 deep"
+      },
+      {
+        "playing": false,
+        "depth": 4,
+        "cards": 0,
+        "text": "↻ 4 deep"
+      },
+      {
+        "playing": false,
+        "depth": 4,
+        "cards": 0.5,
+        "text": "↻ 4 deep"
+      },
+      {
+        "playing": false,
+        "depth": 4,
+        "cards": 1,
+        "text": "↻ 4 deep"
+      },
+      {
+        "playing": false,
+        "depth": 4,
+        "cards": 1.4,
+        "text": "↻ 4 deep"
+      },
+      {
+        "playing": false,
+        "depth": 4,
+        "cards": 1.5,
+        "text": "↻ 4 deep"
+      },
+      {
+        "playing": false,
+        "depth": 4,
+        "cards": 1.6,
+        "text": "↻ 4 deep"
+      },
+      {
+        "playing": false,
+        "depth": 4,
+        "cards": 2.5,
+        "text": "↻ 4 deep"
+      },
+      {
+        "playing": false,
+        "depth": 4,
+        "cards": 3.4,
+        "text": "↻ 4 deep"
+      },
+      {
+        "playing": false,
+        "depth": 5,
+        "cards": 0,
+        "text": "↻ 5 deep"
+      },
+      {
+        "playing": false,
+        "depth": 5,
+        "cards": 0.5,
+        "text": "↻ 5 deep"
+      },
+      {
+        "playing": false,
+        "depth": 5,
+        "cards": 1,
+        "text": "↻ 5 deep"
+      },
+      {
+        "playing": false,
+        "depth": 5,
+        "cards": 1.4,
+        "text": "↻ 5 deep"
+      },
+      {
+        "playing": false,
+        "depth": 5,
+        "cards": 1.5,
+        "text": "↻ 5 deep"
+      },
+      {
+        "playing": false,
+        "depth": 5,
+        "cards": 1.6,
+        "text": "↻ 5 deep"
+      },
+      {
+        "playing": false,
+        "depth": 5,
+        "cards": 2.5,
+        "text": "↻ 5 deep"
+      },
+      {
+        "playing": false,
+        "depth": 5,
+        "cards": 3.4,
+        "text": "↻ 5 deep"
+      },
+      {
+        "playing": true,
+        "depth": 2,
+        "cards": 0,
+        "text": "↻ 1"
+      },
+      {
+        "playing": true,
+        "depth": 2,
+        "cards": 0.5,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 2,
+        "cards": 1,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 2,
+        "cards": 1.4,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 2,
+        "cards": 1.5,
+        "text": "↻ 3"
+      },
+      {
+        "playing": true,
+        "depth": 2,
+        "cards": 1.6,
+        "text": "↻ 3"
+      },
+      {
+        "playing": true,
+        "depth": 2,
+        "cards": 2.5,
+        "text": "↻ 4"
+      },
+      {
+        "playing": true,
+        "depth": 2,
+        "cards": 3.4,
+        "text": "↻ 4"
+      },
+      {
+        "playing": true,
+        "depth": 3,
+        "cards": 0,
+        "text": "↻ 1"
+      },
+      {
+        "playing": true,
+        "depth": 3,
+        "cards": 0.5,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 3,
+        "cards": 1,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 3,
+        "cards": 1.4,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 3,
+        "cards": 1.5,
+        "text": "↻ 3"
+      },
+      {
+        "playing": true,
+        "depth": 3,
+        "cards": 1.6,
+        "text": "↻ 3"
+      },
+      {
+        "playing": true,
+        "depth": 3,
+        "cards": 2.5,
+        "text": "↻ 4"
+      },
+      {
+        "playing": true,
+        "depth": 3,
+        "cards": 3.4,
+        "text": "↻ 4"
+      },
+      {
+        "playing": true,
+        "depth": 4,
+        "cards": 0,
+        "text": "↻ 1"
+      },
+      {
+        "playing": true,
+        "depth": 4,
+        "cards": 0.5,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 4,
+        "cards": 1,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 4,
+        "cards": 1.4,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 4,
+        "cards": 1.5,
+        "text": "↻ 3"
+      },
+      {
+        "playing": true,
+        "depth": 4,
+        "cards": 1.6,
+        "text": "↻ 3"
+      },
+      {
+        "playing": true,
+        "depth": 4,
+        "cards": 2.5,
+        "text": "↻ 4"
+      },
+      {
+        "playing": true,
+        "depth": 4,
+        "cards": 3.4,
+        "text": "↻ 4"
+      },
+      {
+        "playing": true,
+        "depth": 5,
+        "cards": 0,
+        "text": "↻ 1"
+      },
+      {
+        "playing": true,
+        "depth": 5,
+        "cards": 0.5,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 5,
+        "cards": 1,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 5,
+        "cards": 1.4,
+        "text": "↻ 2"
+      },
+      {
+        "playing": true,
+        "depth": 5,
+        "cards": 1.5,
+        "text": "↻ 3"
+      },
+      {
+        "playing": true,
+        "depth": 5,
+        "cards": 1.6,
+        "text": "↻ 3"
+      },
+      {
+        "playing": true,
+        "depth": 5,
+        "cards": 2.5,
+        "text": "↻ 4"
+      },
+      {
+        "playing": true,
+        "depth": 5,
+        "cards": 3.4,
+        "text": "↻ 4"
+      }
+    ],
+    "squashes": [
+      {
+        "sameBox": false,
+        "squash": {
+          "from": 0,
+          "to": 0
+        },
+        "result": {
+          "from": 0,
+          "to": 0
+        }
+      },
+      {
+        "sameBox": false,
+        "squash": {
+          "from": 0.6,
+          "to": 0
+        },
+        "result": {
+          "from": 0.6,
+          "to": 0
+        }
+      },
+      {
+        "sameBox": false,
+        "squash": {
+          "from": 0.2,
+          "to": 0.5
+        },
+        "result": {
+          "from": 0.2,
+          "to": 0.5
+        }
+      },
+      {
+        "sameBox": false,
+        "squash": {
+          "from": 0.5,
+          "to": 0.2
+        },
+        "result": {
+          "from": 0.5,
+          "to": 0.2
+        }
+      },
+      {
+        "sameBox": true,
+        "squash": {
+          "from": 0,
+          "to": 0
+        },
+        "result": {
+          "from": 0,
+          "to": 0
+        }
+      },
+      {
+        "sameBox": true,
+        "squash": {
+          "from": 0.6,
+          "to": 0
+        },
+        "result": {
+          "from": 0.6,
+          "to": 0
+        }
+      },
+      {
+        "sameBox": true,
+        "squash": {
+          "from": 0.2,
+          "to": 0.5
+        },
+        "result": {
+          "from": 0.5,
+          "to": 0
+        }
+      },
+      {
+        "sameBox": true,
+        "squash": {
+          "from": 0.5,
+          "to": 0.2
+        },
+        "result": {
+          "from": 0.5,
+          "to": 0
+        }
+      }
     ]
   }
 }

@@ -1,5 +1,5 @@
 import { animationOf, animationProblem, beatsFor, followsLanding, travelMs } from '../../src/core/animation.ts'
-import { active, bump, distance, DWELL, ease, GAP, progress, tubeOpacity } from '../../ui/src/motion.ts'
+import { active, bump, cardBox, cardsAt, distance, DWELL, ease, GAP, pillText, progress, tileSquash, tubeOpacity } from '../../ui/src/motion.ts'
 
 /** Tags as the files can hold them: good ones, and every kind of wrong one. */
 const RAW: unknown[] = [
@@ -17,6 +17,12 @@ const LENGTHS = [0, 100, 250, 400, 1000, 5000, 333.3]
 const ENDS: [string, string][] = [['a', 'b'], ['b', 'c'], ['a', 'c'], ['a', 'a']]
 const SPAN = { at: 100, dur: 400 }
 const TUBE = { at: 0, dur: 1000 }
+
+/** The recursions whose pile of cards is dumped: depth and the length of the loop pipe. */
+const PILES: [number, number][] = [[2, 250], [3, 250], [5, 250], [3, 0]]
+const PILE_TIMES = [...Array.from({ length: 121 }, (_, i) => i * 50), 619, 695, 770, 2265, 2960]
+const CARD_BOX = { x: 10, y: 20, width: 200, height: 72 }
+const SQUASHES = [{ from: 0, to: 0 }, { from: 0.6, to: 0 }, { from: 0.2, to: 0.5 }, { from: 0.5, to: 0.2 }]
 
 /** What the TypeScript says about tags: whether each is wrong, how it reads, how long a line takes, and every beat. */
 export function dumpBeats(): unknown {
@@ -38,6 +44,14 @@ export function dumpBeats(): unknown {
       ease: [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1].map(p => ({ p, ease: ease(p), bump: bump(p) })),
       progress: [0, 50, 100, 250, 499, 500, 900].map(t => ({ t, progress: progress(SPAN, t), active: active(SPAN, t), tube: tubeOpacity(TUBE, t) })),
       distance: (['fwd', 'back'] as const).flatMap(dir => [0, 0.3, 1].map(p => ({ dir, p, distance: distance(dir, p, 200) }))),
+      // A recursion's pile of cards and its counter (Flowy.Core/MotionMath.cs ports them).
+      cards: PILES.flatMap(([depth, length]) => {
+        const beats = beatsFor({ kind: 'recurse', trigger: 'inside', depth }, { length, afterLanding: false }).beats
+        return PILE_TIMES.map(t => ({ depth, length, t, cards: cardsAt(beats, t) }))
+      }),
+      cardBoxes: [1, 2, 3, 4].flatMap(k => [0, 0.25, 0.5, 1].map(amount => ({ k, amount, box: cardBox(CARD_BOX, k, amount) }))),
+      pills: [false, true].flatMap(playing => [2, 3, 4, 5].flatMap(depth => [0, 0.5, 1, 1.4, 1.5, 1.6, 2.5, 3.4].map(cards => ({ playing, depth, cards, text: pillText(playing, cards, depth) })))),
+      squashes: [false, true].flatMap(sameBox => SQUASHES.map(squash => ({ sameBox, squash, result: tileSquash(sameBox, squash) }))),
     },
   }
 }

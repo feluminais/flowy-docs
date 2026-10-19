@@ -56,6 +56,57 @@ public class MotionMathTests
     }
 
     [Fact]
+    public void The_pile_of_cards_slides_in_and_out_as_in_the_browser()
+    {
+        var all = Motion()["cards"]!.AsArray();
+        Assert.True(all.Count > 400);
+        foreach (var e in all)
+        {
+            var (beats, _) = Animations.BeatsFor(new StepAnimation("recurse", "inside", null, e!["depth"]!.GetValue<int>()), e["length"]!.GetValue<double>(), false);
+            Assert.Equal(e["cards"]!.GetValue<double>(), MotionMath.CardsAt(beats, e["t"]!.GetValue<double>()), 9);
+        }
+    }
+
+    [Fact]
+    public void A_card_sits_where_the_browser_puts_it()
+    {
+        var all = Motion()["cardBoxes"]!.AsArray();
+        Assert.Equal(16, all.Count);
+        foreach (var e in all)
+        {
+            var box = MotionMath.CardBox(new Rect(10, 20, 200, 72), e!["k"]!.GetValue<int>(), e["amount"]!.GetValue<double>());
+            var want = e["box"]!;
+            Assert.Equal(want["x"]!.GetValue<double>(), box.X, 9);
+            Assert.Equal(want["y"]!.GetValue<double>(), box.Y, 9);
+            Assert.Equal(want["width"]!.GetValue<double>(), box.Width, 9);
+            Assert.Equal(want["height"]!.GetValue<double>(), box.Height, 9);
+        }
+    }
+
+    [Fact]
+    public void The_counter_says_what_the_browsers_does_including_on_a_half()
+    {
+        var all = Motion()["pills"]!.AsArray();
+        Assert.Equal(64, all.Count);
+        foreach (var e in all)
+            Assert.Equal(e!["text"]!.GetValue<string>(), MotionMath.PillText(e["playing"]!.GetValue<bool>(), e["cards"]!.GetValue<double>(), e["depth"]!.GetValue<int>()));
+    }
+
+    [Fact]
+    public void With_one_box_at_both_ends_the_larger_squash_goes_on_the_first()
+    {
+        var all = Motion()["squashes"]!.AsArray();
+        Assert.Equal(8, all.Count);
+        foreach (var e in all)
+        {
+            var squash = e!["squash"]!;
+            var (from, to) = MotionMath.TileSquash(e["sameBox"]!.GetValue<bool>(), (squash["from"]!.GetValue<double>(), squash["to"]!.GetValue<double>()));
+            Assert.Equal(e["result"]!["from"]!.GetValue<double>(), from, 9);
+            Assert.Equal(e["result"]!["to"]!.GetValue<double>(), to, 9);
+        }
+    }
+
+    [Fact]
     public void A_gulp_squashes_the_box_it_is_on_while_it_runs()
     {
         var (beats, _) = Animations.BeatsFor(new StepAnimation("send", "inside", null), 250, false);

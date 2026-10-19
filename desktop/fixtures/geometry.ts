@@ -1,7 +1,7 @@
 import { getBezierPath, getSmoothStepPath, getStraightPath, getViewportForBounds, Position } from '@xyflow/system'
 import { SHAPE_DEFS } from '../../src/core/look.ts'
 import type { Shape } from '../../src/core/look.ts'
-import { frameAround, lineEnds, panIntoView, ports } from '../../ui/src/graph.ts'
+import { frameAround, lineEnds, loopAround, panIntoView, ports } from '../../ui/src/graph.ts'
 import type { Outline, Rect } from '../../ui/src/graph.ts'
 
 const SIDES = { top: Position.Top, right: Position.Right, bottom: Position.Bottom, left: Position.Left }
@@ -54,6 +54,13 @@ const SHAPED: [Rect, Shape, Rect, Shape][] = [
   [box(0, 0), 'rectangle', box(10, 10), 'diamond'],
 ]
 
+/** Boxes with a recursion's loop pipe: a rectangle and the shapes whose outline is not the box's border, and a box of another size and place. */
+const LOOPS: [Rect, Shape][] = [
+  ...(['rectangle', 'diamond', 'ellipse', 'hexagon', 'pill', 'cloud', 'cylinder', 'parallelogram'] as const).map((shape): [Rect, Shape] => [box(0, 0), shape]),
+  [box(40, 90, 260, 100), 'rectangle'],
+  [box(40, 90, 260, 100), 'diamond'],
+]
+
 const px = (n: number): `${number}px` => `${n}px`
 const FITS = [
   { bounds: box(0, 0, 1000, 600), size: [1100, 700], pad: [40, 40, 40, 40] },
@@ -82,6 +89,7 @@ export function dumpGeometry(): unknown {
       const [edgeA, edgeB] = [SHAPE_DEFS[shapeA].edge, SHAPE_DEFS[shapeB].edge]
       return { a, b, shapeA, shapeB, style, ...draw(style, a, b, edgeA, edgeB), ends: lineEnds(a, b, edgeA, edgeB), ports: ports(a, b, edgeA, edgeB) }
     })),
+    loops: LOOPS.map(([b, shape]) => ({ box: b, shape, path: loopAround(b, SHAPE_DEFS[shape].edge) })),
     frames: [[box(0, 0), box(300, 200)], [box(10, 10, 50, 50)], [box(-100, 40), box(0, -20), box(80, 300)]].map(rects => ({ rects, frame: frameAround(rects) })),
     fits: FITS.map(f => ({
       ...f,

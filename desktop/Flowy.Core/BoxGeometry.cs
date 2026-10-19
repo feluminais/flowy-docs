@@ -47,6 +47,19 @@ public static class BoxGeometry
         return double.IsPositiveInfinity(best) ? new Pt(cx, cy) : new Pt(cx + dx * best, cy + dy * best);
     }
 
+    /// <summary>
+    /// The path of a recursion's loop pipe for a box: it leaves the shape's outline on the right a little above the middle, swings out to the
+    /// right (about 70 px) and comes back in a little below the middle. A port of loopAround in ui/src/graph.ts.
+    /// </summary>
+    public static string LoopAround(Rect r, double[]? edge)
+    {
+        var start = LeaveAt(r, edge, r.Width / 2, -r.Height * 0.22);
+        var end = LeaveAt(r, edge, r.Width / 2, r.Height * 0.22);
+        const double reach = 90; // the control points sit this far out, so the curve itself bulges about three quarters of it
+        static string N(double v) => v.ToString("0.###############", System.Globalization.CultureInfo.InvariantCulture);
+        return $"M{N(start.X)} {N(start.Y)}C{N(start.X + reach)} {N(start.Y - 40)} {N(end.X + reach)} {N(end.Y + 40)} {N(end.X)} {N(end.Y)}";
+    }
+
     /// <summary>Where a straight line between the centres of two shapes leaves one and enters the other. A shape without an outline is the box itself.</summary>
     public static (Pt From, Pt To) LineEnds(Rect a, Rect b, double[]? edgeA = null, double[]? edgeB = null)
     {
