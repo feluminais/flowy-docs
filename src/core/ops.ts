@@ -2,7 +2,7 @@ import { check, newProblems } from './check.ts'
 import { iconProblem } from './look.ts'
 import type { Shape } from './look.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
-import type { Connection, Flow, FlowyObject, Layout, LineStyle, Link, Model, ObjectType, Step } from './model.ts'
+import type { Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Model, ObjectType, Step } from './model.ts'
 import { memberIds } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
@@ -17,7 +17,9 @@ export type ObjectInput = {
   tech?: string; description?: string; code?: string[]; links?: Link[]
 }
 export type ConnectionInput = { from: string; to: string; label?: string }
-export type FlowInput = { id: string; name: string; view: string; steps: Step[] }
+/** A group as put_flow gives it: `times` may be a number, which is written as text. */
+export type GroupInput = { kind?: string; text?: string; times?: string | number; until?: string; [extra: string]: unknown }
+export type FlowInput = { id: string; name: string; view: string; steps: Step[]; groups?: Record<string, GroupInput> }
 
 const FIELDS = ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description', 'code', 'links'] as const
 const CLEARABLE = ['in', 'shape', 'color', 'opacity', 'icon', 'tech', 'description'] as const
@@ -121,7 +123,7 @@ export function relabel(model: Model, which: ConnectionInput, label: string): Mo
 }
 
 /** Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. */
-export function putFlow(model: Model, { id, name, view, steps }: FlowInput): Model {
+export function putFlow(model: Model, { id, name, view, steps, groups }: FlowInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid flow id: ${ID_RULE}`)
   // Flow ids are file names, and Windows and macOS don't tell Visit.yaml from visit.yaml.
   const clash = Object.keys(model.flows).find(other => other !== id && other.toLowerCase() === id.toLowerCase())
@@ -131,7 +133,10 @@ export function putFlow(model: Model, { id, name, view, steps }: FlowInput): Mod
     const { description, ...rest } = s
     return typeof description === 'string' && !description.trim() ? rest as Step : { ...s }
   }
-  return { ...model, flows: { ...model.flows, [id]: { name, view, steps: steps.map(copy) } } }
+  // On disk a number is text, like every value: `times: 3` reads back as "3". No groups, or an empty set, writes no `groups:`.
+  const text = (g: GroupInput): Group => (typeof g.times === 'number' ? { ...g, times: String(g.times) } : g) as Group
+  const written = groups && Object.keys(groups).length > 0 ? { groups: Object.fromEntries(Object.entries(groups).map(([gid, g]) => [gid, text(g)])) } : {}
+  return { ...model, flows: { ...model.flows, [id]: { name, view, ...written, steps: steps.map(copy) } } }
 }
 
 function existingFlow(model: Model, id: string): Flow {

@@ -9,6 +9,7 @@ import type { Model } from '../core/model.ts'
 import { connect, deleteFlow, deleteIcon, deleteObject, disconnect, putFlow, putIcon, putObject, refuseNewProblems } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
+import { GROUP_KINDS } from '../core/structure.ts'
 import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
 import { loadDir, missingPaths, saveFile, VersionConflict } from './files.ts'
 
@@ -206,6 +207,9 @@ export function createMcpServer(dir: string): McpServer {
       id: id('Flow id, also its file name'),
       name: z.string().describe('Title, e.g. "Customer checks out"'),
       view: z.string().max(64).describe('"root" or the id of an object with children. Every step must be visible there.'),
+      groups: z.record(z.string().max(64), z.strictObject({
+        kind: z.enum(GROUP_KINDS), times: z.union([z.number().int(), z.string()]).optional(), until: z.string().optional(), text: z.string().optional(),
+      })).optional(),
       steps: z.array(z.object({
         from: z.string().max(64).describe('Id of the object the step starts at'),
         to: z.string().max(64).optional().describe('Id of the object it goes to. Leave it out for a step where the "from" object does something on its own.'),
@@ -215,6 +219,9 @@ export function createMcpServer(dir: string): McpServer {
           z.string(),
           z.strictObject({ kind: z.string(), trigger: z.string().optional(), carries: z.string().optional() }),
         ]).optional().describe(`How the step plays when a reader steps to it: ${ANIMATION_KINDS.join(', ')}, or { kind, trigger: "inside" | "outside" (callback only), carries: a word }. Optional: a step without one does not move.`),
+        group: z.string().max(64).optional(),
+        lane: z.string().optional(),
+        flow: z.string().max(64).optional(),
       })).min(1),
     },
   }, input => write(m => putFlow(m, input), before => readout(before, input))) // a flow changes no box, so `before` places it right
