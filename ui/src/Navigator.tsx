@@ -7,7 +7,7 @@ import { flowGroups, outline, outlineKey } from '../../src/core/outline.ts'
 import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
-import { ChevronRight, Close, Home, Info, Pencil, Play, Route, Search as SearchIcon, Sitemap } from './icons.tsx'
+import { Activity, ChevronRight, Close, Home, Info, Pencil, Play, Route, Search as SearchIcon, Sitemap } from './icons.tsx'
 import type { NavTab } from './navstate.ts'
 import { scrollToRow, visibleRows } from './window.ts'
 
@@ -19,8 +19,13 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 /** The tab strip that tops every panel. App provides it, so each panel (Details has several) shows it without being told. */
 export const NavTabsContext = createContext<ReactNode>(null)
 
-export function NavTabs({ tab, showFlows, onPick }: { tab: NavTab; showFlows: boolean; onPick: (tab: NavTab) => void }) {
-  const tabs: [NavTab, string][] = [['details', 'Details'], ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []), ['explorer', 'Explorer']]
+export function NavTabs({ tab, showFlows, showPerf, onPick }: { tab: NavTab; showFlows: boolean; showPerf: boolean; onPick: (tab: NavTab) => void }) {
+  const tabs: [NavTab, string][] = [
+    ['details', 'Details'],
+    ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []),
+    ['explorer', 'Explorer'],
+    ...(showPerf ? [['performance', 'Performance'] as [NavTab, string]] : []),
+  ]
   return (
     <div className="navtabs" role="tablist" aria-label="Panel">
       {tabs.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => onPick(id)}>{label}</button>)}
@@ -29,7 +34,7 @@ export function NavTabs({ tab, showFlows, onPick }: { tab: NavTab; showFlows: bo
 }
 
 /** The slim column of icons on the right edge. It is always there, and the counts on it say how much the documentation holds. */
-export function Rail({ tab, flows, shapes, showFlows, onPick }: { tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean; onPick: (tab: NavTab) => void }) {
+export function Rail({ tab, flows, shapes, runs, showFlows, showPerf, onPick }: { tab: NavTab | undefined; flows: number; shapes: number; runs: number; showFlows: boolean; showPerf: boolean; onPick: (tab: NavTab) => void }) {
   const button = (id: NavTab, label: string, key: string | undefined, Icon: typeof Info, count?: number) => (
     <button key={id} aria-pressed={tab === id} aria-label={count === undefined ? label : `${label}, ${count}`} title={key ? `${label} (${key})` : label} onClick={() => onPick(id)}>
       <Icon size={18} />
@@ -41,6 +46,7 @@ export function Rail({ tab, flows, shapes, showFlows, onPick }: { tab: NavTab | 
       {button('details', 'Details', undefined, Info)}
       {showFlows && button('flows', 'Flows', 'L', Route, flows)}
       {button('explorer', 'Explorer', 'O', Sitemap, shapes)}
+      {showPerf && button('performance', 'Performance', 'T', Activity, runs)}
     </nav>
   )
 }

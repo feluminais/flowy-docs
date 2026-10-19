@@ -1,5 +1,5 @@
-/** Which tab of the right-hand panel is showing: what a click picked (Details), the flows list, or the Explorer tree. */
-export type NavTab = 'details' | 'flows' | 'explorer'
+/** Which tab of the right-hand panel is showing: what a click picked (Details), the flows list, the Explorer tree, or the Performance of a load-test run. */
+export type NavTab = 'details' | 'flows' | 'explorer' | 'performance'
 
 /** What the navigator remembers for this project: the list or tree that was open, and which shapes were open in the tree. */
 export type NavSaved = { tab?: 'flows' | 'explorer'; expanded: string[] }
