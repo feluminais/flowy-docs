@@ -63,6 +63,15 @@ objects:
 
       `--dir` picks the model folder, `--port` the port (or the next free one), `--no-open` leaves
       the browser alone.
+  perf-lab:
+    type: app
+    in: flowy
+    name: Performance lab
+    tech: Node
+    code: [perf-lab/]
+    description: |
+      A made-up shop that really runs, with an open-loop load generator that measures it and writes
+      the run files the Performance tab reads. It is a test bed for Flowy, not a benchmark.
   desktop:
     type: app
     in: flowy
@@ -436,3 +445,4 @@ connections:
   - { from: filestore, to: perf, label: reads the runs in perf/ }
   - { from: perf, to: views, label: which line a connection lands in }
   - { from: perf, to: model, label: reads files the same way }
+  - { from: perf-lab, to: perf, label: writes runs it can read }
