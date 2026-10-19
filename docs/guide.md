@@ -54,6 +54,9 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   R plays the step again, and Autoplay (P) steps through the flow on its own. Nothing moves when
   the system asks for less motion, and a step's text always says the same thing. The desktop app
   plays them the same way.
+- A flow whose steps are grouped (see [Repeats, branches and parallel steps](#repeats-branches-and-parallel-steps)) is played in
+  stops: a chip names the group, a branch shows its lanes as tabs, the bar has a bracket under each group, and the lanes of a parallel
+  group are one stop, lit and moving together. A step that says `flow:` has an Open flow button, and a bar to come back.
 - F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Shapes with
   a problem carry a "!".
@@ -277,7 +280,7 @@ on a branch, a lane on a step with no group or in a repeat, a first step with no
 fewer than two lanes, a step that sits between two members of a group without belonging to it, and a `flow` that isn't a flow in the
 folder. The last means a change that deletes a flow another one points at is refused, as any change that adds a problem is.
 
-**What it does today.** The checks, and Mermaid. A repeat becomes a `loop` block labelled with every fact it has, a branch an `alt` with
+**Elsewhere in Flowy.** The checks, and Mermaid. A repeat becomes a `loop` block labelled with every fact it has, a branch an `alt` with
 an `else` for each further lane (`opt` when it has one), a parallel group a `par` with an `and` for each further lane, and a step with
 `flow:` is followed by a note over its end that names the flow it continues in. The sample above comes out as:
 
@@ -306,10 +309,20 @@ sequenceDiagram
   end
 ```
 
-The player in the browser and in the app doesn't draw groups yet. It plays a grouped flow as the plain list it still is, one step
-after another in file order, and a flow with none of these keys reads, plays and exports exactly as it did. The edit forms have no
-fields for them yet either, so write them in the file. Claude's `put_flow` accepts `groups` and a step's `group`, `lane` and `flow`
-(a `times` may be a number there), but its instructions don't yet say when to reach for them, so ask when you want one.
+**In the player.** The player steps through *stops*, the things that are on screen at once. Every step is a stop of its own except in
+a parallel group, where stop *k* is the *k*-th step of every lane: five one-step lanes are one stop with five lines lit and moving
+together, and a lane that has run out simply drops out. The card says where you are: a chip names the group (`Repeats up to 3 times`,
+`One of 2`, `At the same time, 2 lanes`), a branch lists its lanes as tabs with yours marked, the group's own `text` follows, and the
+progress bar has a cell for each stop, a branch's lanes on rows of their own and a bracket under each group. Point at a cell or a
+bracket to read what it means, or press the **?** on the card for a key to all of it. A parallel stop shows a block for each lane. On
+the canvas a small label on each lit line says how often it repeats or which lane it is, and the lanes of a branch you are not in
+are dashed and faint. A step with `flow:` has an **Open flow** button. It plays that flow on its own level and puts a bar at the top
+of the card, *Back to "…", step N*, that returns you to where you were (in the browser, the Back button does the same). The way back
+isn't in the address, so a reload drops it. Nothing moves when the system asks for less motion, and the chips, tabs, brackets and labels
+stay. A flow with none of these keys reads, plays and exports exactly as it did.
+
+Claude's `put_flow` takes `groups` and a step's `group`, `lane` and `flow` (a `times` may be a number there), and its instructions say when
+to reach for each. The edit forms have no fields for them yet, so write them in the file.
 
 ## Performance
 
