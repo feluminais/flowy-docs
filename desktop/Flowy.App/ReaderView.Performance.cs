@@ -1,0 +1,171 @@
+using System.Diagnostics;
+using Avalonia.Controls;
+using Flowy.App.Canvas;
+using Flowy.Core;
+
+namespace Flowy.App;
+
+/// <summary>
+/// The Performance panel: which load-test run and where along it, the ramp, and the load drawn on the canvas (traffic on the lines, strain on the
+/// shapes). It takes Details' place on the right while it is open. A port of what App.tsx does for the Performance tab, with the same rules: it is
+/// there only where the folder has a run (or a run file to complain about) and not while editing; a flow that was playing waits behind it; a click on
+/// the canvas picks what its panel reads out.
+/// </summary>
+internal sealed partial class ReaderView
+{
+    private bool _perf; // the Performance panel was opened (by its rail button or T)
+    private string _runId = "";
+    private double _pos; // where along the run's tested levels the screen is: a whole number is a tested level
+    private double _posNow; // where the ramp has got to, which can be ahead of what the screen shows
+    private bool _ramping;
+    private Stopwatch? _rampClock;
+    private double _rampLast;
+    private double _rampShown;
+
+    /// <summary>The tab is there whenever there is a run, or a run file to complain about, and never while editing.</summary>
+    private bool ShowPerf => !Editing && _folder is { } f && ((f.Runs?.Count ?? 0) > 0 || (f.RunProblems?.Count ?? 0) > 0);
+
+    private LoadRun? LoadTest => _folder?.Runs is { } runs && PerfView.ActiveRun(runs, _runId) is { Length: > 0 } id ? runs[id] : null;
+
+    private bool PerfOpen => _perf && ShowPerf; // with only a broken run file there is no load to show, but the panel can say what is wrong
+
+    /// <summary>A panel on the right, whichever it is.</summary>
+    private bool RightOpen => DetailsOpen || PerfOpen;
+
+    private static bool Still => MotionSettings.Reduced;
+
+    /// <summary>The panel opens on the load where things first struggle, or on the highest if nothing does.</summary>
+    private static double StartPos(LoadRun run) => PerfView.ClampPos(run, Perf.FindKnee(run)?.Index ?? PerfView.Top(run));
+
+    private void WirePerformance()
+    {
+        _perfPanel.RunPicked += PickRun;
+        _perfPanel.LevelPicked += StepLevel;
+        _perfPanel.RampClicked += ToggleRamp;
+        _perfPanel.Used += () => Focus(); // a control in the panel took the keyboard: give it back, so the keys work
+    }
+
+    private void OpenPerf()
+    {
+        if (!ShowPerf || _folder?.Runs is not { } runs) return;
+        _runId = PerfView.ActiveRun(runs, _runId);
+        if (LoadTest is { } run) _pos = _posNow = StartPos(run);
+        _details = false; // so that closing it again doesn't leave Details open in its place
+        _perf = true;
+        _ramping = false;
+        Refresh();
+    }
+
+    private void ClosePerf()
+    {
+        _perf = false;
+        _ramping = false;
+        _side = null; // what was picked for its readings is no reason for Details to open in its place
+        Refresh();
+        Focus();
+    }
+
+    private void TogglePerf()
+    {
+        if (PerfOpen) ClosePerf();
+        else OpenPerf();
+    }
+
+    private void PickRun(string id)
+    {
+        if (_folder?.Runs is not { } runs || !runs.Contains(id)) return;
+        _ramping = false;
+        _runId = id;
+        _pos = _posNow = StartPos(runs[id]);
+        Refresh();
+    }
+
+    /// <summary>Moves along the tested levels: a level the arrow keys, Home, End or the slider picked. It stops a ramp.</summary>
+    private void StepLevel(double to)
+    {
+        if (LoadTest is not { } run) return;
+        _ramping = false;
+        _pos = _posNow = PerfView.Snap(run, to);
+        ApplyLoad();
+    }
+
+    private void ToggleRamp()
+    {
+        if (LoadTest is not { } run || Still) return;
+        if (_ramping)
+        {
+            _pos = _posNow; // where it has got to, not where the screen last was
+            _ramping = false;
+            ApplyLoad();
+            return;
+        }
+        _posNow = PerfView.RampFrom(run, _posNow); // at the top, a ramp starts again from the bottom
+        _pos = _posNow;
+        _ramping = true;
+        _rampClock = Stopwatch.StartNew();
+        _rampLast = _rampShown = 0;
+        ApplyLoad();
+        RequestRampFrame();
+    }
+
+    private void RequestRampFrame() => TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ => RampFrame());
+
+    /// <summary>
+    /// A frame of the ramp. The position moves on every frame, but the screen is given it only every <see cref="PerfView.RampStepMs"/>: a view of a
+    /// hundred shapes is slow to draw again, and the particles move on their own frames meanwhile.
+    /// </summary>
+    private void RampFrame()
+    {
+        if (!_ramping || LoadTest is not { } run || _rampClock is null) return;
+        var now = _rampClock.Elapsed.TotalMilliseconds;
+        var step = Math.Min(100, now - _rampLast); // a window that was asleep doesn't jump
+        _rampLast = now;
+        _posNow = PerfView.RampPos(run, _posNow, step);
+        var done = _posNow >= PerfView.Top(run);
+        if (done || now - _rampShown >= PerfView.RampStepMs)
+        {
+            _rampShown = now;
+            _pos = _posNow;
+            if (done) _ramping = false;
+            ApplyLoad();
+        }
+        if (!done) RequestRampFrame();
+    }
+
+    /// <summary>Draws the load on the canvas and moves the panel to it, without building either again: what a step of a ramp, or a key, changes.</summary>
+    private void ApplyLoad()
+    {
+        if (!PerfOpen || _folder is not { } folder || LoadTest is not { } run)
+        {
+            _canvas.ShowLoad(null);
+            return;
+        }
+        _pos = PerfView.ClampPos(run, _pos);
+        _canvas.ShowLoad(Perf.TrafficFor(folder.Model, run, PerfView.LoadAt(run, _pos), CurrentView()));
+        _perfPanel.SetPos(_pos, _ramping);
+    }
+
+    private void ShowPerfPanel(Model model, string view)
+    {
+        var folder = _folder!;
+        PerfSelection? selection = _side switch
+        {
+            { Kind: SideKind.Object, Id: { } id } => new PerfSelection(id),
+            { Kind: SideKind.Line, From: { } from, To: { } to } => new PerfSelection(null, from, to),
+            _ => null,
+        };
+        _perfPanel.Show(model, view, folder.Runs!, folder.RunProblems ?? [], PerfView.ActiveRun(folder.Runs!, _runId), _pos, _ramping, Still, selection);
+        _panel.ShowControl(_perfPanel, "perf");
+    }
+
+    // What a test can look at.
+    internal bool PerfOpenNow => PerfOpen;
+
+    internal PerfPanel PerfPanelNow => _perfPanel;
+
+    internal (string Run, double Pos, bool Ramping) PerfState => (PerfView.ActiveRun(_folder?.Runs ?? new IdMap<LoadRun>(), _runId), _pos, _ramping);
+
+    internal void TickRamp() => RampFrame();
+
+    internal void PickRunById(string id) => PickRun(id);
+}

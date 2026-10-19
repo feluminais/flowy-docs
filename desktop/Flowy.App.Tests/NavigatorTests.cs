@@ -38,7 +38,7 @@ public class NavigatorTests
         var icons = reader.Rail.Shown.ToList();
         Assert.Equal(["Flows, 3", "Explorer, 36"], icons.Select(i => i.Name));
         Assert.All(icons, i => Assert.True(i.Visible));
-        Assert.Equal(["Details"], reader.DetailsRail.Shown.Select(i => i.Name));
+        Assert.Equal(["Details"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name)); // Performance is there only where there is a run
         Assert.False(reader.HasPanel); // nothing is open until an icon is picked
         double X(Avalonia.Visual v) => v.TranslatePoint(default, window)!.Value.X;
         Assert.True(X(reader.Rail) < X(reader.Canvas), "the navigator's rail is left of the canvas");
