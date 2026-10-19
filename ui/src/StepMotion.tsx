@@ -5,7 +5,7 @@ import { beatsFor } from '../../src/core/animation.ts'
 import type { Animation, Beat, Glyph } from '../../src/core/animation.ts'
 import type { Rect } from './graph.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
-import { active, bump, dashAround, distance, DWELL, ease, progress, tubeOpacity } from './motion.ts'
+import { active, bump, dashAround, distance, DWELL, ease, progress, squashTile, tubeOpacity } from './motion.ts'
 
 // The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
 const GLYPHS: Record<Glyph, string> = {
@@ -90,6 +90,7 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
     const { beats, total } = beatsFor(animation, { length, afterLanding })
     const nodes = beats.map((_, i) => svg.querySelector<SVGElement>(`[data-beat="${i}"]`))
     const tiles = { from: tile(ends[0]), to: tile(ends[1]) }
+    const who = { from: Symbol('from'), to: Symbol('to') } // two asks, so a step that is both its ends squashes by the larger
     let frameId = 0
     let start: number | undefined
 
@@ -140,7 +141,7 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
       }
       for (const side of ['from', 'to'] as const) {
         const el = tiles[side]
-        if (el) el.style.transform = squash[side] > 0 ? `scale(${1 + 0.07 * squash[side]}, ${1 - 0.1 * squash[side]})` : ''
+        if (el) squashTile(el, who[side], squash[side])
       }
     }
 
@@ -154,7 +155,10 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
     frameId = requestAnimationFrame(loop)
     return () => {
       cancelAnimationFrame(frameId)
-      for (const el of Object.values(tiles)) if (el) el.style.transform = ''
+      for (const side of ['from', 'to'] as const) {
+        const el = tiles[side]
+        if (el) squashTile(el, who[side], 0)
+      }
     }
   }, [svg])
 
