@@ -20,7 +20,7 @@ internal static class Icons
     public const string Cloud = "M6.657 18c-2.572 0 -4.657 -2.007 -4.657 -4.483c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 1.927 -1.551 3.487 -3.465 3.487h-11.878";
     public const string ZoomIn = "M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M7 10l6 0M10 7l0 6M21 21l-6 -6";
 
-    // The controls: Tabler's arrows, files, pencil and so on, and two of our own (Grid, Fit).
+    // The controls: Tabler's arrows, files, pencil and so on, and four of our own (Grid, Fit, Explorer, Info).
     public const string Home = "M5 12l-2 0l9 -9l9 9l-2 0M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6";
     public const string ChevronRight = "M9 6l6 6l-6 6";
     public const string ArrowRight = "M5 12l14 0M15 16l4 -4M15 8l4 4";
@@ -63,9 +63,10 @@ internal static class Icons
     public const string Pause = "M6 5m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1zM14 5m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z";
     public const string Reload = "M19.933 13.041a8 8 0 1 1 -9.925 -8.788c3.899 -1.002 7.935 1.007 9.425 4.747M20 4v5h-5";
     // The rail's Details and Explorer icons.
-    public const string Info = "M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 9h.01M11 12h1v4h1";
+    public const string Info = "M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 7.5h.01M12 11.5v5";
     public const string Activity = "M3 12h4l3 8l4 -16l3 8h4";
-    public const string Sitemap = "M3 15m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2zM15 15m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2zM9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2zM6 15v-1a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v1M12 9l0 3";
+    // Our own, drawn for the rail: a folder with what is in it hanging below, and an i with no serifs, which stays sharp at 18 pixels.
+    public const string Explorer = "M4 3h4l2 2h9a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-15a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2zM7 11v9.5h3M7 15.5h3M13 15.5h8M13 20.5h8";
     public const string Link = "M9 15l6 -6M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463";
 
     /// <summary>The heading icon of an object's look (shape, colour, icon).</summary>
