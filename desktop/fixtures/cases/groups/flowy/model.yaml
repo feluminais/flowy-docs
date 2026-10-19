@@ -1,0 +1,33 @@
+objects:
+  customer:
+    type: actor
+    name: Customer
+  shop:
+    type: system
+    name: Shop
+  api:
+    type: app
+    in: shop
+    name: API
+  db:
+    type: store
+    in: shop
+    name: Orders DB
+  billing:
+    type: app
+    in: shop
+    name: Billing
+  dispatch:
+    type: app
+    in: shop
+    name: Dispatch
+  stripe:
+    type: system
+    name: Stripe
+    external: "true"
+connections:
+  - { from: customer, to: api, label: orders through }
+  - { from: api, to: stripe, label: charges with }
+  - { from: api, to: db, label: reads and writes }
+  - { from: api, to: billing, label: tells }
+  - { from: api, to: dispatch, label: tells }

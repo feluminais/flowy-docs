@@ -1,0 +1,5 @@
+name: Capture a payment
+view: shop
+steps:
+  - { from: billing, to: db, text: Records the charge against the order }
+  - { from: billing, text: Closes the invoice }

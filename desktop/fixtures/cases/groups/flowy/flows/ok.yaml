@@ -1,0 +1,19 @@
+name: Customer pays for an order
+view: shop
+groups:
+  charge:
+    kind: repeat
+    times: 3
+    text: Backs off 1 s, 2 s, 4 s between tries
+  outcome:
+    kind: branch
+  tell:
+    kind: parallel
+steps:
+  - { from: api, to: stripe, text: Charges the card, group: charge }
+  - { from: stripe, to: api, text: Times out at the bank, group: charge }
+  - { from: stripe, to: api, text: Reports the charge settled, group: outcome, lane: Card accepted }
+  - { from: api, to: db, text: Marks the order paid, group: outcome }
+  - { from: stripe, to: api, text: Reports the final decline, group: outcome, lane: Card declined }
+  - { from: api, to: billing, text: Tells Billing, group: tell, lane: Billing, flow: capture-payment }
+  - { from: api, to: dispatch, text: Tells Dispatch, group: tell, lane: Dispatch }

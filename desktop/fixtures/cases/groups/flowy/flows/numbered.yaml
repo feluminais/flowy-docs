@@ -1,0 +1,11 @@
+name: Group ids that look like numbers
+view: shop
+groups:
+  b: { kind: loop }
+  10: { kind: loop }
+  2: { kind: loop }
+  a: { kind: repeat, times: 2 }
+steps:
+  - { from: api, to: db, text: First, group: b }
+  - { from: api, to: db, text: Second, group: 10 }
+  - { from: api, to: db, text: Third, group: 2 }
