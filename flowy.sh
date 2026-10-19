@@ -1,5 +1,5 @@
 #!/bin/sh
-# Starts Flowy Docs on the repo you are standing in. Takes the same flags as `npx flowy-docs`.
+# Starts Flowy Docs on the repo you are standing in. Takes the same flags as `node dist/cli.js`.
 # Builds on first run. After a git pull, delete dist/ to rebuild.
 here=$(cd "$(dirname "$0")" && pwd)
 if [ ! -f "$here/dist/cli.js" ]; then

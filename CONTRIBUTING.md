@@ -21,7 +21,7 @@ This repo documents itself: `flowy/` is Flowy Docs' own architecture, and `node 
 ## Run it from source
 
 `npm run build` puts the canvas in `dist/ui` and the server in `dist/`. In a clone, `node src/cli.ts` does what
-`npx flowy-docs` does, once `npm run build:ui` has built the canvas.
+`node dist/cli.js` does, once `npm run build:ui` has built the canvas.
 
 To work on the canvas with hot reload, run Flowy on the example model, then Vite, and open http://localhost:5173:
 
@@ -176,7 +176,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
 - [ ] Edit on a copy of `docs/demo` (the sample inside the app can't be edited): E turns edit mode on; rename a box in its panel and click
       elsewhere; add a box with N; drag a box and a second one; draw a connection from the dot under one box onto another and type a label;
       record a flow with two clicks and a line of text per step. Ctrl+Z walks it all back, Ctrl+Y forward. Open the same folder in the
-      browser (`npx flowy-docs --dir <copy>`): it shows the same, and `git diff` shows only the lines you changed.
+      browser (`node src/cli.ts --dir <copy>`): it shows the same, and `git diff` shows only the lines you changed.
 - [ ] While the app has a model open, change it in the browser (or save from an editor): the app shows it without a reload, and an edit
       made in the app after that starts from what is on disk.
 - [ ] Light and dark: change the system's theme while the app is open.

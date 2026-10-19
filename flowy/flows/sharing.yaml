@@ -1,7 +1,7 @@
 name: Sharing a copy
 view: flowy
 steps:
-  - { from: reader, to: cli, text: npx flowy-docs export }
+  - { from: reader, to: cli, text: node dist/cli.js export }
   - { from: cli, to: exporter, text: Builds the folder to put on a host }
   - { from: exporter, to: repo, text: "Loads the model, or stops on a file it can't read" }
   - from: exporter

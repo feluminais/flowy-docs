@@ -59,8 +59,8 @@ objects:
     tech: Node 22.18+
     code: [src/cli.ts, flowy.sh, flowy.cmd]
     description: |
-      `npx flowy-docs` and what follows it: no argument serves the canvas, `mcp` speaks MCP over
-      stdio, `export` writes a static copy, `mermaid` prints a diagram. In a clone, `flowy.sh` and
+      `node dist/cli.js` and what follows it: no argument serves the canvas, `mcp` speaks MCP over
+      stdio, `export` writes a static copy, `mermaid` prints a diagram. `flowy.sh` and
       `flowy.cmd` build once and then run the same thing.
 
       `--dir` picks the model folder, `--port` the port (or the next free one), `--no-open` leaves
@@ -496,7 +496,7 @@ objects:
     code: [src/core/mermaid.ts]
     description: A view as a flowchart, a flow as a sequence diagram (a group of steps becomes a loop, alt or par block), fenced and ready to paste where GitHub or GitLab draws it. A shape becomes the closest Mermaid node, and a colour a style line.
 connections:
-  - { from: reader, to: cli, label: npx flowy-docs }
+  - { from: reader, to: cli, label: node dist/cli.js }
   - { from: reader, to: desktop, label: opens folders in a window }
   - { from: reader, to: shell, label: "reads it, draws in edit mode" }
   - { from: reader, to: host, label: opens the shared link }

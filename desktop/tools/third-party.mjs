@@ -1,6 +1,6 @@
 // Writes desktop/THIRD-PARTY-NOTICES.md: every package the app ships, with its licence and copyright line, read from the NuGet cache.
 // Run from the repo root after `dotnet restore desktop`:  node desktop/tools/third-party.mjs
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 
@@ -15,12 +15,27 @@ for (const [target, libs] of Object.entries(assets.targets)) {
   for (const [id, lib] of Object.entries(libs)) if (lib.type === 'package' && (lib.runtime || lib.native || lib.runtimeTargets || lib.compile)) runtime.add(id)
 }
 
+// Native code carries licences of its own: Skia, FreeType and ICU inside SkiaSharp's binaries, ANGLE, and what the .NET runtime is built
+// from. Their packages ship the texts, so they are copied unchanged. The same text in several packages is written once.
+const noticeName = /^(third[-_ ]?party[-_ ]?notices?|notices?)(\.(txt|md))?$/i
+const texts = new Map() // text -> what carries it
+const addTexts = (dir, carrier, files = []) => {
+  if (!existsSync(dir)) return
+  for (const file of readdirSync(dir)) {
+    if (!noticeName.test(file) && !files.includes(file)) continue
+    const text = readFileSync(join(dir, file), 'utf8').replace(/\r\n/g, '\n').trim()
+    texts.set(text, [...(texts.get(text) ?? []), carrier])
+  }
+}
+
 const rows = []
 for (const id of [...runtime].sort((a, b) => a.localeCompare(b))) {
   const [name, version] = id.split('/')
   const nuspec = join(cache, name.toLowerCase(), version, `${name.toLowerCase()}.nuspec`)
   const xml = existsSync(nuspec) ? readFileSync(nuspec, 'utf8') : ''
   const license = tag(xml, 'license')
+  // A package whose licence is a file in the package (ANGLE) has no other copy of it.
+  addTexts(join(cache, name.toLowerCase(), version), name, license === 'LICENSE' ? ['LICENSE'] : [])
   rows.push({
     name,
     version,
@@ -40,6 +55,20 @@ const BSD = `Redistribution and use in source and binary forms, with or without 
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.`
 
+// The runtime a self-contained publish ships: the newest .NET 10 pack the machine has restored.
+const runtimePacks = join(cache, 'microsoft.netcore.app.runtime.win-x64')
+const runtimePack = existsSync(runtimePacks) ? readdirSync(runtimePacks).filter(v => v.startsWith('10.')).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })).at(-1) : undefined
+if (runtimePack) addTexts(join(runtimePacks, runtimePack), `.NET runtime ${runtimePack}`)
+
+const TEXTS = 'THIRD-PARTY-LICENCE-TEXTS.txt'
+const rule = '='.repeat(80)
+writeFileSync(`desktop/${TEXTS}`, [
+  'Licence texts that the packages Flowy Docs is built from ship with them, copied unchanged.',
+  'This file is written by node desktop/tools/third-party.mjs.',
+  '',
+  ...[...texts].flatMap(([text, carriers]) => [rule, `Carried by: ${carriers.join(', ')}`, rule, '', text, '']),
+].join('\n'))
+
 const licenses = new Set(rows.map(r => r.license))
 const text = [
   '# Third-party notices',
@@ -57,6 +86,13 @@ const text = [
   ...(licenses.has('MIT') || [...licenses].some(l => l.includes('MIT')) ? ['### MIT', '', MIT, ''] : []),
   ...([...licenses].some(l => l.includes('BSD')) ? ['### BSD-style (2- and 3-clause)', '', BSD, ''] : []),
   ...([...licenses].filter(l => !/MIT|BSD/.test(l)).map(l => `### ${l}\n\nSee the package's own licence file, linked from its NuGet page.\n`)),
+  ...(texts.size ? [
+    '## Native code and the .NET runtime',
+    '',
+    `SkiaSharp and HarfBuzzSharp carry libraries such as Skia and FreeType inside their binaries, Avalonia carries ANGLE on Windows, and the .NET runtime is built from more. Each ships its licence texts, copied unchanged into \`${TEXTS}\` next to this file.`,
+    '',
+  ] : []),
 ].join('\n')
 writeFileSync('desktop/THIRD-PARTY-NOTICES.md', text)
 console.log(`wrote desktop/THIRD-PARTY-NOTICES.md: ${rows.length} packages, licences ${[...licenses].join(', ')}`)
+console.log(`wrote desktop/${TEXTS}: ${texts.size} texts${runtimePack ? `, .NET runtime ${runtimePack}` : ', no .NET runtime pack found'}`)
