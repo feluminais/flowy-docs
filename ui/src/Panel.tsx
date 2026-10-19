@@ -399,11 +399,13 @@ function withDescription(step: Step, description: string): Step {
 
 const KIND_NAMES: Record<string, string> = { repeat: 'Repeat', branch: 'Branch: one lane happens', parallel: 'Parallel: all lanes at once' }
 const KIND_ICONS: Record<string, typeof Repeat> = { repeat: Repeat, branch: GitFork, parallel: ArrowsSplit }
+/** A value of a table by a key from a file: only the table's own keys count, so a kind called "constructor" is not on it. */
+const own = <T,>(table: Record<string, T>, key: unknown): T | undefined => (typeof key === 'string' && Object.hasOwn(table, key) ? table[key] : undefined)
 const hasLanes = (group?: Group) => group?.kind === 'branch' || group?.kind === 'parallel'
 
 /** The group a step is in, the lane it starts and the flow that tells the rest of its story. Each choice is one edit, which keeps the file valid or says why not. */
-function StepStructure({ step, groups, others, onGroup, onLane, onFlow }: {
-  step: Step; groups: Record<string, Group>; others: [string, string][]
+function StepStructure({ step, self, groups, others, onGroup, onLane, onFlow }: {
+  step: Step; self: string; groups: Record<string, Group>; others: [string, string][]
   onGroup: (group: string) => Promise<boolean>; onLane: (lane: string) => Promise<boolean>; onFlow: (flow: string) => Promise<boolean>
 }) {
   const gid = typeof step.group === 'string' ? step.group.trim() : ''
@@ -417,7 +419,7 @@ function StepStructure({ step, groups, others, onGroup, onLane, onFlow }: {
           Group
           <select value={gid} onChange={e => void onGroup(e.target.value)}>
             <option value="">None</option>
-            {ids.map(g => <option key={g} value={g}>{g} · {KIND_NAMES[String(groups[g]?.kind)] ?? 'no kind'}</option>)}
+            {ids.map(g => <option key={g} value={g}>{g} · {own(KIND_NAMES, groups[g]?.kind) ?? 'no kind'}</option>)}
             {gid !== '' && !ids.includes(gid) && <option value={gid}>{gid} · not declared</option>}
           </select>
         </label>
@@ -427,7 +429,7 @@ function StepStructure({ step, groups, others, onGroup, onLane, onFlow }: {
           <select value={target} onChange={e => void onFlow(e.target.value)}>
             <option value="">None</option>
             {others.map(([id, name]) => <option key={id} value={id}>{name || id}</option>)}
-            {target !== '' && !others.some(([id]) => id === target) && <option value={target}>{target} · no such flow</option>}
+            {target !== '' && !others.some(([id]) => id === target) && <option value={target}>{target === self ? 'This flow' : `${target} · no such flow`}</option>}
           </select>
         </label>
       </div>
@@ -461,8 +463,9 @@ function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps:
         <ul className="groups">
           {ids.map(gid => {
             const g = groups[gid]
-            const KindIcon = KIND_ICONS[String(g.kind)] ?? Repeat
-            const save = (key: 'times' | 'until' | 'text', value: string) => edit(m => putGroup(m, flowId, gid, { ...g, [key]: value }))
+            const KindIcon = own(KIND_ICONS, g.kind) ?? Repeat
+            // The group as it is saved now, not as it was drawn: another edit may have changed it since.
+            const save = (key: 'times' | 'until' | 'text', value: string) => edit(m => putGroup(m, flowId, gid, { ...(m.flows[flowId]?.groups?.[gid] ?? g), [key]: value }))
             return (
               <li key={gid} className="form">
                 <div className="group-head">
@@ -472,13 +475,14 @@ function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps:
                 </div>
                 <label>
                   Kind
-                  <select value={String(g.kind ?? '')} onChange={e => { const kind = e.target.value; void edit(m => setGroupKind(m, flowId, gid, kind)) }}>
+                  <select value={own(KIND_NAMES, g.kind) === undefined ? '' : String(g.kind)} onChange={e => { const kind = e.target.value; void edit(m => setGroupKind(m, flowId, gid, kind)) }}>
+                    {own(KIND_NAMES, g.kind) === undefined && <option value="" disabled>Choose a kind</option>}
                     {Object.entries(KIND_NAMES).map(([k, name]) => <option key={k} value={k}>{name}</option>)}
                   </select>
                 </label>
                 {g.kind === 'repeat' && (
                   <>
-                    <Field label="Times (a whole number from 2 to 99)" value={String(g.times ?? '')} onSave={value => save('times', value)} />
+                    <Field label="Times (a whole number from 2 to 99)" value={String(g.times ?? '')} onSave={value => save('times', value.trim())} />
                     <Field label="Until (what ends it, instead of a count)" value={String(g.until ?? '')} onSave={value => save('until', value)} />
                   </>
                 )}
@@ -557,7 +561,7 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
               <Field label="Detail a reader can open (markdown)" value={String(s.description ?? '')} multiline onSave={description => change(all => all.with(i, withDescription(all[i], description)))} />
             </details>
             <StepStructure
-              step={s} groups={groups} others={others}
+              step={s} self={rec.id} groups={groups} others={others}
               onGroup={group => edit(m => setStepGroup(m, rec.id, i, group))}
               onLane={lane => change(all => all.with(i, withKey(all[i], 'lane', lane)))}
               onFlow={target => change(all => all.with(i, withKey(all[i], 'flow', target)))}

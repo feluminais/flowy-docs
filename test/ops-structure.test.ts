@@ -157,3 +157,22 @@ test('groupSteps refuses a bad id, a taken one, a step already in a group, a bac
   assert.throws(() => groupSteps(plain(), 'pays', 'x', 'zig', 0, 0), /unknown kind "zig"/)
   assert.throws(() => groupSteps(plain(), 'nope', 'x', 'repeat', 0, 0), /unknown flow "nope"/)
 })
+
+test('putGroup refuses a times that is not 2 to 99 even over a flow that already has a bad one', () => {
+  const bad = updateFlow(plain(), 'pays', { groups: { retry: { kind: 'repeat', times: '1' }, pick: { kind: 'branch' } } })
+  assert.throws(() => putGroup(bad, 'pays', 'retry', { kind: 'repeat', times: '100' }), /group "retry": times must be a whole number from 2 to 99/)
+  assert.throws(() => putGroup(bad, 'pays', 'retry', { kind: 'repeat', times: ' 5 ' }), /times must be a whole number/)
+  assert.throws(() => putGroup(bad, 'pays', 'retry', { kind: 'repeat', times: 1 }), /times must be a whole number/)
+  assert.deepEqual(putGroup(bad, 'pays', 'retry', { kind: 'repeat', times: 7 }).flows.pays.groups!.retry, { kind: 'repeat', times: '7' })
+  assert.deepEqual(putGroup(bad, 'pays', 'retry', { kind: 'repeat', times: '  ', until: 'it works' }).flows.pays.groups!.retry, { kind: 'repeat', until: 'it works' })
+})
+
+test('setGroupKind makes a repeat parallel by giving every step a lane of its own, and keeps lanes that are there', () => {
+  const three = updateFlow(plain(), 'pays', { groups: { retry: { kind: 'repeat', times: '3' } }, steps: [s('a', { group: 'retry' }), s('b', { group: 'retry' }), s('c', { group: 'retry' })] })
+  const m = setGroupKind(three, 'pays', 'retry', 'parallel')
+  assert.deepEqual(m.flows.pays.steps.map(x => x.lane), ['Lane 1', 'Lane 2', 'Lane 3'])
+  const branch = updateFlow(plain(), 'pays', { groups: { pick: { kind: 'branch' } }, steps: [s('a', { group: 'pick', lane: 'Yes' }), s('b', { group: 'pick' }), s('c', { group: 'pick', lane: 'No' })] })
+  assert.deepEqual(setGroupKind(branch, 'pays', 'pick', 'parallel').flows.pays.steps.map(x => x.lane), ['Yes', undefined, 'No'])
+  const oneLane = updateFlow(plain(), 'pays', { groups: { pick: { kind: 'branch' } }, steps: [s('a', { group: 'pick', lane: 'Yes' }), s('b', { group: 'pick' })] })
+  assert.deepEqual(setGroupKind(oneLane, 'pays', 'pick', 'parallel').flows.pays.steps.map(x => x.lane), ['Yes', 'Lane 1'])
+})

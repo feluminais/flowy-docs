@@ -3,7 +3,7 @@ import { iconProblem } from './look.ts'
 import type { Shape } from './look.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Model, ObjectType, Step } from './model.ts'
-import { GROUP_KINDS, isGroupKind } from './structure.ts'
+import { GROUP_KINDS, isGroupKind, TIMES_MAX, TIMES_MIN, timesOk } from './structure.ts'
 import { memberIds } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
@@ -248,7 +248,8 @@ export function setStepGroup(model: Model, id: string, index: number, group: str
 
 /**
  * Give an existing group another kind. A repeat keeps its `times` and `until` (and gets `times: "3"` when it has neither), the others drop
- * them; members lose their lanes when it becomes a repeat, and when it becomes a branch or parallel group its first step starts "Lane 1".
+ * them; members lose their lanes when it becomes a repeat, and when it becomes a branch or parallel group its first step starts "Lane 1"
+ * (and, for parallel, every other step that starts no lane starts one of its own unless two lanes are there already).
  */
 export function setGroupKind(model: Model, id: string, group: string, kind: string): Model {
   const flow = existingFlow(model, id)
@@ -269,7 +270,19 @@ export function setGroupKind(model: Model, id: string, group: string, kind: stri
       const { lane: _l, ...kept } = steps[i]
       steps[i] = kept as Step
     }
-  } else if (members.length > 0 && laneOf(steps[members[0]]) === '') steps[members[0]] = { ...steps[members[0]], lane: 'Lane 1' }
+  } else if (members.length > 0) {
+    if (laneOf(steps[members[0]]) === '') steps[members[0]] = { ...steps[members[0]], lane: 'Lane 1' }
+    // Parallel lanes are at least two: every step that starts no lane starts one of its own, as groupSteps does.
+    if (kind === 'parallel' && members.filter(i => laneOf(steps[i]) !== '').length < 2) {
+      for (const i of members) {
+        if (laneOf(steps[i]) !== '') continue
+        const used = new Set(members.map(j => laneOf(steps[j])))
+        let n = 1
+        while (used.has(`Lane ${n}`)) n++
+        steps[i] = { ...steps[i], lane: `Lane ${n}` }
+      }
+    }
+  }
   return { ...model, flows: { ...model.flows, [id]: withGroups({ ...flow, steps }, { ...flow.groups, [group]: next }) } }
 }
 
@@ -307,6 +320,8 @@ export function putGroup(model: Model, flowId: string, id: string, group: GroupI
     if ((key === 'times' || key === 'until' || key === 'text') && (typeof text !== 'string' || text.trim() === '')) continue
     next[key] = text
   }
+  // The checks only refuse a problem that is new, so a bad `times` over an old bad `times` would pass them: this says no first.
+  if ('times' in next && !timesOk(next.times)) throw new OpError(`group "${id}": times must be a whole number from ${TIMES_MIN} to ${TIMES_MAX}`)
   return { ...model, flows: { ...model.flows, [flowId]: withGroups(flow, { ...(flow.groups ?? {}), [id]: next as Group }) } }
 }
 

@@ -150,4 +150,15 @@ public class EditOpsTests
         EditOps.SetLines(doc, "angled");
         Assert.Equal(before, doc.ToFiles());
     }
+
+    [Fact]
+    public void A_blank_groups_section_is_no_section_so_an_edit_writes_what_the_browser_writes()
+    {
+        foreach (var blank in new[] { "groups:\n", "groups: ~\n", "groups: null\n" })
+        {
+            var doc = EditDoc.Parse("objects: {}\n", null, [KeyValuePair.Create("f", $"name: F\nview: root\n{blank}steps:\n  - {{ from: a, text: x }}\n")]);
+            var files = EditOps.UpdateFlow(doc, "f", name: "G").ToFiles();
+            Assert.Equal("name: G\nview: root\nsteps:\n  - from: a\n    text: x\n", files["flows/f.yaml"]);
+        }
+    }
 }
