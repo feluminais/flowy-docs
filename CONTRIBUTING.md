@@ -48,13 +48,13 @@ the lab. Its [README](perf-lab/README.md) says what each part is and what to kee
 needs the .NET 10 SDK. The pieces:
 
 - `Flowy.Core`: no UI. A C# port of the reading half of `src/core` and `src/node` (YAML read as text, parsing, views, checks, the folder
-  loader, code links) plus what the canvas decides (geometry and line paths, layout, the scene, search, navigation) and the shell's rules
+  loader, code links, load-test runs and how they are played back) plus what the canvas decides (geometry and line paths, layout, the scene, search, navigation) and the shell's rules
   (which folder a pick means, recents, saved state, the folder watcher) and the Mermaid text. It also holds what editing needs, all on
   the files' YAML and never on the typed model, so a key it doesn't know (`owner:`, `links:`) is kept: `YamlWriter` (the `yaml` package's
   output, byte for byte), `EditOps` (a twin of `src/core/ops.ts`), `FileStore` (versioned, atomic writes) and `EditSession` (apply, refuse
   new problems, write, undo and redo).
 - `Flowy.App`: the Avalonia app. `Canvas/` draws a view (boxes as controls, one layer behind them for the frame and lines, a camera);
-  `ReaderView` holds what the reader has chosen (`ReaderView.Edit.cs` is edit mode); `SidePanel`, `EditPanels.cs` and `Recorder.cs` are the forms; `Shell` owns the windows; `Updates`, `ExplorerEntries` and `SingleInstance` are the
+  `ReaderView` holds what the reader has chosen (`ReaderView.Edit.cs` is edit mode, `ReaderView.Performance.cs` and `PerfPanel` the Performance panel); `SidePanel`, `EditPanels.cs` and `Recorder.cs` are the forms; `Shell` owns the windows; `Updates`, `ExplorerEntries` and `SingleInstance` are the
   installer-side parts.
 - `Flowy.Tests` (xUnit): the Core, including parity with the TypeScript. `Flowy.App.Tests` (xUnit v3, Avalonia's headless platform):
   keys, clicks, the wheel, windows, the menu, single instance, Explorer entries (in a throwaway registry key, never the real one).
@@ -104,6 +104,13 @@ Before merging a change to the app, look at what it could affect, in a real wind
 - [ ] `dotnet run --project desktop/Flowy.App -- docs/demo` shows Plum. Double-click Ordering: the view zooms in, the breadcrumb reads
       Overview › Ordering, and Esc, Backspace or the breadcrumb zoom out. Double-click the faded Delivery while inside Ordering: the
       view slides across instead of zooming in.
+- [ ] `dotnet run --project desktop/Flowy.App -- perf-lab` (or `-- perf-lab --view shop --tab performance --shot out.png`): the right rail has a Performance
+      button under Details with a 2 on it, and T opens its panel (in Details' place) on the load where the Fulfilment worker first struggles
+      (200 req/s on the ramp). In Shop lab, shapes that carry numbers are outlined from green to red along their own outline, Order queue
+      carries a number but no colour, busy lines are thicker with more dots, and Catalog cache and Payment gateway stay plain. ← → Home End
+      move between loads; P ramps up (from the top it starts again from the bottom) and a click on the slider stops it; a picked shape or
+      line reads out its numbers; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
+      are no dots and no Ramp button, and the outlines, thickness, numbers and strip still show. Light and dark both read.
 - [ ] Click Order API: its panel opens and the view moves it out from under the panel. Click a name in the panel's Out list: the panel
       switches. Open "5 connections": each label shows. Point at a row: its line lights up on the canvas.
 - [ ] Pick "Customer places an order" in Ordering: ← and → step, Home and End jump, Esc stops, and the player card shows "More".

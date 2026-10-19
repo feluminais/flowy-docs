@@ -265,7 +265,7 @@ does, and **Go there** gets back to it.
 **What to remember.** This is a replay. Flowy never predicts a load nobody tested, so the slider stops at the highest one. How
 strained a shape looks is its `util`, or its failure rate counted twenty times (5% failing is as bad as full), whichever is
 worse. Nothing moves when the system asks for less motion; the colours, thickness, badges and numbers stay. An exported page
-carries the runs, so its Performance tab works too. The desktop app doesn't read runs yet.
+carries the runs, so its Performance tab works too. The desktop app reads runs too, with the same panel and keys.
 
 **Making one.** Any tool that can write this file works. `perf-lab/` in the Flowy repo is a small shop that really runs, with a
 load generator that measures it and writes runs of this shape: `npm run lab:run` makes one, and
