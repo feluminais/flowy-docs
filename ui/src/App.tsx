@@ -26,7 +26,7 @@ import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
 import { Line, LineStyleContext, LineWidthsContext } from './Line.tsx'
 import { TrafficLayer } from './TrafficLayer.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
-import { drawable, DWELL, GAP } from './motion.ts'
+import { DWELL, GAP } from './motion.ts'
 import { clampWidth } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { keepNav, loadNav } from './navstore.ts'
@@ -190,7 +190,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       : { ends: done }
   }, [model, view, flow, stepIndex, recording])
   const placed = shown?.ends[stepIndex]
-  const animation = step ? drawable(animationOf(step)) : undefined
+  const animation = step ? animationOf(step) : undefined
   const moving = animation !== undefined && placed != null // a step the view can't show doesn't move
   const stepKey = flow && playing ? `${playing.flow}:${stepIndex}:${replays}` : ''
   const graph = useMemo(() => toGraph(model, view, shown, problems), [model, view, shown, problems])

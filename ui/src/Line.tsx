@@ -3,7 +3,7 @@ import { BaseEdge, getBezierPath, getSmoothStepPath, getStraightPath, Position, 
 import type { EdgeProps, InternalNode } from '@xyflow/react'
 import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
-import { lineEnds, ports, sizeOf } from './graph.ts'
+import { lineEnds, loopAround, ports, sizeOf } from './graph.ts'
 import type { BoxData, Outline, Rect } from './graph.ts'
 
 /** How lines are drawn: the project's style, or this reader's own. App provides it. */
@@ -36,6 +36,9 @@ function draw(style: LineStyle, a: Rect, b: Rect, edgeA: Outline, edgeB: Outline
 
 /** The path of the line between two boxes in the given style, for a step's pipe to follow. */
 export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode): string => draw(style, rect(a), rect(b), outline(a), outline(b))[0]
+
+/** The path of a recursion's loop pipe for one box, out of its right side and back in (the same in every line style). */
+export const loopPath = (n: InternalNode): string => loopAround(rect(n), outline(n))
 
 /**
  * A line between two boxes. Straight lines go edge to edge, whichever sides face each other: the boxes

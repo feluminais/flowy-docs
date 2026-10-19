@@ -1,11 +1,12 @@
-import { useContext, useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useId, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useInternalNode, ViewportPortal } from '@xyflow/react'
 import { beatsFor } from '../../src/core/animation.ts'
 import type { Animation, Beat, Glyph } from '../../src/core/animation.ts'
-import type { Rect } from './graph.ts'
-import { LineStyleContext, pathBetween, rect } from './Line.tsx'
-import { active, bump, dashAround, distance, DWELL, ease, progress, tubeOpacity } from './motion.ts'
+import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
+import type { BoxData, Rect } from './graph.ts'
+import { LineStyleContext, loopPath, pathBetween, rect } from './Line.tsx'
+import { active, bump, cardBox, cardsAt, dashAround, distance, DWELL, ease, pillText, progress, tileSquash, tubeOpacity } from './motion.ts'
 
 // The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
 const GLYPHS: Record<Glyph, string> = {
@@ -51,6 +52,33 @@ function shape(b: Beat, i: number, from: Rect, to: Rect): ReactNode {
   }
 }
 
+/** Where the counter of a recursing box sits for the words it says: on the box's top-right corner, wide enough for them. */
+const pillAt = (box: Rect, text: string) => {
+  const width = 14 + 7 * text.length
+  const x = box.x + box.width - 6 - width
+  return { x, width, textX: x + width / 2 }
+}
+
+/** The counter on a recursing box. The frame loop rewrites it while the motion runs (see writePill). */
+function Pill({ box, text }: { box: Rect; text: string }) {
+  const at = pillAt(box, text)
+  return (
+    <g className="pill">
+      <rect x={at.x} y={box.y - 11} width={at.width} height={22} rx={11} />
+      <text x={at.textX} y={box.y} textAnchor="middle" dominantBaseline="central">{text}</text>
+    </g>
+  )
+}
+
+function writePill(pill: Element, box: Rect, text: string) {
+  const at = pillAt(box, text)
+  const [back, words] = [pill.querySelector('rect')!, pill.querySelector('text')!]
+  back.setAttribute('x', String(at.x))
+  back.setAttribute('width', String(at.width))
+  words.setAttribute('x', String(at.textX))
+  words.textContent = text
+}
+
 type Props = {
   /** The boxes the step lands on in this view (ids of nodes on the canvas), in the step's direction. */
   ends: [string, string]
@@ -64,7 +92,8 @@ type Props = {
 /**
  * Plays one step's animation over the canvas: the line as a pipe, a blob running through it, and rings, flashes
  * and squashes on the boxes. Mount it keyed by the step (and replay), so a new step cancels the old one.
- * When the system asks for less motion it draws nothing and only reports that it is done.
+ * A recursion's pipe loops out of its box and back in, with a pile of ghost cards under the box and a counter on its corner.
+ * When the system asks for less motion it draws nothing (a recursion keeps its counter) and only reports that it is done.
  */
 export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
   const style = useContext(LineStyleContext)
@@ -74,6 +103,9 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
   const done = useRef(onDone)
   done.current = onDone
   const still = reducedMotion()
+  const recursing = animation.kind === 'recurse'
+  const depth = animation.depth ?? 3
+  const maskId = `cards${useId().replace(/\W/g, '')}`
 
   useEffect(() => {
     if (!still) return
@@ -90,7 +122,11 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
     const length = bore.getTotalLength()
     const { beats, total } = beatsFor(animation, { length, afterLanding })
     const nodes = beats.map((_, i) => svg.querySelector<SVGElement>(`[data-beat="${i}"]`))
+    const same = ends[0] === ends[1] // a recursion: one box at both ends
     const tiles = { from: tile(ends[0]), to: tile(ends[1]) }
+    const sides = same ? (['from'] as const) : (['from', 'to'] as const)
+    const piled = [...svg.querySelectorAll<SVGPathElement>('.card')]
+    const pill = svg.querySelector('.pill')
     let frameId = 0
     let start: number | undefined
 
@@ -139,9 +175,22 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
           swell.style.strokeDashoffset = String(dash.offset)
         }
       }
-      for (const side of ['from', 'to'] as const) {
+      if (recursing) {
+        const cards = cardsAt(beats, t)
+        piled.forEach((card, i) => {
+          const amount = Math.min(1, cards - i) // card i + 1 slides in over the first 150 ms of its beat
+          card.style.display = amount > 0 ? '' : 'none'
+          if (amount > 0) {
+            const box = cardBox(a, i + 1, amount)
+            card.setAttribute('transform', `translate(${box.x} ${box.y}) scale(${box.width / 200} ${box.height / 72})`)
+          }
+        })
+        if (pill) writePill(pill, a, pillText(t < total, cards, depth))
+      }
+      const squashed = tileSquash(same, squash)
+      for (const side of sides) {
         const el = tiles[side]
-        if (el) el.style.transform = squash[side] > 0 ? `scale(${1 + 0.07 * squash[side]}, ${1 - 0.1 * squash[side]})` : ''
+        if (el) el.style.transform = squashed[side] > 0 ? `scale(${1 + 0.07 * squashed[side]}, ${1 - 0.1 * squashed[side]})` : ''
       }
     }
 
@@ -159,12 +208,33 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
     }
   }, [svg])
 
+  if (still && recursing && from) {
+    return (
+      <ViewportPortal>
+        <svg className="motion" aria-hidden="true"><Pill box={rect(from)} text={pillText(false, 0, depth)} /></svg>
+      </ViewportPortal>
+    )
+  }
   if (still || !from || !to) return null
-  const d = pathBetween(style, from, to)
+  const d = recursing ? loopPath(from) : pathBetween(style, from, to)
   const [a, b] = [rect(from), rect(to)]
+  const shapePath = SHAPE_DEFS[shapeOf((from.data as BoxData).object)].path
   return (
     <ViewportPortal>
       <svg ref={setSvg} className="motion" aria-hidden="true">
+        {recursing && (
+          <>
+            {/* The cards are copies of the box's own shape, and the mask hides the part of them that is inside the box. */}
+            <mask id={maskId} maskUnits="userSpaceOnUse" x={a.x - 40} y={a.y - 40} width={a.width + 80} height={a.height + 130}>
+              <rect x={a.x - 40} y={a.y - 40} width={a.width + 80} height={a.height + 130} style={{ fill: 'white' }} />
+              <path d={shapePath} transform={`translate(${a.x} ${a.y}) scale(${a.width / 200} ${a.height / 72})`} style={{ fill: 'black', stroke: 'none' }} />
+            </mask>
+            {/* The mask goes on a group with no transform of its own: a mask is read in the coordinates of whatever carries it, cards' transforms included. */}
+            <g mask={`url(#${maskId})`}>
+              {Array.from({ length: depth - 1 }, (_, i) => <path key={i} className="card" d={shapePath} style={HIDDEN} />)}
+            </g>
+          </>
+        )}
         <g className="tube" style={{ opacity: 0 }}>
           <path className="wall" d={d} />
           <path className="bore" d={d} />
@@ -172,6 +242,7 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
         <path className="bulge wall" d={d} style={HIDDEN} />
         <path className="bulge bore" d={d} style={HIDDEN} />
         {beatsFor(animation, { length: 0, afterLanding }).beats.map((beat, i) => shape(beat, i, a, b))}
+        {recursing && <Pill box={a} text={pillText(true, 0, depth)} />}
       </svg>
     </ViewportPortal>
   )

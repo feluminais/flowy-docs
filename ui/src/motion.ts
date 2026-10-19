@@ -1,12 +1,6 @@
 /** Maths for drawing a step's beats (src/core/animation.ts). No DOM in here, so the node tests can run it. */
-import type { Animation, AnimationKind, Beat } from '../../src/core/animation.ts'
+import type { Beat } from '../../src/core/animation.ts'
 import type { Rect } from './graph.ts'
-
-/** The kinds the canvas draws. A step tagged with any other kind plays like a step with no tag. */
-export const DRAWN_KINDS: readonly AnimationKind[] = ['send', 'call', 'callback', 'event']
-
-/** The animation to play: `a` when the canvas draws its kind, otherwise nothing. */
-export const drawable = (a: Animation | undefined): Animation | undefined => (a !== undefined && DRAWN_KINDS.includes(a.kind) ? a : undefined)
 
 /** How long Autoplay rests after a step has finished moving, in ms. */
 export const GAP = 900
