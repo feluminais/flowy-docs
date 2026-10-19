@@ -1,9 +1,8 @@
 {
-  "name": "flowy-docs-vscode",
+  "name": "flowy-docs",
   "displayName": "Flowy Docs",
-  "description": "Read a repo's flowy/ architecture docs as a diagram you zoom through, inside VS Code.",
+  "description": "Architecture docs you zoom through: open a repo's flowy/ folder as a diagram inside VS Code, play its flows, edit it, and jump between the diagram and the code.",
   "version": "0.1.0",
-  "private": true,
   "publisher": "feluminais",
   "license": "MIT",
   "repository": {
@@ -11,6 +10,10 @@
     "url": "git+https://github.com/feluminais/flowy-docs.git",
     "directory": "vscode"
   },
+  "bugs": {
+    "url": "https://github.com/feluminais/flowy-docs/issues"
+  },
+  "homepage": "https://github.com/feluminais/flowy-docs#readme",
   "type": "module",
   "engines": {
     "vscode": "^1.95.0"
@@ -19,7 +22,25 @@
     "Visualization",
     "Other"
   ],
+  "keywords": [
+    "architecture",
+    "documentation",
+    "diagram",
+    "c4",
+    "yaml",
+    "flowchart",
+    "mcp",
+    "claude"
+  ],
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#2563eb",
+    "theme": "dark"
+  },
   "main": "./dist/extension.cjs",
+  "extensionKind": [
+    "workspace"
+  ],
   "activationEvents": [
     "workspaceContains:**/flowy/model.yaml",
     "onWebviewPanel:flowy.docs"
@@ -96,12 +117,15 @@
     }
   },
   "scripts": {
+    "vscode:prepublish": "node build.ts --release",
     "build": "node build.ts",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "package": "vsce package --no-dependencies --baseImagesUrl https://github.com/feluminais/flowy-docs/raw/HEAD/vscode"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
     "@types/vscode": "1.95.0",
+    "@vscode/vsce": "^4.0.0",
     "esbuild": "^0.28.2",
     "typescript": "~5.9.3"
   }

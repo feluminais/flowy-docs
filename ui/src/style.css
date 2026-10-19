@@ -92,7 +92,8 @@ svg { flex: none; }
  * The top bar, flat like an editor's toolbar: no boxes round the controls, just an icon and a word on the bar itself. Hovering lays a tint
  * under one; on (Edit, Search while open) a stronger one in the accent. Every control is 30px tall, so icon and text sit on one line.
  */
-.bar { display: flex; align-items: center; gap: 2px; padding: 5px 12px; border-bottom: 1px solid var(--line); background: var(--bg); }
+/* In a narrow window (VS Code beside the code) the bar wraps to a second row instead of pushing Edit off the right edge. */
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 5px 12px; border-bottom: 1px solid var(--line); background: var(--bg); }
 .crumbs { display: flex; align-items: center; gap: 2px; margin-right: 6px; }
 .crumbs > svg { color: var(--line); }
 .crumbs button { color: var(--accent); }

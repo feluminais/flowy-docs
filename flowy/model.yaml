@@ -264,6 +264,9 @@ objects:
       clipboard, because a webview can't count on doing it itself. It needs a trusted, local workspace:
       it runs git in the folder. It keeps no step history, and a file open with unsaved changes in the
       editor is left to VS Code's own conflict prompt.
+
+      `npm run package:vscode` makes a `.vsix` of it: the bundle, the canvas and the notices for what they
+      hold, and nothing else. It is built to be published to the Marketplace and Open VSX, and isn't yet.
   core:
     type: app
     in: flowy
