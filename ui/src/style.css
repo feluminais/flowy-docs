@@ -388,6 +388,8 @@ svg { flex: none; }
 .link-list ul { font-size: 14px; }
 .link-list .muted { margin-left: 2px; font-size: 12px; overflow-wrap: anywhere; }
 
+/* The frame React Flow draws round shapes picked with Shift and drag would sit over them and take their clicks. The shapes show they are picked themselves. */
+.react-flow__nodesselection-rect { pointer-events: none !important; }
 /* A box's connections in its panel: one row per line, out then in. */
 .lines-of { display: contents; }
 .lines-of ul { list-style: none; margin: 0 -8px; padding: 0; display: grid; gap: 2px; }
