@@ -291,6 +291,9 @@
   <Style Selector="Border.laneblock"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="TextBlock.lane"><Setter Property="FontSize" Value="12" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Button.trail"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <!-- The legend a grouped flow's card opens: what the chips, the bar and the labels on lines mean. -->
+  <Style Selector="Border.legend"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <Style Selector="Button.legendbutton.on Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Border.chip.warn TextBlock"><Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.chip.warn Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
   <Style Selector="Border.ttile.actor"><Setter Property="Background" Value="{DynamicResource ActorTileBrush}" /></Style>

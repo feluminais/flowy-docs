@@ -30,6 +30,10 @@ internal sealed class PlayerCard : Border
     /// <summary>The reader chose to go back to the flow this one was opened from.</summary>
     public event Action? BackToFlow;
 
+    // Whether the legend is open. It stays as the reader left it for as long as the app runs.
+    private static bool s_legend;
+    private PlayerView? _shown;
+
     public PlayerCard()
     {
         Classes.Add("card");
@@ -98,6 +102,28 @@ internal sealed class PlayerCard : Border
         return bar;
     }
 
+    /// <summary>What the chips, the bar and the labels on lines mean, in the words core gives it (see <see cref="Captions.Legend"/>).</summary>
+    private static Control LegendBlock()
+    {
+        var rows = new StackPanel { Spacing = 6 };
+        foreach (var row in Captions.Legend)
+        {
+            var title = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+            if (row.Kind is not null) title.Children.Add(Icons.Make(Icons.ForKind(row.Kind), "chipicon", 13));
+            title.Children.Add(new TextBlock { Text = row.Title, FontWeight = FontWeight.SemiBold, FontSize = 12.5 });
+            var text = new TextBlock { Text = row.Text, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(19, 0, 0, 0), Classes = { "muted" } };
+            rows.Children.Add(new StackPanel { Children = { title, text } });
+        }
+        var box = new Border
+        {
+            Child = new ScrollViewer { Content = rows, MaxHeight = 190, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled },
+            Padding = new Thickness(10, 8),
+            CornerRadius = new CornerRadius(8),
+        };
+        box.Classes.Add("legend");
+        return box;
+    }
+
     private Control Block(PlayerStep step, bool lane)
     {
         var block = new StackPanel { Spacing = 4 };
@@ -135,6 +161,8 @@ internal sealed class PlayerCard : Border
 
     public void Show(PlayerView v)
     {
+        _shown = v;
+        var grouped = v.Progress.Brackets.Count > 0; // the legend explains groups, so a flow with none has no button
         var column = new StackPanel { Spacing = 8 };
         if (v.Trail is { } trail)
         {
@@ -146,7 +174,23 @@ internal sealed class PlayerCard : Border
         }
         var chips = new List<Control> { Chrome.Chip(v.FlowName, Icons.Play), Chrome.Chip($"Step {v.Stop + 1} of {v.Count}", null, "accent") };
         if (v.Caption.Chip != "") chips.Add(Chrome.Chip(v.Caption.Chip, Icons.ForKind(v.Kind)));
-        column.Children.Add(Chrome.Chips([.. chips]));
+        var head = new DockPanel { LastChildFill = true };
+        if (grouped)
+        {
+            var help = Tool(Icons.Help, null, () =>
+            {
+                s_legend = !s_legend;
+                if (_shown is { } again) Show(again);
+            }, name: "What do these mean?");
+            help.Classes.Add("legendbutton");
+            if (s_legend) help.Classes.Add("on");
+            ToolTip.SetTip(help, "What do these mean?");
+            DockPanel.SetDock(help, Dock.Right);
+            head.Children.Add(help);
+        }
+        head.Children.Add(Chrome.Chips([.. chips]));
+        column.Children.Add(head);
+        if (grouped && s_legend) column.Children.Add(LegendBlock());
         if (v.Caption.Tabs.Count > 0)
         {
             var tabs = new WrapPanel { Orientation = Orientation.Horizontal };

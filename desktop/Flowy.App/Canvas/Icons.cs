@@ -43,6 +43,7 @@ internal static class Icons
     /// <summary>The icon of a kind of group: repeat, branch or parallel.</summary>
     public static string ForKind(string? kind) => kind switch { "repeat" => Repeat, "branch" => GitFork, _ => ArrowsSplit };
 
+    public const string Help = "M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 17l0 .01M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4";
     public const string Route = "M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M18 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M12 19h4.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h3.5";
     public const string Grid = "M4 4h6v6h-6zM14 4h6v6h-6zM4 14h6v6h-6zM14 14h6v6h-6z";
     public const string Alert = "M12 9v4M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0zM12 16h.01";

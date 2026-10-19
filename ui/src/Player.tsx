@@ -1,15 +1,27 @@
+import { useState } from 'react'
+import { LEGEND } from '../../src/core/captions.ts'
 import type { Caption, Progress } from '../../src/core/captions.ts'
 import type { Flow, Model } from '../../src/core/model.ts'
 import type { GroupKind, Stop } from '../../src/core/structure.ts'
 import { isView, stepEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { Chip } from './Chrome.tsx'
-import { ArrowLeft, ArrowRight, ArrowsSplit, Close, GitFork, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
+import { ArrowLeft, ArrowRight, ArrowsSplit, Close, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
 
 /** The icon of a kind of group, in the chip, the bracket and the mark on the canvas. */
 export const KIND_ICON = { repeat: Repeat, branch: GitFork, parallel: ArrowsSplit } as const satisfies Record<GroupKind, unknown>
 
 type Place = [string, string] | null
+
+const LEGEND_KEY = 'flowy.legend'
+/** Whether the legend was left open, from last time. Storage may be blocked or empty: the legend then starts closed. */
+function legendWasOpen(): boolean {
+  try {
+    return localStorage.getItem(LEGEND_KEY) === 'open'
+  } catch {
+    return false
+  }
+}
 
 type Props = {
   model: Model
@@ -56,6 +68,18 @@ function Bar({ progress, now }: { progress: Progress; now: number }) {
 /** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
 export function Player({ model, flow, stops, stop, ends, caption, progress, auto, moving, trail, onStep, onAuto, onReplay, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
+  const [legend, setLegend] = useState(legendWasOpen)
+  const grouped = progress.brackets.length > 0 // the legend explains groups, so a flow with none has no button
+  const toggleLegend = () => {
+    setLegend(open => {
+      try {
+        localStorage.setItem(LEGEND_KEY, open ? 'closed' : 'open')
+      } catch {
+        // not remembered: it still opens and closes
+      }
+      return !open
+    })
+  }
   const GroupIcon = here.kind === undefined ? undefined : KIND_ICON[here.kind]
   return (
     <section className="player" aria-live="polite">
@@ -64,7 +88,23 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, auto
         <Chip icon={Play}>{flow.name}</Chip>
         <Chip kind="accent">Step {stop + 1} of {stops.length}</Chip>
         {caption.chip !== '' && <Chip icon={GroupIcon}>{caption.chip}</Chip>}
+        {grouped && (
+          <button className="help" aria-label="What do these mean?" title="What do these mean?" aria-pressed={legend} onClick={toggleLegend}><Help size={15} /></button>
+        )}
       </div>
+      {grouped && legend && (
+        <dl className="legend">
+          {LEGEND.map(row => {
+            const Icon = row.kind === null ? undefined : KIND_ICON[row.kind]
+            return (
+              <div key={row.title}>
+                <dt>{Icon && <Icon size={13} />}{row.title}</dt>
+                <dd>{row.text}</dd>
+              </div>
+            )
+          })}
+        </dl>
+      )}
       {caption.tabs.length > 0 && (
         <div className="tabs">{caption.tabs.map((t, i) => <span key={i} className={i === caption.tab ? 'tab on' : 'tab'}>{t}</span>)}</div>
       )}

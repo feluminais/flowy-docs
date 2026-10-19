@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { captionOf, progressOf } from '../src/core/captions.ts'
+import { captionOf, LEGEND, progressOf } from '../src/core/captions.ts'
 import type { Flow, Step } from '../src/core/model.ts'
 import { otherLaneSteps, stopIndexOf, stopsOf } from '../src/core/structure.ts'
 
@@ -59,7 +59,7 @@ test('the progress bar has a column for each stop, the branch\'s lanes on rows o
     brackets: [
       { kind: 'repeat', from: 0, to: 1, text: '×3', title: 'Repeats up to 3 times' },
       { kind: 'branch', from: 2, to: 3, text: 'one of 2 lanes', title: 'Alternatives: only one of these lanes happens' },
-      { kind: 'parallel', from: 4, to: 4, text: 'at once', title: 'The lanes happen at the same time: each stop shows the next step of every lane' },
+      { kind: 'parallel', from: 4, to: 4, text: 'same time', title: 'The lanes happen at the same time: each stop shows the next step of every lane' },
     ],
   })
   assert.deepEqual(progressOf(flowOf(undefined, [step(), step()]), stopsOf(flowOf(undefined, [step(), step()]))), { cols: 2, rows: 1, cells: [{ stop: 0, col: 0, row: 0, title: '' }, { stop: 1, col: 1, row: 0, title: '' }], brackets: [] })
@@ -84,4 +84,10 @@ test('otherLaneSteps names the steps of the lanes a branch stop is not in, and n
   assert.deepEqual(otherLaneSteps(stops, 0), [])
   assert.deepEqual(otherLaneSteps(stops, 5), [])
   assert.deepEqual(otherLaneSteps(stops, 99), [])
+})
+
+test('the legend names each kind of group and the two things that are not groups, in words a reader can follow', () => {
+  assert.deepEqual(LEGEND.map(r => r.kind), ['repeat', 'branch', 'parallel', null, null])
+  assert.deepEqual(LEGEND.map(r => r.title), ['Repeat', 'Branch', 'Same time', 'The bar', 'The label on a line'])
+  for (const row of LEGEND) assert.ok(row.text.length > 30 && !/at once/i.test(row.text), row.title)
 })

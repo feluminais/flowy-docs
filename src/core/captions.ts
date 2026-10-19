@@ -15,6 +15,20 @@ import type { GroupKind, Stop } from './structure.ts'
  */
 export type Caption = { chip: string; text: string; tabs: string[]; tab: number; lanes: string[]; marks: string[] }
 
+/**
+ * What each thing on the card means, in plain words: the legend the card opens. `kind` gives the row its group icon; the bar and the
+ * label on a line have none. The wording is here so the browser and the desktop app tell it the same way.
+ */
+export type LegendRow = { kind: GroupKind | null; title: string; text: string }
+
+export const LEGEND: LegendRow[] = [
+  { kind: 'repeat', title: 'Repeat', text: 'The same steps run again. The chip says how many times at most, or what stops it.' },
+  { kind: 'branch', title: 'Branch', text: 'Alternatives: only one of the lanes happens. Each tab is a lane and the one you are in is marked. On the canvas the others are dashed.' },
+  { kind: 'parallel', title: 'Same time', text: 'Parallel lanes: steps that happen together. Each stop shows the next step of every lane, and they light up and move at the same moment.' },
+  { kind: null, title: 'The bar', text: 'One cell for each stop. A branch puts its lanes on rows of their own, and a bracket under the bar names each group. Point at a cell or a bracket to read more.' },
+  { kind: null, title: 'The label on a line', text: 'What the group says about that step: how often it repeats, or which lane it is in.' },
+]
+
 const part = (v: unknown): string => (blank(v) ? '' : String(v).trim())
 
 /** What a repeat does, in words: "up to 3 times, until it works", or "" when it says neither. */
@@ -98,7 +112,7 @@ export function progressOf(flow: Flow, stops: Stop[]): Progress {
       const words = repeatWords(g)
       brackets.push(s.kind === 'repeat'
         ? { kind: s.kind, from: start, to: col - 1, text: times === '' ? '' : `×${times}`, title: words === '' ? 'Repeats' : `Repeats ${words}` }
-        : { kind: s.kind, from: start, to: col - 1, text: 'at once', title: 'The lanes happen at the same time: each stop shows the next step of every lane' })
+        : { kind: s.kind, from: start, to: col - 1, text: 'same time', title: 'The lanes happen at the same time: each stop shows the next step of every lane' })
     }
     k = end + 1
   }

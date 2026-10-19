@@ -155,6 +155,32 @@ public class GroupsTests
     }
 
     [AvaloniaFact]
+    public void A_grouped_flow_has_a_legend_that_opens_and_closes_and_a_flow_with_no_groups_has_none()
+    {
+        var (_, reader) = Open("1");
+        reader.Play("capture-payment");
+        Assert.Null(Named(reader, "What do these mean?"));
+        reader.Play("ok");
+        var help = Named(reader, "What do these mean?")!;
+        Assert.DoesNotContain(Borders(reader, "legend"), _ => true);
+        Click(help);
+        try
+        {
+            Assert.Single(Borders(reader, "legend"));
+            reader.Card.UpdateLayout(); // a scroll viewer makes its content only when it is measured
+            var words = Words(reader);
+            foreach (var row in Captions.Legend) Assert.Contains(row.Title, words);
+            Assert.Contains(Captions.Legend[2].Text, words);
+            Click(Named(reader, "What do these mean?")!);
+            Assert.DoesNotContain(Borders(reader, "legend"), _ => true);
+        }
+        finally
+        {
+            if (Borders(reader, "legend").Count > 0) Click(Named(reader, "What do these mean?")!); // leave it closed for the next test
+        }
+    }
+
+    [AvaloniaFact]
     public void A_parallel_stop_shows_both_lanes_a_chip_a_bracket_for_each_group_and_a_way_to_open_the_linked_flow()
     {
         var (window, reader) = Open("1");
