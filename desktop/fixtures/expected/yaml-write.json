@@ -2057,7 +2057,7 @@
   ],
   "files": [
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\example",
+      "folder": "M:\\Projects\\Flowy Docs\\example",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2066,7 +2066,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\docs\\demo\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2075,7 +2075,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\empty\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\empty\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2084,7 +2084,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\problems\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\problems\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2093,7 +2093,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\links\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\links\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2102,7 +2102,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\text\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\text\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2111,7 +2111,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\layout\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\layout\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2120,7 +2120,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\bad-syntax\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\bad-syntax\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2129,7 +2129,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\duplicate-key\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\duplicate-key\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2138,7 +2138,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\merge-conflict\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\merge-conflict\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2147,7 +2147,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\shape-objects\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-objects\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2156,7 +2156,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\shape-field\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-field\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2165,7 +2165,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\shape-steps\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-steps\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2174,7 +2174,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\shape-layout\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-layout\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2183,7 +2183,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\look\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\look\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
@@ -2192,7 +2192,7 @@
       "text": "objects: {}\nconnections: []\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\.claude\\worktrees\\shapes\\desktop\\fixtures\\cases\\animation\\flowy",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\animation\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},
