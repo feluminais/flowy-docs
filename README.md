@@ -94,6 +94,8 @@ the step's text still says the same thing. The app and the browser play them ali
 
 ## Performance
 
+![The Delivery view at 900 orders a minute: Dispatch is outlined red and Live tracking yellow-green, dots run along the lines, and the Performance panel on the right has the load slider, where it first struggles, a latency curve and Dispatch's numbers](docs/images/desktop-performance.png)
+
 Flowy can also play back how a system behaved under load. Put a load test's results in `flowy/perf/<name>.yaml`, and a Performance
 tab joins the icons on the right edge (or press **T**). The diagram then shows the load: dots run along the lines as often, and as
 slowly, as the calls were, a line gets thicker with traffic, a shape's outline goes from green to red as it fills up, and a number
@@ -102,7 +104,8 @@ The tab says where things first struggle ("First struggles at 200 req/s: Fulfilm
 against load, and reads out the numbers of the shape or line you click.
 
 It plays back what was measured and nothing more: between two tested loads it blends the two, past the highest there is nothing
-to show, and a shape nobody measured stays plain. The file format is in [the guide](docs/guide.md#performance). `perf-lab/` is a
+to show, and a shape nobody measured stays plain. The file format is in [the guide](docs/guide.md#performance). To see it work, open the demo (Help › Open the Demo) and press **T**:
+Plum has two made-up runs of a dinner rush, one where Delivery gives way and one after a fix. `perf-lab/` is a
 small shop that really runs, with a load generator that writes these files (`npm run lab:run`, then
 `node src/cli.ts --dir perf-lab/flowy` to look at it). The browser and the desktop app both show runs.
 

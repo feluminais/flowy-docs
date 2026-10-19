@@ -97,7 +97,7 @@
         },
         {
           "flow": "refund",
-          "text": "sequenceDiagram\n  actor n0 as Support agent\n  participant n1 as Back office\n  participant n2 as Ordering\n  participant n3 as Stripe\n  participant n4 as Notifications\n  participant n5 as Twilio\n  n0->>n1: Finds the order in the support console\n  n1->>n2: Asks for a refund\n  n2->>n3: The money goes back to the card\n  n2->>n4: Asks for a confirmation to be sent\n  n4->>n5: The customer gets an SMS\n"
+          "text": "sequenceDiagram\n  actor n0 as Support agent\n  participant n1 as Back office\n  participant n2 as Ordering\n  participant n3 as Stripe\n  participant n4 as Notifications\n  participant n5 as Twilio\n  n0->>n1: Finds the order in the support console\n  n1->>n2: Asks for a refund, in full or by line\n  n2->>n3: The money goes back to the card\n  n2->>n4: Asks for a confirmation to be sent\n  n4->>n5: The customer gets an SMS\n"
         }
       ]
     },

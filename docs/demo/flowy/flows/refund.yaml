@@ -2,7 +2,7 @@ name: Support refunds an order
 view: root
 steps:
   - { from: support, to: backoffice, text: Finds the order in the support console }
-  - { from: backoffice, to: ordering, text: Asks for a refund, in full or by line }
+  - { from: backoffice, to: ordering, text: "Asks for a refund, in full or by line" }
   - from: ordering
     to: stripe
     text: The money goes back to the card
