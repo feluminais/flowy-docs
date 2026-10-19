@@ -396,4 +396,5 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .motion rect.ring { fill: none; stroke: var(--accent); stroke-width: 3; }
 .motion rect.flash { fill: var(--accent); }
 .motion .dots circle { fill: var(--accent); }
-.motion text.drop { font-size: 22px; }
+.motion .glyph { fill: none; stroke: var(--bg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.motion .glyph.drop { stroke: var(--accent); stroke-width: 2.2; }

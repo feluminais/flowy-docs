@@ -41,7 +41,7 @@ What to write in it, box by box, is in [Writing good Flowy docs](writing.md).
   way, and `callback` shows what set it off (`trigger: outside` when it was the step before).
   R plays the step again, and Autoplay (P) steps through the flow on its own. Nothing moves when
   the system asks for less motion, and a step's text always says the same thing. The desktop app
-  doesn't play them yet.
+  plays them the same way.
 - F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Boxes with
   a problem carry a "!".
@@ -169,7 +169,7 @@ What it has, as the canvas does: zoom into a box (double-click it, or select it 
 the breadcrumb works too), a frame around the box you're inside, boxes that belong to another level faded and dashed, wheel to
 zoom and drag to pan, **F** to fit, the side panel with the description, its links, the files a box lives in (as links when the repo's
 origin is on GitHub or GitLab), and every connection out and in, flows that play with ← and → (Home and End go to the first and last
-step), **Ctrl+K** or **/** to find a box, **?** for the shortcut list, the problem list in the top bar, straight, curved or
+step) with a step's animation, **R** to play it again and **P** to let the flow run on its own, **Ctrl+K** or **/** to find a box, **?** for the shortcut list, the problem list in the top bar, straight, curved or
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a box that sits
 beside the one you're in slides across instead of zooming in.**
 

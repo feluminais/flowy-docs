@@ -139,6 +139,8 @@ internal sealed partial class ReaderView : Grid
         _player.Back += () => StepTo(StepIndex() - 1);
         _player.Next += () => StepTo(StepIndex() + 1);
         _player.Stop += Stop;
+        _player.Auto += ToggleAuto;
+        _player.Replay += Replay;
 
         Focusable = true;
         // On the whole window, so keys work wherever the focus happens to be: a click on a button must not switch the shortcuts off.
@@ -424,6 +426,7 @@ internal sealed partial class ReaderView : Grid
         RefreshEdit();
         RefreshPanel(model, view);
         RefreshPlayer(model, view, flow, index, shown);
+        UpdateMotion(flow, index, shown);
     }
 
     /// <summary>The canvas alone: what pointing at a line changes. The panel keeps its scroll, its open rows and its selection.</summary>
@@ -542,7 +545,8 @@ internal sealed partial class ReaderView : Grid
         }
         var step = f.Flow.Steps[index];
         var ends = step.From is null ? "" : Views.StepEnds(model, step.From, step.To, shown?.Ends[index]);
-        _player.Show(string.IsNullOrEmpty(f.Flow.Name) ? f.Id : f.Flow.Name, index, f.Flow.Steps.Count, ends, step.Text ?? "", step.Description);
+        var moves = Animations.Read(step) is not null && shown?.Ends[index] is not null;
+        _player.Show(string.IsNullOrEmpty(f.Flow.Name) ? f.Id : f.Flow.Name, index, f.Flow.Steps.Count, ends, step.Text ?? "", step.Description, _auto, moves);
     }
 
     /// <summary>Lights a line as if the pointer were on it.</summary>
@@ -567,6 +571,7 @@ internal sealed partial class ReaderView : Grid
         _canvas.Opacity = 1;
         _view = view;
         _playing = null;
+        StopAuto();
         _hover = null;
         if (_side is { Kind: not SideKind.Object }) _side = null; // lines belong to one view
         Refresh();
@@ -690,6 +695,7 @@ internal sealed partial class ReaderView : Grid
     public void Play(string flow, int step = 0)
     {
         if (Editing) return;
+        StopAuto();
         _playing = (flow, step);
         Refresh();
     }
@@ -697,6 +703,7 @@ internal sealed partial class ReaderView : Grid
     private void StepTo(int index)
     {
         if (PlayingFlow() is not { } f || _playing is not { } p) return;
+        StopAuto();
         _playing = (p.Flow, Math.Max(0, Math.Min(index, f.Flow.Steps.Count - 1)));
         Refresh();
     }
@@ -704,6 +711,7 @@ internal sealed partial class ReaderView : Grid
     private void Stop()
     {
         _playing = null;
+        StopAuto();
         Refresh();
     }
 
@@ -808,6 +816,8 @@ internal sealed partial class ReaderView : Grid
         else if (flow is not null && e.Key == Key.Left) StepTo(StepIndex() - 1);
         else if (flow is not null && e.Key == Key.Home) StepTo(0);
         else if (flow is not null && e.Key == Key.End) StepTo(flow.Value.Flow.Steps.Count - 1);
+        else if (flow is not null && e.PhysicalKey == PhysicalKey.P && plain) ToggleAuto();
+        else if (flow is not null && e.PhysicalKey == PhysicalKey.R && plain) Replay();
         else if (e.Key == Key.Enter && Recording is null)
         {
             // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
