@@ -2115,19 +2115,717 @@
       "folder": "M:\\Projects\\Flowy Docs\\example",
       "rel": "model.yaml",
       "data": {
-        "objects": {},
-        "connections": []
+        "objects": {
+          "customer": {
+            "type": "actor",
+            "name": "Customer",
+            "description": "Someone buying things on the shop's website."
+          },
+          "shop": {
+            "type": "system",
+            "name": "Shop",
+            "description": "Sells things online.\n\nA web app in front of an API. Orders are kept in Postgres, and receipts go out\nthrough the **Mail service**.\n"
+          },
+          "web": {
+            "type": "app",
+            "in": "shop",
+            "name": "Web app",
+            "tech": "React",
+            "description": "The storefront customers browse.\n\nTalks to the API over REST. Keeps nothing but the cart.\n"
+          },
+          "api": {
+            "type": "app",
+            "in": "shop",
+            "name": "API",
+            "tech": "Node",
+            "description": "Handles orders and sign-in.\n\n- `POST /orders` places an order\n- `POST /login` signs a customer in\n"
+          },
+          "db": {
+            "type": "store",
+            "in": "shop",
+            "name": "Orders DB",
+            "tech": "Postgres"
+          },
+          "auth": {
+            "type": "component",
+            "in": "api",
+            "name": "Auth",
+            "description": "Checks passwords and starts sessions."
+          },
+          "orders": {
+            "type": "component",
+            "in": "api",
+            "name": "Orders",
+            "description": "Checks and saves orders, then asks for a receipt."
+          },
+          "mail": {
+            "type": "system",
+            "name": "Mail service",
+            "external": "true",
+            "description": "Sends our email. Run by an outside provider.\n\n[Provider status](https://example.com/status)\n"
+          }
+        },
+        "connections": [
+          {
+            "from": "customer",
+            "to": "web",
+            "label": "browses"
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "label": "REST"
+          },
+          {
+            "from": "orders",
+            "to": "db",
+            "label": "reads/writes"
+          },
+          {
+            "from": "auth",
+            "to": "db",
+            "label": "checks users"
+          },
+          {
+            "from": "orders",
+            "to": "mail",
+            "label": "sends receipts"
+          }
+        ]
       },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "objects:\n  customer:\n    type: actor\n    name: Customer\n    description: Someone buying things on the shop's website.\n  shop:\n    type: system\n    name: Shop\n    description: |\n      Sells things online.\n\n      A web app in front of an API. Orders are kept in Postgres, and receipts go out\n      through the **Mail service**.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n    description: |\n      The storefront customers browse.\n\n      Talks to the API over REST. Keeps nothing but the cart.\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    description: |\n      Handles orders and sign-in.\n\n      - `POST /orders` places an order\n      - `POST /login` signs a customer in\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n    description: Checks passwords and starts sessions.\n  orders:\n    type: component\n    in: api\n    name: Orders\n    description: Checks and saves orders, then asks for a receipt.\n  mail:\n    type: system\n    name: Mail service\n    external: true\n    description: |\n      Sends our email. Run by an outside provider.\n\n      [Provider status](https://example.com/status)\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\example",
+      "rel": "flows/checkout.yaml",
+      "data": {
+        "name": "Customer checks out",
+        "view": "shop",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "web",
+            "text": "Clicks \"Buy\""
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "text": "POST /orders"
+          },
+          {
+            "from": "orders",
+            "text": "Checks that every item is in stock",
+            "description": "Stock comes from the **Orders DB**. An item that ran out fails the whole order,\nand the customer sees which one.\n"
+          },
+          {
+            "from": "orders",
+            "to": "db",
+            "text": "Saves the order"
+          },
+          {
+            "from": "orders",
+            "to": "mail",
+            "text": "Asks for a receipt email"
+          }
+        ]
+      },
+      "text": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: orders\n    text: Checks that every item is in stock\n    description: |\n      Stock comes from the **Orders DB**. An item that ran out fails the whole order,\n      and the customer sees which one.\n  - from: orders\n    to: db\n    text: Saves the order\n  - from: orders\n    to: mail\n    text: Asks for a receipt email\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\example",
+      "rel": "flows/sign-in.yaml",
+      "data": {
+        "name": "Customer signs in",
+        "view": "api",
+        "steps": [
+          {
+            "from": "web",
+            "to": "auth",
+            "text": "POST /login"
+          },
+          {
+            "from": "auth",
+            "to": "db",
+            "text": "Looks up the user and checks the password"
+          }
+        ]
+      },
+      "text": "name: Customer signs in\nview: api\nsteps:\n  - from: web\n    to: auth\n    text: POST /login\n  - from: auth\n    to: db\n    text: Looks up the user and checks the password\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
       "rel": "model.yaml",
       "data": {
-        "objects": {},
-        "connections": []
+        "objects": {
+          "customer": {
+            "type": "actor",
+            "name": "Customer",
+            "description": "Someone hungry, ordering from the Plum app or the website."
+          },
+          "restaurant": {
+            "type": "actor",
+            "name": "Restaurant",
+            "description": "The kitchen staff who accept an order and mark it ready."
+          },
+          "courier": {
+            "type": "actor",
+            "name": "Courier",
+            "description": "Rides or drives the order from the restaurant to the customer's door."
+          },
+          "support": {
+            "type": "actor",
+            "name": "Support agent",
+            "description": "Answers customers and couriers when something goes wrong."
+          },
+          "ordering": {
+            "type": "system",
+            "name": "Ordering",
+            "description": "Everything a customer touches: browsing menus, building a basket, paying.\n\nThe **Order API** is the only way in. It keeps orders in Postgres and announces every new\norder on the **Order events** bus, which is how **Delivery** hears about it.\n"
+          },
+          "delivery": {
+            "type": "system",
+            "name": "Delivery",
+            "description": "Finds a courier for each order and follows it to the door.\n\nDispatch matches and offers. Live tracking keeps the customer's map moving.\n"
+          },
+          "notifications": {
+            "type": "system",
+            "name": "Notifications",
+            "description": "Push, SMS and email, from one place, so no other system talks to a messaging provider."
+          },
+          "backoffice": {
+            "type": "system",
+            "name": "Back office",
+            "description": "Tools for Plum's own staff. Nothing here is visible to customers or couriers."
+          },
+          "stripe": {
+            "type": "system",
+            "name": "Stripe",
+            "external": "true",
+            "description": "Takes card payments and sends refunds. Plum never sees a card number.\n\n[Provider status](https://status.stripe.com)\n"
+          },
+          "twilio": {
+            "type": "system",
+            "name": "Twilio",
+            "external": "true",
+            "description": "Sends the SMS messages."
+          },
+          "mapbox": {
+            "type": "system",
+            "name": "Mapbox",
+            "external": "true",
+            "description": "Maps, address lookup and travel times."
+          },
+          "customer-app": {
+            "type": "app",
+            "in": "ordering",
+            "name": "Customer app",
+            "tech": "React Native",
+            "code": [
+              "apps/customer/"
+            ],
+            "description": "The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\nKeeps nothing but the basket and the session.\n"
+          },
+          "web": {
+            "type": "app",
+            "in": "ordering",
+            "name": "Website",
+            "tech": "Next.js",
+            "description": "The same ordering flow in a browser. Menus are rendered on the server so search engines see them."
+          },
+          "kitchen-tablet": {
+            "type": "app",
+            "in": "ordering",
+            "name": "Kitchen tablet",
+            "tech": "Android",
+            "description": "Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected."
+          },
+          "order-api": {
+            "type": "app",
+            "in": "ordering",
+            "name": "Order API",
+            "tech": "Node, Fastify",
+            "code": [
+              "services/order-api/"
+            ],
+            "description": "Every client talks to this, and nothing else talks to the **Orders DB**.\n\n- `GET /menus/:restaurant` reads a menu\n- `POST /orders` places an order\n- `POST /orders/:id/refund` refunds one\n"
+          },
+          "orders-db": {
+            "type": "store",
+            "in": "ordering",
+            "name": "Orders DB",
+            "tech": "Postgres",
+            "description": "Orders, baskets and refunds. The source of truth for what a customer owes and was charged."
+          },
+          "menu-cache": {
+            "type": "store",
+            "in": "ordering",
+            "name": "Menu cache",
+            "tech": "Redis",
+            "description": "Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires."
+          },
+          "events": {
+            "type": "store",
+            "in": "ordering",
+            "name": "Order events",
+            "shape": "queue",
+            "tech": "Kafka",
+            "description": "One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\nDispatch reads from it, and so does the warehouse.\n"
+          },
+          "menu": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Menu",
+            "description": "Serves a restaurant's menu from the cache, and from the database when the cache is cold."
+          },
+          "basket": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Basket",
+            "description": "Holds what the customer picked and asks **Pricing** for the running total."
+          },
+          "pricing": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Pricing",
+            "code": [
+              "services/order-api/src/pricing.ts"
+            ],
+            "description": "Works out the total: items, delivery fee (by distance) and any promotion.\n\nThe delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n"
+          },
+          "checkout": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Checkout",
+            "code": [
+              "services/order-api/src/checkout.ts"
+            ],
+            "description": "Prices the basket, authorises the card and places the order.\n\nNothing is charged until the restaurant accepts. A rejected order releases the hold.\n"
+          },
+          "status": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Order status",
+            "description": "Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step."
+          },
+          "refunds": {
+            "type": "component",
+            "in": "order-api",
+            "name": "Refunds",
+            "description": "Returns money to the card, then marks the order refunded. Support can refund in full or by line."
+          },
+          "courier-app": {
+            "type": "app",
+            "in": "delivery",
+            "name": "Courier app",
+            "tech": "Kotlin, Swift",
+            "description": "Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open."
+          },
+          "dispatch": {
+            "type": "app",
+            "in": "delivery",
+            "name": "Dispatch",
+            "tech": "Go",
+            "code": [
+              "services/dispatch/"
+            ],
+            "description": "Turns each new order into a courier on the way.\n\nIt reads `placed` events and offers the job to couriers one at a time, nearest first.\n"
+          },
+          "tracking": {
+            "type": "app",
+            "in": "delivery",
+            "name": "Live tracking",
+            "tech": "Go, WebSocket",
+            "description": "Passes the courier's position to the customer's map. A position older than a minute is dropped."
+          },
+          "fleet-db": {
+            "type": "store",
+            "in": "delivery",
+            "name": "Fleet DB",
+            "tech": "Postgres, PostGIS",
+            "description": "Couriers, their vehicles, and their last known position."
+          },
+          "matcher": {
+            "type": "component",
+            "in": "dispatch",
+            "name": "Matcher",
+            "code": [
+              "services/dispatch/matcher.go"
+            ],
+            "description": "Ranks the idle couriers near a restaurant by how soon each could be there."
+          },
+          "eta": {
+            "type": "component",
+            "in": "dispatch",
+            "name": "ETA",
+            "description": "Estimates travel time from distance, traffic and the courier's vehicle."
+          },
+          "offers": {
+            "type": "component",
+            "in": "dispatch",
+            "name": "Offers",
+            "description": "Offers a job to one courier at a time and waits 30 seconds for an answer.\n\nA refusal or a timeout moves on to the next courier.\n"
+          },
+          "notifier": {
+            "type": "app",
+            "in": "notifications",
+            "name": "Notifier",
+            "tech": "Node",
+            "description": "Picks push, SMS or email for each message and sends it. Never blocks the caller."
+          },
+          "templates": {
+            "type": "store",
+            "in": "notifications",
+            "name": "Message templates",
+            "tech": "Postgres",
+            "description": "The wording of every message, per language."
+          },
+          "admin": {
+            "type": "app",
+            "in": "backoffice",
+            "name": "Admin dashboard",
+            "tech": "React",
+            "description": "Restaurants, delivery zones, promotions and the weekly reports."
+          },
+          "support-console": {
+            "type": "app",
+            "in": "backoffice",
+            "name": "Support console",
+            "tech": "React",
+            "description": "Look up an order, see where the courier is, issue a refund."
+          },
+          "warehouse": {
+            "type": "store",
+            "in": "backoffice",
+            "name": "Data warehouse",
+            "tech": "ClickHouse",
+            "description": "Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**."
+          }
+        },
+        "connections": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "label": "orders on a phone"
+          },
+          {
+            "from": "customer",
+            "to": "web",
+            "label": "orders in a browser"
+          },
+          {
+            "from": "restaurant",
+            "to": "kitchen-tablet",
+            "label": "accepts orders"
+          },
+          {
+            "from": "courier",
+            "to": "courier-app",
+            "label": "takes deliveries"
+          },
+          {
+            "from": "support",
+            "to": "support-console",
+            "label": "handles tickets"
+          },
+          {
+            "from": "support",
+            "to": "admin",
+            "label": "looks up couriers"
+          },
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "label": "REST"
+          },
+          {
+            "from": "web",
+            "to": "order-api",
+            "label": "REST"
+          },
+          {
+            "from": "kitchen-tablet",
+            "to": "order-api",
+            "label": "accepts, marks ready"
+          },
+          {
+            "from": "menu",
+            "to": "menu-cache",
+            "label": "reads menus"
+          },
+          {
+            "from": "menu",
+            "to": "orders-db",
+            "label": "on a cache miss"
+          },
+          {
+            "from": "basket",
+            "to": "orders-db",
+            "label": "saves the basket"
+          },
+          {
+            "from": "basket",
+            "to": "pricing",
+            "label": "asks for totals"
+          },
+          {
+            "from": "pricing",
+            "to": "mapbox",
+            "label": "delivery distance"
+          },
+          {
+            "from": "checkout",
+            "to": "pricing",
+            "label": "gets the total"
+          },
+          {
+            "from": "checkout",
+            "to": "stripe",
+            "label": "holds the card"
+          },
+          {
+            "from": "checkout",
+            "to": "orders-db",
+            "label": "writes the order"
+          },
+          {
+            "from": "checkout",
+            "to": "events",
+            "label": "announces placed"
+          },
+          {
+            "from": "status",
+            "to": "orders-db",
+            "label": "moves the order on"
+          },
+          {
+            "from": "status",
+            "to": "events",
+            "label": "announces each step"
+          },
+          {
+            "from": "status",
+            "to": "notifier",
+            "label": "order updates"
+          },
+          {
+            "from": "refunds",
+            "to": "stripe",
+            "label": "refunds the charge"
+          },
+          {
+            "from": "refunds",
+            "to": "orders-db",
+            "label": "marks refunded"
+          },
+          {
+            "from": "refunds",
+            "to": "notifier",
+            "label": "confirms by message"
+          },
+          {
+            "from": "dispatch",
+            "to": "events",
+            "label": "reads placed orders"
+          },
+          {
+            "from": "matcher",
+            "to": "fleet-db",
+            "label": "finds idle couriers"
+          },
+          {
+            "from": "matcher",
+            "to": "eta",
+            "label": "asks who is quickest"
+          },
+          {
+            "from": "matcher",
+            "to": "offers",
+            "label": "hands over the ranking"
+          },
+          {
+            "from": "eta",
+            "to": "mapbox",
+            "label": "travel times"
+          },
+          {
+            "from": "offers",
+            "to": "notifier",
+            "label": "sends the offer"
+          },
+          {
+            "from": "courier-app",
+            "to": "dispatch",
+            "label": "accepts or refuses"
+          },
+          {
+            "from": "courier-app",
+            "to": "tracking",
+            "label": "position every 5 s"
+          },
+          {
+            "from": "courier-app",
+            "to": "status",
+            "label": "picked up, delivered"
+          },
+          {
+            "from": "courier-app",
+            "to": "mapbox",
+            "label": "navigation"
+          },
+          {
+            "from": "tracking",
+            "to": "fleet-db",
+            "label": "stores positions"
+          },
+          {
+            "from": "tracking",
+            "to": "customer-app",
+            "label": "live map"
+          },
+          {
+            "from": "tracking",
+            "to": "web",
+            "label": "live map"
+          },
+          {
+            "from": "notifier",
+            "to": "twilio",
+            "label": "SMS"
+          },
+          {
+            "from": "notifier",
+            "to": "templates",
+            "label": "reads the wording"
+          },
+          {
+            "from": "support-console",
+            "to": "order-api",
+            "label": "looks up orders"
+          },
+          {
+            "from": "support-console",
+            "to": "refunds",
+            "label": "issues refunds"
+          },
+          {
+            "from": "admin",
+            "to": "order-api",
+            "label": "menus and promotions"
+          },
+          {
+            "from": "admin",
+            "to": "warehouse",
+            "label": "weekly reports"
+          },
+          {
+            "from": "events",
+            "to": "warehouse",
+            "label": "streams every event"
+          }
+        ]
       },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "objects:\n  customer:\n    type: actor\n    name: Customer\n    description: Someone hungry, ordering from the Plum app or the website.\n  restaurant:\n    type: actor\n    name: Restaurant\n    description: The kitchen staff who accept an order and mark it ready.\n  courier:\n    type: actor\n    name: Courier\n    description: Rides or drives the order from the restaurant to the customer's door.\n  support:\n    type: actor\n    name: Support agent\n    description: Answers customers and couriers when something goes wrong.\n  ordering:\n    type: system\n    name: Ordering\n    description: |\n      Everything a customer touches: browsing menus, building a basket, paying.\n\n      The **Order API** is the only way in. It keeps orders in Postgres and announces every new\n      order on the **Order events** bus, which is how **Delivery** hears about it.\n  delivery:\n    type: system\n    name: Delivery\n    description: |\n      Finds a courier for each order and follows it to the door.\n\n      Dispatch matches and offers. Live tracking keeps the customer's map moving.\n  notifications:\n    type: system\n    name: Notifications\n    description: Push, SMS and email, from one place, so no other system talks to a messaging provider.\n  backoffice:\n    type: system\n    name: Back office\n    description: Tools for Plum's own staff. Nothing here is visible to customers or couriers.\n  stripe:\n    type: system\n    name: Stripe\n    external: true\n    description: |\n      Takes card payments and sends refunds. Plum never sees a card number.\n\n      [Provider status](https://status.stripe.com)\n  twilio:\n    type: system\n    name: Twilio\n    external: true\n    description: Sends the SMS messages.\n  mapbox:\n    type: system\n    name: Mapbox\n    external: true\n    description: Maps, address lookup and travel times.\n  customer-app:\n    type: app\n    in: ordering\n    name: Customer app\n    tech: React Native\n    code:\n      - apps/customer/\n    description: |\n      The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\n      Keeps nothing but the basket and the session.\n  web:\n    type: app\n    in: ordering\n    name: Website\n    tech: Next.js\n    description: The same ordering flow in a browser. Menus are rendered on the server so search engines see them.\n  kitchen-tablet:\n    type: app\n    in: ordering\n    name: Kitchen tablet\n    tech: Android\n    description: Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected.\n  order-api:\n    type: app\n    in: ordering\n    name: Order API\n    tech: Node, Fastify\n    code:\n      - services/order-api/\n    description: |\n      Every client talks to this, and nothing else talks to the **Orders DB**.\n\n      - `GET /menus/:restaurant` reads a menu\n      - `POST /orders` places an order\n      - `POST /orders/:id/refund` refunds one\n  orders-db:\n    type: store\n    in: ordering\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds. The source of truth for what a customer owes and was charged.\n  menu-cache:\n    type: store\n    in: ordering\n    name: Menu cache\n    tech: Redis\n    description: Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires.\n  events:\n    type: store\n    in: ordering\n    name: Order events\n    shape: queue\n    tech: Kafka\n    description: |\n      One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\n      Dispatch reads from it, and so does the warehouse.\n  menu:\n    type: component\n    in: order-api\n    name: Menu\n    description: Serves a restaurant's menu from the cache, and from the database when the cache is cold.\n  basket:\n    type: component\n    in: order-api\n    name: Basket\n    description: Holds what the customer picked and asks **Pricing** for the running total.\n  pricing:\n    type: component\n    in: order-api\n    name: Pricing\n    code:\n      - services/order-api/src/pricing.ts\n    description: |\n      Works out the total: items, delivery fee (by distance) and any promotion.\n\n      The delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n  checkout:\n    type: component\n    in: order-api\n    name: Checkout\n    code:\n      - services/order-api/src/checkout.ts\n    description: |\n      Prices the basket, authorises the card and places the order.\n\n      Nothing is charged until the restaurant accepts. A rejected order releases the hold.\n  status:\n    type: component\n    in: order-api\n    name: Order status\n    description: Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step.\n  refunds:\n    type: component\n    in: order-api\n    name: Refunds\n    description: Returns money to the card, then marks the order refunded. Support can refund in full or by line.\n  courier-app:\n    type: app\n    in: delivery\n    name: Courier app\n    tech: Kotlin, Swift\n    description: Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open.\n  dispatch:\n    type: app\n    in: delivery\n    name: Dispatch\n    tech: Go\n    code:\n      - services/dispatch/\n    description: |\n      Turns each new order into a courier on the way.\n\n      It reads `placed` events and offers the job to couriers one at a time, nearest first.\n  tracking:\n    type: app\n    in: delivery\n    name: Live tracking\n    tech: Go, WebSocket\n    description: Passes the courier's position to the customer's map. A position older than a minute is dropped.\n  fleet-db:\n    type: store\n    in: delivery\n    name: Fleet DB\n    tech: Postgres, PostGIS\n    description: Couriers, their vehicles, and their last known position.\n  matcher:\n    type: component\n    in: dispatch\n    name: Matcher\n    code:\n      - services/dispatch/matcher.go\n    description: Ranks the idle couriers near a restaurant by how soon each could be there.\n  eta:\n    type: component\n    in: dispatch\n    name: ETA\n    description: Estimates travel time from distance, traffic and the courier's vehicle.\n  offers:\n    type: component\n    in: dispatch\n    name: Offers\n    description: |\n      Offers a job to one courier at a time and waits 30 seconds for an answer.\n\n      A refusal or a timeout moves on to the next courier.\n  notifier:\n    type: app\n    in: notifications\n    name: Notifier\n    tech: Node\n    description: Picks push, SMS or email for each message and sends it. Never blocks the caller.\n  templates:\n    type: store\n    in: notifications\n    name: Message templates\n    tech: Postgres\n    description: The wording of every message, per language.\n  admin:\n    type: app\n    in: backoffice\n    name: Admin dashboard\n    tech: React\n    description: Restaurants, delivery zones, promotions and the weekly reports.\n  support-console:\n    type: app\n    in: backoffice\n    name: Support console\n    tech: React\n    description: Look up an order, see where the courier is, issue a refund.\n  warehouse:\n    type: store\n    in: backoffice\n    name: Data warehouse\n    tech: ClickHouse\n    description: Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**.\nconnections:\n  - from: customer\n    to: customer-app\n    label: orders on a phone\n  - from: customer\n    to: web\n    label: orders in a browser\n  - from: restaurant\n    to: kitchen-tablet\n    label: accepts orders\n  - from: courier\n    to: courier-app\n    label: takes deliveries\n  - from: support\n    to: support-console\n    label: handles tickets\n  - from: support\n    to: admin\n    label: looks up couriers\n  - from: customer-app\n    to: order-api\n    label: REST\n  - from: web\n    to: order-api\n    label: REST\n  - from: kitchen-tablet\n    to: order-api\n    label: accepts, marks ready\n  - from: menu\n    to: menu-cache\n    label: reads menus\n  - from: menu\n    to: orders-db\n    label: on a cache miss\n  - from: basket\n    to: orders-db\n    label: saves the basket\n  - from: basket\n    to: pricing\n    label: asks for totals\n  - from: pricing\n    to: mapbox\n    label: delivery distance\n  - from: checkout\n    to: pricing\n    label: gets the total\n  - from: checkout\n    to: stripe\n    label: holds the card\n  - from: checkout\n    to: orders-db\n    label: writes the order\n  - from: checkout\n    to: events\n    label: announces placed\n  - from: status\n    to: orders-db\n    label: moves the order on\n  - from: status\n    to: events\n    label: announces each step\n  - from: status\n    to: notifier\n    label: order updates\n  - from: refunds\n    to: stripe\n    label: refunds the charge\n  - from: refunds\n    to: orders-db\n    label: marks refunded\n  - from: refunds\n    to: notifier\n    label: confirms by message\n  - from: dispatch\n    to: events\n    label: reads placed orders\n  - from: matcher\n    to: fleet-db\n    label: finds idle couriers\n  - from: matcher\n    to: eta\n    label: asks who is quickest\n  - from: matcher\n    to: offers\n    label: hands over the ranking\n  - from: eta\n    to: mapbox\n    label: travel times\n  - from: offers\n    to: notifier\n    label: sends the offer\n  - from: courier-app\n    to: dispatch\n    label: accepts or refuses\n  - from: courier-app\n    to: tracking\n    label: position every 5 s\n  - from: courier-app\n    to: status\n    label: picked up, delivered\n  - from: courier-app\n    to: mapbox\n    label: navigation\n  - from: tracking\n    to: fleet-db\n    label: stores positions\n  - from: tracking\n    to: customer-app\n    label: live map\n  - from: tracking\n    to: web\n    label: live map\n  - from: notifier\n    to: twilio\n    label: SMS\n  - from: notifier\n    to: templates\n    label: reads the wording\n  - from: support-console\n    to: order-api\n    label: looks up orders\n  - from: support-console\n    to: refunds\n    label: issues refunds\n  - from: admin\n    to: order-api\n    label: menus and promotions\n  - from: admin\n    to: warehouse\n    label: weekly reports\n  - from: events\n    to: warehouse\n    label: streams every event\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
+      "rel": "flows/deliver-order.yaml",
+      "data": {
+        "name": "A courier delivers it",
+        "view": "delivery",
+        "steps": [
+          {
+            "from": "events",
+            "to": "dispatch",
+            "text": "Hears that an order was placed"
+          },
+          {
+            "from": "dispatch",
+            "to": "fleet-db",
+            "text": "Finds idle couriers near the restaurant"
+          },
+          {
+            "from": "dispatch",
+            "text": "Ranks them by how soon each could arrive",
+            "description": "The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the\nvehicle. The quickest one is offered the job first.\n"
+          },
+          {
+            "from": "dispatch",
+            "to": "notifier",
+            "text": "Sends the offer as a push"
+          },
+          {
+            "from": "courier",
+            "to": "courier-app",
+            "text": "Accepts within 30 seconds"
+          },
+          {
+            "from": "courier-app",
+            "to": "tracking",
+            "text": "Streams its position every 5 seconds",
+            "description": "Only while a job is open. A position older than a minute is dropped, so a courier who loses\nsignal stops moving on the customer's map instead of jumping when it comes back.\n"
+          },
+          {
+            "from": "tracking",
+            "to": "customer-app",
+            "text": "The customer watches the courier come"
+          },
+          {
+            "from": "courier-app",
+            "to": "order-api",
+            "text": "Marks the order delivered"
+          }
+        ]
+      },
+      "text": "name: A courier delivers it\nview: delivery\nsteps:\n  - from: events\n    to: dispatch\n    text: Hears that an order was placed\n  - from: dispatch\n    to: fleet-db\n    text: Finds idle couriers near the restaurant\n  - from: dispatch\n    text: Ranks them by how soon each could arrive\n    description: |\n      The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the\n      vehicle. The quickest one is offered the job first.\n  - from: dispatch\n    to: notifier\n    text: Sends the offer as a push\n  - from: courier\n    to: courier-app\n    text: Accepts within 30 seconds\n  - from: courier-app\n    to: tracking\n    text: Streams its position every 5 seconds\n    description: |\n      Only while a job is open. A position older than a minute is dropped, so a courier who loses\n      signal stops moving on the customer's map instead of jumping when it comes back.\n  - from: tracking\n    to: customer-app\n    text: The customer watches the courier come\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
+      "rel": "flows/place-order.yaml",
+      "data": {
+        "name": "Customer places an order",
+        "view": "ordering",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Fills a basket and taps Place order"
+          },
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "text": "POST /orders with the basket",
+            "description": "The app sends an idempotency key with the request, so a double tap or a retry on a bad\nconnection places one order, not two.\n"
+          },
+          {
+            "from": "order-api",
+            "to": "stripe",
+            "text": "Holds the amount on the card",
+            "description": "**Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\nonce the restaurant accepts, and the hold is released if it refuses.\n"
+          },
+          {
+            "from": "order-api",
+            "to": "orders-db",
+            "text": "Saves the order as placed"
+          },
+          {
+            "from": "order-api",
+            "to": "events",
+            "text": "Announces the order"
+          },
+          {
+            "from": "events",
+            "to": "dispatch",
+            "text": "Dispatch starts looking for a courier"
+          },
+          {
+            "from": "order-api",
+            "to": "kitchen-tablet",
+            "text": "The restaurant's tablet rings",
+            "description": "The kitchen has two minutes to accept. After that the order is cancelled, the hold is\nreleased and the customer is told.\n"
+          }
+        ]
+      },
+      "text": "name: Customer places an order\nview: ordering\nsteps:\n  - from: customer\n    to: customer-app\n    text: Fills a basket and taps Place order\n  - from: customer-app\n    to: order-api\n    text: POST /orders with the basket\n    description: |\n      The app sends an idempotency key with the request, so a double tap or a retry on a bad\n      connection places one order, not two.\n  - from: order-api\n    to: stripe\n    text: Holds the amount on the card\n    description: |\n      **Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\n      once the restaurant accepts, and the hold is released if it refuses.\n  - from: order-api\n    to: orders-db\n    text: Saves the order as placed\n  - from: order-api\n    to: events\n    text: Announces the order\n  - from: events\n    to: dispatch\n    text: Dispatch starts looking for a courier\n  - from: order-api\n    to: kitchen-tablet\n    text: The restaurant's tablet rings\n    description: |\n      The kitchen has two minutes to accept. After that the order is cancelled, the hold is\n      released and the customer is told.\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\empty\\flowy",
@@ -2142,154 +2840,1427 @@
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\problems\\flowy",
       "rel": "model.yaml",
       "data": {
-        "objects": {},
-        "connections": []
+        "lines": "wiggly",
+        "objects": {
+          "customer": {
+            "type": "actor",
+            "name": "Customer"
+          },
+          "Bad_ID": {
+            "type": "actor",
+            "name": "Bad id"
+          },
+          "shop": {
+            "type": "system",
+            "name": "Shop",
+            "code": [
+              "src/real.ts",
+              "src/gone.ts",
+              "../escape.ts",
+              "/abs.ts"
+            ]
+          },
+          "api": {
+            "type": "app",
+            "in": "shop",
+            "name": "API",
+            "external": "maybe"
+          },
+          "nameless": {
+            "type": "app",
+            "in": "shop"
+          },
+          "orphan": {
+            "type": "component"
+          },
+          "lost": {
+            "type": "component",
+            "in": "nowhere"
+          },
+          "wrong": {
+            "type": "component",
+            "in": "customer"
+          },
+          "mystery": {
+            "type": "gadget"
+          },
+          "untyped": {
+            "name": "No type"
+          },
+          "badcode": {
+            "type": "system",
+            "name": "Bad code",
+            "code": "not-a-list"
+          },
+          "mixedcode": {
+            "type": "system",
+            "name": "Mixed code",
+            "code": [
+              "src/real.ts",
+              [
+                "nested"
+              ]
+            ]
+          },
+          "actor-in": {
+            "type": "actor",
+            "name": "Actor inside",
+            "in": "shop"
+          }
+        },
+        "connections": [
+          {
+            "from": "customer",
+            "to": "shop",
+            "label": "browses"
+          },
+          {
+            "from": "customer",
+            "to": "shop",
+            "label": "browses"
+          },
+          {
+            "from": "customer",
+            "to": "shop"
+          },
+          {
+            "from": "shop",
+            "to": "shop",
+            "label": "loop"
+          },
+          {
+            "from": "shop",
+            "to": "ghost"
+          },
+          {
+            "from": "",
+            "to": "api"
+          },
+          {
+            "from": "api"
+          }
+        ]
       },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "lines: wiggly\nobjects:\n  customer:\n    type: actor\n    name: Customer\n  Bad_ID:\n    type: actor\n    name: Bad id\n  shop:\n    type: system\n    name: Shop\n    code:\n      - src/real.ts\n      - src/gone.ts\n      - ../escape.ts\n      - /abs.ts\n  api:\n    type: app\n    in: shop\n    name: API\n    external: maybe\n  nameless:\n    type: app\n    in: shop\n  orphan:\n    type: component\n  lost:\n    type: component\n    in: nowhere\n  wrong:\n    type: component\n    in: customer\n  mystery:\n    type: gadget\n  untyped:\n    name: No type\n  badcode:\n    type: system\n    name: Bad code\n    code: not-a-list\n  mixedcode:\n    type: system\n    name: Mixed code\n    code:\n      - src/real.ts\n      - - nested\n  actor-in:\n    type: actor\n    name: Actor inside\n    in: shop\nconnections:\n  - from: customer\n    to: shop\n    label: browses\n  - from: customer\n    to: shop\n    label: browses\n  - from: customer\n    to: shop\n  - from: shop\n    to: shop\n    label: loop\n  - from: shop\n    to: ghost\n  - from:\n    to: api\n  - from: api\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\problems\\flowy",
+      "rel": "flows/Bad_Flow.yaml",
+      "data": {
+        "name": "Bad flow id",
+        "view": "root",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "shop",
+            "text": "Visits"
+          }
+        ]
+      },
+      "text": "name: Bad flow id\nview: root\nsteps:\n  - from: customer\n    to: shop\n    text: Visits\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\problems\\flowy",
+      "rel": "flows/broken.yaml",
+      "data": {
+        "name": "",
+        "view": "missing-view",
+        "steps": []
+      },
+      "text": "name:\nview: missing-view\nsteps: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\problems\\flowy",
+      "rel": "flows/good.yaml",
+      "data": {
+        "name": "A good flow",
+        "view": "root",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "shop",
+            "text": "Visits"
+          },
+          {
+            "from": "shop",
+            "text": "Thinks",
+            "description": "A longer note.\n"
+          }
+        ]
+      },
+      "text": "name: A good flow\nview: root\nsteps:\n  - from: customer\n    to: shop\n    text: Visits\n  - from: shop\n    text: Thinks\n    description: |\n      A longer note.\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\problems\\flowy",
+      "rel": "flows/steps.yaml",
+      "data": {
+        "name": "Step problems",
+        "view": "shop",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "shop",
+            "text": "outside to inside"
+          },
+          {
+            "from": "api",
+            "to": "api",
+            "text": "self"
+          },
+          {
+            "from": "ghost",
+            "text": "alone and unknown"
+          },
+          {
+            "from": "api",
+            "text": "fine"
+          },
+          {
+            "from": "api",
+            "to": "ghost",
+            "text": ""
+          }
+        ]
+      },
+      "text": "name: Step problems\nview: shop\nsteps:\n  - from: customer\n    to: shop\n    text: outside to inside\n  - from: api\n    to: api\n    text: self\n  - from: ghost\n    text: alone and unknown\n  - from: api\n    text: fine\n  - from: api\n    to: ghost\n    text:\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\links\\flowy",
       "rel": "model.yaml",
       "data": {
-        "objects": {},
+        "objects": {
+          "good": {
+            "type": "system",
+            "name": "Good",
+            "links": [
+              {
+                "title": "Real document",
+                "url": "docs/real.md"
+              },
+              {
+                "url": "docs/"
+              },
+              {
+                "title": "Web",
+                "url": "https://example.com/a?x=1#y"
+              },
+              {
+                "url": "HTTP://EXAMPLE.COM"
+              }
+            ]
+          },
+          "missing": {
+            "type": "system",
+            "name": "Missing",
+            "links": [
+              {
+                "title": "Gone",
+                "url": "docs/gone.md"
+              }
+            ]
+          },
+          "schemes": {
+            "type": "system",
+            "name": "Schemes",
+            "links": [
+              {
+                "url": "file:///etc/passwd"
+              },
+              {
+                "url": "mailto:a@b.c"
+              },
+              {
+                "url": "javascript:alert(1)"
+              },
+              {
+                "url": "/etc/passwd"
+              },
+              {
+                "url": "C:/x"
+              },
+              {
+                "url": "../up"
+              },
+              {
+                "url": "https://"
+              },
+              {
+                "url": "ftp://x.dev/f"
+              }
+            ]
+          },
+          "noaddress": {
+            "type": "system",
+            "name": "No address",
+            "links": [
+              {
+                "title": "No address"
+              },
+              {
+                "url": "  "
+              }
+            ]
+          },
+          "notalist": {
+            "type": "system",
+            "name": "Not a list",
+            "links": "docs/real.md"
+          },
+          "badentries": {
+            "type": "system",
+            "name": "Bad entries",
+            "links": [
+              "docs/real.md",
+              {
+                "title": [
+                  "x"
+                ],
+                "url": "docs/real.md"
+              }
+            ]
+          }
+        },
         "connections": []
       },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "objects:\n  good:\n    type: system\n    name: Good\n    links:\n      - title: Real document\n        url: docs/real.md\n      - url: docs/\n      - title: Web\n        url: https://example.com/a?x=1#y\n      - url: HTTP://EXAMPLE.COM\n  missing:\n    type: system\n    name: Missing\n    links:\n      - title: Gone\n        url: docs/gone.md\n  schemes:\n    type: system\n    name: Schemes\n    links:\n      - url: file:///etc/passwd\n      - url: mailto:a@b.c\n      - url: javascript:alert(1)\n      - url: /etc/passwd\n      - url: C:/x\n      - url: ../up\n      - url: https://\n      - url: ftp://x.dev/f\n  noaddress:\n    type: system\n    name: No address\n    links:\n      - title: No address\n      - url: \"  \"\n  notalist:\n    type: system\n    name: Not a list\n    links: docs/real.md\n  badentries:\n    type: system\n    name: Bad entries\n    links:\n      - docs/real.md\n      - title:\n          - x\n        url: docs/real.md\nconnections: []\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\text\\flowy",
       "rel": "model.yaml",
       "data": {
-        "objects": {},
-        "connections": []
+        "objects": {
+          "2": {
+            "type": "actor",
+            "name": "Two"
+          },
+          "10": {
+            "type": "actor",
+            "name": "Ten"
+          },
+          "b": {
+            "type": "actor",
+            "name": "B"
+          },
+          "007": {
+            "type": "actor",
+            "name": "Bond"
+          },
+          "a": {
+            "type": "system",
+            "name": "Quoted: \"name\"",
+            "tech": "3.10",
+            "external": "true",
+            "description": "First paragraph.\n\n- item one\n- item two\n"
+          },
+          "c": {
+            "type": "system",
+            "name": "Folded",
+            "description": "folded text continues here"
+          },
+          "d": {
+            "type": "system",
+            "name": "Escapes é \t tab",
+            "description": "multi line quoted"
+          },
+          "e": {
+            "type": "system",
+            "name": "Emoji 🚀 and Ünïcode",
+            "tech": "yes"
+          },
+          "f": {
+            "type": "system",
+            "name": "Keep",
+            "description": "trailing blank lines\n\n"
+          },
+          "g": {
+            "type": "system",
+            "name": "Single 'quotes' and",
+            "description": "it's fine"
+          }
+        },
+        "connections": [
+          {
+            "from": "b",
+            "to": "10",
+            "label": "to ten"
+          },
+          {
+            "from": "2",
+            "to": "007",
+            "label": "~"
+          },
+          {
+            "from": "a",
+            "to": "c",
+            "label": "two lines"
+          }
+        ]
       },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "objects:\n  2:\n    type: actor\n    name: Two\n  10:\n    type: actor\n    name: Ten\n  b:\n    type: actor\n    name: B\n  007:\n    type: actor\n    name: Bond\n  a:\n    type: system\n    name: 'Quoted: \"name\"'\n    tech: 3.10\n    external: true\n    description: |\n      First paragraph.\n\n      - item one\n      - item two\n  c:\n    type: system\n    name: Folded\n    description: folded text continues here\n  d:\n    type: system\n    name: Escapes é \t tab\n    description: multi line quoted\n  e:\n    type: system\n    name: Emoji 🚀 and Ünïcode\n    tech: yes\n  f:\n    type: system\n    name: Keep\n    description: |+\n      trailing blank lines\n\n  g:\n    type: system\n    name: Single 'quotes' and\n    description: it's fine\nconnections:\n  - from: b\n    to: 10\n    label: to ten\n  - from: 2\n    to: 007\n    label: ~\n  - from: a\n    to: c\n    label: two lines\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\layout\\flowy",
       "rel": "model.yaml",
       "data": {
-        "objects": {},
-        "connections": []
+        "objects": {
+          "customer": {
+            "type": "actor",
+            "name": "Customer"
+          },
+          "shop": {
+            "type": "system",
+            "name": "Shop"
+          },
+          "web": {
+            "type": "app",
+            "in": "shop",
+            "name": "Web"
+          },
+          "api": {
+            "type": "app",
+            "in": "shop",
+            "name": "API"
+          }
+        },
+        "connections": [
+          {
+            "from": "customer",
+            "to": "web",
+            "label": "browses"
+          },
+          {
+            "from": "web",
+            "to": "api"
+          }
+        ]
       },
-      "text": "objects: {}\nconnections: []\n"
-    },
-    {
-      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\bad-syntax\\flowy",
-      "rel": "model.yaml",
-      "data": {
-        "objects": {},
-        "connections": []
-      },
-      "text": "objects: {}\nconnections: []\n"
-    },
-    {
-      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\duplicate-key\\flowy",
-      "rel": "model.yaml",
-      "data": {
-        "objects": {},
-        "connections": []
-      },
-      "text": "objects: {}\nconnections: []\n"
-    },
-    {
-      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\merge-conflict\\flowy",
-      "rel": "model.yaml",
-      "data": {
-        "objects": {},
-        "connections": []
-      },
-      "text": "objects: {}\nconnections: []\n"
-    },
-    {
-      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-objects\\flowy",
-      "rel": "model.yaml",
-      "data": {
-        "objects": {},
-        "connections": []
-      },
-      "text": "objects: {}\nconnections: []\n"
-    },
-    {
-      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-field\\flowy",
-      "rel": "model.yaml",
-      "data": {
-        "objects": {},
-        "connections": []
-      },
-      "text": "objects: {}\nconnections: []\n"
-    },
-    {
-      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-steps\\flowy",
-      "rel": "model.yaml",
-      "data": {
-        "objects": {},
-        "connections": []
-      },
-      "text": "objects: {}\nconnections: []\n"
-    },
-    {
-      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-layout\\flowy",
-      "rel": "model.yaml",
-      "data": {
-        "objects": {},
-        "connections": []
-      },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\look\\flowy",
       "rel": "model.yaml",
       "data": {
-        "objects": {},
+        "icons": {
+          "stripe": "M4 6h16v12h-16zM4 10h16M8 15h3",
+          "Bad_Name": "M0 0h4",
+          "truck": "M0 0h4",
+          "not-a-path": "hello world",
+          "nested": [
+            "M0 0h4"
+          ]
+        },
+        "objects": {
+          "rect": {
+            "type": "system",
+            "name": "Rectangle",
+            "shape": "rectangle"
+          },
+          "pill": {
+            "type": "system",
+            "name": "Pill",
+            "shape": "pill"
+          },
+          "ellipse": {
+            "type": "system",
+            "name": "Ellipse",
+            "shape": "ellipse"
+          },
+          "diamond": {
+            "type": "system",
+            "name": "Decision",
+            "shape": "diamond"
+          },
+          "diamond-icon": {
+            "type": "system",
+            "name": "Decision with an icon",
+            "shape": "diamond",
+            "icon": "coin"
+          },
+          "hexagon": {
+            "type": "system",
+            "name": "Hexagon",
+            "shape": "hexagon",
+            "tech": "Go"
+          },
+          "parallelogram": {
+            "type": "system",
+            "name": "Parallelogram",
+            "shape": "parallelogram"
+          },
+          "cylinder": {
+            "type": "system",
+            "name": "Cylinder",
+            "shape": "cylinder"
+          },
+          "queue": {
+            "type": "system",
+            "name": "Queue",
+            "shape": "queue"
+          },
+          "document": {
+            "type": "system",
+            "name": "Document",
+            "shape": "document"
+          },
+          "folder": {
+            "type": "system",
+            "name": "Folder",
+            "shape": "folder"
+          },
+          "note": {
+            "type": "system",
+            "name": "Note",
+            "shape": "note"
+          },
+          "cloud": {
+            "type": "system",
+            "name": "Cloud",
+            "shape": "cloud"
+          },
+          "arrow": {
+            "type": "system",
+            "name": "Arrow",
+            "shape": "arrow"
+          },
+          "person": {
+            "type": "actor",
+            "name": "Person"
+          },
+          "database": {
+            "type": "system",
+            "name": "Database"
+          },
+          "stored": {
+            "type": "store",
+            "name": "Stored",
+            "in": "database"
+          },
+          "blue-tint": {
+            "type": "system",
+            "name": "Blue tint",
+            "color": "blue"
+          },
+          "red-strong": {
+            "type": "system",
+            "name": "Red strong",
+            "color": "red",
+            "opacity": "85"
+          },
+          "hex-short": {
+            "type": "system",
+            "name": "Short hex",
+            "color": "#AbC",
+            "opacity": "0"
+          },
+          "hex-long": {
+            "type": "system",
+            "name": "Long hex",
+            "color": "#102030",
+            "opacity": "100",
+            "shape": "hexagon",
+            "icon": "stripe"
+          },
+          "only-opacity": {
+            "type": "app",
+            "name": "Only opacity",
+            "opacity": "40",
+            "in": "database"
+          },
+          "outside": {
+            "type": "system",
+            "name": "Outside",
+            "external": "true",
+            "color": "orange",
+            "opacity": "60"
+          },
+          "truck-icon": {
+            "type": "system",
+            "name": "Truck",
+            "icon": "truck"
+          },
+          "outside-icon": {
+            "type": "system",
+            "name": "Outside icon",
+            "external": "true",
+            "icon": "bell"
+          },
+          "blank": {
+            "type": "system",
+            "name": "Blank look",
+            "shape": "",
+            "color": "",
+            "opacity": "",
+            "icon": ""
+          },
+          "bad-shape": {
+            "type": "system",
+            "name": "Bad shape",
+            "shape": "blob"
+          },
+          "bad-color": {
+            "type": "system",
+            "name": "Bad color",
+            "color": "bluish"
+          },
+          "bad-hex": {
+            "type": "system",
+            "name": "Bad hex",
+            "color": "#abcd"
+          },
+          "bad-opacity": {
+            "type": "system",
+            "name": "Bad opacity",
+            "opacity": "101"
+          },
+          "bad-opacity-sign": {
+            "type": "system",
+            "name": "Bad opacity sign",
+            "opacity": "-5"
+          },
+          "bad-opacity-zero": {
+            "type": "system",
+            "name": "Bad opacity zero",
+            "opacity": "05"
+          },
+          "bad-icon": {
+            "type": "system",
+            "name": "Bad icon",
+            "icon": "nope"
+          },
+          "proto-icon": {
+            "type": "system",
+            "name": "Proto icon",
+            "icon": "constructor"
+          }
+        },
         "connections": []
       },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "icons:\n  stripe: M4 6h16v12h-16zM4 10h16M8 15h3\n  Bad_Name: M0 0h4\n  truck: M0 0h4\n  not-a-path: hello world\n  nested:\n    - M0 0h4\nobjects:\n  rect:\n    type: system\n    name: Rectangle\n    shape: rectangle\n  pill:\n    type: system\n    name: Pill\n    shape: pill\n  ellipse:\n    type: system\n    name: Ellipse\n    shape: ellipse\n  diamond:\n    type: system\n    name: Decision\n    shape: diamond\n  diamond-icon:\n    type: system\n    name: Decision with an icon\n    shape: diamond\n    icon: coin\n  hexagon:\n    type: system\n    name: Hexagon\n    shape: hexagon\n    tech: Go\n  parallelogram:\n    type: system\n    name: Parallelogram\n    shape: parallelogram\n  cylinder:\n    type: system\n    name: Cylinder\n    shape: cylinder\n  queue:\n    type: system\n    name: Queue\n    shape: queue\n  document:\n    type: system\n    name: Document\n    shape: document\n  folder:\n    type: system\n    name: Folder\n    shape: folder\n  note:\n    type: system\n    name: Note\n    shape: note\n  cloud:\n    type: system\n    name: Cloud\n    shape: cloud\n  arrow:\n    type: system\n    name: Arrow\n    shape: arrow\n  person:\n    type: actor\n    name: Person\n  database:\n    type: system\n    name: Database\n  stored:\n    type: store\n    name: Stored\n    in: database\n  blue-tint:\n    type: system\n    name: Blue tint\n    color: blue\n  red-strong:\n    type: system\n    name: Red strong\n    color: red\n    opacity: 85\n  hex-short:\n    type: system\n    name: Short hex\n    color: \"#AbC\"\n    opacity: 0\n  hex-long:\n    type: system\n    name: Long hex\n    color: \"#102030\"\n    opacity: 100\n    shape: hexagon\n    icon: stripe\n  only-opacity:\n    type: app\n    name: Only opacity\n    opacity: 40\n    in: database\n  outside:\n    type: system\n    name: Outside\n    external: true\n    color: orange\n    opacity: 60\n  truck-icon:\n    type: system\n    name: Truck\n    icon: truck\n  outside-icon:\n    type: system\n    name: Outside icon\n    external: true\n    icon: bell\n  blank:\n    type: system\n    name: Blank look\n    shape:\n    color:\n    opacity:\n    icon:\n  bad-shape:\n    type: system\n    name: Bad shape\n    shape: blob\n  bad-color:\n    type: system\n    name: Bad color\n    color: bluish\n  bad-hex:\n    type: system\n    name: Bad hex\n    color: \"#abcd\"\n  bad-opacity:\n    type: system\n    name: Bad opacity\n    opacity: 101\n  bad-opacity-sign:\n    type: system\n    name: Bad opacity sign\n    opacity: -5\n  bad-opacity-zero:\n    type: system\n    name: Bad opacity zero\n    opacity: 05\n  bad-icon:\n    type: system\n    name: Bad icon\n    icon: nope\n  proto-icon:\n    type: system\n    name: Proto icon\n    icon: constructor\nconnections: []\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\animation\\flowy",
       "rel": "model.yaml",
       "data": {
-        "objects": {},
-        "connections": []
+        "objects": {
+          "customer": {
+            "type": "actor",
+            "name": "Customer"
+          },
+          "shop": {
+            "type": "system",
+            "name": "Shop"
+          },
+          "web": {
+            "type": "app",
+            "in": "shop",
+            "name": "Web app"
+          },
+          "api": {
+            "type": "app",
+            "in": "shop",
+            "name": "API"
+          },
+          "db": {
+            "type": "store",
+            "in": "shop",
+            "name": "Orders DB"
+          },
+          "stripe": {
+            "type": "system",
+            "name": "Stripe",
+            "external": "true"
+          }
+        },
+        "connections": [
+          {
+            "from": "customer",
+            "to": "web",
+            "label": "browses"
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "label": "REST"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "label": "reads and writes"
+          }
+        ]
       },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  stripe:\n    type: system\n    name: Stripe\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n    label: reads and writes\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\animation\\flowy",
+      "rel": "flows/tags.yaml",
+      "data": {
+        "name": "Every way to tag a step",
+        "view": "shop",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Posts the order",
+            "animation": "call"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Saves it",
+            "animation": {
+              "kind": "send",
+              "carries": "order"
+            }
+          },
+          {
+            "from": "stripe",
+            "to": "api",
+            "text": "Reports the charge settled",
+            "animation": {
+              "kind": "event"
+            }
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Tells the page it is paid",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside"
+            }
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "A timer fires",
+            "animation": {
+              "kind": "callback"
+            }
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Typo",
+            "animation": "sned"
+          },
+          {
+            "from": "api",
+            "text": "Alone",
+            "animation": "call"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Wrong option",
+            "animation": {
+              "kind": "send",
+              "speed": "fast"
+            }
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Trigger on a send",
+            "animation": {
+              "kind": "send",
+              "trigger": "outside"
+            }
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Blank kind",
+            "animation": {
+              "kind": ""
+            }
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "No kind",
+            "animation": {
+              "carries": "order"
+            }
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Bad trigger",
+            "animation": {
+              "kind": "callback",
+              "trigger": "sideways"
+            }
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Blank word",
+            "animation": {
+              "kind": "send",
+              "carries": " "
+            }
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "A list",
+            "animation": [
+              "send"
+            ]
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Blank tag",
+            "animation": ""
+          }
+        ]
+      },
+      "text": "name: Every way to tag a step\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Posts the order\n    animation: call\n  - from: api\n    to: db\n    text: Saves it\n    animation:\n      kind: send\n      carries: order\n  - from: stripe\n    to: api\n    text: Reports the charge settled\n    animation:\n      kind: event\n  - from: api\n    to: web\n    text: Tells the page it is paid\n    animation:\n      kind: callback\n      trigger: outside\n  - from: api\n    to: db\n    text: A timer fires\n    animation:\n      kind: callback\n  - from: api\n    to: db\n    text: Typo\n    animation: sned\n  - from: api\n    text: Alone\n    animation: call\n  - from: api\n    to: db\n    text: Wrong option\n    animation:\n      kind: send\n      speed: fast\n  - from: api\n    to: db\n    text: Trigger on a send\n    animation:\n      kind: send\n      trigger: outside\n  - from: api\n    to: db\n    text: Blank kind\n    animation:\n      kind:\n  - from: api\n    to: db\n    text: No kind\n    animation:\n      carries: order\n  - from: api\n    to: db\n    text: Bad trigger\n    animation:\n      kind: callback\n      trigger: sideways\n  - from: api\n    to: db\n    text: Blank word\n    animation:\n      kind: send\n      carries: \" \"\n  - from: api\n    to: db\n    text: A list\n    animation:\n      - send\n  - from: api\n    to: db\n    text: Blank tag\n    animation:\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\perf\\flowy",
       "rel": "model.yaml",
       "data": {
-        "objects": {},
-        "connections": []
+        "objects": {
+          "customer": {
+            "type": "actor",
+            "name": "Customer"
+          },
+          "shop": {
+            "type": "system",
+            "name": "Shop"
+          },
+          "web": {
+            "type": "app",
+            "in": "shop",
+            "name": "Web"
+          },
+          "orders": {
+            "type": "component",
+            "in": "web",
+            "name": "Orders"
+          },
+          "auth": {
+            "type": "component",
+            "in": "web",
+            "name": "Auth"
+          },
+          "db": {
+            "type": "store",
+            "in": "shop",
+            "name": "Orders DB"
+          },
+          "queue": {
+            "type": "store",
+            "in": "shop",
+            "name": "Order queue",
+            "shape": "queue"
+          },
+          "worker": {
+            "type": "app",
+            "in": "shop",
+            "name": "Worker"
+          },
+          "gateway": {
+            "type": "system",
+            "name": "Payment gateway",
+            "external": "true"
+          }
+        },
+        "connections": [
+          {
+            "from": "customer",
+            "to": "web",
+            "label": "browses"
+          },
+          {
+            "from": "orders",
+            "to": "db",
+            "label": "saves"
+          },
+          {
+            "from": "auth",
+            "to": "db",
+            "label": "looks up"
+          },
+          {
+            "from": "orders",
+            "to": "queue",
+            "label": "queues"
+          },
+          {
+            "from": "queue",
+            "to": "worker",
+            "label": "hands over"
+          },
+          {
+            "from": "worker",
+            "to": "gateway",
+            "label": "captures"
+          },
+          {
+            "from": "orders",
+            "to": "gateway",
+            "label": "authorizes"
+          }
+        ]
       },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web\n  orders:\n    type: component\n    in: web\n    name: Orders\n  auth:\n    type: component\n    in: web\n    name: Auth\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  queue:\n    type: store\n    in: shop\n    name: Order queue\n    shape: queue\n  worker:\n    type: app\n    in: shop\n    name: Worker\n  gateway:\n    type: system\n    name: Payment gateway\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: orders\n    to: db\n    label: saves\n  - from: auth\n    to: db\n    label: looks up\n  - from: orders\n    to: queue\n    label: queues\n  - from: queue\n    to: worker\n    label: hands over\n  - from: worker\n    to: gateway\n    label: captures\n  - from: orders\n    to: gateway\n    label: authorizes\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\groups\\flowy",
       "rel": "model.yaml",
       "data": {
-        "objects": {},
-        "connections": []
+        "objects": {
+          "customer": {
+            "type": "actor",
+            "name": "Customer"
+          },
+          "shop": {
+            "type": "system",
+            "name": "Shop"
+          },
+          "api": {
+            "type": "app",
+            "in": "shop",
+            "name": "API"
+          },
+          "db": {
+            "type": "store",
+            "in": "shop",
+            "name": "Orders DB"
+          },
+          "billing": {
+            "type": "app",
+            "in": "shop",
+            "name": "Billing"
+          },
+          "dispatch": {
+            "type": "app",
+            "in": "shop",
+            "name": "Dispatch"
+          },
+          "stripe": {
+            "type": "system",
+            "name": "Stripe",
+            "external": "true"
+          }
+        },
+        "connections": [
+          {
+            "from": "customer",
+            "to": "api",
+            "label": "orders through"
+          },
+          {
+            "from": "api",
+            "to": "stripe",
+            "label": "charges with"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "label": "reads and writes"
+          },
+          {
+            "from": "api",
+            "to": "billing",
+            "label": "tells"
+          },
+          {
+            "from": "api",
+            "to": "dispatch",
+            "label": "tells"
+          }
+        ]
       },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  billing:\n    type: app\n    in: shop\n    name: Billing\n  dispatch:\n    type: app\n    in: shop\n    name: Dispatch\n  stripe:\n    type: system\n    name: Stripe\n    external: true\nconnections:\n  - from: customer\n    to: api\n    label: orders through\n  - from: api\n    to: stripe\n    label: charges with\n  - from: api\n    to: db\n    label: reads and writes\n  - from: api\n    to: billing\n    label: tells\n  - from: api\n    to: dispatch\n    label: tells\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-groups\\flowy",
-      "rel": "model.yaml",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\groups\\flowy",
+      "rel": "flows/bad.yaml",
       "data": {
-        "objects": {},
-        "connections": []
+        "name": "A little of everything wrong",
+        "view": "shop",
+        "groups": {
+          "Bad Id": {
+            "kind": "repeat",
+            "times": "2"
+          },
+          "nokind": {},
+          "weird": {
+            "kind": "loop"
+          },
+          "extra": {
+            "kind": "repeat",
+            "times": "2",
+            "in": "x"
+          },
+          "wrongkind": {
+            "kind": "branch",
+            "times": "3",
+            "until": "x"
+          },
+          "badtimes": {
+            "kind": "repeat",
+            "times": "1"
+          },
+          "needs": {
+            "kind": "repeat"
+          },
+          "unused": {
+            "kind": "repeat",
+            "times": "2"
+          },
+          "solo": {
+            "kind": "parallel"
+          },
+          "rep": {
+            "kind": "repeat",
+            "times": "2"
+          },
+          "br": {
+            "kind": "branch"
+          },
+          "a": {
+            "kind": "repeat",
+            "times": "2"
+          },
+          "b": {
+            "kind": "repeat",
+            "times": "2"
+          }
+        },
+        "steps": [
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s1",
+            "group": "Bad Id"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s2",
+            "group": "nokind"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s3",
+            "group": "weird"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s4",
+            "group": "extra"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s5",
+            "group": "wrongkind",
+            "lane": "A"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s6",
+            "group": "badtimes"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s7",
+            "group": "needs"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s8",
+            "group": "solo",
+            "lane": "only"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s9",
+            "group": "rep",
+            "lane": "x"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s10",
+            "group": "br"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s11",
+            "group": "br",
+            "lane": "A"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s12",
+            "group": "br",
+            "lane": "A"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s13",
+            "group": "a"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s14",
+            "group": "b"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s15",
+            "group": "a"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s16",
+            "group": "b"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s17",
+            "group": "nope"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s18",
+            "lane": "loose"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s19",
+            "flow": "nowhere"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "s20",
+            "group": "constructor"
+          }
+        ]
       },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "name: A little of everything wrong\nview: shop\ngroups:\n  Bad Id:\n    kind: repeat\n    times: 2\n  nokind: {}\n  weird:\n    kind: loop\n  extra:\n    kind: repeat\n    times: 2\n    in: x\n  wrongkind:\n    kind: branch\n    times: 3\n    until: x\n  badtimes:\n    kind: repeat\n    times: 1\n  needs:\n    kind: repeat\n  unused:\n    kind: repeat\n    times: 2\n  solo:\n    kind: parallel\n  rep:\n    kind: repeat\n    times: 2\n  br:\n    kind: branch\n  a:\n    kind: repeat\n    times: 2\n  b:\n    kind: repeat\n    times: 2\nsteps:\n  - from: api\n    to: db\n    text: s1\n    group: Bad Id\n  - from: api\n    to: db\n    text: s2\n    group: nokind\n  - from: api\n    to: db\n    text: s3\n    group: weird\n  - from: api\n    to: db\n    text: s4\n    group: extra\n  - from: api\n    to: db\n    text: s5\n    group: wrongkind\n    lane: A\n  - from: api\n    to: db\n    text: s6\n    group: badtimes\n  - from: api\n    to: db\n    text: s7\n    group: needs\n  - from: api\n    to: db\n    text: s8\n    group: solo\n    lane: only\n  - from: api\n    to: db\n    text: s9\n    group: rep\n    lane: x\n  - from: api\n    to: db\n    text: s10\n    group: br\n  - from: api\n    to: db\n    text: s11\n    group: br\n    lane: A\n  - from: api\n    to: db\n    text: s12\n    group: br\n    lane: A\n  - from: api\n    to: db\n    text: s13\n    group: a\n  - from: api\n    to: db\n    text: s14\n    group: b\n  - from: api\n    to: db\n    text: s15\n    group: a\n  - from: api\n    to: db\n    text: s16\n    group: b\n  - from: api\n    to: db\n    text: s17\n    group: nope\n  - from: api\n    to: db\n    text: s18\n    lane: loose\n  - from: api\n    to: db\n    text: s19\n    flow: nowhere\n  - from: api\n    to: db\n    text: s20\n    group: constructor\n"
     },
     {
-      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-group\\flowy",
-      "rel": "model.yaml",
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\groups\\flowy",
+      "rel": "flows/blankish.yaml",
       "data": {
-        "objects": {},
-        "connections": []
+        "name": "Values that look blank",
+        "view": "shop",
+        "groups": {
+          "pick": {
+            "kind": "branch"
+          }
+        },
+        "steps": [
+          {
+            "from": "api",
+            "to": "db",
+            "text": "A group of one invisible character is no group",
+            "group": "﻿"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "A lane with a no-break space in front is just the lane",
+            "group": "pick",
+            "lane": " ok"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "A blank flow is none",
+            "flow": " "
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "A blank lane with no group is none",
+            "lane": " "
+          }
+        ]
       },
-      "text": "objects: {}\nconnections: []\n"
+      "text": "name: Values that look blank\nview: shop\ngroups:\n  pick:\n    kind: branch\nsteps:\n  - from: api\n    to: db\n    text: A group of one invisible character is no group\n    group: ﻿\n  - from: api\n    to: db\n    text: A lane with a no-break space in front is just the lane\n    group: pick\n    lane:  ok\n  - from: api\n    to: db\n    text: A blank flow is none\n    flow: \" \"\n  - from: api\n    to: db\n    text: A blank lane with no group is none\n    lane: \" \"\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\groups\\flowy",
+      "rel": "flows/capture-payment.yaml",
+      "data": {
+        "name": "Capture a payment",
+        "view": "shop",
+        "steps": [
+          {
+            "from": "billing",
+            "to": "db",
+            "text": "Records the charge against the order"
+          },
+          {
+            "from": "billing",
+            "text": "Closes the invoice"
+          }
+        ]
+      },
+      "text": "name: Capture a payment\nview: shop\nsteps:\n  - from: billing\n    to: db\n    text: Records the charge against the order\n  - from: billing\n    text: Closes the invoice\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\groups\\flowy",
+      "rel": "flows/numbered.yaml",
+      "data": {
+        "name": "Group ids that look like numbers",
+        "view": "shop",
+        "groups": {
+          "2": {
+            "kind": "loop"
+          },
+          "10": {
+            "kind": "loop"
+          },
+          "b": {
+            "kind": "loop"
+          },
+          "a": {
+            "kind": "repeat",
+            "times": "2"
+          }
+        },
+        "steps": [
+          {
+            "from": "api",
+            "to": "db",
+            "text": "First",
+            "group": "b"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Second",
+            "group": "10"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Third",
+            "group": "2"
+          }
+        ]
+      },
+      "text": "name: Group ids that look like numbers\nview: shop\ngroups:\n  2:\n    kind: loop\n  10:\n    kind: loop\n  b:\n    kind: loop\n  a:\n    kind: repeat\n    times: 2\nsteps:\n  - from: api\n    to: db\n    text: First\n    group: b\n  - from: api\n    to: db\n    text: Second\n    group: 10\n  - from: api\n    to: db\n    text: Third\n    group: 2\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\groups\\flowy",
+      "rel": "flows/ok.yaml",
+      "data": {
+        "name": "Customer pays for an order",
+        "view": "shop",
+        "groups": {
+          "charge": {
+            "kind": "repeat",
+            "times": "3",
+            "text": "Backs off 1 s, 2 s, 4 s between tries"
+          },
+          "outcome": {
+            "kind": "branch"
+          },
+          "tell": {
+            "kind": "parallel"
+          }
+        },
+        "steps": [
+          {
+            "from": "api",
+            "to": "stripe",
+            "text": "Charges the card",
+            "group": "charge"
+          },
+          {
+            "from": "stripe",
+            "to": "api",
+            "text": "Times out at the bank",
+            "group": "charge"
+          },
+          {
+            "from": "stripe",
+            "to": "api",
+            "text": "Reports the charge settled",
+            "group": "outcome",
+            "lane": "Card accepted"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Marks the order paid",
+            "group": "outcome"
+          },
+          {
+            "from": "stripe",
+            "to": "api",
+            "text": "Reports the final decline",
+            "group": "outcome",
+            "lane": "Card declined"
+          },
+          {
+            "from": "api",
+            "to": "billing",
+            "text": "Tells Billing",
+            "group": "tell",
+            "lane": "Billing",
+            "flow": "capture-payment"
+          },
+          {
+            "from": "api",
+            "to": "dispatch",
+            "text": "Tells Dispatch",
+            "group": "tell",
+            "lane": "Dispatch"
+          }
+        ]
+      },
+      "text": "name: Customer pays for an order\nview: shop\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    text: Backs off 1 s, 2 s, 4 s between tries\n  outcome:\n    kind: branch\n  tell:\n    kind: parallel\nsteps:\n  - from: api\n    to: stripe\n    text: Charges the card\n    group: charge\n  - from: stripe\n    to: api\n    text: Times out at the bank\n    group: charge\n  - from: stripe\n    to: api\n    text: Reports the charge settled\n    group: outcome\n    lane: Card accepted\n  - from: api\n    to: db\n    text: Marks the order paid\n    group: outcome\n  - from: stripe\n    to: api\n    text: Reports the final decline\n    group: outcome\n    lane: Card declined\n  - from: api\n    to: billing\n    text: Tells Billing\n    group: tell\n    lane: Billing\n    flow: capture-payment\n  - from: api\n    to: dispatch\n    text: Tells Dispatch\n    group: tell\n    lane: Dispatch\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\groups\\flowy",
+      "rel": "flows/shapes.yaml",
+      "data": {
+        "name": "Every shape a group can take",
+        "view": "shop",
+        "groups": {
+          "first": {
+            "kind": "parallel"
+          },
+          "fan": {
+            "kind": "parallel"
+          },
+          "maybe": {
+            "kind": "branch"
+          },
+          "poll": {
+            "kind": "repeat",
+            "until": "the job is done"
+          },
+          "again": {
+            "kind": "repeat",
+            "times": "2"
+          },
+          "last": {
+            "kind": "branch"
+          }
+        },
+        "steps": [
+          {
+            "from": "api",
+            "to": "billing",
+            "text": "Starts together with Dispatch",
+            "group": "first",
+            "lane": "Billing"
+          },
+          {
+            "from": "api",
+            "to": "dispatch",
+            "text": "Starts together with Billing",
+            "group": "first",
+            "lane": "Dispatch"
+          },
+          {
+            "from": "api",
+            "to": "billing",
+            "text": "Asks Billing for a total"
+          },
+          {
+            "from": "api",
+            "to": "billing",
+            "text": "Lane A one",
+            "group": "fan",
+            "lane": "A"
+          },
+          {
+            "from": "billing",
+            "to": "db",
+            "text": "Lane A two",
+            "group": "fan"
+          },
+          {
+            "from": "api",
+            "to": "dispatch",
+            "text": "Lane B only",
+            "group": "fan",
+            "lane": "B"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Lane C one",
+            "group": "fan",
+            "lane": "C"
+          },
+          {
+            "from": "db",
+            "to": "api",
+            "text": "Lane C two",
+            "group": "fan"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Lane C three",
+            "group": "fan"
+          },
+          {
+            "from": "api",
+            "to": "dispatch",
+            "text": "Books a courier",
+            "group": "maybe",
+            "lane": "A courier is wanted"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Checks the job",
+            "group": "poll"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Saves",
+            "group": "again"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "text": "Saves once more",
+            "group": "again"
+          },
+          {
+            "from": "api",
+            "to": "billing",
+            "text": "Ends the flow",
+            "group": "last",
+            "lane": "Last"
+          }
+        ]
+      },
+      "text": "name: Every shape a group can take\nview: shop\ngroups:\n  first:\n    kind: parallel\n  fan:\n    kind: parallel\n  maybe:\n    kind: branch\n  poll:\n    kind: repeat\n    until: the job is done\n  again:\n    kind: repeat\n    times: 2\n  last:\n    kind: branch\nsteps:\n  - from: api\n    to: billing\n    text: Starts together with Dispatch\n    group: first\n    lane: Billing\n  - from: api\n    to: dispatch\n    text: Starts together with Billing\n    group: first\n    lane: Dispatch\n  - from: api\n    to: billing\n    text: Asks Billing for a total\n  - from: api\n    to: billing\n    text: Lane A one\n    group: fan\n    lane: A\n  - from: billing\n    to: db\n    text: Lane A two\n    group: fan\n  - from: api\n    to: dispatch\n    text: Lane B only\n    group: fan\n    lane: B\n  - from: api\n    to: db\n    text: Lane C one\n    group: fan\n    lane: C\n  - from: db\n    to: api\n    text: Lane C two\n    group: fan\n  - from: api\n    to: db\n    text: Lane C three\n    group: fan\n  - from: api\n    to: dispatch\n    text: Books a courier\n    group: maybe\n    lane: A courier is wanted\n  - from: api\n    to: db\n    text: Checks the job\n    group: poll\n  - from: api\n    to: db\n    text: Saves\n    group: again\n  - from: api\n    to: db\n    text: Saves once more\n    group: again\n  - from: api\n    to: billing\n    text: Ends the flow\n    group: last\n    lane: Last\n"
     },
     {
       "folder": "docs/demo/flowy",

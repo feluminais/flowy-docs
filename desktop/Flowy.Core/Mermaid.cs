@@ -8,7 +8,8 @@ public static partial class Mermaid
     // A backtick after " starts Mermaid markdown, so it is escaped too.
     private static readonly Dictionary<char, string> Entities = new() { ['#'] = "35", [';'] = "59", ['"'] = "quot", ['<'] = "lt", ['>'] = "gt", ['`'] = "96" };
 
-    [GeneratedRegex(@"\s*\n\s*")]
+    // JavaScript's \s, which differs from .NET's (it takes U+FEFF and not U+0085).
+    [GeneratedRegex(@"[\t\n\v\f\r \u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]*\n[\t\n\v\f\r \u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]*")]
     private static partial Regex LineBreaks();
 
     [GeneratedRegex("[#;\"<>`]")]

@@ -1,4 +1,4 @@
-import { join } from 'node:path'
+import { isAbsolute, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { fileData, serializeFile, serializeLayout } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
@@ -74,7 +74,7 @@ export async function dumpYamlWrite(): Promise<unknown> {
   // Every file of every fixture folder, as the TypeScript reads and writes it again: the whole path an edit takes.
   const files: { folder: string; rel: string; data: unknown; text: string }[] = []
   for (const dir of [...Object.values(fixtureDirs()), 'docs/demo/flowy', 'example']) {
-    const state = await loadState(join(root, dir))
+    const state = await loadState(isAbsolute(dir) ? dir : join(root, dir)) // fixtureDirs() gives absolute paths, the two shipped folders are relative
     if ('parseError' in state) continue
     const model: Model = { ...state.model, flows: state.flows, layout: state.layout }
     const rels = ['model.yaml', ...Object.keys(model.flows).map(id => `flows/${id}.yaml`)]

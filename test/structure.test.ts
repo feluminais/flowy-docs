@@ -88,3 +88,10 @@ test('a blank group is no group, and an id that Object has is an ordinary undecl
   assert.deepEqual(runsOf(flowOf({ r: { kind: 'repeat', times: '2' } }, [step({ group: ' ' }), step({ group: '' })])), [])
   assert.deepEqual(runsOf(flowOf(undefined, [step({ group: 'constructor' })])), [])
 })
+
+test('what is blank is what JavaScript trims: U+FEFF is blank, U+0085 is a label of its own', () => {
+  const bom = String.fromCharCode(0xfeff)
+  const nel = String.fromCharCode(0x85)
+  assert.deepEqual(runsOf(flowOf({ r: { kind: 'repeat', times: '2' } }, [step({ group: bom })])), [])
+  assert.deepEqual(runsOf(flowOf({ b: { kind: 'branch' } }, [step({ group: 'b', lane: nel })]))[0].lanes, [{ label: nel, steps: [0] }])
+})

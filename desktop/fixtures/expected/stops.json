@@ -356,7 +356,7 @@
           "end": 1,
           "lanes": [
             {
-              "label": "",
+              "label": "ok",
               "steps": [
                 1
               ]
@@ -378,7 +378,7 @@
           "group": "pick",
           "kind": "branch",
           "laneLabels": [
-            ""
+            "ok"
           ],
           "lanes": [
             0

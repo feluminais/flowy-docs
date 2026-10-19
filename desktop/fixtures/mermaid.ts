@@ -8,7 +8,7 @@ import { loadState } from '../../src/node/files.ts'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
 
-const TEXTS = ['Plain', 'a "quoted" <b>word</b>', 'one\nline  \n\n  next', 'x; y # z', '`code` and ``', '#35; already', ' padded ', '', 'é — ünïcode ✓']
+const TEXTS = ['Plain', 'a "quoted" <b>word</b>', 'one\nline  \n\n  next', 'x; y # z', '`code` and ``', '#35; already', ' padded ', '', 'é — ünïcode ✓', 'a\u0085\nb', 'c\uFEFF\nd', 'e\n\u00A0f', 'g\u2028\nh']
 
 /** The Mermaid text of every view and every flow, and of some hostile strings, as the TypeScript side writes them. */
 export async function dumpMermaid(): Promise<unknown> {
