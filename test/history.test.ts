@@ -281,6 +281,15 @@ test('restore leaves the files Flowy does not write alone', async t => {
   assert.equal(await readFile(join(dir, 'flows', 'old.yml'), 'utf8'), 'name: Old\n')
 })
 
+test('steps made in the same millisecond keep their order', async t => {
+  const { history, put } = await setup(t, { now: () => new Date(Date.UTC(2026, 9, 20, 10, 0, 0)), random: () => 'aaaaaa' })
+  await put('model.yaml', 'a: 1\n')
+  await history.record('One', 'you')
+  await put('model.yaml', 'a: 2\n')
+  await history.record('Two', 'you')
+  assert.deepEqual((await history.list()).map(s => s.label), ['Two', 'One'])
+})
+
 test('clear empties the trail', async t => {
   const { history, put } = await setup(t)
   await put('model.yaml', 'a: 1\n')
