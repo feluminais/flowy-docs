@@ -21,7 +21,10 @@ internal static class Chrome
     public static void Fill(Button button, string icon, string? text, string? name = null)
     {
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7, VerticalAlignment = VerticalAlignment.Center };
-        row.Children.Add(Icons.Make(icon, "btnicon", 16));
+        // The words sit a little below the middle of their line, so every icon goes down with them: icon-only buttons too, so a row lines up.
+        var glyph = Icons.Make(icon, "btnicon", 16);
+        glyph.Margin = new Thickness(0, 2, 0, 0);
+        row.Children.Add(glyph);
         if (text is not null) row.Children.Add(new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, Classes = { "btntext" } });
         button.Content = row;
         AutomationProperties.SetName(button, name ?? text ?? icon);
@@ -78,17 +81,50 @@ internal static class Chrome
         return chip;
     }
 
-    /// <summary>The heading of a section of the panel: an icon, the title in small capitals, and how many there are.</summary>
-    public static Control Section(string icon, string title, int? count = null)
+    /// <summary>Chips as small words in a line, a dot between each, wrapping when they run out of room.</summary>
+    public static Control Chips(params Control[] chips)
     {
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(2, 6, 0, 0) };
-        row.Children.Add(Icons.Make(icon, "sectionicon", 14));
-        row.Children.Add(new TextBlock { Text = title.ToUpperInvariant(), FontSize = 11, FontWeight = FontWeight.SemiBold, LetterSpacing = 0.8, VerticalAlignment = VerticalAlignment.Center, Classes = { "muted" } });
-        if (count is { } n) row.Children.Add(new Border { Classes = { "count" }, Child = new TextBlock { Text = n.ToString(), FontSize = 11, VerticalAlignment = VerticalAlignment.Center } });
-        return row;
+        var wrap = new WrapPanel { Orientation = Orientation.Horizontal };
+        foreach (var chip in chips)
+        {
+            if (wrap.Children.Count > 0) wrap.Children.Add(new TextBlock { Text = "·", FontSize = 12, Margin = new Thickness(8, 0), Opacity = 0.6, VerticalAlignment = VerticalAlignment.Center, Classes = { "muted" } });
+            wrap.Children.Add(chip);
+        }
+        return wrap;
     }
 
-    /// <summary>A block set a little apart from the panel: its own background and a hairline border.</summary>
+    /// <summary>The rule under a title: the colour of <paramref name="brush"/> at the left, fading out to the right.</summary>
+    public static Control Rule(IBrush brush)
+    {
+        var color = brush is ISolidColorBrush solid ? solid.Color : Colors.Gray;
+        return new Border
+        {
+            Height = 2,
+            CornerRadius = new CornerRadius(1),
+            Background = new LinearGradientBrush
+            {
+                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+                EndPoint = new RelativePoint(0.75, 0, RelativeUnit.Relative),
+                GradientStops = [new GradientStop(color, 0), new GradientStop(Color.FromArgb(0, color.R, color.G, color.B), 1)],
+            },
+            BoxShadow = new BoxShadows(new BoxShadow { Blur = 10, Color = Color.FromArgb(115, color.R, color.G, color.B) }),
+        };
+    }
+
+    /// <summary>The heading of a section of the panel: an icon, the title in small capitals, how many there are, and a hairline running on to the edge.</summary>
+    public static Control Section(string icon, string title, int? count = null)
+    {
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
+        row.Children.Add(Icons.Make(icon, "sectionicon", 14));
+        row.Children.Add(new TextBlock { Text = title.ToUpperInvariant(), FontSize = 11, FontWeight = FontWeight.SemiBold, LetterSpacing = 1, VerticalAlignment = VerticalAlignment.Center, Classes = { "muted" } });
+        if (count is { } n) row.Children.Add(new Border { Classes = { "count" }, Child = new TextBlock { Text = n.ToString(), FontSize = 11, VerticalAlignment = VerticalAlignment.Center } });
+        var hairline = new Border { Classes = { "hairline" }, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0) };
+        var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], Margin = new Thickness(0, 10, 0, 0), Children = { row, hairline } };
+        Grid.SetColumn(hairline, 1);
+        return grid;
+    }
+
+    /// <summary>A note set beside the text by a rule, like a quote.</summary>
     public static Border Card(Control child)
     {
         var card = new Border { Child = child };

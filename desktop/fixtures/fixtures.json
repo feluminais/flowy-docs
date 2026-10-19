@@ -13,5 +13,6 @@
   "shape-field": "desktop/fixtures/cases/shape-field/flowy",
   "shape-steps": "desktop/fixtures/cases/shape-steps/flowy",
   "shape-layout": "desktop/fixtures/cases/shape-layout/flowy",
-  "look": "desktop/fixtures/cases/look/flowy"
+  "look": "desktop/fixtures/cases/look/flowy",
+  "animation": "desktop/fixtures/cases/animation/flowy"
 }

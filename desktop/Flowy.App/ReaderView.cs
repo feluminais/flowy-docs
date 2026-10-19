@@ -139,6 +139,8 @@ internal sealed partial class ReaderView : Grid
         _player.Back += () => StepTo(StepIndex() - 1);
         _player.Next += () => StepTo(StepIndex() + 1);
         _player.Stop += Stop;
+        _player.Auto += ToggleAuto;
+        _player.Replay += Replay;
 
         Focusable = true;
         // On the whole window, so keys work wherever the focus happens to be: a click on a button must not switch the shortcuts off.
@@ -212,14 +214,16 @@ internal sealed partial class ReaderView : Grid
         ToolTip.SetTip(_searchButton, "Search shapes and flows (Ctrl+K)");
         _searchButton.Click += (_, _) => ToggleSearch();
         _helpButton.Classes.Add("tool");
-        Chrome.Fill(_helpButton, Icons.Help, null, "Keyboard shortcuts");
+        Chrome.Fill(_helpButton, Icons.Keyboard, null, "Keyboard shortcuts");
         ToolTip.SetTip(_helpButton, "Keyboard shortcuts (?)");
         _helpButton.Click += (_, _) => ToggleShortcuts();
         _problemsButton.Classes.Add("problems");
         _problemsButton.IsVisible = false;
 
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, VerticalAlignment = VerticalAlignment.Center, Children = { _crumbs, _flowPicker, _editTools } };
-        var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, HorizontalAlignment = HorizontalAlignment.Right, Children = { _linePicker, _searchButton, _helpButton, _problemsButton, _editButton } };
+        _flowPicker.Classes.Add("flat");
+        _linePicker.Classes.Add("flat");
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _crumbs, _flowPicker, _editTools } };
+        var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, HorizontalAlignment = HorizontalAlignment.Right, Children = { _linePicker, _searchButton, _helpButton, _problemsButton, _editButton } };
         var dock = new DockPanel { LastChildFill = false };
         DockPanel.SetDock(right, Dock.Right);
         dock.Children.Add(right);
@@ -238,19 +242,23 @@ internal sealed partial class ReaderView : Grid
             ToolTip.SetTip(b, name);
             return b;
         }
-        return new StackPanel
+        var group = new Border
         {
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Bottom,
             Margin = new Thickness(16),
-            Spacing = 2,
-            Children =
+            Child = new StackPanel
             {
-                Make(Icons.Plus, "Zoom in", () => _canvas.ZoomBy(1.25)),
-                Make(Icons.Minus, "Zoom out", () => _canvas.ZoomBy(0.8)),
-                Make(Icons.Fit, "Fit the view", FitNow),
+                Children =
+                {
+                    Make(Icons.Plus, "Zoom in", () => _canvas.ZoomBy(1.25)),
+                    Make(Icons.Minus, "Zoom out", () => _canvas.ZoomBy(0.8)),
+                    Make(Icons.Fit, "Fit the view", FitNow),
+                },
             },
         };
+        group.Classes.Add("zoomgroup");
+        return group;
     }
 
     // ---- what is loaded ----------------------------------------------------------------------------------------
@@ -418,6 +426,7 @@ internal sealed partial class ReaderView : Grid
         RefreshEdit();
         RefreshPanel(model, view);
         RefreshPlayer(model, view, flow, index, shown);
+        UpdateMotion(flow, index, shown);
     }
 
     /// <summary>The canvas alone: what pointing at a line changes. The panel keeps its scroll, its open rows and its selection.</summary>
@@ -442,13 +451,13 @@ internal sealed partial class ReaderView : Grid
             if (!first)
             {
                 var chevron = Icons.Make(Icons.ChevronRight, "crumbsep", 14);
-                chevron.Margin = new Thickness(2, 0);
+                chevron.Margin = new Thickness(2, 2, 2, 0);
                 chevron.VerticalAlignment = VerticalAlignment.Center;
                 _crumbs.Children.Add(chevron);
             }
             // The overview, where it all starts, is a house; the boxes zoomed into after it are only their names.
             var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7 };
-            if (first) label.Children.Add(Icons.Make(Icons.Home, "crumbicon", 16));
+            if (first) label.Children.Add(Pushed(Icons.Make(Icons.Home, "crumbicon", 16)));
             label.Children.Add(new TextBlock { Text = Views.NameOf(model, id), VerticalAlignment = VerticalAlignment.Center });
             var crumb = new Button { Content = label, IsEnabled = id != view };
             Avalonia.Automation.AutomationProperties.SetName(crumb, Views.NameOf(model, id));
@@ -487,6 +496,13 @@ internal sealed partial class ReaderView : Grid
             list.Children.Add(row);
         }
         _problemsButton.Flyout = new Flyout { Content = new ScrollViewer { Content = list, MaxHeight = 420 }, Placement = PlacementMode.BottomEdgeAlignedRight };
+    }
+
+    /// <summary>An icon beside words, a little lower than the middle of its line, where the words' own middle is.</summary>
+    private static Control Pushed(Control icon)
+    {
+        icon.Margin = new Thickness(0, 2, 0, 0);
+        return icon;
     }
 
     private static string LineName(string style) => style == "angled" ? "right-angled" : style;
@@ -529,7 +545,8 @@ internal sealed partial class ReaderView : Grid
         }
         var step = f.Flow.Steps[index];
         var ends = step.From is null ? "" : Views.StepEnds(model, step.From, step.To, shown?.Ends[index]);
-        _player.Show(string.IsNullOrEmpty(f.Flow.Name) ? f.Id : f.Flow.Name, index, f.Flow.Steps.Count, ends, step.Text ?? "", step.Description);
+        var moves = Animations.Read(step) is not null && shown?.Ends[index] is not null;
+        _player.Show(string.IsNullOrEmpty(f.Flow.Name) ? f.Id : f.Flow.Name, index, f.Flow.Steps.Count, ends, step.Text ?? "", step.Description, _auto, moves);
     }
 
     /// <summary>Lights a line as if the pointer were on it.</summary>
@@ -554,6 +571,7 @@ internal sealed partial class ReaderView : Grid
         _canvas.Opacity = 1;
         _view = view;
         _playing = null;
+        StopAuto();
         _hover = null;
         if (_side is { Kind: not SideKind.Object }) _side = null; // lines belong to one view
         Refresh();
@@ -677,6 +695,7 @@ internal sealed partial class ReaderView : Grid
     public void Play(string flow, int step = 0)
     {
         if (Editing) return;
+        StopAuto();
         _playing = (flow, step);
         Refresh();
     }
@@ -684,6 +703,7 @@ internal sealed partial class ReaderView : Grid
     private void StepTo(int index)
     {
         if (PlayingFlow() is not { } f || _playing is not { } p) return;
+        StopAuto();
         _playing = (p.Flow, Math.Max(0, Math.Min(index, f.Flow.Steps.Count - 1)));
         Refresh();
     }
@@ -691,6 +711,7 @@ internal sealed partial class ReaderView : Grid
     private void Stop()
     {
         _playing = null;
+        StopAuto();
         Refresh();
     }
 
@@ -795,6 +816,8 @@ internal sealed partial class ReaderView : Grid
         else if (flow is not null && e.Key == Key.Left) StepTo(StepIndex() - 1);
         else if (flow is not null && e.Key == Key.Home) StepTo(0);
         else if (flow is not null && e.Key == Key.End) StepTo(flow.Value.Flow.Steps.Count - 1);
+        else if (flow is not null && e.PhysicalKey == PhysicalKey.P && plain) ToggleAuto();
+        else if (flow is not null && e.PhysicalKey == PhysicalKey.R && plain) Replay();
         else if (e.Key == Key.Enter && Recording is null)
         {
             // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.

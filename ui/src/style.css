@@ -17,6 +17,7 @@
   --component: #d85a30;
   --external: #888780;
   --tint: color-mix(in srgb, var(--accent) 10%, transparent);
+  --hover: color-mix(in srgb, var(--fg) 8%, transparent);
   font: 14px/1.45 system-ui, sans-serif;
   color: var(--fg);
   background: var(--bg);
@@ -42,6 +43,7 @@
     --component: #f0997b;
     --external: #b4b2a9;
     --tint: color-mix(in srgb, var(--accent) 16%, transparent);
+    --hover: color-mix(in srgb, var(--fg) 10%, transparent);
   }
 }
 html, body, #root { height: 100%; margin: 0; }
@@ -62,52 +64,59 @@ svg { flex: none; }
 .t-component { --c: var(--component); }
 .t-external { --c: var(--external); }
 
-/* The top bar. Buttons say what they do with an icon and a word; hovering tints them, and on (Edit, Search while open) fills them. */
-.bar { display: flex; align-items: center; gap: 10px; padding: 8px 16px; border-bottom: 1px solid var(--line); background: var(--box); }
-.crumbs { display: flex; align-items: center; gap: 2px; }
+/*
+ * The top bar, flat like an editor's toolbar: no boxes round the controls, just an icon and a word on the bar itself. Hovering lays a tint
+ * under one; on (Edit, Search while open) a stronger one in the accent. Every control is 30px tall, so icon and text sit on one line.
+ */
+.bar { display: flex; align-items: center; gap: 2px; padding: 5px 12px; border-bottom: 1px solid var(--line); background: var(--bg); }
+.crumbs { display: flex; align-items: center; gap: 2px; margin-right: 6px; }
 .crumbs > svg { color: var(--line); }
-.crumbs button {
-  display: inline-flex; align-items: center; gap: 7px; padding: 5px 8px; border: 0; border-radius: 8px; background: none;
-  color: var(--accent); cursor: pointer;
-}
+.crumbs button { color: var(--accent); }
 .crumbs button:hover:not(:disabled) { background: var(--tint); }
 .crumbs button:disabled { cursor: default; color: var(--fg); font-weight: 600; }
-.crumbs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-:where(.bar > button, .panel button:not(.close, .link), .player-buttons button) {
-  display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border: 1px solid var(--line); border-radius: 8px;
-  background: var(--box); color: var(--fg); cursor: pointer;
+/* The flat button, on the bar, in a panel and in the player. The one filled button is .primary: what a form is for. */
+:where(.bar > button, .crumbs button, .problems summary, .panel button:not(.close, .link), .player-buttons button) {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; box-sizing: border-box; min-height: 30px; padding: 0 10px;
+  border: 0; border-radius: 6px; background: none; color: var(--fg); line-height: 1; cursor: pointer;
 }
 :where(.bar > button, .panel button:not(.close, .link), .player-buttons button) svg { color: var(--muted); }
-.bar > button.icon { padding: 7px; }
-.bar > button:hover:not(:disabled, [aria-pressed='true']), .panel button:hover:not(:disabled, .close, .link, .primary), .player-buttons button:hover:not(:disabled, .primary) {
-  border-color: var(--accent); background: var(--tint); color: var(--accent);
+.bar > button.icon, .panel .step-buttons button { width: 30px; padding: 0; }
+/* The words sit a little below the middle of their line, so every icon goes down with them (icon-only buttons too, so a row lines up). */
+.bar svg, .panel button:not(.close) svg, .player-buttons svg { position: relative; top: 1px; }
+.bar > button:hover:not(:disabled, [aria-pressed='true']), .panel button:hover:not(:disabled, .close, .link, .primary, .danger), .player-buttons button:hover:not(:disabled, .primary) {
+  background: var(--hover);
 }
-.bar > button:hover:not(:disabled) svg, .panel button:hover:not(:disabled, .close, .link) svg, .player-buttons button:hover:not(:disabled) svg { color: inherit; }
-.bar > button[aria-pressed='true'] { border-color: var(--accent); background: var(--accent); color: var(--bg); }
+.bar > button:hover:not(:disabled) svg, .panel button:hover:not(:disabled, .close, .link) svg, .player-buttons button:hover:not(:disabled) svg { color: var(--fg); }
+.bar > button[aria-pressed='true'] { background: var(--tint); color: var(--accent); font-weight: 600; }
 .bar > button[aria-pressed='true'] svg { color: inherit; }
-.bar > button:disabled, .panel button:disabled, .player-buttons button:disabled { cursor: default; opacity: 0.45; }
-.bar > button:focus-visible, .panel button:focus-visible, .player-buttons button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.panel button.primary, .player-buttons button.primary { border-color: var(--accent); background: var(--accent); color: var(--bg); font-weight: 600; }
+.bar > button:disabled, .panel button:disabled, .player-buttons button:disabled { cursor: default; opacity: 0.4; }
+.bar > button:focus-visible, .crumbs button:focus-visible, .panel button:focus-visible, .player-buttons button:focus-visible, .problems summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.panel button.primary, .player-buttons button.primary { background: var(--accent); color: var(--bg); font-weight: 600; }
 .panel button.primary svg, .player-buttons button.primary svg { color: inherit; }
 .panel button.primary:hover:not(:disabled), .player-buttons button.primary:hover:not(:disabled) { opacity: 0.88; }
-.panel button.danger { border-color: var(--danger); color: var(--danger); }
+.panel button.danger { color: var(--danger); }
 .panel button.danger svg { color: inherit; }
-.panel button.danger:hover:not(:disabled) { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); color: var(--danger); }
-.bar > select { min-height: 34px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--box); color: var(--fg); }
-.bar > select:hover { border-color: var(--accent); }
+.panel button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 12%, transparent); }
+/* The pickers are flat too: just the words and a chevron. */
+.bar > select {
+  box-sizing: border-box; height: 30px; padding: 0 26px 0 10px; border: 0; border-radius: 6px; color: var(--fg); cursor: pointer; appearance: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6l6-6'/%3E%3C/svg%3E") right 8px center / 12px no-repeat;
+}
+.bar > select:hover { background-color: var(--hover); }
+.bar > select:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.bar > select option { background: var(--box); color: var(--fg); }
 
 .canvas { flex: 1; position: relative; min-height: 0; overflow: hidden; }
 .canvas .react-flow {
   --xy-background-color: var(--bg); --xy-edge-stroke: var(--edge); --xy-edge-stroke-width: 1.5;
-  --xy-controls-button-background-color: var(--box); --xy-controls-button-background-color-hover: var(--tint);
-  --xy-controls-button-color: var(--fg); --xy-controls-button-color-hover: var(--accent);
-  --xy-controls-button-border-color: var(--line); --xy-controls-box-shadow: none;
+  --xy-controls-button-background-color: transparent; --xy-controls-button-background-color-hover: var(--hover);
+  --xy-controls-button-color: var(--muted); --xy-controls-button-color-hover: var(--fg);
+  --xy-controls-button-border-color: transparent; --xy-controls-box-shadow: none;
 }
-/* The zoom buttons: round-cornered, apart, and in the colours of the bar's. */
-.canvas .react-flow__controls { display: flex; flex-direction: column; gap: 2px; box-shadow: none; margin: 16px; }
-.canvas .react-flow__controls-button { box-sizing: border-box; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 10px; }
-.canvas .react-flow__controls-button:hover { border-color: var(--accent); }
+/* The zoom buttons: one rounded group with flat buttons in it, like the bar's. */
+.canvas .react-flow__controls { display: flex; flex-direction: column; margin: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--box); overflow: hidden; box-shadow: none; }
+.canvas .react-flow__controls-button { box-sizing: border-box; width: 32px; height: 32px; border: 0; }
 .canvas .react-flow__controls-button svg { width: 16px; height: 16px; max-width: none; max-height: none; }
 .empty { position: absolute; inset: 40% 0 auto; text-align: center; color: var(--muted); }
 
@@ -189,51 +198,69 @@ svg { flex: none; }
 .teaser p { margin: 0; }
 @keyframes fade-in { from { opacity: 0; } }
 
-/* The side panel: one column of pieces, each its own block (header, section heading, card, row). */
+/*
+ * The side panel reads like a document: a title with a rule in the type's colour under it, then sections that are only a small heading and
+ * a hairline, prose, and plain rows. Nothing is boxed; the panel itself is frosted glass over the diagram.
+ */
 .panel {
   position: absolute; top: 0; right: 0; bottom: 0; width: min(380px, 100%); box-sizing: border-box; overflow: auto;
-  display: flex; flex-direction: column; gap: 12px;
-  padding: 16px; background: var(--box); border-left: 1px solid var(--line); box-shadow: -8px 0 24px #0000001f; z-index: 5;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 22px 22px 28px; border-left: 1px solid var(--line); z-index: 5;
+  background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(18px) saturate(1.3); box-shadow: -12px 0 32px #0000001a;
 }
 .panel > * { margin-top: 0; margin-bottom: 0; flex: none; }
 .panel h2 { margin: 0 32px 0 0; font-size: 18px; }
 .panel .close, .shortcuts .close, .notice button {
-  display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 14px; background: none;
+  display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none;
   color: var(--muted); cursor: pointer;
 }
-.panel .close:hover, .shortcuts .close:hover, .notice button:hover { background: var(--bg); color: var(--fg); }
-.panel .close { position: absolute; top: 20px; right: 20px; z-index: 1; }
-.hero {
-  display: flex; align-items: flex-start; gap: 14px; padding: 14px; border-radius: 14px;
-  background: color-mix(in srgb, var(--c, var(--accent)) 14%, transparent);
+.panel .close:hover, .shortcuts .close:hover, .notice button:hover { background: var(--hover); color: var(--fg); }
+.panel .close { position: absolute; top: 14px; right: 14px; z-index: 1; }
+.hero { position: relative; display: flex; align-items: center; gap: 14px; padding: 0 0 18px; }
+.hero::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 1px;
+  background: linear-gradient(90deg, var(--c, var(--accent)), transparent 75%); box-shadow: 0 0 10px color-mix(in srgb, var(--c, var(--accent)) 45%, transparent);
 }
-.hero h2 { margin: 2px 28px 8px 0; font-size: 20px; line-height: 1.2; overflow-wrap: anywhere; }
-.hero.ends { align-items: center; justify-content: space-around; padding: 16px 14px; }
+.hero h2 { margin: 0 28px 6px 0; font-size: 22px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.2; overflow-wrap: anywhere; }
+.hero.ends { justify-content: space-around; padding: 4px 0 18px; }
 .hero.ends > svg { color: var(--muted); }
 .hero .end { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 .iconhead { display: flex; align-items: center; gap: 10px; }
-.badge, .dirn, .steps > li::before {
+.badge, .steps > li::before {
   flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 12px;
   background: var(--tint); color: var(--accent); font-size: 12px; font-weight: 700;
 }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip {
-  display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border: 1px solid var(--line); border-radius: 11px;
-  background: var(--bg); color: var(--muted); font-size: 12px;
-}
-.chip[class*='t-'] { border-color: transparent; background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--c); font-weight: 600; }
-.chip.warn { border-color: transparent; background: var(--warn-bg); color: var(--warn-fg); font-weight: 600; }
-.chip.accent { border-color: transparent; background: var(--tint); color: var(--accent); font-weight: 600; }
+.dirn { flex: none; display: grid; place-items: center; width: 22px; height: 22px; color: var(--accent); }
+/* Chips are small words in a line, a dot between: type, tech, outside, problems. */
+.chips { display: flex; flex-wrap: wrap; align-items: center; row-gap: 2px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.chip + .chip::before { content: '·'; margin: 0 8px; opacity: 0.6; }
+.chip[class*='t-'] { color: var(--c); font-weight: 600; }
+.chip.warn { color: var(--warn-fg); font-weight: 600; }
+.chip.warn svg { color: var(--warn); }
+.chip.accent { color: var(--accent); font-weight: 600; }
 .section {
-  display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
+  display: flex; align-items: center; gap: 8px; margin: 10px 0 0; font-size: 11px; font-weight: 600; letter-spacing: 0.09em;
   text-transform: uppercase; color: var(--muted);
 }
-.section .count { padding: 0 7px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); font-size: 11px; line-height: 16px; letter-spacing: 0; }
-.card { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
-.card > :first-child { margin-top: 0; }
-.card > :last-child { margin-bottom: 0; }
-.problem-box { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: var(--warn-bg); color: var(--warn-fg); }
-.problem-box svg { margin-top: 2px; }
+.section::after { content: ''; flex: 1; height: 1px; background: var(--line); opacity: 0.7; }
+.section .count { font-weight: 500; letter-spacing: 0; opacity: 0.75; }
+/* A description: prose, as in a README. */
+.prose { font-size: 14.5px; line-height: 1.6; overflow-wrap: anywhere; }
+.prose > :first-child, .card > :first-child { margin-top: 0; }
+.prose > :last-child, .card > :last-child { margin-bottom: 0; }
+.prose h1, .prose h2, .prose h3, .prose h4 { margin: 1.2em 0 0.4em; line-height: 1.25; }
+.prose h1 { font-size: 1.25em; } .prose h2 { font-size: 1.15em; } .prose h3, .prose h4 { font-size: 1.02em; }
+.prose p, .prose ul, .prose ol, .prose pre, .prose blockquote { margin: 0 0 0.8em; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.panel code { padding: 1px 5px; border-radius: 4px; background: var(--hover); font: 0.88em ui-monospace, monospace; }
+.panel pre { padding: 10px 12px; overflow: auto; border-radius: 8px; background: var(--hover); }
+.panel pre code { padding: 0; background: none; }
+.prose blockquote { padding-left: 12px; border-left: 2px solid var(--line); color: var(--muted); }
+/* A note set beside the text by a rule, like a quote: a connection of a line, what to do next. */
+.card { padding: 2px 0 2px 14px; border-left: 2px solid var(--line); }
+.problem-box { display: flex; gap: 10px; align-items: flex-start; padding: 8px 12px; border-left: 3px solid var(--warn); border-radius: 0 8px 8px 0; background: color-mix(in srgb, var(--warn) 10%, transparent); color: var(--warn-fg); }
+.problem-box svg { margin-top: 2px; color: var(--warn); }
 .problem-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
 
 .player {
@@ -254,10 +281,9 @@ svg { flex: none; }
 .react-flow__edge.selected .react-flow__edge-path, .react-flow__edge.hover .react-flow__edge-path { stroke: var(--accent); stroke-width: 2; }
 
 .problems { position: relative; }
-.problems summary {
-  display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 14px; background: var(--warn-bg); color: var(--warn-fg);
-  font-weight: 600; cursor: pointer; list-style: none;
-}
+.problems summary { color: var(--warn-fg); font-weight: 600; list-style: none; }
+.problems summary svg { color: var(--warn); }
+.problems summary:hover { background: color-mix(in srgb, var(--warn) 14%, transparent); }
 .problems summary::-webkit-details-marker { display: none; }
 .problems ul {
   position: absolute; top: calc(100% + 6px); right: 0; z-index: 10; width: min(380px, 90vw); max-height: 60vh; overflow: auto;
@@ -285,11 +311,12 @@ svg { flex: none; }
 .react-flow__handle.drop { visibility: visible; inset: 0; width: auto; height: auto; transform: none; border: 0; border-radius: 8px; opacity: 0; }
 
 .form { display: flex; flex-direction: column; gap: 12px; }
-.form .card { display: flex; flex-direction: column; gap: 12px; }
+.form .card { display: flex; flex-direction: column; gap: 12px; padding: 0; border: 0; }
 .form label { display: block; margin: 0; color: var(--muted); font-size: 12px; }
+/* A field is a soft fill, no outline, until it has the focus. */
 .form input, .form select, .form textarea {
   display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 8px;
-  border: 1px solid var(--line); border-radius: 8px; background: var(--box); color: var(--fg); font-size: 14px;
+  border: 1px solid transparent; border-radius: 8px; background: var(--hover); color: var(--fg); font-size: 14px;
 }
 .form input:focus, .form select:focus, .form textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--tint); }
 .form textarea { resize: vertical; }
@@ -301,28 +328,30 @@ svg { flex: none; }
 
 .panel-buttons { display: flex; gap: 8px; margin-top: 4px; }
 .panel-buttons button:last-child { margin-left: auto; }
-/* A flow's steps, each a card with its number. */
-.steps { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; counter-reset: step; }
-.steps > li { position: relative; counter-increment: step; padding: 12px 12px 12px 46px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
-.steps > li::before { content: counter(step); position: absolute; left: 12px; top: 36px; }
+/* A flow's steps, down a line with a number on it. */
+.steps { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; counter-reset: step; }
+.steps > li { position: relative; counter-increment: step; padding: 0 0 18px 38px; }
+.steps > li::before { content: counter(step); position: absolute; left: 0; top: 2px; }
+.steps > li:not(:last-child)::after { content: ''; position: absolute; left: 11.5px; top: 30px; bottom: 6px; width: 1px; background: var(--line); }
 .steps label { margin: 0 0 4px; }
-.step-buttons { display: flex; gap: 4px; margin-top: 8px; }
-.panel .step-buttons button { padding: 5px 8px; }
-.code-list, .link-list ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: 13px; }
-.code-list li, .link-list li { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+.step-buttons { display: flex; gap: 2px; margin-top: 8px; }
+/* Files and links: rows as in a file tree, lit when pointed at. */
+.code-list, .link-list ul { list-style: none; padding: 0; margin: 0 -8px; display: grid; gap: 0; font-size: 13px; }
+.code-list li, .link-list li { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; }
+.code-list li:hover, .link-list li:hover { background: var(--hover); }
 .code-list svg, .link-list svg { color: var(--muted); }
-.code-list code { overflow-wrap: anywhere; } /* deep paths, like a Kotlin package, wrap instead of running off the panel */
+.code-list code { padding: 0; background: none; overflow-wrap: anywhere; } /* deep paths, like a Kotlin package, wrap instead of running off the panel */
 .code-list a { font-weight: 600; text-decoration: none; }
 .code-list a:hover { text-decoration: underline; }
 .link-list { display: contents; }
 .link-list ul { font-size: 14px; }
 .link-list .muted { margin-left: 2px; font-size: 12px; overflow-wrap: anywhere; }
 
-/* A box's connections in its panel: one card per line, out then in. */
+/* A box's connections in its panel: one row per line, out then in. */
 .lines-of { display: contents; }
-.lines-of ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.lines-of > ul > li.row { display: flex; gap: 10px; align-items: flex-start; padding: 9px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
-.lines-of > ul > li.row:hover { border-color: var(--accent); background: var(--tint); }
+.lines-of ul { list-style: none; margin: 0 -8px; padding: 0; display: grid; gap: 2px; }
+.lines-of > ul > li.row { display: flex; gap: 10px; align-items: flex-start; padding: 8px; border-radius: 8px; }
+.lines-of > ul > li.row:hover { background: var(--tint); }
 .lines-of .other { display: flex; align-items: center; gap: 8px; }
 .lines-of .muted { font-size: 12px; }
 .panel .lines-of button.link { all: unset; cursor: pointer; font-weight: 600; color: var(--accent); }
@@ -338,11 +367,9 @@ svg { flex: none; }
   border: 1px solid var(--line); border-radius: 12px; background: var(--box); box-shadow: 0 6px 20px #0003;
 }
 .search-field { display: flex; align-items: center; gap: 8px; padding-left: 6px; color: var(--muted); }
-.search input {
-  flex: 1; min-width: 0; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
-  background: var(--bg); color: var(--fg); font-size: 15px;
-}
-.search input:focus { outline: none; border-color: var(--accent); }
+/* The card is the field: no second box inside it. */
+.search input { flex: 1; min-width: 0; box-sizing: border-box; padding: 8px 10px; border: 0; background: none; color: var(--fg); font-size: 15px; }
+.search input:focus { outline: none; }
 .search ul { margin: 6px 0 0; padding: 0; list-style: none; }
 .search li button { all: unset; display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 8px; cursor: pointer; }
 .search li button.at, .search li button:hover { background: var(--bg); }
@@ -364,3 +391,19 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 
 .more { margin: 6px 0; }
 .more summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+
+/* A tagged step playing (see StepMotion.tsx): a pipe along the step's line, a blob running through it, and rings and flashes on the boxes. */
+.motion { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+.motion path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.motion .wall { stroke: color-mix(in srgb, var(--accent) 65%, var(--fg)); stroke-width: 15; }
+.motion .bore { stroke: var(--bg); stroke-width: 10; }
+.motion .bulge.wall { stroke-width: 23; }
+.motion .bulge.bore { stroke-width: 18; }
+.motion .blob circle, .motion .blob rect { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
+.motion .blob.reply circle, .motion .blob.reply rect { fill: var(--app); }
+.motion .blob text { fill: var(--bg); font-size: 15px; font-weight: 600; }
+.motion rect.ring { fill: none; stroke: var(--accent); stroke-width: 3; }
+.motion rect.flash { fill: var(--accent); }
+.motion .dots circle { fill: var(--accent); }
+.motion .glyph { fill: none; stroke: var(--bg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.motion .glyph.drop { stroke: var(--accent); stroke-width: 2.2; }

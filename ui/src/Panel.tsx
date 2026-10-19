@@ -231,7 +231,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
       {header}
       {mine}
       <Section icon={Text} title="Description" />
-      <div className="card">{object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}</div>
+      <div className="prose">{object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}</div>
       <LinkList object={object} codeBase={codeBase} />
       <CodeList object={object} codeBase={codeBase} />
       <LineList model={model} id={id} onPick={onPick} onHover={onHover} />

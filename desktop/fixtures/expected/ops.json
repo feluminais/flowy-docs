@@ -483,6 +483,85 @@
     },
     {
       "spec": {
+        "op": "putFlow",
+        "id": "tagged",
+        "name": "Tagged",
+        "view": "root",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "shop",
+            "text": "Pays",
+            "animation": "call"
+          },
+          {
+            "from": "shop",
+            "to": "customer",
+            "text": "Rings back",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside",
+              "carries": "receipt"
+            }
+          }
+        ]
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/pay.yaml": "name: Customer pays\nview: root\nsteps:\n  - from: customer\n    to: pay\n    text: Pays\n  - from: customer\n    text: Waits\n  - from: pay\n    text: Confirms\n    description: It takes a second.\n",
+        "flows/tagged.yaml": "name: Tagged\nview: root\nsteps:\n  - from: customer\n    to: shop\n    text: Pays\n    animation: call\n  - from: shop\n    to: customer\n    text: Rings back\n    animation:\n      kind: callback\n      trigger: outside\n      carries: receipt\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "updateFlow",
+        "id": "tagged",
+        "name": "Tagged again"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/pay.yaml": "name: Customer pays\nview: root\nsteps:\n  - from: customer\n    to: pay\n    text: Pays\n  - from: customer\n    text: Waits\n  - from: pay\n    text: Confirms\n    description: It takes a second.\n",
+        "flows/tagged.yaml": "name: Tagged again\nview: root\nsteps:\n  - from: customer\n    to: shop\n    text: Pays\n    animation: call\n  - from: shop\n    to: customer\n    text: Rings back\n    animation:\n      kind: callback\n      trigger: outside\n      carries: receipt\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "putFlow",
+        "id": "tagged-bad",
+        "name": "Bad tag",
+        "view": "root",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "shop",
+            "text": "Pays",
+            "animation": "zoom"
+          }
+        ]
+      },
+      "error": "Refused, nothing saved. This would add:\n- flows/tagged-bad.yaml: step 1: unknown animation \"zoom\" (use send, call, callback, event)"
+    },
+    {
+      "spec": {
+        "op": "deleteFlow",
+        "id": "tagged"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Redis\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/pay.yaml": "name: Customer pays\nview: root\nsteps:\n  - from: customer\n    to: pay\n    text: Pays\n  - from: customer\n    text: Waits\n  - from: pay\n    text: Confirms\n    description: It takes a second.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
         "op": "updateFlow",
         "id": "browse",
         "name": "Customer looks around"

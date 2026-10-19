@@ -36,6 +36,7 @@ const SHAPES: { name: string; data: Tree }[] = [
   { name: 'multiline in list in map', data: { items: ['a\nb', 'c', 'd\ne\n'] } },
   { name: 'multiline in nested map', data: { objects: { a: { description: 'Line one\n\nLine two\n' } } } },
   { name: 'multiline in list item map', data: { steps: [{ text: 'x', description: 'More\nlines here\n' }] } },
+  { name: 'mapping in a step', data: { steps: [{ from: 'a', to: 'b', text: 'x', animation: { kind: 'callback', trigger: 'outside', carries: 'receipt' } }, { from: 'b', text: 'y', animation: 'call' }] } },
   { name: 'top-level list', data: ['a', 'b', { c: 'd' }] },
 ]
 

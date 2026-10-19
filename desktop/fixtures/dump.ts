@@ -36,7 +36,7 @@ export async function dumpFolder(dir: string): Promise<unknown> {
       view: f.view,
       steps: f.steps.map(s => {
         const placed = placeStep(model, f.view, s)
-        return { from: s.from, to: s.to, text: s.text, description: s.description, placed, ends: typeof s.from === 'string' ? stepEnds(model, s, placed) : null }
+        return { from: s.from, to: s.to, text: s.text, description: s.description, animation: s.animation, placed, ends: typeof s.from === 'string' ? stepEnds(model, s, placed) : null }
       }),
     })),
     problems: state.problems,

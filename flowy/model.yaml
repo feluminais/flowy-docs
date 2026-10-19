@@ -98,7 +98,8 @@ objects:
       only if they are still as they were read.
 
       Two readers must give the same answers, so a Node script runs the TypeScript over fixture
-      folders and the canvas's own functions, and the C# tests must reproduce every number. A root
+      folders and the canvas's own functions, and the C# tests must reproduce every number. That
+      includes the beats of a step's animation and the maths that draws them. A root
       test fails if the TypeScript changes without the fixtures being written again.
   desktop-canvas:
     type: component
@@ -124,6 +125,10 @@ objects:
       Opening a shape is a short fly-off and settle-in, one step per screen refresh (the window's own
       animation-frame callback, not a timer, which ticks unevenly), and instant when the system asks
       for less motion.
+
+      A tagged flow step plays over the shapes: a pipe along its line, something running through it,
+      and the shapes ringing, flashing or squashing. The same frame-driven clock runs it and Autoplay's
+      waits, and nothing moves when the system asks for less motion.
 
       Descriptions are drawn by a small Markdown renderer: raw HTML is dropped, an image shows as
       its description in brackets and is never fetched, and a link opens only if it is http or https.
@@ -173,6 +178,9 @@ objects:
     description: |
       The page: shapes you zoom into, lines that stay quiet until you point at them, flows that play
       step by step, and edit mode behind E.
+
+      A step tagged with an `animation:` plays as a pipe with a blob running through it, and Autoplay
+      steps through a flow on its own.
 
       The same bundle is served by the local server and shipped in an export; on an exported page
       the model comes from the HTML and there is nothing to save to.
@@ -260,6 +268,16 @@ objects:
       live elsewhere wait around the edges, each on the side that crosses fewest lines.
 
       A dragged shape keeps its saved place; the rest flow around it.
+  motion:
+    type: component
+    in: canvas
+    name: Step motion
+    code: [ui/src/StepMotion.tsx, ui/src/motion.ts]
+    description: |
+      Draws a tagged step over the canvas: the line as a pipe, a blob running through it, and rings,
+      flashes and squashes on the shapes. It asks core for the beats and knows nothing about kinds.
+
+      Nothing moves when the system asks for less motion; Autoplay then waits a few seconds on each step.
   sync:
     type: component
     in: canvas
@@ -304,6 +322,17 @@ objects:
 
       Problems are shown, not fixed. A file edited by hand keeps its problems until someone deals
       with them.
+  animation:
+    type: component
+    in: core
+    name: Animation
+    code: [src/core/animation.ts, desktop/Flowy.Core/Animation.cs]
+    description: |
+      What a flow step's `animation:` tag may say, and what each kind does, written as a timed list of
+      beats: a tube along the line, a blob running through it, a ring or flash or gulp on a shape.
+
+      Nothing here draws. The canvas and the desktop app each draw the beats, so a new kind is a
+      recipe here and not new drawing code in both.
   views:
     type: component
     in: core
@@ -366,6 +395,8 @@ connections:
   - { from: shell, to: sync, label: "saves edits, takes them back" }
   - { from: shell, to: graph, label: what to draw }
   - { from: shell, to: panel, label: what is selected }
+  - { from: shell, to: motion, label: the step playing }
+  - { from: motion, to: animation, label: asks for the beats }
   - { from: shell, to: ops, label: the edit the reader made }
   - { from: panel, to: forge, label: links code paths }
   - { from: graph, to: views, label: "shapes, outsiders and lines" }
@@ -380,6 +411,7 @@ connections:
   - { from: ops, to: check, label: refuses what adds a problem }
   - { from: ops, to: model, label: writes it back as YAML }
   - { from: check, to: views, label: can this view show it }
+  - { from: check, to: animation, label: asks if a step's tag is right }
   - { from: views, to: model, label: reads }
   - { from: mermaid, to: views, label: what the view holds }
   - { from: mermaid, to: look, label: how each shape is drawn }

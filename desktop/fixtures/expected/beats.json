@@ -1,0 +1,6652 @@
+{
+  "travel": [
+    {
+      "length": 0,
+      "ms": 500
+    },
+    {
+      "length": 100,
+      "ms": 500
+    },
+    {
+      "length": 250,
+      "ms": 500
+    },
+    {
+      "length": 400,
+      "ms": 800
+    },
+    {
+      "length": 1000,
+      "ms": 1100
+    },
+    {
+      "length": 5000,
+      "ms": 1100
+    },
+    {
+      "length": 333.3,
+      "ms": 667
+    }
+  ],
+  "problems": [
+    {
+      "animation": "send",
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": "send",
+      "to": false,
+      "problem": "animation \"send\" needs a \"to\""
+    },
+    {
+      "animation": "call",
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": "call",
+      "to": false,
+      "problem": "animation \"call\" needs a \"to\""
+    },
+    {
+      "animation": "callback",
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": "callback",
+      "to": false,
+      "problem": "animation \"callback\" needs a \"to\""
+    },
+    {
+      "animation": "event",
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": "event",
+      "to": false,
+      "problem": "animation \"event\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "to": false,
+      "problem": "animation \"send\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "to": false,
+      "problem": "animation \"call\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "to": false,
+      "problem": "animation \"callback\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "to": false,
+      "problem": "animation \"callback\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "to": false,
+      "problem": "animation \"callback\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "to": false,
+      "problem": "animation \"callback\" needs a \"to\""
+    },
+    {
+      "animation": "",
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": "",
+      "to": false,
+      "problem": null
+    },
+    {
+      "animation": "sned",
+      "to": true,
+      "problem": "unknown animation \"sned\" (use send, call, callback, event)"
+    },
+    {
+      "animation": "sned",
+      "to": false,
+      "problem": "unknown animation \"sned\" (use send, call, callback, event)"
+    },
+    {
+      "animation": "Send",
+      "to": true,
+      "problem": "unknown animation \"Send\" (use send, call, callback, event)"
+    },
+    {
+      "animation": "Send",
+      "to": false,
+      "problem": "unknown animation \"Send\" (use send, call, callback, event)"
+    },
+    {
+      "animation": {
+        "kind": ""
+      },
+      "to": true,
+      "problem": "animation needs a kind (use send, call, callback, event)"
+    },
+    {
+      "animation": {
+        "kind": ""
+      },
+      "to": false,
+      "problem": "animation needs a kind (use send, call, callback, event)"
+    },
+    {
+      "animation": {},
+      "to": true,
+      "problem": "animation needs a kind (use send, call, callback, event)"
+    },
+    {
+      "animation": {},
+      "to": false,
+      "problem": "animation needs a kind (use send, call, callback, event)"
+    },
+    {
+      "animation": {
+        "carries": "x"
+      },
+      "to": true,
+      "problem": "animation needs a kind (use send, call, callback, event)"
+    },
+    {
+      "animation": {
+        "carries": "x"
+      },
+      "to": false,
+      "problem": "animation needs a kind (use send, call, callback, event)"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "speed": "fast"
+      },
+      "to": true,
+      "problem": "unknown animation option \"speed\" (use kind, trigger, carries)"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "speed": "fast"
+      },
+      "to": false,
+      "problem": "unknown animation option \"speed\" (use kind, trigger, carries)"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "trigger": "outside"
+      },
+      "to": true,
+      "problem": "animation trigger only applies to callback"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "trigger": "outside"
+      },
+      "to": false,
+      "problem": "animation trigger only applies to callback"
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "sideways"
+      },
+      "to": true,
+      "problem": "animation trigger must be inside or outside"
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "sideways"
+      },
+      "to": false,
+      "problem": "animation trigger must be inside or outside"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": " "
+      },
+      "to": true,
+      "problem": "animation carries must be a word"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": " "
+      },
+      "to": false,
+      "problem": "animation carries must be a word"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": ""
+      },
+      "to": true,
+      "problem": "animation carries must be a word"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": ""
+      },
+      "to": false,
+      "problem": "animation carries must be a word"
+    },
+    {
+      "animation": [
+        "send"
+      ],
+      "to": true,
+      "problem": "animation must be a kind or a mapping with a kind"
+    },
+    {
+      "animation": [
+        "send"
+      ],
+      "to": false,
+      "problem": "animation must be a kind or a mapping with a kind"
+    },
+    {
+      "animation": {
+        "kind": [
+          "send"
+        ]
+      },
+      "to": true,
+      "problem": "animation kind must be text"
+    },
+    {
+      "animation": {
+        "kind": [
+          "send"
+        ]
+      },
+      "to": false,
+      "problem": "animation kind must be text"
+    },
+    {
+      "animation": {
+        "kind": {
+          "x": "y"
+        }
+      },
+      "to": true,
+      "problem": "animation kind must be text"
+    },
+    {
+      "animation": {
+        "kind": {
+          "x": "y"
+        }
+      },
+      "to": false,
+      "problem": "animation kind must be text"
+    }
+  ],
+  "reads": [
+    {
+      "animation": "send",
+      "read": {
+        "kind": "send",
+        "trigger": "inside"
+      }
+    },
+    {
+      "animation": "call",
+      "read": {
+        "kind": "call",
+        "trigger": "inside"
+      }
+    },
+    {
+      "animation": "callback",
+      "read": {
+        "kind": "callback",
+        "trigger": "inside"
+      }
+    },
+    {
+      "animation": "event",
+      "read": {
+        "kind": "event",
+        "trigger": "inside"
+      }
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "read": {
+        "kind": "send",
+        "trigger": "inside",
+        "carries": "order"
+      }
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "read": {
+        "kind": "call",
+        "trigger": "inside",
+        "carries": "basket"
+      }
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "read": {
+        "kind": "callback",
+        "trigger": "inside"
+      }
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "read": {
+        "kind": "callback",
+        "trigger": "inside"
+      }
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "read": {
+        "kind": "callback",
+        "trigger": "outside"
+      }
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "read": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      }
+    },
+    {
+      "animation": "",
+      "read": null
+    },
+    {
+      "animation": "sned",
+      "read": null
+    },
+    {
+      "animation": "Send",
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": ""
+      },
+      "read": null
+    },
+    {
+      "animation": {},
+      "read": null
+    },
+    {
+      "animation": {
+        "carries": "x"
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "speed": "fast"
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "trigger": "outside"
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "sideways"
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": " "
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": ""
+      },
+      "read": null
+    },
+    {
+      "animation": [
+        "send"
+      ],
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": [
+          "send"
+        ]
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": {
+          "x": "y"
+        }
+      },
+      "read": null
+    }
+  ],
+  "beats": [
+    {
+      "animation": "send",
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": "send",
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": "send",
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": "send",
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": "send",
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": "send",
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": "send",
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1150
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 950,
+          "dur": 200
+        }
+      ],
+      "total": 1150
+    },
+    {
+      "animation": "send",
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1150
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 950,
+          "dur": 200
+        }
+      ],
+      "total": 1150
+    },
+    {
+      "animation": "send",
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": "send",
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": "send",
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": "send",
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": "send",
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1017
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 817,
+          "dur": 200
+        }
+      ],
+      "total": 1017
+    },
+    {
+      "animation": "send",
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1017
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 817,
+          "dur": 200
+        }
+      ],
+      "total": 1017
+    },
+    {
+      "animation": "call",
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": "call",
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": "call",
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": "call",
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": "call",
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": "call",
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": "call",
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2250
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 950,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 950,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1250,
+          "dur": 800,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2050,
+          "dur": 200
+        }
+      ],
+      "total": 2250
+    },
+    {
+      "animation": "call",
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2250
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 950,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 950,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1250,
+          "dur": 800,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2050,
+          "dur": 200
+        }
+      ],
+      "total": 2250
+    },
+    {
+      "animation": "call",
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1250,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1550,
+          "dur": 1100,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2650,
+          "dur": 200
+        }
+      ],
+      "total": 2850
+    },
+    {
+      "animation": "call",
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1250,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1550,
+          "dur": 1100,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2650,
+          "dur": 200
+        }
+      ],
+      "total": 2850
+    },
+    {
+      "animation": "call",
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1250,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1550,
+          "dur": 1100,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2650,
+          "dur": 200
+        }
+      ],
+      "total": 2850
+    },
+    {
+      "animation": "call",
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1250,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1550,
+          "dur": 1100,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2650,
+          "dur": 200
+        }
+      ],
+      "total": 2850
+    },
+    {
+      "animation": "call",
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1984
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 817,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 817,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1117,
+          "dur": 667,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1784,
+          "dur": 200
+        }
+      ],
+      "total": 1984
+    },
+    {
+      "animation": "call",
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1984
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 817,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 817,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1117,
+          "dur": 667,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1784,
+          "dur": 200
+        }
+      ],
+      "total": 1984
+    },
+    {
+      "animation": "callback",
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": "callback",
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": "callback",
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": "callback",
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": "callback",
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": "callback",
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": "callback",
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1500
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1100,
+          "dur": 400
+        }
+      ],
+      "total": 1500
+    },
+    {
+      "animation": "callback",
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1500
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1100,
+          "dur": 400
+        }
+      ],
+      "total": 1500
+    },
+    {
+      "animation": "callback",
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": "callback",
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": "callback",
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": "callback",
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": "callback",
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1367
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 967,
+          "dur": 400
+        }
+      ],
+      "total": 1367
+    },
+    {
+      "animation": "callback",
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1367
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 967,
+          "dur": 400
+        }
+      ],
+      "total": 1367
+    },
+    {
+      "animation": "event",
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 650,
+          "dur": 250
+        }
+      ],
+      "total": 900
+    },
+    {
+      "animation": "event",
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 650,
+          "dur": 250
+        }
+      ],
+      "total": 900
+    },
+    {
+      "animation": "event",
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 650,
+          "dur": 250
+        }
+      ],
+      "total": 900
+    },
+    {
+      "animation": "event",
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 650,
+          "dur": 250
+        }
+      ],
+      "total": 900
+    },
+    {
+      "animation": "event",
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 650,
+          "dur": 250
+        }
+      ],
+      "total": 900
+    },
+    {
+      "animation": "event",
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 650,
+          "dur": 250
+        }
+      ],
+      "total": 900
+    },
+    {
+      "animation": "event",
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 950,
+          "dur": 250
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": "event",
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 950,
+          "dur": 250
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": "event",
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1500
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1250,
+          "dur": 250
+        }
+      ],
+      "total": 1500
+    },
+    {
+      "animation": "event",
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1500
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1250,
+          "dur": 250
+        }
+      ],
+      "total": 1500
+    },
+    {
+      "animation": "event",
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1500
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1250,
+          "dur": 250
+        }
+      ],
+      "total": 1500
+    },
+    {
+      "animation": "event",
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1500
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1250,
+          "dur": 250
+        }
+      ],
+      "total": 1500
+    },
+    {
+      "animation": "event",
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1067
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 817,
+          "dur": 250
+        }
+      ],
+      "total": 1067
+    },
+    {
+      "animation": "event",
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1067
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 817,
+          "dur": 250
+        }
+      ],
+      "total": 1067
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        }
+      ],
+      "total": 850
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1150
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 950,
+          "dur": 200
+        }
+      ],
+      "total": 1150
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1150
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 950,
+          "dur": 200
+        }
+      ],
+      "total": 1150
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1017
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 817,
+          "dur": 200
+        }
+      ],
+      "total": 1017
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1017
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "order"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 817,
+          "dur": 200
+        }
+      ],
+      "total": 1017
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1650
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 650,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 650,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 950,
+          "dur": 500,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1450,
+          "dur": 200
+        }
+      ],
+      "total": 1650
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2250
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 950,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 950,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1250,
+          "dur": 800,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2050,
+          "dur": 200
+        }
+      ],
+      "total": 2250
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2250
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 950,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 950,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1250,
+          "dur": 800,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2050,
+          "dur": 200
+        }
+      ],
+      "total": 2250
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1250,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1550,
+          "dur": 1100,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2650,
+          "dur": 200
+        }
+      ],
+      "total": 2850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1250,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1550,
+          "dur": 1100,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2650,
+          "dur": 200
+        }
+      ],
+      "total": 2850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1250,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1550,
+          "dur": 1100,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2650,
+          "dur": 200
+        }
+      ],
+      "total": 2850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1250,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1250,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1550,
+          "dur": 1100,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2650,
+          "dur": 200
+        }
+      ],
+      "total": 2850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1984
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 817,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 817,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1117,
+          "dur": 667,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1784,
+          "dur": 200
+        }
+      ],
+      "total": 1984
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1984
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 150
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 150,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "basket"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 817,
+          "dur": 200
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 817,
+          "dur": 300
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1117,
+          "dur": 667,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "reply"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 1784,
+          "dur": 200
+        }
+      ],
+      "total": 1984
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1500
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1100,
+          "dur": 400
+        }
+      ],
+      "total": 1500
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1500
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1100,
+          "dur": 400
+        }
+      ],
+      "total": 1500
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1367
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 967,
+          "dur": 400
+        }
+      ],
+      "total": 1367
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1367
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 967,
+          "dur": 400
+        }
+      ],
+      "total": 1367
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1200
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 800,
+          "dur": 400
+        }
+      ],
+      "total": 1200
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1500
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1100,
+          "dur": 400
+        }
+      ],
+      "total": 1500
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1500
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1100,
+          "dur": 400
+        }
+      ],
+      "total": 1500
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1800
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1400,
+          "dur": 400
+        }
+      ],
+      "total": 1800
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1367
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 967,
+          "dur": 400
+        }
+      ],
+      "total": 1367
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1367
+        },
+        {
+          "do": "ring",
+          "on": "from",
+          "at": 0,
+          "dur": 400
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 300,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 967,
+          "dur": 400
+        }
+      ],
+      "total": 1367
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1050,
+          "dur": 400
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1100
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 700,
+          "dur": 400
+        }
+      ],
+      "total": 1100
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1050,
+          "dur": 400
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1100
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 700,
+          "dur": 400
+        }
+      ],
+      "total": 1100
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1050,
+          "dur": 400
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1100
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 700,
+          "dur": 400
+        }
+      ],
+      "total": 1100
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1750
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1350,
+          "dur": 400
+        }
+      ],
+      "total": 1750
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1400
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1000,
+          "dur": 400
+        }
+      ],
+      "total": 1400
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2050
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1650,
+          "dur": 400
+        }
+      ],
+      "total": 2050
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1700
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1300,
+          "dur": 400
+        }
+      ],
+      "total": 1700
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2050
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1650,
+          "dur": 400
+        }
+      ],
+      "total": 2050
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1700
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1300,
+          "dur": 400
+        }
+      ],
+      "total": 1700
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1617
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1217,
+          "dur": 400
+        }
+      ],
+      "total": 1617
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1267
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bell"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 867,
+          "dur": 400
+        }
+      ],
+      "total": 1267
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1050,
+          "dur": 400
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1100
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 700,
+          "dur": 400
+        }
+      ],
+      "total": 1100
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1050,
+          "dur": 400
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1100
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 700,
+          "dur": 400
+        }
+      ],
+      "total": 1100
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1450
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1050,
+          "dur": 400
+        }
+      ],
+      "total": 1450
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1100
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 500,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 700,
+          "dur": 400
+        }
+      ],
+      "total": 1100
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1750
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1350,
+          "dur": 400
+        }
+      ],
+      "total": 1750
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1400
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 800,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1000,
+          "dur": 400
+        }
+      ],
+      "total": 1400
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2050
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1650,
+          "dur": 400
+        }
+      ],
+      "total": 2050
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1700
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1300,
+          "dur": 400
+        }
+      ],
+      "total": 1700
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2050
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1650,
+          "dur": 400
+        }
+      ],
+      "total": 2050
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1700
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 1100,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1300,
+          "dur": 400
+        }
+      ],
+      "total": 1700
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1617
+        },
+        {
+          "do": "drop",
+          "on": "from",
+          "at": 0,
+          "dur": 350,
+          "glyph": "bolt"
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 350,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 550,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 1217,
+          "dur": 400
+        }
+      ],
+      "total": 1617
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1267
+        },
+        {
+          "do": "flash",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 200,
+          "dur": 667,
+          "dir": "fwd",
+          "glyph": "bell",
+          "label": "receipt"
+        },
+        {
+          "do": "ring",
+          "on": "to",
+          "at": 867,
+          "dur": 400
+        }
+      ],
+      "total": 1267
+    }
+  ],
+  "follows": [
+    {
+      "previous": null,
+      "current": null,
+      "follows": false
+    },
+    {
+      "previous": null,
+      "current": [
+        "a",
+        "b"
+      ],
+      "follows": false
+    },
+    {
+      "previous": null,
+      "current": [
+        "b",
+        "c"
+      ],
+      "follows": false
+    },
+    {
+      "previous": null,
+      "current": [
+        "a",
+        "c"
+      ],
+      "follows": false
+    },
+    {
+      "previous": null,
+      "current": [
+        "a",
+        "a"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "b"
+      ],
+      "current": null,
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "b"
+      ],
+      "current": [
+        "a",
+        "b"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "b"
+      ],
+      "current": [
+        "b",
+        "c"
+      ],
+      "follows": true
+    },
+    {
+      "previous": [
+        "a",
+        "b"
+      ],
+      "current": [
+        "a",
+        "c"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "b"
+      ],
+      "current": [
+        "a",
+        "a"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "b",
+        "c"
+      ],
+      "current": null,
+      "follows": false
+    },
+    {
+      "previous": [
+        "b",
+        "c"
+      ],
+      "current": [
+        "a",
+        "b"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "b",
+        "c"
+      ],
+      "current": [
+        "b",
+        "c"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "b",
+        "c"
+      ],
+      "current": [
+        "a",
+        "c"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "b",
+        "c"
+      ],
+      "current": [
+        "a",
+        "a"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "c"
+      ],
+      "current": null,
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "c"
+      ],
+      "current": [
+        "a",
+        "b"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "c"
+      ],
+      "current": [
+        "b",
+        "c"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "c"
+      ],
+      "current": [
+        "a",
+        "c"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "c"
+      ],
+      "current": [
+        "a",
+        "a"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "a"
+      ],
+      "current": null,
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "a"
+      ],
+      "current": [
+        "a",
+        "b"
+      ],
+      "follows": true
+    },
+    {
+      "previous": [
+        "a",
+        "a"
+      ],
+      "current": [
+        "b",
+        "c"
+      ],
+      "follows": false
+    },
+    {
+      "previous": [
+        "a",
+        "a"
+      ],
+      "current": [
+        "a",
+        "c"
+      ],
+      "follows": true
+    },
+    {
+      "previous": [
+        "a",
+        "a"
+      ],
+      "current": [
+        "a",
+        "a"
+      ],
+      "follows": true
+    }
+  ],
+  "motion": {
+    "gap": 900,
+    "dwell": 2200,
+    "ease": [
+      {
+        "p": 0,
+        "ease": 0,
+        "bump": 0
+      },
+      {
+        "p": 0.1,
+        "ease": 0.004000000000000001,
+        "bump": 0.3090169943749474
+      },
+      {
+        "p": 0.25,
+        "ease": 0.0625,
+        "bump": 0.7071067811865475
+      },
+      {
+        "p": 0.5,
+        "ease": 0.5,
+        "bump": 1
+      },
+      {
+        "p": 0.75,
+        "ease": 0.9375,
+        "bump": 0.7071067811865476
+      },
+      {
+        "p": 0.9,
+        "ease": 0.996,
+        "bump": 0.3090169943749475
+      },
+      {
+        "p": 1,
+        "ease": 1,
+        "bump": 1.2246467991473532e-16
+      }
+    ],
+    "progress": [
+      {
+        "t": 0,
+        "progress": 0,
+        "active": false,
+        "tube": 0
+      },
+      {
+        "t": 50,
+        "progress": 0,
+        "active": false,
+        "tube": 0.3333333333333333
+      },
+      {
+        "t": 100,
+        "progress": 0,
+        "active": true,
+        "tube": 0.6666666666666666
+      },
+      {
+        "t": 250,
+        "progress": 0.375,
+        "active": true,
+        "tube": 1
+      },
+      {
+        "t": 499,
+        "progress": 0.9975,
+        "active": true,
+        "tube": 1
+      },
+      {
+        "t": 500,
+        "progress": 1,
+        "active": false,
+        "tube": 1
+      },
+      {
+        "t": 900,
+        "progress": 1,
+        "active": false,
+        "tube": 0.4
+      }
+    ],
+    "distance": [
+      {
+        "dir": "fwd",
+        "p": 0,
+        "distance": 0
+      },
+      {
+        "dir": "fwd",
+        "p": 0.3,
+        "distance": 21.6
+      },
+      {
+        "dir": "fwd",
+        "p": 1,
+        "distance": 200
+      },
+      {
+        "dir": "back",
+        "p": 0,
+        "distance": 200
+      },
+      {
+        "dir": "back",
+        "p": 0.3,
+        "distance": 178.4
+      },
+      {
+        "dir": "back",
+        "p": 1,
+        "distance": 0
+      }
+    ]
+  }
+}
