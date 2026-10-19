@@ -32,12 +32,14 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   problem.
 - Ctrl+K or / (or Search) finds a shape anywhere in the model by name. Pick one and the canvas
   opens the level it's on, with its panel open.
-- The icons on the left edge open a panel with two tabs. Flows (L) lists every flow: first those in the
-  level you're in, then all the others under the level they play in, and a click goes there and plays it.
-  Explorer (O) shows everything as a tree, with how many shapes and flows are inside each, a dot where
-  something is wrong, and a filter. A click shows a shape where it's drawn; Enter or a double-click zooms
-  into it, and the tree follows you as you zoom. The numbers on the icons are how many flows and shapes
-  there are in all. Details, on the right (its own icon, or a click on a shape or a line), is what the
+- The icons on the left edge open a panel with two tabs. Explorer (O) shows everything as a tree, with
+  how many shapes and flows are inside each, a dot where something is wrong, and a filter. It sorts as
+  VS Code's Explorer does: shapes that hold others first, then the rest, each by name in any case, and
+  with numbers read as numbers ("step 2" before "step 10"). A click shows a shape where it's drawn; Enter
+  or a double-click zooms into it, and the tree follows you as you zoom. Flows (L) lists every flow, each
+  level's by name: first those in the level you're in, then all the others under the level they play in,
+  and a click goes there and plays it. The numbers on the icons are how many shapes and flows there are
+  in all. Details, on the right (its own icon, or a click on a shape or a line), is what the
   click picked. Where the folder has load-test runs, a Performance icon below it (T) puts a run's panel
   in Details' place: see [Performance](#performance). Drag the inner edge of either panel to resize it,
   and double-click it to put the width back.
@@ -87,7 +89,8 @@ checks, and write the same text, so a change made in one looks the same in git a
 - New flow records a walkthrough: name it, click the shape where a step starts and the shape it goes
   to (or the same shape again, for a step it does on its own), type what happens and press Enter.
   Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
-  delete steps. "Edit a flow" opens one you already have.
+  delete steps. To change a flow you already have, pick it in the Flows tab: in edit mode its rows carry a pencil, and a click opens
+  the flow for editing instead of playing it.
 
 Every save goes through the same checks as Claude's edits: a change that would add a problem is
 refused, and nothing is written. If a file changed on disk in the meantime, the save is dropped
@@ -220,6 +223,94 @@ lowercase letters, digits and dashes, and can't be one of the built-in names. Cl
 `delete_icon` tools, and `get_model` lists the ones a model has. An icon that is still in use can't be deleted. There are no
 colour or image icons: an icon takes the colour of the shape that shows it.
 
+## Repeats, branches and parallel steps
+
+A flow is a flat list of steps, but real systems aren't flat: a call is retried, a result decides what happens next, one shape tells
+several others at once, one flow hands the story to another. A flow file can say so, with two optional additions. A `groups:` section
+declares each group once, and a step joins a group by its id.
+
+```yaml
+name: Customer pays for an order
+view: ordering
+groups:
+  charge:
+    kind: repeat
+    times: 3
+    text: Backs off 1 s, 2 s, 4 s between tries
+  outcome:
+    kind: branch
+  tell:
+    kind: parallel
+steps:
+  - { from: order-api, to: stripe, text: Holds the amount on the card, group: charge }
+  - { from: stripe, to: order-api, text: Times out at the bank, group: charge }
+  - { from: stripe, to: order-api, text: Reports the hold placed, group: outcome, lane: Card accepted }
+  - { from: order-api, to: orders-db, text: Saves the order as placed, group: outcome }
+  - { from: stripe, to: order-api, text: Reports the final decline, group: outcome, lane: Card declined }
+  - { from: order-api, to: kitchen-tablet, text: The restaurant's tablet rings, group: tell, lane: Kitchen }
+  - { from: order-api, to: events, text: Announces the order, group: tell, lane: Everyone else, flow: place-order }
+```
+
+This is a flow Plum doesn't have, written with Plum's shapes. A group is one of three kinds:
+
+| Kind | It means | It takes |
+| --- | --- | --- |
+| `repeat` | The same steps run again | `times` or `until`, and optionally `text` |
+| `branch` | Alternatives: one lane happens | Lanes, and optionally `text` |
+| `parallel` | Lanes that all happen at once | At least two lanes, and optionally `text` |
+
+- `times` is how many times the stretch runs in all, the first run included, a whole number from 2 to 99. It is a claim about a real
+  limit ("the client gives up after 3 tries"), not a number for illustration. `until` says in words what stops a repeat. A repeat
+  needs one of the two. Backoff, delays and timeouts aren't data: say them in the group's `text` or in the steps.
+- A step's `group` is the group it belongs to, and it is in at most one. The steps of a group have to sit next to each other.
+- A step's `lane` starts a lane of a branch or a parallel group, and the steps after it in the same group, up to the next `lane`, belong
+  to it. The first step of a branch or parallel group must have one. A lane is a label in plain words ("Card declined"), unique inside
+  its group, and a repeat has none. A branch may have a single lane, for "if the coupon is valid, this happens".
+- A step's `flow` is the flow its story continues in, for a step whose story is long enough to deserve a flow of its own. A flow can
+  point at one that points back, and that is not a problem.
+- A group id follows the rule for a flow's id: lowercase letters, digits and dashes.
+- There is one level of groups. A group can't sit inside another.
+
+Flowy checks them as it checks everything else, and lists what is wrong in the problem list: a `group` that isn't declared under
+`groups`, or a declared one that no step uses, a repeat with neither `times` nor `until`, `times` outside 2 to 99, `times` or `until`
+on a branch, a lane on a step with no group or in a repeat, a first step with no lane, two lanes with one label, a parallel group with
+fewer than two lanes, a step that sits between two members of a group without belonging to it, and a `flow` that isn't a flow in the
+folder. The last means a change that deletes a flow another one points at is refused, as any change that adds a problem is.
+
+**What it does today.** The checks, and Mermaid. A repeat becomes a `loop` block labelled with every fact it has, a branch an `alt` with
+an `else` for each further lane (`opt` when it has one), a parallel group a `par` with an `and` for each further lane, and a step with
+`flow:` is followed by a note over its end that names the flow it continues in. The sample above comes out as:
+
+```mermaid
+sequenceDiagram
+  participant n0 as Order API
+  participant n1 as Stripe
+  participant n2 as Orders DB
+  participant n3 as Kitchen tablet
+  participant n4 as Order events
+  loop Up to 3 times: Backs off 1 s, 2 s, 4 s between tries
+    n0->>n1: Holds the amount on the card
+    n1->>n0: Times out at the bank
+  end
+  alt Card accepted
+    n1->>n0: Reports the hold placed
+    n0->>n2: Saves the order as placed
+  else Card declined
+    n1->>n0: Reports the final decline
+  end
+  par Kitchen
+    n0->>n3: The restaurant's tablet rings
+  and Everyone else
+    n0->>n4: Announces the order
+    Note over n4: Continues in #quot;Customer places an order#quot;
+  end
+```
+
+The player in the browser and in the app doesn't draw groups yet. It plays a grouped flow as the plain list it still is, one step
+after another in file order, and a flow with none of these keys reads, plays and exports exactly as it did. The edit forms have no
+fields for them yet either, so write them in the file. Claude's `put_flow` accepts `groups` and a step's `group`, `lane` and `flow`
+(a `times` may be a number there), but its instructions don't yet say when to reach for them, so ask when you want one.
+
 ## Performance
 
 A run is a load test, summarised: for each load that was tested, what each shape and each connection measured. It lives in
@@ -330,7 +421,8 @@ from the command line, or for Claude through MCP (`get_mermaid`):
 npx flowy-docs mermaid --view ordering
 ```
 
-`--flow <id>` prints a flow as a sequence diagram instead.
+`--flow <id>` prints a flow as a sequence diagram instead. A flow's repeats, branches and parallel lanes come out as `loop`, `alt` and
+`par` blocks ([above](#repeats-branches-and-parallel-steps)).
 
 The address follows what's on screen. `#ordering` is the inside of Ordering, and `#ordering/place-order` plays
 the flow `place-order` there. Copy it to send someone straight to a level or a flow. The local canvas
@@ -353,7 +445,7 @@ them. The sample model that ships with the app can't be edited.
 What it has, as the canvas does: zoom into a shape (double-click it, or select it and press Enter; Esc and Backspace go back up, and
 the breadcrumb works too), a frame around the shape you're inside, shapes that belong to another level faded and dashed, wheel to
 zoom and drag to pan, **F** to fit, the side panel with the description, its links, the files a shape lives in (as links when the repo's
-origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the right edge (**L** lists every flow and plays one, **O** shows the whole documentation as a tree), flows that play with ← and → (Home and End go to the first and last
+origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one) and the one on the right (**T** for load-test runs), flows that play with ← and → (Home and End go to the first and last
 step) with a step's animation, **R** to play it again and **P** to let the flow run on its own, **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a shape that sits
 beside the one you're in slides across instead of zooming in.**
