@@ -1,0 +1,9 @@
+**
+!package.json
+!README.md
+!CHANGELOG.md
+!LICENSE
+!icon.png
+!dist/extension.cjs
+!dist/THIRD-PARTY-LICENSES.md
+!media/**

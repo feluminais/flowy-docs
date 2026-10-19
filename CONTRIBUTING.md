@@ -62,6 +62,23 @@ how a restored panel opens where it was. Try them in the F5 window on the repo: 
 and `test/transport.test.ts` the messages and the page's side of them, `test/writes.test.ts` what a write does, `test/finder.test.ts` and `test/vscode-paths.test.ts` the matching of files to shapes and paths to disk.
 What happens inside VS Code (the webview loading, the theme, editing, opening files, the commands, restoring a panel) has no test: check it in the window.
 
+### Packaging it
+
+`npm run package:vscode` builds the canvas, bundles the extension in release mode (no source map) and runs `vsce package`, which writes
+`vscode/flowy-docs-<version>.vsix` (ignored by git). `vscode/.vscodeignore` lets in only what the extension needs: its manifest,
+README, CHANGELOG, LICENSE, icon, the bundle, the notices for what the bundle holds (`dist/THIRD-PARTY-LICENSES.md`, written by
+`vscode/build.ts`) and the canvas in `media/`. Check what went in with `npx vsce ls --no-dependencies` from `vscode/`, and try the file
+the way a user would, in a window that has no development path: `code --install-extension vscode/flowy-docs-0.1.0.vsix --user-data-dir <empty>
+--extensions-dir <empty>`, then the same commands with `--user-data-dir` and `--extensions-dir` and a folder that has a `flowy/` in it.
+
+The README's picture is a screenshot of the panel (`vscode/images/panel.png`, taken in a window with the side bars closed). vsce reads a
+relative picture as if the extension were the whole repo, so the `package` script gives it the GitHub address of `vscode/` with
+`--baseImagesUrl`; the picture shows on the Marketplace only once it is pushed to the repo. `test/vscode-manifest.test.ts` keeps the manifest
+honest: the commands it offers are registered, the icon is a big enough PNG, the package carries what it needs, and the licence and changelog
+are in step. To release, raise `version` in `vscode/package.json`, add a `CHANGELOG.md` entry, package, and publish with `vsce publish`
+(the Marketplace) and `ovsx publish` (Open VSX, which Cursor and VSCodium read). Both need an account whose publisher name matches
+`publisher` in the manifest. Nothing here publishes by itself.
+
 ## The performance lab
 
 `perf-lab/` is a made-up shop that really runs, and a load generator that measures it and writes the runs the Performance tab

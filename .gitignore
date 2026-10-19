@@ -6,3 +6,4 @@ desktop/**/obj/
 desktop/publish/
 desktop/releases/
 vscode/media/
+vscode/*.vsix
