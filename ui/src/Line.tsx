@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import { BaseEdge, getBezierPath, getSmoothStepPath, getStraightPath, Position, useInternalNode } from '@xyflow/react'
-import type { EdgeProps, InternalNode } from '@xyflow/react'
+import type { EdgeProps, InternalNode, XYPosition } from '@xyflow/react'
 import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { lineEnds, ports, sizeOf } from './graph.ts'
@@ -32,6 +32,12 @@ function draw(style: LineStyle, a: Rect, b: Rect, edgeA: Outline, edgeB: Outline
   }
   const [path, x, y] = style === 'curved' ? getBezierPath(ends) : getSmoothStepPath({ ...ends, borderRadius: 8 })
   return [path, x, y]
+}
+
+/** The middle of the line between two boxes in the given style, where its label sits. */
+export function labelPoint(style: LineStyle, a: InternalNode, b: InternalNode): XYPosition {
+  const [, x, y] = draw(style, rect(a), rect(b), outline(a), outline(b))
+  return { x, y }
 }
 
 /** The path of the line between two boxes in the given style, for a step's pipe to follow. */

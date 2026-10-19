@@ -276,10 +276,25 @@ svg { flex: none; }
 .player-ends { font-weight: 600; }
 .player-buttons { display: flex; gap: 8px; margin-top: 10px; }
 .player-buttons button:last-child { margin-left: auto; }
-/* How far a flow has got: a segment a step, filled up to the one shown. */
-.progress { display: flex; gap: 3px; margin: 8px 0; }
-.progress span { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
+/* How far a flow has got: a cell a stop, filled up to the one shown, a branch's lanes on rows of their own, and a bracket under each group. */
+.progress { display: grid; gap: 3px; margin: 8px 0 0; }
+.progress span { height: 4px; border-radius: 2px; background: var(--line); }
 .progress .done { background: var(--accent); }
+.brackets { display: grid; gap: 3px; margin: 2px 0 6px; }
+.bracket { display: flex; justify-content: center; align-items: center; gap: 3px; padding-top: 1px; border-top: 1px solid var(--muted); font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; }
+.progress + .brackets { margin-top: 3px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+.tab { padding: 1px 9px; border: 1px dashed var(--line); border-radius: 99px; font-size: 12px; color: var(--muted); }
+.tab.on { border-style: solid; border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.group-text { color: var(--muted); font-size: 12.5px; }
+.lane-block { margin: 8px 0; padding-left: 10px; border-left: 3px solid var(--accent); }
+.lane-name { font-size: 12px; font-weight: 600; color: var(--accent); }
+.player .flow-link { margin: 6px 0 2px; }
+.player .flow-link button:last-child { margin-left: 0; }
+.player .trail { display: flex; align-items: center; gap: 6px; width: 100%; margin: 0 0 8px; padding: 4px 8px; border: 0; border-radius: 6px; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--fg); font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.player .trail:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+/* What a group says about a lit step, above the middle of its line (a label may sit there too). */
+.mark { position: absolute; z-index: 3; transform: translate(-50%, calc(-100% - 12px)); display: flex; align-items: center; gap: 4px; padding: 1px 9px; border-radius: 99px; background: var(--accent); color: var(--bg); font-size: 11px; font-weight: 600; white-space: nowrap; pointer-events: none; }
 
 .grow { flex: 1; }
 .react-flow__edge.selected .react-flow__edge-path, .react-flow__edge.hover .react-flow__edge-path { stroke: var(--accent); stroke-width: 2; }

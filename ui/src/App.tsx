@@ -9,17 +9,18 @@ import type { LineStyle, Model, Step } from '../../src/core/model.ts'
 import { connect, deleteObject, forgetLayout, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { animationOf, followsLanding } from '../../src/core/animation.ts'
+import { captionOf, progressOf } from '../../src/core/captions.ts'
+import { otherLaneSteps, stopIndexOf, stopsOf } from '../../src/core/structure.ts'
 import { knee, traffic as trafficOf } from '../../src/core/perf.ts'
 import { expandTo, outline } from '../../src/core/outline.ts'
 import type { OutlineRow } from '../../src/core/outline.ts'
 import { chain, hasChildren, nameOf, parentOf, placeEnds, placeStep, stepEnds } from '../../src/core/views.ts'
-import { Box, Description, Frame } from './Box.tsx'
+import { Box, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
-import { Chip } from './Chrome.tsx'
-import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pause, Pencil, Play, Plus, Redo, Reload, Route, Search as SearchIcon, Undo } from './icons.tsx'
+import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pencil, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
 import { connectionsOf, locate, moveBetween } from './edit.ts'
 import type { Move } from './edit.ts'
-import { fitOptions, focusEdges, frameNode, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
+import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
 import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
@@ -37,6 +38,10 @@ import { AddPanel, LinePanel, ObjectPanel, OverviewPanel, Recorder } from './Pan
 import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
 import { StepMotion } from './StepMotion.tsx'
+import { GroupMarks } from './GroupMarks.tsx'
+import { Player } from './Player.tsx'
+import { closeFlow, followBack, openFlow as leaveFlow } from './trail.ts'
+import type { Spot } from './trail.ts'
 import type { Recording, Run } from './Panel.tsx'
 import { useModel } from './useModel.ts'
 import type { Edit, Loaded } from './useModel.ts'
@@ -122,7 +127,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const [ramping, setRamping] = useState(false)
   const posNow = useRef(pos) // the ramp reads where it is from here, so a render in between never makes it start over
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set([ROOT, ...remembered.expanded])) // the project's own row starts open
-  const [playing, setPlaying] = useState<{ flow: string; step: number; auto?: boolean } | undefined>(() => {
+  const [playing, setPlaying] = useState<{ flow: string; step: number; auto?: boolean; trail?: Spot[] } | undefined>(() => {
     const { flow } = readHash(location.hash)
     return flow === undefined ? undefined : { flow, step: 0 }
   })
@@ -170,8 +175,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const perfOpen = perf && showPerf && loadTest !== undefined
   // A flow that was playing waits behind the Performance tab, so a step's motion and the traffic never draw at once.
   const flow = editing || perfOpen ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
-  const stepIndex = flow && playing ? Math.min(playing.step, flow.steps.length - 1) : 0
-  const step = flow?.steps[stepIndex]
+  // The player moves through stops, not steps: a stop is what is on screen at once (see structure.ts). `playing.step` is a stop.
+  const stops = useMemo(() => (flow ? stopsOf(flow) : []), [flow])
+  const stopIndex = flow && playing ? Math.max(0, Math.min(playing.step, stops.length - 1)) : 0
+  const stop = flow ? stops[stopIndex] : undefined
   const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
   const showFlows = totals.flows > 0 || editing // the Flows tab is there whenever there is a flow to find
   const nav: NavTab | undefined = tab === 'flows' && !showFlows ? undefined : tab
@@ -182,17 +189,36 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
   const shown = useMemo<Playing | undefined>(() => {
     const placeSteps = (steps: Step[]) => steps.map(s => placeStep(model, view, s))
-    if (flow) return { ends: placeSteps(flow.steps), step: stepIndex }
+    if (flow && stops[stopIndex]) return { ends: placeSteps(flow.steps), steps: stops[stopIndex].steps, faint: otherLaneSteps(stops, stopIndex) }
     if (!recording) return undefined
     const done = placeSteps(Object.hasOwn(model.flows, recording.id) ? model.flows[recording.id].steps : [])
     return recording.from && recording.to
       ? { ends: [...done, placeStep(model, view, { from: recording.from, to: recording.to === recording.from ? undefined : recording.to })], step: done.length }
       : { ends: done }
-  }, [model, view, flow, stepIndex, recording])
-  const placed = shown?.ends[stepIndex]
-  const animation = step ? animationOf(step) : undefined
-  const moving = animation !== undefined && placed != null // a step the view can't show doesn't move
-  const stepKey = flow && playing ? `${playing.flow}:${stepIndex}:${replays}` : ''
+  }, [model, view, flow, stops, stopIndex, recording])
+  // Every step of the stop that moves, with where it lands in this view. A step the view can't show doesn't move.
+  const animated = flow && stop ? stop.steps.flatMap(i => {
+    const a = animationOf(flow.steps[i])
+    const p = shown?.ends[i]
+    return a && p ? [{ i, animation: a, placed: p }] : []
+  }) : []
+  const moving = animated.length > 0
+  const stepKey = flow && playing ? `${playing.flow}:${stopIndex}:${replays}` : ''
+  const caption = flow && stop ? captionOf(flow, stop) : undefined
+  const progress = useMemo(() => (flow ? progressOf(flow, stops) : undefined), [flow, stops])
+  const marks = flow && stop && caption ? stop.steps.flatMap((i, n) => {
+    const p = shown?.ends[i]
+    return p && stop.kind && caption.marks[n] !== '' ? [{ ends: p, text: caption.marks[n], kind: stop.kind }] : []
+  }) : []
+  // A stop settles when every motion in it has finished, not the first.
+  const finishedSteps = useRef({ key: '', done: new Set<number>() })
+  const finished = (i: number) => {
+    if (finishedSteps.current.key !== stepKey) finishedSteps.current = { key: stepKey, done: new Set() }
+    finishedSteps.current.done.add(i)
+    if (finishedSteps.current.done.size >= animated.length) setSettledKey(stepKey)
+  }
+  const lastLeft = playing?.trail?.at(-1)
+  const trail = flow && lastLeft ? { name: model.flows[lastLeft.flow]?.name ?? lastLeft.flow, step: lastLeft.step + 1 } : undefined
   const graph = useMemo(() => toGraph(model, view, shown, problems), [model, view, shown, problems])
   const load = loadTest ? loadAt(loadTest, here) : 0
   const loadTraffic = useMemo(() => (perfOpen && loadTest ? trafficOf(model, loadTest, load, view) : undefined), [perfOpen, model, loadTest, load, view])
@@ -336,11 +362,26 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       else next.delete(id)
       return next
     })
-  const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, flow.steps.length - 1)), auto: false })
+  const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, stops.length - 1)), auto: false })
   const togglePlay = () => {
     if (!playing || !flow) return
-    const atEnd = stepIndex === flow.steps.length - 1
-    setPlaying(playing.auto ? { ...playing, auto: false } : { ...playing, step: atEnd ? 0 : stepIndex, auto: true })
+    const atEnd = stopIndex === stops.length - 1
+    setPlaying(playing.auto ? { ...playing, auto: false } : { ...playing, step: atEnd ? 0 : stopIndex, auto: true })
+  }
+  /** A step's story continues in another flow: open it (on its own view), leaving the place to come back to. */
+  const openLinked = (id: string) => {
+    const f = Object.hasOwn(model.flows, id) ? model.flows[id] : undefined
+    if (!playing || !f || f.steps.length === 0) return
+    if (f.view !== view) go(f.view)
+    setPlaying({ flow: id, step: 0, trail: leaveFlow(playing.trail ?? [], { flow: playing.flow, step: stopIndex }) })
+  }
+  /** Back to the flow this one was opened from, at the stop the reader left. */
+  const goBack = () => {
+    const closed = closeFlow(playing?.trail ?? [])
+    const parent = closed && Object.hasOwn(model.flows, closed.back.flow) ? model.flows[closed.back.flow] : undefined
+    if (!closed || !parent) return setPlaying(undefined) // the flow it came from is gone
+    if (parent.view !== view) go(parent.view)
+    setPlaying({ flow: closed.back.flow, step: closed.back.step, ...(closed.trail.length > 0 ? { trail: closed.trail } : {}) })
   }
   // Autoplay: a step that doesn't move waits a moment, then each finished step is followed by the next. Taking a step yourself stops it.
   useEffect(() => {
@@ -350,7 +391,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   }, [playing?.auto, moving, stepKey])
   useEffect(() => {
     if (!playing?.auto || !flow || settledKey !== stepKey) return
-    const wait = setTimeout(() => setPlaying(stepIndex < flow.steps.length - 1 ? { ...playing, step: stepIndex + 1 } : { ...playing, auto: false }), GAP)
+    const wait = setTimeout(() => setPlaying(stopIndex < stops.length - 1 ? { ...playing, step: stopIndex + 1 } : { ...playing, auto: false }), GAP)
     return () => clearTimeout(wait)
   }, [playing?.auto, settledKey, stepKey])
   // Ramp: the load sweeps up through the tested levels on its own, with a frame for each step of the screen.
@@ -429,7 +470,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
     else if (spot.flow !== undefined) {
       // The player only lists flows with steps in a view that opens (flowsHere); locate() falls back to ROOT for a bad view.
       const f = model.flows[spot.flow]
-      if (f.view === spot.view && f.steps.length > 0) setPlaying({ flow: spot.flow, step: spot.step ?? 0 })
+      if (f.view === spot.view && f.steps.length > 0) setPlaying({ flow: spot.flow, step: stopIndexOf(stopsOf(f), spot.step ?? 0) })
       else setNotice(readOnly ? `This flow can't play yet. Fix ${p.file} first.` : 'Press E to fix this flow in edit mode.')
     }
   }
@@ -476,7 +517,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       quiet.current = true
       const named = readHash(location.hash)
       go(named.view)
-      if (named.flow !== undefined) setPlaying({ flow: named.flow, step: 0 })
+      if (named.flow !== undefined) {
+        // Back arrives twice (popstate, then hashchange), and the second must not undo the first: a flow already playing stays where it is.
+        if (playing?.flow === named.flow) setPlaying(playing)
+        else {
+          const back = followBack(playing?.trail ?? [], named.flow) // Back lands on the stop the reader left, when it is the flow they came from
+          setPlaying({ flow: named.flow, step: back.step, ...(back.trail.length > 0 ? { trail: back.trail } : {}) })
+        }
+      }
       setRamping(false)
       if (named.perf !== undefined && Object.hasOwn(runs, named.perf.run)) {
         setRunId(named.perf.run)
@@ -524,10 +572,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       else if (perfOpen && e.key === 'Home') stepLevel(0)
       else if (perfOpen && loadTest && e.key === 'End') stepLevel(top(loadTest))
       else if (perfOpen && key === 'p' && plain && !e.repeat) toggleRamp()
-      else if (flow && e.key === 'ArrowRight') stepTo(stepIndex + 1)
-      else if (flow && e.key === 'ArrowLeft') stepTo(stepIndex - 1)
+      else if (flow && e.key === 'ArrowRight') stepTo(stopIndex + 1)
+      else if (flow && e.key === 'ArrowLeft') stepTo(stopIndex - 1)
       else if (flow && e.key === 'Home') stepTo(0)
-      else if (flow && e.key === 'End') stepTo(flow.steps.length - 1)
+      else if (flow && e.key === 'End') stepTo(stops.length - 1)
       else if (flow && key === 'p' && plain && !e.repeat) togglePlay()
       else if (flow && key === 'r' && plain && !e.repeat) setReplays(n => n + 1)
       else if (e.key === 'Enter' && !recording && !takesEnter(e.target as Element | null)) {
@@ -645,7 +693,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
               }}
               onEdgeClick={(_, e) => {
                 justMoved.current = false
-                if (!recording && e.id !== 'step') show({ kind: 'line', from: e.source, to: e.target })
+                if (!recording && !isStepLine(e.id)) show({ kind: 'line', from: e.source, to: e.target })
               }}
               onEdgeMouseEnter={(_, e) => setHovered(e.id)}
               onEdgeMouseLeave={() => setHovered(undefined)}
@@ -659,7 +707,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
               {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
               <Controls showInteractive={false} fitViewOptions={fitOptions(rightOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
               {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
-              {flow && animation && placed && <StepMotion key={stepKey} ends={placed} animation={animation} afterLanding={followsLanding(shown?.ends[stepIndex - 1], placed)} onDone={() => setSettledKey(stepKey)} />}
+              {flow && stop && animated.map(m => (
+                <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} onDone={() => finished(m.i)} />
+              ))}
+              {flow && <GroupMarks marks={marks} />}
             </ReactFlow>
             </LineWidthsContext>
           </LineStyleContext>
@@ -724,29 +775,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
           )}
           {nav && <Sash side="nav" width={navWidth} onResize={w => setNavWidth(clampWidth(w, spare(rightOpen ? detailsWidth : 0)))} onReset={() => setNavWidth(NAV)} />}
           {rightOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
-          {flow && step && (
-            <section className="player" aria-live="polite">
-              <div className="chips">
-                <Chip icon={Play}>{flow.name}</Chip>
-                <Chip kind="accent">Step {stepIndex + 1} of {flow.steps.length}</Chip>
-              </div>
-              <div className="progress" aria-hidden="true">{flow.steps.map((_, i) => <span key={i} className={i <= stepIndex ? 'done' : undefined} />)}</div>
-              <p className="player-ends">{stepEnds(model, step, shown?.ends[stepIndex])}</p>
-              <p>{step.text}</p>
-              {step.description && (
-                <details key={stepIndex} className="more">
-                  <summary>More</summary>
-                  <Description text={String(step.description)} />
-                </details>
-              )}
-              <div className="player-buttons">
-                <button disabled={stepIndex === 0} onClick={() => stepTo(stepIndex - 1)}><ArrowLeft size={16} />Back</button>
-                <button className="primary" disabled={stepIndex === flow.steps.length - 1} onClick={() => stepTo(stepIndex + 1)}><ArrowRight size={16} />Next</button>
-                <button onClick={togglePlay} title="Step through the flow on its own (P)">{playing?.auto ? <><Pause size={16} />Pause</> : <><Play size={16} />Autoplay</>}</button>
-                {moving && <button aria-label="Replay this step" title="Replay this step (R)" onClick={() => setReplays(n => n + 1)}><Reload size={16} /></button>}
-                <button onClick={() => setPlaying(undefined)}><Close size={16} />Stop</button>
-              </div>
-            </section>
+          {flow && stop && caption && progress && (
+            <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} auto={playing?.auto === true} moving={moving}
+              trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={() => setReplays(n => n + 1)} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
           )}
         </main>
         <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else { setPerf(false); setDetails(true) } }}
