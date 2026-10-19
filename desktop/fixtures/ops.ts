@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { typesIn } from '../../src/core/check.ts'
 import { modelFiles, ROOT, serializeLayout } from '../../src/core/model.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteFlow, deleteObject, forgetLayout, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setLines, updateFlow } from '../../src/core/ops.ts'
+import { connect, deleteFlow, deleteObject, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setLines, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
@@ -82,6 +82,32 @@ export const STEPS: Spec[] = [
   { op: 'removeStep', id: 'browse', index: 0 },
   { op: 'deleteFlow', id: 'retry-pay' },
   { op: 'deleteFlow', id: 'no-groups' },
+  { op: 'putFlow', id: 'plan', name: 'Customer plans', view: 'root', steps: [{ from: 'customer', text: 'Looks' }, { from: 'customer', to: 'shop', text: 'Asks' }, { from: 'shop', text: 'Answers' }, { from: 'shop', to: 'customer', text: 'Confirms' }, { from: 'customer', text: 'Leaves' }] },
+  { op: 'groupSteps', id: 'plan', group: 'asking', kind: 'repeat', first: 1, last: 2 },
+  { op: 'groupSteps', id: 'plan', group: 'asking', kind: 'branch', first: 3, last: 3 },
+  { op: 'groupSteps', id: 'plan', group: 'Bad Id', kind: 'repeat', first: 3, last: 3 },
+  { op: 'groupSteps', id: 'plan', group: 'again', kind: 'zig', first: 3, last: 3 },
+  { op: 'groupSteps', id: 'plan', group: 'again', kind: 'repeat', first: 2, last: 3 },
+  { op: 'groupSteps', id: 'plan', group: 'again', kind: 'repeat', first: 4, last: 3 },
+  { op: 'groupSteps', id: 'plan', group: 'again', kind: 'repeat', first: 3, last: 9 },
+  { op: 'groupSteps', id: 'nope', group: 'again', kind: 'repeat', first: 0, last: 0 },
+  { op: 'groupSteps', id: 'plan', group: 'ending', kind: 'branch', first: 3, last: 4 },
+  { op: 'setStepGroup', id: 'plan', index: 0, group: 'asking' },
+  { op: 'setStepGroup', id: 'plan', index: 0, group: 'asking' },
+  { op: 'setStepGroup', id: 'plan', index: 0, group: 'nope' },
+  { op: 'setStepGroup', id: 'plan', index: 9, group: 'asking' },
+  { op: 'setStepGroup', id: 'plan', index: 0, group: '' },
+  { op: 'setStepGroup', id: 'plan', index: 2, group: 'ending' },
+  { op: 'setStepGroup', id: 'plan', index: 4, group: '' },
+  { op: 'setStepGroup', id: 'plan', index: 4, group: 'ending' },
+  { op: 'setStepGroup', id: 'plan', index: 3, group: '' },
+  { op: 'setGroupKind', id: 'plan', group: 'ending', kind: 'repeat' },
+  { op: 'setGroupKind', id: 'plan', group: 'ending', kind: 'parallel' },
+  { op: 'setGroupKind', id: 'plan', group: 'ending', kind: 'branch' },
+  { op: 'setGroupKind', id: 'plan', group: 'ending', kind: 'zig' },
+  { op: 'setGroupKind', id: 'plan', group: 'nope', kind: 'repeat' },
+  { op: 'setGroupKind', id: 'nope', group: 'ending', kind: 'repeat' },
+  { op: 'deleteFlow', id: 'plan' },
   { op: 'placeBoxes', view: 'root', boxes: { customer: [12, 34], shop: [300.5, 40], ghost: [1, 2] } },
   { op: 'placeBoxes', view: 'shop', boxes: { api: [5, 6], web: [0, 0] } },
   { op: 'placeBoxes', view: 'nowhere', boxes: { api: [5, 6] } },
@@ -114,6 +140,9 @@ function apply(model: Model, s: Spec): Model {
     case 'removeStep': return removeStep(model, s.id, s.index)
     case 'putGroup': return putGroup(model, s.id, s.group, s.options)
     case 'removeGroup': return removeGroup(model, s.id, s.group)
+    case 'setStepGroup': return setStepGroup(model, s.id, s.index, s.group)
+    case 'setGroupKind': return setGroupKind(model, s.id, s.group, s.kind)
+    case 'groupSteps': return groupSteps(model, s.id, s.group, s.kind, s.first, s.last)
     case 'deleteFlow': return deleteFlow(model, s.id)
     case 'placeBoxes': return placeBoxes(model, s.view, s.boxes)
     case 'setLines': return setLines(model, s.style)

@@ -46,6 +46,9 @@ public class EditOpsTests
             case "removeStep": return EditOps.RemoveStep(doc, Str(s, "id")!, s["index"]!.GetValue<int>());
             case "putGroup": return EditOps.PutGroup(doc, Str(s, "id")!, Str(s, "group")!, (OrderedDictionary<string, object?>)YamlWriterTests.Tree(s["options"])!);
             case "removeGroup": return EditOps.RemoveGroup(doc, Str(s, "id")!, Str(s, "group")!);
+            case "setStepGroup": return EditOps.SetStepGroup(doc, Str(s, "id")!, s["index"]!.GetValue<int>(), Str(s, "group")!);
+            case "setGroupKind": return EditOps.SetGroupKind(doc, Str(s, "id")!, Str(s, "group")!, Str(s, "kind")!);
+            case "groupSteps": return EditOps.GroupSteps(doc, Str(s, "id")!, Str(s, "group")!, Str(s, "kind")!, s["first"]!.GetValue<int>(), s["last"]!.GetValue<int>());
             case "deleteFlow": return EditOps.DeleteFlow(doc, Str(s, "id")!);
             case "placeBoxes":
                 return EditOps.PlaceBoxes(doc, Str(s, "view")!, s["boxes"]!.AsObject().Select(b => (b.Key, b.Value![0]!.GetValue<double>(), b.Value![1]!.GetValue<double>())));
