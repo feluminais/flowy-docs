@@ -78,8 +78,9 @@ internal sealed partial class ReaderView
         {
             After(MotionMath.Gap, () =>
             {
-                if (key != _stepKey || !_auto) return;
-                if (StopIndex() < StopsOf(f.Flow).Count - 1) _playing = _playing! with { Step = StopIndex() + 1 };
+                // The flow may have been reloaded while this waited: ask which one is playing now, not the one it was armed on.
+                if (key != _stepKey || !_auto || PlayingFlow() is not { } now) return;
+                if (StopIndex() < StopsOf(now.Flow).Count - 1) _playing = _playing! with { Step = StopIndex() + 1 };
                 else _auto = false;
                 Refresh();
             });

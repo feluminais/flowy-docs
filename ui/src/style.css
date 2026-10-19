@@ -279,7 +279,7 @@ svg { flex: none; }
 /* How far a flow has got: a cell a stop, filled up to the one shown, a branch's lanes on rows of their own, and a bracket under each group. */
 .progress { display: grid; gap: 3px; margin: 8px 0; }
 .progress span { position: relative; height: 4px; border-radius: 2px; background: var(--line); }
-.progress span::after { content: ''; position: absolute; inset: -5px 0; } /* a strip four pixels high is hard to point at: its hover text comes from a taller one */
+.progress span::after { content: ''; position: absolute; inset: -1px 0; } /* a strip four pixels high is hard to point at: its hover text comes from a taller one */
 .progress .done { background: var(--accent); }
 .brackets { display: grid; gap: 3px; margin: -5px 0 6px; }
 .bracket { display: flex; justify-content: center; align-items: center; gap: 3px; padding-top: 1px; border-top: 1px solid var(--muted); font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; }
