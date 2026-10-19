@@ -148,7 +148,10 @@ internal sealed class ShortcutsCard : Border
     private static readonly (string, string)[] Editing =
     [
         ("N", "Add a shape here"),
-        ("Delete", "Delete the open shape or line"),
+        ("Ctrl+click  Shift+click", "Add a shape to the selection, or take it out"),
+        ("Shift+drag", "Draw a box round shapes to select them"),
+        ("Ctrl+A", "Select every shape in this view"),
+        ("Delete", "Delete the selected shapes or line"),
         ("Ctrl+Z", "Undo the last change"),
         ("Esc  Backspace", "Straight after dragging a shape: take the drag back"),
         ("Ctrl+Y  Ctrl+Shift+Z", "Redo"),

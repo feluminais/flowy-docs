@@ -60,7 +60,7 @@ internal sealed partial class ReaderView
         _ramping = false;
         DismissNotice();
         _playing = null;
-        if (!on && _side is { Kind: SideKind.Add or SideKind.Flow }) _side = null;
+        if (!on && _side is { Kind: SideKind.Add or SideKind.Flow or SideKind.Objects }) _side = null;
         Refresh();
     }
 
@@ -261,6 +261,51 @@ internal sealed partial class ReaderView
         _undoMove = saved;
     }
 
+    /// <summary>What the side panel shows for these boxes picked: none shows nothing, one is its own panel, several are the many-boxes panel.</summary>
+    private static Side? SideOf(IReadOnlyList<string> ids) =>
+        ids.Count switch { 0 => null, 1 => new Side(SideKind.Object, Id: ids[0]), _ => new Side(SideKind.Objects, Ids: ids) };
+
+    /// <summary>The boxes picked now: the open box, or the several in the panel.</summary>
+    private IReadOnlyList<string> PickedBoxes() => _side is { Kind: SideKind.Objects, Ids: { } many } ? many : SelectedBox is { } one ? [one] : [];
+
+    /// <summary>Ctrl, Cmd or Shift+click on a box: it joins the boxes picked, or leaves them. A box clicked a moment ago, whose panel is still waiting out the double-click, counts as picked.</summary>
+    private void ToggleBox(string id)
+    {
+        if (!Editing || Recording is not null || _folder?.Model.GetObject(id) is null) return;
+        var waiting = _opening is { IsEnabled: true } ? _openingBox : null;
+        _opening?.Stop();
+        _openingBox = null;
+        _undoMove = false;
+        var now = _side is null && waiting is not null ? [waiting] : PickedBoxes();
+        SetPicked(now.Contains(id) ? now.Where(b => b != id).ToList() : [.. now, id]);
+    }
+
+    /// <summary>Shows these boxes as picked: one opens its panel as a click would, several open the many-boxes panel, none closes the panel.</summary>
+    private void SetPicked(IReadOnlyList<string> ids)
+    {
+        if (!Editing) return;
+        _opening?.Stop();
+        _openingBox = null;
+        _undoMove = false;
+        if (ids.Count == 1)
+        {
+            OpenObject(ids[0]);
+            return;
+        }
+        _side = SideOf(ids);
+        Refresh();
+    }
+
+    /// <summary>A box drawn round boxes (Shift and drag): they are the boxes picked.</summary>
+    private void PickBoxes(IReadOnlyList<string> ids) => SetPicked(ids);
+
+    /// <summary>Ctrl+A: every box that belongs to this view. The boxes around it that only show who it talks to are left out.</summary>
+    private void PickAll()
+    {
+        if (Recording is not null || _canvas.Scene is not { } scene) return;
+        SetPicked(scene.Members.ToList());
+    }
+
     /// <summary>A line drawn from one box to another: a connection with no label, and its panel opens to type one. Only lines this view can show.</summary>
     private async Task ConnectAsync(string from, string to)
     {
@@ -277,6 +322,12 @@ internal sealed partial class ReaderView
         if (_side is { Kind: SideKind.Object, Id: { } id })
         {
             if (await RunAsync(d => EditOps.DeleteObject(d, id))) CloseSide();
+            return;
+        }
+        if (_side is { Kind: SideKind.Objects, Ids: { } picked })
+        {
+            // One edit for the lot, so one undo brings them all back, and a box that can't go (it has boxes inside, or a flow uses it) stops them all.
+            if (await RunAsync(d => EditOps.DeleteObjects(d, picked))) CloseSide();
             return;
         }
         if (_side is not { Kind: SideKind.Line, From: { } from, To: { } to }) return;
@@ -317,6 +368,11 @@ internal sealed partial class ReaderView
         }
         var command = (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0;
         var shift = (e.KeyModifiers & KeyModifiers.Shift) != 0;
+        if (command && !shift && e.PhysicalKey == PhysicalKey.A)
+        {
+            PickAll();
+            return true;
+        }
         if (command && e.PhysicalKey == PhysicalKey.Y)
         {
             _ = RedoAsync();
@@ -338,6 +394,9 @@ internal sealed partial class ReaderView
     internal bool CanUndo => _session?.CanUndo == true;
 
     internal bool CanUndoMove => _undoMove;
+
+    /// <summary>The boxes picked now, for tests: the open box, or the several in the panel.</summary>
+    internal IReadOnlyList<string> PickedNow => PickedBoxes();
 
     internal bool CanRedo => _session?.CanRedo == true;
 

@@ -97,6 +97,27 @@ public static class EditOps
         return d;
     }
 
+    /// <summary>
+    /// Delete several objects as one edit. A box and something inside it can go together (the inner one first); any refusal from
+    /// <see cref="DeleteObject"/> stops the lot, so nothing is half deleted. The twin of <c>deleteObjects</c> in src/core/ops.ts.
+    /// </summary>
+    public static EditDoc DeleteObjects(EditDoc doc, IEnumerable<string> ids) =>
+        ids.Distinct().OrderByDescending(id => DepthOf(doc, id)).Aggregate(doc, DeleteObject);
+
+    /// <summary>How long the chain from an object up to the root is, as <c>chain</c> counts it in src/core/views.ts: the object, each box around it, and root.</summary>
+    private static int DepthOf(EditDoc doc, string id)
+    {
+        var seen = new HashSet<string> { id };
+        var current = id;
+        while (current != Names.Root)
+        {
+            var parent = ObjectOf(doc, current) is { } o ? Text(o, "in") : null;
+            current = parent is not null && parent != current && ObjectOf(doc, parent) is not null ? parent : Names.Root;
+            if (!seen.Add(current)) break;
+        }
+        return seen.Contains(Names.Root) ? seen.Count : seen.Count + 1;
+    }
+
     // ---- connections ---------------------------------------------------------------------------------------------
 
     /// <summary>Add a connection. An empty label means no label.</summary>

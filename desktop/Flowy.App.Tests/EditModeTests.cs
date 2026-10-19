@@ -14,7 +14,7 @@ namespace Flowy.App.Tests;
 public class EditModeTests
 {
     /// <summary>A reader on a copy of the crafted folder (hand-written extras, two flows, a layout), which the test may change.</summary>
-    private static (TempFolder Temp, string Dir, Window Window, ReaderView Reader) Open(bool empty = false)
+    internal static (TempFolder Temp, string Dir, Window Window, ReaderView Reader) Open(bool empty = false)
     {
         var temp = new TempFolder();
         var dir = Path.Combine(temp.Path, "flowy");
@@ -36,12 +36,12 @@ public class EditModeTests
         return (temp, dir, window, reader);
     }
 
-    private static string Model(string dir) => File.ReadAllText(Path.Combine(dir, "model.yaml"));
+    internal static string Model(string dir) => File.ReadAllText(Path.Combine(dir, "model.yaml"));
 
-    private static void Press(Window w, Key key, PhysicalKey physical, RawInputModifiers modifiers = RawInputModifiers.None) => w.KeyPress(key, modifiers, physical, null);
+    internal static void Press(Window w, Key key, PhysicalKey physical, RawInputModifiers modifiers = RawInputModifiers.None) => w.KeyPress(key, modifiers, physical, null);
 
     /// <summary>Lays the window out and lets the compositor draw it, which hit testing needs before a pointer can find a box.</summary>
-    private static void Settle(Window window)
+    internal static void Settle(Window window)
     {
         window.UpdateLayout();
         Dispatcher.UIThread.RunJobs();
@@ -49,7 +49,7 @@ public class EditModeTests
         Dispatcher.UIThread.RunJobs();
     }
 
-    private static async Task Until(Func<bool> done)
+    internal static async Task Until(Func<bool> done)
     {
         for (var i = 0; i < 500 && !done(); i++) await Task.Delay(10);
         Assert.True(done(), "gave up waiting");
@@ -254,7 +254,7 @@ public class EditModeTests
         Assert.False(reader.HasPanel);
     }
 
-    private static Point Where(Window window, Flowy.App.Canvas.CanvasView canvas, string id, double x, double y) =>
+    internal static Point Where(Window window, Flowy.App.Canvas.CanvasView canvas, string id, double x, double y) =>
         ((Visual)canvas.BoxControlFor(id)!).TranslatePoint(new Point(x, y), window)!.Value;
 
     [AvaloniaFact]
