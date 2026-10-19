@@ -89,8 +89,8 @@ objects:
     code: [desktop/Flowy.Core/]
     description: |
       A C# port of what `src/core` and the folder loader do, plus what the canvas decides: line
-      paths, the camera, layout, the scene, search, the Mermaid text of a view or a flow, and which
-      folder a pick means.
+      paths, the camera, layout, the scene, search, the Mermaid text of a view or a flow, which
+      folder a pick means, and what a click on a box's link may open.
 
       It also edits, on the files' YAML and not on the typed model, so a key it doesn't know is kept.
       A writer produces the `yaml` package's text byte for byte, the edits twin `src/core/ops.ts`,
@@ -113,8 +113,8 @@ objects:
 
       The chrome around them is made of a few pieces in the colour of what they are about: a tile
       with the icon of a type on a tint of its colour, chips, section headings with a count, and
-      cards. The side panel opens on a header in the box's own colour, then its description, code
-      and lines as cards, and the bar's buttons carry icons. All colours come from the stylesheet,
+      cards. The side panel opens on a header in the box's own colour, then its description, links,
+      code and lines as cards, and the bar's buttons carry icons. All colours come from the stylesheet,
       so light and dark follow the system.
 
       Opening a box is a short fly-off and settle-in, one step per screen refresh (the window's own
@@ -132,7 +132,7 @@ objects:
     description: |
       One window per model folder, the File, View and Help menus (Open Recent, Reload, Copy as
       Mermaid, Save Picture, the demo), drops, and the saved state (recent folders, the line style,
-      the window's size). A folder that is deleted while open leaves the last good model with a
+      the window's size, the app chosen to open linked files). A folder that is deleted while open leaves the last good model with a
       banner, and opening it again carries on. A second launch hands its folder to the one already running through
       a pipe that only this user can open.
   desktop-install:

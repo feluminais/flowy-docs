@@ -79,7 +79,7 @@ internal sealed class FieldBox : StackPanel
     }
 }
 
-/// <summary>An object's form: name, type, outside service, tech, description and code, then its problems and connections, its id, and delete.</summary>
+/// <summary>An object's form: name, type, outside service, tech, description, links and code, then its problems and connections, its id, and delete.</summary>
 internal sealed class ObjectEditor : StackPanel
 {
     private readonly SidePanel _owner;
@@ -89,6 +89,7 @@ internal sealed class ObjectEditor : StackPanel
     private readonly FieldBox _name;
     private readonly FieldBox _tech;
     private readonly FieldBox _description;
+    private readonly FieldBox _links;
     private readonly FieldBox _code;
     private readonly ComboBox _type = new() { HorizontalAlignment = HorizontalAlignment.Stretch, ItemTemplate = Chrome.TypeItem };
     private readonly CheckBox _external = new() { Content = "Outside service (drawn grey)" };
@@ -96,6 +97,7 @@ internal sealed class ObjectEditor : StackPanel
     private readonly StackPanel _problems = new();
     private readonly StackPanel _lines = new();
     private bool _syncing;
+    private object? _rawLinks; // the list the file held, so a link's extra keys survive an edit
 
     public string Id { get; }
 
@@ -107,6 +109,7 @@ internal sealed class ObjectEditor : StackPanel
         _name = new FieldBox("Name", "", false, v => Put(new ObjectInput(id, Name: v)));
         _tech = new FieldBox("Tech", "", false, v => Put(new ObjectInput(id, Tech: v)));
         _description = new FieldBox("Description (Markdown)", "", true, v => Put(new ObjectInput(id, Description: v)));
+        _links = new FieldBox("Links (one per line: title | address)", "", true, v => Put(new ObjectInput(id, Links: LinkText.Parse(v, _rawLinks))));
         _code = new FieldBox("Code (one path per line)", "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())));
         _type.SelectionChanged += async (_, _) =>
         {
@@ -134,6 +137,8 @@ internal sealed class ObjectEditor : StackPanel
         Children.Add(Chrome.Card(new StackPanel { Spacing = 12, Children = { _name, new StackPanel { Spacing = 4, Children = { typeCaption, _type } }, _external, _tech } }));
         Children.Add(Chrome.Section(Icons.Text, "Description"));
         Children.Add(_description);
+        Children.Add(Chrome.Section(Icons.Link, "Links"));
+        Children.Add(_links);
         Children.Add(Chrome.Section(Icons.Code, "Code"));
         Children.Add(_code);
         Children.Add(_lines);
@@ -149,6 +154,8 @@ internal sealed class ObjectEditor : StackPanel
 
     internal FieldBox CodeField => _code;
 
+    internal FieldBox LinksField => _links;
+
     internal ComboBox TypeBox => _type;
 
     internal CheckBox ExternalBox => _external;
@@ -161,6 +168,8 @@ internal sealed class ObjectEditor : StackPanel
         _tech.Sync(o.Tech ?? "");
         _description.Sync(o.Description ?? "");
         _code.Sync(o.Code is List<object?> code ? string.Join("\n", code.OfType<string>()) : "");
+        _rawLinks = o.Links;
+        _links.Sync(LinkText.Format(o));
         // A type the nesting rules don't allow here stays in the list, so the form shows what the file says.
         var types = Checks.TypesIn(model, Views.ParentOf(model, Id));
         if (!string.IsNullOrEmpty(o.Type) && !types.Contains(o.Type)) types.Add(o.Type);
