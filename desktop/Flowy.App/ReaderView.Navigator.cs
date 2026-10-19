@@ -32,6 +32,7 @@ internal sealed partial class ReaderView
     private void SetTab(PanelTab tab)
     {
         _tab = tab;
+        _navUsed = true; // opened or switched on purpose: Escape takes it back until the reader clicks in the diagram
         Refresh();
         Remember();
     }
@@ -58,6 +59,7 @@ internal sealed partial class ReaderView
     private void CloseNav()
     {
         _tab = null;
+        _navUsed = false;
         Refresh();
         Focus();
         Remember();
@@ -198,6 +200,7 @@ internal sealed partial class ReaderView
         _revealedView = null;
         _revealedBox = null;
         _tab = saved?.Tab switch { "flows" => PanelTab.Flows, "explorer" => PanelTab.Explorer, _ => null };
+        _navUsed = false; // brought back, not opened: Escape leaves it until the reader uses it
         _navWidth = saved?.NavWidth ?? Camera.Nav;
         _detailsWidth = saved?.DetailsWidth ?? Camera.Panel;
         foreach (var id in saved?.Expanded ?? []) _expanded.Add(id);

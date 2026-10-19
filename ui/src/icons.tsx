@@ -57,9 +57,11 @@ export const Keyboard = one('M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 
 export const Close = one('M18 6l-12 12M6 6l12 12')
 export const Check = one('M5 12l5 5l10 -10')
 export const Copy = one('M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667zM4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1')
-export const Info = one('M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 9h.01M11 12h1v4h1')
+// Our own, drawn for the rail: an i with no serifs, which stays sharp at 18 pixels
+export const Info = one('M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 7.5h.01M12 11.5v5')
 export const Activity = one('M3 12h4l3 8l4 -16l3 8h4')
-export const Sitemap = one('M3 15m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2zM15 15m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2zM9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2zM6 15v-1a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v1M12 9l0 3')
+// Our own: a folder with what is in it hanging below
+export const Explorer = one('M4 3h4l2 2h9a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-15a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2zM7 11v9.5h3M7 15.5h3M13 15.5h8M13 20.5h8')
 export const Repeat = one('M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3')
 export const GitFork = one('M12 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M7 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M17 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M7 8v2a2 2 0 0 0 2 2h6a2 2 0 0 0 2 -2v-2M12 12l0 4')
 export const ArrowsSplit = one('M21 17h-8l-3.5 -5h-6.5M21 7h-8l-3.495 5')
