@@ -358,7 +358,7 @@ levels:
 
 Every number is optional except a level's `load`. On a shape, `util` is how much of what it can do is in use (0 to 1), `queue` how many are waiting, and
 `errors` the share that fail (0 to 1). On a connection, and in `overall` (what the entry point measured), `rate` is calls a
-second, `p50` and `p95` are milliseconds (the typical call, and the slowest 1 in 20) and `errors` is the share that fail.
+second, `p50` and `p95` are milliseconds (the tab calls them the expected call and the slowest 5%) and `errors` is the share that fail.
 Levels go up in load, and a run needs at least two. A number that isn't there isn't drawn as zero: that shape or line stays
 plain. `unit` says what a load counts, and `entry` can name the shape the load comes in at.
 

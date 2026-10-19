@@ -113,7 +113,9 @@ Before merging a change to the app, look at what it could affect, in a real wind
       (200 req/s on the ramp). In Shop lab, shapes that carry numbers are outlined from green to red along their own outline, Order queue
       carries a number but no colour, busy lines are thicker with more dots, and Catalog cache and Payment gateway stay plain. ← → Home End
       move between loads; P ramps up (from the top it starts again from the bottom) and a click on the slider stops it; a picked shape or
-      line reads out its numbers; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
+      line reads out its numbers; under the chart a key draws a blue line (Expected call), an amber one (Slowest 5%) and red dashes (First
+      struggles), and the Key at the bottom draws each mark it names (Busy, Waiting, Not measured, a call, a failing call, More calls) with no
+      sentences; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
       are no dots and no Ramp button, and the outlines, thickness, numbers and strip still show. Light and dark both read.
 - [ ] Click Order API: its panel opens and the view moves it out from under the panel. Click a name in the panel's Out list: the panel
       switches. Open "5 connections": each label shows. Point at a row: its line lights up on the canvas.
@@ -209,7 +211,8 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
       req/s on the ramp), with `#shop/perf/ramp/4` in the address. In Shop lab, shapes that carry numbers are outlined from green to red
       along their own outline (SQLite's cylinder, Upload folder's folder, the boxes of Web API and the worker), Order queue carries a
       number but no colour, busy lines are thicker and carry more dots, and Catalog cache (a hexagon with no numbers) and Payment gateway
-      stay plain. ← → move between loads, Home and End jump (Home gives `#shop/perf/ramp/0`), and the address follows. Esc closes the
+      stay plain. Under the chart, a blue line reads Expected call, an amber one Slowest 5% and red dashes First struggles; the Key at the
+      bottom draws each mark it names. ← → move between loads, Home and End jump (Home gives `#shop/perf/ramp/0`), and the address follows. Esc closes the
       panel; Back closes it too if you opened it with T (after Esc, Back opens it again). With Explorer open on the left as well, both
       panels show and the diagram still fits; the Details button swaps Details back in, and Esc closes whichever is showing.
 - [ ] Click Fulfilment worker: the panel stays and reads Busy and Failing with a curve each. Click the line from Order queue to

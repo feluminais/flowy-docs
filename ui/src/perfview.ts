@@ -61,8 +61,8 @@ export const METRICS: Record<keyof Metrics, { label: string; show: (v: number) =
   queue: { label: 'Waiting', show: v => String(Math.round(v)) },
   errors: { label: 'Failing', show: fmtPct },
   rate: { label: 'Calls', show: fmtRate },
-  p50: { label: 'Typical', show: fmtMs, log: true },
-  p95: { label: 'Slowest 1 in 20', show: fmtMs, log: true },
+  p50: { label: 'Expected call', show: fmtMs, log: true },
+  p95: { label: 'Slowest 5%', show: fmtMs, log: true },
 }
 /** The numbers a shape can have, and a line, in the order the panel lists them. */
 export const BOX_KEYS = ['util', 'queue', 'errors'] as const

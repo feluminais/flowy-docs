@@ -109,7 +109,7 @@ public class PerformanceTests
         Assert.True(reader.HasPanel);
         Assert.Equal(("ramp", 3.0, false), reader.PerfState); // the worker is at 97% at 100 req/s, the last level
         Assert.Equal("100 req/s", reader.PerfPanelNow.LoadText);
-        Assert.Equal("a tested level", reader.PerfPanelNow.LoadNote);
+        Assert.Equal("Tested", reader.PerfPanelNow.LoadNote);
         Press(window, Key.Escape, PhysicalKey.Escape);
         Assert.False(reader.PerfOpenNow);
         Assert.False(reader.HasPanel);
@@ -234,8 +234,8 @@ public class PerformanceTests
         Assert.Equal((0, false), reader.Canvas.TrafficNow);
         Assert.True(Strained(reader, "worker"));
         Assert.Null(reader.PerfPanelNow.RampButton.Parent); // not in the panel
-        Assert.Contains("← → step the levels", string.Join("|", AllText(reader.PerfPanelNow)));
-        Assert.DoesNotContain("P ramps up", string.Join("|", AllText(reader.PerfPanelNow)));
+        Assert.Contains("←|→|Step", string.Join("|", AllText(reader.PerfPanelNow)));
+        Assert.DoesNotContain("|P|", string.Join("|", AllText(reader.PerfPanelNow))); // no hint for P
         Press(window, Key.P, PhysicalKey.P);
         Assert.False(reader.PerfState.Ramping);
     }
@@ -296,11 +296,11 @@ public class PerformanceTests
         Assert.Equal([("Busy", "97%"), ("Failing", "1%")], reader.PerfPanelNow.Readings);
         reader.OpenLine("queue", "worker");
         Assert.True(reader.PerfOpenNow);
-        Assert.Equal(["Calls", "Typical", "Slowest 1 in 20", "Failing"], reader.PerfPanelNow.Readings.Select(r => r.Label));
+        Assert.Equal(["Calls", "Expected call", "Slowest 5%", "Failing"], reader.PerfPanelNow.Readings.Select(r => r.Label));
         Press(window, Key.Home, PhysicalKey.Home);
         Assert.Equal("2 calls a second", reader.PerfPanelNow.Readings[0].Value);
         reader.Select("customer");
-        Assert.Contains("Nothing was measured here", string.Join("|", AllText(reader.PerfPanelNow)));
+        Assert.Contains("Nothing measured here", string.Join("|", AllText(reader.PerfPanelNow)));
     }
 
     [AvaloniaFact]

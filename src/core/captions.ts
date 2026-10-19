@@ -22,11 +22,11 @@ export type Caption = { chip: string; text: string; tabs: string[]; tab: number;
 export type LegendRow = { kind: GroupKind | null; title: string; text: string }
 
 export const LEGEND: LegendRow[] = [
-  { kind: 'repeat', title: 'Repeat', text: 'The same steps run again. The chip says how many times at most, or what stops it.' },
-  { kind: 'branch', title: 'Branch', text: 'Alternatives: only one of the lanes happens. Each tab is a lane and the one you are in is marked. On the canvas the others are dashed.' },
-  { kind: 'parallel', title: 'Same time', text: 'Parallel lanes: steps that happen together. Each stop shows the next step of every lane, and they light up and move at the same moment.' },
-  { kind: null, title: 'The bar', text: 'One cell for each stop. A branch puts its lanes on rows of their own, and a bracket under the bar names each group. Point at a cell or a bracket to read more.' },
-  { kind: null, title: 'The label on a line', text: 'What the group says about that step: how often it repeats, or which lane it is in.' },
+  { kind: 'repeat', title: 'Repeat', text: 'The same steps again. The chip says how many times, or what stops it.' },
+  { kind: 'branch', title: 'Branch', text: 'Only one lane happens. Each tab is a lane, and the one you are in is marked. The others are dashed on the canvas.' },
+  { kind: 'parallel', title: 'Same time', text: "Lanes that run together. Each stop lights the next step of every lane." },
+  { kind: null, title: 'The bar', text: 'One cell for each stop, and a row for each lane of a branch. A bracket under it names each group. Point at one for more.' },
+  { kind: null, title: 'The label on a line', text: 'Which lane, or which repeat, the step is in.' },
 ]
 
 const part = (v: unknown): string => (blank(v) ? '' : String(v).trim())

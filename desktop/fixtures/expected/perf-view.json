@@ -256,7 +256,7 @@
     },
     {
       "key": "p50",
-      "label": "Typical",
+      "label": "Expected call",
       "log": true,
       "max": null,
       "shown": [
@@ -269,7 +269,7 @@
     },
     {
       "key": "p95",
-      "label": "Slowest 1 in 20",
+      "label": "Slowest 5%",
       "log": true,
       "max": null,
       "shown": [
