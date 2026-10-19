@@ -101,7 +101,7 @@ objects:
     code: [src/lab.ts]
     description: Where uploads are written, flushed to disk before the upload is answered.
 connections:
-  - { from: shopper, to: web-api, label: browses, orders and asks for reports }
+  - { from: shopper, to: web-api, label: "browses, orders and asks for reports" }
   - { from: shopper, to: file-api, label: uploads and downloads }
   - { from: catalog, to: cache, label: looks a page up }
   - { from: catalog, to: sqlite, label: reads a page on a miss }
