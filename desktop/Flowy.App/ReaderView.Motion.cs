@@ -34,12 +34,6 @@ internal sealed partial class ReaderView
     }
 
     /// <summary>
-    /// The step's animation when the canvas draws it. A recursion is not drawn here yet, so it plays, and offers Replay, like a step with
-    /// no tag. The desktop phase removes the Kind condition (the browser's twin is <c>drawable</c> in ui/src/motion.ts).
-    /// </summary>
-    private static StepAnimation? Drawn(Step step) => Animations.Read(step) is { Kind: not "recurse" } animation ? animation : null;
-
-    /// <summary>
     /// Starts the motion of the step now showing, once for each step and replay: Refresh runs for many other reasons (a hover, a theme, a
     /// change on disk) and must not start it again.
     /// </summary>
@@ -49,7 +43,7 @@ internal sealed partial class ReaderView
         if (key == _stepKey) return;
         _stepKey = key;
         _canvas.StopStep();
-        if (flow is { } playing && shown?.Ends[index] is { } placed && Drawn(playing.Flow.Steps[index]) is { } animation)
+        if (flow is { } playing && shown?.Ends[index] is { } placed && Animations.Read(playing.Flow.Steps[index]) is { } animation)
         {
             var after = index > 0 && Animations.Follows(shown.Ends[index - 1], placed);
             _canvas.PlayStep(animation, placed.From, placed.To, after, () =>

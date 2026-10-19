@@ -31,7 +31,8 @@ public static class Animations
 
     private const int DepthMin = 2;
     private const int DepthMax = 5;
-    private const int DepthDefault = 3;
+    /// <summary>How deep a recursion goes when its tag does not say.</summary>
+    public const int DepthDefault = 3;
 
     /// <summary>A <c>depth</c> as a number when it is the text of a whole number from 2 to 5. Files hold text, so nothing else can arrive.</summary>
     private static int? DepthOf(object? value) =>

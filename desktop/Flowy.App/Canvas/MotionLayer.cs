@@ -16,7 +16,8 @@ internal sealed class MotionLayer : Control
 {
     private const double Swell = 46; // how much of the pipe bulges around a blob
 
-    private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To);
+    /// <summary><c>ShapePath</c> is the first box's shape in its own 200 x 72 area and <c>Depth</c> how tall a recursion's stack gets: what its cards and counter are drawn from.</summary>
+    private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To, string? ShapePath, int Depth);
 
     private static readonly Dictionary<string, Geometry> Glyphs = [];
 
@@ -41,11 +42,13 @@ internal sealed class MotionLayer : Control
     }
 
     /// <summary>Gets ready to draw a step: the line between its boxes in <paramref name="style"/>, and the beats for how long it is. Returns the beats and how long they last.</summary>
-    public (IReadOnlyList<Beat> Beats, int Total) Start(StepAnimation animation, bool afterLanding, string style, CoreRect from, CoreRect to, double[]? outlineFrom = null, double[]? outlineTo = null)
+    public (IReadOnlyList<Beat> Beats, int Total) Start(StepAnimation animation, bool afterLanding, string style, CoreRect from, CoreRect to, double[]? outlineFrom = null, double[]? outlineTo = null, string? shapePath = null)
     {
-        var line = Geometry.Parse(LinePaths.Build(style, from, to, outlineFrom, outlineTo).Data);
+        // A recursion's pipe is a loop out of its one box and back in; every other kind runs along the line between two boxes.
+        var data = animation.Kind == "recurse" ? BoxGeometry.LoopAround(from, outlineFrom) : LinePaths.Build(style, from, to, outlineFrom, outlineTo).Data;
+        var line = Geometry.Parse(data);
         var (beats, total) = Animations.BeatsFor(animation, line.ContourLength, afterLanding);
-        _run = new Run(beats, line, line.ContourLength, from, to);
+        _run = new Run(beats, line, line.ContourLength, from, to, shapePath, animation.Depth ?? Animations.DepthDefault);
         _t = 0;
         InvalidateVisual();
         return (beats, total);

@@ -102,6 +102,17 @@ internal sealed class CanvasView : Border
     /// <summary>Whether a step's animation is running.</summary>
     public bool StepMoving { get; private set; }
 
+    private (string Id, int Depth)? _resting;
+
+    /// <summary>
+    /// The recursion whose counter is on screen at rest: set when a recursion step starts (even when motion is reduced, which draws nothing else),
+    /// kept when its motion ends, and cleared by <see cref="StopStep"/> when the step changes or the flow stops.
+    /// </summary>
+    internal (string Id, int Depth)? Resting => _resting;
+
+    /// <summary>Where the resting counter's box is in the scene on screen now, so a reload that moves the box moves the counter with it.</summary>
+    internal Flowy.Core.Rect? RestingRect => _resting is { } r ? RectOf(r.Id) : null;
+
     /// <summary>
     /// Plays a step's animation over the canvas: a pipe along the line from one box to the other, something running through it, and the
     /// boxes reacting. <paramref name="done"/> is called once when it has finished, and not if <see cref="StopStep"/> or another call cuts
@@ -110,27 +121,36 @@ internal sealed class CanvasView : Border
     public bool PlayStep(StepAnimation animation, string from, string to, bool afterLanding, Action? done)
     {
         StopStep();
+        if (animation.Kind == "recurse" && RectOf(from) is not null) _resting = (from, animation.Depth ?? Animations.DepthDefault);
         if (MotionSettings.Reduced || RectOf(from) is not { } a || RectOf(to) is not { } b) return false;
-        var outline = (string id) => _scene!.Boxes.First(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Edge : null; // the pipe meets each shape on its outline, as the line does
-        var (beats, total) = _motion.Start(animation, afterLanding, LineStyle, a, b, outline(from), outline(to));
+        var shape = (string id) => Look.DefOf(_scene!.Boxes.First(x => x.Id == id).Object); // the pipe meets each shape on its outline, as the line does
+        var (beats, total) = _motion.Start(animation, afterLanding, LineStyle, a, b, shape(from).Edge, shape(to).Edge, shape(from).Path);
         StepMoving = true;
         _step = Anim.Run(this, total, t => t, t =>
         {
             var now = t * total;
             _motion.Show(now);
-            var (squashFrom, squashTo) = MotionMath.Squash(beats, now);
+            // A recursion has one box at both ends: the second write would wipe the first with its zero.
+            var (squashFrom, squashTo) = MotionMath.TileSquash(from == to, MotionMath.Squash(beats, now));
             Squash(from, squashFrom);
-            Squash(to, squashTo);
+            if (from != to) Squash(to, squashTo);
         }, () =>
         {
-            StopStep();
+            EndStep();
             done?.Invoke();
         });
         return true;
     }
 
-    /// <summary>Stops the step's animation where it is and puts the boxes back.</summary>
+    /// <summary>Stops the step's animation where it is and puts the boxes back, and takes a recursion's counter away.</summary>
     public void StopStep()
+    {
+        EndStep();
+        _resting = null;
+    }
+
+    /// <summary>Ends the motion and puts the boxes back, but leaves a recursion's counter on screen: the step is still the one showing.</summary>
+    private void EndStep()
     {
         _step?.Dispose();
         _step = null;

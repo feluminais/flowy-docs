@@ -6,6 +6,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Flowy.App.Canvas;
 using Flowy.Core;
 using Xunit;
 
@@ -106,19 +107,93 @@ public class AnimationTests
     }
 
     [AvaloniaFact]
-    public void A_recurse_step_does_not_move_until_the_desktop_draws_it()
+    public void A_recurse_step_moves_then_stands_still_with_its_counter_left()
     {
         var (window, reader) = Open("0", Recursion);
         try
         {
-            reader.Play("recursion"); // "Walks the category tree", a good recurse tag
+            reader.Play("recursion"); // "Walks the category tree", a good recurse tag, depth 3
+            Assert.True(reader.StepMoving);
+            Assert.True(HasReplay(window), "a recursion can be replayed");
+            Run(() => !reader.StepMoving);
             Assert.False(reader.StepMoving);
-            Assert.False(HasReplay(window), "a step that does not move has nothing to replay");
+            Assert.Equal(("api", 3), reader.Canvas.Resting!.Value);
+            Assert.Null(reader.Canvas.BoxControlFor("api")!.RenderTransform);
         }
         finally
         {
             Finish();
         }
+    }
+
+    [AvaloniaFact]
+    public void A_recursion_squashes_its_own_box_in_its_first_moments()
+    {
+        var (_, reader) = Open("0", Recursion);
+        try
+        {
+            reader.Play("recursion");
+            Run(() => reader.Canvas.BoxControlFor("api")!.RenderTransform is not null, 2); // the gulp that opens the step: one box at both ends must not wipe it
+            Assert.NotNull(reader.Canvas.BoxControlFor("api")!.RenderTransform);
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_counter_follows_the_step_and_goes_with_it()
+    {
+        var (window, reader) = Open("0", Recursion);
+        try
+        {
+            reader.Play("recursion");
+            Run(() => !reader.StepMoving);
+            Press(window, Key.Right, PhysicalKey.ArrowRight); // step 2, depth 4
+            Run(() => !reader.StepMoving);
+            Assert.Equal(("api", 4), reader.Canvas.Resting!.Value);
+            Press(window, Key.Right, PhysicalKey.ArrowRight); // step 3, a wrong tag
+            Assert.Null(reader.Canvas.Resting);
+            Press(window, Key.Home, PhysicalKey.Home);
+            Assert.True(reader.StepMoving);
+            Assert.NotNull(reader.Canvas.Resting);
+            Press(window, Key.Escape, PhysicalKey.Escape);
+            Assert.Null(reader.Canvas.Resting);
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void With_motion_reduced_a_recursion_leaves_only_its_counter_and_Autoplay_goes_on()
+    {
+        var (window, reader) = Open("1", Recursion);
+        reader.Play("recursion");
+        Assert.False(reader.StepMoving);
+        Assert.Equal(("api", 3), reader.Canvas.Resting!.Value);
+        Press(window, Key.P, PhysicalKey.P);
+        Run(() => reader.PlayingStep >= 1);
+        Assert.True(reader.PlayingStep >= 1);
+        Assert.Equal(("api", 4), reader.Canvas.Resting!.Value);
+    }
+
+    [AvaloniaFact]
+    public void The_counter_follows_a_box_that_moves_under_it()
+    {
+        Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1");
+        var folder = FolderLoader.Load(Recursion);
+        var canvas = new CanvasView();
+        new Window { Width = 1100, Height = 700, Content = canvas }.Show();
+        var scene = SceneBuilder.Build(folder.Model, "shop", null, folder.Problems, new Focus());
+        canvas.SetScene(scene, "straight", []);
+        canvas.PlayStep(new StepAnimation("recurse", "inside", null, 3), "api", "api", false, null);
+        var before = canvas.RestingRect!.Value;
+        canvas.SetScene(scene with { Boxes = scene.Boxes.Select(b => b.Id == "api" ? b with { Rect = b.Rect with { X = b.Rect.X + 120 } } : b).ToList() }, "straight", []);
+        Assert.Equal(("api", 3), canvas.Resting!.Value);
+        Assert.Equal(before.X + 120, canvas.RestingRect!.Value.X);
     }
 
     [AvaloniaFact]
