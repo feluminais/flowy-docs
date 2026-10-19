@@ -386,7 +386,7 @@
             "from": 7,
             "to": 7,
             "text": "at once",
-            "title": "These steps happen at the same time"
+            "title": "The lanes happen at the same time: each stop shows the next step of every lane"
           },
           {
             "kind": "repeat",
@@ -761,7 +761,7 @@
             "from": 4,
             "to": 4,
             "text": "at once",
-            "title": "These steps happen at the same time"
+            "title": "The lanes happen at the same time: each stop shows the next step of every lane"
           }
         ]
       }
@@ -961,14 +961,14 @@
             "from": 0,
             "to": 0,
             "text": "at once",
-            "title": "These steps happen at the same time"
+            "title": "The lanes happen at the same time: each stop shows the next step of every lane"
           },
           {
             "kind": "parallel",
             "from": 2,
             "to": 4,
             "text": "at once",
-            "title": "These steps happen at the same time"
+            "title": "The lanes happen at the same time: each stop shows the next step of every lane"
           },
           {
             "kind": "branch",

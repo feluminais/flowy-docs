@@ -59,7 +59,7 @@ test('the progress bar has a column for each stop, the branch\'s lanes on rows o
     brackets: [
       { kind: 'repeat', from: 0, to: 1, text: '×3', title: 'Repeats up to 3 times' },
       { kind: 'branch', from: 2, to: 3, text: 'one of 2 lanes', title: 'Alternatives: only one of these lanes happens' },
-      { kind: 'parallel', from: 4, to: 4, text: 'at once', title: 'These steps happen at the same time' },
+      { kind: 'parallel', from: 4, to: 4, text: 'at once', title: 'The lanes happen at the same time: each stop shows the next step of every lane' },
     ],
   })
   assert.deepEqual(progressOf(flowOf(undefined, [step(), step()]), stopsOf(flowOf(undefined, [step(), step()]))), { cols: 2, rows: 1, cells: [{ stop: 0, col: 0, row: 0, title: '' }, { stop: 1, col: 1, row: 0, title: '' }], brackets: [] })

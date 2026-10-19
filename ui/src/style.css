@@ -277,12 +277,11 @@ svg { flex: none; }
 .player-buttons { display: flex; gap: 8px; margin-top: 10px; }
 .player-buttons button:last-child { margin-left: auto; }
 /* How far a flow has got: a cell a stop, filled up to the one shown, a branch's lanes on rows of their own, and a bracket under each group. */
-.progress { display: grid; gap: 3px; margin: 8px 0 0; }
+.progress { display: grid; gap: 3px; margin: 8px 0; }
 .progress span { height: 4px; border-radius: 2px; background: var(--line); }
 .progress .done { background: var(--accent); }
-.brackets { display: grid; gap: 3px; margin: 2px 0 6px; }
+.brackets { display: grid; gap: 3px; margin: -5px 0 6px; }
 .bracket { display: flex; justify-content: center; align-items: center; gap: 3px; padding-top: 1px; border-top: 1px solid var(--muted); font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; }
-.progress + .brackets { margin-top: 3px; }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
 .tab { padding: 1px 9px; border: 1px dashed var(--line); border-radius: 99px; font-size: 12px; color: var(--muted); }
 .tab.on { border-style: solid; border-color: var(--accent); color: var(--accent); font-weight: 600; }

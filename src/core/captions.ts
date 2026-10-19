@@ -98,7 +98,7 @@ export function progressOf(flow: Flow, stops: Stop[]): Progress {
       const words = repeatWords(g)
       brackets.push(s.kind === 'repeat'
         ? { kind: s.kind, from: start, to: col - 1, text: times === '' ? '' : `×${times}`, title: words === '' ? 'Repeats' : `Repeats ${words}` }
-        : { kind: s.kind, from: start, to: col - 1, text: 'at once', title: 'These steps happen at the same time' })
+        : { kind: s.kind, from: start, to: col - 1, text: 'at once', title: 'The lanes happen at the same time: each stop shows the next step of every lane' })
     }
     k = end + 1
   }
