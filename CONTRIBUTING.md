@@ -35,6 +35,13 @@ opens it. Its `code:` paths point at placeholder files beside it, so the canvas 
 `docs/images/` are of that model in the light theme, 1100 by 700 (1280 by 760 for the edit one) at twice the pixel density.
 Retake them when the canvas changes how it looks.
 
+## The performance lab
+
+`perf-lab/` is a made-up shop that really runs, and a load generator that measures it and writes the runs the Performance tab
+reads (`flowy/perf/*.yaml`). `npm run lab:run` makes a run in about two and a half minutes, `npm run lab:smoke` checks the harness in
+under half a minute (it starts real servers, so `npm test` leaves it out), and `node src/cli.ts --dir perf-lab/flowy` opens
+the lab. Its [README](perf-lab/README.md) says what each part is and what to keep in mind reading the numbers.
+
 ## The desktop app
 
 `desktop/` is a native reader and editor for `flowy/` folders, built with .NET 10 and Avalonia; the browser canvas stays as it is. It
