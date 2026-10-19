@@ -36,6 +36,12 @@ What to write in it, box by box, is in [Writing good Flowy docs](writing.md).
   to say has a More you can open. When a step lands on a box that stands for a part inside it, the
   player names the part too ("Scheduler in Core"), so two steps on two parts of one box don't read
   as a round trip.
+- A step can carry an `animation:`. When you arrive at it, its line turns into a pipe and something
+  runs through it: `call` goes and comes back while the sender waits, `send` and `event` go one
+  way, and `callback` shows what set it off (`trigger: outside` when it was the step before).
+  R plays the step again, and Autoplay (P) steps through the flow on its own. Nothing moves when
+  the system asks for less motion, and a step's text always says the same thing. The desktop app
+  doesn't play them yet.
 - F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Boxes with
   a problem carry a "!".

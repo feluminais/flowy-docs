@@ -15,6 +15,8 @@ const READING: [string, string][] = [
 const FLOWS: [string, string][] = [
   ['→  ←', 'Next and previous step'],
   ['Home  End', 'First and last step'],
+  ['P', 'Step through the flow on its own, or pause'],
+  ['R', 'Replay the step'],
   ['Esc', 'Stop the flow'],
 ]
 const EDITING: [string, string][] = [

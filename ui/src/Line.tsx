@@ -10,7 +10,7 @@ export const LineStyleContext = createContext<LineStyle>('straight')
 
 const SIDES = { top: Position.Top, right: Position.Right, bottom: Position.Bottom, left: Position.Left }
 
-const rect = (n: InternalNode): Rect => ({ ...n.internals.positionAbsolute, ...sizeOf(n) })
+export const rect = (n: InternalNode): Rect => ({ ...n.internals.positionAbsolute, ...sizeOf(n) })
 
 /** The SVG path and the label's place for one line in the given style. */
 function draw(style: LineStyle, a: Rect, b: Rect): [string, number, number] {
@@ -27,6 +27,9 @@ function draw(style: LineStyle, a: Rect, b: Rect): [string, number, number] {
   const [path, x, y] = style === 'curved' ? getBezierPath(ends) : getSmoothStepPath({ ...ends, borderRadius: 8 })
   return [path, x, y]
 }
+
+/** The path of the line between two boxes in the given style, for a step's pipe to follow. */
+export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode): string => draw(style, rect(a), rect(b))[0]
 
 /**
  * A line between two boxes. Straight lines go edge to edge, whichever sides face each other: the boxes

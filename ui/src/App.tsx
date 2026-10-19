@@ -8,11 +8,12 @@ import { LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
 import type { LineStyle, Model, Step } from '../../src/core/model.ts'
 import { connect, deleteObject, forgetLayout, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
+import { animationOf, followsLanding } from '../../src/core/animation.ts'
 import { chain, hasChildren, nameOf, parentOf, placeEnds, placeStep, stepEnds } from '../../src/core/views.ts'
 import { Box, Description, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
 import { Chip } from './Chrome.tsx'
-import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pencil, Play, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
+import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pause, Pencil, Play, Plus, Redo, Reload, Route, Search as SearchIcon, Undo } from './icons.tsx'
 import { connectionsOf, locate, moveBetween } from './edit.ts'
 import type { Move } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
@@ -21,9 +22,11 @@ import { readHash, toHash } from './hash.ts'
 import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
 import { Line, LineStyleContext } from './Line.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
+import { DWELL, GAP } from './motion.ts'
 import { AddPanel, LinePanel, ObjectPanel, Recorder } from './Panel.tsx'
 import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
+import { StepMotion } from './StepMotion.tsx'
 import type { Recording, Run } from './Panel.tsx'
 import { useModel } from './useModel.ts'
 import type { Edit, Loaded } from './useModel.ts'
@@ -91,10 +94,12 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
   const [viewId, setViewId] = useState(() => readHash(location.hash).view)
   const [side, setSide] = useState<Side>()
-  const [playing, setPlaying] = useState<{ flow: string; step: number } | undefined>(() => {
+  const [playing, setPlaying] = useState<{ flow: string; step: number; auto?: boolean } | undefined>(() => {
     const { flow } = readHash(location.hash)
     return flow === undefined ? undefined : { flow, step: 0 }
   })
+  const [replays, setReplays] = useState(0) // R counts up, and a new count plays the step again
+  const [settledKey, setSettledKey] = useState('') // the step (and replay) whose motion has finished
   const [editMode, setEditMode] = useState(false)
   const [notice, setNotice] = useState<string>()
   // Where boxes are being dragged to. Nodes are controlled, so a box only moves through this.
@@ -144,6 +149,10 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
       ? { ends: [...done, placeStep(model, view, { from: recording.from, to: recording.to === recording.from ? undefined : recording.to })], step: done.length }
       : { ends: done }
   }, [model, view, flow, stepIndex, recording])
+  const placed = shown?.ends[stepIndex]
+  const animation = step ? animationOf(step) : undefined
+  const moving = animation !== undefined && placed != null // a step the view can't show doesn't move
+  const stepKey = flow && playing ? `${playing.flow}:${stepIndex}:${replays}` : ''
   const graph = useMemo(() => toGraph(model, view, shown, problems), [model, view, shown, problems])
   const picked = side?.kind === 'object' ? [side.id] : recording ? [recording.from, recording.to] : []
   // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.
@@ -222,7 +231,23 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     const r = canvas.current?.getBoundingClientRect()
     zoomTo(id, 'out', (r?.width ?? 0) / 2, (r?.height ?? 0) / 2)
   }
-  const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, flow.steps.length - 1)) })
+  const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, flow.steps.length - 1)), auto: false })
+  const togglePlay = () => {
+    if (!playing || !flow) return
+    const atEnd = stepIndex === flow.steps.length - 1
+    setPlaying(playing.auto ? { ...playing, auto: false } : { ...playing, step: atEnd ? 0 : stepIndex, auto: true })
+  }
+  // Autoplay: a step that doesn't move waits a moment, then each finished step is followed by the next. Taking a step yourself stops it.
+  useEffect(() => {
+    if (!playing?.auto || moving) return
+    const wait = setTimeout(() => setSettledKey(stepKey), DWELL)
+    return () => clearTimeout(wait)
+  }, [playing?.auto, moving, stepKey])
+  useEffect(() => {
+    if (!playing?.auto || !flow || settledKey !== stepKey) return
+    const wait = setTimeout(() => setPlaying(stepIndex < flow.steps.length - 1 ? { ...playing, step: stepIndex + 1 } : { ...playing, auto: false }), GAP)
+    return () => clearTimeout(wait)
+  }, [playing?.auto, settledKey, stepKey])
   const pickLines = (value: string) => {
     const style = LINE_STYLES.find(s => s === value) // "" is the project's default
     const own = (s: LineStyle | undefined) => {
@@ -338,6 +363,8 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
       else if (flow && e.key === 'ArrowLeft') stepTo(stepIndex - 1)
       else if (flow && e.key === 'Home') stepTo(0)
       else if (flow && e.key === 'End') stepTo(flow.steps.length - 1)
+      else if (flow && key === 'p' && plain && !e.repeat) togglePlay()
+      else if (flow && key === 'r' && plain && !e.repeat) setReplays(n => n + 1)
       else if (e.key === 'Enter' && !recording && !takesEnter(e.target as Element | null)) {
         // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
         const id = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('.react-flow__node-box')?.dataset.id ?? selectedBox
@@ -467,6 +494,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
             <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} />
             {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
             <Controls showInteractive={false} fitViewOptions={fitOptions(side !== undefined, flow !== undefined)} />
+            {flow && animation && placed && <StepMotion key={stepKey} ends={placed} animation={animation} afterLanding={followsLanding(shown?.ends[stepIndex - 1], placed)} onDone={() => setSettledKey(stepKey)} />}
           </ReactFlow>
         </LineStyleContext>
         {nodes.length === 0 && (
@@ -521,6 +549,8 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
             <div className="player-buttons">
               <button disabled={stepIndex === 0} onClick={() => stepTo(stepIndex - 1)}><ArrowLeft size={16} />Back</button>
               <button className="primary" disabled={stepIndex === flow.steps.length - 1} onClick={() => stepTo(stepIndex + 1)}><ArrowRight size={16} />Next</button>
+              <button onClick={togglePlay} title="Step through the flow on its own (P)">{playing?.auto ? <><Pause size={16} />Pause</> : <><Play size={16} />Autoplay</>}</button>
+              {moving && <button aria-label="Replay this step" title="Replay this step (R)" onClick={() => setReplays(n => n + 1)}><Reload size={16} /></button>}
               <button onClick={() => setPlaying(undefined)}><Close size={16} />Stop</button>
             </div>
           </section>
