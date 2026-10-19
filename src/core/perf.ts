@@ -262,3 +262,42 @@ export function rollUp(model: Model, level: Level, view: string): { objects: Rec
   }
   return { objects, lines: [...lines.values()] }
 }
+
+/** A shape this strained is "struggling" (see knee). */
+export const KNEE_STRAIN = 0.85
+/** Overall p95 this many times the lowest level's counts as latency giving way. */
+export const KNEE_LATENCY = 3
+
+/** Where a run first struggles: a tested level, and either the object that is worst there or, with none to blame, the latency. */
+export type Knee =
+  | { index: number; load: number; by: { id: string; kind: 'util' | 'errors'; share: number } }
+  | { index: number; load: number; latency: { from: number; to: number } }
+
+/**
+ * The first tested level where an object's strain reaches KNEE_STRAIN, naming the worst one there; failing that, the
+ * first where overall p95 is KNEE_LATENCY times the lowest level's. Undefined when the run never struggles. It looks
+ * at the objects that were measured, not at what holds them: the object to name is the one that was measured.
+ */
+export function knee(run: Run): Knee | undefined {
+  const base = run.levels[0].overall.p95
+  for (const [index, level] of run.levels.entries()) {
+    let worst: { id: string; kind: 'util' | 'errors'; share: number; value: number } | undefined
+    for (const [id, m] of Object.entries(level.objects)) {
+      const s = strain(m)
+      if (s && (worst === undefined || s.value > worst.value)) worst = { id, kind: s.by, share: s.share, value: s.value }
+    }
+    if (worst && worst.value >= KNEE_STRAIN) return { index, load: level.load, by: { id: worst.id, kind: worst.kind, share: worst.share } }
+    const p95 = level.overall.p95
+    if (base !== undefined && base > 0 && p95 !== undefined && p95 >= KNEE_LATENCY * base) return { index, load: level.load, latency: { from: base, to: p95 } }
+  }
+  return undefined
+}
+
+const pct = (n: number) => `${Math.round(n * 100)}%`
+
+/** The sentence under the Performance tab's strip, for both readers. `nameOf` turns an object id into the name a reader sees. */
+export function kneeText(run: Run, k: Knee, nameOf: (id: string) => string): string {
+  const at = `${k.load} ${run.unit}`
+  if ('by' in k) return `First struggles at ${at}: ${nameOf(k.by.id)} ${k.by.kind === 'util' ? `at ${pct(k.by.share)} of capacity` : `failing ${pct(k.by.share)} of calls`}`
+  return `Latency passes ${KNEE_LATENCY}× its starting point at ${at}: overall p95 goes from ${Math.round(k.latency.from)} ms to ${Math.round(k.latency.to)} ms`
+}
