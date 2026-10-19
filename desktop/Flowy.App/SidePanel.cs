@@ -10,15 +10,13 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>
-/// The panel at the right of the canvas: a box's description, code and connections, or the connections one line stands for. It shows one
+/// The Details panel at the right of the canvas: a box's description, code and connections, or the connections one line stands for. It shows one
 /// thing at a time. Pointing at a connection lights its line on the canvas; the other box's name opens its panel. In edit mode the same
 /// panel holds the forms (see <c>EditPanels.cs</c>), which stay put while the model reloads around them, so a field being typed in keeps its focus.
 /// </summary>
 internal sealed class SidePanel : Border
 {
     private static readonly FontFamily Mono = new("Cascadia Mono, Consolas, Menlo, monospace");
-
-    public const double Width380 = 380;
 
     private readonly StackPanel _holder = new() { Margin = new Thickness(22, 22, 22, 28) };
     private readonly ScrollViewer _scroll = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
@@ -39,13 +37,10 @@ internal sealed class SidePanel : Border
 
     public event Action? Closed;
 
-    /// <summary>The strip of tabs on top: Details, Flows and Explorer. ReaderView follows it.</summary>
-    public NavTabs Tabs { get; } = new();
-
     public SidePanel()
     {
         Classes.Add("panel");
-        Width = Width380;
+        Width = Camera.Panel;
         HorizontalAlignment = HorizontalAlignment.Right;
         IsVisible = false;
         Focusable = false;
@@ -54,10 +49,7 @@ internal sealed class SidePanel : Border
         close.Classes.Add("close");
         close.Click += (_, _) => Closed?.Invoke();
         Avalonia.Automation.AutomationProperties.SetName(close, "Close");
-        Tabs.Margin = new Thickness(16, 10, 52, 0);
-        var column = new Grid { RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)], Children = { Tabs, _scroll } };
-        Grid.SetRow(_scroll, 1);
-        Child = new Grid { Children = { column, close } };
+        Child = new Grid { Children = { _scroll, close } };
     }
 
     internal IBrush Resource(string key) =>

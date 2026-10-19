@@ -19,11 +19,14 @@ public static class Camera
     public const double MinZoom = 0.2;
     public const double MaxZoom = 1;
 
-    /// <summary>Width of the side panel at most. Keep in step with the panel's width in the app.</summary>
+    /// <summary>Width of the details panel (right) to begin with: it can be dragged wider or narrower. Keep in step with the panel's width in the app.</summary>
     public const double Panel = 380;
 
-    /// <summary>What a fit is given: room for the side panel and the flow player, when they're there.</summary>
-    public static Padding FitPadding(bool panel, bool player) => new(40, panel ? Panel + 40 : 40, player ? 200 : 40, 40);
+    /// <summary>Width of the navigator panel (left) to begin with.</summary>
+    public const double Nav = 320;
+
+    /// <summary>What a fit is given: room for the details panel (right) and the navigator (left), each as wide as it is or 0 when closed, and for the flow player.</summary>
+    public static Padding FitPadding(double panel, bool player, double nav = 0) => new(40, panel > 0 ? panel + 40 : 40, player ? 200 : 40, nav > 0 ? nav + 40 : 40);
 
     /// <summary>
     /// The viewport that shows <paramref name="bounds"/> centred inside the padding, zoomed as far in as fits, between
@@ -49,16 +52,16 @@ public static class Camera
     }
 
     /// <summary>
-    /// Where to move the viewport so <paramref name="box"/> shows left of the side panel, or null when it already does. A box wider
-    /// than the room keeps its left edge in sight.
+    /// Where to move the viewport so <paramref name="box"/> shows between the navigator (<paramref name="nav"/> wide, 0 when closed) and
+    /// the details panel, or null when it already does. A box wider than the room keeps its left edge in sight.
     /// </summary>
-    public static Viewport? PanIntoView(Rect box, Viewport view, double width, double height, double panel = Panel, double margin = 24)
+    public static Viewport? PanIntoView(Rect box, Viewport view, double width, double height, double panel = Panel, double margin = 24, double nav = 0)
     {
         var room = width - Math.Min(panel, width);
         var left = box.X * view.Zoom + view.X;
         var top = box.Y * view.Zoom + view.Y;
-        double Shift(double from, double to, double limit) => Math.Max(margin - from, Math.Min(0, limit - margin - to));
-        var dx = Shift(left, left + box.Width * view.Zoom, room);
+        double Shift(double from, double to, double limit, double start = 0) => Math.Max(start + margin - from, Math.Min(0, limit - margin - to));
+        var dx = Shift(left, left + box.Width * view.Zoom, room, nav);
         var dy = Shift(top, top + box.Height * view.Zoom, height);
         return dx == 0 && dy == 0 ? null : view with { X = view.X + dx, Y = view.Y + dy };
     }

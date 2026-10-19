@@ -184,10 +184,10 @@ public class ReaderTests
         var zoomed = reader.Canvas.Viewport;
         Assert.True(zoomed.Zoom > before.Zoom);
 
-        // empty space: near the top-left corner of the canvas
-        window.MouseDown(new Point(5, 120), MouseButton.Left);
-        window.MouseMove(new Point(65, 160));
-        window.MouseUp(new Point(65, 160), MouseButton.Left);
+        // empty space: near the top-left corner of the canvas, past the navigator's rail
+        window.MouseDown(new Point(60, 120), MouseButton.Left);
+        window.MouseMove(new Point(120, 160));
+        window.MouseUp(new Point(120, 160), MouseButton.Left);
         var panned = reader.Canvas.Viewport;
         Assert.Equal(zoomed.X + 60, panned.X, 3);
         Assert.Equal(zoomed.Y + 40, panned.Y, 3);

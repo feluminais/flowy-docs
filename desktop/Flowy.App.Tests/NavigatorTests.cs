@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
@@ -31,13 +32,17 @@ public class NavigatorTests
     private static void Press(Window w, Key key, PhysicalKey physical) => w.KeyPress(key, RawInputModifiers.None, physical, null);
 
     [AvaloniaFact]
-    public void The_rail_is_always_there_and_says_how_much_there_is()
+    public void The_rails_are_always_there_the_navigators_on_the_left_says_how_much_there_is_and_Details_is_on_the_right()
     {
-        var (_, reader) = Open();
+        var (window, reader) = Open();
         var icons = reader.Rail.Shown.ToList();
-        Assert.Equal(["Details", "Flows, 3", "Explorer, 36"], icons.Select(i => i.Name));
+        Assert.Equal(["Flows, 3", "Explorer, 36"], icons.Select(i => i.Name));
         Assert.All(icons, i => Assert.True(i.Visible));
+        Assert.Equal(["Details"], reader.DetailsRail.Shown.Select(i => i.Name));
         Assert.False(reader.HasPanel); // nothing is open until an icon is picked
+        double X(Avalonia.Visual v) => v.TranslatePoint(default, window)!.Value.X;
+        Assert.True(X(reader.Rail) < X(reader.Canvas), "the navigator's rail is left of the canvas");
+        Assert.True(X(reader.DetailsRail) > X(reader.Canvas), "Details' rail is right of it");
     }
 
     [AvaloniaFact]
@@ -104,7 +109,7 @@ public class NavigatorTests
     }
 
     [AvaloniaFact]
-    public void Picking_a_shape_goes_to_the_level_it_is_drawn_in_and_selects_it_and_the_panel_stays_on_the_Explorer()
+    public void Picking_a_shape_goes_to_the_level_it_is_drawn_in_and_selects_it_and_the_Explorer_stays_open_beside_its_Details()
     {
         var (_, reader) = Open();
         reader.ClickRail(PanelTab.Explorer);
@@ -113,6 +118,7 @@ public class NavigatorTests
         Assert.Equal("ordering", reader.View);
         Assert.Equal("order-api", reader.SelectedBoxId);
         Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
+        Assert.True(reader.DetailsOpenNow);
         Assert.Contains(reader.Navigator.Explorer.Rows, r => r.Key == "shape:ordering" && r.Expanded); // the tree followed the canvas
     }
 
@@ -143,13 +149,30 @@ public class NavigatorTests
     }
 
     [AvaloniaFact]
-    public void A_click_on_the_canvas_takes_the_panel_back_to_Details()
+    public void A_click_on_the_canvas_opens_Details_on_the_right_and_leaves_the_navigator_where_it_is()
     {
         var (_, reader) = Open();
         reader.GoTo("ordering");
         reader.ClickRail(PanelTab.Explorer);
+        Assert.False(reader.DetailsOpenNow);
         reader.OpenObject("order-api"); // what a click on a shape does
-        Assert.Equal(PanelTab.Details, reader.ShownTabNow);
+        Assert.True(reader.DetailsOpenNow);
+        Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
+        Assert.True(reader.Navigator.IsVisible);
+    }
+
+    [AvaloniaFact]
+    public void Esc_closes_Details_first_and_then_the_navigator()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Explorer);
+        reader.OpenObject("ordering");
+        Assert.True(reader.DetailsOpenNow);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.False(reader.DetailsOpenNow);
+        Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.False(reader.HasPanel);
     }
 
     [AvaloniaFact]
@@ -157,12 +180,14 @@ public class NavigatorTests
     {
         var (_, reader) = Open();
         reader.ClickRail(PanelTab.Details);
-        Assert.Equal(PanelTab.Details, reader.ShownTabNow);
+        Assert.True(reader.DetailsOpenNow);
+        Assert.Null(reader.ShownTabNow); // Details has no tab of the navigator's
         Assert.True(reader.HasPanel);
         reader.GoTo("ordering"); // the panel stays open and now shows the level you are inside
-        Assert.Equal(PanelTab.Details, reader.ShownTabNow);
-        Assert.True(reader.HasPanel);
+        Assert.True(reader.DetailsOpenNow);
         Assert.Null(reader.SelectedBoxId); // it shows the level, and selects nothing
+        reader.ClickRail(PanelTab.Details);
+        Assert.False(reader.HasPanel);
     }
 
     [AvaloniaFact]
@@ -193,8 +218,8 @@ public class NavigatorTests
         while (explorer.FocusKey != "shape:ordering") explorer.Press("ArrowDown");
         explorer.Press("ArrowRight"); // opens it
         Assert.Contains(explorer.Rows, r => r.Key == "shape:order-api");
-        explorer.Press("ArrowRight"); // steps into it
-        Assert.Equal("shape:customer-app", explorer.FocusKey);
+        explorer.Press("ArrowRight"); // steps into it: shapes that hold others come first
+        Assert.Equal("shape:order-api", explorer.FocusKey);
         explorer.Press("ArrowLeft"); // steps out
         Assert.Equal("shape:ordering", explorer.FocusKey);
         explorer.Press("Enter"); // goes into it
@@ -219,6 +244,67 @@ public class NavigatorTests
         Assert.False(other.HasPanel);
         other.RestoreNavigator(null);
         Assert.False(other.HasPanel);
+    }
+
+    [AvaloniaFact]
+    public void Dragging_the_edge_of_the_navigator_resizes_it_and_the_width_is_reported_when_the_drag_ends()
+    {
+        var (window, reader) = Open();
+        NavigatorState? last = null;
+        reader.NavigatorChanged += s => last = s;
+        reader.ClickRail(PanelTab.Explorer);
+        Assert.Equal((Camera.Nav, Camera.Panel), reader.Widths);
+        var edge = reader.Canvas.TranslatePoint(new Point(Camera.Nav, 300), window)!.Value;
+        window.MouseDown(edge, MouseButton.Left);
+        window.MouseMove(edge + new Vector(100, 0));
+        Assert.Equal(Camera.Nav + 100, reader.Widths.Nav);
+        Assert.Equal(Camera.Nav + 100, reader.PanelWidthsOnScreen.Nav);
+        window.MouseMove(edge + new Vector(-900, 0));
+        Assert.Equal(NavigatorState.MinWidth, reader.Widths.Nav); // never narrower than it reads
+        window.MouseMove(edge + new Vector(900, 0));
+        Assert.True(reader.Widths.Nav <= NavigatorState.MaxWidth && reader.Widths.Nav <= reader.Canvas.Bounds.Width - 160, "never wider than the canvas can spare");
+        window.MouseMove(edge + new Vector(100, 0));
+        window.MouseUp(edge + new Vector(100, 0), MouseButton.Left);
+        Assert.Equal(Camera.Nav + 100, last!.NavWidth);
+    }
+
+    [AvaloniaFact]
+    public void Dragging_the_edge_of_Details_the_other_way_resizes_it_and_the_widths_come_back()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Details);
+        var edge = reader.Canvas.TranslatePoint(new Point(reader.Canvas.Bounds.Width - Camera.Panel, 300), window)!.Value;
+        window.MouseDown(edge, MouseButton.Left);
+        window.MouseMove(edge + new Vector(-100, 0)); // its edge going left makes it wider
+        window.MouseUp(edge + new Vector(-100, 0), MouseButton.Left);
+        Assert.Equal(Camera.Panel + 100, reader.Widths.Details);
+        Assert.Equal(Camera.Panel + 100, reader.PanelWidthsOnScreen.Details);
+
+        var (_, other) = Open();
+        other.RestoreNavigator(new NavigatorState("explorer", ["root"], 300, 500));
+        Assert.Equal((300.0, 500.0), other.Widths);
+        other.RestoreNavigator(new NavigatorState(null, ["root"]));
+        Assert.Equal((Camera.Nav, Camera.Panel), other.Widths);
+    }
+
+    [AvaloniaFact]
+    public void A_double_click_on_an_edge_puts_the_width_back_and_the_arrows_nudge_it()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Explorer);
+        var (nav, _) = reader.Sashes;
+        nav.Focus();
+        Press(window, Key.Right, PhysicalKey.ArrowRight);
+        Press(window, Key.Right, PhysicalKey.ArrowRight);
+        Assert.Equal(Camera.Nav + 32, reader.Widths.Nav);
+        Press(window, Key.Left, PhysicalKey.ArrowLeft);
+        Assert.Equal(Camera.Nav + 16, reader.Widths.Nav);
+        var edge = reader.Canvas.TranslatePoint(new Point(Camera.Nav + 16, 300), window)!.Value;
+        window.MouseDown(edge, MouseButton.Left);
+        window.MouseUp(edge, MouseButton.Left);
+        window.MouseDown(edge, MouseButton.Left);
+        window.MouseUp(edge, MouseButton.Left);
+        Assert.Equal(Camera.Nav, reader.Widths.Nav);
     }
 
     [AvaloniaFact]

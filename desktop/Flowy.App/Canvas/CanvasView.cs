@@ -25,7 +25,7 @@ internal sealed class CanvasView : Border
     private Scene? _scene;
     private Viewport _viewport = new(0, 0, 1);
     private IDisposable? _animation;
-    private Padding _fitPadding = Camera.FitPadding(false, false);
+    private Padding _fitPadding = Camera.FitPadding(0, false);
     private bool _fitOnResize = true;
     private Point? _pressedAt;
     private Viewport _pressedViewport;
@@ -269,20 +269,20 @@ internal sealed class CanvasView : Border
         return new Flowy.Core.Rect(x, y, rects.Max(r => r.Right) - x, rects.Max(r => r.Bottom) - y);
     }
 
-    /// <summary>The whole view, centred, with room for the side panel and the flow player when they're there. Fits again when the window is resized.</summary>
-    public void Fit(bool panel, bool player, double milliseconds = 0)
+    /// <summary>The whole view, centred, with room for the details panel (`panel` wide, 0 when closed), the navigator (`nav` wide) and the flow player when they're there. Fits again when the window is resized.</summary>
+    public void Fit(double panel, bool player, double nav = 0, double milliseconds = 0)
     {
-        _fitPadding = Camera.FitPadding(panel, player);
+        _fitPadding = Camera.FitPadding(panel, player, nav);
         _fitOnResize = true;
         if (Content() is { } bounds && base.Bounds.Width > 0 && base.Bounds.Height > 0)
             MoveTo(Camera.Fit(bounds, base.Bounds.Width, base.Bounds.Height, _fitPadding), milliseconds);
     }
 
-    /// <summary>Pans just far enough that this box isn't hidden under the side panel.</summary>
-    public void Reveal(string id, double milliseconds = 200)
+    /// <summary>Pans just far enough that this box isn't hidden under the details panel (`panel` wide: it opens for the box) or the navigator (`nav` wide, 0 when closed).</summary>
+    public void Reveal(string id, double panel = Camera.Panel, double nav = 0, double milliseconds = 200)
     {
         if (RectOf(id) is not { } r) return;
-        if (Camera.PanIntoView(r, _viewport, base.Bounds.Width, base.Bounds.Height) is { } to) MoveTo(to, milliseconds);
+        if (Camera.PanIntoView(r, _viewport, base.Bounds.Width, base.Bounds.Height, panel, 24, Math.Min(nav, base.Bounds.Width)) is { } to) MoveTo(to, milliseconds);
     }
 
     public void ZoomBy(double factor)

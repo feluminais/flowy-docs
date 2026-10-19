@@ -138,7 +138,7 @@ public class RecorderTests
         var before = FlowFile(dir, "browse");
         await reader.Panel.CurrentRecorder!.SubmitStepAsync("   ");
         Assert.Equal(before, FlowFile(dir, "browse"));
-        var empty = new Point(4, 70);
+        var empty = new Point(60, 70); // past the navigator's rail on the left
         window.MouseDown(empty, MouseButton.Left);
         window.MouseUp(empty, MouseButton.Left);
         Assert.Null(reader.RecordingNow!.From);
