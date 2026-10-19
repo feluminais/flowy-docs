@@ -63,7 +63,8 @@ internal static class TestModels
     {
         var parsed = ModelFiles.ParseModel(modelYaml);
         var map = new IdMap<Flow>();
-        foreach (var chunk in flows.Split("\n===\n", StringSplitOptions.RemoveEmptyEntries))
+        // A Windows checkout turns this text's own line ends into CRLF, so the separator is looked for after making them plain.
+        foreach (var chunk in flows.Replace("\r\n", "\n").Split("\n===\n", StringSplitOptions.RemoveEmptyEntries))
         {
             var newline = chunk.IndexOf('\n');
             var id = chunk[..newline].Trim();
