@@ -1,5 +1,5 @@
 @echo off
-rem Starts Flowy Docs on the repo you are standing in. Takes the same flags as `npx flowy-docs`.
+rem Starts Flowy Docs on the repo you are standing in. Takes the same flags as `node dist\cli.js`.
 rem Builds on first run. After a git pull, delete dist\ to rebuild.
 if not exist "%~dp0dist\cli.js" (
   call npm --prefix "%~dp0." install && call npm --prefix "%~dp0." run build
