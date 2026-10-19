@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
+import { ANIMATION_KINDS } from '../core/animation.ts'
 import { check } from '../core/check.ts'
 import { changedFiles, getObject, OBJECT_TYPES, parseFile, ROOT } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
@@ -182,6 +183,10 @@ export function createMcpServer(dir: string): McpServer {
         to: z.string().max(64).optional().describe('Id of the object it goes to. Leave it out for a step where the "from" object does something on its own.'),
         text: z.string().describe('One short sentence'),
         description: z.string().optional().describe('Optional longer detail in markdown, shown only when a reader asks for more'),
+        animation: z.union([
+          z.string(),
+          z.strictObject({ kind: z.string(), trigger: z.string().optional(), carries: z.string().optional() }),
+        ]).optional().describe(`How the step plays when a reader steps to it: ${ANIMATION_KINDS.join(', ')}, or { kind, trigger: "inside" | "outside" (callback only), carries: a word }. Optional: a step without one does not move.`),
       })).min(1),
     },
   }, input => write(m => putFlow(m, input), before => readout(before, input))) // a flow changes no box, so `before` places it right

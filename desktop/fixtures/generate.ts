@@ -3,6 +3,7 @@
 // Run it after changing src/core, ui/src/graph.ts, example/, docs/demo or a case under desktop/fixtures/cases, then run the desktop tests.
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import { dumpBeats } from './beats.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
 import { dumpGeometry } from './geometry.ts'
 import { dumpLayout } from './layout.ts'
@@ -25,3 +26,4 @@ await write('navigation', await dumpNavigation())
 await write('mermaid', await dumpMermaid())
 await write('yaml-write', await dumpYamlWrite())
 await write('ops', await dumpOps())
+await write('beats', dumpBeats())

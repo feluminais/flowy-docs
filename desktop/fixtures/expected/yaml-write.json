@@ -1983,6 +1983,29 @@
       "text": "steps:\n  - text: x\n    description: |\n      More\n      lines here\n"
     },
     {
+      "name": "mapping in a step",
+      "data": {
+        "steps": [
+          {
+            "from": "a",
+            "to": "b",
+            "text": "x",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside",
+              "carries": "receipt"
+            }
+          },
+          {
+            "from": "b",
+            "text": "y",
+            "animation": "call"
+          }
+        ]
+      },
+      "text": "steps:\n  - from: a\n    to: b\n    text: x\n    animation:\n      kind: callback\n      trigger: outside\n      carries: receipt\n  - from: b\n    text: y\n    animation: call\n"
+    },
+    {
       "name": "top-level list",
       "data": [
         "a",
@@ -2152,6 +2175,15 @@
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\shape-layout\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {},
+        "connections": []
+      },
+      "text": "objects: {}\nconnections: []\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\animation\\flowy",
       "rel": "model.yaml",
       "data": {
         "objects": {},

@@ -78,7 +78,8 @@ public static class ModelFiles
         var parsed = steps.Select(s =>
         {
             var m = (OrderedDictionary<string, object?>)s!;
-            return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"));
+            m.TryGetValue("animation", out var animation);
+            return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"), animation);
         }).ToList();
         return new Flow(Text(doc, "name"), Text(doc, "view"), parsed);
     }

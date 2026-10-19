@@ -299,6 +299,17 @@ objects:
 
       Problems are shown, not fixed. A file edited by hand keeps its problems until someone deals
       with them.
+  animation:
+    type: component
+    in: core
+    name: Animation
+    code: [src/core/animation.ts, desktop/Flowy.Core/Animation.cs]
+    description: |
+      What a flow step's `animation:` tag may say, and what each kind does, written as a timed list of
+      beats: a tube along the line, a blob running through it, a ring or flash or gulp on a box.
+
+      Nothing here draws. The canvas and the desktop app each draw the beats, so a new kind is a
+      recipe here and not new drawing code in both.
   views:
     type: component
     in: core
@@ -362,6 +373,7 @@ connections:
   - { from: ops, to: check, label: refuses what adds a problem }
   - { from: ops, to: model, label: writes it back as YAML }
   - { from: check, to: views, label: can this view show it }
+  - { from: check, to: animation, label: asks if a step's tag is right }
   - { from: views, to: model, label: reads }
   - { from: mermaid, to: views, label: what the view holds }
   - { from: exporter, to: filestore, label: loads the model }
