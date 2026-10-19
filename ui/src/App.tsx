@@ -261,6 +261,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const openLevel = recording || perfOpen ? undefined : () => {
     justMoved.current = false
     clearTimeout(opening.current)
+    if (details && side === undefined) return closeDetails() // its Details are already showing: a second click closes them
     setSide(undefined)
     setDetails(true)
   }
@@ -763,6 +764,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
                 if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
                 // Ctrl, Cmd or Shift adds the box to the shapes picked, or takes it out again. A box clicked a moment ago is picked too, though its panel hasn't opened yet.
                 if (editing && addsToSelection(e)) return show(sideFor(toggled(waiting === undefined ? chosen : [waiting], node.id)))
+                if (side?.kind === 'object' && side.id === node.id) return closeDetails() // its panel is already open: a second click closes it
                 const open = () => show({ kind: 'object', id: node.id })
                 // Zooming into a box is a double-click, and its first click must not open the panel. With a panel already open there's
                 // nothing to open, only its box to change, so that goes at once: no wait between one box and the next.
@@ -783,7 +785,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
               }}
               onEdgeClick={(_, e) => {
                 justMoved.current = false
-                if (!recording && !isStepLine(e.id)) show({ kind: 'line', from: e.source, to: e.target })
+                if (recording || isStepLine(e.id)) return
+                if (selectedLine === e.id) closeDetails() // its panel is already open: a second click closes it
+                else show({ kind: 'line', from: e.source, to: e.target })
               }}
               onEdgeMouseEnter={(_, e) => setHovered(e.id)}
               onEdgeMouseLeave={() => setHovered(undefined)}
