@@ -3,8 +3,8 @@ namespace Flowy.Core;
 /// <summary>A refused edit. The message is written for whoever asked for it.</summary>
 public sealed class OpError(string message) : Exception(message);
 
-/// <summary>An object to create or change. null leaves a field as it is; "" removes <c>in</c>, <c>tech</c> or <c>description</c>; an empty list removes <c>code</c>; <c>External: false</c> removes <c>external</c>.</summary>
-public sealed record ObjectInput(string Id, string? Type = null, string? Name = null, string? In = null, bool? External = null, string? Tech = null, string? Description = null, IReadOnlyList<string>? Code = null);
+/// <summary>An object to create or change. null leaves a field as it is; "" removes <c>in</c>, <c>tech</c> or <c>description</c>; an empty list removes <c>code</c> or <c>links</c>; <c>External: false</c> removes <c>external</c>. A link is a mapping that keeps its extra keys.</summary>
+public sealed record ObjectInput(string Id, string? Type = null, string? Name = null, string? In = null, bool? External = null, string? Tech = null, string? Description = null, IReadOnlyList<string>? Code = null, IReadOnlyList<OrderedDictionary<string, object?>>? Links = null);
 
 public sealed record ConnectionInput(string From, string To, string? Label = null);
 
@@ -14,7 +14,7 @@ public sealed record ConnectionInput(string From, string To, string? Label = nul
 /// </summary>
 public static class EditOps
 {
-    private static readonly string[] CopiedFields = ["type", "name", "in", "external", "tech", "description", "code"];
+    private static readonly string[] CopiedFields = ["type", "name", "in", "external", "tech", "description", "code", "links"];
     private static readonly string[] Clearable = ["in", "tech", "description"];
 
     private static OrderedDictionary<string, object?>? ObjectOf(EditDoc doc, string? id) =>
@@ -28,7 +28,7 @@ public static class EditOps
 
     /// <summary>
     /// Create or update an object. Omitted fields stay as they are. Only the known fields are copied, so a new object's keys come out in the order
-    /// type, name, in, external, tech, description, code, and a hand-written key on an existing object stays where it is.
+    /// type, name, in, external, tech, description, code, links, and a hand-written key on an existing object stays where it is.
     /// </summary>
     public static EditDoc PutObject(EditDoc doc, ObjectInput input)
     {
@@ -48,17 +48,29 @@ public static class EditOps
                 "external" => input.External is null ? null : input.External.Value ? "true" : "false",
                 "tech" => input.Tech,
                 "description" => input.Description,
-                _ => input.Code?.Select(c => (object?)c).ToList(),
+                "code" => input.Code?.Select(c => (object?)c).ToList(),
+                _ => input.Links?.Select(l => (object?)NormalizeLink(l)).ToList(),
             };
             if (value is not null) next[key] = value;
         }
         foreach (var key in Clearable)
             if (Text(next, key) == "") next.Remove(key);
         if (next.TryGetValue("code", out var code) && code is List<object?> { Count: 0 }) next.Remove("code");
+        if (next.TryGetValue("links", out var links) && links is List<object?> { Count: 0 }) next.Remove("links");
         // On disk it's `external: true`, which reads back as the text "true". external: false is no key at all.
         if (Text(next, "external") == "false" && input.External == false) next.Remove("external");
         d.Objects[input.Id] = next;
         return d;
+    }
+
+    /// <summary>A link with its title first, then its other keys in the order given, and no title at all when the title is blank: what <c>putObject</c> does in src/core/ops.ts.</summary>
+    private static OrderedDictionary<string, object?> NormalizeLink(OrderedDictionary<string, object?> link)
+    {
+        var result = new OrderedDictionary<string, object?>();
+        if (link.TryGetValue("title", out var t) && t is string title && title.Trim() != "") result["title"] = title;
+        foreach (var (key, value) in link)
+            if (key != "title") result[key] = value;
+        return result;
     }
 
     public static EditDoc DeleteObject(EditDoc doc, string id)

@@ -52,7 +52,8 @@ public static class ModelFiles
         {
             var m = (OrderedDictionary<string, object?>)o!;
             m.TryGetValue("code", out var code);
-            map.Add(id, new FlowyObject(Text(m, "type"), Text(m, "name"), Text(m, "in"), Text(m, "external"), Text(m, "tech"), Text(m, "description"), code));
+            m.TryGetValue("links", out var links);
+            map.Add(id, new FlowyObject(Text(m, "type"), Text(m, "name"), Text(m, "in"), Text(m, "external"), Text(m, "tech"), Text(m, "description"), code, links));
         }
         var list = connectionList.Select(c =>
         {

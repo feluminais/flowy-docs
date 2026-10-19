@@ -135,4 +135,14 @@ public class ModelFilesTests
     [InlineData("", false)]
     [InlineData("a\n", false)]
     public void An_id_is_lowercase_letters_digits_and_dashes(string id, bool valid) => Assert.Equal(valid, Names.IsValidId(id));
+
+    [Fact]
+    public void Links_Of_reads_the_well_formed_entries_and_ignores_the_rest()
+    {
+        var parsed = ModelFiles.ParseModel("objects:\n  a:\n    type: actor\n    name: A\n    links:\n      - { title: Doc, url: docs/a.md, note: x }\n      - { url: \"https://x.dev\" }\n      - { title: No url }\n      - text\n      - { url: [no] }\n      - { url: u, title: [no] }\n  b: { type: actor, name: B, links: text }\n  c: { type: actor, name: C }\n");
+        Assert.Equal([new BoxLink("docs/a.md", "Doc"), new BoxLink("https://x.dev", null)], Links.Of(parsed.Objects["a"]));
+        Assert.Empty(Links.Of(parsed.Objects["b"]));
+        Assert.Empty(Links.Of(parsed.Objects["c"]));
+        Assert.IsType<List<object?>>(parsed.Objects["a"].Links);
+    }
 }

@@ -32,8 +32,8 @@ const missing = (v: unknown) => v === undefined || v === ''
 export const isRepoPath = (path: string): boolean =>
   !/^\/|\\|:/.test(path) && path.split('/').every((part, i, all) => (part !== '' || (i === all.length - 1 && i > 0)) && part !== '.' && part !== '..')
 
-/** A web address as a link takes it: http or https, then a host. The desktop app (Checks.cs) uses the same pattern, so the two never disagree about a parse. */
-export const isWebAddress = (url: string): boolean => /^https?:\/\/[^\s\/?#]+\S*$/i.test(url)
+/** A web address as a link takes it: http or https, then a host. Checks.cs spells the same pattern out character for character, so the two never disagree about a parse. */
+export const isWebAddress = (url: string): boolean => /^https?:\/\/[^\t\n\v\f\r \/?#][^\t\n\v\f\r ]*$/i.test(url)
 
 /** A `links` entry whose known fields are text. A missing `url` is reported separately, as "a link has no url". */
 const isLinkEntry = (l: unknown): l is { url?: string; title?: string } => {

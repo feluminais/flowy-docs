@@ -116,4 +116,14 @@ public class FolderLoaderTests
         var text = Summary.Describe(FolderLoader.Load(Path.Combine(temp.Dir, "flowy")));
         Assert.Equal("2 boxes, 0 connections, 0 flows, 1 problem\n  model.yaml: b: app must be inside system", text);
     }
+
+    [Fact]
+    public void A_missing_link_path_is_a_problem_and_a_web_address_is_not_looked_up()
+    {
+        using var temp = new TempDir();
+        temp.Write("docs/runbook.md", "");
+        temp.Write("flowy/model.yaml", "objects:\n  api:\n    type: system\n    name: API\n    links:\n      - { title: Runbook, url: docs/runbook.md }\n      - { title: Gone, url: docs/gone.md }\n      - { title: Status, url: \"https://status.example.com\" }\n");
+        var folder = FolderLoader.Load(Path.Combine(temp.Dir, "flowy"));
+        Assert.Equal(["api: link path \"docs/gone.md\" doesn't exist"], folder.Problems.Select(p => p.Message));
+    }
 }

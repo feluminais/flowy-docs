@@ -19,8 +19,11 @@ public class EditOpsTests
 
     private static string? Str(JsonNode s, string key) => s[key]?.GetValue<string>();
 
-    private static List<OrderedDictionary<string, object?>> Steps(JsonNode? steps) =>
-        steps!.AsArray().Select(s => (OrderedDictionary<string, object?>)YamlWriterTests.Tree(s)!).ToList();
+    /// <summary>A list of mappings from the script, as the YAML trees the ops take: a flow's steps, an object's links.</summary>
+    private static List<OrderedDictionary<string, object?>> Entries(JsonNode? list) =>
+        list!.AsArray().Select(e => (OrderedDictionary<string, object?>)YamlWriterTests.Tree(e)!).ToList();
+
+    private static List<OrderedDictionary<string, object?>> Steps(JsonNode? steps) => Entries(steps);
 
     private static EditDoc Apply(EditDoc doc, JsonNode s)
     {
@@ -28,7 +31,8 @@ public class EditOpsTests
         {
             case "putObject":
                 return EditOps.PutObject(doc, new ObjectInput(Str(s, "id")!, Str(s, "type"), Str(s, "name"), Str(s, "in"), s["external"]?.GetValue<bool>(), Str(s, "tech"), Str(s, "description"),
-                    s["code"]?.AsArray().Select(c => c!.GetValue<string>()).ToList()));
+                    s["code"]?.AsArray().Select(c => c!.GetValue<string>()).ToList(),
+                    s["links"] is null ? null : Entries(s["links"])));
             case "deleteObject": return EditOps.DeleteObject(doc, Str(s, "id")!);
             case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label")));
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));
