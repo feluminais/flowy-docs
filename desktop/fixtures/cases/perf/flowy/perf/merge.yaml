@@ -1,0 +1,7 @@
+name: Merge
+levels:
+<<<<<<< HEAD
+  - load: 1
+=======
+  - load: 2
+>>>>>>> other

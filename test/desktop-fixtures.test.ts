@@ -7,6 +7,7 @@ import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
 import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
 import { dumpOutline } from '../desktop/fixtures/outline.ts'
+import { dumpPerf, dumpPerfView } from '../desktop/fixtures/perf.ts'
 import { dumpOps } from '../desktop/fixtures/ops.ts'
 import { dumpYamlWrite } from '../desktop/fixtures/yaml-write.ts'
 import { dumpNavigation, dumpScenes } from '../desktop/fixtures/scene.ts'
@@ -63,4 +64,14 @@ test('desktop animation beats still match what the TypeScript core says', async 
 test('desktop navigator rows, flow groups and keys still match what the TypeScript core says', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('outline'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(await dumpOutline())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop load-test runs still read, roll up, struggle and draw as the TypeScript core says', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('perf-runs'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpPerf())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop panel maths and words still match ui/src/perfview.ts', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('perf-view'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpPerfView())), expected, 'run: node desktop/fixtures/generate.ts')
 })

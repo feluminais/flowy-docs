@@ -1,0 +1,19 @@
+name: Latency only
+unit: users
+levels:
+  - load: 1
+    overall: { rate: 5, p50: 100, p95: 200 }
+    objects:
+      web: { util: 0.2 }
+  - load: 2
+    overall: { rate: 9, p50: 150, p95: 350 }
+    objects:
+      web: { util: 0.3 }
+  - load: 4
+    overall: { rate: 14, p50: 400, p95: 650 }
+    objects:
+      web: { util: 0.4 }
+  - load: 8
+    overall: { rate: 15, p50: 900, p95: 1900 }
+    objects:
+      web: { util: 0.5 }

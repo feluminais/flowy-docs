@@ -1,0 +1,25 @@
+name: Errors
+unit: req/s
+extra: ignored
+levels:
+  - load: 100
+    overall: { rate: 100, errors: 0 }
+    objects:
+      gateway: { errors: 0.001 }
+      worker: { util: 0.3, errors: 0.002, colour: red }
+    connections:
+      - { from: worker, to: gateway, rate: 30, p50: 90, p95: 110, errors: 0.001, note: kept out }
+  - load: 200
+    overall: { rate: 190, errors: 0.05 }
+    objects:
+      gateway: { errors: 0.08 }
+      worker: { util: 0.4, errors: 0.06 }
+    connections:
+      - { from: worker, to: gateway, rate: 60, p50: 95, p95: 300, errors: 0.08 }
+  - load: 400
+    overall: { rate: 250, errors: 0.2 }
+    objects:
+      gateway: { errors: 0.3 }
+      worker: { util: 0.9, errors: 0.2 }
+    connections:
+      - { from: worker, to: gateway, rate: 80, p50: 100, p95: 900, errors: 0.3 }

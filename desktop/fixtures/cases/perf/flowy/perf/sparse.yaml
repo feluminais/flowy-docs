@@ -1,0 +1,19 @@
+name: Sparse
+unit: req/s
+levels:
+  - load: 10
+    objects:
+      db: { util: 0.2 }
+      web: { queue: 2 }
+    connections:
+      - { from: orders, to: db, rate: 10, p50: 2 }
+  - load: 20
+    objects:
+      web: { queue: 6 }
+    connections:
+      - { from: orders, to: db, rate: 20 }
+  - load: 30
+    objects:
+      db: { util: 0.6 }
+    connections:
+      - { from: orders, to: db, rate: 30, p50: 6, p95: 9 }

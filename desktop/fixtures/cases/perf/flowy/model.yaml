@@ -1,0 +1,44 @@
+objects:
+  customer:
+    type: actor
+    name: Customer
+  shop:
+    type: system
+    name: Shop
+  web:
+    type: app
+    in: shop
+    name: Web
+  orders:
+    type: component
+    in: web
+    name: Orders
+  auth:
+    type: component
+    in: web
+    name: Auth
+  db:
+    type: store
+    in: shop
+    name: Orders DB
+  queue:
+    type: store
+    in: shop
+    name: Order queue
+    shape: queue
+  worker:
+    type: app
+    in: shop
+    name: Worker
+  gateway:
+    type: system
+    name: Payment gateway
+    external: "true"
+connections:
+  - { from: customer, to: web, label: browses }
+  - { from: orders, to: db, label: saves }
+  - { from: auth, to: db, label: looks up }
+  - { from: orders, to: queue, label: queues }
+  - { from: queue, to: worker, label: hands over }
+  - { from: worker, to: gateway, label: captures }
+  - { from: orders, to: gateway, label: authorizes }

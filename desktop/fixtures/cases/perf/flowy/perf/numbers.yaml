@@ -1,0 +1,15 @@
+about: The numbers are text in a file, so these are read as numbers, and the wrong ones are problems that leave that number out.
+unit: req/s
+levels:
+  - load: " 10 "
+    overall: { rate: "1e1", p50: "5", p95: "4" }
+    objects:
+      web: { util: "0.50", queue: -1, errors: 2 }
+      db: { util: high, errors: "" }
+    connections:
+      - { from: orders, to: db, rate: "12", p50: 1, p95: 2 }
+      - { from: orders, to: db, rate: 99 }
+      - { from: auth, to: db, rate: Infinity, p50: -3 }
+  - load: 20
+    objects:
+      web: { util: 0.7 }

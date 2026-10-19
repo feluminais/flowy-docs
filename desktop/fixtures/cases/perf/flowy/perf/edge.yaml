@@ -1,0 +1,12 @@
+name: Edge
+about: Overall latency reaches exactly three times its starting point, and nothing else struggles.
+unit: users
+levels:
+  - load: 1
+    overall: { p95: 100 }
+  - load: 2
+    overall: { p95: 299.9 }
+  - load: 3
+    overall: { p95: 300 }
+  - load: 4
+    overall: { p95: 900 }
