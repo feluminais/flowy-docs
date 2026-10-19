@@ -6,6 +6,7 @@ import { isView, placeStep } from '../../src/core/views.ts'
 import { loadState } from '../../src/node/files.ts'
 import { linesOf, locate, moveBetween } from '../../ui/src/edit.ts'
 import { focusEdges, toGraph } from '../../ui/src/graph.ts'
+import { otherLaneSteps, stopsOf } from '../../src/core/structure.ts'
 import type { Playing } from '../../ui/src/graph.ts'
 import { findObjects } from '../../ui/src/search.ts'
 
@@ -45,6 +46,17 @@ export async function dumpScenes(): Promise<unknown> {
       const ends = flow.steps.map(s => placeStep(model, flow.view, s))
       for (const step of new Set([0, Math.floor(flow.steps.length / 2), flow.steps.length - 1])) scenes.push(await scene(folder, flow.view, { ends, step }))
       scenes.push(await scene(folder, flow.view, { ends })) // the flow's boxes are there, nothing lit
+    }
+  }
+  // The groups case: every stop of three of its flows, the steps lit together and the other lanes of a branch faint.
+  {
+    const folder = 'desktop/fixtures/cases/groups/flowy'
+    const { model: grouped } = await load(folder)
+    for (const id of ['ok', 'shapes', 'bad']) {
+      const flow = grouped.flows[id]
+      const ends = flow.steps.map(s => placeStep(grouped, flow.view, s))
+      const stops = stopsOf(flow)
+      for (let k = 0; k < stops.length; k++) scenes.push(await scene(folder, flow.view, { ends, steps: stops[k].steps, faint: otherLaneSteps(stops, k) }))
     }
   }
   const { model } = await load('docs/demo/flowy')

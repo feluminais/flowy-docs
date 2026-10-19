@@ -6002,6 +6002,6627 @@
       ]
     },
     {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "stripe"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ]
+        ],
+        "steps": [
+          0
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "lit",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": "charges with",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "stripe"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ]
+        ],
+        "steps": [
+          1
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "lit",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "stripe",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "stripe"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ]
+        ],
+        "steps": [
+          2
+        ],
+        "faint": [
+          4
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "lit",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "stripe",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "stripe"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ]
+        ],
+        "steps": [
+          3
+        ],
+        "faint": [
+          4
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "lane-4",
+          "source": "stripe",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "lane"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "stripe"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ]
+        ],
+        "steps": [
+          4
+        ],
+        "faint": [
+          2,
+          3
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "lit",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": null,
+          "classes": [
+            "lane"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "stripe",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "stripe"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "stripe",
+            "api"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ]
+        ],
+        "steps": [
+          5,
+          6
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": "tells",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": "tells",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "billing",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "db",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "billing"
+          ]
+        ],
+        "steps": [
+          0,
+          1
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": "tells",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": "tells",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "billing",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "db",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "billing"
+          ]
+        ],
+        "steps": [
+          2
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": "tells",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "billing",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "db",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "billing"
+          ]
+        ],
+        "steps": [
+          3,
+          5,
+          6
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": "tells",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": "tells",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "billing",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "db",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "billing"
+          ]
+        ],
+        "steps": [
+          4,
+          7
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "billing",
+          "target": "db",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step-1",
+          "source": "db",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "billing",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "db",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "billing"
+          ]
+        ],
+        "steps": [
+          8
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "billing",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "db",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "billing"
+          ]
+        ],
+        "steps": [
+          9
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": "tells",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "billing",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "db",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "billing"
+          ]
+        ],
+        "steps": [
+          10
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "billing",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "db",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "billing"
+          ]
+        ],
+        "steps": [
+          11
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "billing",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "db",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "billing"
+          ]
+        ],
+        "steps": [
+          12
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "api",
+            "billing"
+          ],
+          [
+            "billing",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "db",
+            "api"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "dispatch"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "billing"
+          ]
+        ],
+        "steps": [
+          13
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": "tells",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          0
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          1
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          2
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          3
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          4
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          5
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          6
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          7
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          8
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          9
+        ],
+        "faint": [
+          10,
+          11
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          10
+        ],
+        "faint": [
+          9,
+          11
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          11
+        ],
+        "faint": [
+          9,
+          10
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          12
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          13
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          14
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          15
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          16
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          17
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          18
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/groups/flowy",
+      "view": "shop",
+      "playing": {
+        "ends": [
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ],
+          [
+            "api",
+            "db"
+          ]
+        ],
+        "steps": [
+          19
+        ],
+        "faint": []
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "billing",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer api",
+          "source": "customer",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api stripe",
+          "source": "api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api db",
+          "source": "api",
+          "target": "db",
+          "label": "reads and writes",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api billing",
+          "source": "api",
+          "target": "billing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "api dispatch",
+          "source": "api",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "api",
+        "db",
+        "billing",
+        "dispatch"
+      ]
+    },
+    {
       "folder": "docs/demo/flowy",
       "view": "ordering",
       "playing": null,
