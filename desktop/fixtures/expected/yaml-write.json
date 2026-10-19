@@ -2828,6 +2828,43 @@
       "text": "name: Customer places an order\nview: ordering\nsteps:\n  - from: customer\n    to: customer-app\n    text: Fills a basket and taps Place order\n  - from: customer-app\n    to: order-api\n    text: POST /orders with the basket\n    description: |\n      The app sends an idempotency key with the request, so a double tap or a retry on a bad\n      connection places one order, not two.\n  - from: order-api\n    to: stripe\n    text: Holds the amount on the card\n    description: |\n      **Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\n      once the restaurant accepts, and the hold is released if it refuses.\n  - from: order-api\n    to: orders-db\n    text: Saves the order as placed\n  - from: order-api\n    to: events\n    text: Announces the order\n  - from: events\n    to: dispatch\n    text: Dispatch starts looking for a courier\n  - from: order-api\n    to: kitchen-tablet\n    text: The restaurant's tablet rings\n    description: |\n      The kitchen has two minutes to accept. After that the order is cancelled, the hold is\n      released and the customer is told.\n"
     },
     {
+      "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
+      "rel": "flows/refund.yaml",
+      "data": {
+        "name": "Support refunds an order",
+        "view": "root",
+        "steps": [
+          {
+            "from": "support",
+            "to": "backoffice",
+            "text": "Finds the order in the support console"
+          },
+          {
+            "from": "backoffice",
+            "to": "ordering",
+            "text": "Asks for a refund, in full or by line"
+          },
+          {
+            "from": "ordering",
+            "to": "stripe",
+            "text": "The money goes back to the card",
+            "description": "Stripe refunds the original charge. The order is marked refunded only once Stripe has\nconfirmed, so the database never says money was returned that wasn't.\n"
+          },
+          {
+            "from": "ordering",
+            "to": "notifications",
+            "text": "Asks for a confirmation to be sent"
+          },
+          {
+            "from": "notifications",
+            "to": "twilio",
+            "text": "The customer gets an SMS"
+          }
+        ]
+      },
+      "text": "name: Support refunds an order\nview: root\nsteps:\n  - from: support\n    to: backoffice\n    text: Finds the order in the support console\n  - from: backoffice\n    to: ordering\n    text: Asks for a refund, in full or by line\n  - from: ordering\n    to: stripe\n    text: The money goes back to the card\n    description: |\n      Stripe refunds the original charge. The order is marked refunded only once Stripe has\n      confirmed, so the database never says money was returned that wasn't.\n  - from: ordering\n    to: notifications\n    text: Asks for a confirmation to be sent\n  - from: notifications\n    to: twilio\n    text: The customer gets an SMS\n"
+    },
+    {
       "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\empty\\flowy",
       "rel": "model.yaml",
       "data": {
