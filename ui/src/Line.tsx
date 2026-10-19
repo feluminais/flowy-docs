@@ -11,7 +11,7 @@ export const LineStyleContext = createContext<LineStyle>('straight')
 
 const SIDES = { top: Position.Top, right: Position.Right, bottom: Position.Bottom, left: Position.Left }
 
-const rect = (n: InternalNode): Rect => ({ ...n.internals.positionAbsolute, ...sizeOf(n) })
+export const rect = (n: InternalNode): Rect => ({ ...n.internals.positionAbsolute, ...sizeOf(n) })
 /** The outline a line meets: the shape's own, so it never ends in the air beside a diamond's corner. */
 const outline = (n: InternalNode): Outline => SHAPE_DEFS[shapeOf((n.data as BoxData).object)].edge
 
@@ -30,6 +30,9 @@ function draw(style: LineStyle, a: Rect, b: Rect, edgeA: Outline, edgeB: Outline
   const [path, x, y] = style === 'curved' ? getBezierPath(ends) : getSmoothStepPath({ ...ends, borderRadius: 8 })
   return [path, x, y]
 }
+
+/** The path of the line between two boxes in the given style, for a step's pipe to follow. */
+export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode): string => draw(style, rect(a), rect(b), outline(a), outline(b))[0]
 
 /**
  * A line between two boxes. Straight lines go edge to edge, whichever sides face each other: the boxes

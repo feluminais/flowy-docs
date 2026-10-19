@@ -18,6 +18,8 @@ internal sealed class CanvasView : Border
     private const double DragSlop = 3;
 
     private readonly BackLayer _back = new();
+    private readonly MotionLayer _motion = new();
+    private IDisposable? _step;
     private readonly Avalonia.Controls.Canvas _stage = new() { RenderTransformOrigin = RelativePoint.TopLeft };
     private readonly Dictionary<string, BoxControl> _boxes = [];
     private Scene? _scene;
@@ -60,7 +62,7 @@ internal sealed class CanvasView : Border
     {
         ClipToBounds = true;
         Background = Brushes.Transparent;
-        Child = new Grid { Children = { _back, _stage } };
+        Child = new Grid { Children = { _back, _stage, _motion } };
     }
 
     public Scene? Scene => _scene;
@@ -94,6 +96,51 @@ internal sealed class CanvasView : Border
 
     /// <summary>The box control with this id, for keyboard focus and tests.</summary>
     public Control? BoxControlFor(string id) => _boxes.GetValueOrDefault(id);
+
+    /// <summary>Whether a step's animation is running.</summary>
+    public bool StepMoving { get; private set; }
+
+    /// <summary>
+    /// Plays a step's animation over the canvas: a pipe along the line from one box to the other, something running through it, and the
+    /// boxes reacting. <paramref name="done"/> is called once when it has finished, and not if <see cref="StopStep"/> or another call cuts
+    /// it off. Returns false, and draws nothing, when motion is reduced or an end isn't on screen.
+    /// </summary>
+    public bool PlayStep(StepAnimation animation, string from, string to, bool afterLanding, Action? done)
+    {
+        StopStep();
+        if (MotionSettings.Reduced || RectOf(from) is not { } a || RectOf(to) is not { } b) return false;
+        var outline = (string id) => _scene!.Boxes.First(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Edge : null; // the pipe meets each shape on its outline, as the line does
+        var (beats, total) = _motion.Start(animation, afterLanding, LineStyle, a, b, outline(from), outline(to));
+        StepMoving = true;
+        _step = Anim.Run(this, total, t => t, t =>
+        {
+            var now = t * total;
+            _motion.Show(now);
+            var (squashFrom, squashTo) = MotionMath.Squash(beats, now);
+            Squash(from, squashFrom);
+            Squash(to, squashTo);
+        }, () =>
+        {
+            StopStep();
+            done?.Invoke();
+        });
+        return true;
+    }
+
+    /// <summary>Stops the step's animation where it is and puts the boxes back.</summary>
+    public void StopStep()
+    {
+        _step?.Dispose();
+        _step = null;
+        StepMoving = false;
+        _motion.Clear();
+        foreach (var box in _boxes.Values) box.SetSquash(0);
+    }
+
+    private void Squash(string id, double amount)
+    {
+        if (_boxes.TryGetValue(id, out var box)) box.SetSquash(amount);
+    }
 
     /// <summary>
     /// Shows a scene. The boxes already on the stage are updated in place, so a click or a flow step doesn't rebuild what didn't change;
@@ -194,6 +241,7 @@ internal sealed class CanvasView : Border
         _viewport = viewport;
         _stage.RenderTransform = new MatrixTransform(Matrix.CreateScale(viewport.Zoom, viewport.Zoom) * Matrix.CreateTranslation(viewport.X, viewport.Y));
         _back.Viewport = viewport;
+        _motion.Viewport = viewport;
     }
 
     /// <summary>Moves the camera to <paramref name="target"/>, over <paramref name="milliseconds"/> (0: at once).</summary>

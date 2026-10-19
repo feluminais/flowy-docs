@@ -166,6 +166,7 @@ public static class Checks
                 else if (Missing(s.From)) Sp("\"from\" is missing");
                 else if (model.GetObject(s.From) is null) Sp($"unknown object \"{s.From}\"");
                 if (!NonEmpty(s.Text)) Sp("text is missing");
+                if (Animations.Problem(s.Animation, !alone) is { } animation) Sp(animation);
                 if (alone)
                 {
                     if (viewOk && model.GetObject(s.From) is not null && Views.PlaceStep(model, f.View, s.From, s.To) is null)

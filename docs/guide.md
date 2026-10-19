@@ -37,6 +37,12 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   to say has a More you can open. When a step lands on a shape that stands for a part inside it, the
   player names the part too ("Scheduler in Core"), so two steps on two parts of one shape don't read
   as a round trip.
+- A step can carry an `animation:`. When you arrive at it, its line turns into a pipe and something
+  runs through it: `call` goes and comes back while the sender waits, `send` and `event` go one
+  way, and `callback` shows what set it off (`trigger: outside` when it was the step before).
+  R plays the step again, and Autoplay (P) steps through the flow on its own. Nothing moves when
+  the system asks for less motion, and a step's text always says the same thing. The desktop app
+  plays them the same way.
 - F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Shapes with
   a problem carry a "!".
@@ -288,7 +294,7 @@ What it has, as the canvas does: zoom into a shape (double-click it, or select i
 the breadcrumb works too), a frame around the shape you're inside, shapes that belong to another level faded and dashed, wheel to
 zoom and drag to pan, **F** to fit, the side panel with the description, its links, the files a shape lives in (as links when the repo's
 origin is on GitHub or GitLab), and every connection out and in, flows that play with ← and → (Home and End go to the first and last
-step), **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
+step) with a step's animation, **R** to play it again and **P** to let the flow run on its own, **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a shape that sits
 beside the one you're in slides across instead of zooming in.**
 

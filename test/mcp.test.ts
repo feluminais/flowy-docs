@@ -226,3 +226,24 @@ test('put_object draws an object its own way, and put_icon defines the icon it n
   await call('put_object', { id: 'jobs', icon: '', opacity: '' })
   assert.equal((await call('delete_icon', { name: 'stripe' })).error, false)
 })
+
+test('put_flow takes a step animation, and refuses one that is not a kind', async t => {
+  const { dir, call } = await setup(t)
+  await call('put_object', { id: 'customer', type: 'actor', name: 'Customer' })
+  await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
+  const saved = await call('put_flow', { id: 'visit', name: 'Visit', view: 'root', steps: [
+    { from: 'customer', to: 'shop', text: 'Visits', animation: 'call' },
+    { from: 'shop', to: 'customer', text: 'Rings back', animation: { kind: 'callback', trigger: 'outside', carries: 'receipt' } },
+  ] })
+  assert.equal(saved.error, false, saved.text)
+  const flow = JSON.parse((await call('get_model')).text).flows.visit
+  assert.equal(flow.steps[0].animation, 'call')
+  assert.deepEqual(flow.steps[1].animation, { kind: 'callback', trigger: 'outside', carries: 'receipt' })
+  assert.match(await readFile(join(dir, 'flows', 'visit.yaml'), 'utf8'), /animation: call/)
+
+  const refused = await call('put_flow', { id: 'bad', name: 'Bad', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x', animation: 'zoom' }] })
+  assert.equal(refused.error, true)
+  assert.match(refused.text, /unknown animation "zoom"/)
+  const misspelled = await call('put_flow', { id: 'bad', name: 'Bad', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x', animation: { kind: 'send', carry: 'x' } }] })
+  assert.equal(misspelled.error, true)
+})

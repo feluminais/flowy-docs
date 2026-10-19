@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
+import { ANIMATION_KINDS } from '../core/animation.ts'
 import { check } from '../core/check.ts'
 import { ICON_GROUPS } from '../core/icons.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
@@ -35,6 +36,7 @@ Writing a flow, so it reads the way the code works:
 - Say when the sender doesn't wait for the other side (it queues the work, fires and forgets, or runs on a timer).
 - Keep to what the flow's trigger causes. Something that happens on its own gets a step that says so, or a flow of its own.
 - Play the flow on the view where its ends are separate shapes. put_flow answers with how each step reads there: an end written "X in Y" is drawn as Y.
+- A step may carry animation (send, call, callback or event) so it plays as something travelling between the two shapes. Tag only a step whose way of travelling adds to its text: call when the sender waits for the answer, send or event when it doesn't, callback when something sets off a reply to a subscriber (trigger: "outside" when that came in at the step before). Leave most steps untagged, and make the text read the same with the motion off.
 - A step's More (its description) holds why, timing, failure behaviour or limits, not a repeat of the step.
 After writing: every write is checked, and a write that would add a problem is refused and nothing is saved. Read the answer, fix the cause (find the right path, name or end) and write again. Don't repeat the same call or drop the field to get past it. Finish by saying what you read from the code, what you inferred and what you left out.`
 
@@ -209,6 +211,10 @@ export function createMcpServer(dir: string): McpServer {
         to: z.string().max(64).optional().describe('Id of the object it goes to. Leave it out for a step where the "from" object does something on its own.'),
         text: z.string().describe('One short sentence'),
         description: z.string().optional().describe('Optional longer detail in markdown, shown only when a reader asks for more'),
+        animation: z.union([
+          z.string(),
+          z.strictObject({ kind: z.string(), trigger: z.string().optional(), carries: z.string().optional() }),
+        ]).optional().describe(`How the step plays when a reader steps to it: ${ANIMATION_KINDS.join(', ')}, or { kind, trigger: "inside" | "outside" (callback only), carries: a word }. Optional: a step without one does not move.`),
       })).min(1),
     },
   }, input => write(m => putFlow(m, input), before => readout(before, input))) // a flow changes no box, so `before` places it right

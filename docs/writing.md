@@ -134,6 +134,7 @@ A flow is a walkthrough of one thing happening. It has a name, the view it plays
 - **Use More for why:** timing, failure behaviour, limits. About 80 words, point first, never a repeat of the step. Plum's kitchen step: "The kitchen has two minutes to accept. After that the order is cancelled, the hold is released and the customer is told."
 - **Play the flow on the view where its ends are separate shapes.** A step written "X in Y" is drawn as Y. For detail inside a shape, write a second flow on that shape.
 - **A step with no matching line means the model is missing one.** Fix the model, then the step.
+- **Tag a step only when the way it travels adds something.** `animation: call` when the sender waits for the answer, `send` or `event` when it doesn't, `callback` when something sets off a reply to whoever subscribed, with `trigger: outside` when what set it off came in at the step before. Most steps stay untagged. The text still says everything: it has to read the same in Mermaid, in a screenshot and with motion off.
 
 An example. This is a flow Plum doesn't have, with Plum's shapes.
 

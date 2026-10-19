@@ -173,9 +173,9 @@ internal sealed class ObjectEditor : StackPanel
         Children.Add(_header);
         Children.Add(_problems);
         Children.Add(Chrome.Section(Icons.Pencil, "Details"));
-        Children.Add(Chrome.Card(new StackPanel { Spacing = 12, Children = { _name, new StackPanel { Spacing = 4, Children = { typeCaption, _type } }, _external, _tech } }));
+        Children.Add(new StackPanel { Spacing = 12, Children = { _name, new StackPanel { Spacing = 4, Children = { typeCaption, _type } }, _external, _tech } });
         Children.Add(Chrome.Section(Icons.Sparkles, "Look"));
-        Children.Add(Chrome.Card(new StackPanel { Spacing = 12, Children = { Captioned("Shape", _shape), Captioned("Color", _color), _hex, _opacity, Captioned("Icon", _icon) } }));
+        Children.Add(new StackPanel { Spacing = 12, Children = { Captioned("Shape", _shape), Captioned("Color", _color), _hex, _opacity, Captioned("Icon", _icon) } });
         Children.Add(Chrome.Section(Icons.Text, "Description"));
         Children.Add(_description);
         Children.Add(Chrome.Section(Icons.Link, "Links"));
