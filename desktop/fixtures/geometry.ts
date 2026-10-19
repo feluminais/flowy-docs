@@ -1,6 +1,8 @@
 import { getBezierPath, getSmoothStepPath, getStraightPath, getViewportForBounds, Position } from '@xyflow/system'
+import { SHAPE_DEFS } from '../../src/core/look.ts'
+import type { Shape } from '../../src/core/look.ts'
 import { frameAround, lineEnds, panIntoView, ports } from '../../ui/src/graph.ts'
-import type { Rect } from '../../ui/src/graph.ts'
+import type { Outline, Rect } from '../../ui/src/graph.ts'
 
 const SIDES = { top: Position.Top, right: Position.Right, bottom: Position.Bottom, left: Position.Left }
 const box = (x: number, y: number, width = 200, height = 72): Rect => ({ x, y, width, height })
@@ -28,17 +30,29 @@ const PAIRS: [Rect, Rect][] = [
 const STYLES = ['straight', 'curved', 'angled'] as const
 
 /** What Line.tsx draws for one line: its path and where its label sits. */
-function draw(style: (typeof STYLES)[number], a: Rect, b: Rect) {
+function draw(style: (typeof STYLES)[number], a: Rect, b: Rect, edgeA: Outline = [], edgeB: Outline = []) {
   if (style === 'straight') {
-    const [from, to] = lineEnds(a, b)
+    const [from, to] = lineEnds(a, b, edgeA, edgeB)
     const [data, x, y] = getStraightPath({ sourceX: from.x, sourceY: from.y, targetX: to.x, targetY: to.y })
     return { data, label: [x, y] }
   }
-  const p = ports(a, b)
+  const p = ports(a, b, edgeA, edgeB)
   const ends = { sourceX: p.from.x, sourceY: p.from.y, sourcePosition: SIDES[p.fromSide], targetX: p.to.x, targetY: p.to.y, targetPosition: SIDES[p.toSide] }
   const [data, x, y] = style === 'curved' ? getBezierPath(ends) : getSmoothStepPath({ ...ends, borderRadius: 8 })
   return { data, label: [x, y] }
 }
+
+/** Pairs where one or both ends are a shape other than a rectangle, so lines meet the outline. */
+const SHAPED: [Rect, Shape, Rect, Shape][] = [
+  [box(0, 0), 'diamond', box(400, 0), 'rectangle'],
+  [box(0, 0), 'diamond', box(350, 230), 'ellipse'],
+  [box(0, 300), 'hexagon', box(350, 0), 'parallelogram'],
+  [box(0, 0), 'pill', box(60, 400), 'arrow'],
+  [box(0, 0), 'cloud', box(0, 200), 'cylinder'],
+  [box(0, 0), 'ellipse', box(-250, -180), 'diamond'],
+  [box(0, 0), 'parallelogram', box(205, 0), 'hexagon'],
+  [box(0, 0), 'rectangle', box(10, 10), 'diamond'],
+]
 
 const px = (n: number): `${number}px` => `${n}px`
 const FITS = [
@@ -63,6 +77,10 @@ export function dumpGeometry(): unknown {
     paths: PAIRS.flatMap(([a, b]) => STYLES.map(style => {
       const p = ports(a, b)
       return { a, b, style, ...draw(style, a, b), ends: lineEnds(a, b), ports: p }
+    })),
+    shaped: SHAPED.flatMap(([a, shapeA, b, shapeB]) => STYLES.map(style => {
+      const [edgeA, edgeB] = [SHAPE_DEFS[shapeA].edge, SHAPE_DEFS[shapeB].edge]
+      return { a, b, shapeA, shapeB, style, ...draw(style, a, b, edgeA, edgeB), ends: lineEnds(a, b, edgeA, edgeB), ports: ports(a, b, edgeA, edgeB) }
     })),
     frames: [[box(0, 0), box(300, 200)], [box(10, 10, 50, 50)], [box(-100, 40), box(0, -20), box(80, 300)]].map(rects => ({ rects, frame: frameAround(rects) })),
     fits: FITS.map(f => ({

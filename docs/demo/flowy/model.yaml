@@ -106,6 +106,7 @@ objects:
     type: store
     in: ordering
     name: Order events
+    shape: queue
     tech: Kafka
     description: |
       One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.

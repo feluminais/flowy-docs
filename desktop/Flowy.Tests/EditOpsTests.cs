@@ -28,7 +28,8 @@ public class EditOpsTests
         {
             case "putObject":
                 return EditOps.PutObject(doc, new ObjectInput(Str(s, "id")!, Str(s, "type"), Str(s, "name"), Str(s, "in"), s["external"]?.GetValue<bool>(), Str(s, "tech"), Str(s, "description"),
-                    s["code"]?.AsArray().Select(c => c!.GetValue<string>()).ToList()));
+                    s["code"]?.AsArray().Select(c => c!.GetValue<string>()).ToList(),
+                    Str(s, "shape"), Str(s, "color"), s["opacity"]?.ToString(), Str(s, "icon")));
             case "deleteObject": return EditOps.DeleteObject(doc, Str(s, "id")!);
             case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label")));
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));

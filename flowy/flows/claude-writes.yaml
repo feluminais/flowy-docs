@@ -8,6 +8,6 @@ steps:
     description: |
       Problems already in the files are left alone. The point is that a write may not add one. A
       `code` path that doesn't exist counts, which the canvas can't see and Node can, so Claude
-      can't point a box at code that's gone.
+      can't point a shape at code that's gone.
   - { from: mcp, to: repo, text: Writes only the files that changed }
   - { from: canvas, text: Picks the change up without a reload }

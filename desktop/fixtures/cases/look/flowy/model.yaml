@@ -1,0 +1,157 @@
+icons:
+  stripe: M4 6h16v12h-16zM4 10h16M8 15h3
+  Bad_Name: M0 0h4
+  truck: M0 0h4
+  not-a-path: hello world
+  nested:
+    - M0 0h4
+objects:
+  rect:
+    type: system
+    name: Rectangle
+    shape: rectangle
+  pill:
+    type: system
+    name: Pill
+    shape: pill
+  ellipse:
+    type: system
+    name: Ellipse
+    shape: ellipse
+  diamond:
+    type: system
+    name: Decision
+    shape: diamond
+  diamond-icon:
+    type: system
+    name: Decision with an icon
+    shape: diamond
+    icon: coin
+  hexagon:
+    type: system
+    name: Hexagon
+    shape: hexagon
+    tech: Go
+  parallelogram:
+    type: system
+    name: Parallelogram
+    shape: parallelogram
+  cylinder:
+    type: system
+    name: Cylinder
+    shape: cylinder
+  queue:
+    type: system
+    name: Queue
+    shape: queue
+  document:
+    type: system
+    name: Document
+    shape: document
+  folder:
+    type: system
+    name: Folder
+    shape: folder
+  note:
+    type: system
+    name: Note
+    shape: note
+  cloud:
+    type: system
+    name: Cloud
+    shape: cloud
+  arrow:
+    type: system
+    name: Arrow
+    shape: arrow
+  person:
+    type: actor
+    name: Person
+  database:
+    type: system
+    name: Database
+  stored:
+    type: store
+    name: Stored
+    in: database
+  blue-tint:
+    type: system
+    name: Blue tint
+    color: blue
+  red-strong:
+    type: system
+    name: Red strong
+    color: red
+    opacity: "85"
+  hex-short:
+    type: system
+    name: Short hex
+    color: "#AbC"
+    opacity: "0"
+  hex-long:
+    type: system
+    name: Long hex
+    color: "#102030"
+    opacity: "100"
+    shape: hexagon
+    icon: stripe
+  only-opacity:
+    type: app
+    name: Only opacity
+    opacity: "40"
+    in: database
+  outside:
+    type: system
+    name: Outside
+    external: true
+    color: orange
+    opacity: "60"
+  truck-icon:
+    type: system
+    name: Truck
+    icon: truck
+  outside-icon:
+    type: system
+    name: Outside icon
+    external: true
+    icon: bell
+  blank:
+    type: system
+    name: Blank look
+    shape: ""
+    color: ""
+    opacity: ""
+    icon: ""
+  bad-shape:
+    type: system
+    name: Bad shape
+    shape: blob
+  bad-color:
+    type: system
+    name: Bad color
+    color: bluish
+  bad-hex:
+    type: system
+    name: Bad hex
+    color: "#abcd"
+  bad-opacity:
+    type: system
+    name: Bad opacity
+    opacity: "101"
+  bad-opacity-sign:
+    type: system
+    name: Bad opacity sign
+    opacity: "-5"
+  bad-opacity-zero:
+    type: system
+    name: Bad opacity zero
+    opacity: "05"
+  bad-icon:
+    type: system
+    name: Bad icon
+    icon: nope
+  proto-icon:
+    type: system
+    name: Proto icon
+    icon: constructor
+connections: []

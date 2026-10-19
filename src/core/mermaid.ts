@@ -1,3 +1,5 @@
+import { colorPair, isColor, isOpacity, fillOpacity, shapeOf, typeColor } from './look.ts'
+import type { Shape } from './look.ts'
 import { getObject, ROOT } from './model.ts'
 import type { Model } from './model.ts'
 import { computeView, placeStep } from './views.ts'
@@ -19,6 +21,34 @@ function ids(boxes: string[]): Map<string, string> {
   return new Map(boxes.map((id, i) => [id, `n${i}`]))
 }
 
+/**
+ * A shape as the closest Mermaid node. The newer ones (queue, document, note, cloud) use the `@{ shape: }` form,
+ * which Mermaid 11.3 and later draw, as GitHub and GitLab do; a folder has no Mermaid shape and stays a rectangle.
+ */
+const NODES: Record<Shape, (id: string, label: string) => string> = {
+  rectangle: (id, l) => `${id}["${l}"]`,
+  pill: (id, l) => `${id}(["${l}"])`,
+  ellipse: (id, l) => `${id}(("${l}"))`,
+  diamond: (id, l) => `${id}{"${l}"}`,
+  hexagon: (id, l) => `${id}{{"${l}"}}`,
+  parallelogram: (id, l) => `${id}[/"${l}"/]`,
+  cylinder: (id, l) => `${id}[("${l}")]`,
+  arrow: (id, l) => `${id}>"${l}"]`,
+  queue: (id, l) => `${id}@{ shape: h-cyl, label: "${l}" }`,
+  document: (id, l) => `${id}@{ shape: doc, label: "${l}" }`,
+  folder: (id, l) => `${id}["${l}"]`,
+  note: (id, l) => `${id}@{ shape: fold-rect, label: "${l}" }`,
+  cloud: (id, l) => `${id}@{ shape: cloud, label: "${l}" }`,
+}
+
+/** A `style` line for an object that sets a colour or an opacity: its fill at that opacity, and its outline in the colour when one is set. */
+function styleLine(model: Model, id: string, node: string): string[] {
+  const o = getObject(model, id)!
+  if (!isColor(o.color) && !isOpacity(o.opacity)) return []
+  const [hex] = colorPair(isColor(o.color) ? o.color : typeColor(o))!
+  return [`  style ${node} fill:${hex},fill-opacity:${fillOpacity(o) / 100}${isColor(o.color) ? `,stroke:${hex}` : ''}`]
+}
+
 /** A view as a Mermaid flowchart: its boxes, the boxes around it drawn dashed, and its merged lines. */
 export function viewToMermaid(model: Model, view: string): string {
   if (view !== ROOT && !getObject(model, view)) throw new Error(`unknown view "${view}"`)
@@ -27,14 +57,13 @@ export function viewToMermaid(model: Model, view: string): string {
   const box = (id: string) => {
     const o = getObject(model, id)!
     const label = `${nameOf(model, id)}<br/>${mermaidText(String(o.type))}${o.tech ? ` · ${mermaidText(String(o.tech))}` : ''}`
-    if (o.type === 'actor') return `  ${n.get(id)}(["${label}"])`
-    if (o.type === 'store') return `  ${n.get(id)}[("${label}")]`
-    return `  ${n.get(id)}["${label}"]`
+    return `  ${NODES[shapeOf(o)](n.get(id)!, label)}`
   }
   const lines = [
     'flowchart TB',
     ...[...n.keys()].map(box),
     ...v.edges.map(e => `  ${n.get(e.from)} ${e.label ? `-- "${mermaidText(e.label)}" ` : ''}--> ${n.get(e.to)}`),
+    ...[...n].flatMap(([id, node]) => styleLine(model, id, node)),
   ]
   if (v.outsiders.length) lines.push('  classDef outsider stroke-dasharray: 4 3', `  class ${v.outsiders.map(id => n.get(id)).join(',')} outsider`)
   return lines.join('\n') + '\n'

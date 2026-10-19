@@ -1,7 +1,7 @@
-name: Dragging a box
+name: Dragging a shape
 view: flowy
 steps:
-  - { from: reader, to: canvas, text: Drags a box in edit mode }
+  - { from: reader, to: canvas, text: Drags a shape in edit mode }
   - from: canvas
     to: server
     text: PUT /api/file/layout.yaml, with the version it read

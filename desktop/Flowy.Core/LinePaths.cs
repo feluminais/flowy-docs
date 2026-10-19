@@ -22,14 +22,14 @@ public static class LinePaths
     }
 
     /// <summary>The line between boxes <paramref name="a"/> and <paramref name="b"/> in a style: "straight", "curved" or "angled".</summary>
-    public static LinePath Build(string style, Rect a, Rect b)
+    public static LinePath Build(string style, Rect a, Rect b, double[]? edgeA = null, double[]? edgeB = null)
     {
         if (style == "straight")
         {
-            var (from, to) = BoxGeometry.LineEnds(a, b);
+            var (from, to) = BoxGeometry.LineEnds(a, b, edgeA, edgeB);
             return Straight(from, to);
         }
-        var ports = BoxGeometry.PortsBetween(a, b);
+        var ports = BoxGeometry.PortsBetween(a, b, edgeA, edgeB);
         return style == "curved" ? Bezier(ports) : SmoothStep(ports, 8);
     }
 

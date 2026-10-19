@@ -1,7 +1,7 @@
-name: Editing a box in the app
+name: Editing a shape in the app
 view: desktop
 steps:
-  - { from: reader, to: desktop-canvas, text: "Presses E, opens a box and changes its name" }
+  - { from: reader, to: desktop-canvas, text: "Presses E, opens a shape and changes its name" }
   - { from: desktop-canvas, to: desktop-core, text: "Asks for the edit when the field is left" }
   - from: desktop-core
     text: Applies it to the files' YAML and refuses it if it would add a problem

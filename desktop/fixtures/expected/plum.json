@@ -129,6 +129,7 @@
       "type": "store",
       "name": "Order events",
       "in": "ordering",
+      "shape": "queue",
       "tech": "Kafka",
       "description": "One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\nDispatch reads from it, and so does the warehouse.\n"
     },

@@ -1,7 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FocusEvent, FormEvent, ReactNode } from 'react'
 import { encodePath, isRepoPath, isWebAddress, typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
+import { ICON_GROUPS } from '../../src/core/icons.ts'
+import { COLOR_NAMES, colorPair, customIcons, fillOpacity, iconData, isColorName, SHAPES, shapeOf } from '../../src/core/look.ts'
+import type { Shape } from '../../src/core/look.ts'
 import { getObject, isExternal, linksOf, ROOT } from '../../src/core/model.ts'
 import type { Connection, FlowyObject, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { deleteFlow, deleteObject, OpError, putFlow, putObject, relabel, removeConnection, updateFlow } from '../../src/core/ops.ts'
@@ -11,8 +14,8 @@ import { Description } from './Box.tsx'
 import { connectionsOf, linesOf, newId, problemsOf } from './edit.ts'
 import type { BoxLine } from './edit.ts'
 import { lineId } from './graph.ts'
-import { Chip, kindClass, Section, TypeTile } from './Chrome.tsx'
-import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, Check, Cloud, Code, File, Folder, iconOf, Link as LinkIcon, Pencil, Play, Plus, Route, Text, Trash, Close } from './icons.tsx'
+import { Chip, kindClass, lookVars, ObjectTile, Section, TypeTile } from './Chrome.tsx'
+import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, Check, Cloud, Code, File, Folder, iconOf, Link as LinkIcon, Pencil, Play, Plus, Route, Sparkles, Text, Trash, Close } from './icons.tsx'
 
 /** Runs one edit and resolves to true once it's saved. Whatever went wrong shows as a notice. */
 export type Run = (op: (model: Model) => Model) => Promise<boolean>
@@ -35,16 +38,16 @@ function ProblemList({ problems }: { problems: Problem[] }) {
   )
 }
 
-/** The top of a box's panel: its tile, its name, and chips for its type, its tech, whether it is outside, and what is wrong with it. Tinted in the type's colour. */
-function ObjectHeader({ id, object, problems }: { id: string; object: FlowyObject; problems: number }) {
+/** The top of a shape's panel: its tile, its name, and chips for its type, its tech, whether it is outside, and what is wrong with it. Tinted in the shape's colour. */
+function ObjectHeader({ model, id, object, problems }: { model: Model; id: string; object: FlowyObject; problems: number }) {
   const external = isExternal(object)
   return (
-    <header className={`hero ${kindClass(object.type, external)}`}>
-      <TypeTile type={object.type} external={external} size={48} />
+    <header className={`hero ${kindClass(object.type, external)}`} style={lookVars({ color: object.color })}>
+      <ObjectTile model={model} object={object} size={48} />
       <div>
         <h2>{object.name || id}</h2>
         <div className="chips">
-          <Chip kind={kindClass(object.type)} icon={iconOf(object.type)}>{object.type || 'box'}</Chip>
+          <Chip kind={kindClass(object.type)} icon={iconOf(object.type)}>{object.type || 'shape'}</Chip>
           {object.tech && <Chip icon={Code}>{object.tech}</Chip>}
           {external && <Chip kind="t-external" icon={Cloud}>external</Chip>}
           {problems > 0 && <Chip kind="warn" icon={Alert}>{problems} problem{problems === 1 ? '' : 's'}</Chip>}
@@ -55,7 +58,7 @@ function ObjectHeader({ id, object, problems }: { id: string; object: FlowyObjec
 }
 
 /** A text field that saves when you leave it or press Enter, and shows the saved text again if saving fails. */
-function Field({ label, value, multiline, onSave }: { label: ReactNode; value: string; multiline?: boolean; onSave: (value: string) => Promise<boolean> }) {
+function Field({ label, value, multiline, list, placeholder, onSave }: { label: ReactNode; value: string; multiline?: boolean; list?: string; placeholder?: string; onSave: (value: string) => Promise<boolean> }) {
   const save = async (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = e.currentTarget
     if (input.value !== value && !(await onSave(input.value))) input.value = value
@@ -66,7 +69,35 @@ function Field({ label, value, multiline, onSave }: { label: ReactNode; value: s
       {label}
       {multiline
         ? <textarea key={value} defaultValue={value} rows={8} onBlur={save} />
-        : <input key={value} defaultValue={value} onBlur={save} onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()} />}
+        : <input key={value} defaultValue={value} list={list} placeholder={placeholder} onBlur={save} onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()} />}
+    </label>
+  )
+}
+
+/**
+ * A colour from the names, or any colour the browser's picker makes. The picker reports every move of the cursor as an input
+ * event and only its closing as a change, so it is saved on the change.
+ */
+function ColorField({ color, onSave }: { color?: string; onSave: (color: string) => Promise<boolean> }) {
+  const named = isColorName(color)
+  const picker = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    const el = picker.current
+    const save = () => void onSave(el!.value)
+    el?.addEventListener('change', save)
+    return () => el?.removeEventListener('change', save)
+  })
+  return (
+    <label>
+      Color
+      <span className="select-row">
+        <select value={named ? color : color ? 'custom' : ''} onChange={e => e.target.value !== 'custom' && void onSave(e.target.value)}>
+          <option value="">Default (the type's)</option>
+          {COLOR_NAMES.map(c => <option key={c}>{c}</option>)}
+          {color && !named && <option value="custom">{color}</option>}
+        </select>
+        <input key={color} ref={picker} type="color" defaultValue={colorPair(color)?.[0] ?? '#888888'} aria-label="Pick any colour" />
+      </span>
     </label>
   )
 }
@@ -157,7 +188,7 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
       <span className="dirn" aria-hidden="true"><Arrow size={14} /></span>
       <div>
         <div className="other">
-          <TypeTile type={other?.type ?? ''} external={other ? isExternal(other) : false} size={22} />
+          <ObjectTile model={model} object={other} size={22} />
           <button type="button" className="link" onClick={() => onPick(line.other)}>{nameOf(model, line.other)}</button>
         </div>
         {line.connections.length === 1 ? (
@@ -194,7 +225,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
   const save = (fields: Omit<ObjectInput, 'id'>) => run(m => putObject(m, { id, ...fields }))
   const ours = problemsOf(model, problems, id)
   const mine = <ProblemList problems={ours} />
-  const header = <ObjectHeader id={id} object={object} problems={ours.length} />
+  const header = <ObjectHeader model={model} id={id} object={object} problems={ours.length} />
   if (!editing) return (
     <Panel onClose={onClose}>
       {header}
@@ -208,6 +239,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
   )
   // A type the nesting rules don't allow here stays in the list, so the form shows what the file says.
   const types = [...new Set([...typesIn(model, parentOf(model, id)), object.type])].filter(Boolean)
+  const iconNames = [...ICON_GROUPS.flatMap(g => g.names), ...Object.keys(customIcons(model.meta))]
   return (
     <Panel onClose={onClose}>
       {header}
@@ -230,6 +262,29 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
             Outside service (drawn grey)
           </label>
           <Field label="Tech" value={object.tech ?? ''} onSave={tech => save({ tech })} />
+        </div>
+        <Section icon={Sparkles} title="Look" />
+        <div className="card">
+          <label>
+            Shape
+            <select value={object.shape ?? ''} onChange={e => void save({ shape: e.target.value as Shape | '' })}>
+              <option value="">Default ({shapeOf({ type: object.type })})</option>
+              {SHAPES.map(s => <option key={s}>{s}</option>)}
+            </select>
+          </label>
+          <ColorField color={object.color} onSave={color => save({ color })} />
+          <Field label="Opacity of the colour, 0 to 100" value={object.opacity ?? ''} placeholder={String(fillOpacity(object))}
+            onSave={text => save({ opacity: text.trim() === '' ? '' : Number(text) })} />
+          <label>
+            Icon
+            <span className="select-row">
+              <TypeTile type={object.type} external={isExternal(object)} size={28} d={iconData(model, object)} style={lookVars(object)} />
+              <input key={object.icon ?? ''} list="flowy-icons" defaultValue={object.icon ?? ''} placeholder="Default (the type's)"
+                onBlur={e => e.currentTarget.value !== (object.icon ?? '') && void save({ icon: e.currentTarget.value.trim() })}
+                onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()} />
+            </span>
+            <datalist id="flowy-icons">{iconNames.map(n => <option key={n} value={n} />)}</datalist>
+          </label>
         </div>
         <Section icon={Text} title="Description" />
         <Field label="Description" value={object.description ?? ''} multiline onSave={description => save({ description })} />
@@ -258,7 +313,7 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
           const o = getObject(model, end)
           const name = (
             <div key={end + i} className="end">
-              <TypeTile type={o?.type ?? ''} external={o ? isExternal(o) : false} size={40} />
+              <ObjectTile model={model} object={o} size={40} />
               <strong>{nameOf(model, end)}</strong>
             </div>
           )
@@ -398,7 +453,7 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
           </label>
         </form>
       ) : (
-        <p className="muted card">{rec.from ? `From ${nameOf(model, rec.from)}. Now click the box it goes to, or the same box for a step it does on its own.` : 'Click the box where the next step starts.'}</p>
+        <p className="muted card">{rec.from ? `From ${nameOf(model, rec.from)}. Now click the shape it goes to, or the same shape for a step it does on its own.` : 'Click the shape where the next step starts.'}</p>
       )}
       <div className="panel-buttons">
         {flow && <button className="danger" onClick={() => void run(m => deleteFlow(m, rec.id)).then(saved => saved && onClose())}><Trash size={16} />Delete flow</button>}

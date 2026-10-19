@@ -10,7 +10,7 @@ public static class Summary
         var m = folder.Model;
         var lines = new List<string>
         {
-            $"{Count(m.Objects.Count, "box", "boxes")}, {Count(m.Connections.Count, "connection", "connections")}, {Count(m.Flows.Count, "flow", "flows")}, {Count(folder.Problems.Count, "problem", "problems")}",
+            $"{Count(m.Objects.Count, "shape", "shapes")}, {Count(m.Connections.Count, "connection", "connections")}, {Count(m.Flows.Count, "flow", "flows")}, {Count(folder.Problems.Count, "problem", "problems")}",
         };
         lines.AddRange(folder.Problems.Select(p => $"  {p.File}: {p.Message}"));
         return string.Join('\n', lines);

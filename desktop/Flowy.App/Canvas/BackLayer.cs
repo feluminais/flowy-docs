@@ -41,11 +41,12 @@ internal sealed class BackLayer : Control
     {
         _scene = scene;
         var rects = scene.Boxes.ToDictionary(b => b.Id, b => b.Rect);
+        var outlines = scene.Boxes.ToDictionary(b => b.Id, b => Look.DefOf(b.Object).Edge); // where a line meets each shape
         _lines = scene.Edges
             .Where(e => rects.ContainsKey(e.From) && rects.ContainsKey(e.To))
             .Select(e =>
             {
-                var path = LinePaths.Build(style, rects[e.From], rects[e.To]);
+                var path = LinePaths.Build(style, rects[e.From], rects[e.To], outlines[e.From], outlines[e.To]);
                 return new Drawn(e, path, Geometry.Parse(path.Data));
             }).ToList();
         InvalidateVisual();

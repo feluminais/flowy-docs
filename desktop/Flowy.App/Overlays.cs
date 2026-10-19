@@ -100,7 +100,7 @@ internal sealed class SearchBox : Border
     private readonly Model _model;
     private readonly Action<string> _pick;
     private readonly Action _close;
-    private readonly TextBox _input = new() { PlaceholderText = "Find a box by name" };
+    private readonly TextBox _input = new() { PlaceholderText = "Find a shape by name" };
     private readonly StackPanel _results = new() { Margin = new Thickness(0, 6, 0, 0) };
     private List<string> _found = [];
     private int _at;
@@ -121,7 +121,7 @@ internal sealed class SearchBox : Border
         var field = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], Children = { glass, _input } };
         Grid.SetColumn(_input, 1);
         Child = new StackPanel { Children = { field, _results } };
-        Avalonia.Automation.AutomationProperties.SetName(_input, "Find a box by name");
+        Avalonia.Automation.AutomationProperties.SetName(_input, "Find a shape by name");
         _input.TextChanged += (_, _) =>
         {
             _at = 0;
@@ -158,7 +158,7 @@ internal sealed class SearchBox : Border
                 Spacing = 10,
                 Children =
                 {
-                    Chrome.TypeTile(o.Type, Model.IsExternal(o), 26),
+                    Chrome.ObjectTile(_model, o, 26),
                     new TextBlock { Text = Views.NameOf(_model, id), FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center },
                     new TextBlock { Text = where, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center },
                 },
@@ -202,10 +202,10 @@ internal sealed class ShortcutsCard : Border
 {
     private static readonly (string, string)[] Reading =
     [
-        ("Enter", "Open the selected box"),
+        ("Enter", "Open the selected shape"),
         ("Esc", "Close what's open, then go up a level"),
         ("Backspace  Z", "Zoom out: go up a level"),
-        ("Ctrl+K or /", "Find a box"),
+        ("Ctrl+K or /", "Find a shape"),
         ("F", "Fit the view"),
         ("E", "Edit mode on and off"),
         ("?", "Show these shortcuts"),
@@ -220,10 +220,10 @@ internal sealed class ShortcutsCard : Border
 
     private static readonly (string, string)[] Editing =
     [
-        ("N", "Add a box here"),
-        ("Delete", "Delete the open box or line"),
+        ("N", "Add a shape here"),
+        ("Delete", "Delete the open shape or line"),
         ("Ctrl+Z", "Undo the last change"),
-        ("Esc  Backspace", "Straight after dragging a box: take the drag back"),
+        ("Esc  Backspace", "Straight after dragging a shape: take the drag back"),
         ("Ctrl+Y", "Redo (or Ctrl+Shift+Z)"),
     ];
 

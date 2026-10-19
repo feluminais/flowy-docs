@@ -57,12 +57,24 @@ public static class Checks
         if (model.Meta.TryGetValue("lines", out var lines) && !(lines is string style && Names.LineStyles.Contains(style)))
             Add("model.yaml", null, "lines must be straight, curved or angled");
 
+        if (model.Meta.TryGetValue("icons", out var icons) && !(icons is ""))
+        {
+            if (icons is not OrderedDictionary<string, object?> iconMap) Add("model.yaml", null, "icons must map names to SVG path data");
+            else
+                foreach (var name in JsKeys.Order(iconMap.Keys))
+                    if (Look.IconProblem(name, iconMap[name]) is { } why) Add("model.yaml", null, $"icon {name}: {why}");
+        }
+
         foreach (var (id, o) in model.Objects)
         {
             void P(string message) => Add("model.yaml", id, $"{id}: {message}");
             if (!Names.IsValidId(id)) P($"ids {Names.IdRule}");
             if (!NonEmpty(o.Name)) P("name is missing");
             if (o.External is not null && o.External != "true" && o.External != "false") P("external must be true or false");
+            if (!Missing(o.Shape) && !Look.IsShape(o.Shape)) P($"unknown shape \"{o.Shape}\" (use {string.Join(", ", Look.ShapeNames)})");
+            if (!Missing(o.Color) && !Look.IsColor(o.Color)) P($"color \"{o.Color}\" must be a name ({string.Join(", ", Look.ColorNames)}) or a hex like #3b82f6");
+            if (!Missing(o.Opacity) && !Look.IsOpacity(o.Opacity)) P($"opacity \"{o.Opacity}\" must be a whole number from 0 to 100");
+            if (!Missing(o.Icon) && !Look.IsKnownIcon(model.Meta, o.Icon)) P($"unknown icon \"{o.Icon}\" (use a built-in name, or define it under icons: in model.yaml)");
             if (o.Code is not null)
             {
                 if (o.Code is not List<object?> code || code.Any(c => c is not string)) P("code must be a list of paths");
@@ -132,7 +144,7 @@ public static class Checks
                         Sp($"{s.From} can't be shown in view \"{f.View}\"");
                     continue;
                 }
-                if (!Missing(s.From) && s.From == s.To) Sp("goes from an object to itself (leave out \"to\" for a step one box does on its own)");
+                if (!Missing(s.From) && s.From == s.To) Sp("goes from an object to itself (leave out \"to\" for a step one shape does on its own)");
                 else if (viewOk && model.GetObject(s.From) is not null && model.GetObject(s.To) is not null && Views.PlaceStep(model, f.View, s.From, s.To) is null)
                     Sp($"{s.From} → {s.To} can't be shown in view \"{f.View}\"");
             }

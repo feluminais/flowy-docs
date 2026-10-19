@@ -20,7 +20,7 @@ public class MermaidTests
     public void Every_view_and_flow_is_the_text_the_browser_copies()
     {
         var folders = Expected()["folders"]!.AsArray();
-        Assert.Equal(3, folders.Count);
+        Assert.Equal(4, folders.Count);
         foreach (var f in folders)
         {
             var folder = FolderLoader.Load(Path.Combine(Repo.Root, f!["folder"]!.GetValue<string>())).Model;

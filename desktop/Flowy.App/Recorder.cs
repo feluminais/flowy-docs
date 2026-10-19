@@ -161,8 +161,8 @@ internal sealed class Recorder : StackPanel
         {
             _pick.Children.Add(Chrome.Section(Icons.Plus, "Next step"));
             _pick.Children.Add(Chrome.Card(_owner.Muted(rec.From is not null
-                ? $"From {Views.NameOf(model, rec.From)}. Now click the box it goes to, or the same box for a step it does on its own."
-                : "Click the box where the next step starts.")));
+                ? $"From {Views.NameOf(model, rec.From)}. Now click the shape it goes to, or the same shape for a step it does on its own."
+                : "Click the shape where the next step starts.")));
         }
 
         _buttons.Children.Clear();

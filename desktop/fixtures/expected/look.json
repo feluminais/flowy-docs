@@ -1,0 +1,341 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "rect",
+      "type": "system",
+      "name": "Rectangle",
+      "shape": "rectangle"
+    },
+    {
+      "id": "pill",
+      "type": "system",
+      "name": "Pill",
+      "shape": "pill"
+    },
+    {
+      "id": "ellipse",
+      "type": "system",
+      "name": "Ellipse",
+      "shape": "ellipse"
+    },
+    {
+      "id": "diamond",
+      "type": "system",
+      "name": "Decision",
+      "shape": "diamond"
+    },
+    {
+      "id": "diamond-icon",
+      "type": "system",
+      "name": "Decision with an icon",
+      "shape": "diamond",
+      "icon": "coin"
+    },
+    {
+      "id": "hexagon",
+      "type": "system",
+      "name": "Hexagon",
+      "shape": "hexagon",
+      "tech": "Go"
+    },
+    {
+      "id": "parallelogram",
+      "type": "system",
+      "name": "Parallelogram",
+      "shape": "parallelogram"
+    },
+    {
+      "id": "cylinder",
+      "type": "system",
+      "name": "Cylinder",
+      "shape": "cylinder"
+    },
+    {
+      "id": "queue",
+      "type": "system",
+      "name": "Queue",
+      "shape": "queue"
+    },
+    {
+      "id": "document",
+      "type": "system",
+      "name": "Document",
+      "shape": "document"
+    },
+    {
+      "id": "folder",
+      "type": "system",
+      "name": "Folder",
+      "shape": "folder"
+    },
+    {
+      "id": "note",
+      "type": "system",
+      "name": "Note",
+      "shape": "note"
+    },
+    {
+      "id": "cloud",
+      "type": "system",
+      "name": "Cloud",
+      "shape": "cloud"
+    },
+    {
+      "id": "arrow",
+      "type": "system",
+      "name": "Arrow",
+      "shape": "arrow"
+    },
+    {
+      "id": "person",
+      "type": "actor",
+      "name": "Person"
+    },
+    {
+      "id": "database",
+      "type": "system",
+      "name": "Database"
+    },
+    {
+      "id": "stored",
+      "type": "store",
+      "name": "Stored",
+      "in": "database"
+    },
+    {
+      "id": "blue-tint",
+      "type": "system",
+      "name": "Blue tint",
+      "color": "blue"
+    },
+    {
+      "id": "red-strong",
+      "type": "system",
+      "name": "Red strong",
+      "color": "red",
+      "opacity": "85"
+    },
+    {
+      "id": "hex-short",
+      "type": "system",
+      "name": "Short hex",
+      "color": "#AbC",
+      "opacity": "0"
+    },
+    {
+      "id": "hex-long",
+      "type": "system",
+      "name": "Long hex",
+      "shape": "hexagon",
+      "color": "#102030",
+      "opacity": "100",
+      "icon": "stripe"
+    },
+    {
+      "id": "only-opacity",
+      "type": "app",
+      "name": "Only opacity",
+      "in": "database",
+      "opacity": "40"
+    },
+    {
+      "id": "outside",
+      "type": "system",
+      "name": "Outside",
+      "external": "true",
+      "color": "orange",
+      "opacity": "60"
+    },
+    {
+      "id": "truck-icon",
+      "type": "system",
+      "name": "Truck",
+      "icon": "truck"
+    },
+    {
+      "id": "outside-icon",
+      "type": "system",
+      "name": "Outside icon",
+      "external": "true",
+      "icon": "bell"
+    },
+    {
+      "id": "blank",
+      "type": "system",
+      "name": "Blank look",
+      "shape": "",
+      "color": "",
+      "opacity": "",
+      "icon": ""
+    },
+    {
+      "id": "bad-shape",
+      "type": "system",
+      "name": "Bad shape",
+      "shape": "blob"
+    },
+    {
+      "id": "bad-color",
+      "type": "system",
+      "name": "Bad color",
+      "color": "bluish"
+    },
+    {
+      "id": "bad-hex",
+      "type": "system",
+      "name": "Bad hex",
+      "color": "#abcd"
+    },
+    {
+      "id": "bad-opacity",
+      "type": "system",
+      "name": "Bad opacity",
+      "opacity": "101"
+    },
+    {
+      "id": "bad-opacity-sign",
+      "type": "system",
+      "name": "Bad opacity sign",
+      "opacity": "-5"
+    },
+    {
+      "id": "bad-opacity-zero",
+      "type": "system",
+      "name": "Bad opacity zero",
+      "opacity": "05"
+    },
+    {
+      "id": "bad-icon",
+      "type": "system",
+      "name": "Bad icon",
+      "icon": "nope"
+    },
+    {
+      "id": "proto-icon",
+      "type": "system",
+      "name": "Proto icon",
+      "icon": "constructor"
+    }
+  ],
+  "icons": {
+    "stripe": "M4 6h16v12h-16zM4 10h16M8 15h3",
+    "Bad_Name": "M0 0h4",
+    "truck": "M0 0h4",
+    "not-a-path": "hello world",
+    "nested": [
+      "M0 0h4"
+    ]
+  },
+  "connections": [],
+  "layout": {},
+  "flows": [],
+  "problems": [
+    {
+      "file": "model.yaml",
+      "message": "icon Bad_Name: names use lowercase letters, digits and dashes, not starting with a dash"
+    },
+    {
+      "file": "model.yaml",
+      "message": "icon truck: is a built-in icon, so pick another name"
+    },
+    {
+      "file": "model.yaml",
+      "message": "icon not-a-path: must be SVG path data (commands like M, L, C, A and Z, on a 24×24 grid, at most 4000 characters)"
+    },
+    {
+      "file": "model.yaml",
+      "message": "icon nested: must be SVG path data (commands like M, L, C, A and Z, on a 24×24 grid, at most 4000 characters)"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-shape",
+      "message": "bad-shape: unknown shape \"blob\" (use rectangle, pill, ellipse, diamond, hexagon, parallelogram, cylinder, queue, document, folder, note, cloud, arrow)"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-color",
+      "message": "bad-color: color \"bluish\" must be a name (gray, red, orange, amber, green, teal, blue, indigo, purple, pink) or a hex like #3b82f6"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-hex",
+      "message": "bad-hex: color \"#abcd\" must be a name (gray, red, orange, amber, green, teal, blue, indigo, purple, pink) or a hex like #3b82f6"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-opacity",
+      "message": "bad-opacity: opacity \"101\" must be a whole number from 0 to 100"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-opacity-sign",
+      "message": "bad-opacity-sign: opacity \"-5\" must be a whole number from 0 to 100"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-opacity-zero",
+      "message": "bad-opacity-zero: opacity \"05\" must be a whole number from 0 to 100"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-icon",
+      "message": "bad-icon: unknown icon \"nope\" (use a built-in name, or define it under icons: in model.yaml)"
+    },
+    {
+      "file": "model.yaml",
+      "id": "proto-icon",
+      "message": "proto-icon: unknown icon \"constructor\" (use a built-in name, or define it under icons: in model.yaml)"
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "rect",
+        "pill",
+        "ellipse",
+        "diamond",
+        "diamond-icon",
+        "hexagon",
+        "parallelogram",
+        "cylinder",
+        "queue",
+        "document",
+        "folder",
+        "note",
+        "cloud",
+        "arrow",
+        "person",
+        "database",
+        "blue-tint",
+        "red-strong",
+        "hex-short",
+        "hex-long",
+        "outside",
+        "truck-icon",
+        "outside-icon",
+        "blank",
+        "bad-shape",
+        "bad-color",
+        "bad-hex",
+        "bad-opacity",
+        "bad-opacity-sign",
+        "bad-opacity-zero",
+        "bad-icon",
+        "proto-icon"
+      ],
+      "outsiders": [],
+      "edges": []
+    },
+    "database": {
+      "id": "database",
+      "members": [
+        "stored",
+        "only-opacity"
+      ],
+      "outsiders": [],
+      "edges": []
+    }
+  }
+}

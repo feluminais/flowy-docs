@@ -51,7 +51,7 @@ if (args?.positionals[0] === 'mcp') {
   try {
     const { boxes, flows, problems } = await exportSite({ dir: resolve(args.values.dir), ui, out })
     const found = problems === 0 ? '' : ` It has ${count(problems, 'problem')}, listed on the page.`
-    console.log(`Exported ${count(boxes, 'box', 'boxes')} and ${count(flows, 'flow')} to ${out}.${found}\n` +
+    console.log(`Exported ${count(boxes, 'shape', 'shapes')} and ${count(flows, 'flow')} to ${out}.${found}\n` +
       "Put the folder on any static host, such as GitHub Pages. Browsers won't run it straight from disk.")
   } catch (e) {
     console.error(e instanceof Error ? e.message : String(e))

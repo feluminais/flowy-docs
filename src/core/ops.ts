@@ -1,4 +1,6 @@
 import { check, newProblems } from './check.ts'
+import { iconProblem } from './look.ts'
+import type { Shape } from './look.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Connection, Flow, FlowyObject, Layout, LineStyle, Link, Model, ObjectType, Step } from './model.ts'
 import { memberIds } from './views.ts'
@@ -8,18 +10,23 @@ export class OpError extends Error {
   name = 'OpError'
 }
 
-export type ObjectInput = { id: string; type?: ObjectType; name?: string; in?: string; external?: boolean; tech?: string; description?: string; code?: string[]; links?: Link[] }
+export type ObjectInput = {
+  id: string; type?: ObjectType; name?: string; in?: string; external?: boolean
+  /** How it is drawn: "" removes the shape, colour or icon, and an opacity of "" removes that. */
+  shape?: Shape | ''; color?: string; opacity?: number | ''; icon?: string
+  tech?: string; description?: string; code?: string[]; links?: Link[]
+}
 export type ConnectionInput = { from: string; to: string; label?: string }
 export type FlowInput = { id: string; name: string; view: string; steps: Step[] }
 
-const FIELDS = ['type', 'name', 'in', 'external', 'tech', 'description', 'code', 'links'] as const
-const CLEARABLE = ['in', 'tech', 'description'] as const
+const FIELDS = ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description', 'code', 'links'] as const
+const CLEARABLE = ['in', 'shape', 'color', 'opacity', 'icon', 'tech', 'description'] as const
 
 /**
- * Create or update an object. Omitted fields stay as they are; "" removes in, tech or description,
- * [] removes code or links, and external: false removes external.
+ * Create or update an object. Omitted fields stay as they are; "" removes in, shape, color, opacity, icon, tech or
+ * description, [] removes code or links, and external: false removes external.
  * Only the known fields are copied from the input, so a new object's keys always come out
- * in the order type, name, in, external, tech, description, code, links, and stray input keys never land in the model.
+ * in the order type, name, in, external, shape, color, opacity, icon, tech, description, code, links, and stray input keys never land in the model.
  * A link keeps its extra keys, comes out with its title before its url, and loses a blank title.
  */
 export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
@@ -28,6 +35,8 @@ export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   if (!prev && (!fields.type || !fields.name)) throw new OpError(`"${id}" doesn't exist yet, so type and name are required`)
   const next: Record<string, unknown> = { ...prev }
   for (const k of FIELDS) if (fields[k] !== undefined) next[k] = fields[k]
+  // On disk an opacity is text, like every value: `opacity: 40` reads back as "40".
+  if (typeof next.opacity === 'number') next.opacity = String(next.opacity)
   for (const k of CLEARABLE) if (next[k] === '') delete next[k]
   if (Array.isArray(next.code) && next.code.length === 0) delete next.code
   if (fields.links !== undefined) next.links = fields.links.map(({ title, ...rest }) => (title?.trim() ? { title, ...rest } : rest))
@@ -36,6 +45,25 @@ export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   if (next.external === true) next.external = 'true'
   else if (next.external === false) delete next.external
   return { ...model, objects: { ...model.objects, [id]: next as FlowyObject } }
+}
+
+/** Define a custom icon: `icons: { name: <SVG path data> }` in model.yaml. An existing name is replaced in place. */
+export function putIcon(model: Model, name: string, path: string): Model {
+  const why = iconProblem(name, path)
+  if (why) throw new OpError(`icon ${name} ${why}`)
+  const icons = typeof model.meta.icons === 'object' && model.meta.icons !== null && !Array.isArray(model.meta.icons) ? model.meta.icons : {}
+  return { ...model, meta: { ...model.meta, icons: { ...icons, [name]: path.trim() } } }
+}
+
+/** Remove a custom icon. Refused while an object uses it. */
+export function deleteIcon(model: Model, name: string): Model {
+  const { icons } = model.meta
+  if (typeof icons !== 'object' || icons === null || Array.isArray(icons) || !Object.hasOwn(icons, name)) throw new OpError(`unknown icon "${name}"`)
+  const users = Object.entries(model.objects).filter(([, o]) => o.icon === name).map(([id]) => id)
+  if (users.length) throw new OpError(`icon "${name}" is used by ${users.join(', ')}. Change those first.`)
+  const { [name]: _, ...rest } = icons as Record<string, unknown>
+  const { icons: __, ...meta } = model.meta
+  return { ...model, meta: Object.keys(rest).length ? { ...model.meta, icons: rest } : meta }
 }
 
 export function deleteObject(model: Model, id: string): Model {
@@ -146,7 +174,7 @@ export function setLines(model: Model, style: LineStyle | undefined): Model {
 
 /** Forget where boxes were dragged in one view (its part of layout.yaml), so the computed layout shows again. */
 export function forgetLayout(model: Model, view: string): Model {
-  if (!Object.hasOwn(model.layout, view)) throw new OpError('Nothing to tidy: no box here was moved by hand.')
+  if (!Object.hasOwn(model.layout, view)) throw new OpError('Nothing to tidy: no shape here was moved by hand.')
   const layout = { ...model.layout }
   delete layout[view]
   return { ...model, layout }

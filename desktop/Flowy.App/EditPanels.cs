@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -79,7 +80,7 @@ internal sealed class FieldBox : StackPanel
     }
 }
 
-/// <summary>An object's form: name, type, outside service, tech, description and code, then its problems and connections, its id, and delete.</summary>
+/// <summary>An object's form: name, type, outside service, tech, its look (shape, colour, opacity, icon), description and code, then its problems and connections, its id, and delete.</summary>
 internal sealed class ObjectEditor : StackPanel
 {
     private readonly SidePanel _owner;
@@ -92,6 +93,14 @@ internal sealed class ObjectEditor : StackPanel
     private readonly FieldBox _code;
     private readonly ComboBox _type = new() { HorizontalAlignment = HorizontalAlignment.Stretch, ItemTemplate = Chrome.TypeItem };
     private readonly CheckBox _external = new() { Content = "Outside service (drawn grey)" };
+    private readonly ComboBox _shape = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly ComboBox _color = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly ComboBox _icon = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly FieldBox _hex;
+    private readonly FieldBox _opacity;
+    private Dictionary<string, string> _iconData = [];
+    private string _defaultShape = "rectangle";
+    private const string Default = "";
     private readonly StackPanel _header = new();
     private readonly StackPanel _problems = new();
     private readonly StackPanel _lines = new();
@@ -108,6 +117,36 @@ internal sealed class ObjectEditor : StackPanel
         _tech = new FieldBox("Tech", "", false, v => Put(new ObjectInput(id, Tech: v)));
         _description = new FieldBox("Description (Markdown)", "", true, v => Put(new ObjectInput(id, Description: v)));
         _code = new FieldBox("Code (one path per line)", "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())));
+        _hex = new FieldBox("Custom color (#rrggbb)", "", false, v => Put(new ObjectInput(id, Color: v.Trim())));
+        _opacity = new FieldBox("Opacity of the colour, 0 to 100", "", false, v => Put(new ObjectInput(id, Opacity: v.Trim())));
+        _shape.ItemTemplate = new FuncDataTemplate<string>((shape, _) => new TextBlock { Text = shape == Default ? $"Default ({_defaultShape})" : shape, VerticalAlignment = VerticalAlignment.Center });
+        _color.ItemTemplate = new FuncDataTemplate<string>((color, _) => new TextBlock { Text = color == Default ? "Default (the type's)" : color, VerticalAlignment = VerticalAlignment.Center });
+        _icon.ItemTemplate = new FuncDataTemplate<string>((icon, _) => new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 9,
+            Children =
+            {
+                Icons.Make(icon is not null && icon != Default && _iconData.TryGetValue(icon, out var d) ? d : Icons.Cube, "ticon", 16),
+                new TextBlock { Text = icon == Default ? "Default (the type's)" : icon, VerticalAlignment = VerticalAlignment.Center },
+            },
+        });
+        _shape.SelectionChanged += async (_, _) =>
+        {
+            if (!_syncing && _shape.SelectedItem is string shape) await Put(new ObjectInput(id, Shape: shape));
+        };
+        _color.SelectionChanged += async (_, _) =>
+        {
+            if (_syncing || _color.SelectedItem is not string color) return;
+            if (color == Default || Look.IsColorName(color)) await Put(new ObjectInput(id, Color: color)); // a custom colour in the list is the file's own: nothing to save
+        };
+        _icon.SelectionChanged += async (_, _) =>
+        {
+            if (!_syncing && _icon.SelectedItem is string icon) await Put(new ObjectInput(id, Icon: icon));
+        };
+        Avalonia.Automation.AutomationProperties.SetName(_shape, "Shape");
+        Avalonia.Automation.AutomationProperties.SetName(_color, "Color");
+        Avalonia.Automation.AutomationProperties.SetName(_icon, "Icon");
         _type.SelectionChanged += async (_, _) =>
         {
             if (!_syncing && _type.SelectedItem is string type) await Put(new ObjectInput(id, Type: type));
@@ -132,6 +171,8 @@ internal sealed class ObjectEditor : StackPanel
         Children.Add(_problems);
         Children.Add(Chrome.Section(Icons.Pencil, "Details"));
         Children.Add(Chrome.Card(new StackPanel { Spacing = 12, Children = { _name, new StackPanel { Spacing = 4, Children = { typeCaption, _type } }, _external, _tech } }));
+        Children.Add(Chrome.Section(Icons.Sparkles, "Look"));
+        Children.Add(Chrome.Card(new StackPanel { Spacing = 12, Children = { Captioned("Shape", _shape), Captioned("Color", _color), _hex, _opacity, Captioned("Icon", _icon) } }));
         Children.Add(Chrome.Section(Icons.Text, "Description"));
         Children.Add(_description);
         Children.Add(Chrome.Section(Icons.Code, "Code"));
@@ -141,7 +182,24 @@ internal sealed class ObjectEditor : StackPanel
         Children.Add(delete);
     }
 
+    private static StackPanel Captioned(string caption, Control control)
+    {
+        var text = new TextBlock { Text = caption, FontSize = 12 };
+        text.Classes.Add("muted");
+        return new StackPanel { Spacing = 4, Children = { text, control } };
+    }
+
     internal FieldBox NameField => _name;
+
+    internal ComboBox ShapeBox => _shape;
+
+    internal ComboBox ColorBox => _color;
+
+    internal ComboBox IconBox => _icon;
+
+    internal FieldBox HexField => _hex;
+
+    internal FieldBox OpacityField => _opacity;
 
     internal FieldBox TechField => _tech;
 
@@ -167,6 +225,22 @@ internal sealed class ObjectEditor : StackPanel
         _type.ItemsSource = types;
         _type.SelectedItem = o.Type;
         _external.IsChecked = Model.IsExternal(o);
+        _defaultShape = Look.ShapeOf(new FlowyObject(o.Type, null, null, null, null, null, null));
+        _shape.ItemsSource = new[] { Default }.Concat(Look.ShapeNames).ToList();
+        _shape.SelectedItem = Look.IsShape(o.Shape) ? o.Shape : Default;
+        var named = Look.IsColorName(o.Color);
+        var colors = new[] { Default }.Concat(Look.ColorNames).ToList();
+        if (!string.IsNullOrEmpty(o.Color) && !named) colors.Add(o.Color); // a hex colour, or one the checks will report, stays in the list so the form says what the file says
+        _color.ItemsSource = colors;
+        _color.SelectedItem = string.IsNullOrEmpty(o.Color) ? Default : o.Color;
+        _hex.Sync(!named ? o.Color ?? "" : "");
+        _opacity.Sync(o.Opacity ?? "");
+        _iconData = LookData.Icons.ToDictionary(kv => kv.Key, kv => kv.Value);
+        foreach (var (name, d) in Look.CustomIcons(model.Meta)) _iconData[name] = d;
+        var icons = new[] { Default }.Concat(_iconData.Keys).ToList();
+        if (!string.IsNullOrEmpty(o.Icon) && !_iconData.ContainsKey(o.Icon)) icons.Add(o.Icon);
+        _icon.ItemsSource = icons;
+        _icon.SelectedItem = string.IsNullOrEmpty(o.Icon) ? Default : o.Icon;
         _syncing = false;
 
         var mine = Navigation.ProblemsOf(model, problems, Id);

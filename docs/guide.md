@@ -2,42 +2,43 @@
 
 The full detail behind the [README](../README.md): what every part of the canvas does, how editing and undo work, what Claude can change, and how sharing behaves. The examples come from Plum, a made-up delivery service whose model is in [`docs/demo/flowy`](demo/flowy).
 
-What to write in it, box by box, is in [Writing good Flowy docs](writing.md).
+What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md).
 
 ## Read it
 
-- Each box shows its type as a coloured icon: person, system, app, store, component. Outside
-  services you don't own are grey with a cloud. "3 inside" means a box opens: double-click it, or
+- Each shape shows an icon in a colour, which by default are its type's: person, system, app, store, component. Outside
+  services you don't own are grey with a cloud. A shape can choose its own shape, colour, opacity and icon
+  ([below](#shapes-colour-and-icons)). "3 inside" means a shape opens: double-click it, or
   select it and press Enter, to zoom in. Esc zooms back out, one level per press, once it has
   closed whatever is open (a flow, the side panel). Backspace, Z and the breadcrumb zoom out too.
-  Inside a box, a frame named after it wraps what's in it. A faded box that opens sits beside the
+  Inside a shape, a frame named after it wraps what's in it. A faded shape that opens sits beside the
   one you're in, not inside it, so opening it slides across instead of zooming in.
-- Hover a box for its short description. Click it for the full text and its connections: every
+- Hover a shape for its short description. Click it for the full text and its connections: every
   line out and in, with its label. A line that stands for several connections opens to list them.
-  Pointing at a row lights its line on the canvas, and the box's name opens that box. Click a line
+  Pointing at a row lights its line on the canvas, and the shape's name opens that shape. Click a line
   to see the connections it stands for.
-- Lines have no labels until you point at one. Click a box and its lines show theirs while the
+- Lines have no labels until you point at one. Click a shape and its lines show theirs while the
   others fade.
 - Lines (top bar) switches between straight, curved and right-angled lines for your own screen.
   "Project default" goes back to the project's choice.
-- Faded, dashed boxes live elsewhere in the model. They show up because something here connects to
+- Faded, dashed shapes live elsewhere in the model. They show up because something here connects to
   them, and they wait around the edges (people above, the rest beside, below or above, wherever
   fewer lines cross) while what's inside sits in the middle.
-- A box can list the files and folders it lives in, under its description. When the repo's
+- A shape can list the files and folders it lives in, under its description. When the repo's
   `origin` is on GitHub or GitLab, they link there.
-- A box can list links to its long documents (a runbook, a decision record, a wiki page) in a Links
+- A shape can list links to its long documents (a runbook, a decision record, a wiki page) in a Links
   section under its description. A web address opens in a new tab. A path in the repo links to the
   file when the repo's `origin` is on GitHub or GitLab, and a path that doesn't exist shows up as a
   problem.
-- Ctrl+K or / (or Search) finds a box anywhere in the model by name. Pick one and the canvas
+- Ctrl+K or / (or Search) finds a shape anywhere in the model by name. Pick one and the canvas
   opens the level it's on, with its panel open.
 - Pick a flow in the top bar to play it step by step: ← and → move, Home and End jump to the first
-  and last step, Esc stops. A step can be one box doing something on its own, and a step with more
-  to say has a More you can open. When a step lands on a box that stands for a part inside it, the
-  player names the part too ("Scheduler in Core"), so two steps on two parts of one box don't read
+  and last step, Esc stops. A step can be one shape doing something on its own, and a step with more
+  to say has a More you can open. When a step lands on a shape that stands for a part inside it, the
+  player names the part too ("Scheduler in Core"), so two steps on two parts of one shape don't read
   as a round trip.
 - F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
-- "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Boxes with
+- "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Shapes with
   a problem carry a "!".
 
 The page follows the files: when Claude or your editor changes them, it updates by itself.
@@ -47,29 +48,29 @@ The page follows the files: when Claude or your editor changes them, it updates 
 Press E, or the Edit button. The browser canvas and the [desktop app](#the-desktop-app) both do everything below, through the same
 checks, and write the same text, so a change made in one looks the same in git as one made in the other.
 
-- Drag boxes to arrange the view. Positions go to `flowy/layout.yaml`.
-- Drag from the dot under a box onto another box to connect them, then type a label in the panel.
-- Add (or N) puts a box in the current view. It offers only the types that fit there: actors and
+- Drag shapes to arrange the view. Positions go to `flowy/layout.yaml`.
+- Drag from the dot under a shape onto another shape to connect them, then type a label in the panel.
+- Add (or N) puts a shape in the current view. It offers only the types that fit there: actors and
   systems at the top, apps and stores inside a system, components inside an app or store.
   Double-click an empty system, app or store to open it and add what goes inside.
-- Click a box to change its name, type, tech, description and code. A field saves when you leave
+- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and code. A field saves when you leave
   it. Code takes one path per line, relative to the folder that holds `flowy/`. A path that
   doesn't exist shows up as a problem.
 - Links takes one per line, as `title | address`, or an address alone. An address is a web address
   (http or https) or a path in the repo, relative to the folder that holds `flowy/`. Anything else
   is refused.
-- "Outside service" in a box's panel marks it `external: true`, for things you use but don't own.
-- Delete (the key, or the button in the panel) removes the selected box or line. A box that still
+- "Outside service" in a shape's panel marks it `external: true`, for things you use but don't own.
+- Delete (the key, or the button in the panel) removes the selected shape or line. A shape that still
   contains others, or that a flow uses, stays, and a notice says why.
 - Lines, in edit mode, sets the project's style for everyone: a `lines:` key at the top of
   `model.yaml`, which takes `straight` (the default, so it's left out), `curved` or `angled`.
-- Esc or Backspace, straight after dragging a box, take the drag back: whoever has just moved a box and got it wrong reaches for them.
+- Esc or Backspace, straight after dragging a shape, take the drag back: whoever has just moved a shape and got it wrong reaches for them.
   Once anything else is done (a click, another edit, a move to another level) they close the panel and go up again, as in reading.
   **Z** zooms out whatever you have just done, and Ctrl+Z undoes the last change of any kind.
-- Tidy forgets where boxes in this view were dragged, so Flowy lays it out again, picking the
+- Tidy forgets where shapes in this view were dragged, so Flowy lays it out again, picking the
   layout with the fewest crossing lines it finds. Ctrl+Z brings your positions back.
-- New flow records a walkthrough: name it, click the box where a step starts and the box it goes
-  to (or the same box again, for a step it does on its own), type what happens and press Enter.
+- New flow records a walkthrough: name it, click the shape where a step starts and the shape it goes
+  to (or the same shape again, for a step it does on its own), type what happens and press Enter.
   Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
   delete steps. "Edit a flow" opens one you already have.
 
@@ -83,6 +84,127 @@ you make a new change. If the file changed since (Claude, your editor, another t
 leave it alone and say so. Undo brings back what the file said, not how it was written: like any
 save, it drops YAML comments and writes the file in Flowy's own layout.
 
+## Shapes, colour and icons
+
+Every shape starts with the look its type gives it: a person is a pill, a store is a cylinder, anything else is a rectangle, each
+in its type's colour with its type's icon. Four optional fields change that, in the **Look** part of a shape's panel (in the app and
+in the browser) or in the file. The type still decides what a shape may sit inside; these only decide how it is drawn.
+
+```yaml
+objects:
+  paid:
+    type: component
+    in: checkout-api
+    name: Payment taken?
+    shape: diamond        # what it is drawn as
+    color: amber          # a name, or #rgb / #rrggbb
+    opacity: 30           # how much of the colour fills it, 0 to 100
+    icon: coin            # a built-in icon, or one of your own
+```
+
+| Field | Takes | When you leave it out |
+| --- | --- | --- |
+| `shape` | One of the 13 shapes below | The type's: pill for an actor, cylinder for a store, rectangle for the rest |
+| `color` | A name (`gray red orange amber green teal blue indigo purple pink`) or a hex colour | The type's colour, and grey for an outside service |
+| `opacity` | A whole number, 0 to 100 | 15 once you set a colour, and 0 (the plain surface) until then |
+| `icon` | A built-in icon name, or one defined under `icons:` | A cloud for an outside service, else the type's icon |
+
+All four are optional, and a blank value (`shape:`) counts as left out. A value Flowy doesn't know is a problem, and the problem list
+says which.
+
+![The 13 shapes, each labelled with what it is for](images/shapes.png)
+
+### Which shape for what
+
+Keep the type's own shape unless another says something the type can't. A model where every shape is different says nothing; one
+where a diamond always means a decision, and a queue always means a queue, can be read at a glance.
+
+| Shape | Use it for | For example |
+| --- | --- | --- |
+| `rectangle` | Things that run or do work: systems, apps, services, components. The default, and right most of the time | Order API, Billing |
+| `pill` | People and roles, and the start or end of a flow | Customer, Support agent, "Order placed" |
+| `ellipse` | A state or an event: something that is true or happens, rather than a thing that runs | "Payment failed", "Idle" |
+| `diamond` | A decision: a question with more than one way out | "Paid?", "Within the limit?" |
+| `hexagon` | Background work that runs without being asked: a worker, a job, a scheduled task | Nightly settlement, Image resizer |
+| `parallelogram` | Data going in or out: an import, an export, a feed | CSV import, Invoice export |
+| `cylinder` | A place data is kept: a database, a cache, a bucket, a warehouse. A store is one by default | Orders DB |
+| `queue` | Things waiting their turn: a message queue, a topic, a job queue, a backlog | Order events |
+| `document` | A file or paper someone reads, fills in or signs: a report, a form, a contract | Invoice PDF, Terms of service |
+| `folder` | A group that holds others: a team, a package, a shared drive | Compliance, Billing team |
+| `note` | A remark that is not part of the system: a caveat, an assumption, a to-do | "Manual step until Q3" |
+| `cloud` | The wider world you reach over a network, when the shape itself should say "out there" | The public internet, A partner's network |
+| `arrow` | One stage of a process that hands over to the next | Build, Test, Ship |
+
+Some of these suit more than software. A hiring process is pills, arrows and diamonds; a warehouse is documents, queues and
+folders; an organisation is folders and pills. Two cautions. A diamond, an ellipse and a cloud have less room for text, so keep their
+names short. And an outside service already shows grey with a cloud icon from `external: true`, so reach for the cloud shape only when
+the shape alone has to say it.
+
+### Colour and opacity
+
+A colour is a name, which has a version for the light theme and one for the dark so it reads on both, or any hex colour, which is
+the same in both. It colours the icon, the outline and the fill. The fill is the colour at the opacity you give it over the
+plain surface, 15 by default, which is a tint. Raise it for a stronger background, up to 100 for a solid one. Text and icon change
+to near-black or near-white to stay readable on a strong fill, and the Mermaid copy keeps the colour as a `style` line.
+
+Colour is a way to say something, so decide what first and say it once:
+
+- **Use it for one thing across the model:** red for what is deprecated or risky, green for what is new, grey for what you don't own,
+  blue for the part a team is responsible for. A colour that means three things means nothing.
+- **Say what it means** in the descriptions that use it, or in the description of the shape that holds them. A reader can't
+  look a colour up.
+- **Keep the tint for grouping** and a strong fill for the one or two shapes the reader must not miss.
+- **Don't use colour alone.** Someone who can't tell the colours apart still needs the name, the shape or the icon to say it.
+
+### Icons
+
+An icon says what a shape is at a glance, in a small space. There are about 150 built in (from [Tabler Icons](https://tabler.io/icons)),
+picked for what people document. Type a name into the Icon field, which suggests as you type, or write `icon: name`.
+
+**People.** `user`, `users`, `user-circle`, `user-check`, `user-cog`, `user-shield`, `users-group`, `headset`, `robot`, `id-badge-2`, `heart-handshake`
+
+**Places and organisations.** `building`, `building-bank`, `building-store`, `building-factory-2`, `building-warehouse`, `building-skyscraper`, `building-hospital`, `home`, `school`, `map-pin`, `world`, `flag`
+
+**Computing.** `server`, `server-2`, `database`, `cloud`, `cloud-upload`, `cloud-computing`, `api`, `app-window`, `apps`, `cpu`, `device-desktop`, `device-laptop`, `device-mobile`, `device-tablet`, `terminal-2`, `code`, `git-branch`, `git-merge`, `git-pull-request`, `bug`, `settings`, `tool`, `rocket`, `bolt`
+
+**Data and flow.** `arrows-exchange`, `refresh`, `repeat`, `filter`, `table`, `chart-bar`, `chart-line`, `chart-pie`, `list-check`, `hierarchy-2`, `binary-tree`, `schema`, `timeline`, `webhook`, `layers-intersect`, `stack-2`, `puzzle`, `cube`, `package`, `packages`, `box`, `container`
+
+**Network and devices.** `network`, `router`, `wifi`, `antenna`, `satellite`, `plug-connected`, `battery-2`, `printer`, `camera`, `video`, `microphone`, `qrcode`, `barcode`, `scan`, `radar`
+
+**Documents and messages.** `file`, `file-text`, `file-invoice`, `file-certificate`, `files`, `folder`, `notebook`, `book`, `books`, `article`, `clipboard-check`, `signature`, `certificate`, `receipt`, `mail`, `message`, `messages`, `bell`, `phone`, `calendar`, `clock`, `hourglass`, `alarm`
+
+**Money and trade.** `coin`, `credit-card`, `wallet`, `cash`, `calculator`, `shopping-cart`, `basket`, `tag`, `receipt-2`, `gift`
+
+**Transport.** `truck`, `truck-delivery`, `plane`, `ship`, `train`, `car`
+
+**Security and rules.** `lock`, `key`, `shield`, `shield-check`, `fingerprint`, `eye`, `gavel`, `scale`
+
+**Status and ideas.** `check`, `circle-check`, `alert-triangle`, `alert-circle`, `star`, `heart`, `bookmark`, `target`, `bulb`, `brain`, `sparkles`, `flame`, `droplet`, `leaf`, `tree`, `sun`, `moon`, `trophy`, `award`
+
+**Science and health.** `flask`, `microscope`, `stethoscope`, `heartbeat`, `medical-cross`, `pill`
+
+Choose an icon when it names the thing better than its type does: a `truck` for the courier, a `mail` for the notification service, a
+`lock` for the login. Leave it out when the type's icon already says it.
+
+**Your own icons** go in an `icons:` section at the top of `model.yaml`: a name, and the SVG path data of a line icon on a 24 by 24
+grid, drawn two units thick with round ends like the built-in ones. Name a shape's `icon:` after it.
+
+```yaml
+icons:
+  stripe: M4 6h16v12h-16zM4 10h16M8 15h3   # a card
+objects:
+  stripe:
+    type: system
+    name: Stripe
+    external: true
+    icon: stripe
+```
+
+To take one from an SVG file, copy the `d` of each `<path>` and join them one after another, as the built-in ones are. A name is
+lowercase letters, digits and dashes, and can't be one of the built-in names. Claude adds and removes them with the `put_icon` and
+`delete_icon` tools, and `get_model` lists the ones a model has. An icon that is still in use can't be deleted. There are no
+colour or image icons: an icon takes the colour of the shape that shows it.
+
 ## Let Claude build it
 
 From the root of the repo you want to document:
@@ -95,19 +217,20 @@ Then ask Claude something like "map this repo into Flowy". It writes `flowy/mode
 `flowy/flows/*.yaml`, and refuses any change that would break the model. Add `--dir <folder>`
 after `mcp` to keep the files somewhere other than `./flowy`.
 
-Claude can also note where each box lives in the code (`code: [src/api/]`). A path that doesn't
+Claude can also note where each shape lives in the code (`code: [src/api/]`). A path that doesn't
 exist is refused, so the model can't quietly point at code that's gone. When code moves later,
-the box gets a "!" until someone fixes the path.
+the shape gets a "!" until someone fixes the path.
 
-Claude can also link a box to its long documents (`links: [{ title: Runbook, url: docs/runbook.md }]`).
+Claude can also link a shape to its long documents (`links: [{ title: Runbook, url: docs/runbook.md }]`).
 A repo path must exist, and a web address is taken as given.
 
 Claude marks outside services (a payment provider, a third-party API) with `external: true`, so
-they show grey.
+they show grey. It is told to leave `shape`, `color`, `opacity` and `icon` alone unless one says something the type
+doesn't, and to keep a colour to one meaning across the model, so a model it builds looks like the type defaults until you choose otherwise.
 
 When Claude saves a flow, Flowy answers with how each step will read on the flow's view, the
 way the player shows it ("2. Alert channels → Text and speech in Core: …"). Its instructions ask
-for steps that say what passes between the two boxes and whether the sender waits, so a flow
+for steps that say what passes between the two shapes and whether the sender waits, so a flow
 reads the way the code works.
 
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
@@ -132,7 +255,9 @@ that holds the model. A file that can't be read stops the export. Problems don't
 them.
 
 For a README or a pull request, the Mermaid button copies the view on screen (or the flow
-playing) as a Mermaid diagram, fenced and ready to paste. GitHub and GitLab draw it. The same
+playing) as a Mermaid diagram, fenced and ready to paste. GitHub and GitLab draw it. A diamond comes out as a
+diamond, a cylinder as a cylinder, and so on, and a colour becomes a `style` line (a folder has no Mermaid shape and stays a
+rectangle, and the queue, document, note and cloud shapes need Mermaid 11.3 or later). The same
 from the command line, or for Claude through MCP (`get_mermaid`):
 
 ```bash
@@ -152,19 +277,19 @@ no server and no browser behind it. It reads and it edits: [Edit it](#edit-it) a
 what it saves, the browser and Claude see, and the other way round. A file that can't be read leaves the last good model on screen
 with the reason in a banner, and while it is there editing is off.
 
-Editing in the app: **E** (or the Edit button) turns it on, and the bar gains New flow, Add, Undo, Redo and Tidy. A box's panel becomes
-a form (name, type, outside service, tech, description, code), and a line's panel has a label field and a delete for each connection it
-stands for. Drag a box to move it; the dot under a box starts a connection, which you drop on another box. Each edit is checked first:
+Editing in the app: **E** (or the Edit button) turns it on, and the bar gains New flow, Add, Undo, Redo and Tidy. A shape's panel becomes
+a form (name, type, outside service, tech, look, description, code), and a line's panel has a label field and a delete for each connection it
+stands for. Drag a shape to move it; the dot under a shape starts a connection, which you drop on another shape. Each edit is checked first:
 one that would add a problem is refused and a notice says why. A file changed elsewhere since the app read it is never overwritten: the
 edit is dropped, and the view reloads. **Ctrl+Z** and **Ctrl+Y** undo and redo, but only where the files are still as that edit left
 them. The sample model that ships with the app can't be edited.
 
-What it has, as the canvas does: zoom into a box (double-click it, or select it and press Enter; Esc and Backspace go back up, and
-the breadcrumb works too), a frame around the box you're inside, boxes that belong to another level faded and dashed, wheel to
-zoom and drag to pan, **F** to fit, the side panel with the description, the files a box lives in (as links when the repo's origin
+What it has, as the canvas does: zoom into a shape (double-click it, or select it and press Enter; Esc and Backspace go back up, and
+the breadcrumb works too), a frame around the shape you're inside, shapes that belong to another level faded and dashed, wheel to
+zoom and drag to pan, **F** to fit, the side panel with the description, the files a shape lives in (as links when the repo's origin
 is on GitHub or GitLab), and every connection out and in, flows that play with ← and → (Home and End go to the first and last
-step), **Ctrl+K** or **/** to find a box, **?** for the shortcut list, the problem list in the top bar, straight, curved or
-right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a box that sits
+step), **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
+right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a shape that sits
 beside the one you're in slides across instead of zooming in.**
 
 What it adds is a way to choose the model:
@@ -185,10 +310,10 @@ For sharing, **View › Copy as Mermaid** puts the view on screen, or the flow p
 diagram, the same text the browser's Mermaid button copies. **View › Save Picture…** saves the diagram, without the top bar and
 the panel, as a PNG at twice the size on screen. **File › Reload** (F5) reads the folder again, which is also how to carry on
 after the folder was deleted and came back, and **Show in Explorer** (Finder on macOS) opens the model's folder. A model with no
-boxes says so instead of showing a blank canvas.
+shapes says so instead of showing a blank canvas.
 
-The boxes you haven't dragged are placed by the app's own layout, not by the browser's, so they can sit a little differently
-there. Boxes you did drag are where `layout.yaml` says in both. The address that follows the canvas in the browser has no
+The shapes you haven't dragged are placed by the app's own layout, not by the browser's, so they can sit a little differently
+there. Shapes you did drag are where `layout.yaml` says in both. The address that follows the canvas in the browser has no
 counterpart in the app.
 
 A few seconds after it starts, an installed copy asks GitHub's Releases whether a newer version exists: **Help › Check for updates

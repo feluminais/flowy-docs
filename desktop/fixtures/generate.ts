@@ -6,6 +6,7 @@ import { dirname } from 'node:path'
 import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
 import { dumpGeometry } from './geometry.ts'
 import { dumpLayout } from './layout.ts'
+import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
 import { dumpOps } from './ops.ts'
 import { dumpYamlWrite } from './yaml-write.ts'
@@ -19,6 +20,7 @@ const write = async (name: string, data: unknown) => {
 
 for (const [name, dir] of Object.entries(fixtureDirs())) await write(name, await dumpFolder(dir))
 await write('geometry', dumpGeometry())
+await write('appearance', await dumpLook())
 await write('placement', await dumpLayout())
 await write('scenes', await dumpScenes())
 await write('navigation', await dumpNavigation())

@@ -13,6 +13,13 @@ export type FlowyObject = {
   in?: string
   /** "true" for an outside service or system you don't own. Read as text, like every value. */
   external?: string
+  /** How the object is drawn (see look.ts). All four are read as text, like every value. */
+  shape?: string
+  color?: string
+  /** Percent, 0 to 100: how much of `color` the fill holds. */
+  opacity?: string
+  /** A built-in icon name, or one defined under `icons:` in model.yaml. */
+  icon?: string
   tech?: string
   description?: string
   [extra: string]: unknown
@@ -100,7 +107,7 @@ function readYaml(file: string, text: string): unknown {
 }
 
 const TEXT_FIELDS = {
-  object: ['type', 'name', 'in', 'external', 'tech', 'description'],
+  object: ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description'],
   connection: ['from', 'to', 'label'],
   flow: ['name', 'view'],
   step: ['from', 'to', 'text', 'description'],

@@ -3,8 +3,9 @@ namespace Flowy.Core;
 /// <summary>A refused edit. The message is written for whoever asked for it.</summary>
 public sealed class OpError(string message) : Exception(message);
 
-/// <summary>An object to create or change. null leaves a field as it is; "" removes <c>in</c>, <c>tech</c> or <c>description</c>; an empty list removes <c>code</c>; <c>External: false</c> removes <c>external</c>.</summary>
-public sealed record ObjectInput(string Id, string? Type = null, string? Name = null, string? In = null, bool? External = null, string? Tech = null, string? Description = null, IReadOnlyList<string>? Code = null);
+/// <summary>An object to create or change. null leaves a field as it is; "" removes <c>in</c>, <c>shape</c>, <c>color</c>, <c>opacity</c>, <c>icon</c>, <c>tech</c> or <c>description</c>; an empty list removes <c>code</c>; <c>External: false</c> removes <c>external</c>.</summary>
+public sealed record ObjectInput(string Id, string? Type = null, string? Name = null, string? In = null, bool? External = null, string? Tech = null, string? Description = null, IReadOnlyList<string>? Code = null,
+    string? Shape = null, string? Color = null, string? Opacity = null, string? Icon = null);
 
 public sealed record ConnectionInput(string From, string To, string? Label = null);
 
@@ -14,8 +15,8 @@ public sealed record ConnectionInput(string From, string To, string? Label = nul
 /// </summary>
 public static class EditOps
 {
-    private static readonly string[] CopiedFields = ["type", "name", "in", "external", "tech", "description", "code"];
-    private static readonly string[] Clearable = ["in", "tech", "description"];
+    private static readonly string[] CopiedFields = ["type", "name", "in", "external", "shape", "color", "opacity", "icon", "tech", "description", "code"];
+    private static readonly string[] Clearable = ["in", "shape", "color", "opacity", "icon", "tech", "description"];
 
     private static OrderedDictionary<string, object?>? ObjectOf(EditDoc doc, string? id) =>
         id is not null && id != Names.Root && doc.Objects.TryGetValue(id, out var o) ? o as OrderedDictionary<string, object?> : null;
@@ -28,7 +29,7 @@ public static class EditOps
 
     /// <summary>
     /// Create or update an object. Omitted fields stay as they are. Only the known fields are copied, so a new object's keys come out in the order
-    /// type, name, in, external, tech, description, code, and a hand-written key on an existing object stays where it is.
+    /// type, name, in, external, shape, color, opacity, icon, tech, description, code, and a hand-written key on an existing object stays where it is.
     /// </summary>
     public static EditDoc PutObject(EditDoc doc, ObjectInput input)
     {
@@ -46,6 +47,10 @@ public static class EditOps
                 "name" => input.Name,
                 "in" => input.In,
                 "external" => input.External is null ? null : input.External.Value ? "true" : "false",
+                "shape" => input.Shape,
+                "color" => input.Color,
+                "opacity" => input.Opacity,
+                "icon" => input.Icon,
                 "tech" => input.Tech,
                 "description" => input.Description,
                 _ => input.Code?.Select(c => (object?)c).ToList(),
@@ -233,7 +238,7 @@ public static class EditOps
     /// <summary>Forget where boxes were dragged in one view, so the computed layout shows again.</summary>
     public static EditDoc ForgetLayout(EditDoc doc, string view)
     {
-        if (!doc.Layout.ContainsKey(view)) throw new OpError("Nothing to tidy: no box here was moved by hand.");
+        if (!doc.Layout.ContainsKey(view)) throw new OpError("Nothing to tidy: no shape here was moved by hand.");
         var d = doc.Clone();
         d.Layout.Remove(view);
         return d;

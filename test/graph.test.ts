@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { check } from '../src/core/check.ts'
+import { SHAPE_DEFS } from '../src/core/look.ts'
 import { emptyModel } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
 import { computeView } from '../src/core/views.ts'
@@ -334,4 +335,24 @@ test('rows below and above clear tall side columns', () => {
   const placed = [...at]
   for (const [a, p] of placed) for (const [b, q] of placed) if (a !== b)
     assert.ok(Math.abs(p.x - q.x) >= W || Math.abs(p.y - q.y) >= H, `${a} overlaps ${b}`)
+})
+
+test('a straight line meets a shape on its outline, not on the box around it', () => {
+  const a = { x: 0, y: 0, width: 200, height: 72 }
+  const diamond = SHAPE_DEFS.diamond.edge
+  assert.deepEqual(lineEnds(a, { ...a, x: 400 }, diamond)[0], { x: 199, y: 36 }, 'out of its right tip')
+  assert.deepEqual(lineEnds(a, { ...a, y: 200 }, diamond)[0], { x: 100, y: 71 }, 'out of its bottom tip')
+  const [slanted] = lineEnds(a, { ...a, x: 400, y: 200 }, diamond)
+  assert.ok(Math.abs(Math.abs(slanted.x - 100) / 99 + Math.abs(slanted.y - 36) / 35 - 1) < 1e-9, 'on the diamond\'s slanted side')
+  const [round] = lineEnds(a, { ...a, x: 300, y: 200 }, SHAPE_DEFS.ellipse.edge)
+  assert.ok(Math.abs(((round.x - 100) / 99) ** 2 + ((round.y - 36) / 35) ** 2 - 1) < 0.01, 'on the ellipse')
+  assert.deepEqual(lineEnds(a, { ...a, x: 400 }, SHAPE_DEFS.rectangle.edge), lineEnds(a, { ...a, x: 400 }), 'a rectangle is the box')
+  assert.deepEqual(lineEnds(a, a, diamond), [{ x: 100, y: 36 }, { x: 100, y: 36 }], 'on top of each other: no line')
+})
+
+test('curved and angled lines leave from the middle of the side on the outline', () => {
+  const a = { x: 0, y: 0, width: 200, height: 72 }
+  assert.deepEqual(ports(a, { ...a, x: 400 }, SHAPE_DEFS.diamond.edge, SHAPE_DEFS.parallelogram.edge), {
+    from: { x: 199, y: 36 }, fromSide: 'right', to: { x: 413.5, y: 36 }, toSide: 'left',
+  })
 })

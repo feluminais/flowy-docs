@@ -5,6 +5,7 @@ using Avalonia.Layout;
 using Avalonia.Controls.Templates;
 using Avalonia.Media;
 using Flowy.App.Canvas;
+using Flowy.Core;
 
 namespace Flowy.App;
 
@@ -28,15 +29,31 @@ internal static class Chrome
     }
 
     /// <summary>The tile of an object's type: its icon in its colour on a tint of it, or a cloud on grey for an outside service.</summary>
-    public static Control TypeTile(string? type, bool external, double size)
+    public static Control TypeTile(string? type, bool external, double size) => TypeTile(type, external, size, null, out _);
+
+    /// <summary>The same with an icon of its own (path data) instead of the type's, and the path it draws, for a caller that colours it.</summary>
+    public static Control TypeTile(string? type, bool external, double size, string? iconData, out Avalonia.Controls.Shapes.Path path)
     {
-        var icon = Icons.Make(external ? Icons.Cloud : Icons.ForType(type), "ticon", size * 0.56);
+        var icon = Icons.Make(iconData ?? (external ? Icons.Cloud : Icons.ForType(type)), "ticon", size * 0.56, out path);
         icon.HorizontalAlignment = HorizontalAlignment.Center;
         icon.VerticalAlignment = VerticalAlignment.Center;
         var tile = new Border { Width = size, Height = size, CornerRadius = new CornerRadius(Math.Round(size * 0.3)), Child = icon, VerticalAlignment = VerticalAlignment.Center };
         tile.Classes.Add("ttile");
         tile.Classes.Add(Types.Contains(type ?? "") ? type! : "system");
         if (external) tile.Classes.Add("external");
+        return tile;
+    }
+
+    /// <summary>The tile of one object as the canvas draws it: the icon and the colour it names, else its type's.</summary>
+    public static Control ObjectTile(Model model, FlowyObject? o, double size)
+    {
+        if (o is null) return TypeTile(null, false, size);
+        var tile = TypeTile(o.Type, Model.IsExternal(o), size, Look.IconData(model, o), out var path);
+        if (Look.IsColor(o.Color) && Look.ColorPair(o.Color) is { } pair)
+        {
+            ((Border)tile).Background = ThemeBrushes.For(pair.Light, pair.Dark, 0.18);
+            path.Stroke = ThemeBrushes.For(pair.Light, pair.Dark);
+        }
         return tile;
     }
 

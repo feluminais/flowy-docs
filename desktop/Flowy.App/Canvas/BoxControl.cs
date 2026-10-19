@@ -6,47 +6,70 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Flowy.Core;
+using Path = Avalonia.Controls.Shapes.Path;
 
 namespace Flowy.App.Canvas;
 
 /// <summary>
-/// One object on the canvas: a tile with its type's icon (grey with a cloud when it's external), its name, its tech (or type), and how
-/// many boxes it opens onto. Its look comes from the classes it carries (see Styles.axaml): its type, outsider, lit, dim, selected, problem.
+/// One object on the canvas: its shape (an outline drawn behind the rest, in the colour and fill it names), a tile with its icon (grey with a
+/// cloud when it's external), its name, its tech (or type), and how many shapes it opens onto. Its look comes from the classes it carries (see
+/// Styles.axaml): its type, outsider, lit, dim, selected, problem, and colored and tinted when it names a colour or an opacity.
 /// </summary>
 internal sealed class BoxControl : Grid
 {
     private static readonly string[] TypeClasses = ["actor", "system", "app", "store", "component"];
 
+    // A shape's outline is parsed once and shared by every box that draws it.
+    private static readonly Dictionary<string, Geometry> Outlines = [];
+
     private readonly TextBlock _name = new();
     private readonly TextBlock _meta = new();
+    private readonly StackPanel _content;
     private readonly StackPanel _inside = new();
     private readonly TextBlock _insideText = new();
+    private readonly Path _zoom;
     private readonly Border _tile = new();
+    private readonly Path _glow = Layer("glow");
+    private readonly Path _fill = Layer("fillbase");
+    private readonly Path _tint = Layer("tint");
+    private readonly Path _outline = Layer("outline");
+    private readonly Path _colorline = Layer("colorline");
     private readonly Ellipse _handle = new() { Width = 10, Height = 10, IsHitTestVisible = false, IsVisible = false, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 3) };
+    private Path? _icon;
     private string? _teaser;
     private bool _external;
     private string _type = "";
+    private string _iconData = "";
+    private string _shape = "";
 
     public string Id { get; }
+
+    private static Path Layer(string name)
+    {
+        var path = new Path { Width = 200, Height = 72, IsHitTestVisible = false };
+        path.Classes.Add(name);
+        return path;
+    }
+
+    private static Geometry OutlineOf(string shape)
+    {
+        if (!Outlines.TryGetValue(shape, out var geometry)) Outlines[shape] = geometry = Geometry.Parse(LookData.Shapes[shape].Path);
+        return geometry;
+    }
 
     public BoxControl(SceneBox box)
     {
         Id = box.Id;
         Classes.Add("box");
-        Background = Brushes.Transparent; // the whole tile takes the pointer, not only the outline shape
+        Background = Brushes.Transparent; // the whole area takes the pointer, not only the outline
         Focusable = true;
         IsTabStop = true;
-
-        var glow = new Border { CornerRadius = new CornerRadius(8), BoxShadow = BoxShadows.Parse("0 0 0 3 #402563eb"), IsHitTestVisible = false };
-        glow.Classes.Add("glow");
-        var outline = new Rectangle { IsHitTestVisible = true };
-        outline.Classes.Add("outline");
 
         _tile.Classes.Add("tile");
         _name.Classes.Add("name");
         _meta.Classes.Add("meta");
         var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Children = { _name, _meta } };
-        var content = new StackPanel
+        _content = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             Spacing = 10,
@@ -61,9 +84,8 @@ internal sealed class BoxControl : Grid
         _inside.Spacing = 3;
         _inside.HorizontalAlignment = HorizontalAlignment.Right;
         _inside.VerticalAlignment = VerticalAlignment.Bottom;
-        _inside.Margin = new Thickness(0, 0, 9, 5);
         _inside.IsHitTestVisible = false;
-        _inside.Children.Add(Icons.Make(Icons.ZoomIn, "zoom", 12));
+        _inside.Children.Add(Icons.Make(Icons.ZoomIn, "zoom", 12, out _zoom));
         _inside.Children.Add(_insideText);
 
         var badge = new Border
@@ -75,9 +97,12 @@ internal sealed class BoxControl : Grid
         };
         badge.Classes.Add("badge");
 
-        Children.Add(glow);
-        Children.Add(outline);
-        Children.Add(content);
+        Children.Add(_glow);
+        Children.Add(_fill);
+        Children.Add(_tint);
+        Children.Add(_outline);
+        Children.Add(_colorline);
+        Children.Add(_content);
         Children.Add(_inside);
         Children.Add(badge);
         _handle.Classes.Add("handle");
@@ -92,6 +117,12 @@ internal sealed class BoxControl : Grid
         var o = box.Object;
         var external = Model.IsExternal(o);
         var type = TypeClasses.Contains(o.Type ?? "") ? o.Type! : "system";
+        var shape = Look.ShapeOf(o);
+        var def = LookData.Shapes[shape];
+        var opacity = Look.FillOpacity(o);
+        var colored = Look.IsColor(o.Color);
+        var pair = Look.ColorPair(colored ? o.Color : Look.TypeColor(o))!.Value;
+        var on = Look.OnFill(o);
 
         foreach (var t in TypeClasses) Classes.Set(t, t == type);
         Classes.Set("external", external);
@@ -99,17 +130,63 @@ internal sealed class BoxControl : Grid
         Classes.Set("lit", box.Mode == BoxMode.Lit);
         Classes.Set("dim", box.Mode == BoxMode.Dim);
         Classes.Set("problem", box.Problem);
-        Classes.Set("actor", type == "actor");
-        // The actor's content starts further in, where its round end curves away.
-        ((StackPanel)Children[2]).Margin = new Thickness(type == "actor" ? 16 : 12, 0, 14, 0);
+        Classes.Set("colored", colored);
+        Classes.Set("tinted", opacity > 0);
 
-        if (external != _external || type != _type || _tile.Child is null)
+        if (shape != _shape)
         {
-            _tile.Child = Icons.Make(external ? Icons.Cloud : Icons.ForType(o.Type), "icon", 18);
+            var outline = OutlineOf(shape);
+            _glow.Data = _fill.Data = _tint.Data = _outline.Data = _colorline.Data = outline;
+            _shape = shape;
+        }
+        // Where content may sit inside the shape, and where "3 inside" goes.
+        _content.Margin = new Thickness(def.Pad[3], def.Pad[0], def.Pad[1], def.Pad[2]);
+        _inside.Margin = new Thickness(0, 0, def.Badge[0], def.Badge[1]);
+        _tile.IsVisible = Look.ShowsTile(o);
+
+        _tint.Opacity = opacity / 100.0;
+        if (opacity > 0) _tint.Fill = ThemeBrushes.For(pair.Light, pair.Dark);
+        if (colored) _colorline.Stroke = ThemeBrushes.For(pair.Light, pair.Dark);
+
+        var icon = string.IsNullOrEmpty(box.Icon) ? Look.IconData(new Model(), o) : box.Icon;
+        if (external != _external || type != _type || icon != _iconData || _tile.Child is null)
+        {
+            _tile.Child = Icons.Make(icon, "icon", 18, out _icon);
             _tile.Width = _tile.Height = 34;
             _external = external;
             _type = type;
+            _iconData = icon;
         }
+        // The tile and icon are the type's (by class) unless the object names a colour or its fill is too strong for them to show.
+        if (on is { } ink)
+        {
+            _tile.Background = ThemeBrushes.For(ink.Light, ink.Dark, 0.16);
+            _icon!.Stroke = ThemeBrushes.For(ink.Light, ink.Dark);
+        }
+        else if (colored)
+        {
+            _tile.Background = ThemeBrushes.For(pair.Light, pair.Dark, 0.18);
+            _icon!.Stroke = ThemeBrushes.For(pair.Light, pair.Dark);
+        }
+        else
+        {
+            _tile.ClearValue(Border.BackgroundProperty);
+            _icon!.ClearValue(Shape.StrokeProperty);
+        }
+        if (on is { } text)
+        {
+            _name.Foreground = ThemeBrushes.For(text.Light, text.Dark);
+            _meta.Foreground = _insideText.Foreground = ThemeBrushes.For(text.Light, text.Dark, 0.78);
+            _zoom.Stroke = ThemeBrushes.For(text.Light, text.Dark, 0.78);
+        }
+        else
+        {
+            _name.ClearValue(TextBlock.ForegroundProperty);
+            _meta.ClearValue(TextBlock.ForegroundProperty);
+            _insideText.ClearValue(TextBlock.ForegroundProperty);
+            _zoom.ClearValue(Shape.StrokeProperty);
+        }
+
         _name.Text = string.IsNullOrEmpty(o.Name) ? box.Id : o.Name;
         _meta.Text = string.Join(" · ", new[] { external ? "external" : null, string.IsNullOrEmpty(o.Tech) ? o.Type : o.Tech }.Where(s => !string.IsNullOrEmpty(s)));
         _inside.IsVisible = box.Inside > 0;
@@ -127,7 +204,7 @@ internal sealed class BoxControl : Grid
         AutomationProperties.SetName(this, $"{_name.Text}, {(external ? "external " : "")}{o.Type}");
     }
 
-    /// <summary>Edit mode: a dot at the bottom edge to draw a connection from, and a cursor that says the box can be moved.</summary>
+    /// <summary>Edit mode: a dot at the bottom edge to draw a connection from, and a cursor that says the shape can be moved.</summary>
     public void SetEditable(bool editable)
     {
         _handle.IsVisible = editable;

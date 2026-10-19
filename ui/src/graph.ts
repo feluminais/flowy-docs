@@ -1,6 +1,7 @@
 import { Graph, layout } from '@dagrejs/dagre'
 import type { Edge, FitViewOptions, Node, Viewport, XYPosition } from '@xyflow/react'
 import type { Problem } from '../../src/core/check.ts'
+import { iconData } from '../../src/core/look.ts'
 import type { FlowyObject, Model } from '../../src/core/model.ts'
 import { computeView, memberIds, placeEnds } from '../../src/core/views.ts'
 import type { Edge as ViewEdge } from '../../src/core/views.ts'
@@ -18,7 +19,7 @@ const STACK = 30 // between boxes stacked in a column or row
 const PER_ROW = 4 // outsiders that only start lines wait above the members, this many to a row
 
 /** `inside`: how many boxes sit right inside this one (0: it doesn't open). */
-export type BoxData = { object: FlowyObject; inside: number }
+export type BoxData = { object: FlowyObject; inside: number; icon: string }
 export type BoxNode = Node<BoxData, 'box'>
 
 /**
@@ -353,7 +354,7 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     id,
     type: 'box',
     position: at.get(id)!,
-    data: { object: model.objects[id], inside: memberIds(model, id).length },
+    data: { object: model.objects[id], inside: memberIds(model, id).length, icon: iconData(model, model.objects[id]) },
     className: classes(!members.includes(id) && 'outsider', dimming && (lit?.includes(id) ? 'lit' : 'dim'), badBoxes.has(id) && 'problem'),
   }))
   // A lit line draws over the faded boxes (zIndex), with an arrowhead in its own colour.
@@ -394,18 +395,44 @@ export function focusEdges(edges: Edge[], focus: { box?: string; line?: string; 
 
 export type Rect = XYPosition & { width: number; height: number }
 
-/** Where a straight line between the centres of two boxes leaves one and enters the other. */
-export function lineEnds(a: Rect, b: Rect): [XYPosition, XYPosition] {
+/** A shape's outline as a convex polygon in the box's own 200×72 area, or empty for the rectangle (see ShapeDef.edge). */
+export type Outline = readonly (readonly [number, number])[]
+
+/**
+ * Where a ray from the centre of `r` towards (dx, dy) meets the shape's outline: the rectangle's border when `edge` is empty,
+ * else the first side of the polygon it crosses. Dividing by zero gives infinity, which Math.min ignores.
+ */
+export function leaveAt(r: Rect, edge: Outline, dx: number, dy: number): XYPosition {
+  const cx = r.x + r.width / 2
+  const cy = r.y + r.height / 2
+  if (edge.length === 0) {
+    const k = Math.min(r.width / 2 / Math.abs(dx), r.height / 2 / Math.abs(dy)) // how far along the line the box's border is
+    return { x: cx + dx * k, y: cy + dy * k }
+  }
+  let best = Infinity
+  edge.forEach(([px, py], i) => {
+    const [qx, qy] = edge[(i + 1) % edge.length]
+    const ex = qx - px
+    const ey = qy - py
+    const den = dx * ey - dy * ex
+    if (den === 0) return // the ray runs along this side
+    const t = ((r.x + px - cx) * ey - (r.y + py - cy) * ex) / den
+    const s = ((r.x + px - cx) * dy - (r.y + py - cy) * dx) / den
+    if (t > 0 && s >= 0 && s <= 1 && t < best) best = t
+  })
+  return best === Infinity ? { x: cx, y: cy } : { x: cx + dx * best, y: cy + dy * best }
+}
+
+/** Where a straight line between the centres of two shapes leaves one and enters the other. A shape without an `edge` is the box itself. */
+export function lineEnds(a: Rect, b: Rect, edgeA: Outline = [], edgeB: Outline = []): [XYPosition, XYPosition] {
   const centre = (r: Rect) => ({ x: r.x + r.width / 2, y: r.y + r.height / 2 })
-  const edge = (from: Rect, to: Rect): XYPosition => {
+  const leave = (from: Rect, edge: Outline, to: Rect): XYPosition => {
     const c = centre(from)
     const dx = centre(to).x - c.x
     const dy = centre(to).y - c.y
-    if (dx === 0 && dy === 0) return c
-    const k = Math.min(from.width / 2 / Math.abs(dx), from.height / 2 / Math.abs(dy)) // how far along the line the box's border is
-    return { x: c.x + dx * k, y: c.y + dy * k }
+    return dx === 0 && dy === 0 ? c : leaveAt(from, edge, dx, dy)
   }
-  return [edge(a, b), edge(b, a)]
+  return [leave(a, edgeA, b), leave(b, edgeB, a)]
 }
 
 export type Side = 'top' | 'right' | 'bottom' | 'left'
@@ -418,18 +445,16 @@ function facing(from: Rect, to: Rect): Side {
   return dy > 0 ? 'bottom' : 'top'
 }
 
-const middleOf = (r: Rect, side: Side): XYPosition => ({
-  top: { x: r.x + r.width / 2, y: r.y },
-  bottom: { x: r.x + r.width / 2, y: r.y + r.height },
-  left: { x: r.x, y: r.y + r.height / 2 },
-  right: { x: r.x + r.width, y: r.y + r.height / 2 },
-})[side]
+const AXIS: Record<Side, [number, number]> = { top: [0, -1], bottom: [0, 1], left: [-1, 0], right: [1, 0] }
 
-/** Where a curved or right-angled line starts and ends: the middle of the side each box turns to the other. */
-export function ports(a: Rect, b: Rect): { from: XYPosition; fromSide: Side; to: XYPosition; toSide: Side } {
+/** The middle of one side of a shape: where the line along that axis from its centre meets the outline. */
+const middleOf = (r: Rect, side: Side, edge: Outline): XYPosition => leaveAt(r, edge, ...AXIS[side])
+
+/** Where a curved or right-angled line starts and ends: the middle of the side each shape turns to the other. */
+export function ports(a: Rect, b: Rect, edgeA: Outline = [], edgeB: Outline = []): { from: XYPosition; fromSide: Side; to: XYPosition; toSide: Side } {
   const fromSide = facing(a, b)
   const toSide = facing(b, a)
-  return { from: middleOf(a, fromSide), fromSide, to: middleOf(b, toSide), toSide }
+  return { from: middleOf(a, fromSide, edgeA), fromSide, to: middleOf(b, toSide, edgeB), toSide }
 }
 
 /** The frame around a view's own boxes: their bounding box plus `pad` on every side. */

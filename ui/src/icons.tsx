@@ -1,6 +1,7 @@
 // Icons from Tabler Icons, https://tabler.io/icons. MIT License, Copyright (c) 2020-2024 Paweł Kuna.
 // The minifier drops comments, so the notice ships as ui/public/TABLER-ICONS-LICENSE.txt next to the bundle.
 import type { JSX, ReactNode } from 'react'
+import { ICONS } from '../../src/core/icons.ts'
 import type { ObjectType } from '../../src/core/model.ts'
 
 /** An icon at `size` pixels (18 unless it says), in the colour of the text around it. */
@@ -15,12 +16,17 @@ const icon = (paths: ReactNode) => function Icon({ size = 18 }: IconProps = {}):
 }
 const one = (d: string) => icon(<path d={d} />)
 
-export const User = icon(<><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></>)
-export const Cube = icon(<><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5" /><path d="M12 12l8 -4.5" /><path d="M12 12l0 9" /><path d="M12 12l-8 -4.5" /></>)
-export const AppWindow = icon(<><path d="M3 5m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" /><path d="M6 8h.01" /><path d="M9 8h.01" /></>)
-export const Database = icon(<><path d="M12 6m-8 0a8 3 0 1 0 16 0a8 3 0 1 0 -16 0" /><path d="M4 6v6a8 3 0 0 0 16 0v-6" /><path d="M4 12v6a8 3 0 0 0 16 0v-6" /></>)
-export const Puzzle = icon(<path d="M4 7h3a1 1 0 0 0 1 -1v-1a2 2 0 0 1 4 0v1a1 1 0 0 0 1 1h3a1 1 0 0 1 1 1v3a1 1 0 0 0 1 1h1a2 2 0 0 1 0 4h-1a1 1 0 0 0 -1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-1a2 2 0 0 0 -4 0v1a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h1a2 2 0 0 0 0 -4h-1a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1" />)
-export const Cloud = icon(<path d="M6.657 18c-2.572 0 -4.657 -2.007 -4.657 -4.483c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 1.927 -1.551 3.487 -3.465 3.487h-11.878" />)
+/** An icon drawn from SVG path data on the 24×24 grid: a built-in one (src/core/icons.ts) or one the model defines. */
+export function PathIcon({ d, size = 18 }: IconProps & { d: string }): JSX.Element {
+  return one(d)({ size })
+}
+
+export const User = one(ICONS['user'])
+export const Cube = one(ICONS['cube'])
+export const AppWindow = one(ICONS['app-window'])
+export const Database = one(ICONS['database'])
+export const Puzzle = one(ICONS['puzzle'])
+export const Cloud = one(ICONS['cloud'])
 export const ZoomIn = icon(<><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M7 10l6 0" /><path d="M10 7l0 6" /><path d="M21 21l-6 -6" /></>)
 
 // The controls and the panel's headings. The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs).
@@ -50,6 +56,8 @@ export const Close = one('M18 6l-12 12M6 6l12 12')
 export const Check = one('M5 12l5 5l10 -10')
 export const Copy = one('M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667zM4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1')
 export const Link = one('M9 15l6 -6M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463')
+
+export const Sparkles = one(ICONS.sparkles)
 
 export const TYPE_ICONS: Record<ObjectType, (props?: IconProps) => JSX.Element> = { actor: User, system: Cube, app: AppWindow, store: Database, component: Puzzle }
 

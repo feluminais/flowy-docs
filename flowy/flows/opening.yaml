@@ -18,5 +18,5 @@ steps:
   - from: canvas
     text: Lays the level out and draws it
     description: |
-      Boxes that were dragged keep their saved place; dagre places the rest. The view fits the
+      Shapes that were dragged keep their saved place; dagre places the rest. The view fits the
       window before the first paint, so it never shows unfitted for a frame.
