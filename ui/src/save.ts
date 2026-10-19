@@ -19,6 +19,26 @@ export function fromState(state: State): { model: Model; versions: Record<string
   return { model: { ...state.model, flows: state.flows, layout: state.layout }, versions: state.versions, problems: state.problems, codeBase: state.codeBase, runs: state.runs ?? {}, runProblems: state.runProblems ?? [] }
 }
 
+/**
+ * The State an exported page (or a VS Code webview) carries as text, as the page shows it: the model, or why it can't be shown.
+ * A folder that was already broken when a webview opened says which file; anything else is an export gone wrong.
+ */
+export function fromEmbedded(json: string): { loaded?: ReturnType<typeof fromState>; banner?: string } {
+  const unreadable = { banner: "This page's model can't be read. Export it again." }
+  let state: unknown
+  try {
+    state = JSON.parse(json)
+  } catch {
+    return unreadable
+  }
+  if (typeof state !== 'object' || state === null) return unreadable
+  try {
+    return { loaded: fromState(state as State) }
+  } catch (e) {
+    return 'parseError' in state ? { banner: text(e) } : unreadable
+  }
+}
+
 /** GET /api/state as a model. Throws with a message for the user when the server or a file can't be read. */
 export async function fetchModel(base = ''): Promise<ReturnType<typeof fromState>> {
   let state: State
