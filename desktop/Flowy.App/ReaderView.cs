@@ -324,6 +324,7 @@ internal sealed partial class ReaderView : Grid
     {
         _folder = folder;
         if (_side is { Kind: SideKind.Object, Id: { } id } && folder.Model.GetObject(id) is null) _side = null;
+        if (!PerfOpen || LoadTest is null) _ramping = false; // a ramp whose run is gone has nothing to run on, and its loop has already ended
         SetBanner(null);
         Refresh();
     }

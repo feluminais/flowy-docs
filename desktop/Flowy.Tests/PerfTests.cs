@@ -193,6 +193,23 @@ public class PerfTests
     }
 
     [Fact]
+    public void A_frame_is_the_roll_up_of_the_interpolated_level_and_the_traffic_made_from_it()
+    {
+        var run = Loaded.Runs!["ramp"];
+        foreach (var load in new[] { 10.0, 37.5, 100 })
+        {
+            var frame = Perf.FrameAt(Loaded.Model, run, load, "shop");
+            var (objects, lines) = Perf.RollUp(Loaded.Model, Perf.Interpolate(run, load), "shop");
+            Same(Json(lines, objects), Json(frame.Lines, frame.Objects), $"at {load}: what each object and line reads");
+            Same(Json(Perf.TrafficFor(Loaded.Model, run, load, "shop"), "shop"), Json(frame.Traffic, "shop"), $"at {load}: the traffic");
+            Assert.Same(frame.Objects["worker"], frame.Box("worker"));
+            Assert.Null(frame.Box("not-there"));
+            foreach (var l in frame.Lines) Assert.Same(l, frame.Line(l.From, l.To));
+            Assert.Null(frame.Line("not", "there"));
+        }
+    }
+
+    [Fact]
     public void A_load_that_is_not_a_number_is_the_lowest_level_and_one_outside_the_range_is_clamped()
     {
         var run = Loaded.Runs!["ramp"];

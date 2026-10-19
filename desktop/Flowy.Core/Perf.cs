@@ -62,6 +62,19 @@ public sealed record LineTraffic(string From, string To, double Width, double Pe
 public sealed record Traffic(IdMap<BoxTraffic> Boxes, IReadOnlyList<LineTraffic> Lines);
 
 /// <summary>
+/// A run at one load as one view draws it: what each object and line reads, and the traffic made from that. Worked out once, so the canvas and the
+/// panel's readouts share it instead of each interpolating and rolling the run up again.
+/// </summary>
+public sealed record LoadFrame(IdMap<Metrics> Objects, IReadOnlyList<Pair> Lines, Traffic Traffic)
+{
+    /// <summary>An object's numbers, or null when nothing was measured on it.</summary>
+    public Metrics? Box(string id) => Objects.TryGetValue(id, out var m) ? m : null;
+
+    /// <summary>The numbers of the line the view draws between two shapes, or null when none was measured.</summary>
+    public Pair? Line(string from, string to) => Lines.FirstOrDefault(p => p.From == from && p.To == to);
+}
+
+/// <summary>
 /// Load-test runs, read and played back. A port of src/core/perf.ts, kept equal to it by the fixtures in desktop/fixtures/perf.ts: a run
 /// is parsed the same way (and its problems worded the same), and between two tested levels the numbers are interpolated and never predicted.
 /// </summary>
@@ -392,7 +405,10 @@ public static class Perf
     /// null when nothing was measured) and queue of each shape that was measured or holds something that was, and the traffic on each line that has
     /// a rate. Shapes and lines with nothing measured are left out: they stay neutral, never drawn as zero.
     /// </summary>
-    public static Traffic TrafficFor(Model model, LoadRun run, double load, string view)
+    public static Traffic TrafficFor(Model model, LoadRun run, double load, string view) => FrameAt(model, run, load, view).Traffic;
+
+    /// <summary>The run at a load as a view draws it, interpolated and rolled up once: <see cref="TrafficFor"/> and the panel's readouts are both made from it.</summary>
+    public static LoadFrame FrameAt(Model model, LoadRun run, double load, string view)
     {
         var (objects, lines) = RollUp(model, Interpolate(run, load), view);
         var boxes = new IdMap<BoxTraffic>();
@@ -402,6 +418,6 @@ public static class Perf
             if (s is null && m.Queue is null) continue;
             boxes.Add(id, new BoxTraffic(s is null ? null : Round2(s.Value), (int)JsRound(m.Queue ?? 0)));
         }
-        return new Traffic(boxes, lines.Where(l => l.Rate is not null).Select(l => LineTrafficOf(l, l.Rate!.Value)).ToList());
+        return new LoadFrame(objects, lines, new Traffic(boxes, lines.Where(l => l.Rate is not null).Select(l => LineTrafficOf(l, l.Rate!.Value)).ToList()));
     }
 }

@@ -69,6 +69,21 @@ public class PerfPanelTests
     }
 
     [AvaloniaFact]
+    public void It_reads_out_the_frame_it_is_given_and_does_not_work_the_numbers_out_again()
+    {
+        var (panel, folder) = Open();
+        var run = folder.Runs!["ramp"];
+        Show(panel, folder, "ramp", 3, selection: new PerfSelection("worker"));
+        Assert.Equal([("Busy", "97%"), ("Failing", "1%")], panel.Readings);
+        // A frame worked out at the lowest load, given with a position at the highest: what the panel reads out is the frame's, so it did not work them out for itself.
+        var low = Perf.FrameAt(folder.Model, run, PerfView.LoadAt(run, 0), "shop");
+        panel.SetPos(3, false, low);
+        Assert.Equal("100 req/s", panel.LoadText); // the load comes from the position
+        Assert.Equal(PerfView.Metrics["util"].Show(low.Box("worker")!.Util!.Value), panel.Readings[0].Value);
+        Assert.NotEqual("97%", panel.Readings[0].Value);
+    }
+
+    [AvaloniaFact]
     public void Showing_it_again_with_another_pick_keeps_the_position_and_does_not_tell_the_reader_the_slider_moved()
     {
         var (panel, folder) = Open();

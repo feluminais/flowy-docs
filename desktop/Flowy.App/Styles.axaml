@@ -116,6 +116,9 @@
   <Style Selector="TextBlock.muted">
     <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
   </Style>
+  <Style Selector="TextBlock.warntext">
+    <Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" />
+  </Style>
 
   <!-- Icons share one stroke; their colours come from where they sit. -->
   <Style Selector="Path.btnicon, Path.ticon, Path.chipicon, Path.sectionicon, Path.closeicon, Path.zoomicon, Path.dirnicon, Path.rowicon, Path.crumbicon, Path.warnicon, Path.railicon, Path.navicon, Path.twisticon">

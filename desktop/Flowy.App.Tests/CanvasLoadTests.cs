@@ -35,6 +35,18 @@ public class CanvasLoadTests
     private static Traffic Load(Folder folder, string run, double load, string view = "shop") => Perf.TrafficFor(folder.Model, folder.Runs![run], load, view);
 
     [AvaloniaFact]
+    public void A_picked_or_lit_line_keeps_the_thickness_its_traffic_gives_it_as_in_the_browser()
+    {
+        Assert.Equal(1.5, BackLayer.ThicknessOf(false, false, null)); // no load: as always
+        Assert.Equal(2, BackLayer.ThicknessOf(false, true, null));
+        Assert.Equal(3, BackLayer.ThicknessOf(true, false, null));
+        Assert.Equal(6, BackLayer.ThicknessOf(false, false, 6));
+        Assert.Equal(6, BackLayer.ThicknessOf(false, true, 6)); // picked or hovered: still as thick as its calls make it
+        Assert.Equal(1.2, BackLayer.ThicknessOf(false, true, 1.2)); // a quiet line stays thin
+        Assert.Equal(6, BackLayer.ThicknessOf(true, false, 6));
+    }
+
+    [AvaloniaFact]
     public void A_load_outlines_the_shapes_it_measured_and_numbers_the_queue_and_leaves_the_rest_plain()
     {
         var (canvas, folder) = Open();

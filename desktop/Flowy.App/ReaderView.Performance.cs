@@ -84,8 +84,14 @@ internal sealed partial class ReaderView
     private void StepLevel(double to)
     {
         if (LoadTest is not { } run) return;
+        var level = PerfView.Snap(run, to);
+        if (!_ramping && level == _pos && level == _posNow)
+        {
+            _perfPanel.SnapSlider(); // a drag that has not reached another level: nothing to draw again, but the thumb goes back to its stop
+            return;
+        }
         _ramping = false;
-        _pos = _posNow = PerfView.Snap(run, to);
+        _pos = _posNow = level;
         ApplyLoad();
     }
 
@@ -141,8 +147,9 @@ internal sealed partial class ReaderView
             return;
         }
         _pos = PerfView.ClampPos(run, _pos);
-        _canvas.ShowLoad(Perf.TrafficFor(folder.Model, run, PerfView.LoadAt(run, _pos), CurrentView()));
-        _perfPanel.SetPos(_pos, _ramping);
+        var frame = Perf.FrameAt(folder.Model, run, PerfView.LoadAt(run, _pos), CurrentView()); // worked out once, for the canvas and the panel's readouts both
+        _canvas.ShowLoad(frame.Traffic);
+        _perfPanel.SetPos(_pos, _ramping, frame);
     }
 
     private void ShowPerfPanel(Model model, string view)
