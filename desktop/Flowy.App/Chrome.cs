@@ -107,7 +107,8 @@ internal static class Chrome
                 EndPoint = new RelativePoint(0.75, 0, RelativeUnit.Relative),
                 GradientStops = [new GradientStop(color, 0), new GradientStop(Color.FromArgb(0, color.R, color.G, color.B), 1)],
             },
-            BoxShadow = new BoxShadows(new BoxShadow { Blur = 10, Color = Color.FromArgb(115, color.R, color.G, color.B) }),
+            // A drop shadow follows the painted pixels, so the glow fades with the line. A box shadow is cut out under the box and left a dark hole where the line is clear.
+            Effect = new DropShadowEffect { BlurRadius = 8, OffsetX = 0, OffsetY = 0, Color = color, Opacity = 0.6 },
         };
     }
 
