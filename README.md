@@ -31,7 +31,8 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](docs/writin
 (Ctrl+O). It finds the repo's `flowy/` folder, draws it, and redraws it whenever a file changes. No repo handy? **Help ›
 Open the Demo** shows Plum.
 
-**The browser version** reads too, and it is where you edit by hand. From the root of the repo:
+**The browser version** does the same on any system that has Node, and it is where `export` and Claude's MCP server live.
+From the root of the repo:
 
 ```bash
 npx flowy-docs
@@ -66,7 +67,7 @@ Outside services you don't own (a payment provider, an SMS gateway) are marked `
 
 ## Details on demand
 
-![Order API's panel with its description, the folder it lives in, and every connection out, one of them opened to list five](docs/images/desktop-panel.png)
+![Order API's panel with its description, the folder it lives in, and every connection out, where a row for five connections opens to list them](docs/images/desktop-panel.png)
 
 Hover a shape for its short description. Click it for the full text, the files it lives in, and every connection out and
 in. A line that stands for several connections opens to list them, and pointing at a row lights its line on the canvas.
@@ -80,11 +81,16 @@ documents stay documents.
 
 ## Flows
 
-![A flow playing: Customer app to Order API is lit, and a card says what happens and has a More with the detail](docs/images/desktop-flow.png)
+![A flow playing: Customer app to Order API is lit, and a card says what happens, with a More for the detail and Back, Next, Autoplay and Stop](docs/images/desktop-flow.png)
 
 Pick a flow in the top bar to play it step by step. A step is one shape handing something to another, or one shape doing
 something on its own, and a step with more to say has a **More**. In the browser the address follows what's on screen, so
 `#ordering/place-order` plays Customer places an order; send it to someone and they land on the same step.
+
+A step can also say how it travels. Tag it `animation: call` and its line turns into a pipe with something running
+through it and back while the sender waits; `send` and `event` go one way, and `callback` shows what set it off. **R** plays the
+step again, and **Autoplay** (**P**) steps through the flow on its own. Nothing moves when the system asks for less motion, and
+the step's text still says the same thing. The app and the browser play them alike.
 
 ## Find anything
 
@@ -186,6 +192,8 @@ sequenceDiagram
 | F | Fit the view |
 | ← → | Previous and next step of the flow playing |
 | Home, End | First and last step |
+| P | Autoplay: step through the flow on its own, or pause |
+| R | Replay the step's animation |
 | Ctrl+O, F5 | Open a folder, reload it (app) |
 | E | Edit mode on and off |
 | N | Add a shape |
@@ -208,6 +216,9 @@ the same forms, dragging, connecting and flow recording as the browser, with Und
 - One window per model, and the window opens at the size you left it. Opening a model that's already open brings it forward, and
   `FlowyDocs.exe path\to\repo` from a terminal opens the folder in the app that's already running.
 - On Windows, right-click a folder (under *Show more options* on Windows 11) and choose **Open with Flowy Docs**.
+- A shape's links open on your computer: a web address in the browser, a folder in the file explorer, a document (Markdown,
+  text, PDF, a common image) in its default app. A script or a program is shown in its folder and never run. **File › Open
+  Files With** picks an app of your own for them, and that choice stays on your computer, not in the repo.
 - **View › Copy as Mermaid** and **Save Picture…** for READMEs and pull requests. **File › Reload** (F5) reads the folder again,
   and **Show in Explorer** opens it.
 
@@ -225,8 +236,7 @@ npx flowy-docs
 
 It prints a local address (port 4321, or the next free one) and opens it in your browser. The model lives in `./flowy`,
 which Flowy creates if it's missing. `--dir <folder>` uses another folder, `--port <number>` picks the port, and
-`--no-open` skips the browser. Needs Node 22.18 or later. It does everything the app does, plus editing, the Mermaid button
-and `export`.
+`--no-open` skips the browser. Needs Node 22.18 or later. It does everything the app does, plus `export`.
 
 <details>
 <summary>Not on npm? Run it from a clone</summary>
@@ -257,11 +267,13 @@ Flowy runs on your machine and touches only its model folder.
 - It makes no network requests of its own: no telemetry, no CDN, no fonts. The page talks only to its local server.
   The desktop app adds one: a few seconds after it starts, an installed copy asks GitHub's Releases whether a newer version
   exists, and **Help › Check for updates automatically** turns that off. It fetches no remote images from descriptions (they show
-  as their description in brackets), opens a link only if it is an `http` or `https` address and shows where a link goes when
-  you point at it, and keeps its recent folders, window size and line-style pick in `state.json` in its own folder under your
-  application data.
-- Through `npx flowy-docs mcp`, Claude gets nine tools: three read the model and six change its objects, connections and
-  flows. None runs a command or reads a file outside the model folder.
+  as their description in brackets) and shows where a link goes when you point at it. A web link opens only if it is an `http`
+  or `https` address. A repo path opens only if it is a real file or folder inside the repo: a folder in the explorer, a
+  document in its default app, anything else shown in its folder and not run (an app you pick under **File › Open Files
+  With** may open any file in the repo). It keeps its recent folders, window size, line-style pick and that app in
+  `state.json` in its own folder under your application data.
+- Through `npx flowy-docs mcp`, Claude gets eleven tools: three read the model and eight change its objects, icons,
+  connections and flows. None runs a command or reads a file outside the model folder.
 
 Treat a `flowy/` folder you didn't write like any other text from that repo. In the browser, descriptions are Markdown and
 can embed images, which your browser then fetches from wherever they point, and Claude reads the descriptions back through MCP.
