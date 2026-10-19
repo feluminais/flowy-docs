@@ -209,7 +209,7 @@ export function createMcpServer(dir: string): McpServer {
       name: z.string().describe('Title, e.g. "Customer checks out"'),
       view: z.string().max(64).describe('"root" or the id of an object with children. Every step must be visible there.'),
       groups: z.record(z.string().max(64), z.strictObject({
-        kind: z.enum(GROUP_KINDS).describe('repeat (the same steps again), branch (one of several lanes) or parallel (every lane at once)'),
+        kind: z.enum(GROUP_KINDS).describe('repeat (the same steps again), branch (one of several lanes) or parallel (every lane at the same time)'),
         times: z.union([z.number().int(), z.string()]).optional().describe('repeat only: how many times in all, the first run included, 2 to 99. The limit the code really has.'),
         until: z.string().optional().describe('repeat only: what stops it, in words'),
         text: z.string().optional().describe('A few words for what the kind does not say, such as the backoff'),

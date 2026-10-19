@@ -15,9 +15,22 @@ public sealed record Bracket(string Kind, int From, int To, string Text, string 
 
 public sealed record Progress(int Cols, int Rows, IReadOnlyList<Cell> Cells, IReadOnlyList<Bracket> Brackets);
 
+/// <summary>One line of the legend: the kind of group whose icon it gets (null for the bar and the labels on lines), a title and what it means.</summary>
+public sealed record LegendRow(string? Kind, string Title, string Text);
+
 /// <summary>A port of src/core/captions.ts, with the same words. desktop/fixtures/structure.ts keeps the two equal.</summary>
 public static class Captions
 {
+    /// <summary>What each thing on the card means, in plain words: the legend the card opens.</summary>
+    public static readonly IReadOnlyList<LegendRow> Legend =
+    [
+        new("repeat", "Repeat", "The same steps run again. The chip says how many times at most, or what stops it."),
+        new("branch", "Branch", "Alternatives: only one of the lanes happens. Each tab is a lane and the one you are in is marked. On the canvas the others are dashed."),
+        new("parallel", "Same time", "Parallel lanes: steps that happen together. Each stop shows the next step of every lane, and they light up and move at the same moment."),
+        new(null, "The bar", "One cell for each stop. A branch puts its lanes on rows of their own, and a bracket under the bar names each group. Point at a cell or a bracket to read more."),
+        new(null, "The label on a line", "What the group says about that step: how often it repeats, or which lane it is in."),
+    ];
+
     private static string Part(OrderedDictionary<string, object?> group, string key)
     {
         group.TryGetValue(key, out var v);
@@ -115,7 +128,7 @@ public static class Captions
                 var words = RepeatWords(group);
                 brackets.Add(s.Kind == "repeat"
                     ? new Bracket(s.Kind, start, col - 1, times == "" ? "" : $"×{times}", words == "" ? "Repeats" : $"Repeats {words}")
-                    : new Bracket(s.Kind, start, col - 1, "at once", "The lanes happen at the same time: each stop shows the next step of every lane"));
+                    : new Bracket(s.Kind, start, col - 1, "same time", "The lanes happen at the same time: each stop shows the next step of every lane"));
             }
             k = end + 1;
         }

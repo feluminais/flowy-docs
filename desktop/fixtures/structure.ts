@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { captionOf, progressOf } from '../../src/core/captions.ts'
+import { captionOf, LEGEND, progressOf } from '../../src/core/captions.ts'
 import { otherLaneSteps, runsOf, stopIndexOf, stopsOf } from '../../src/core/structure.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -26,6 +26,7 @@ export async function dumpCaptions(): Promise<unknown> {
   const state = await loadState(join(root, 'desktop/fixtures/cases/groups/flowy'))
   if ('parseError' in state) throw new Error("the groups case can't be read")
   return {
+    legend: LEGEND,
     flows: Object.entries(state.flows).map(([id, flow]) => {
       const stops = stopsOf(flow)
       return { id, captions: stops.map(stop => captionOf(flow, stop)), progress: progressOf(flow, stops) }

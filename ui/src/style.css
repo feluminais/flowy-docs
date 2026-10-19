@@ -283,6 +283,12 @@ svg { flex: none; }
 .progress .done { background: var(--accent); }
 .brackets { display: grid; gap: 3px; margin: -5px 0 6px; }
 .bracket { display: flex; justify-content: center; align-items: center; gap: 3px; padding-top: 1px; border-top: 1px solid var(--muted); font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; }
+.player .help { margin-left: auto; padding: 2px; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; line-height: 0; }
+.player .help:hover, .player .help[aria-pressed='true'] { color: var(--accent); }
+.legend { margin: 8px 0 4px; padding: 8px 10px; max-height: 190px; overflow: auto; border-radius: 8px; background: color-mix(in srgb, var(--accent) 8%, transparent); font-size: 12.5px; }
+.legend dt { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.legend dd { margin: 0 0 6px 19px; color: var(--muted); }
+.legend div:last-child dd { margin-bottom: 0; }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
 .tab { padding: 1px 9px; border: 1px dashed var(--line); border-radius: 99px; font-size: 12px; color: var(--muted); }
 .tab.on { border-style: solid; border-color: var(--accent); color: var(--accent); font-weight: 600; }

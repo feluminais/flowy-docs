@@ -46,6 +46,19 @@ public class CaptionsTests
     }
 
     [Fact]
+    public void The_legend_says_what_the_TypeScript_core_says()
+    {
+        var legend = Expected()["legend"]!.AsArray();
+        Assert.Equal(Captions.Legend.Count, legend.Count);
+        for (var i = 0; i < legend.Count; i++)
+        {
+            Assert.Equal(legend[i]!["kind"]?.GetValue<string>(), Captions.Legend[i].Kind);
+            Assert.Equal(legend[i]!["title"]!.GetValue<string>(), Captions.Legend[i].Title);
+            Assert.Equal(legend[i]!["text"]!.GetValue<string>(), Captions.Legend[i].Text);
+        }
+    }
+
+    [Fact]
     public void A_stop_in_no_group_says_nothing()
     {
         var flow = ModelFiles.ParseFlow("f", "name: F\nview: root\nsteps:\n  - { from: a, to: b, text: t }\n");

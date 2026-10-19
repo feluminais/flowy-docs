@@ -1,4 +1,31 @@
 {
+  "legend": [
+    {
+      "kind": "repeat",
+      "title": "Repeat",
+      "text": "The same steps run again. The chip says how many times at most, or what stops it."
+    },
+    {
+      "kind": "branch",
+      "title": "Branch",
+      "text": "Alternatives: only one of the lanes happens. Each tab is a lane and the one you are in is marked. On the canvas the others are dashed."
+    },
+    {
+      "kind": "parallel",
+      "title": "Same time",
+      "text": "Parallel lanes: steps that happen together. Each stop shows the next step of every lane, and they light up and move at the same moment."
+    },
+    {
+      "kind": null,
+      "title": "The bar",
+      "text": "One cell for each stop. A branch puts its lanes on rows of their own, and a bracket under the bar names each group. Point at a cell or a bracket to read more."
+    },
+    {
+      "kind": null,
+      "title": "The label on a line",
+      "text": "What the group says about that step: how often it repeats, or which lane it is in."
+    }
+  ],
   "flows": [
     {
       "id": "bad",
@@ -385,7 +412,7 @@
             "kind": "parallel",
             "from": 7,
             "to": 7,
-            "text": "at once",
+            "text": "same time",
             "title": "The lanes happen at the same time: each stop shows the next step of every lane"
           },
           {
@@ -760,7 +787,7 @@
             "kind": "parallel",
             "from": 4,
             "to": 4,
-            "text": "at once",
+            "text": "same time",
             "title": "The lanes happen at the same time: each stop shows the next step of every lane"
           }
         ]
@@ -960,14 +987,14 @@
             "kind": "parallel",
             "from": 0,
             "to": 0,
-            "text": "at once",
+            "text": "same time",
             "title": "The lanes happen at the same time: each stop shows the next step of every lane"
           },
           {
             "kind": "parallel",
             "from": 2,
             "to": 4,
-            "text": "at once",
+            "text": "same time",
             "title": "The lanes happen at the same time: each stop shows the next step of every lane"
           },
           {
