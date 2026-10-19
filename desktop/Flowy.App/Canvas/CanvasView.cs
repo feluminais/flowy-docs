@@ -19,6 +19,7 @@ internal sealed class CanvasView : Border
 
     private readonly BackLayer _back = new();
     private readonly MotionLayer _motion = new();
+    private readonly CardsLayer _cards = new(); // a recursion's pile of cards, under the boxes
     private readonly TrafficLayer _traffic = new();
     private Traffic? _load; // the load being shown, if the Performance panel is open
     private IDisposable? _step;
@@ -64,7 +65,7 @@ internal sealed class CanvasView : Border
     {
         ClipToBounds = true;
         Background = Brushes.Transparent;
-        Child = new Grid { Children = { _back, _stage, _traffic, _motion } };
+        Child = new Grid { Children = { _back, _cards, _stage, _traffic, _motion } };
     }
 
     public Scene? Scene => _scene;
@@ -121,15 +122,21 @@ internal sealed class CanvasView : Border
     public bool PlayStep(StepAnimation animation, string from, string to, bool afterLanding, Action? done)
     {
         StopStep();
-        if (animation.Kind == "recurse" && RectOf(from) is not null) _resting = (from, animation.Depth ?? Animations.DepthDefault);
+        if (animation.Kind == "recurse" && RectOf(from) is { } box)
+        {
+            _resting = (from, animation.Depth ?? Animations.DepthDefault);
+            _motion.SetRest(box, _resting.Value.Depth);
+        }
         if (MotionSettings.Reduced || RectOf(from) is not { } a || RectOf(to) is not { } b) return false;
         var shape = (string id) => Look.DefOf(_scene!.Boxes.First(x => x.Id == id).Object); // the pipe meets each shape on its outline, as the line does
-        var (beats, total) = _motion.Start(animation, afterLanding, LineStyle, a, b, shape(from).Edge, shape(to).Edge, shape(from).Path);
+        var (beats, total) = _motion.Start(animation, afterLanding, LineStyle, a, b, shape(from).Edge, shape(to).Edge);
+        var cardShape = shape(from).Path;
         StepMoving = true;
         _step = Anim.Run(this, total, t => t, t =>
         {
             var now = t * total;
             _motion.Show(now);
+            if (animation.Kind == "recurse") _cards.Show(a, cardShape, MotionMath.CardsAt(beats, now));
             // A recursion has one box at both ends: the second write would wipe the first with its zero.
             var (squashFrom, squashTo) = MotionMath.TileSquash(from == to, MotionMath.Squash(beats, now));
             Squash(from, squashFrom);
@@ -147,6 +154,7 @@ internal sealed class CanvasView : Border
     {
         EndStep();
         _resting = null;
+        _motion.SetRest(null, 0);
     }
 
     /// <summary>Ends the motion and puts the boxes back, but leaves a recursion's counter on screen: the step is still the one showing.</summary>
@@ -156,6 +164,7 @@ internal sealed class CanvasView : Border
         _step = null;
         StepMoving = false;
         _motion.Clear();
+        _cards.Clear();
         foreach (var box in _boxes.Values) box.SetSquash(0);
     }
 
@@ -201,6 +210,7 @@ internal sealed class CanvasView : Border
         foreach (var (id, control) in _boxes) control.SetSelected(_selected.Contains(id));
         _back.SetScene(scene, lineStyle);
         if (_load is not null) ApplyLoad();
+        if (_resting is { } rest) _motion.SetRest(RectOf(rest.Id), rest.Depth); // a reload may have moved the box
     }
 
     /// <summary>The traffic layer, for tests: how many particles run and whether it runs at all.</summary>
@@ -301,6 +311,7 @@ internal sealed class CanvasView : Border
         _stage.RenderTransform = new MatrixTransform(Matrix.CreateScale(viewport.Zoom, viewport.Zoom) * Matrix.CreateTranslation(viewport.X, viewport.Y));
         _back.Viewport = viewport;
         _motion.Viewport = viewport;
+        _cards.Viewport = viewport;
         _traffic.Viewport = viewport;
     }
 
