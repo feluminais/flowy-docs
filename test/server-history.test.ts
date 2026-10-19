@@ -17,7 +17,7 @@ async function setup(t: TestContext, { blockStateDir = false, gateMs = 400, fold
   if (folder === 'with-model') await writeFile(join(dir, 'model.yaml'), 'objects: {}\nconnections: []\n')
   const stateDir = join(root, 'state')
   if (blockStateDir) await writeFile(stateDir, 'in the way')
-  const history = openHistory(dir, { app: 'browser', stateDir })
+  const history = openHistory(dir, { app: 'browser', stateDir, log: () => undefined })
   const server = await startServer({ dir, ui: join(root, 'ui'), port: 0, history, gateMs })
   t.after(async () => {
     await server.close()

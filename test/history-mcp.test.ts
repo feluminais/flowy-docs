@@ -16,7 +16,7 @@ async function setup(t: TestContext, blockStateDir = false) {
   const stateDir = join(root, 'state')
   if (blockStateDir) await writeFile(stateDir, 'in the way')
   let tick = 0
-  const history = openHistory(dir, { app: 'mcp', stateDir, now: () => new Date(Date.UTC(2026, 9, 20, 10, 0, 0) + tick++) })
+  const history = openHistory(dir, { app: 'mcp', stateDir, log: () => undefined, now:() => new Date(Date.UTC(2026, 9, 20, 10, 0, 0) + tick++) })
   const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
   await createMcpServer(dir, history).connect(serverSide)
   const client = new Client({ name: 'test', version: '0.0.0' })

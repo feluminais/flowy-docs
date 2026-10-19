@@ -16,6 +16,9 @@ export type StepInfo = Omit<Step, 'files'> & { changed: string[] }
 /** The newest this many steps of a folder are kept. */
 export const HISTORY_LIMIT = 300
 
+/** Trimming reads every step, so it waits until there are this many more than the limit and then goes back to the limit in one go. */
+export const HISTORY_SLACK = 30
+
 export const FIRST_LABEL = 'First seen'
 export const CLOSED_LABEL = 'Changed while Flowy was closed'
 

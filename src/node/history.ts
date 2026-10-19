@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto'
 import { readdir, readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import {
-  changedPaths, CLOSED_LABEL, collapseSteps, fallbackLabel, FIRST_LABEL, HISTORY_LIMIT, isLabelled, outsideLabel, planRetention,
+  changedPaths, CLOSED_LABEL, collapseSteps, fallbackLabel, FIRST_LABEL, HISTORY_LIMIT, HISTORY_SLACK, isLabelled, outsideLabel, planRetention,
   sameFiles, stepId, stepInfos,
 } from '../core/history.ts'
 import type { Step, StepApp, StepInfo, StepSource } from '../core/history.ts'
@@ -21,7 +21,8 @@ export type StepView = { step: StepInfo; files: Record<string, StepFile>; previo
 /** `saved: false`: the history could not be written. `id`: the step that holds the files as they are now (none when the folder is empty). */
 export type Ensured = { saved: boolean; id?: string }
 
-export type HistoryOptions = { app: StepApp; stateDir?: string; now?: () => Date; random?: () => string }
+/** `log` is where the one quiet line goes when the history stops being saved: stderr unless given. */
+export type HistoryOptions = { app: StepApp; stateDir?: string; now?: () => Date; random?: () => string; log?: (line: string) => void }
 
 /** Why a file is not in the snapshot: it was not there. */
 const ABSENT = new Set(['ENOENT', 'ENOTDIR', 'EISDIR'])
@@ -81,6 +82,7 @@ export function openHistory(dir: string, options: HistoryOptions): History {
   const store = openStore(root)
   const clock = options.now ?? (() => new Date())
   const random = options.random ?? (() => randomBytes(3).toString('hex'))
+  const log = options.log ?? ((line: string) => console.error(line))
   let failure: string | undefined
   let lastMs = 0
 
@@ -120,17 +122,36 @@ export function openHistory(dir: string, options: HistoryOptions): History {
     const step: Step = { id: stepId(time, random()), time: time.toISOString(), label, source, app: options.app, files: snap.files }
     await store.putStep(step, snap.bytes)
     failure = undefined
-    if ((await store.count()) > HISTORY_LIMIT) await store.prune(planRetention(await store.steps(), HISTORY_LIMIT), PRUNE_GRACE_MS)
+    // Trimming reads every step, so it waits until there are HISTORY_SLACK more than the limit. It is housekeeping: the step is written, whatever happens here.
+    try {
+      if ((await store.count()) > HISTORY_LIMIT + HISTORY_SLACK) await store.prune(planRetention(await store.steps(), HISTORY_LIMIT), PRUNE_GRACE_MS)
+    } catch {
+      // the next step tries again
+    }
     return step
   }
 
-  /** Runs work that must never fail its caller: an error becomes `failure` and the fallback. */
+  /** Runs work that must never fail its caller: an error becomes `failure` (and one quiet line when it is a new one) and the fallback. */
   async function guarded<T>(work: () => Promise<T>, fallback: T): Promise<T> {
     try {
       return await work()
     } catch (e) {
-      failure = e instanceof Error ? e.message : String(e)
+      const message = e instanceof Error ? e.message : String(e)
+      if (message !== failure) log(`Flowy history isn't being saved: ${message}`)
+      failure = message
       return fallback
+    }
+  }
+
+  /** The step the list shows for the newest run of steps with the same files, as collapseSteps picks it, reading only as far back as the run goes. */
+  async function shownStepId(): Promise<string | undefined> {
+    for (let look = 4; ; look *= 4) {
+      const tail = await store.tail(look)
+      if (tail.length === 0) return undefined
+      let start = tail.length - 1
+      while (start > 0 && sameFiles(tail[start - 1].files, tail[tail.length - 1].files)) start--
+      // Either the run begins inside what was read, or what was read is the whole trail.
+      if (start > 0 || tail.length < look) return collapseSteps(tail.slice(start)).at(-1)?.id
     }
   }
 
@@ -160,7 +181,7 @@ export function openHistory(dir: string, options: HistoryOptions): History {
       if (Object.keys(snap.files).length === 0) return { saved: true }
       return { saved: true, id: (await append(snap, FIRST_LABEL, 'first')).id }
     }
-    if (sameFiles(newest.files, snap.files)) return { saved: true, id: collapseSteps(await store.steps()).at(-1)?.id }
+    if (sameFiles(newest.files, snap.files)) return { saved: true, id: await shownStepId() }
     const label = why === 'open' ? CLOSED_LABEL : outsideLabel(changedPaths(newest.files, snap.files))
     return { saved: true, id: (await append(snap, label, 'outside')).id }
   }, { saved: false })
@@ -197,33 +218,41 @@ export function openHistory(dir: string, options: HistoryOptions): History {
     ensureCurrent,
 
     async restore(id, seen, label) {
-      const target = collapseSteps(await store.steps()).find(step => step.id === id)
-      if (!target) return { ok: false, kind: 'unknown', message: 'That version is gone.' }
-      // The files as they are now are saved first, so a restore can never lose work that was never recorded.
-      const ensured = await ensureCurrent('write')
-      if (!ensured.saved) return { ok: false, kind: 'unsaved', message: `Can't restore: history isn't being saved (${failure ?? 'unknown reason'}).` }
-      const before = await snapshot()
-      const paths = [...new Set([...Object.keys(target.files), ...Object.keys(before.files)])].sort(restoreOrder)
-      const conflict: RestoreResult = { ok: false, kind: 'conflict', message: CHANGED_OUTSIDE }
-      if (paths.some(path => (before.files[path] ?? null) !== (seen[path] ?? null))) return conflict
+      const failed = (e: unknown): RestoreResult => ({ ok: false, kind: 'failed', message: `Couldn't restore: ${e instanceof Error ? e.message : String(e)}` })
       try {
-        for (const path of paths) {
-          const wanted = target.files[path]
-          if (wanted === before.files[path]) continue
-          const bytes = wanted === undefined ? null : await store.blob(wanted)
-          if (bytes === undefined) throw new Error(`The saved copy of ${path} is gone.`)
-          await saveRaw(dir, path, bytes, before.files[path] ?? null)
+        const target = collapseSteps(await store.steps()).find(step => step.id === id)
+        if (!target) return { ok: false, kind: 'unknown', message: 'That version is gone.' }
+        // Everything the restore will write is read before anything changes: recording the files as they are now can trim the trail,
+        // and a step that went missing half way would leave a mix of two versions.
+        const wanted = new Map<string, Uint8Array>()
+        for (const [path, hash] of Object.entries(target.files)) {
+          if (!isAllowedPath(path)) return { ok: false, kind: 'failed', message: "That version can't be restored: it names a file Flowy doesn't write." }
+          const bytes = await store.blob(hash)
+          if (!bytes) return { ok: false, kind: 'failed', message: `Couldn't restore: the saved copy of ${path} is gone.` }
+          wanted.set(path, bytes)
         }
-      } catch (e) {
-        if (e instanceof VersionConflict) {
+        // The files as they are now are saved first, so a restore can never lose work that was never recorded.
+        const ensured = await ensureCurrent('write')
+        if (!ensured.saved) return { ok: false, kind: 'unsaved', message: `Can't restore: history isn't being saved (${failure ?? 'unknown reason'}).` }
+        const before = await snapshot()
+        const paths = [...new Set([...Object.keys(target.files), ...Object.keys(before.files)])].sort(restoreOrder)
+        const conflict: RestoreResult = { ok: false, kind: 'conflict', message: CHANGED_OUTSIDE }
+        if (paths.some(path => (before.files[path] ?? null) !== (seen[path] ?? null))) return conflict
+        try {
+          for (const path of paths) {
+            if (target.files[path] === before.files[path]) continue
+            await saveRaw(dir, path, wanted.get(path) ?? null, before.files[path] ?? null)
+          }
+        } catch (e) {
           await ensureCurrent('write') // a restore that stopped half way leaves a mix; keep it as a step
-          return conflict
+          return e instanceof VersionConflict ? conflict : failed(e)
         }
-        return { ok: false, kind: 'failed', message: `Couldn't restore: ${e instanceof Error ? e.message : String(e)}` }
+        await record(label, 'restore')
+        const after = await snapshot()
+        return { ok: true, versions: Object.fromEntries(paths.map(path => [path, after.files[path] ?? null])), ...(ensured.id ? { before: ensured.id } : {}) }
+      } catch (e) {
+        return failed(e)
       }
-      await record(label, 'restore')
-      const after = await snapshot()
-      return { ok: true, versions: Object.fromEntries(paths.map(path => [path, after.files[path] ?? null])), ...(ensured.id ? { before: ensured.id } : {}) }
     },
 
     clear: () => guarded(() => store.clear(), undefined),

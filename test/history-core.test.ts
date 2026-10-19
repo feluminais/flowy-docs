@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  changedPaths, CLOSED_LABEL, collapseSteps, fallbackLabel, FIRST_LABEL, HISTORY_LIMIT, isLabelled, mcpLabel, outsideLabel,
+  changedPaths, CLOSED_LABEL, collapseSteps, fallbackLabel, FIRST_LABEL, HISTORY_LIMIT, HISTORY_SLACK, isLabelled, mcpLabel, outsideLabel,
   planRetention, sameFiles, stepId, stepInfos,
 } from '../src/core/history.ts'
 import type { Step, StepSource } from '../src/core/history.ts'
@@ -9,8 +9,9 @@ import type { Step, StepSource } from '../src/core/history.ts'
 const step = (id: string, files: Record<string, string>, source: StepSource = 'you'): Step =>
   ({ id, time: '2026-10-20T10:00:00.000Z', label: `label ${id}`, source, app: 'browser', files })
 
-test('the limit is 300 steps', () => {
+test('the limit is 300 steps, trimmed in a batch once there are 30 more', () => {
   assert.equal(HISTORY_LIMIT, 300)
+  assert.equal(HISTORY_SLACK, 30)
 })
 
 test('stepId sorts by time', () => {
