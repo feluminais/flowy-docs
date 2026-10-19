@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   changedFiles, emptyModel, fileData, getObject, linksOf, modelFiles, ParseError, parseFile, parseFlowFile, parseLayoutFile,
-  parseModelFile, serializeFile, serializeFlow, serializeLayout, serializeModelFile,
+  parseModelFile, readYaml, serializeFile, serializeFlow, serializeLayout, serializeModelFile,
 } from '../src/core/model.ts'
 import type { FlowyObject, Layout } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
@@ -190,4 +190,12 @@ test('linksOf keeps the well-formed entries, with their extra keys, and ignores 
   assert.deepEqual(linksOf(o), [{ title: 'Doc', url: 'docs/a.md', note: 'x' }, { url: 'https://x.dev' }])
   assert.deepEqual(linksOf({ type: 'app', name: 'A', links: 'text' } as unknown as FlowyObject), [])
   assert.deepEqual(linksOf({ type: 'app', name: 'A' }), [])
+})
+
+test('readYaml keeps every value as the text typed and names a merge conflict by its line', () => {
+  assert.deepEqual(readYaml('x.yaml', 'a: 007\nb: [1, true]\n'), { a: '007', b: ['1', 'true'] })
+  assert.throws(
+    () => readYaml('x.yaml', 'a: 1\n<<<<<<< HEAD\nb: 2\n'),
+    (e: unknown) => e instanceof ParseError && e.file === 'x.yaml' && e.line === 2 && e.reason === 'unresolved merge conflict',
+  )
 })
