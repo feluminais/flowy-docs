@@ -189,6 +189,9 @@ svg { flex: none; }
   stroke: var(--accent); stroke-width: 3; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 70%, transparent));
 }
 .react-flow__edge.step .react-flow__edge-path { stroke-dasharray: 8 5; }
+/* The other lanes of a branch: where it might have gone, faint and dashed, and not lit. */
+.react-flow__edge.lane { opacity: 0.55; }
+.react-flow__edge.lane .react-flow__edge-path { stroke-dasharray: 4 5; }
 .react-flow__edge.active .react-flow__edge-text, .react-flow__edge.step .react-flow__edge-text { font-weight: 600; }
 
 .teaser {

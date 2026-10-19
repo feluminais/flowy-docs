@@ -27,9 +27,14 @@ export type BoxNode = Node<BoxData, 'box'>
 
 /**
  * A flow on the canvas: where each step lands in the view (placeEnds, null if it can't be shown), and
- * the step to light up. Without `step` the flow's boxes are there but nothing is lit or dimmed.
+ * the step to light up. Without `step` or `steps` the flow's boxes are there but nothing is lit or dimmed.
+ * `steps` lights several at once (a parallel stop); `faint` draws steps as dashed, faint lanes (the lanes of a
+ * branch this stop is not in) without lighting their boxes.
  */
-export type Playing = { ends: ([string, string] | null)[]; step?: number }
+export type Playing = { ends: ([string, string] | null)[]; step?: number; steps?: number[]; faint?: number[] }
+
+/** Whether an edge is one a flow step added (it has no connection of its own), so a click on it opens no panel. */
+export const isStepLine = (id: string): boolean => /^(step|lane)(-\d+)?$/.test(id)
 
 export const lineId = (from: string, to: string) => `${from} ${to}`
 
@@ -330,8 +335,14 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
   const { members, outsiders, edges } = computeView(model, view)
   const flowBoxes = (playing?.ends ?? []).flatMap(e => e ?? [])
   const boxes = [...new Set([...members, ...outsiders, ...flowBoxes])]
-  const dimming = playing?.step !== undefined
-  const lit = playing?.step === undefined ? undefined : playing.ends[playing.step]
+  const stepsLit = playing?.steps ?? (playing?.step === undefined ? undefined : [playing.step])
+  const dimming = stepsLit !== undefined
+  const placedAt = (i: number) => playing?.ends[i] ?? undefined
+  const litEnds = (stepsLit ?? []).flatMap(i => {
+    const e = placedAt(i)
+    return e ? [e] : []
+  })
+  const litBoxes = new Set(litEnds.flat())
   const around = boxes.filter(id => !members.includes(id))
   const placed = placeCached(members, around, edges)
 
@@ -352,13 +363,18 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     const ends = c && placeEnds(model, view, c.from, c.to)
     return ends ? [lineId(...ends)] : []
   }))
-  const isLit = (from: string, to: string) => lit?.[0] === from && lit[1] === to
+  const isLit = (from: string, to: string) => litEnds.some(e => e[0] === from && e[1] === to)
+  const faintSteps = (playing?.faint ?? []).flatMap(i => {
+    const e = placedAt(i)
+    return e ? [{ i, e }] : []
+  })
+  const isFaint = (from: string, to: string) => faintSteps.some(f => f.e[0] === from && f.e[1] === to)
   const nodes = boxes.map((id): BoxNode => ({
     id,
     type: 'box',
     position: at.get(id)!,
     data: { object: model.objects[id], inside: memberIds(model, id).length, icon: iconData(model, model.objects[id]) },
-    className: classes(!members.includes(id) && 'outsider', dimming && (lit?.includes(id) ? 'lit' : 'dim'), badBoxes.has(id) && 'problem'),
+    className: classes(!members.includes(id) && 'outsider', dimming && (litBoxes.has(id) ? 'lit' : 'dim'), badBoxes.has(id) && 'problem'),
   }))
   // A lit line draws over the faded boxes (zIndex), with an arrowhead in its own colour.
   const litLine = { zIndex: 1, markerEnd: { type: 'arrowclosed', color: 'var(--accent)' } } as const
@@ -369,11 +385,23 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     target: e.to,
     label: e.label || undefined,
     markerEnd: { type: 'arrowclosed' },
-    className: classes(dimming && (isLit(e.from, e.to) ? 'active' : 'dim'), badLines.has(lineId(e.from, e.to)) && 'problem'),
+    className: classes(dimming && (isLit(e.from, e.to) ? 'active' : isFaint(e.from, e.to) ? 'lane' : 'dim'), badLines.has(lineId(e.from, e.to)) && 'problem'),
     ...(dimming && isLit(e.from, e.to) ? litLine : {}),
   }))
-  if (lit && lit[0] !== lit[1] && !edges.some(e => isLit(e.from, e.to))) // a one-box step lights its box, no line
-    lines.push({ id: 'step', type: 'line', source: lit[0], target: lit[1], className: 'step', ...litLine })
+  // A one-box step lights its box, no line. A step with no connection of its own gets a dashed line, and so does a faint one.
+  const drawn = new Set<string>()
+  litEnds.forEach((e, n) => {
+    const id = lineId(e[0], e[1])
+    if (e[0] === e[1] || edges.some(c => c.from === e[0] && c.to === e[1]) || drawn.has(id)) return
+    drawn.add(id)
+    lines.push({ id: n === 0 ? 'step' : `step-${n}`, type: 'line', source: e[0], target: e[1], className: 'step', ...litLine })
+  })
+  for (const { i, e } of faintSteps) {
+    const id = lineId(e[0], e[1])
+    if (e[0] === e[1] || edges.some(c => c.from === e[0] && c.to === e[1]) || drawn.has(id)) continue
+    drawn.add(id)
+    lines.push({ id: `lane-${i}`, type: 'line', source: e[0], target: e[1], className: 'lane', markerEnd: { type: 'arrowclosed' } })
+  }
   return { nodes, edges: lines, members }
 }
 
