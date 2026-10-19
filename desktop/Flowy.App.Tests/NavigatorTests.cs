@@ -36,7 +36,7 @@ public class NavigatorTests
     {
         var (window, reader) = Open();
         var icons = reader.Rail.Shown.ToList();
-        Assert.Equal(["Flows, 3", "Explorer, 36"], icons.Select(i => i.Name));
+        Assert.Equal(["Explorer, 36", "Flows, 3"], icons.Select(i => i.Name));
         Assert.All(icons, i => Assert.True(i.Visible));
         Assert.Equal(["Details"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name)); // Performance is there only where there is a run
         Assert.False(reader.HasPanel); // nothing is open until an icon is picked
