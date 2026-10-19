@@ -11,7 +11,8 @@ public static class ModelFiles
     private static readonly string[] ObjectFields = ["type", "name", "in", "external", "shape", "color", "opacity", "icon", "tech", "description"];
     private static readonly string[] ConnectionFields = ["from", "to", "label"];
     private static readonly string[] FlowFields = ["name", "view"];
-    private static readonly string[] StepFields = ["from", "to", "text", "description"];
+    private static readonly string[] StepFields = ["from", "to", "text", "description", "group", "lane", "flow"];
+    private static readonly string[] GroupFields = ["kind", "text", "times", "until"];
     private const double MaxCoordinate = 1_000_000;
 
     /// <summary>The model.yaml part of a <see cref="Model"/>; the folder loader adds flows and layout.</summary>
@@ -77,14 +78,22 @@ public static class ModelFiles
         doc.TryGetValue("steps", out var rawSteps);
         if (OrEmpty(rawSteps, new List<object?>()) is not List<object?> steps) throw new ParseError(file, "\"steps\" must be a list");
         for (var i = 0; i < steps.Count; i++) CheckEntry(file, $"step {i + 1}", steps[i], StepFields);
+        doc.TryGetValue("groups", out var rawGroups);
+        OrderedDictionary<string, object?>? groups = null;
+        if (OrEmpty(rawGroups, null) is { } declared)
+        {
+            if (declared is not OrderedDictionary<string, object?> map) throw new ParseError(file, "\"groups\" must map ids to mappings");
+            foreach (var gid in JsKeys.Order(map.Keys)) CheckEntry(file, $"group \"{gid}\"", map[gid], GroupFields);
+            groups = map;
+        }
 
         var parsed = steps.Select(s =>
         {
             var m = (OrderedDictionary<string, object?>)s!;
             m.TryGetValue("animation", out var animation);
-            return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"), animation);
+            return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"), animation, Text(m, "group"), Text(m, "lane"), Text(m, "flow"));
         }).ToList();
-        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed);
+        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups);
     }
 
     // ponytail: plain decimal numbers only. JavaScript's Number() also takes 0x10 and 0b11; layout.yaml is written

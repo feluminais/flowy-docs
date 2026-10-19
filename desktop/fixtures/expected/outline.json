@@ -16084,6 +16084,12 @@
           ]
         }
       ]
+    },
+    "shape-groups": {
+      "parseError": true
+    },
+    "shape-group": {
+      "parseError": true
     }
   },
   "keys": {

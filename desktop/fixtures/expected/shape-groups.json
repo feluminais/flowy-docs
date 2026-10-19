@@ -1,0 +1,6 @@
+{
+  "parseError": {
+    "file": "flows/f.yaml",
+    "message": "\"groups\" must map ids to mappings"
+  }
+}
