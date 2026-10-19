@@ -108,14 +108,15 @@ objects:
 
       Two readers must give the same answers, so a Node script runs the TypeScript over fixture
       folders and the canvas's own functions, and the C# tests must reproduce every number. That
-      includes the beats of a step's animation and the maths that draws them, and the navigator's rows, flow groups and keys. A root
+      includes the beats of a step's animation and the maths that draws them, the navigator's rows, flow groups and keys, and how a
+      load-test run reads, rolls up, struggles and is drawn. A root
       test fails if the TypeScript changes without the fixtures being written again.
   desktop-canvas:
     type: component
     in: desktop
     name: Canvas and reader
     tech: Avalonia
-    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs, desktop/Flowy.App/Navigator.cs, desktop/Flowy.App/ExplorerView.cs, desktop/Flowy.App/FlowsView.cs]
+    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs, desktop/Flowy.App/Navigator.cs, desktop/Flowy.App/ExplorerView.cs, desktop/Flowy.App/FlowsView.cs, desktop/Flowy.App/PerfPanel.cs, desktop/Flowy.App/ReaderView.Performance.cs]
     description: |
       Shapes are controls on a stage that moves with the camera, with one layer behind them for the
       frame and the lines. The reader holds what you've chosen: the view, the open panel, the flow
@@ -145,6 +146,12 @@ objects:
       picking a shape. Both panels are dragged wider or narrower by their inner edge, and a
       double-click puts the width back. Each project's open tab, open rows and panel widths are
       remembered in the app's state file.
+
+      Where the folder has load-test runs, a Performance button under Details puts a run's panel in
+      its place: a slider along the tested loads with Ramp, where things first struggle, and the numbers
+      of what is picked. The shapes show their strain and what waits, the lines get thicker, and
+      particles run along them on one layer over the shapes, on the window's animation frames and
+      none when the system asks for less motion.
 
       Descriptions are drawn by a small Markdown renderer: raw HTML is dropped, an image shows as
       its description in brackets and is never fetched, and a link opens only if it is http or https.
@@ -385,7 +392,7 @@ objects:
     type: component
     in: core
     name: Performance runs
-    code: [src/core/perf.ts]
+    code: [src/core/perf.ts, desktop/Flowy.Core/Perf.cs]
     description: |
       A load test as numbers: for each load level that was tested, what each shape and each
       connection measured. It reads a run file, checks it against the model, and works out what the
@@ -393,7 +400,8 @@ objects:
       a shape holds, where things first struggle, and how busy each line is.
 
       It replays what was measured and never predicts: above the highest tested load there is
-      nothing to show.
+      nothing to show. Nothing here draws: the canvas and the desktop app each show it, and the desktop
+      app's port (`Perf.cs`) is kept equal by fixtures.
   views:
     type: component
     in: core
