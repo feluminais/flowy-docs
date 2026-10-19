@@ -43,15 +43,23 @@ internal sealed partial class ReaderView
         if (key == _stepKey) return;
         _stepKey = key;
         _canvas.StopStep();
-        if (flow is { } playing && shown?.Ends[index] is { } placed && Animations.Read(playing.Flow.Steps[index]) is { } animation)
+        if (flow is { } playing && shown is not null)
         {
-            var after = index > 0 && Animations.Follows(shown.Ends[index - 1], placed);
-            _canvas.PlayStep(animation, placed.From, placed.To, after, () =>
+            // Every step of the stop that moves plays at once; the stop has settled when the longest has finished.
+            var stop = StopsOf(playing.Flow)[index];
+            var runs = new List<CanvasView.StepRun>();
+            foreach (var i in stop.Steps)
             {
-                if (key != _stepKey) return;
-                _settledKey = key;
-                ArmAuto();
-            });
+                if (Animations.Read(playing.Flow.Steps[i]) is not { } animation || shown.Ends[i] is not { } placed) continue;
+                runs.Add(new CanvasView.StepRun(animation, placed.From, placed.To, stop.Before.Any(j => Animations.Follows(shown.Ends[j], placed))));
+            }
+            if (runs.Count > 0)
+                _canvas.PlaySteps(runs, () =>
+                {
+                    if (key != _stepKey) return;
+                    _settledKey = key;
+                    ArmAuto();
+                });
         }
         ArmAuto();
     }
@@ -71,7 +79,7 @@ internal sealed partial class ReaderView
             After(MotionMath.Gap, () =>
             {
                 if (key != _stepKey || !_auto) return;
-                if (StepIndex() < f.Flow.Steps.Count - 1) _playing = (f.Id, StepIndex() + 1);
+                if (StopIndex() < StopsOf(f.Flow).Count - 1) _playing = _playing! with { Step = StopIndex() + 1 };
                 else _auto = false;
                 Refresh();
             });
@@ -98,7 +106,7 @@ internal sealed partial class ReaderView
             return;
         }
         _auto = true;
-        if (StepIndex() == f.Flow.Steps.Count - 1) _playing = (f.Id, 0); // from the start
+        if (StopIndex() == StopsOf(f.Flow).Count - 1) _playing = _playing! with { Step = 0 }; // from the start
         Refresh();
         ArmAuto();
     }

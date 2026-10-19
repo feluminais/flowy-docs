@@ -274,6 +274,23 @@
     <Setter Property="Height" Value="4" />
   </Style>
   <Style Selector="Border.seg.done"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <!-- A group on the card: the bracket under the progress bar, a branch's lanes as tabs, a parallel stop's lane blocks, and the way back to the flow it was opened from. -->
+  <Style Selector="Border.bracket">
+    <Setter Property="BorderBrush" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+  </Style>
+  <Style Selector="Border.tab">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="99" />
+    <Setter Property="Padding" Value="9,1" />
+  </Style>
+  <Style Selector="Border.tab TextBlock"><Setter Property="FontSize" Value="12" /><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector="Border.tab.on"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.tab.on TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+  <Style Selector="Border.laneblock"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="TextBlock.lane"><Setter Property="FontSize" Value="12" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Button.trail"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <Style Selector="Border.chip.warn TextBlock"><Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.chip.warn Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
   <Style Selector="Border.ttile.actor"><Setter Property="Background" Value="{DynamicResource ActorTileBrush}" /></Style>
