@@ -33,3 +33,28 @@ export const dashAround = (pos: number, len: number, window: number): { array: s
   array: `${window} ${len * 2 + window}`,
   offset: -(pos - window / 2),
 })
+
+/** The biggest of some squashes, 0 for none. */
+export const largest = (amounts: Iterable<number>): number => Math.max(0, ...amounts)
+
+/** What a squash needs of a box's tile: somewhere to put a transform (an HTMLElement fits). This file is checked without the DOM. */
+type Tile = { style: { transform: string } }
+
+const squashes = new Map<Tile, Map<symbol, number>>()
+/**
+ * Squash the tile of a box by `amount` (0 to 1) on behalf of `who`. Several steps may squash one box at once (a fan-out has one
+ * source; a step that is both its ends is two), so the box takes the largest of what is asked and a step with nothing to squash
+ * never clears another's. An amount of 0 withdraws what `who` asked.
+ */
+export function squashTile(el: Tile, who: symbol, amount: number): void {
+  let by = squashes.get(el)
+  if (amount > 0) {
+    if (!by) squashes.set(el, (by = new Map()))
+    by.set(who, amount)
+  } else if (by) {
+    by.delete(who)
+    if (by.size === 0) squashes.delete(el)
+  }
+  const x = by ? largest(by.values()) : 0
+  el.style.transform = x > 0 ? `scale(${1 + 0.07 * x}, ${1 - 0.1 * x})` : ''
+}
