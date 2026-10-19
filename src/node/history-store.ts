@@ -32,6 +32,10 @@ export type Store = {
   putStep(step: Step, blobs: Map<string, Uint8Array>): Promise<void>
   /** Every readable step, oldest first. A file that is not a step (cut off, misshapen, a temporary file) is skipped. */
   steps(): Promise<Step[]>
+  /** The newest readable step, reading as few files as it takes. */
+  latest(): Promise<Step | undefined>
+  /** How many step files there are, readable or not. */
+  count(): Promise<number>
   blob(hash: string): Promise<Uint8Array | undefined>
   /** Deletes the dropped steps, then every blob nothing keeps that is at least `graceMs` old (another program may be about to name a fresh one). */
   prune(plan: Retention, graceMs: number): Promise<void>
@@ -79,6 +83,21 @@ export function openStore(root: string): Store {
     }
   }
 
+  /** The names of the step files, oldest first. */
+  async function stepFiles(): Promise<string[]> {
+    try {
+      return (await readdir(stepsDir)).filter(name => name.endsWith('.json')).sort()
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code === 'ENOENT') return []
+      throw e
+    }
+  }
+
+  async function readStep(name: string): Promise<Step | undefined> {
+    const text = await readFile(`${stepsDir}/${name}`, 'utf8').catch(() => undefined)
+    return text === undefined ? undefined : parseStep(name.slice(0, -'.json'.length), text)
+  }
+
   return {
     async putStep(step, blobs) {
       for (const hash of [...blobs.keys(), ...Object.values(step.files)]) if (!isHash(hash)) throw new Error(`"${hash}" is not a blob name`)
@@ -96,20 +115,25 @@ export function openStore(root: string): Store {
     },
 
     async steps() {
-      let names: string[]
-      try {
-        names = await readdir(stepsDir)
-      } catch (e) {
-        if ((e as NodeJS.ErrnoException).code === 'ENOENT') return []
-        throw e
-      }
       const steps: Step[] = []
-      for (const name of names.filter(n => n.endsWith('.json')).sort()) {
-        const text = await readFile(`${stepsDir}/${name}`, 'utf8').catch(() => undefined)
-        const step = text === undefined ? undefined : parseStep(name.slice(0, -'.json'.length), text)
+      for (const name of await stepFiles()) {
+        const step = await readStep(name)
         if (step) steps.push(step)
       }
       return steps
+    },
+
+    async latest() {
+      const names = await stepFiles()
+      for (let i = names.length - 1; i >= 0; i--) {
+        const step = await readStep(names[i])
+        if (step) return step
+      }
+      return undefined
+    },
+
+    async count() {
+      return (await stepFiles()).length
     },
 
     async blob(hash) {

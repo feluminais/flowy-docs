@@ -1,0 +1,182 @@
+import { randomBytes } from 'node:crypto'
+import { readdir, readFile } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
+import {
+  changedPaths, CLOSED_LABEL, collapseSteps, fallbackLabel, FIRST_LABEL, HISTORY_LIMIT, isLabelled, outsideLabel, planRetention,
+  sameFiles, stepId, stepInfos,
+} from '../core/history.ts'
+import type { Step, StepApp, StepInfo, StepSource } from '../core/history.ts'
+import { hashBytes, isAllowedPath } from './files.ts'
+import { defaultStateDir, historyKey, openStore } from './history-store.ts'
+
+/** The files a step covers, as they are on disk now: each path's version, and the bytes behind each version. */
+export type Snapshot = { files: Record<string, string>; bytes: Map<string, Uint8Array> }
+
+/** A file as the panel shows it: its text, or the fact that it is not text. */
+export type StepFile = { text: string } | { notText: true }
+
+/** A step with its files, and the step before it in the list (what the marks are against). */
+export type StepView = { step: StepInfo; files: Record<string, StepFile>; previous?: { id: string; files: Record<string, StepFile> } }
+
+/** `saved: false`: the history could not be written. `id`: the step that holds the files as they are now (none when the folder is empty). */
+export type Ensured = { saved: boolean; id?: string }
+
+export type HistoryOptions = { app: StepApp; stateDir?: string; now?: () => Date; random?: () => string }
+
+/** Why a file is not in the snapshot: it was not there. */
+const ABSENT = new Set(['ENOENT', 'ENOTDIR', 'EISDIR'])
+
+/** A blob is only deleted once it is this old: another program may have written it just before the step that names it. */
+const PRUNE_GRACE_MS = 60_000
+
+// fatal: bytes that are not UTF-8 are reported as such, never shown with replacement characters. ignoreBOM: keep a BOM in the text.
+const utf8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true })
+
+function decode(bytes: Uint8Array): StepFile {
+  try {
+    return { text: utf8.decode(bytes) }
+  } catch {
+    return { notText: true }
+  }
+}
+
+export type History = {
+  /** Where this project's trail is kept. */
+  readonly root: string
+  /** Why the history could not be written the last time it tried, or undefined while it can. */
+  readonly failure: string | undefined
+  /** The files as they are on disk now. Reads them, never parses them. */
+  snapshot(): Promise<Snapshot>
+  /** The files as they are on disk now, as text, with their versions. */
+  now(): Promise<{ files: Record<string, StepFile>; versions: Record<string, string> }>
+  /** The steps, newest first. */
+  list(): Promise<StepInfo[]>
+  read(id: string): Promise<StepView | undefined>
+  /**
+   * Records the files as they are now as a step, unless the newest step already holds them. A labelled step still goes in over an identical
+   * unlabelled one, so what happened is told. A missing label becomes "Changed <files>". Never throws; undefined if nothing was written.
+   */
+  record(label: string | undefined, source: StepSource): Promise<Step | undefined>
+  /** Before Flowy writes, or when something noticed a change: makes sure the files as they are now are the newest step. Never throws. */
+  ensureCurrent(why: 'open' | 'watch' | 'write'): Promise<Ensured>
+  /** Deletes the whole trail. Never throws. */
+  clear(): Promise<void>
+}
+
+export function openHistory(dir: string, options: HistoryOptions): History {
+  const root = join(options.stateDir ?? defaultStateDir(), 'history', historyKey(resolve(dir)))
+  const store = openStore(root)
+  const clock = options.now ?? (() => new Date())
+  const random = options.random ?? (() => randomBytes(3).toString('hex'))
+  let failure: string | undefined
+
+  async function snapshot(): Promise<Snapshot> {
+    const files: Record<string, string> = {}
+    const bytes = new Map<string, Uint8Array>()
+    const add = async (rel: string) => {
+      let data: Uint8Array
+      try {
+        const file = await readFile(join(dir, rel))
+        data = new Uint8Array(file.buffer, file.byteOffset, file.length) // a plain Uint8Array, not a Buffer
+      } catch (e) {
+        if (ABSENT.has((e as NodeJS.ErrnoException).code ?? '')) return
+        throw e
+      }
+      const hash = hashBytes(data)
+      files[rel] = hash
+      bytes.set(hash, data)
+    }
+    await add('model.yaml')
+    await add('layout.yaml')
+    let flows: string[] = []
+    try {
+      flows = (await readdir(join(dir, 'flows'))).sort()
+    } catch (e) {
+      if (!ABSENT.has((e as NodeJS.ErrnoException).code ?? '')) throw e
+    }
+    for (const name of flows) if (isAllowedPath(`flows/${name}`)) await add(`flows/${name}`)
+    return { files, bytes }
+  }
+
+  /** Writes a step for a snapshot, then trims the trail when it has grown past the limit. */
+  async function append(snap: Snapshot, label: string, source: StepSource): Promise<Step> {
+    const time = clock()
+    const step: Step = { id: stepId(time, random()), time: time.toISOString(), label, source, app: options.app, files: snap.files }
+    await store.putStep(step, snap.bytes)
+    failure = undefined
+    if ((await store.count()) > HISTORY_LIMIT) await store.prune(planRetention(await store.steps(), HISTORY_LIMIT), PRUNE_GRACE_MS)
+    return step
+  }
+
+  /** Runs work that must never fail its caller: an error becomes `failure` and the fallback. */
+  async function guarded<T>(work: () => Promise<T>, fallback: T): Promise<T> {
+    try {
+      return await work()
+    } catch (e) {
+      failure = e instanceof Error ? e.message : String(e)
+      return fallback
+    }
+  }
+
+  /** The files of a step, or undefined when a blob they name is gone. */
+  async function load(files: Record<string, string>): Promise<Record<string, StepFile> | undefined> {
+    const loaded: Record<string, StepFile> = {}
+    for (const [path, hash] of Object.entries(files)) {
+      const bytes = await store.blob(hash)
+      if (!bytes) return undefined
+      loaded[path] = decode(bytes)
+    }
+    return loaded
+  }
+
+  return {
+    root,
+    get failure() {
+      return failure
+    },
+    snapshot,
+
+    async now() {
+      const { files, bytes } = await snapshot()
+      return { files: Object.fromEntries(Object.entries(files).map(([path, hash]) => [path, decode(bytes.get(hash)!)])), versions: files }
+    },
+
+    async list() {
+      return stepInfos(collapseSteps(await store.steps()))
+    },
+
+    async read(id) {
+      const visible = collapseSteps(await store.steps())
+      const index = visible.findIndex(step => step.id === id)
+      if (index < 0) return undefined
+      const files = await load(visible[index].files)
+      if (!files) return undefined
+      const info = stepInfos(visible)[visible.length - 1 - index]
+      if (index === 0) return { step: info, files }
+      const before = await load(visible[index - 1].files)
+      return before ? { step: info, files, previous: { id: visible[index - 1].id, files: before } } : { step: info, files }
+    },
+
+    record: (label, source) => guarded(async () => {
+      const snap = await snapshot()
+      const newest = await store.latest()
+      if (!newest && Object.keys(snap.files).length === 0) return undefined
+      if (newest && sameFiles(newest.files, snap.files) && !(isLabelled(source) && !isLabelled(newest.source))) return undefined
+      return await append(snap, label ?? fallbackLabel(changedPaths(newest?.files ?? {}, snap.files)), source)
+    }, undefined),
+
+    ensureCurrent: why => guarded<Ensured>(async () => {
+      const snap = await snapshot()
+      const newest = await store.latest()
+      if (!newest) {
+        if (Object.keys(snap.files).length === 0) return { saved: true }
+        return { saved: true, id: (await append(snap, FIRST_LABEL, 'first')).id }
+      }
+      if (sameFiles(newest.files, snap.files)) return { saved: true, id: collapseSteps(await store.steps()).at(-1)?.id }
+      const label = why === 'open' ? CLOSED_LABEL : outsideLabel(changedPaths(newest.files, snap.files))
+      return { saved: true, id: (await append(snap, label, 'outside')).id }
+    }, { saved: false }),
+
+    clear: () => guarded(() => store.clear(), undefined),
+  }
+}

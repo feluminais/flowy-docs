@@ -116,6 +116,19 @@ test('prune drops steps and old unreferenced blobs but keeps a fresh unreference
   assert.deepEqual(await readdir(join(root, 'trail', 'blobs')), [H2])
 })
 
+test('latest is the newest readable step, and count counts step files', async t => {
+  const { root, store } = await setup(t)
+  assert.equal(await store.latest(), undefined)
+  assert.equal(await store.count(), 0)
+  const first = step('20261020T100000000Z-aaaaaa', { 'model.yaml': H1 })
+  await store.putStep(first, new Map([[H1, bytes('1')]]))
+  await store.putStep(step('20261020T100001000Z-bbbbbb', { 'model.yaml': H2 }), new Map([[H2, bytes('2')]]))
+  assert.equal((await store.latest())?.id, '20261020T100001000Z-bbbbbb')
+  await writeFile(join(root, 'trail', 'steps', '20261020T100002000Z-cccccc.json'), '{"time"') // cut off: the newest file, but not a step
+  assert.equal((await store.latest())?.id, '20261020T100001000Z-bbbbbb')
+  assert.equal(await store.count(), 3)
+})
+
 test('clear removes everything', async t => {
   const { store } = await setup(t)
   await store.putStep(step('20261020T100000000Z-aaaaaa', { 'model.yaml': H1 }), new Map([[H1, bytes('1')]]))

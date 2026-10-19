@@ -34,6 +34,9 @@ export const isAllowedPath = (rel: unknown): rel is string =>
 
 export const hashText = (text: string) => createHash('sha256').update(text).digest('hex').slice(0, 16)
 
+/** The same version as hashText, from a file's bytes: for valid UTF-8 the two agree, and it works on bytes that are not text. */
+export const hashBytes = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex').slice(0, 16)
+
 // fatal: a file that isn't UTF-8 must fail to load, not get rewritten with replacement characters.
 // ignoreBOM: keep a BOM in the text, so the hash matches the file as it is.
 const utf8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true })
