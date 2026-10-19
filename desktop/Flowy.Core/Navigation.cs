@@ -35,10 +35,20 @@ public static partial class Navigation
     public static (List<BoxLine> Out, List<BoxLine> In) LinesOf(Model model, string id)
     {
         var view = Views.ParentOf(model, id);
-        var lines = Views.Compute(model, view).Edges
-            .Where(e => e.From != e.To && (e.From == id || e.To == id))
-            .Select(e => new BoxLine(e.From, e.To, e.From == id ? e.To : e.From, ConnectionsOf(model, view, e.From, e.To).Select(c => c.Connection).ToList()))
-            .ToList();
+        // One pass, grouped by where each connection lands: asking ConnectionsOf per line rescans every connection each time.
+        var byEnds = new Dictionary<(string From, string To), List<Connection>>();
+        var order = new List<(string From, string To)>();
+        foreach (var c in model.Connections)
+        {
+            if (Views.PlaceEnds(model, view, c.From, c.To) is not { } ends || (ends.From != id && ends.To != id)) continue;
+            if (!byEnds.TryGetValue(ends, out var list))
+            {
+                byEnds[ends] = list = [];
+                order.Add(ends);
+            }
+            list.Add(c);
+        }
+        var lines = order.Select(e => new BoxLine(e.From, e.To, e.From == id ? e.To : e.From, byEnds[e])).ToList();
         return (lines.Where(l => l.From == id).ToList(), lines.Where(l => l.To == id).ToList());
     }
 

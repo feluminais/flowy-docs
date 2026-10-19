@@ -306,17 +306,19 @@ internal sealed class SidePanel : Border
     private Control Disclosure(string title, Model model, IReadOnlyList<Connection> connections)
     {
         var items = new StackPanel { Spacing = 8, Margin = new Thickness(0, 6, 0, 0), IsVisible = false };
-        foreach (var c in connections)
-        {
-            var item = new StackPanel { Spacing = 0 };
-            item.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "no label", FontStyle = FontStyle.Italic, FontSize = 13, Foreground = Resource("MutedBrush") } : new TextBlock { Text = c.Label, TextWrapping = TextWrapping.Wrap });
-            item.Children.Add(Muted(Describe(model, c), 12));
-            items.Children.Add(item);
-        }
         var header = new Button { Content = $"▸ {title}" };
         header.Classes.Add("disclosure");
         header.Click += (_, _) =>
         {
+            // Built on the first open: a box that holds others can stand for hundreds of connections, and every row is controls to style.
+            if (items.Children.Count == 0)
+                foreach (var c in connections)
+                {
+                    var item = new StackPanel { Spacing = 0 };
+                    item.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "no label", FontStyle = FontStyle.Italic, FontSize = 13, Foreground = Resource("MutedBrush") } : new TextBlock { Text = c.Label, TextWrapping = TextWrapping.Wrap });
+                    item.Children.Add(Muted(Describe(model, c), 12));
+                    items.Children.Add(item);
+                }
             items.IsVisible = !items.IsVisible;
             header.Content = $"{(items.IsVisible ? "▾" : "▸")} {title}";
         };

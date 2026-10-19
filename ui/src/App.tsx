@@ -211,6 +211,9 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     const [ux, uy] = [x - (r?.width ?? 0) / 2, y - (r?.height ?? 0) / 2]
     const length = Math.hypot(ux, uy) || 1 // a box dead in the middle slides nowhere and just fades
     const slide = { dx: (ux / length) * 25, dy: (uy / length) * 25 }
+    // A busy view takes a while to lay out the first time. The old one is still flying off (transform and opacity run off the main
+    // thread), so work the new one out now, behind that, instead of when it should arrive.
+    setTimeout(() => toGraph(model, id), 30)
     setMotion({ dir, phase: 'leave', x, y, ...slide, to: id })
     motionTimer.current = setTimeout(() => {
       go(id)
@@ -468,8 +471,9 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
               clearTimeout(opening.current)
               if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
               const open = () => setSide({ kind: 'object', id: node.id })
-              // Zooming into a box is a double-click, and its first click must not open the panel.
-              if (canOpen(node.id)) opening.current = setTimeout(open, DOUBLE_CLICK)
+              // Zooming into a box is a double-click, and its first click must not open the panel. With a panel already open there's
+              // nothing to open, only its box to change, so that goes at once: no wait between one box and the next.
+              if (canOpen(node.id) && side === undefined) opening.current = setTimeout(open, DOUBLE_CLICK)
               else open()
             }}
             onNodeDoubleClick={(_, node) => {
