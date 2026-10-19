@@ -1,0 +1,9 @@
+name: Recursion
+view: shop
+steps:
+  - { from: api, text: Walks the category tree, animation: recurse }
+  - { from: api, text: Follows the CNAME, animation: { kind: recurse, depth: 4, carries: CNAME, returns: A record } }
+  - { from: api, text: Too shallow, animation: { kind: recurse, depth: 1 } }
+  - { from: api, to: db, text: Recurse with a to, animation: recurse }
+  - { from: api, to: api, text: Recurse to itself, animation: recurse }
+  - { from: api, text: Wrong option, animation: { kind: send, depth: 3 } }

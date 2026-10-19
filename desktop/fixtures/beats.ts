@@ -8,6 +8,10 @@ const RAW: unknown[] = [
   { kind: 'callback' }, { kind: 'callback', trigger: 'inside' }, { kind: 'callback', trigger: 'outside' }, { kind: 'callback', trigger: 'outside', carries: 'receipt' },
   '', 'sned', 'Send', { kind: '' }, {}, { carries: 'x' }, { kind: 'send', speed: 'fast' }, { kind: 'send', trigger: 'outside' },
   { kind: 'callback', trigger: 'sideways' }, { kind: 'send', carries: ' ' }, { kind: 'send', carries: '' }, ['send'], { kind: ['send'] }, { kind: { x: 'y' } },
+  // Recursion. Files hold text, so depth is text here: a C# reader never sees a number.
+  'recurse', { kind: 'recurse' }, { kind: 'recurse', depth: '2' }, { kind: 'recurse', depth: '5' }, { kind: 'recurse', depth: '4', carries: 'CNAME', returns: 'A record' },
+  { kind: 'recurse', returns: ' ' }, { kind: 'recurse', trigger: 'outside' }, { kind: 'recurse', speed: 'fast' }, { kind: 'send', depth: '3' }, { kind: 'call', returns: 'x' },
+  ...['1', '6', '3.5', '3x', '', '99999999999999999999'].map(depth => ({ kind: 'recurse', depth })),
 ]
 const LENGTHS = [0, 100, 250, 400, 1000, 5000, 333.3]
 const ENDS: [string, string][] = [['a', 'b'], ['b', 'c'], ['a', 'c'], ['a', 'a']]
@@ -16,15 +20,16 @@ const TUBE = { at: 0, dur: 1000 }
 
 /** What the TypeScript says about tags: whether each is wrong, how it reads, how long a line takes, and every beat. */
 export function dumpBeats(): unknown {
-  const read = (animation: unknown) => animationOf({ to: 'x', animation })
+  const read = (animation: unknown, to: boolean) => animationOf({ ...(to ? { to: 'x' } : {}), animation })
   return {
     travel: LENGTHS.map(length => ({ length, ms: travelMs(length) })),
     problems: RAW.flatMap(animation => [true, false].map(to => ({ animation, to, problem: animationProblem(animation, to) ?? null }))),
-    reads: RAW.map(animation => ({ animation, read: read(animation) ?? null })),
-    beats: RAW.flatMap(animation => {
-      const a = read(animation)
-      return a ? LENGTHS.flatMap(length => [false, true].map(afterLanding => ({ animation, length, afterLanding, ...beatsFor(a, { length, afterLanding }) }))) : []
-    }),
+    // Each tag is read on a step with a "to" and on one without, because recurse takes none and the rest need one.
+    reads: RAW.flatMap(animation => [true, false].map(to => ({ animation, to, read: read(animation, to) ?? null }))),
+    beats: RAW.flatMap(animation => [true, false].flatMap(to => {
+      const a = read(animation, to)
+      return a ? LENGTHS.flatMap(length => [false, true].map(afterLanding => ({ animation, to, length, afterLanding, ...beatsFor(a, { length, afterLanding }) }))) : []
+    })),
     follows: [null, ...ENDS].flatMap(previous => [null, ...ENDS].map(current => ({ previous, current, follows: followsLanding(previous, current) }))),
     // The browser's drawing maths, which the desktop app ports (Flowy.Core/MotionMath.cs).
     motion: {
