@@ -72,7 +72,7 @@ test('a lane label, an until and a text can never be read as Mermaid syntax', ()
   assert.match(text, /^ {2}loop Until a #quot;b#quot;: x#59; y$/m)
 })
 
-test('steps in a group the checker rejects export plainly, and a missing flow adds no note', () => {
+test('steps in an undeclared group, or one of unknown kind, export plainly, and a missing flow adds no note', () => {
   const m = withFlow({ g: { kind: 'loop' } }, [
     at({ from: 'web', to: 'api', text: 'a', group: 'g' }),
     at({ from: 'web', to: 'api', text: 'b', group: 'nope', flow: 'missing' }),

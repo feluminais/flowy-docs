@@ -35,6 +35,22 @@
     {
       "text": "é — ünïcode ✓",
       "escaped": "é — ünïcode ✓"
+    },
+    {
+      "text": "a\nb",
+      "escaped": "a b"
+    },
+    {
+      "text": "c﻿\nd",
+      "escaped": "c d"
+    },
+    {
+      "text": "e\n f",
+      "escaped": "e f"
+    },
+    {
+      "text": "g \nh",
+      "escaped": "g h"
     }
   ],
   "folders": [
@@ -180,7 +196,7 @@
         },
         {
           "flow": "blankish",
-          "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Orders DB\n  n0->>n1: A group of one invisible character is no group\n  opt \n    n0->>n1: A lane of one next-line character is a lane\n  end\n  n0->>n1: A blank flow is none\n  n0->>n1: A blank lane with no group is none\n"
+          "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Orders DB\n  n0->>n1: A group of one invisible character is no group\n  opt ok\n    n0->>n1: A lane with a no-break space in front is just the lane\n  end\n  n0->>n1: A blank flow is none\n  n0->>n1: A blank lane with no group is none\n"
         },
         {
           "flow": "capture-payment",

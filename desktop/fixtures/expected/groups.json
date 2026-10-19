@@ -371,9 +371,9 @@
         {
           "from": "api",
           "to": "db",
-          "text": "A lane of one next-line character is a lane",
+          "text": "A lane with a no-break space in front is just the lane",
           "group": "pick",
-          "lane": "",
+          "lane": " ok",
           "placed": [
             "api",
             "db"
