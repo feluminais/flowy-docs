@@ -1,5 +1,6 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { captionOf, progressOf } from '../../src/core/captions.ts'
 import { runsOf, stopsOf } from '../../src/core/structure.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -13,4 +14,16 @@ export async function dumpStops(): Promise<unknown> {
   const state = await loadState(join(root, 'desktop/fixtures/cases/groups/flowy'))
   if ('parseError' in state) throw new Error("the groups case can't be read")
   return { flows: Object.entries(state.flows).map(([id, flow]) => ({ id, runs: runsOf(flow), stops: stopsOf(flow) })) }
+}
+
+/** The words and the progress bar of every flow in the groups case, for the C# port to match. */
+export async function dumpCaptions(): Promise<unknown> {
+  const state = await loadState(join(root, 'desktop/fixtures/cases/groups/flowy'))
+  if ('parseError' in state) throw new Error("the groups case can't be read")
+  return {
+    flows: Object.entries(state.flows).map(([id, flow]) => {
+      const stops = stopsOf(flow)
+      return { id, captions: stops.map(stop => captionOf(flow, stop)), progress: progressOf(flow, stops) }
+    }),
+  }
 }

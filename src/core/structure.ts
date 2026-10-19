@@ -183,3 +183,9 @@ export function structureProblems(flow: Flow, hasFlow: (id: string) => boolean):
   }
   return out
 }
+
+/** The stop that holds file step `step`, or the first stop when no stop does (a stale step number never leaves the player nowhere). */
+export function stopIndexOf(stops: Stop[], step: number): number {
+  const at = stops.findIndex(s => s.steps.includes(step))
+  return at === -1 ? 0 : at
+}
