@@ -37,6 +37,15 @@ const SHAPES: { name: string; data: Tree }[] = [
   { name: 'multiline in nested map', data: { objects: { a: { description: 'Line one\n\nLine two\n' } } } },
   { name: 'multiline in list item map', data: { steps: [{ text: 'x', description: 'More\nlines here\n' }] } },
   { name: 'mapping in a step', data: { steps: [{ from: 'a', to: 'b', text: 'x', animation: { kind: 'callback', trigger: 'outside', carries: 'receipt' } }, { from: 'b', text: 'y', animation: 'call' }] } },
+  {
+    name: 'groups before steps',
+    data: {
+      name: 'Pays', view: 'shop',
+      groups: { charge: { kind: 'repeat', times: '3', text: 'Backs off 1 s, 2 s, 4 s' }, tell: { kind: 'parallel' } },
+      steps: [{ from: 'a', to: 'b', text: 'x', group: 'charge' }, { from: 'a', to: 'c', text: 'y', group: 'tell', lane: 'Billing', flow: 'capture-payment' }],
+    },
+  },
+  { name: 'integer-like group ids', data: { name: 'N', groups: { '10': { kind: 'loop' }, '2': { kind: 'repeat', times: '2' }, b: { kind: 'repeat', until: 'the job is done' } }, steps: [] } },
   { name: 'top-level list', data: ['a', 'b', { c: 'd' }] },
 ]
 

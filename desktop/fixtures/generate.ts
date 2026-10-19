@@ -11,6 +11,7 @@ import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
 import { dumpOutline } from './outline.ts'
 import { dumpPerf, dumpPerfView } from './perf.ts'
+import { dumpStops } from './structure.ts'
 import { dumpOps } from './ops.ts'
 import { dumpYamlWrite } from './yaml-write.ts'
 import { dumpNavigation, dumpScenes } from './scene.ts'
@@ -34,3 +35,4 @@ await write('beats', dumpBeats())
 await write('outline', await dumpOutline())
 await write('perf-runs', await dumpPerf())
 await write('perf-view', await dumpPerfView())
+await write('stops', await dumpStops())

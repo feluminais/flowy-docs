@@ -3,7 +3,7 @@ view: shop
 groups:
   pick: { kind: branch }
 steps:
-  - { from: api, to: db, text: A group of one invisible character is no group, group: "﻿" }
+  - { from: api, to: db, text: A group of one invisible character is no group, group: "\uFEFF" }
   - { from: api, to: db, text: A lane of one next-line character is a lane, group: pick, lane: "\u0085" }
   - { from: api, to: db, text: A blank flow is none, flow: " " }
   - { from: api, to: db, text: A blank lane with no group is none, lane: " " }
