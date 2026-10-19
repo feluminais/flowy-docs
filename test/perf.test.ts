@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ParseError } from '../src/core/model.ts'
-import { checkRun, interpolate, parseRun, rollUp, strain } from '../src/core/perf.ts'
+import { checkRun, interpolate, knee, kneeText, parseRun, rollUp, strain } from '../src/core/perf.ts'
 import { shop } from './fixtures.ts'
 
 /** Three levels of a run against the shop fixture (test/fixtures.ts): api and db are measured, and orders inside api. */
@@ -223,4 +223,38 @@ test('rollUp leaves out a connection the view folds into one box, and one the mo
   assert.deepEqual(rollUp(shop(), run.levels[2], 'root').lines, [])
   const { run: odd } = parseRun('r', 'name: R\nlevels:\n  - { load: 1, connections: [{ from: web, to: db, rate: 5 }] }\n  - load: 2\n')
   assert.deepEqual(rollUp(shop(), odd.levels[0], 'shop').lines, [])
+})
+
+const nameIn = (id: string) => shop().objects[id].name
+
+test('knee is the first tested level where a shape is nearly out of capacity, and says which', () => {
+  const run = ramp()
+  const k = knee(run)
+  assert.deepEqual(k, { index: 2, load: 400, by: { id: 'db', kind: 'util', share: 0.97 } })
+  assert.equal(kneeText(run, k!, nameIn), 'First struggles at 400 req/s: Orders DB at 97% of capacity')
+})
+
+test('knee blames errors when failing calls are what is worst', () => {
+  const run = structuredClone(ramp())
+  run.levels[2].objects.api.errors = 0.05
+  const k = knee(run)
+  assert.deepEqual(k, { index: 2, load: 400, by: { id: 'api', kind: 'errors', share: 0.05 } })
+  assert.equal(kneeText(run, k!, nameIn), 'First struggles at 400 req/s: API failing 5% of calls')
+})
+
+test('knee falls back to overall latency passing three times its starting point, with no shape to blame', () => {
+  const run = structuredClone(ramp())
+  for (const l of run.levels) l.objects = {}
+  const k = knee(run)
+  assert.deepEqual(k, { index: 2, load: 400, latency: { from: 100, to: 420 } })
+  assert.equal(kneeText(run, k!, nameIn), 'Latency passes 3× its starting point at 400 req/s: overall p95 goes from 100 ms to 420 ms')
+})
+
+test('a run that never struggles has no knee', () => {
+  const run = structuredClone(ramp())
+  for (const l of run.levels) {
+    l.objects = {}
+    l.overall.p95 = 100
+  }
+  assert.equal(knee(run), undefined)
 })
