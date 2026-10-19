@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -13,9 +14,10 @@ namespace Flowy.App;
 internal sealed record Recording(string Id, string Name, string? From = null, string? To = null);
 
 /// <summary>
-/// The panel for a flow in edit mode: a name for a new one, then its steps (each with its text, a detail a reader can open, and up, down and
-/// delete) and, below them, the step being picked: click the box it starts at and the box it goes to (the same box twice: a step that box
-/// does on its own), type what happens, press Enter. Desktop twin of the Recorder in ui/src/Panel.tsx.
+/// The panel for a flow in edit mode: a name for a new one, then its steps (each with its text, a detail a reader can open, the group it is in,
+/// its lane and the flow it opens, and up, down and delete) and, below them, the step being picked: click the box it starts at and the box it
+/// goes to (the same box twice: a step that box does on its own), type what happens, press Enter; then the flow's groups, and a form that puts a
+/// stretch of its steps in a new one. Desktop twin of the Recorder in ui/src/Panel.tsx.
 /// </summary>
 internal sealed class Recorder : StackPanel
 {
@@ -23,7 +25,25 @@ internal sealed class Recorder : StackPanel
     {
         public required FieldBox Text;
         public required FieldBox Detail;
+        public required ComboBox GroupBox;
+        public required FieldBox Lane;
+        public required ComboBox FlowBox;
     }
+
+    private sealed class GroupCard
+    {
+        public required string Id;
+        public required ComboBox KindBox;
+        public FieldBox? Times;
+        public FieldBox? Until;
+        public required FieldBox Text;
+        public required Button Remove;
+    }
+
+    private static readonly (string Kind, string Name)[] KindNames =
+    [
+        ("repeat", "Repeat"), ("branch", "Branch: one lane happens"), ("parallel", "Parallel: all lanes at once"),
+    ];
 
     private readonly SidePanel _owner;
     private readonly EditRun _run;
@@ -33,9 +53,12 @@ internal sealed class Recorder : StackPanel
     private readonly StackPanel _head = new() { Spacing = 12 };
     private readonly StackPanel _steps = new() { Spacing = 16 };
     private readonly StackPanel _pick = new() { Spacing = 8 };
+    private readonly StackPanel _groups = new() { Spacing = 12 };
     private readonly StackPanel _buttons = new() { Spacing = 8, Orientation = Orientation.Horizontal };
     private readonly List<Row> _rows = [];
+    private readonly List<GroupCard> _cards = [];
     private string _signature = "";
+    private string _groupSignature = "";
     private string? _headFor;
     private Recording _rec = new("", "");
     private TextBox? _stepBox;
@@ -52,6 +75,7 @@ internal sealed class Recorder : StackPanel
         Children.Add(_head);
         Children.Add(_steps);
         Children.Add(_pick);
+        Children.Add(_groups);
         Children.Add(_buttons);
     }
 
@@ -59,6 +83,40 @@ internal sealed class Recorder : StackPanel
     internal IReadOnlyList<FieldBox> StepTexts => _rows.Select(r => r.Text).ToList();
 
     internal IReadOnlyList<FieldBox> StepDetails => _rows.Select(r => r.Detail).ToList();
+
+    internal IReadOnlyList<ComboBox> StepGroupBoxes => _rows.Select(r => r.GroupBox).ToList();
+
+    internal IReadOnlyList<FieldBox> StepLanes => _rows.Select(r => r.Lane).ToList();
+
+    internal IReadOnlyList<ComboBox> StepFlowBoxes => _rows.Select(r => r.FlowBox).ToList();
+
+    internal IReadOnlyList<string> GroupIds => _cards.Select(c => c.Id).ToList();
+
+    internal ComboBox GroupKindBox(string id) => _cards.First(c => c.Id == id).KindBox;
+
+    internal FieldBox? GroupTimes(string id) => _cards.First(c => c.Id == id).Times;
+
+    internal FieldBox? GroupUntil(string id) => _cards.First(c => c.Id == id).Until;
+
+    internal FieldBox GroupText(string id) => _cards.First(c => c.Id == id).Text;
+
+    internal Button GroupRemove(string id) => _cards.First(c => c.Id == id).Remove;
+
+    private Func<Task<bool>> _addGroup = () => Task.FromResult(false);
+    private TextBox? _newGroupText;
+    private ComboBox? _newGroupKind;
+    private ComboBox? _newGroupFirst;
+    private ComboBox? _newGroupLast;
+
+    /// <summary>What a test does: fill the new-group form (steps counted from 1) and press Group these steps.</summary>
+    internal Task<bool> AddGroupAsync(string text, string kind, int first, int last)
+    {
+        _newGroupText!.Text = text;
+        _newGroupKind!.SelectedItem = kind;
+        _newGroupFirst!.SelectedItem = first;
+        _newGroupLast!.SelectedItem = last;
+        return _addGroup();
+    }
 
     internal TextBox? StepBox => _stepBox;
 
@@ -113,18 +171,31 @@ internal sealed class Recorder : StackPanel
         _flowName?.Sync(flow?.Name ?? "");
 
         // The steps: the rows stay as they are while only the text changed, so a field being typed in keeps its focus.
-        var signature = string.Join('\u0002', steps.Select(s => $"{s.From}\u0001{s.To}"));
+        // A row shows its group, lane and flow, and the choices come from the flow's groups and the other flows, so those are part of what rebuilds it.
+        var declared = flow?.Groups ?? [];
+        var others = model.Flows.Where(kv => kv.Key != rec.Id).Select(kv => (Id: kv.Key, Name: kv.Value.Name ?? "")).ToList();
+        var signature = string.Join('\u0002', steps.Select(s => $"{s.From}\u0001{s.To}\u0001{s.Group}\u0001{s.Lane}\u0001{s.FlowId}"))
+            + '\u0003' + string.Join('\u0002', declared.Select(g => $"{g.Key}\u0001{KindOf(declared, g.Key)}"))
+            + '\u0003' + string.Join('\u0002', others.Select(o => $"{o.Id}\u0001{o.Name}"));
         if (signature != _signature || _rows.Count != steps.Count)
         {
             _signature = signature;
             _rows.Clear();
             _steps.Children.Clear();
-            for (var i = 0; i < steps.Count; i++) _steps.Children.Add(BuildRow(model, rec.Id, steps, i));
+            for (var i = 0; i < steps.Count; i++) _steps.Children.Add(BuildRow(model, rec.Id, steps, i, declared, others));
         }
         for (var i = 0; i < steps.Count; i++)
         {
             _rows[i].Text.Sync(steps[i].Text ?? "");
             _rows[i].Detail.Sync(steps[i].Description ?? "");
+            _rows[i].Lane.Sync(steps[i].Lane ?? "");
+        }
+        if (flow is not null) ShowGroups(rec.Id, steps.Count, declared);
+        else
+        {
+            _groups.Children.Clear();
+            _cards.Clear();
+            _groupSignature = "";
         }
 
         // The step being picked.
@@ -195,6 +266,9 @@ internal sealed class Recorder : StackPanel
         _rows.Clear();
         _steps.Children.Clear();
         _pick.Children.Clear();
+        _groups.Children.Clear();
+        _cards.Clear();
+        _groupSignature = "";
         _buttons.Children.Clear();
         _head.Children.Clear();
         _head.Children.Add(_owner.IconHeading(Icons.Route, "New flow"));
@@ -258,7 +332,57 @@ internal sealed class Recorder : StackPanel
         if (saved) _change(new Recording(rec.Id, rec.Name));
     }
 
-    private Control BuildRow(Model model, string flowId, IReadOnlyList<Step> shown, int i)
+    private static string? KindOf(OrderedDictionary<string, object?> groups, string id) =>
+        groups.TryGetValue(id, out var g) && g is OrderedDictionary<string, object?> map ? Field(map, "kind") : null;
+
+    private static bool HasLanes(string? kind) => kind is "branch" or "parallel";
+
+    private static string KindName(string? kind) => KindNames.FirstOrDefault(k => k.Kind == kind).Name ?? "no kind";
+
+    private static TextBlock Caption(string text)
+    {
+        var caption = new TextBlock { Text = text, FontSize = 12 };
+        caption.Classes.Add("muted");
+        return caption;
+    }
+
+    private static StackPanel Captioned(string text, Control control) => new() { Spacing = 4, Children = { Caption(text), control } };
+
+    /// <summary>A change that counts steps or groups, refused if the steps are no longer the steps on screen (a quick second click, someone else's edit).</summary>
+    private Task<bool> Edit(string flowId, Func<EditDoc, EditDoc> op) => _run(d =>
+    {
+        if (!StepsOf(d, flowId).Select(Sig).SequenceEqual(_shownSigs)) throw new OpError("The steps just changed. Check them and try again.");
+        return op(d);
+    });
+
+    /// <summary>A choice list that saves the pick, and shows the saved choice again if the edit is refused.</summary>
+    private static ComboBox Choice<T>(string name, IReadOnlyList<T> items, T selected, Func<T, string> label, Func<T, Task<bool>> save) where T : notnull
+    {
+        var box = new ComboBox
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            ItemsSource = items,
+            SelectedItem = selected,
+            ItemTemplate = new FuncDataTemplate<T>((item, _) => new TextBlock { Text = label(item), VerticalAlignment = VerticalAlignment.Center }),
+        };
+        Avalonia.Automation.AutomationProperties.SetName(box, name);
+        var current = selected;
+        var syncing = false;
+        box.SelectionChanged += async (_, _) =>
+        {
+            if (syncing || box.SelectedItem is not T pick || EqualityComparer<T>.Default.Equals(pick, current)) return;
+            if (await save(pick)) current = pick;
+            else
+            {
+                syncing = true;
+                box.SelectedItem = current;
+                syncing = false;
+            }
+        };
+        return box;
+    }
+
+    private Control BuildRow(Model model, string flowId, IReadOnlyList<Step> shown, int i, OrderedDictionary<string, object?> groups, IReadOnlyList<(string Id, string Name)> others)
     {
         // One change to the steps, refused if they are no longer the steps on screen (a quick second click, someone else's edit).
         Task<bool> Change(Action<List<OrderedDictionary<string, object?>>> edit) => _run(d =>
@@ -306,15 +430,181 @@ internal sealed class Recorder : StackPanel
             {
                 Small(Icons.ArrowUp, "Move up", i > 0, () => Change(steps => (steps[i - 1], steps[i]) = (steps[i], steps[i - 1]))),
                 Small(Icons.ArrowDown, "Move down", i < shown.Count - 1, () => Change(steps => (steps[i + 1], steps[i]) = (steps[i], steps[i + 1]))),
-                Small(Icons.Trash, "Delete step", true, () => Change(steps => steps.RemoveAt(i)), danger: true),
+                Small(Icons.Trash, "Delete step", true, () => Edit(flowId, d => EditOps.RemoveStep(d, flowId, i)), danger: true),
             },
         };
-        _rows.Add(new Row { Text = text, Detail = detail });
+
+        // The group the step is in, the lane it starts, and the flow it opens: each choice is one edit, which keeps the files valid or says why not.
+        var group = Structure.JsTrim(shown[i].Group ?? "");
+        var target = Structure.JsTrim(shown[i].FlowId ?? "");
+        var groupChoices = new List<string> { "" };
+        groupChoices.AddRange(groups.Keys);
+        if (group != "" && !groups.ContainsKey(group)) groupChoices.Add(group);
+        var groupBox = Choice("Group", groupChoices, group,
+            g => g == "" ? "None" : groups.ContainsKey(g) ? $"{g} · {KindName(KindOf(groups, g))}" : $"{g} · not declared",
+            g => Edit(flowId, d => EditOps.SetStepGroup(d, flowId, i, g)));
+        var lane = new FieldBox("Lane (a new lane starts at a step that names it)", "", false, v => Change(steps =>
+        {
+            if (v.Trim() == "") steps[i].Remove("lane");
+            else steps[i]["lane"] = v.Trim();
+        }));
+        lane.IsVisible = group != "" && HasLanes(KindOf(groups, group));
+        var flowNames = others.ToDictionary(o => o.Id, o => o.Name);
+        var flowChoices = new List<string> { "" };
+        flowChoices.AddRange(others.Select(o => o.Id));
+        if (target != "" && !others.Any(o => o.Id == target)) flowChoices.Add(target);
+        var flowBox = Choice("Opens flow", flowChoices, target,
+            id => id == "" ? "None" : flowNames.TryGetValue(id, out var name) ? (name == "" ? id : name) : $"{id} · no such flow",
+            id => Change(steps =>
+            {
+                if (id == "") steps[i].Remove("flow");
+                else steps[i]["flow"] = id;
+            }));
+        var structure = new StackPanel { Spacing = 8, IsVisible = group != "" || target != "", Children = { Captioned("Group", groupBox), lane, Captioned("Opens flow", flowBox) } };
+        var structureToggle = new Button { Content = structure.IsVisible ? "▾ Group and flow" : "▸ Group and flow", HorizontalAlignment = HorizontalAlignment.Left };
+        structureToggle.Classes.Add("disclosure");
+        structureToggle.Click += (_, _) =>
+        {
+            structure.IsVisible = !structure.IsVisible;
+            structureToggle.Content = structure.IsVisible ? "▾ Group and flow" : "▸ Group and flow";
+        };
+        _rows.Add(new Row { Text = text, Detail = detail, GroupBox = groupBox, Lane = lane, FlowBox = flowBox });
         // A number before each step, so the order reads at a glance.
         var number = new Border { Child = new TextBlock { Text = (i + 1).ToString() }, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 22, 0, 0) };
         number.Classes.Add("badge");
         var top = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { number, text } };
         Grid.SetColumn(text, 1);
-        return Chrome.Card(new StackPanel { Spacing = 8, Children = { top, more, detail, buttons } });
+        return Chrome.Card(new StackPanel { Spacing = 8, Children = { top, more, detail, structureToggle, structure, buttons } });
+    }
+
+    /// <summary>The copy of one group's options in a document, to change one and give it back to <see cref="EditOps.PutGroup"/>.</summary>
+    private static OrderedDictionary<string, object?> GroupOptions(EditDoc d, string flowId, string id)
+    {
+        var copy = new OrderedDictionary<string, object?>();
+        if (d.Flows.TryGetValue(flowId, out var f) && f is OrderedDictionary<string, object?> flow && flow.TryGetValue("groups", out var gs)
+            && gs is OrderedDictionary<string, object?> all && all.TryGetValue(id, out var g) && g is OrderedDictionary<string, object?> map)
+            foreach (var (key, value) in map) copy[key] = value;
+        return copy;
+    }
+
+    /// <summary>
+    /// The flow's groups: how each behaves (kind, and for a repeat its times and until, and the text the player shows) and a form that puts a stretch
+    /// of the steps in a new one. The cards stay as they are while only a text changed, so a field being typed in keeps its focus.
+    /// </summary>
+    private void ShowGroups(string flowId, int stepCount, OrderedDictionary<string, object?> declared)
+    {
+        var signature = $"{flowId}\u0003{stepCount}\u0003" + string.Join('\u0002', declared.Select(g => $"{g.Key}\u0001{KindOf(declared, g.Key)}"));
+        if (signature != _groupSignature)
+        {
+            _groupSignature = signature;
+            _groups.Children.Clear();
+            _cards.Clear();
+            _groups.Children.Add(Chrome.Section(Icons.Repeat, "Groups", declared.Count));
+            foreach (var id in declared.Keys) _groups.Children.Add(BuildCard(flowId, id, KindOf(declared, id)));
+            if (stepCount > 0) _groups.Children.Add(BuildAddGroup(flowId, declared, stepCount));
+        }
+        foreach (var card in _cards)
+        {
+            var map = declared.TryGetValue(card.Id, out var g) && g is OrderedDictionary<string, object?> m ? m : [];
+            card.Times?.Sync(Field(map, "times") ?? "");
+            card.Until?.Sync(Field(map, "until") ?? "");
+            card.Text.Sync(Field(map, "text") ?? "");
+        }
+    }
+
+    private Control BuildCard(string flowId, string id, string? kind)
+    {
+        Task<bool> Option(string key, string value) => Edit(flowId, d =>
+        {
+            var options = GroupOptions(d, flowId, id);
+            options[key] = value;
+            return EditOps.PutGroup(d, flowId, id, options);
+        });
+        var kindBox = Choice("Kind", KindNames.Select(k => k.Kind).ToList(), kind ?? "", k => KindName(k), k => Edit(flowId, d => EditOps.SetGroupKind(d, flowId, id, k)));
+        var remove = new Button();
+        remove.Classes.Add("tool");
+        remove.Classes.Add("danger");
+        Chrome.Fill(remove, Icons.Trash, null, $"Remove group {id}");
+        ToolTip.SetTip(remove, "Remove the group. Its steps stay");
+        remove.Click += async (_, _) => await Edit(flowId, d => EditOps.RemoveGroup(d, flowId, id));
+        var icon = Icons.Make(kind == "branch" ? Icons.GitFork : kind == "parallel" ? Icons.ArrowsSplit : Icons.Repeat, "ticon", 16);
+        var head = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8 };
+        var title = new TextBlock { Text = id, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+        head.Children.Add(icon);
+        head.Children.Add(title);
+        head.Children.Add(remove);
+        Grid.SetColumn(title, 1);
+        Grid.SetColumn(remove, 2);
+        var card = new GroupCard
+        {
+            Id = id,
+            KindBox = kindBox,
+            Text = new FieldBox("Text the player shows", "", false, v => Option("text", v)),
+            Remove = remove,
+        };
+        var body = new StackPanel { Spacing = 8, Children = { head, Captioned("Kind", kindBox) } };
+        if (kind == "repeat")
+        {
+            card.Times = new FieldBox("Times (a whole number from 2 to 99)", "", false, v => Option("times", v.Trim()));
+            card.Until = new FieldBox("Until (what ends it, instead of a count)", "", false, v => Option("until", v));
+            body.Children.Add(card.Times);
+            body.Children.Add(card.Until);
+        }
+        body.Children.Add(card.Text);
+        _cards.Add(card);
+        return Chrome.Card(body);
+    }
+
+    private Control BuildAddGroup(string flowId, OrderedDictionary<string, object?> declared, int stepCount)
+    {
+        var text = new TextBox { PlaceholderText = "What it is, e.g. Retry the charge" };
+        Avalonia.Automation.AutomationProperties.SetName(text, "Put steps in a new group");
+        var kinds = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch, ItemsSource = KindNames.Select(k => k.Kind).ToList(), SelectedIndex = 0, ItemTemplate = new FuncDataTemplate<string>((k, _) => new TextBlock { Text = KindName(k) }) };
+        Avalonia.Automation.AutomationProperties.SetName(kinds, "New group kind");
+        var numbers = Enumerable.Range(1, stepCount).ToList();
+        ComboBox Range() => new() { HorizontalAlignment = HorizontalAlignment.Stretch, ItemsSource = numbers, SelectedItem = stepCount };
+        var first = Range();
+        var last = Range();
+        Avalonia.Automation.AutomationProperties.SetName(first, "From step");
+        Avalonia.Automation.AutomationProperties.SetName(last, "To step");
+        var ids = declared.Keys.ToList();
+        var add = new Button { HorizontalAlignment = HorizontalAlignment.Left };
+        add.Classes.Add("tool");
+        add.Classes.Add("primary");
+        Chrome.Fill(add, Icons.Plus, "Group these steps");
+        async Task<bool> Submit()
+        {
+            var what = (text.Text ?? "").Trim();
+            var kind = kinds.SelectedItem as string ?? "repeat";
+            var from = (first.SelectedItem as int? ?? stepCount) - 1;
+            var to = (last.SelectedItem as int? ?? stepCount) - 1;
+            var id = Navigation.NewId(what == "" ? kind : what, ids, "group");
+            var saved = await Edit(flowId, d =>
+            {
+                var grouped = EditOps.GroupSteps(d, flowId, id, kind, from, to);
+                if (what == "") return grouped;
+                var options = GroupOptions(grouped, flowId, id);
+                options["text"] = what;
+                return EditOps.PutGroup(grouped, flowId, id, options);
+            });
+            if (saved) text.Text = "";
+            return saved;
+        }
+        _addGroup = Submit;
+        (_newGroupText, _newGroupKind, _newGroupFirst, _newGroupLast) = (text, kinds, first, last);
+        add.Click += async (_, _) => await Submit();
+        text.KeyDown += async (_, e) =>
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            await Submit();
+        };
+        var pair = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 8 };
+        var from1 = Captioned("From step", first);
+        var to1 = Captioned("To step", last);
+        pair.Children.Add(from1);
+        pair.Children.Add(to1);
+        Grid.SetColumn(to1, 1);
+        return new StackPanel { Spacing = 8, Children = { Captioned("Put steps in a new group", text), Captioned("Kind", kinds), pair, add } };
     }
 }
