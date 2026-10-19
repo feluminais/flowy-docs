@@ -114,6 +114,11 @@ Before merging a change to the app, look at what it could affect, in a real wind
 - [ ] Click Order API: its panel opens and the view moves it out from under the panel. Click a name in the panel's Out list: the panel
       switches. Open "5 connections": each label shows. Point at a row: its line lights up on the canvas.
 - [ ] Pick "Customer places an order" in Ordering: ← and → step, Home and End jump, Esc stops, and the player card shows "More".
+- [ ] Open Order API and pick "Pricing a meal deal", then step to its second step: a pipe loops out of Pricing's side and back in, cards
+      pile up under it, the counter on its corner goes `↻ 1`, `↻ 2`, `↻ 3` and back down, a flag lands where it stops, and `↻ 3 deep` is
+      left when it ends. R plays it again from a clean start, and ← → in a hurry leave no card or counter on any box. With the system's
+      animation effects off only `↻ 3 deep` shows, and Autoplay (P) still moves on. The browser (`npx flowy-docs --dir docs/demo`, then
+      `#order-api/price-a-deal`) does the same. Light and dark both read.
 - [ ] Ctrl+K, type `re`: Restaurant, Refunds in Order API and Data warehouse in Back office. Enter opens Refunds' panel in its view.
 - [ ] Open `desktop/fixtures/cases/problems/flowy` (or its repo): "34 problems" in the bar, "!" on boxes, a click on a problem goes to it.
 - [ ] Save `example/model.yaml` with a new box name while the app is open: it appears without a reload. Add a line `<<<<<<<` and

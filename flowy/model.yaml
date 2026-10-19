@@ -203,7 +203,9 @@ objects:
       step by step, and edit mode behind E.
 
       A step tagged with an `animation:` plays as a pipe with a blob running through it, and Autoplay
-      steps through a flow on its own. A Performance tab plays a load-test run back over the diagram.
+      steps through a flow on its own. A shape that calls itself plays as a pipe looping out of it and
+      back in, with a pile of cards growing under it and a counter on its corner. A Performance tab
+      plays a load-test run back over the diagram.
 
       A rail of icons on the left edge opens a panel with two tabs: every flow in the documentation,
       and the whole documentation as a tree. Details opens on the right, from its own rail or by
@@ -385,6 +387,8 @@ objects:
     description: |
       What a flow step's `animation:` tag may say, and what each kind does, written as a timed list of
       beats: a tube along the line, a blob running through it, a ring or flash or gulp on a shape.
+      A shape that calls itself (`recurse`, a step with no `to`) is the one kind that runs on a single
+      shape: a loop pipe, a pile of cards that grows and shrinks, a counter, and a flag where it stops.
 
       Nothing here draws. The canvas and the desktop app each draw the beats, so a new kind is a
       recipe here and not new drawing code in both.
@@ -453,7 +457,7 @@ objects:
     in: core
     name: Mermaid
     code: [src/core/mermaid.ts]
-    description: A view as a flowchart, a flow as a sequence diagram, fenced and ready to paste where GitHub or GitLab draws it. A shape becomes the closest Mermaid node, and a colour a style line.
+    description: A view as a flowchart, a flow as a sequence diagram, fenced and ready to paste where GitHub or GitLab draws it. A shape becomes the closest Mermaid node, and a colour a style line. A step one shape does on its own is a note over it, and a recursion is an arrow from the shape back to itself.
 connections:
   - { from: reader, to: cli, label: npx flowy-docs }
   - { from: reader, to: desktop, label: opens folders in a window }

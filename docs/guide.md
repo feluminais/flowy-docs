@@ -52,6 +52,16 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   R plays the step again, and Autoplay (P) steps through the flow on its own. Nothing moves when
   the system asks for less motion, and a step's text always says the same thing. The desktop app
   plays them the same way.
+- A shape that calls itself is one step with no `to`, tagged `animation: recurse`. Its pipe loops
+  out of the shape and back in. Each level adds a card to a pile under the shape, and a counter on
+  its corner reads `↻ 1`, `↻ 2` ... as the stack grows and shrinks. A flag lands on the deepest
+  level, where it stops, and then the answers run back through the pipe one level at a time, each
+  taking a card away. When it has finished the counter stays, reading `↻ 3 deep`, for as long as the
+  step is showing, and with less motion that counter is all there is. `depth` (2 to 5, 3 if you
+  leave it out, the first call counted) is how deep the picture goes, not how deep the code can go:
+  the step's More is the place for the real limit. `carries` and `returns` put a word on what goes
+  in and what comes back. Plum's Pricing a meal deal, in Order API, is one to play. A connection
+  from a shape to itself is still not allowed: recursion lives in flows.
 - F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Shapes with
   a problem carry a "!".
@@ -330,7 +340,8 @@ from the command line, or for Claude through MCP (`get_mermaid`):
 npx flowy-docs mermaid --view ordering
 ```
 
-`--flow <id>` prints a flow as a sequence diagram instead.
+`--flow <id>` prints a flow as a sequence diagram instead. A step one shape does on its own is a note over it, except a recursion
+(`animation: recurse`), which is an arrow from the shape back to itself.
 
 The address follows what's on screen. `#ordering` is the inside of Ordering, and `#ordering/place-order` plays
 the flow `place-order` there. Copy it to send someone straight to a level or a flow. The local canvas

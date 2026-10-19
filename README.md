@@ -92,6 +92,15 @@ through it and back while the sender waits; `send` and `event` go one way, and `
 step again, and **Autoplay** (**P**) steps through the flow on its own. Nothing moves when the system asks for less motion, and
 the step's text still says the same thing. The app and the browser play them alike.
 
+![Pricing a meal deal in Plum: Pricing calls itself, with a pipe looping out of its side, a flag where it stops and cards piled under it](docs/images/desktop-recursion.png)
+
+A shape that calls itself is one step with no `to`, tagged `animation: recurse`. A pipe loops out of the shape and back in, a
+pile of cards grows under it with a counter, a flag lands where it stops, and the answers come back one level at a time.
+`depth` (2 to 5, and 3 if you leave it out) is how deep the picture goes, so put the real limit in the step's More; `carries`
+and `returns` name what goes in and what comes back. The step's text says what gets smaller and what stops it. With less motion
+only the counter shows, and **Copy as Mermaid** draws it as an arrow back to the same shape. Plum's Pricing a meal deal is one to
+play.
+
 ## Performance
 
 Flowy can also play back how a system behaved under load. Put a load test's results in `flowy/perf/<name>.yaml`, and a Performance
