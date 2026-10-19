@@ -32,8 +32,8 @@ internal sealed class NavRail : Border
         var column = new StackPanel { Spacing = 6, Margin = new Thickness(0, 10, 0, 0), HorizontalAlignment = HorizontalAlignment.Center };
         if (navigator)
         {
-            Add(column, PanelTab.Flows, Icons.Route, "Flows", "L");
             Add(column, PanelTab.Explorer, Icons.Sitemap, "Explorer", "O");
+            Add(column, PanelTab.Flows, Icons.Route, "Flows", "L");
         }
         else
         {
@@ -111,7 +111,7 @@ internal sealed class NavTabs : StackPanel
         Orientation = Orientation.Horizontal;
         Spacing = 2;
         Classes.Add("navtabs");
-        foreach (var (tab, label) in new[] { (PanelTab.Flows, "Flows"), (PanelTab.Explorer, "Explorer") })
+        foreach (var (tab, label) in new[] { (PanelTab.Explorer, "Explorer"), (PanelTab.Flows, "Flows") })
         {
             var button = new Button { Content = label };
             button.Classes.Add("navtab");
