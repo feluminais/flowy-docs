@@ -39,6 +39,18 @@ density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size
 `--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
 and `--search re` for the search. Retake them when the app changes how it looks.
 
+## The VS Code extension
+
+`vscode/` is an extension that opens a repo's `flowy/` folder in a panel inside VS Code (command `Flowy: Open Docs`). It has its own
+`package.json` and `npm install`, and it reuses `src/core`, `src/node/files.ts` and the built canvas: `npm run build:vscode` builds
+the canvas, bundles the extension into `vscode/dist` and copies the canvas to `vscode/media`. To try it, open the `vscode/` folder in
+VS Code and press F5; the new window opens this repo, so `Flowy: Open Docs` shows the model you're reading now. The panel is read-only so far.
+A change to `ui/` shows after `npm run build:vscode` and closing and reopening the panel; a change to `vscode/src` also needs
+`Developer: Reload Window` in the new window.
+
+`test/vscode-page.test.ts` covers the page the extension builds (the policy that lets only the canvas script run, the state inlined).
+What happens inside VS Code (the webview loading, the theme, the Mermaid copy) has no test: check it in the window.
+
 ## The performance lab
 
 `perf-lab/` is a made-up shop that really runs, and a load generator that measures it and writes the runs the Performance tab
