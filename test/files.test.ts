@@ -154,3 +154,17 @@ test('missing code paths are the well-formed ones that are not next to the flowy
     'api: code path "../x" must be relative, with / between folders and no "." or ".." parts',
   ])
 })
+
+test('missing link paths count like missing code paths, and web addresses are not looked up', async t => {
+  const root = await tempDir(t)
+  const dir = join(root, 'flowy')
+  await mkdir(join(root, 'docs'), { recursive: true })
+  await writeFile(join(root, 'docs', 'runbook.md'), '')
+  await mkdir(dir)
+  await writeFile(join(dir, 'model.yaml'), 'objects:\n  api:\n    type: system\n    name: API\n    links:\n      - { title: Runbook, url: docs/runbook.md }\n      - { title: Gone, url: docs/gone.md }\n      - { title: Status, url: "https://status.example.com" }\n')
+  const { model } = await loadDir(dir)
+  assert.deepEqual([...missingPaths(dir, model)], ['docs/gone.md'])
+  const state = await loadState(dir)
+  assert.ok('problems' in state)
+  assert.deepEqual(state.problems.map(p => p.message), ['api: link path "docs/gone.md" doesn\'t exist'])
+})

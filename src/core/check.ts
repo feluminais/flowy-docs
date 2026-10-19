@@ -32,6 +32,16 @@ const missing = (v: unknown) => v === undefined || v === ''
 export const isRepoPath = (path: string): boolean =>
   !/^\/|\\|:/.test(path) && path.split('/').every((part, i, all) => (part !== '' || (i === all.length - 1 && i > 0)) && part !== '.' && part !== '..')
 
+/** A web address as a link takes it: http or https, then a host. The desktop app (Checks.cs) uses the same pattern, so the two never disagree about a parse. */
+export const isWebAddress = (url: string): boolean => /^https?:\/\/[^\s\/?#]+\S*$/i.test(url)
+
+/** A `links` entry whose known fields are text. A missing `url` is reported separately, as "a link has no url". */
+const isLinkEntry = (l: unknown): l is { url?: string; title?: string } => {
+  if (typeof l !== 'object' || l === null || Array.isArray(l)) return false
+  const { url, title } = l as Record<string, unknown>
+  return (url === undefined || typeof url === 'string') && (title === undefined || typeof title === 'string')
+}
+
 /** A path made safe for a URL one part at a time, so a # or ? in a name stays part of the name. */
 export const encodePath = (path: string): string => path.split('/').map(encodeURIComponent).join('/')
 
@@ -66,6 +76,16 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       else for (const path of o.code as string[]) {
         if (!isRepoPath(path)) p(`code path "${path}" must be relative, with / between folders and no "." or ".." parts`)
         else if (absent.has(path)) p(`code path "${path}" doesn't exist`)
+      }
+    }
+    if (o.links !== undefined) {
+      if (!Array.isArray(o.links) || !o.links.every(isLinkEntry)) p('links must be a list of entries with a url and, if you like, a title')
+      else for (const { url } of o.links) {
+        if (typeof url !== 'string' || url.trim() === '') p('a link has no url')
+        else if (!isWebAddress(url)) {
+          if (!isRepoPath(url)) p(`link "${url}" must be a web address (http or https) or a path in the repo, relative, with / between folders and no "." or ".." parts`)
+          else if (absent.has(url)) p(`link path "${url}" doesn't exist`)
+        }
       }
     }
     if (missing(o.type)) {

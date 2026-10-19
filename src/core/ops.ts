@@ -1,6 +1,6 @@
 import { check, newProblems } from './check.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
-import type { Connection, Flow, FlowyObject, Layout, LineStyle, Model, ObjectType, Step } from './model.ts'
+import type { Connection, Flow, FlowyObject, Layout, LineStyle, Link, Model, ObjectType, Step } from './model.ts'
 import { memberIds } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
@@ -8,18 +8,19 @@ export class OpError extends Error {
   name = 'OpError'
 }
 
-export type ObjectInput = { id: string; type?: ObjectType; name?: string; in?: string; external?: boolean; tech?: string; description?: string; code?: string[] }
+export type ObjectInput = { id: string; type?: ObjectType; name?: string; in?: string; external?: boolean; tech?: string; description?: string; code?: string[]; links?: Link[] }
 export type ConnectionInput = { from: string; to: string; label?: string }
 export type FlowInput = { id: string; name: string; view: string; steps: Step[] }
 
-const FIELDS = ['type', 'name', 'in', 'external', 'tech', 'description', 'code'] as const
+const FIELDS = ['type', 'name', 'in', 'external', 'tech', 'description', 'code', 'links'] as const
 const CLEARABLE = ['in', 'tech', 'description'] as const
 
 /**
  * Create or update an object. Omitted fields stay as they are; "" removes in, tech or description,
- * [] removes code, and external: false removes external.
+ * [] removes code or links, and external: false removes external.
  * Only the known fields are copied from the input, so a new object's keys always come out
- * in the order type, name, in, external, tech, description, code, and stray input keys never land in the model.
+ * in the order type, name, in, external, tech, description, code, links, and stray input keys never land in the model.
+ * A link keeps its extra keys, comes out with its title before its url, and loses a blank title.
  */
 export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid id: ${ID_RULE}`)
@@ -29,6 +30,8 @@ export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   for (const k of FIELDS) if (fields[k] !== undefined) next[k] = fields[k]
   for (const k of CLEARABLE) if (next[k] === '') delete next[k]
   if (Array.isArray(next.code) && next.code.length === 0) delete next.code
+  if (fields.links !== undefined) next.links = fields.links.map(({ title, ...rest }) => (title?.trim() ? { title, ...rest } : rest))
+  if (Array.isArray(next.links) && next.links.length === 0) delete next.links
   // On disk it's `external: true`, which the failsafe schema reads back as the text "true".
   if (next.external === true) next.external = 'true'
   else if (next.external === false) delete next.external

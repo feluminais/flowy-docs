@@ -40,6 +40,16 @@ export const lineStyle = (model: Model): LineStyle => LINE_STYLES.find(s => s ==
 /** Whether an object is an outside service: `external: true`, read back as the text "true". */
 export const isExternal = (o: FlowyObject): boolean => o.external === 'true'
 
+/** One entry of an object's `links`: a web address or a path in the repo, and the text a reader sees for it. Extra keys are kept. */
+export type Link = { url: string; title?: string; [extra: string]: unknown }
+
+/** The well-formed entries of an object's `links` (a mapping with a text `url`). check() reports anything else. */
+export function linksOf(o: FlowyObject): Link[] {
+  return Array.isArray(o.links)
+    ? o.links.filter((l): l is Link => typeof l === 'object' && l !== null && !Array.isArray(l) && typeof l.url === 'string' && (l.title === undefined || typeof l.title === 'string'))
+    : []
+}
+
 /** What an id (an object's, or a flow's file name) may be, worded to follow "ids". isValidId is the test. */
 export const ID_RULE = 'use lowercase letters, digits and dashes, not starting with a dash ("root" is reserved)'
 export const isValidId = (id: string): boolean => /^[a-z0-9][a-z0-9-]*$/.test(id) && id !== ROOT

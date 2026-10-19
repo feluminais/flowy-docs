@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs'
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { check, isRepoPath } from '../core/check.ts'
-import { emptyModel, isValidId, ParseError, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/model.ts'
+import { emptyModel, isValidId, linksOf, ParseError, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
 import type { State } from '../core/state.ts'
 import { codeBase } from './git.ts'
@@ -79,10 +79,10 @@ export async function loadDir(dir: string): Promise<Loaded> {
   return { model, versions, ignored: files.filter(n => n.endsWith('.yml')).map(n => `flows/${n}`) }
 }
 
-/** The `code` paths in these models that don't exist. They're relative to the folder that holds `dir`. */
+/** The `code` and `links` paths in these models that don't exist. They're relative to the folder that holds `dir`. */
 export function missingPaths(dir: string, ...models: Model[]): Set<string> {
   const root = dirname(resolve(dir))
-  const paths = models.flatMap(m => Object.values(m.objects).flatMap(o => (Array.isArray(o.code) ? o.code : [])))
+  const paths = models.flatMap(m => Object.values(m.objects).flatMap(o => [...(Array.isArray(o.code) ? o.code : []), ...linksOf(o).map(l => l.url)]))
   return new Set(paths.filter((p): p is string => typeof p === 'string' && isRepoPath(p) && !existsSync(join(root, p))))
 }
 

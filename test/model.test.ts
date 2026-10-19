@@ -1,10 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  changedFiles, emptyModel, fileData, getObject, modelFiles, ParseError, parseFile, parseFlowFile, parseLayoutFile,
+  changedFiles, emptyModel, fileData, getObject, linksOf, modelFiles, ParseError, parseFile, parseFlowFile, parseLayoutFile,
   parseModelFile, serializeFile, serializeFlow, serializeLayout, serializeModelFile,
 } from '../src/core/model.ts'
-import type { Layout } from '../src/core/model.ts'
+import type { FlowyObject, Layout } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 
 const MODEL_YAML = `title: Demo
@@ -179,4 +179,15 @@ test('fileData is what serializeFile turns into each file, with model.yaml extra
   for (const [rel, text] of Object.entries(modelFiles(m))) assert.equal(serializeFile(rel, fileData(m, rel)), text, rel)
   assert.deepEqual(Object.keys(fileData(m, 'model.yaml') as object), ['title', 'objects', 'connections'])
   assert.equal(serializeFile('layout.yaml', fileData(m, 'layout.yaml')), serializeLayout(m.layout))
+})
+
+test('linksOf keeps the well-formed entries, with their extra keys, and ignores the rest', () => {
+  const o = {
+    type: 'app',
+    name: 'A',
+    links: [{ title: 'Doc', url: 'docs/a.md', note: 'x' }, { url: 'https://x.dev' }, { title: 'No url' }, 'text', { url: ['no'] }, { url: 'u', title: ['no'] }],
+  } as unknown as FlowyObject
+  assert.deepEqual(linksOf(o), [{ title: 'Doc', url: 'docs/a.md', note: 'x' }, { url: 'https://x.dev' }])
+  assert.deepEqual(linksOf({ type: 'app', name: 'A', links: 'text' } as unknown as FlowyObject), [])
+  assert.deepEqual(linksOf({ type: 'app', name: 'A' }), [])
 })

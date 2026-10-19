@@ -23,6 +23,7 @@ What gets a box:
 Writing text:
 - A description's first paragraph is the hover teaser: a sentence on what the object does for others, in words its name doesn't hold. Start apps and components with a verb. No "responsible for", no praise. Later paragraphs: why, limits, risks. No versions, counts or endpoint lists.
 - A connection label is a few words from the side that starts it, and reads as a sentence between the two names ("publishes order events to"). Say what moves; never "uses". A reply is not a connection.
+- Put long documents (runbooks, decision records, specs, wiki pages) in links, not in a description. code: is where an object lives.
 Writing a flow, so it reads the way the code works:
 - One trigger, one story, usually 3-9 steps, named for the goal. A failure gets its own flow.
 - A step's text says what passes from "from" to "to", from the side of "from": "Hands the order to Billing", "Asks Pricing for the total". When "from" asks and gets its answer in the same step, say so, and don't add a step going back unless something new is sent.
@@ -135,7 +136,7 @@ export function createMcpServer(dir: string): McpServer {
   }))
 
   server.registerTool('put_object', {
-    description: 'Create or update an object. On update, omitted fields stay as they are, "" removes in, tech or description, [] removes code, and external: false removes external.',
+    description: 'Create or update an object. On update, omitted fields stay as they are, "" removes in, tech or description, [] removes code or links, and external: false removes external.',
     inputSchema: {
       id: id('Object id'),
       type: z.enum(OBJECT_TYPES).optional()
@@ -148,6 +149,8 @@ export function createMcpServer(dir: string): McpServer {
       description: z.string().optional().describe('Markdown. The first paragraph is the short teaser readers see first.'),
       code: z.array(z.string()).optional()
         .describe('Files and folders in the repo this object lives in, relative to the folder that holds flowy/, e.g. ["src/api/"]. Each must exist. [] removes them.'),
+      links: z.array(z.object({ url: z.string(), title: z.string().optional() })).optional()
+        .describe('Long documents and pages that belong to this object (a runbook, a decision record, a spec, a wiki page). url is a web address (http or https) or a path in the repo, relative to the folder that holds flowy/, which must exist. title is what the reader sees. [] removes them.'),
     },
   }, input => write(m => putObject(m, input), before => `${getObject(before, input.id) ? 'Updated' : 'Created'} ${input.id}.`))
 
