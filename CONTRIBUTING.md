@@ -34,8 +34,10 @@ npm run dev:ui
 opens it. Its `code:` paths point at placeholder files beside it, so the canvas shows no problems. Its `flowy/perf/` holds
 two load-test runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute, and
 the same test after a fix); they name shapes and connections of the model, so a rename there is a run problem. The screenshots in
-`docs/images/` are of that model in the light theme, 1100 by 700 (1280 by 760 for the edit and performance ones) at twice the pixel density.
-Retake them when the canvas changes how it looks.
+`docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
+density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
+`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --flow place-order --step 1` for the flow,
+and `--search re` for the search. Retake them when the app changes how it looks.
 
 ## The performance lab
 
@@ -69,8 +71,8 @@ dotnet run --project desktop/Flowy.App -- docs/demo --shot out.png         # sav
 
 `--shot` takes flags that set up what the picture shows: `--view ordering`, `--select order-api`, `--line "web order-api"`,
 `--hover "web order-api"`, `--flow place-order --step 1`, `--search re`, `--shortcuts`, `--zoom ordering --delay 200` (a frame of the
-zoom), `--lines curved`, `--theme dark`, `--size 1100x700`. Check a visual change by looking at pictures next to `docs/images/`, which
-are the browser canvas on the same model. `FLOWY_REDUCE_MOTION=1` turns animation off.
+zoom), `--lines curved`, `--theme dark`, `--size 1100x700`. Check a visual change by looking at pictures next to
+`docs/images/desktop-*.png`. `FLOWY_REDUCE_MOTION=1` turns animation off.
 
 **Two readers must agree.** `dotnet test desktop` compares Flowy.Core with the TypeScript on the folders in
 `desktop/fixtures/fixtures.json` (`example/`, `docs/demo` and crafted cases) and on the canvas's own functions (line paths, camera fits,

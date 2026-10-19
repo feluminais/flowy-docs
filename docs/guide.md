@@ -89,7 +89,8 @@ checks, and write the same text, so a change made in one looks the same in git a
 - New flow records a walkthrough: name it, click the shape where a step starts and the shape it goes
   to (or the same shape again, for a step it does on its own), type what happens and press Enter.
   Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
-  delete steps. "Edit a flow" opens one you already have.
+  delete steps. To change a flow you already have, pick it in the Flows tab: in edit mode its rows carry a pencil, and a click opens
+  the flow for editing instead of playing it.
 
 Every save goes through the same checks as Claude's edits: a change that would add a problem is
 refused, and nothing is written. If a file changed on disk in the meantime, the save is dropped
