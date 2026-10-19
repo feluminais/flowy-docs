@@ -165,7 +165,7 @@ internal sealed class TickLabels : Control
 /// </summary>
 internal sealed class PerfPanel : StackPanel
 {
-    private sealed record Reading(string Key, Func<double, double?> At, TextBlock Value, Sparkline Curve, MetricInfo Info);
+    private sealed record Reading(string Key, Func<LoadFrame, double?> At, TextBlock Value, Sparkline Curve, MetricInfo Info);
 
     private readonly Slider _slider = new() { Minimum = 0, TickFrequency = 1, TickPlacement = TickPlacement.BottomRight, Focusable = false };
     private readonly TextBlock _loadNumber = new() { FontSize = 26, FontWeight = FontWeight.SemiBold };
@@ -175,6 +175,8 @@ internal sealed class PerfPanel : StackPanel
     private LatencyStrip? _strip;
     private ComboBox? _picker;
     private LoadRun? _run;
+    private Model? _model;
+    private string _view = "";
     private double _pos;
     private bool _ramping;
     private bool _still;
@@ -286,6 +288,8 @@ internal sealed class PerfPanel : StackPanel
             return;
         }
         _run = run;
+        _model = model;
+        _view = view;
         _pos = pos;
         _ramping = ramping;
         var knee = Perf.FindKnee(run);
@@ -365,7 +369,7 @@ internal sealed class PerfPanel : StackPanel
     private void BuildSelection(Model model, string view, LoadRun run, PerfSelection? selection)
     {
         Func<string, IReadOnlyList<double?>>? series = null;
-        Func<string, double, double?>? at = null;
+        Func<LoadFrame, string, double?>? at = null;
         string[]? keys = null;
         var title = "Selected";
         if (selection is { Id: { } id })
@@ -373,14 +377,14 @@ internal sealed class PerfPanel : StackPanel
             title = NameOf(model, id);
             keys = PerfView.BoxKeys;
             series = key => PerfView.BoxSeries(model, run, view, id, key);
-            at = (key, load) => PerfView.BoxAt(model, run, view, id, load)?[key];
+            at = (frame, key) => frame.Box(id)?[key];
         }
         else if (selection is { From: { } from, To: { } to })
         {
             title = $"{NameOf(model, from)} → {NameOf(model, to)}";
             keys = PerfView.LineKeys;
             series = key => PerfView.LineSeries(model, run, view, from, to, key);
-            at = (key, load) => PerfView.LineAt(model, run, view, from, to, load)?[key];
+            at = (frame, key) => frame.Line(from, to)?[key];
         }
         Children.Add(Chrome.Section(Icons.Info, title));
         if (keys is null)
@@ -402,13 +406,31 @@ internal sealed class PerfPanel : StackPanel
             Grid.SetColumn(value, 1);
             Grid.SetColumn(curve, 2);
             Children.Add(row);
-            _readings.Add(new Reading(key, load => at!(key, load), value, curve, info));
+            _readings.Add(new Reading(key, frame => at!(frame, key), value, curve, info));
         }
         if (!any) Children.Add(Muted(selection is { Id: not null } ? "Nothing was measured here, or inside it." : "Nothing was measured here."));
     }
 
-    /// <summary>Moves the panel to a position without building it again: the number, the slider, the cursors, the readings and the Ramp button.</summary>
+    /// <summary>Puts the thumb back on the level the panel is at, after a drag that took it somewhere between levels without reaching another.</summary>
+    public void SnapSlider()
+    {
+        _syncing = true;
+        _slider.Value = _pos;
+        _syncing = false;
+    }
+
+    /// <summary>Moves the panel to a position, working out for itself what the readings say there.</summary>
     public void SetPos(double pos, bool ramping)
+    {
+        if (_run is not { } run || _model is not { } model) return;
+        SetPos(pos, ramping, Perf.FrameAt(model, run, PerfView.LoadAt(run, pos), _view));
+    }
+
+    /// <summary>
+    /// Moves the panel to a position without building it again: the number, the slider, the cursors, the readings and the Ramp button. The readings are
+    /// those of <paramref name="frame"/>, which the caller worked out for this position and also drew the canvas from.
+    /// </summary>
+    public void SetPos(double pos, bool ramping, LoadFrame frame)
     {
         if (_run is not { } run) return;
         _pos = pos;
@@ -431,18 +453,19 @@ internal sealed class PerfPanel : StackPanel
         _strip?.SetPos(pos);
         foreach (var r in _readings)
         {
-            r.Value.Text = r.At(load) is { } v ? r.Info.Show(v) : "–";
+            r.Value.Text = r.At(frame) is { } v ? r.Info.Show(v) : "–";
             r.Curve.SetPos(pos);
         }
     }
 
-    private TextBlock Muted(string text) => new() { Text = text, Foreground = Resource("MutedBrush"), TextWrapping = TextWrapping.Wrap };
+    // Words take their colour from a style, which follows the theme and the control's place in the tree; a brush looked up when the panel is built would not (it is built before it is shown, and lives through a theme change).
+    private static TextBlock Muted(string text) => new() { Text = text, Classes = { "muted" }, TextWrapping = TextWrapping.Wrap };
 
     private Control ProblemsFor(IReadOnlyList<Problem> problems)
     {
         if (problems.Count == 0) return new Panel();
         var list = new StackPanel { Spacing = 3 };
-        foreach (var p in problems) list.Children.Add(new TextBlock { Text = $"{p.File} {p.Message}", Foreground = Resource("WarnFgBrush"), TextWrapping = TextWrapping.Wrap });
+        foreach (var p in problems) list.Children.Add(new TextBlock { Text = $"{p.File} {p.Message}", Classes = { "warntext" }, TextWrapping = TextWrapping.Wrap });
         return new StackPanel { Spacing = 8, Children = { Chrome.Section(Icons.Alert, "Problems", problems.Count), list } };
     }
 }

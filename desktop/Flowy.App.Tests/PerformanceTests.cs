@@ -4,6 +4,8 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowy.App.Canvas;
@@ -354,5 +356,111 @@ public class PerformanceTests
         Assert.True(reader.PerfOpenNow);
         Assert.Equal("one", reader.PerfState.Run);
         Assert.Equal("One", string.Join("|", AllText(reader.PerfPanelNow)).Split('|')[0]);
+    }
+
+    private const string OneObject = "objects:\n  a: { type: system, name: A }\n";
+
+    private const string GoodRun = "name: One\nlevels:\n  - load: 1\n    objects:\n      a: { util: 0.1 }\n  - load: 2\n    objects:\n      a: { util: 0.2 }\n";
+
+    private const string BadRun = "name: Bad\nlevels:\n  - load: 1\n";
+
+    /// <summary>A folder with one good run, open on it with a ramp running.</summary>
+    private static (Window Window, ReaderView Reader, string RunFile) Ramping(TempFolder temp)
+    {
+        File.WriteAllText(Path.Combine(temp.Path, "model.yaml"), OneObject);
+        Directory.CreateDirectory(Path.Combine(temp.Path, "perf"));
+        var file = Path.Combine(temp.Path, "perf", "one.yaml");
+        File.WriteAllText(file, GoodRun);
+        var (window, reader) = Open(temp.Path);
+        Press(window, Key.T, PhysicalKey.T);
+        Press(window, Key.Home, PhysicalKey.Home);
+        Click(reader.PerfPanelNow.RampButton);
+        Assert.True(reader.PerfState.Ramping);
+        return (window, reader, file);
+    }
+
+    [AvaloniaTheory]
+    [InlineData(BadRun)] // the file stops parsing: the panel stays, to say what is wrong, with no load to run on
+    [InlineData(null)] // the file goes: the panel has nothing to show
+    public void A_ramp_whose_run_goes_away_stops_and_is_not_left_saying_Pause_when_the_run_is_back(string? meanwhile)
+    {
+        using var motion = Motion.On();
+        using var temp = new TempFolder();
+        var (window, reader, file) = Ramping(temp);
+        if (meanwhile is null) File.Delete(file);
+        else File.WriteAllText(file, meanwhile);
+        reader.Reload(FolderLoader.Load(temp.Path));
+        Assert.False(reader.PerfState.Ramping);
+        File.WriteAllText(file, GoodRun);
+        reader.Reload(FolderLoader.Load(temp.Path));
+        window.UpdateLayout();
+        Assert.True(reader.PerfOpenNow); // the browser's panel comes back with its run too
+        Assert.False(reader.PerfState.Ramping);
+        Assert.Equal("Ramp", ButtonText(reader.PerfPanelNow.RampButton));
+    }
+
+    [AvaloniaFact]
+    public void A_step_to_the_level_already_shown_draws_nothing_again_but_puts_the_thumb_back_on_it()
+    {
+        var (window, reader) = Open();
+        reader.PickRunById("ramp");
+        Press(window, Key.T, PhysicalKey.T);
+        Press(window, Key.Home, PhysicalKey.Home);
+        var drawn = reader.Canvas.Load;
+        Assert.NotNull(drawn);
+        Press(window, Key.Home, PhysicalKey.Home); // already there
+        Assert.Same(drawn, reader.Canvas.Load);
+        reader.PerfPanelNow.Slider.Value = 0.3; // a drag that has not got to the next level
+        Assert.Same(drawn, reader.Canvas.Load);
+        Assert.Equal(0.0, reader.PerfPanelNow.SliderValue);
+        Press(window, Key.Right, PhysicalKey.ArrowRight);
+        Assert.NotSame(drawn, reader.Canvas.Load);
+        Assert.Equal(1.0, reader.PerfPanelNow.SliderValue);
+    }
+
+    private static TextBlock TextBlockOf(PerfPanel panel, string startsWith) =>
+        panel.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text?.StartsWith(startsWith) == true);
+
+    private static Color Colour(IBrush? brush) => Assert.IsAssignableFrom<ISolidColorBrush>(brush).Color;
+
+    private static Color ThemeColour(string key, ThemeVariant theme) =>
+        Application.Current!.TryGetResource(key, theme, out var found) ? Colour((IBrush)found!) : throw new InvalidOperationException(key);
+
+    [AvaloniaFact]
+    public void The_panels_words_are_in_the_themes_colours_when_it_first_opens_and_after_the_theme_changes()
+    {
+        var app = Application.Current!;
+        var was = app.RequestedThemeVariant;
+        try
+        {
+            app.RequestedThemeVariant = ThemeVariant.Light;
+            using var broken = new TempFolder();
+            File.WriteAllText(Path.Combine(broken.Path, "model.yaml"), OneObject);
+            Directory.CreateDirectory(Path.Combine(broken.Path, "perf"));
+            File.WriteAllText(Path.Combine(broken.Path, "perf", "bad.yaml"), BadRun);
+            var (brokenWindow, brokenReader) = Open(broken.Path);
+            Press(brokenWindow, Key.T, PhysicalKey.T);
+            var (window, reader) = Open();
+            Press(window, Key.T, PhysicalKey.T);
+            window.UpdateLayout();
+            brokenWindow.UpdateLayout();
+
+            void Check(ThemeVariant theme)
+            {
+                Assert.Equal(ThemeColour("MutedBrush", theme), Colour(TextBlockOf(reader.PerfPanelNow, "Click a shape").Foreground));
+                Assert.Equal(ThemeColour("MutedBrush", theme), Colour(TextBlockOf(brokenReader.PerfPanelNow, "No run could be read").Foreground));
+                Assert.Equal(ThemeColour("WarnFgBrush", theme), Colour(TextBlockOf(brokenReader.PerfPanelNow, "perf/bad.yaml").Foreground));
+            }
+
+            Check(ThemeVariant.Light);
+            app.RequestedThemeVariant = ThemeVariant.Dark;
+            Dispatcher.UIThread.RunJobs();
+            Assert.NotEqual(ThemeColour("MutedBrush", ThemeVariant.Light), ThemeColour("MutedBrush", ThemeVariant.Dark)); // the two themes differ, or this proves nothing
+            Check(ThemeVariant.Dark);
+        }
+        finally
+        {
+            app.RequestedThemeVariant = was;
+        }
     }
 }
