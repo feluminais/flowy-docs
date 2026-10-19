@@ -21,7 +21,7 @@ internal sealed partial class ReaderView
     private readonly Button _undoButton = new();
     private readonly Button _redoButton = new();
     private readonly Button _tidyButton = new();
-    private readonly StackPanel _editTools = new() { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, IsVisible = false, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
+    private readonly StackPanel _editTools = new() { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 2, IsVisible = false, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
 
     /// <summary>False for a model that must not be written, such as the sample that ships inside the app.</summary>
     public bool CanEdit { get; set; } = true;

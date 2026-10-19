@@ -8,23 +8,25 @@
           <SolidColorBrush x:Key="BgBrush" Color="#fafaf9" />
           <SolidColorBrush x:Key="AccentTintBrush" Color="#2563eb" Opacity="0.10" />
           <SolidColorBrush x:Key="DangerTintBrush" Color="#b91c1c" Opacity="0.10" />
-          <!-- Pickers in the app's own colours. -->
-          <SolidColorBrush x:Key="ComboBoxBackground" Color="#ffffff" />
-          <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#ffffff" />
-          <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#ffffff" />
-          <SolidColorBrush x:Key="ComboBoxBackgroundFocused" Color="#ffffff" />
-          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#d6d3d1" />
-          <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#2563eb" />
+          <SolidColorBrush x:Key="HoverBrush" Color="#1c1917" Opacity="0.08" />
+          <SolidColorBrush x:Key="WarnTintBrush" Color="#d97706" Opacity="0.14" />
+          <!-- Pickers soft fills that show an outline only when focused. -->
+          <SolidColorBrush x:Key="ComboBoxBackground" Color="#1c1917" Opacity="0.06" />
+          <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#1c1917" Opacity="0.06" />
+          <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#1c1917" Opacity="0.06" />
+          <SolidColorBrush x:Key="ComboBoxBackgroundFocused" Color="#1c1917" Opacity="0.06" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="Transparent" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="Transparent" />
           <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#2563eb" />
           <SolidColorBrush x:Key="ComboBoxBorderBrushFocused" Color="#2563eb" />
           <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#ffffff" />
           <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#d6d3d1" />
-          <!-- Text fields in the app's own colours, not the system's accent. -->
-          <SolidColorBrush x:Key="TextControlBackground" Color="#ffffff" />
-          <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#ffffff" />
-          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#ffffff" />
-          <SolidColorBrush x:Key="TextControlBorderBrush" Color="#d6d3d1" />
-          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#2563eb" />
+          <!-- Text fields as soft fills too. -->
+          <SolidColorBrush x:Key="TextControlBackground" Color="#1c1917" Opacity="0.06" />
+          <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#1c1917" Opacity="0.06" />
+          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#1c1917" Opacity="0.06" />
+          <SolidColorBrush x:Key="TextControlBorderBrush" Color="Transparent" />
+          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent" />
           <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#2563eb" />
           <SolidColorBrush x:Key="FgBrush" Color="#1c1917" />
           <SolidColorBrush x:Key="MutedBrush" Color="#78716c" />
@@ -53,23 +55,25 @@
           <SolidColorBrush x:Key="BgBrush" Color="#1c1917" />
           <SolidColorBrush x:Key="AccentTintBrush" Color="#60a5fa" Opacity="0.16" />
           <SolidColorBrush x:Key="DangerTintBrush" Color="#f87171" Opacity="0.16" />
-          <!-- Pickers in the app's own colours. -->
-          <SolidColorBrush x:Key="ComboBoxBackground" Color="#292524" />
-          <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#292524" />
-          <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#292524" />
-          <SolidColorBrush x:Key="ComboBoxBackgroundFocused" Color="#292524" />
-          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#57534e" />
-          <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#60a5fa" />
+          <SolidColorBrush x:Key="HoverBrush" Color="#f5f5f4" Opacity="0.10" />
+          <SolidColorBrush x:Key="WarnTintBrush" Color="#f59e0b" Opacity="0.16" />
+          <!-- Pickers soft fills that show an outline only when focused. -->
+          <SolidColorBrush x:Key="ComboBoxBackground" Color="#f5f5f4" Opacity="0.07" />
+          <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#f5f5f4" Opacity="0.07" />
+          <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#f5f5f4" Opacity="0.07" />
+          <SolidColorBrush x:Key="ComboBoxBackgroundFocused" Color="#f5f5f4" Opacity="0.07" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="Transparent" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="Transparent" />
           <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#60a5fa" />
           <SolidColorBrush x:Key="ComboBoxBorderBrushFocused" Color="#60a5fa" />
           <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#292524" />
           <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#57534e" />
-          <!-- Text fields in the app's own colours, not the system's accent. -->
-          <SolidColorBrush x:Key="TextControlBackground" Color="#292524" />
-          <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#292524" />
-          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#292524" />
-          <SolidColorBrush x:Key="TextControlBorderBrush" Color="#57534e" />
-          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#60a5fa" />
+          <!-- Text fields as soft fills too. -->
+          <SolidColorBrush x:Key="TextControlBackground" Color="#f5f5f4" Opacity="0.07" />
+          <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#f5f5f4" Opacity="0.07" />
+          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#f5f5f4" Opacity="0.07" />
+          <SolidColorBrush x:Key="TextControlBorderBrush" Color="Transparent" />
+          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent" />
           <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#60a5fa" />
           <SolidColorBrush x:Key="FgBrush" Color="#f5f5f4" />
           <SolidColorBrush x:Key="MutedBrush" Color="#a8a29e" />
@@ -120,18 +124,23 @@
     <Setter Property="StrokeJoin" Value="Round" />
   </Style>
 
-  <!-- The top bar. -->
+  <!--
+    The top bar, flat like an editor's toolbar: no boxes round the controls, just an icon and a word on the bar itself. Hovering lays a tint
+    under one; on (the Edit switch) a stronger one in the accent. Every control is 30 tall, so icon and text sit on one line.
+  -->
   <Style Selector="Border.bar">
-    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
     <Setter Property="BorderThickness" Value="0,0,0,1" />
-    <Setter Property="Padding" Value="14,9" />
+    <Setter Property="Padding" Value="12,5" />
   </Style>
   <Style Selector="Button.crumb">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Padding" Value="8,5" />
-    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="MinHeight" Value="30" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="CornerRadius" Value="6" />
     <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
@@ -146,73 +155,80 @@
   <Style Selector="Button.crumb:disabled Path.crumbicon"><Setter Property="Stroke" Value="{DynamicResource FgBrush}" /></Style>
   <Style Selector="Path.crumbsep"><Setter Property="Stroke" Value="{DynamicResource LineBrush}" /><Setter Property="StrokeThickness" Value="2" /><Setter Property="StrokeLineCap" Value="Round" /><Setter Property="StrokeJoin" Value="Round" /></Style>
 
-  <!-- Buttons with an icon and a word. Hovering tints them; on (the Edit switch) or pressed fills them. -->
+  <!-- The flat button, on the bar and in the panels. The one filled button is .primary: what a form is for. -->
   <Style Selector="Button.tool">
-    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="8" />
-    <Setter Property="Padding" Value="11,6" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="MinHeight" Value="30" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
-  <Style Selector="Button.tool.icononly"><Setter Property="Padding" Value="8" /></Style>
+  <Style Selector="Button.tool.icononly"><Setter Property="Padding" Value="0" /><Setter Property="MinWidth" Value="30" /></Style>
   <Style Selector="Button.tool Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Button.tool TextBlock.btntext"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /></Style>
   <Style Selector="Button.tool:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource AccentTintBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
   </Style>
-  <Style Selector="Button.tool:pointerover Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Button.tool:pointerover TextBlock.btntext"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Button.tool:pointerover Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource FgBrush}" /></Style>
+  <Style Selector="Button.tool:pointerover TextBlock.btntext"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /></Style>
   <Style Selector="Button.tool:pressed /template/ ContentPresenter, Button.tool.pressed /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-    <Setter Property="Foreground" Value="{DynamicResource BgBrush}" />
+    <Setter Property="Background" Value="{DynamicResource AccentTintBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
   </Style>
-  <Style Selector="Button.tool:pressed Path.btnicon, Button.tool.pressed Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource BgBrush}" /></Style>
-  <Style Selector="Button.tool:pressed TextBlock.btntext, Button.tool.pressed TextBlock.btntext"><Setter Property="Foreground" Value="{DynamicResource BgBrush}" /></Style>
-  <Style Selector="Button.tool:disabled"><Setter Property="Opacity" Value="0.45" /></Style>
+  <Style Selector="Button.tool:pressed Path.btnicon, Button.tool.pressed Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Button.tool:pressed TextBlock.btntext, Button.tool.pressed TextBlock.btntext">
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.tool:disabled"><Setter Property="Opacity" Value="0.4" /></Style>
   <Style Selector="Button.tool:disabled /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
   </Style>
-  <!-- The one button a form is for: Add, Start recording, Done. -->
   <Style Selector="Button.tool.primary">
     <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
   </Style>
   <Style Selector="Button.tool.primary Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource BgBrush}" /></Style>
   <Style Selector="Button.tool.primary TextBlock.btntext">
     <Setter Property="Foreground" Value="{DynamicResource BgBrush}" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
+  <Style Selector="Button.tool.primary /template/ ContentPresenter, Button.tool.primary:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
   <Style Selector="Button.tool.primary:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
     <Setter Property="Opacity" Value="0.88" />
   </Style>
-  <Style Selector="Button.tool.primary:pointerover Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource BgBrush}" /></Style>
-  <Style Selector="Button.tool.primary:pointerover TextBlock.btntext"><Setter Property="Foreground" Value="{DynamicResource BgBrush}" /></Style>
+  <Style Selector="Button.tool.primary:pointerover Path.btnicon, Button.tool.primary:pressed Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource BgBrush}" /></Style>
+  <Style Selector="Button.tool.primary:pointerover TextBlock.btntext, Button.tool.primary:pressed TextBlock.btntext"><Setter Property="Foreground" Value="{DynamicResource BgBrush}" /></Style>
   <Style Selector="Button.tool.danger Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource DangerBrush}" /></Style>
   <Style Selector="Button.tool.danger TextBlock.btntext"><Setter Property="Foreground" Value="{DynamicResource DangerBrush}" /></Style>
-  <Style Selector="Button.tool.danger"><Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" /></Style>
   <Style Selector="Button.tool.danger:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource DangerTintBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
   </Style>
   <Style Selector="Button.tool.danger:pointerover Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource DangerBrush}" /></Style>
   <Style Selector="Button.tool.danger:pointerover TextBlock.btntext"><Setter Property="Foreground" Value="{DynamicResource DangerBrush}" /></Style>
   <Style Selector="Button.problems">
-    <Setter Property="Background" Value="{DynamicResource WarnBgBrush}" />
+    <Setter Property="Background" Value="Transparent" />
     <Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="CornerRadius" Value="14" />
-    <Setter Property="Padding" Value="11,6" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="MinHeight" Value="30" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
-  <Style Selector="Button.problems:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource WarnBgBrush}" /></Style>
-  <Style Selector="Button.problems Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource WarnFgBrush}" /></Style>
+  <Style Selector="Button.problems:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource WarnTintBrush}" /></Style>
+  <Style Selector="Button.problems Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
   <Style Selector="Button.problems TextBlock.btntext">
     <Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" />
     <Setter Property="FontWeight" Value="SemiBold" />
@@ -222,28 +238,30 @@
     <Setter Property="Padding" Value="11,6" />
     <Setter Property="MinHeight" Value="34" />
   </Style>
+  <!-- The pickers on the bar are flat too: the words and a chevron, lit when pointed at. -->
+  <Style Selector="ComboBox.flat">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="10,0,6,0" />
+    <Setter Property="MinHeight" Value="30" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="ComboBox.flat:pointerover /template/ Border#Background, ComboBox.flat:pressed /template/ Border#Background, ComboBox.flat:focus-visible /template/ Border#Background, ComboBox.flat:dropdownopen /template/ Border#Background">
+    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
 
-  <!-- The coloured pieces of a panel: the tile of a type, a chip, a section heading, the header and its rows. -->
+  <!-- The pieces of a panel, which reads like a document: a title with a rule in the type's colour under it, sections that are a small heading
+       and a hairline, prose, and plain rows. Chips are small words in a line, a dot between (see Chrome.Chips). -->
   <Style Selector="Border.ttile"><Setter Property="Background" Value="{DynamicResource SystemTileBrush}" /></Style>
   <Style Selector="Path.ticon"><Setter Property="Stroke" Value="{DynamicResource SystemBrush}" /></Style>
-  <Style Selector="Border.hero">
-    <Setter Property="Background" Value="{DynamicResource SystemTileBrush}" />
-    <Setter Property="CornerRadius" Value="14" />
-    <Setter Property="Padding" Value="14" />
-  </Style>
-  <Style Selector="Border.chip">
-    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="11" />
-    <Setter Property="Padding" Value="8,2" />
-  </Style>
+  <Style Selector="Border.chip"><Setter Property="Background" Value="Transparent" /></Style>
   <Style Selector="Border.chip TextBlock">
     <Setter Property="FontSize" Value="12" />
     <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
   </Style>
   <Style Selector="Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Border.chip.accent"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /><Setter Property="BorderThickness" Value="0" /></Style>
   <Style Selector="Border.chip.accent TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.chip.accent Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
   <!-- The progress of a flow: a segment a step, filled up to the one shown. -->
@@ -253,80 +271,75 @@
     <Setter Property="Height" Value="4" />
   </Style>
   <Style Selector="Border.seg.done"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Border.chip.warn"><Setter Property="Background" Value="{DynamicResource WarnBgBrush}" /><Setter Property="BorderThickness" Value="0" /></Style>
   <Style Selector="Border.chip.warn TextBlock"><Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
-  <Style Selector="Border.chip.warn Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource WarnFgBrush}" /></Style>
+  <Style Selector="Border.chip.warn Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
   <Style Selector="Border.ttile.actor"><Setter Property="Background" Value="{DynamicResource ActorTileBrush}" /></Style>
   <Style Selector="Border.ttile.actor Path.ticon"><Setter Property="Stroke" Value="{DynamicResource ActorBrush}" /></Style>
-  <Style Selector="Border.hero.actor"><Setter Property="Background" Value="{DynamicResource ActorTileBrush}" /></Style>
-  <Style Selector="Border.chip.actor"><Setter Property="Background" Value="{DynamicResource ActorTileBrush}" /><Setter Property="BorderThickness" Value="0" /></Style>
   <Style Selector="Border.chip.actor TextBlock"><Setter Property="Foreground" Value="{DynamicResource ActorBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.chip.actor Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource ActorBrush}" /></Style>
   <Style Selector="Border.ttile.system"><Setter Property="Background" Value="{DynamicResource SystemTileBrush}" /></Style>
   <Style Selector="Border.ttile.system Path.ticon"><Setter Property="Stroke" Value="{DynamicResource SystemBrush}" /></Style>
-  <Style Selector="Border.hero.system"><Setter Property="Background" Value="{DynamicResource SystemTileBrush}" /></Style>
-  <Style Selector="Border.chip.system"><Setter Property="Background" Value="{DynamicResource SystemTileBrush}" /><Setter Property="BorderThickness" Value="0" /></Style>
   <Style Selector="Border.chip.system TextBlock"><Setter Property="Foreground" Value="{DynamicResource SystemBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.chip.system Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource SystemBrush}" /></Style>
   <Style Selector="Border.ttile.app"><Setter Property="Background" Value="{DynamicResource AppTileBrush}" /></Style>
   <Style Selector="Border.ttile.app Path.ticon"><Setter Property="Stroke" Value="{DynamicResource AppBrush}" /></Style>
-  <Style Selector="Border.hero.app"><Setter Property="Background" Value="{DynamicResource AppTileBrush}" /></Style>
-  <Style Selector="Border.chip.app"><Setter Property="Background" Value="{DynamicResource AppTileBrush}" /><Setter Property="BorderThickness" Value="0" /></Style>
   <Style Selector="Border.chip.app TextBlock"><Setter Property="Foreground" Value="{DynamicResource AppBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.chip.app Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource AppBrush}" /></Style>
   <Style Selector="Border.ttile.store"><Setter Property="Background" Value="{DynamicResource StoreTileBrush}" /></Style>
   <Style Selector="Border.ttile.store Path.ticon"><Setter Property="Stroke" Value="{DynamicResource StoreBrush}" /></Style>
-  <Style Selector="Border.hero.store"><Setter Property="Background" Value="{DynamicResource StoreTileBrush}" /></Style>
-  <Style Selector="Border.chip.store"><Setter Property="Background" Value="{DynamicResource StoreTileBrush}" /><Setter Property="BorderThickness" Value="0" /></Style>
   <Style Selector="Border.chip.store TextBlock"><Setter Property="Foreground" Value="{DynamicResource StoreBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.chip.store Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource StoreBrush}" /></Style>
   <Style Selector="Border.ttile.component"><Setter Property="Background" Value="{DynamicResource ComponentTileBrush}" /></Style>
   <Style Selector="Border.ttile.component Path.ticon"><Setter Property="Stroke" Value="{DynamicResource ComponentBrush}" /></Style>
-  <Style Selector="Border.hero.component"><Setter Property="Background" Value="{DynamicResource ComponentTileBrush}" /></Style>
-  <Style Selector="Border.chip.component"><Setter Property="Background" Value="{DynamicResource ComponentTileBrush}" /><Setter Property="BorderThickness" Value="0" /></Style>
   <Style Selector="Border.chip.component TextBlock"><Setter Property="Foreground" Value="{DynamicResource ComponentBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.chip.component Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource ComponentBrush}" /></Style>
   <Style Selector="Border.ttile.external"><Setter Property="Background" Value="{DynamicResource ExternalTileBrush}" /></Style>
   <Style Selector="Border.ttile.external Path.ticon"><Setter Property="Stroke" Value="{DynamicResource ExternalBrush}" /></Style>
-  <Style Selector="Border.hero.external"><Setter Property="Background" Value="{DynamicResource ExternalTileBrush}" /></Style>
-  <Style Selector="Border.chip.external"><Setter Property="Background" Value="{DynamicResource ExternalTileBrush}" /><Setter Property="BorderThickness" Value="0" /></Style>
   <Style Selector="Border.chip.external TextBlock"><Setter Property="Foreground" Value="{DynamicResource ExternalBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.chip.external Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource ExternalBrush}" /></Style>
   <Style Selector="Path.sectionicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Border.count">
-    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="9" />
-    <Setter Property="Padding" Value="7,0" />
+  <Style Selector="Border.count TextBlock"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /><Setter Property="Opacity" Value="0.75" /></Style>
+  <Style Selector="Border.hairline">
+    <Setter Property="Background" Value="{DynamicResource LineBrush}" />
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Opacity" Value="0.7" />
   </Style>
-  <Style Selector="Border.count TextBlock"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
+  <!-- A note set beside the text by a rule, like a quote: a connection of a line, what to do next, a step being recorded. -->
   <Style Selector="Border.inset">
-    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="12" />
-    <Setter Property="Padding" Value="14,12" />
+    <Setter Property="BorderThickness" Value="2,0,0,0" />
+    <Setter Property="Padding" Value="14,2,0,2" />
   </Style>
+  <!-- A row of files, links or connections: plain, lit when pointed at. -->
   <Style Selector="Border.row">
-    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="12" />
-    <Setter Property="Padding" Value="10,9" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="8,6" />
+    <Setter Property="Margin" Value="-8,0" />
   </Style>
-  <Style Selector="Border.row:pointerover">
-    <Setter Property="Background" Value="{DynamicResource AccentTintBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  <Style Selector="Border.row:pointerover"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
+  <Style Selector="Border.row.lines:pointerover"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <!-- A callout beside the text, like a quote: what is wrong with a box or a line. -->
+  <Style Selector="Border.callout">
+    <Setter Property="Background" Value="{DynamicResource WarnTintBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+    <Setter Property="BorderThickness" Value="3,0,0,0" />
+    <Setter Property="CornerRadius" Value="0,8,8,0" />
+    <Setter Property="Padding" Value="12,8" />
   </Style>
+  <!-- A direction arrow is only drawn; a step's number and a panel's heading sit in a round tint. -->
   <Style Selector="Border.dirn">
+    <Setter Property="Width" Value="22" />
+    <Setter Property="Height" Value="22" />
+  </Style>
+  <Style Selector="Border.badge">
     <Setter Property="Background" Value="{DynamicResource AccentTintBrush}" />
     <Setter Property="CornerRadius" Value="12" />
     <Setter Property="Width" Value="24" />
     <Setter Property="Height" Value="24" />
   </Style>
   <Style Selector="Path.dirnicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Border.dirn TextBlock">
+  <Style Selector="Border.dirn TextBlock, Border.badge TextBlock">
     <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
     <Setter Property="FontSize" Value="12" />
     <Setter Property="FontWeight" Value="Bold" />
@@ -433,44 +446,50 @@
     <Setter Property="StrokeThickness" Value="2" />
   </Style>
 
-  <!-- Round buttons in the corner of the canvas. -->
-  <Style Selector="Button.zoom">
+  <!-- The zoom buttons in the corner of the canvas: one rounded group with flat buttons in it, like the bar's. -->
+  <Style Selector="Border.zoomgroup">
     <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="10" />
-    <Setter Property="Width" Value="34" />
-    <Setter Property="Height" Value="34" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector="Button.zoom">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Width" Value="32" />
+    <Setter Property="Height" Value="32" />
     <Setter Property="Padding" Value="0" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
-  <Style Selector="Button.zoom Path.zoomicon"><Setter Property="Stroke" Value="{DynamicResource FgBrush}" /></Style>
+  <Style Selector="Button.zoom Path.zoomicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Button.zoom:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource AccentTintBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
   </Style>
-  <Style Selector="Button.zoom:pointerover Path.zoomicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Button.zoom:pointerover Path.zoomicon"><Setter Property="Stroke" Value="{DynamicResource FgBrush}" /></Style>
 
   <!-- The side panel and what's in it. -->
   <Style Selector=":is(Border).panel">
-    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
     <Setter Property="BorderThickness" Value="1,0,0,0" />
-    <Setter Property="BoxShadow" Value="-8 0 24 0 #1f000000" />
+    <Setter Property="BoxShadow" Value="-12 0 32 0 #1a000000" />
   </Style>
   <Style Selector="Button.close">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
-    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="CornerRadius" Value="6" />
     <Setter Property="Padding" Value="6" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
   <Style Selector="Button.close Path.closeicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Button.close:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource BgBrush}" /></Style>
+  <Style Selector="Button.close:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
   <Style Selector="Button.close:pointerover Path.closeicon"><Setter Property="Stroke" Value="{DynamicResource FgBrush}" /></Style>
   <Style Selector="Button.link, Button.disclosure">
     <Setter Property="Background" Value="Transparent" />
@@ -535,10 +554,15 @@
     <Setter Property="Padding" Value="8,6" />
   </Style>
   <Style Selector="Button.result.at /template/ ContentPresenter, Button.result:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
+    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
   </Style>
   <Style Selector="TextBox">
     <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="TextBox.bare /template/ Border#PART_BorderElement, TextBox.bare:pointerover /template/ Border#PART_BorderElement, TextBox.bare:focus /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
   </Style>
   <!-- Edit mode: the dot under a box to draw a connection from. -->
   <Style Selector=":is(Grid).box Ellipse.handle">

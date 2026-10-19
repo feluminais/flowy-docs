@@ -39,7 +39,7 @@ internal static class Icons
     public const string Alert = "M12 9v4M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0zM12 16h.01";
     public const string Trash = "M4 7l16 0M10 11l0 6M14 11l0 6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3";
     public const string Play = "M7 4v16l13 -8z";
-    public const string Help = "M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M12 17l0 .01M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4";
+    public const string Keyboard = "M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2zM6 10l0 .01M10 10l0 .01M14 10l0 .01M18 10l0 .01M6 14l0 .01M18 14l0 .01M10 14l4 .01";
     public const string Close = "M18 6l-12 12M6 6l12 12";
     public const string ArrowUp = "M12 5l0 14M18 11l-6 -6M6 11l6 -6";
     public const string ArrowDown = "M12 5l0 14M18 13l-6 6M6 13l6 6";

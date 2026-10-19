@@ -113,7 +113,7 @@ internal sealed class MarkdownView : StackPanel
 
     private SelectableTextBlock Text(ContainerInline? inline, double size, FontWeight weight)
     {
-        var block = new SelectableTextBlock { FontSize = size, FontWeight = weight, TextWrapping = TextWrapping.Wrap };
+        var block = new SelectableTextBlock { FontSize = size, FontWeight = weight, TextWrapping = TextWrapping.Wrap, LineHeight = Math.Round(size * 1.55) };
         var links = new List<LinkRange>();
         var offset = 0;
         Inlines(block.Inlines!, inline, bold: false, italic: false, links, ref offset);
