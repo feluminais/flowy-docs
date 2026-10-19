@@ -95,9 +95,17 @@ the step's text still says the same thing. The app and the browser play them ali
 
 Neighbouring steps can also belong together. A flow file can mark them as a `repeat` that runs up to a stated number of times,
 a `branch` of lanes of which one happens, or `parallel` lanes that all happen at once, and a step can say that another flow
-tells the rest of its story (`flow:`). Flowy checks all of it, and the Mermaid copy draws it as `loop`, `alt` and `par` blocks.
-The player doesn't draw these marks yet, so it still steps through a flow in file order. The format is in
-[the guide](docs/guide.md#repeats-branches-and-parallel-steps).
+tells the rest of its story (`flow:`).
+
+![A flow with a repeat and a branch: a chip says One of 2, two tabs name the lanes and mark the one you are in, the bar has a bracket under each group, and a label on the lit line names the lane](docs/images/desktop-structure.png)
+
+The player steps through what is on screen at once, so the lanes of a parallel group are one stop, lit and moving together.
+A chip names the group, a branch shows its lanes as tabs while the other lanes are dashed on the canvas, the progress bar has a
+bracket under each group, a label on the line says how often it repeats or which lane it is, and **Open flow** plays the other
+flow with a bar to come back. A **?** on the card says what each of these means. Flowy checks all of it, and the Mermaid copy draws
+it as `loop`, `alt` and `par` blocks. The format is in [the guide](docs/guide.md#repeats-branches-and-parallel-steps), and Plum has two:
+[capture-payment](docs/demo/flowy/flows/capture-payment.yaml) retries a charge and branches on the outcome, and
+[announce-order](docs/demo/flowy/flows/announce-order.yaml) tells two readers at once and opens Delivery's flow.
 
 ## Performance
 
