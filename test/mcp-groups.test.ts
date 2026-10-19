@@ -25,7 +25,7 @@ async function setup(t: TestContext) {
   }
   await call('put_object', { id: 'customer', type: 'actor', name: 'Customer' })
   await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
-  return { dir, call }
+  return { dir, call, client }
 }
 
 const steps = [
@@ -65,4 +65,13 @@ test('delete_flow is refused while another flow continues in it', async t => {
   assert.match(refused.text, /unknown flow "child"/)
   assert.ok(JSON.parse((await call('get_model')).text).flows.child)
   assert.equal((await call('put_flow', { id: 'wrong', name: 'Wrong', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x', flow: 'nowhere' }] })).error, true)
+})
+
+test('the instructions and the put_flow fields tell Claude about groups, lanes and flow links', async t => {
+  const { client } = await setup(t)
+  const text = (client.getInstructions() ?? '').toLowerCase()
+  for (const word of ['repeat', 'branch', 'parallel', 'lane', 'flow:', 'times is the limit the code really has']) assert.ok(text.includes(word), word)
+  const put = (await client.listTools()).tools.find(tool => tool.name === 'put_flow')!
+  const schema = JSON.stringify(put.inputSchema)
+  for (const phrase of ['the first run included', 'Groups of neighbouring steps', 'starts a lane at this step', 'tells what happens next']) assert.ok(schema.includes(phrase), phrase)
 })
