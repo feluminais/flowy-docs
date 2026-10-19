@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ParseError } from '../src/core/model.ts'
-import { checkRun, parseRun } from '../src/core/perf.ts'
+import { checkRun, interpolate, parseRun } from '../src/core/perf.ts'
 import { shop } from './fixtures.ts'
 
 /** Three levels of a run against the shop fixture (test/fixtures.ts): api and db are measured, and orders inside api. */
@@ -42,6 +42,8 @@ levels:
       - { from: auth, to: db, rate: 120, p50: 50, p95: 120 }
 `
 const ramp = () => parseRun('ramp', RAMP).run
+const near = (actual: number | undefined, expected: number) =>
+  assert.ok(actual !== undefined && Math.abs(actual - expected) < 1e-9, `expected ${expected}, got ${actual}`)
 
 test('parseRun reads a good run: text as numbers, nothing reported', () => {
   const { run, problems } = parseRun('ramp', RAMP)
@@ -138,4 +140,52 @@ levels:
     'perf/r.yaml web → db is not a connection in the model',
     'perf/r.yaml unknown object "phantom"',
   ])
+})
+
+test('interpolate gives a tested level exactly', () => {
+  const at = interpolate(ramp(), 200)
+  assert.equal(at.load, 200)
+  assert.deepEqual(at.objects.api, { util: 0.7, queue: 2 })
+  assert.deepEqual(at.overall, { rate: 190, p50: 70, p95: 150, errors: 0.01 })
+})
+
+test('interpolate runs a straight line between two tested levels, metric by metric', () => {
+  const at = interpolate(ramp(), 150)
+  assert.equal(at.load, 150)
+  near(at.objects.db.util, 0.65)
+  near(at.objects.api.queue, 1)
+  near(at.overall.p95, 125)
+  const webApi = at.connections.find(c => c.from === 'web' && c.to === 'api')
+  near(webApi?.rate, 144)
+})
+
+test('interpolate never goes outside the tested range', () => {
+  assert.equal(interpolate(ramp(), 1000).load, 400)
+  near(interpolate(ramp(), 1000).objects.db.util, 0.97)
+  assert.equal(interpolate(ramp(), 0).load, 100)
+  assert.equal(interpolate(ramp(), NaN).load, 100) // a slider that gave no number shows the lowest level
+  near(interpolate(ramp(), 0).objects.db.util, 0.5)
+})
+
+test('a metric measured at some levels only is used between the levels that carry it', () => {
+  const { run } = parseRun('r', `name: R
+levels:
+  - { load: 0 }
+  - { load: 100, objects: { x: { util: 0.2 } } }
+  - { load: 200, objects: { x: { util: 0.6 } } }
+  - { load: 300 }
+`)
+  assert.equal(interpolate(run, 50).objects.x, undefined) // before the first level that carries it
+  near(interpolate(run, 150).objects.x.util, 0.4)
+  assert.equal(interpolate(run, 250).objects.x, undefined) // after the last
+})
+
+test('a metric skipped by a middle level is joined across the gap', () => {
+  const { run } = parseRun('r', `name: R
+levels:
+  - { load: 100, objects: { x: { util: 0.2 } } }
+  - { load: 200 }
+  - { load: 300, objects: { x: { util: 0.6 } } }
+`)
+  near(interpolate(run, 200).objects.x.util, 0.4)
 })

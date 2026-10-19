@@ -152,3 +152,61 @@ export function checkRun(id: string, run: Run, model: Model): Problem[] {
   }
   return problems
 }
+
+type Series = [load: number, value: number][]
+
+/** A series' value at `load`: exact at a point, a straight line between two, nothing outside the series. */
+function valueAt(series: Series, load: number): number | undefined {
+  if (series.length === 0 || load < series[0][0] || load > series[series.length - 1][0]) return undefined
+  for (let i = 0; i < series.length; i++) {
+    const [l1, v1] = series[i]
+    if (load === l1) return v1
+    if (load < l1) {
+      const [l0, v0] = series[i - 1]
+      return v0 + ((v1 - v0) * (load - l0)) / (l1 - l0)
+    }
+  }
+  return undefined
+}
+
+/** `keys` of whatever `pick` finds at each level, each metric read on the levels that carry it. */
+function metricsAt(levels: Level[], pick: (level: Level) => Metrics | undefined, keys: readonly (keyof Metrics)[], load: number): Metrics {
+  const out: Metrics = {}
+  for (const key of keys) {
+    const series: Series = levels.flatMap(l => {
+      const v = pick(l)?.[key]
+      return v === undefined ? [] : [[l.load, v] as [number, number]]
+    })
+    const v = valueAt(series, load)
+    if (v !== undefined) out[key] = v
+  }
+  return out
+}
+
+/**
+ * The run at any load inside the tested range, as a Level. A load outside it is clamped to the nearest end, so
+ * nothing is ever extrapolated. Each metric is interpolated on the levels that carry it; one that has no value at
+ * that load is left out (not measured), never zero. A load that isn't a number is the lowest level.
+ * Known limit: every pair is looked up in every level for each metric; fine for a run of a few dozen
+ * connections, index the pairs once if the tab calls this on every frame.
+ */
+export function interpolate(run: Run, load: number): Level {
+  const { levels } = run
+  const at = Number.isFinite(load) ? Math.min(levels[levels.length - 1].load, Math.max(levels[0].load, load)) : levels[0].load
+
+  const objects: Record<string, Metrics> = {}
+  for (const id of new Set(levels.flatMap(l => Object.keys(l.objects)))) {
+    const m = metricsAt(levels, l => (Object.hasOwn(l.objects, id) ? l.objects[id] : undefined), OBJECT_KEYS, at)
+    if (Object.keys(m).length > 0) put(objects, id, m)
+  }
+
+  const pairs = new Map<string, [string, string]>()
+  for (const l of levels) for (const c of l.connections) pairs.set(JSON.stringify([c.from, c.to]), [c.from, c.to])
+  const connections: Pair[] = []
+  for (const [from, to] of pairs.values()) {
+    const m = metricsAt(levels, l => l.connections.find(c => c.from === from && c.to === to), EDGE_KEYS, at)
+    if (Object.keys(m).length > 0) connections.push({ from, to, ...m })
+  }
+
+  return { load: at, overall: metricsAt(levels, l => l.overall, EDGE_KEYS, at), objects, connections }
+}
