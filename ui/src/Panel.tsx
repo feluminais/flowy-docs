@@ -6,16 +6,16 @@ import { ICON_GROUPS } from '../../src/core/icons.ts'
 import { COLOR_NAMES, colorPair, customIcons, fillOpacity, iconData, isColorName, SHAPES, shapeOf } from '../../src/core/look.ts'
 import type { Shape } from '../../src/core/look.ts'
 import { getObject, isExternal, linksOf, ROOT } from '../../src/core/model.ts'
-import type { Connection, FlowyObject, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
-import { deleteFlow, deleteObject, OpError, putFlow, putObject, relabel, removeConnection, updateFlow } from '../../src/core/ops.ts'
+import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
+import { deleteFlow, deleteObject, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
-import { connectionsOf, linesOf, newId, problemsOf } from './edit.ts'
+import { connectionsOf, linesOf, newId, problemsOf, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
 import { lineId } from './graph.ts'
 import { Chip, kindClass, lookVars, ObjectTile, Section, TypeTile } from './Chrome.tsx'
-import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, Check, Cloud, Code, File, Folder, iconOf, Link as LinkIcon, Pencil, Play, Plus, Route, Sparkles, Text, Trash, Close } from './icons.tsx'
+import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Text, Trash, Close } from './icons.tsx'
 
 /** Runs one edit and resolves to true once it's saved. Whatever went wrong shows as a notice. */
 export type Run = (op: (model: Model) => Model) => Promise<boolean>
@@ -397,6 +397,109 @@ function withDescription(step: Step, description: string): Step {
   return description.trim() ? { ...rest, description } : rest
 }
 
+const KIND_NAMES: Record<string, string> = { repeat: 'Repeat', branch: 'Branch: one lane happens', parallel: 'Parallel: all lanes at once' }
+const KIND_ICONS: Record<string, typeof Repeat> = { repeat: Repeat, branch: GitFork, parallel: ArrowsSplit }
+const hasLanes = (group?: Group) => group?.kind === 'branch' || group?.kind === 'parallel'
+
+/** The group a step is in, the lane it starts and the flow that tells the rest of its story. Each choice is one edit, which keeps the file valid or says why not. */
+function StepStructure({ step, groups, others, onGroup, onLane, onFlow }: {
+  step: Step; groups: Record<string, Group>; others: [string, string][]
+  onGroup: (group: string) => Promise<boolean>; onLane: (lane: string) => Promise<boolean>; onFlow: (flow: string) => Promise<boolean>
+}) {
+  const gid = typeof step.group === 'string' ? step.group.trim() : ''
+  const target = typeof step.flow === 'string' ? step.flow.trim() : ''
+  const ids = Object.keys(groups)
+  return (
+    <details className="more" open={gid !== '' || target !== '' || undefined}>
+      <summary>Group and flow</summary>
+      <div className="form">
+        <label>
+          Group
+          <select value={gid} onChange={e => void onGroup(e.target.value)}>
+            <option value="">None</option>
+            {ids.map(g => <option key={g} value={g}>{g} · {KIND_NAMES[String(groups[g]?.kind)] ?? 'no kind'}</option>)}
+            {gid !== '' && !ids.includes(gid) && <option value={gid}>{gid} · not declared</option>}
+          </select>
+        </label>
+        {hasLanes(groups[gid]) && <Field label="Lane (a new lane starts at a step that names it)" value={String(step.lane ?? '')} placeholder="e.g. The card is declined" onSave={onLane} />}
+        <label>
+          Opens flow
+          <select value={target} onChange={e => void onFlow(e.target.value)}>
+            <option value="">None</option>
+            {others.map(([id, name]) => <option key={id} value={id}>{name || id}</option>)}
+            {target !== '' && !others.some(([id]) => id === target) && <option value={target}>{target} · no such flow</option>}
+          </select>
+        </label>
+      </div>
+    </details>
+  )
+}
+
+/** The groups of the flow being recorded: how each one behaves, and a form that puts a stretch of its steps in a new one. */
+function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps: Step[]; groups: Record<string, Group>; edit: Run }) {
+  const ids = Object.keys(groups)
+  const add = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const form = e.currentTarget
+    const data = new FormData(form)
+    const text = String(data.get('text')).trim()
+    const kind = String(data.get('kind'))
+    const id = newId(text || kind, ids, 'group')
+    const saved = await edit(m => {
+      const grouped = groupSteps(m, flowId, id, kind, Number(data.get('first')), Number(data.get('last')))
+      return text ? putGroup(grouped, flowId, id, { ...grouped.flows[flowId].groups![id], text }) : grouped
+    })
+    if (saved) form.reset()
+  }
+  const range = (name: string) => (
+    <select name={name} defaultValue={steps.length - 1}>{steps.map((_, i) => <option key={i} value={i}>{i + 1}</option>)}</select>
+  )
+  return (
+    <>
+      <Section icon={Repeat} title="Groups" count={ids.length} />
+      {ids.length > 0 && (
+        <ul className="groups">
+          {ids.map(gid => {
+            const g = groups[gid]
+            const KindIcon = KIND_ICONS[String(g.kind)] ?? Repeat
+            const save = (key: 'times' | 'until' | 'text', value: string) => edit(m => putGroup(m, flowId, gid, { ...g, [key]: value }))
+            return (
+              <li key={gid} className="form">
+                <div className="group-head">
+                  <KindIcon size={16} />
+                  <strong>{gid}</strong>
+                  <button className="danger" aria-label={`Remove group ${gid}`} title="Remove the group. Its steps stay" onClick={() => void edit(m => removeGroup(m, flowId, gid))}><Trash size={16} /></button>
+                </div>
+                <label>
+                  Kind
+                  <select value={String(g.kind ?? '')} onChange={e => { const kind = e.target.value; void edit(m => setGroupKind(m, flowId, gid, kind)) }}>
+                    {Object.entries(KIND_NAMES).map(([k, name]) => <option key={k} value={k}>{name}</option>)}
+                  </select>
+                </label>
+                {g.kind === 'repeat' && (
+                  <>
+                    <Field label="Times (a whole number from 2 to 99)" value={String(g.times ?? '')} onSave={value => save('times', value)} />
+                    <Field label="Until (what ends it, instead of a count)" value={String(g.until ?? '')} onSave={value => save('until', value)} />
+                  </>
+                )}
+                <Field label="Text the player shows" value={String(g.text ?? '')} onSave={value => save('text', value)} />
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      {steps.length > 0 && (
+        <form className="form" key={steps.length} onSubmit={add}>
+          <label>Put steps in a new group<input name="text" placeholder="What it is, e.g. Retry the charge" /></label>
+          <label>Kind<select name="kind" defaultValue="repeat">{Object.entries(KIND_NAMES).map(([k, name]) => <option key={k} value={k}>{name}</option>)}</select></label>
+          <div className="pair"><label>From step{range('first')}</label><label>To step{range('last')}</label></div>
+          <button className="primary"><Plus size={16} />Group these steps</button>
+        </form>
+      )}
+    </>
+  )
+}
+
 /** The step list beside the canvas while recording a flow: click two boxes, type what happens, press Enter. */
 export function Recorder({ model, view, rec, onChange, run, onClose }: Common & { view: string; rec: Recording; onChange: (rec: Recording) => void }) {
   if (!rec.id) return (
@@ -422,6 +525,10 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
     return stepsIn(m)
   }
   const change = (edit: (steps: Step[]) => Step[]) => run(m => updateFlow(m, rec.id, { steps: edit(onScreen(m)) }))
+  // An edit that counts steps (put one in a group, delete one) is checked against the list on screen as well.
+  const edit: Run = op => run(m => { onScreen(m); return op(m) })
+  const groups: Record<string, Group> = flow && typeof flow.groups === 'object' && flow.groups !== null && !Array.isArray(flow.groups) ? flow.groups : {}
+  const others = Object.entries(model.flows).filter(([id]) => id !== rec.id).map(([id, f]): [string, string] => [id, f.name])
   // A step with no "to", or one recorded by clicking the same box twice, is that box acting on its own.
   const ends = (from: string, to?: string) => (to === undefined || to === from ? `${nameOf(model, from)}, on its own` : `${nameOf(model, from)} → ${nameOf(model, to)}`)
   const addStep = async (e: FormEvent<HTMLFormElement>) => {
@@ -449,10 +556,16 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
               {/* An empty field removes the detail, so the step's file stays as short as it can be. */}
               <Field label="Detail a reader can open (markdown)" value={String(s.description ?? '')} multiline onSave={description => change(all => all.with(i, withDescription(all[i], description)))} />
             </details>
+            <StepStructure
+              step={s} groups={groups} others={others}
+              onGroup={group => edit(m => setStepGroup(m, rec.id, i, group))}
+              onLane={lane => change(all => all.with(i, withKey(all[i], 'lane', lane)))}
+              onFlow={target => change(all => all.with(i, withKey(all[i], 'flow', target)))}
+            />
             <div className="step-buttons">
               <button aria-label="Move up" disabled={i === 0} onClick={() => void change(all => all.with(i - 1, all[i]).with(i, all[i - 1]))}><ArrowUp size={16} /></button>
               <button aria-label="Move down" disabled={i === steps.length - 1} onClick={() => void change(all => all.with(i + 1, all[i]).with(i, all[i + 1]))}><ArrowDown size={16} /></button>
-              <button className="danger" aria-label="Delete step" onClick={() => void change(all => all.filter((_, j) => j !== i))}><Trash size={16} /></button>
+              <button className="danger" aria-label="Delete step" onClick={() => void edit(m => removeStep(m, rec.id, i))}><Trash size={16} /></button>
             </div>
           </li>
         ))}
@@ -467,6 +580,7 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
       ) : (
         <p className="muted card">{rec.from ? `From ${nameOf(model, rec.from)}. Now click the shape it goes to, or the same shape for a step it does on its own.` : 'Click the shape where the next step starts.'}</p>
       )}
+      {flow && <GroupsSection flowId={rec.id} steps={steps} groups={groups} edit={edit} />}
       <div className="panel-buttons">
         {flow && <button className="danger" onClick={() => void run(m => deleteFlow(m, rec.id)).then(saved => saved && onClose())}><Trash size={16} />Delete flow</button>}
         <button className="primary" onClick={onClose}><Check size={16} />Done</button>
