@@ -18,7 +18,7 @@ const classes = (...names: (string | false | undefined)[]) => names.filter(Boole
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
 export function NavTabs({ tab, showFlows, onPick }: { tab: NavTab; showFlows: boolean; onPick: (tab: NavTab) => void }) {
-  const tabs: [NavTab, string][] = [...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []), ['explorer', 'Explorer']]
+  const tabs: [NavTab, string][] = [['explorer', 'Explorer'], ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : [])]
   return (
     <div className="navtabs" role="tablist" aria-label="Panel">
       {tabs.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => onPick(id)}>{label}</button>)}
@@ -39,8 +39,8 @@ function RailButton({ label, hint, Icon, pressed, count, onClick }: { label: str
 export function NavRail({ tab, flows, shapes, showFlows, onPick }: { tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean; onPick: (tab: NavTab) => void }) {
   return (
     <nav className="rail left" aria-label="Navigator">
-      {showFlows && <RailButton label="Flows" hint="L" Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
       <RailButton label="Explorer" hint="O" Icon={Sitemap} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
+      {showFlows && <RailButton label="Flows" hint="L" Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
     </nav>
   )
 }
