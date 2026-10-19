@@ -385,7 +385,7 @@ svg { flex: none; }
 .shortcuts .close { position: absolute; top: 12px; right: 12px; }
 .shortcuts h2 { margin: 0 32px 0 0; font-size: 17px; }
 .shortcuts .section { margin: 16px 0 8px; }
-.shortcuts dl { display: grid; grid-template-columns: 8.5em 1fr; gap: 6px 14px; margin: 0; align-items: baseline; } /* one key width for every group, so the columns line up */
+.shortcuts dl { display: grid; grid-template-columns: 11.5em 1fr; gap: 6px 14px; margin: 0; align-items: baseline; } /* one key width for every group, so the columns line up */
 .shortcuts dt { display: flex; gap: 4px; }
 .shortcuts dd { margin: 0; }
 kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--bg); font: 12px/1.6 ui-monospace, monospace; white-space: nowrap; }
