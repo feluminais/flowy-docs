@@ -145,9 +145,80 @@ function existingFlow(model: Model, id: string): Flow {
   return model.flows[id]
 }
 
-/** Change an existing flow's name or steps, keeping everything else it has. */
-export function updateFlow(model: Model, id: string, changes: Partial<Pick<Flow, 'name' | 'steps'>>): Model {
-  return { ...model, flows: { ...model.flows, [id]: { ...existingFlow(model, id), ...changes } } }
+/**
+ * The flow with these groups: replaced where its `groups:` already is, else put just before the steps, so the file reads name, view, groups,
+ * steps. No groups, or none left, takes the section out.
+ */
+function withGroups(flow: Flow, groups: Record<string, Group> | undefined): Flow {
+  const none = groups === undefined || Object.keys(groups).length === 0
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(flow)) {
+    if (key === 'groups') {
+      if (!none) out.groups = groups
+      continue
+    }
+    if (key === 'steps' && !none && !('groups' in flow)) out.groups = groups
+    out[key] = value
+  }
+  return out as Flow
+}
+
+/** Change an existing flow's name, steps or groups, keeping everything else it has (and its groups when not given any). */
+export function updateFlow(model: Model, id: string, changes: Partial<Pick<Flow, 'name' | 'steps' | 'groups'>>): Model {
+  const { groups, ...rest } = changes
+  const flow = { ...existingFlow(model, id), ...rest }
+  return { ...model, flows: { ...model.flows, [id]: 'groups' in changes ? withGroups(flow, groups) : flow } }
+}
+
+/**
+ * Remove step `index` of a flow without breaking its groups: when it started a lane and the next step of that group has none, that step takes
+ * the label, and a group whose last member goes is taken out with it.
+ */
+export function removeStep(model: Model, id: string, index: number): Model {
+  const flow = existingFlow(model, id)
+  if (!Number.isInteger(index) || index < 0 || index >= flow.steps.length) throw new OpError(`flow "${id}" has no step ${index + 1}`)
+  const gone = flow.steps[index]
+  const inGroup = (s: Step | undefined, g: string) => s !== undefined && typeof s.group === 'string' && s.group.trim() === g
+  const steps = flow.steps.filter((_, i) => i !== index)
+  const g = typeof gone.group === 'string' ? gone.group.trim() : ''
+  if (g !== '') {
+    const lane = typeof gone.lane === 'string' && gone.lane.trim() !== '' ? gone.lane : undefined
+    const next = steps[index]
+    if (lane !== undefined && inGroup(next, g) && (typeof next.lane !== 'string' || next.lane.trim() === '')) steps[index] = { ...next, lane }
+  }
+  let groups = flow.groups
+  if (g !== '' && groups !== undefined && !steps.some(s => inGroup(s, g))) {
+    const { [g]: _, ...rest } = groups
+    groups = rest
+  }
+  return { ...model, flows: { ...model.flows, [id]: withGroups({ ...flow, steps }, groups) } }
+}
+
+/** Create or replace a group of a flow. `times` may be a number, which is written as text; a blank `times`, `until` or `text` is left out. */
+export function putGroup(model: Model, flowId: string, id: string, group: GroupInput): Model {
+  const flow = existingFlow(model, flowId)
+  if (!isValidId(id)) throw new OpError(`"${id}" is not a valid group id: ${ID_RULE}`)
+  const next: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(group)) {
+    if (value === undefined) continue
+    const text = typeof value === 'number' ? String(value) : value
+    if ((key === 'times' || key === 'until' || key === 'text') && (typeof text !== 'string' || text.trim() === '')) continue
+    next[key] = text
+  }
+  return { ...model, flows: { ...model.flows, [flowId]: withGroups(flow, { ...(flow.groups ?? {}), [id]: next as Group }) } }
+}
+
+/** Remove a group's declaration, and the group and lane of every step that named it. */
+export function removeGroup(model: Model, flowId: string, id: string): Model {
+  const flow = existingFlow(model, flowId)
+  if (flow.groups === undefined || !Object.hasOwn(flow.groups, id)) throw new OpError(`unknown group "${id}"`)
+  const { [id]: _, ...rest } = flow.groups
+  const steps = flow.steps.map(s => {
+    if (typeof s.group !== 'string' || s.group.trim() !== id) return s
+    const { group: _g, lane: _l, ...kept } = s
+    return kept as Step
+  })
+  return { ...model, flows: { ...model.flows, [flowId]: withGroups({ ...flow, steps }, rest) } }
 }
 
 export function deleteFlow(model: Model, id: string): Model {
