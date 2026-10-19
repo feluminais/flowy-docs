@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import type { MouseEvent, PointerEvent } from 'react'
 import { Handle, NodeToolbar, Position, useConnection } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
 import Markdown from 'react-markdown'
@@ -53,7 +54,23 @@ export function Box({ id, data: { object, inside, icon, perf }, isConnectable }:
   )
 }
 
-/** The shape you're inside, drawn as a frame around what's in it. It takes no clicks (see frameNode in graph.ts). */
+/**
+ * The shape you're inside, drawn as a frame around what's in it. The blank space inside takes no clicks (see frameNode in graph.ts); the
+ * outline and the name do, and a click there is a click on the shape itself. Dragging the canvas by the outline is not one.
+ */
 export function Frame({ data }: NodeProps<FrameNode>) {
-  return <div className="frame"><span>{data.name}</span></div>
+  const down = useRef<[number, number]>(undefined)
+  const { onOpen } = data
+  const hit = onOpen && {
+    onPointerDown: (e: PointerEvent<HTMLElement>) => { down.current = [e.clientX, e.clientY] },
+    onClick: (e: MouseEvent<HTMLElement>) => {
+      if (down.current === undefined || Math.hypot(e.clientX - down.current[0], e.clientY - down.current[1]) < 4) onOpen()
+    },
+  }
+  return (
+    <div className="frame">
+      <span {...hit} className={onOpen ? 'hit' : undefined}>{data.name}</span>
+      {hit && (['top', 'right', 'bottom', 'left'] as const).map(side => <i key={side} className={`hit ${side}`} {...hit} />)}
+    </div>
+  )
 }

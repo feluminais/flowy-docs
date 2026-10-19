@@ -76,6 +76,23 @@ internal sealed class BackLayer : Control
         return null;
     }
 
+    private static FormattedText FrameTitle(string name, IBrush brush) =>
+        new(name, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 12, brush);
+
+    /// <summary>Whether a point of this control is on the frame's outline or its title (a few pixels either side of the line, so it is easy to hit): a click there is a click on the system the frame stands for.</summary>
+    public bool OnFrame(Point screen)
+    {
+        if (_scene is not { Frame: { } frame } || _scene.FrameName == "") return false;
+        var world = _viewport.ToWorld(new CorePt(screen.X, screen.Y));
+        var at = new Point(world.X, world.Y);
+        var reach = 6 / _viewport.Zoom;
+        var outer = new Avalonia.Rect(frame.X - reach, frame.Y - reach, frame.Width + 2 * reach, frame.Height + 2 * reach);
+        var inner = new Avalonia.Rect(frame.X + reach, frame.Y + reach, Math.Max(0, frame.Width - 2 * reach), Math.Max(0, frame.Height - 2 * reach));
+        if (outer.Contains(at) && !inner.Contains(at)) return true;
+        var title = FrameTitle(_scene.FrameName, Brushes.Black);
+        return new Avalonia.Rect(frame.X + 14, frame.Y - title.Height / 2, title.Width + 12, title.Height).Contains(at);
+    }
+
     private IBrush Brush(string key) =>
         this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
 
@@ -93,8 +110,7 @@ internal sealed class BackLayer : Control
         {
             var rect = new Avalonia.Rect(frame.X, frame.Y, frame.Width, frame.Height);
             context.DrawRectangle(null, new Pen(accent, 1.5), rect, 12, 12);
-            var title = new FormattedText(_scene.FrameName, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
-                new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 12, accent);
+            var title = FrameTitle(_scene.FrameName, accent);
             var at = new Point(frame.X + 14 + 6, frame.Y - title.Height / 2);
             context.DrawRectangle(Brush("BgBrush"), null, new Avalonia.Rect(at.X - 6, at.Y, title.Width + 12, title.Height));
             context.DrawText(title, at);

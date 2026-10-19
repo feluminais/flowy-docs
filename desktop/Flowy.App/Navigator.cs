@@ -18,7 +18,16 @@ internal enum PanelTab { Details, Flows, Explorer, Performance }
 /// </summary>
 internal sealed class NavRail : Border
 {
-    private sealed record Entry(Button Button, TextBlock Count, Border Badge);
+    private sealed record Entry(Control Cell, Button Button, TextBlock Count, Border Badge)
+    {
+        public void Show(bool on) => Cell.IsVisible = Button.IsVisible = on;
+
+        public void Activate(bool on)
+        {
+            Button.Classes.Set("active", on);
+            Badge.Classes.Set("active", on);
+        }
+    }
 
     private readonly Dictionary<PanelTab, Entry> _entries = [];
 
@@ -32,14 +41,14 @@ internal sealed class NavRail : Border
         var column = new StackPanel { Spacing = 6, Margin = new Thickness(0, 10, 0, 0), HorizontalAlignment = HorizontalAlignment.Center };
         if (navigator)
         {
-            Add(column, PanelTab.Explorer, Icons.Sitemap, "Explorer", "O");
+            Add(column, PanelTab.Explorer, Icons.Explorer, "Explorer", "O");
             Add(column, PanelTab.Flows, Icons.Route, "Flows", "L");
         }
         else
         {
             Add(column, PanelTab.Details, Icons.Info, "Details", null);
             Add(column, PanelTab.Performance, Icons.Activity, "Performance", "T");
-            _entries[PanelTab.Performance].Button.IsVisible = false; // there only where the folder has load-test runs
+            _entries[PanelTab.Performance].Show(false); // there only where the folder has load-test runs
         }
         Child = column;
     }
@@ -50,27 +59,29 @@ internal sealed class NavRail : Border
         var badge = new Border
         {
             Child = count, MinWidth = 16, Height = 16, CornerRadius = new CornerRadius(8), Padding = new Thickness(4, 0), IsVisible = false,
-            HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, -3, -4, 0),
+            HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, -4, -4, 0), IsHitTestVisible = false,
         };
         badge.Classes.Add("railcount");
         var glyph = Icons.Make(icon, "railicon", 18);
         glyph.HorizontalAlignment = HorizontalAlignment.Center;
         glyph.VerticalAlignment = VerticalAlignment.Center;
-        var button = new Button { Content = new Grid { Children = { glyph, badge } }, Width = 32, Height = 32 };
+        var button = new Button { Content = glyph, Width = 32, Height = 32 };
         button.Classes.Add("railbutton");
         button.Click += (_, _) => Picked?.Invoke(tab);
         AutomationProperties.SetName(button, name);
         ToolTip.SetTip(button, key is null ? name : $"{name} ({key})");
-        column.Children.Add(button);
-        _entries[tab] = new Entry(button, count, badge);
+        // The count hangs off the button's corner, so it sits beside the button, not in it: as its content it would be cut off at the button's edge.
+        var cell = new Grid { Width = 32, Height = 32, Children = { button, badge } };
+        column.Children.Add(cell);
+        _entries[tab] = new Entry(cell, button, count, badge);
     }
 
     /// <summary>Shows which tab is open and the counts. The Flows icon is there only when there is a flow to find (or while editing).</summary>
     public void Update(PanelTab? shown, int flows, int shapes, bool showFlows)
     {
-        foreach (var (tab, entry) in _entries) entry.Button.Classes.Set("active", shown == tab);
+        foreach (var (tab, entry) in _entries) entry.Activate(shown == tab);
         if (!_entries.ContainsKey(PanelTab.Flows)) return;
-        _entries[PanelTab.Flows].Button.IsVisible = showFlows;
+        _entries[PanelTab.Flows].Show(showFlows);
         SetCount(PanelTab.Flows, "Flows", flows);
         SetCount(PanelTab.Explorer, "Explorer", shapes);
     }
@@ -79,8 +90,8 @@ internal sealed class NavRail : Border
     public void UpdatePerformance(bool show, int runs, bool open)
     {
         if (!_entries.TryGetValue(PanelTab.Performance, out var entry)) return;
-        entry.Button.IsVisible = show;
-        entry.Button.Classes.Set("active", open);
+        entry.Show(show);
+        entry.Activate(open);
         SetCount(PanelTab.Performance, "Performance", runs);
     }
 
@@ -151,7 +162,7 @@ internal sealed class NavigatorPanel : Border
         IsVisible = false;
         Focusable = false;
         Tabs.Margin = new Thickness(16, 10, 52, 0);
-        var close = new Button { Content = Icons.Make(Icons.Close, "closeicon", 16), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 14, 14, 0) };
+        var close = new Button { Content = Icons.Make(Icons.Close, "closeicon", 16), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 6, 14, 0) }; // level with the tabs' words, not with the strip that holds their underline
         close.Classes.Add("close");
         close.Click += (_, _) => Closed?.Invoke();
         AutomationProperties.SetName(close, "Close");

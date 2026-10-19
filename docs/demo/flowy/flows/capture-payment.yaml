@@ -1,0 +1,23 @@
+name: The payment is captured
+view: ordering
+groups:
+  charge:
+    kind: repeat
+    times: 3
+    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.
+  outcome:
+    kind: branch
+steps:
+  - { from: order-api, to: stripe, text: Captures the amount it held, group: charge }
+  - { from: stripe, to: order-api, text: Doesn't answer within five seconds, group: charge }
+  - { from: stripe, to: order-api, text: Confirms the charge, group: outcome, lane: The charge goes through }
+  - { from: order-api, to: orders-db, text: Marks the order paid, group: outcome }
+  - from: stripe
+    to: order-api
+    text: Declines the card
+    group: outcome
+    lane: The card is declined
+    description: |
+      A decline is final: it is not retried. The hold is released, and the app asks the customer
+      for another card.
+  - { from: order-api, to: customer-app, text: Asks the customer to try another card, group: outcome }

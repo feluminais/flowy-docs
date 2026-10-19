@@ -12,7 +12,7 @@ public class YamlWriterTests
 
     internal static object? Tree(JsonNode? n) => n switch
     {
-        JsonValue v => v.GetValue<string>(),
+        JsonValue v => v.TryGetValue<string>(out var text) ? text : v.ToJsonString(),
         JsonArray a => a.Select(Tree).ToList(),
         JsonObject o => Map(o),
         _ => throw new InvalidOperationException("a tree is text, lists and maps"),

@@ -674,7 +674,7 @@
     <Setter Property="BorderThickness" Value="1" />
   </Style>
   <Style Selector="Border.railcount TextBlock"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Button.railbutton.active Border.railcount TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.railcount.active TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector=":is(StackPanel).navtabs Button.navtab">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0,0,0,2" />
