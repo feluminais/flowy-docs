@@ -448,7 +448,7 @@ connections:
   - { from: desktop-canvas, to: desktop-core, label: what to draw }
   - { from: desktop-canvas, to: outline, label: asks for the navigator's rows }
   - { from: desktop-shell, to: desktop-canvas, label: one reader per window }
-  - { from: desktop-core, to: folder, label: reads and watches, and writes edits }
+  - { from: desktop-core, to: folder, label: "reads and watches, and writes edits" }
   - { from: desktop-core, to: core, label: ported from; fixtures keep the answers equal }
   - { from: desktop-install, to: forge, label: checks for a new release }
   - { from: desktop-shell, to: desktop-install, label: Help › Check for Updates }
@@ -461,7 +461,7 @@ connections:
   - { from: shell, to: graph, label: what to draw }
   - { from: shell, to: panel, label: what is selected }
   - { from: shell, to: motion, label: the step playing }
-  - { from: shell, to: perf-tab, label: which run, how far along it, what is selected }
+  - { from: shell, to: perf-tab, label: "which run, how far along it, what is selected" }
   - { from: perf-tab, to: perf, label: the numbers at a load }
   - { from: motion, to: animation, label: asks for the beats }
   - { from: shell, to: navigator, label: the panel's tabs }
@@ -485,8 +485,8 @@ connections:
   - { from: outline, to: views, label: asks what each shape holds }
   - { from: mermaid, to: views, label: what the view holds }
   - { from: mermaid, to: look, label: how each shape is drawn }
-  - { from: check, to: look, label: whether a shape, colour or icon exists }
-  - { from: graph, to: look, label: outline, colour and icon of each shape }
+  - { from: check, to: look, label: "whether a shape, colour or icon exists" }
+  - { from: graph, to: look, label: "outline, colour and icon of each shape" }
   - { from: exporter, to: filestore, label: loads the model }
   - { from: exporter, to: canvas, label: copies the built page }
   - { from: exporter, to: host, label: writes a read-only copy }

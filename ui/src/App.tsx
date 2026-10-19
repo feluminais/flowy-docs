@@ -31,7 +31,7 @@ import type { NavTab } from './navstate.ts'
 import { keepNav, loadNav } from './navstore.ts'
 import { Explorer, FlowsTab, NavPanel, NavTabs, NavTabsContext, Rail } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
-import { clampPos, loadAt, rampPos, RAMP_STEP_MS, snap, top } from './perfview.ts'
+import { activeRun, clampPos, loadAt, rampFrom, rampPos, RAMP_STEP_MS, snap, top } from './perfview.ts'
 import { AddPanel, LinePanel, ObjectPanel, OverviewPanel, Recorder } from './Panel.tsx'
 import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
@@ -115,7 +115,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const [pos, setPos] = useState(() => startPos(runId, readHash(location.hash).perf?.level))
   const [ramping, setRamping] = useState(false)
   const posNow = useRef(pos) // the ramp reads where it is from here, so a render in between never makes it start over
-  if (!ramping) posNow.current = pos // while it ramps, the ramp is ahead of what the screen shows
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set([ROOT, ...remembered.expanded])) // the project's own row starts open
   const [playing, setPlaying] = useState<{ flow: string; step: number; auto?: boolean } | undefined>(() => {
     const { flow } = readHash(location.hash)
@@ -156,7 +155,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const view = chain(model, viewId).find(v => v === ROOT || canOpen(v)) ?? ROOT
   const recording = editing && side?.kind === 'flow' ? side : undefined
   const flowsHere = Object.entries(model.flows).filter(([, f]) => f.view === view && (editing || f.steps.length > 0))
-  const loadTest = Object.hasOwn(runs, runId) ? runs[runId] : undefined
+  // The run on show and where along it: a run that was renamed, deleted or cut short under a live reload falls back to one that is there.
+  const runKey = activeRun(runs, runId)
+  const loadTest = runKey ? runs[runKey] : undefined
+  const here = loadTest ? clampPos(loadTest, pos) : 0
+  if (!ramping) posNow.current = here // while it ramps, the ramp is ahead of what the screen shows
   const showPerf = !editing && (Object.keys(runs).length > 0 || runProblems.length > 0) // the tab is there whenever there is a run, or a run file to complain about
   const perfOpen = tab === 'performance' && showPerf && loadTest !== undefined
   // A flow that was playing waits behind the Performance tab, so a step's motion and the traffic never draw at once.
@@ -183,7 +186,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const moving = animation !== undefined && placed != null // a step the view can't show doesn't move
   const stepKey = flow && playing ? `${playing.flow}:${stepIndex}:${replays}` : ''
   const graph = useMemo(() => toGraph(model, view, shown, problems), [model, view, shown, problems])
-  const load = loadTest ? loadAt(loadTest, pos) : 0
+  const load = loadTest ? loadAt(loadTest, here) : 0
   const loadTraffic = useMemo(() => (perfOpen && loadTest ? trafficOf(model, loadTest, load, view) : undefined), [perfOpen, model, loadTest, load, view])
   const widths = useMemo(() => new Map(loadTraffic?.lines.map(l => [lineId(l.from, l.to), l.width])), [loadTraffic])
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches // no ramp and no traffic: the colours, thickness, badges and numbers say it all
@@ -367,7 +370,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       setPos(posNow.current) // where it has got to, not where the screen last was
       return setRamping(false)
     }
-    if (posNow.current >= top(loadTest)) setPos(0) // at the top, a ramp starts again from the bottom
+    const from = rampFrom(loadTest, posNow.current) // at the top, a ramp starts again from the bottom
+    posNow.current = from // the ramp reads it before the next render
+    setPos(from)
     setRamping(true)
   }
   const stepLevel = (to: number) => {
@@ -442,11 +447,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   // on every render. A step the reader takes pushes an entry. Anything else replaces the address: the page
   // opening (which also drops a part that named nothing), Back or a typed address, E, or a live reload that
   // falls back to another view.
-  const address = toHash(view, flow ? playing?.flow : undefined, perfOpen ? { run: runId, level: Math.round(pos) } : undefined)
+  const address = toHash(view, flow ? playing?.flow : undefined, perfOpen ? { run: runKey, level: Math.round(here) } : undefined)
   useEffect(() => {
     if (quiet.current || address !== location.hash) {
       const was = readHash(location.hash)
-      const alongRun = perfOpen && was.perf?.run === runId && was.view === view // moving along a run is not a step to go back to
+      const alongRun = perfOpen && was.perf?.run === runKey && was.view === view // moving along a run is not a step to go back to
       history[quiet.current || view !== viewId || alongRun ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
     }
     quiet.current = false
@@ -481,7 +486,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       const key = letter(e)
       const plain = !e.ctrlKey && !e.metaKey && !e.altKey
       const control = (e.ctrlKey || e.metaKey) && !e.repeat // held down, undo or redo would run through the whole stack
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return
+      // A field keeps its keys, except the load slider: its arrows and Home and End are the tab's own, so they work right after it was used.
+      if ((e.target instanceof HTMLInputElement && e.target.type !== 'range') || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return
       // A second press while a zoom out is still leaving goes up from where that one is heading.
       const up = () => zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view))
       if (undoesMove(e, { editing, justMoved: justMoved.current, shortcuts, plain })) {
@@ -496,8 +502,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
         else if (layer === 'up') up()
         else return
       }
-      else if (perfOpen && e.key === 'ArrowRight') stepLevel(Math.floor(pos + 1e-6) + 1)
-      else if (perfOpen && e.key === 'ArrowLeft') stepLevel(Math.ceil(pos - 1e-6) - 1)
+      else if (perfOpen && e.key === 'ArrowRight') stepLevel(Math.floor(here + 1e-6) + 1)
+      else if (perfOpen && e.key === 'ArrowLeft') stepLevel(Math.ceil(here - 1e-6) - 1)
       else if (perfOpen && e.key === 'Home') stepLevel(0)
       else if (perfOpen && loadTest && e.key === 'End') stepLevel(top(loadTest))
       else if (perfOpen && key === 'p' && plain && !e.repeat) toggleRamp()
@@ -681,7 +687,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
           )}
           {shownTab === 'performance' && (
             <NavPanel tabs={navTabs} onClose={closePanel}>
-              <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runId} pos={pos} ramping={ramping} still={still}
+              <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runKey} pos={here} ramping={ramping} still={still}
                 selection={side?.kind === 'object' || side?.kind === 'line' ? side : undefined}
                 onRun={id => {
                   setRamping(false)

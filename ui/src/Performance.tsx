@@ -109,7 +109,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, pos, ramping, 
   return (
     <div className="perf">
       {ids.length > 1
-        ? <select aria-label="Run" value={runId} onChange={e => onRun(e.target.value)}>{ids.map(id => <option key={id} value={id}>{runs[id].name}</option>)}</select>
+        ? <select aria-label="Run" value={runId} onChange={e => { onRun(e.target.value); e.target.blur() }}>{ids.map(id => <option key={id} value={id}>{runs[id].name}</option>)}</select>
         : <h2>{run.name}</h2>}
       {run.about && <details className="about"><summary>About this run</summary><p>{run.about}</p></details>}
 
