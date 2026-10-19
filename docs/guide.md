@@ -375,7 +375,7 @@ What it adds is a way to choose the model:
 - Each model gets its own window. Opening one that is already open brings its window forward. A window opens at the size, and
   maximized or not, that the last one was closed at.
 - **Help › Open the Demo (Plum)**, or the welcome window's button, opens the sample model that ships with the app, so there is
-  something to look at before you point it at a repo.
+  something to look at before you point it at a repo. It has two made-up load-test runs, so its Performance tab (**T**) works too.
 
 For sharing, **View › Copy as Mermaid** puts the view on screen, or the flow playing, on the clipboard as a fenced Mermaid
 diagram, the same text the browser's Mermaid button copies. **View › Save Picture…** saves the diagram, without the top bar and

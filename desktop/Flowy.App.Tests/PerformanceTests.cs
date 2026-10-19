@@ -61,10 +61,38 @@ public class PerformanceTests
         Assert.False(reader.PerfOpenNow); // nothing is open until the button is pressed
     }
 
+    /// <summary>A folder with a model and no run.</summary>
+    private static TempFolder Runless()
+    {
+        var temp = new TempFolder();
+        File.WriteAllText(Path.Combine(temp.Path, "model.yaml"), OneObject);
+        return temp;
+    }
+
+    [AvaloniaFact]
+    public void The_demo_Plum_has_two_runs_and_opens_on_the_one_where_Delivery_gives_way()
+    {
+        var folder = FolderLoader.Load(Plum);
+        Assert.Empty(folder.RunProblems!);
+        Assert.Equal(["dinner-rush", "eta-batched"], folder.Runs!.Keys);
+        var (window, reader) = Open(Plum);
+        Assert.Equal(["Details", "Performance, 2"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name));
+        Press(window, Key.T, PhysicalKey.T);
+        Assert.Equal(("dinner-rush", 3.0, false), reader.PerfState); // the load where ETA reaches 90%
+        Assert.Contains("First struggles at 900 orders/min: ETA at 90% of capacity", string.Join("|", AllText(reader.PerfPanelNow)));
+        Assert.InRange(reader.Canvas.Load!.Boxes["delivery"].Strain!.Value, Perf.KneeStrain, 1); // at the overview the system holding ETA is the one that is red
+        Assert.InRange(reader.Canvas.Load!.Boxes["ordering"].Strain!.Value, 0, Perf.KneeStrain - 0.01);
+        Assert.Equal(14, reader.Canvas.Load!.Boxes["events"].Queue); // and Order events has begun to fill behind it
+        reader.PickRunById("eta-batched");
+        Assert.Contains("It never struggled in the tested range.", string.Join("|", AllText(reader.PerfPanelNow)));
+        Assert.InRange(reader.Canvas.Load!.Boxes["delivery"].Strain!.Value, 0, Perf.KneeStrain - 0.01); // at its highest load, still fine
+    }
+
     [AvaloniaFact]
     public void A_folder_without_runs_has_no_Performance_button_and_T_does_nothing()
     {
-        var (window, reader) = Open(Plum);
+        using var temp = Runless();
+        var (window, reader) = Open(temp.Path);
         Assert.False(reader.DetailsRail.Shown.First(i => i.Name.StartsWith("Performance")).Visible);
         Press(window, Key.T, PhysicalKey.T);
         Assert.False(reader.PerfOpenNow);
@@ -299,7 +327,8 @@ public class PerformanceTests
         Assert.Contains("PERFORMANCE", text.ToUpperInvariant());
         Assert.Contains("Ramp the load up on its own, or pause", text);
         Assert.Contains("Show a load-test run on the diagram, where there is one", text);
-        var (_, plain) = Open(Plum);
+        using var temp = Runless();
+        var (_, plain) = Open(temp.Path);
         plain.ShowShortcuts();
         var without = string.Join("|", plain.GetVisualDescendants().OfType<ShortcutsCard>().SelectMany(c => c.GetVisualDescendants().OfType<TextBlock>()).Select(t => t.Text));
         Assert.DoesNotContain("Ramp the load up", without);
