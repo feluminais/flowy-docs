@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { ROOT } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
+import { TypeTile } from './Chrome.tsx'
+import { Search as SearchIcon } from './icons.tsx'
+import { isExternal } from '../../src/core/model.ts'
 import { findObjects } from './search.ts'
 
 /** Find a box anywhere in the model by name or id. ↑ and ↓ move, Enter picks, Esc or leaving the field closes it. */
@@ -16,6 +19,8 @@ export function Search({ model, onPick, onClose }: { model: Model; onPick: (id: 
   }
   return (
     <div className="search" role="dialog" aria-label="Search">
+      <label className="search-field">
+      <SearchIcon size={18} />
       <input autoFocus value={query} placeholder="Find a box by name" aria-label="Find a box by name" onBlur={onClose}
         onChange={e => {
           setQuery(e.target.value)
@@ -30,13 +35,15 @@ export function Search({ model, onPick, onClose }: { model: Model; onPick: (id: 
           else return
           e.preventDefault()
         }} />
+      </label>
       {query.trim() && (found.length === 0 ? <p className="muted">Nothing called that.</p> : (
         <ul>
           {found.map((id, i) => (
             <li key={id}>
               {/* mousedown would blur the field and close the box before the click lands */}
               <button className={i === at ? 'at' : undefined} onMouseDown={e => e.preventDefault()} onClick={() => onPick(id)}>
-                {nameOf(model, id)} <span className="muted">{where(id)}</span>
+                <TypeTile type={model.objects[id].type} external={isExternal(model.objects[id])} size={26} />
+                <strong>{nameOf(model, id)}</strong> <span className="muted">{where(id)}</span>
               </button>
             </li>
           ))}

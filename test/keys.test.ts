@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { escapeStep, letter, takesEnter } from '../ui/src/keys.ts'
+import { escapeStep, letter, takesEnter, undoesMove } from '../ui/src/keys.ts'
 
 test('shortcuts follow the Latin letter typed, or the key on a US keyboard', () => {
   assert.equal(letter({ key: 'Z', code: 'KeyZ' }), 'z')
@@ -29,4 +29,15 @@ test('Escape closes one layer per press, then goes up a level', () => {
   assert.equal(escapeStep({ ...none, panel: true, inside: true }), 'panel')
   assert.equal(escapeStep({ ...none, inside: true }), 'up')
   assert.equal(escapeStep(none), undefined, 'at the top with nothing open')
+})
+
+test('Esc and Backspace take back a box that was just dragged, only while editing and nothing else was done', () => {
+  const state = { editing: true, justMoved: true, shortcuts: false, plain: true }
+  assert.equal(undoesMove({ key: 'Escape' }, state), true)
+  assert.equal(undoesMove({ key: 'Backspace' }, state), true)
+  assert.equal(undoesMove({ key: 'z' }, state), false) // Z is for zooming out
+  assert.equal(undoesMove({ key: 'Escape' }, { ...state, justMoved: false }), false)
+  assert.equal(undoesMove({ key: 'Escape' }, { ...state, editing: false }), false)
+  assert.equal(undoesMove({ key: 'Escape' }, { ...state, shortcuts: true }), false) // the shortcut list closes first
+  assert.equal(undoesMove({ key: 'Backspace' }, { ...state, plain: false }), false) // Ctrl+Backspace is not it
 })

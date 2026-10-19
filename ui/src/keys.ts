@@ -10,6 +10,14 @@ export function letter(e: { key: string; code: string }): string {
 /** Enter belongs to a focused button, link or disclosure summary, not to the canvas behind it. */
 export const takesEnter = (target: { closest?: (selector: string) => unknown } | null): boolean => Boolean(target?.closest?.('button, a, summary'))
 
+/**
+ * Whether Esc or Backspace should take back the box that was just dragged, rather than close or go up. Someone who has moved a box and got
+ * it wrong reaches for those keys, so right after the drag they undo it. Once anything else is done (a click, another edit, a move to another
+ * level) they close and go up again, and Z is always there to zoom out.
+ */
+export const undoesMove = (e: { key: string }, s: { editing: boolean; justMoved: boolean; shortcuts: boolean; plain: boolean }): boolean =>
+  s.editing && s.justMoved && !s.shortcuts && (e.key === 'Escape' || (e.key === 'Backspace' && s.plain))
+
 /** What one press of Escape closes, innermost first. */
 export type EscapeStep = 'shortcuts' | 'flow' | 'step' | 'panel' | 'up'
 

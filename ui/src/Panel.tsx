@@ -1,8 +1,9 @@
+import { useState } from 'react'
 import type { FocusEvent, FormEvent, ReactNode } from 'react'
-import { encodePath, typesIn } from '../../src/core/check.ts'
+import { encodePath, isRepoPath, isWebAddress, typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
-import { getObject, isExternal, ROOT } from '../../src/core/model.ts'
-import type { Connection, FlowyObject, Model, ObjectType, Step } from '../../src/core/model.ts'
+import { getObject, isExternal, linksOf, ROOT } from '../../src/core/model.ts'
+import type { Connection, FlowyObject, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { deleteFlow, deleteObject, OpError, putFlow, putObject, relabel, removeConnection, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
@@ -10,6 +11,8 @@ import { Description } from './Box.tsx'
 import { connectionsOf, linesOf, newId, problemsOf } from './edit.ts'
 import type { BoxLine } from './edit.ts'
 import { lineId } from './graph.ts'
+import { Chip, kindClass, Section, TypeTile } from './Chrome.tsx'
+import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, Check, Cloud, Code, File, Folder, iconOf, Link as LinkIcon, Pencil, Play, Plus, Route, Text, Trash, Close } from './icons.tsx'
 
 /** Runs one edit and resolves to true once it's saved. Whatever went wrong shows as a notice. */
 export type Run = (op: (model: Model) => Model) => Promise<boolean>
@@ -17,14 +20,38 @@ export type Run = (op: (model: Model) => Model) => Promise<boolean>
 function Panel({ onClose, children }: { onClose: () => void; children: ReactNode }) {
   return (
     <aside className="panel">
-      <button className="close" aria-label="Close" onClick={onClose}>×</button>
+      <button className="close" aria-label="Close" onClick={onClose}><Close size={16} /></button>
       {children}
     </aside>
   )
 }
 
 function ProblemList({ problems }: { problems: Problem[] }) {
-  return problems.length === 0 ? null : <ul className="problem-list">{problems.map((p, i) => <li key={i}>{p.message}</li>)}</ul>
+  return problems.length === 0 ? null : (
+    <div className="problem-box">
+      <Alert size={16} />
+      <ul className="problem-list">{problems.map((p, i) => <li key={i}>{p.message}</li>)}</ul>
+    </div>
+  )
+}
+
+/** The top of a box's panel: its tile, its name, and chips for its type, its tech, whether it is outside, and what is wrong with it. Tinted in the type's colour. */
+function ObjectHeader({ id, object, problems }: { id: string; object: FlowyObject; problems: number }) {
+  const external = isExternal(object)
+  return (
+    <header className={`hero ${kindClass(object.type, external)}`}>
+      <TypeTile type={object.type} external={external} size={48} />
+      <div>
+        <h2>{object.name || id}</h2>
+        <div className="chips">
+          <Chip kind={kindClass(object.type)} icon={iconOf(object.type)}>{object.type || 'box'}</Chip>
+          {object.tech && <Chip icon={Code}>{object.tech}</Chip>}
+          {external && <Chip kind="t-external" icon={Cloud}>external</Chip>}
+          {problems > 0 && <Chip kind="warn" icon={Alert}>{problems} problem{problems === 1 ? '' : 's'}</Chip>}
+        </div>
+      </div>
+    </header>
+  )
 }
 
 /** A text field that saves when you leave it or press Enter, and shows the saved text again if saving fails. */
@@ -51,10 +78,63 @@ function CodeList({ object, codeBase }: { object: FlowyObject; codeBase?: string
   const paths = Array.isArray(object.code) ? object.code.filter((p): p is string => typeof p === 'string') : []
   if (paths.length === 0) return null
   return (
-    <ul className="code-list" aria-label="Code">
-      {paths.map((p, i) => <li key={i}>{codeBase ? <a href={codeBase + encodePath(p)} target="_blank" rel="noreferrer"><code>{p}</code></a> : <code>{p}</code>}</li>)}
-    </ul>
+    <>
+      <Section icon={Code} title="Code" count={paths.length} />
+      <ul className="code-list" aria-label="Code">
+        {paths.map((p, i) => (
+          <li key={i}>
+            {p.endsWith('/') ? <Folder size={16} /> : <File size={16} />}
+            {codeBase ? <a href={codeBase + encodePath(p)} target="_blank" rel="noreferrer"><code>{p}</code></a> : <code>{p}</code>}
+          </li>
+        ))}
+      </ul>
+    </>
   )
+}
+
+/**
+ * The links an object lists. A web address opens in a new tab. A path in the repo links to the repo host when the origin is
+ * GitHub or GitLab, and is plain text otherwise; check() reports one that doesn't exist. Anything else in `links` is left to the problem list.
+ */
+function LinkList({ object, codeBase }: { object: FlowyObject; codeBase?: string }) {
+  const links = linksOf(object)
+  if (links.length === 0) return null
+  return (
+    <section className="link-list" aria-label="Links">
+      <Section icon={LinkIcon} title="Links" count={links.length} />
+      <ul>
+        {links.map((l, i) => {
+          const web = isWebAddress(l.url)
+          const href = web ? l.url : codeBase && isRepoPath(l.url) ? codeBase + encodePath(l.url) : undefined
+          const text = l.title || l.url
+          return (
+            <li key={i}>
+              <LinkIcon size={16} />
+              {href ? <a href={href} target="_blank" rel="noreferrer">{text}</a> : <span>{text}</span>}
+              {!web && l.title && <code className="muted">{l.url}</code>}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
+const linkLine = (l: Link) => (l.title ? `${l.title} | ${l.url}` : l.url)
+
+/**
+ * One link per line, as "Title | address" or just an address. The last " | " splits, so a title may hold a bar and an address may
+ * too. A link keeps the extra keys it had, found by its address.
+ */
+function parseLinks(text: string, old: Link[]): Link[] {
+  const byUrl = new Map(old.map(l => [l.url, l]))
+  return text.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
+    const cut = line.lastIndexOf(' | ')
+    const title = cut === -1 ? '' : line.slice(0, cut).trim()
+    const url = (cut === -1 ? line : line.slice(cut + 3)).trim()
+    const { title: _title, url: _url, ...extra } = byUrl.get(url) ?? { url }
+    return { ...(title ? { title } : {}), url, ...extra }
+  })
 }
 
 /** A connection's ends, when they're boxes inside the line's ends rather than the ends themselves. */
@@ -70,11 +150,16 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
   const { out, in: incoming } = linesOf(model, id)
   if (out.length + incoming.length === 0) return null
   const label = (c: Connection) => c.label || <span className="muted">no label</span>
-  const row = (line: BoxLine, arrow: string) => (
-    <li key={lineId(line.from, line.to)} onMouseEnter={() => onHover(lineId(line.from, line.to))} onMouseLeave={() => onHover(undefined)}>
-      <span className="arrow" aria-hidden="true">{arrow}</span>
+  const row = (line: BoxLine, Arrow: typeof ArrowRight) => {
+    const other = getObject(model, line.other)
+    return (
+    <li key={lineId(line.from, line.to)} className="row" onMouseEnter={() => onHover(lineId(line.from, line.to))} onMouseLeave={() => onHover(undefined)}>
+      <span className="dirn" aria-hidden="true"><Arrow size={14} /></span>
       <div>
-        <button type="button" className="link" onClick={() => onPick(line.other)}>{nameOf(model, line.other)}</button>
+        <div className="other">
+          <TypeTile type={other?.type ?? ''} external={other ? isExternal(other) : false} size={22} />
+          <button type="button" className="link" onClick={() => onPick(line.other)}>{nameOf(model, line.other)}</button>
+        </div>
         {line.connections.length === 1 ? (
           <>
             <div>{label(line.connections[0])}</div>
@@ -90,29 +175,33 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
         )}
       </div>
     </li>
-  )
+    )
+  }
   return (
     <section className="lines-of" aria-label="Connections">
-      {out.length > 0 && <><h3>Out</h3><ul>{out.map(l => row(l, '→'))}</ul></>}
-      {incoming.length > 0 && <><h3>In</h3><ul>{incoming.map(l => row(l, '←'))}</ul></>}
+      {out.length > 0 && <><Section icon={ArrowRight} title="Out" count={out.length} /><ul>{out.map(l => row(l, ArrowRight))}</ul></>}
+      {incoming.length > 0 && <><Section icon={ArrowLeft} title="In" count={incoming.length} /><ul>{incoming.map(l => row(l, ArrowLeft))}</ul></>}
     </section>
   )
 }
 
 type Lines = { onPick: (id: string) => void; onHover: (line?: string) => void }
 
-/** An object's description, code and connections, or in edit mode a form for its name, type, tech, description and code. */
+/** An object's description, links, code and connections, or in edit mode a form for its name, type, tech, description, code and links. */
 export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClose, onPick, onHover }: Common & Lines & { id: string; editing: boolean; problems: Problem[]; codeBase?: string }) {
   const object = getObject(model, id)
   if (!object) return null
   const save = (fields: Omit<ObjectInput, 'id'>) => run(m => putObject(m, { id, ...fields }))
-  const mine = <ProblemList problems={problemsOf(model, problems, id)} />
+  const ours = problemsOf(model, problems, id)
+  const mine = <ProblemList problems={ours} />
+  const header = <ObjectHeader id={id} object={object} problems={ours.length} />
   if (!editing) return (
     <Panel onClose={onClose}>
-      <h2>{object.name || id}</h2>
-      <p className="muted">{isExternal(object) ? 'external ' : ''}{object.type}{object.tech ? ` · ${object.tech}` : ''}</p>
+      {header}
       {mine}
-      {object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}
+      <Section icon={Text} title="Description" />
+      <div className="card">{object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}</div>
+      <LinkList object={object} codeBase={codeBase} />
       <CodeList object={object} codeBase={codeBase} />
       <LineList model={model} id={id} onPick={onPick} onHover={onHover} />
     </Panel>
@@ -121,27 +210,39 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
   const types = [...new Set([...typesIn(model, parentOf(model, id)), object.type])].filter(Boolean)
   return (
     <Panel onClose={onClose}>
+      {header}
+      {mine}
       <form key={id} className="form" onSubmit={e => e.preventDefault()}>
-        <Field label="Name" value={object.name ?? ''} onSave={name => save({ name })} />
-        <label>
-          Type
-          <select value={object.type} onChange={e => void save({ type: e.target.value as ObjectType })}>
-            {types.map(t => <option key={t}>{t}</option>)}
-          </select>
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={isExternal(object)} onChange={e => void save({ external: e.target.checked })} />
-          Outside service (drawn grey)
-        </label>
-        <Field label="Tech" value={object.tech ?? ''} onSave={tech => save({ tech })} />
+        <Section icon={Pencil} title="Details" />
+        <div className="card">
+          <Field label="Name" value={object.name ?? ''} onSave={name => save({ name })} />
+          <label>
+            Type
+            <span className="select-row">
+              <TypeTile type={object.type} size={28} />
+              <select value={object.type} onChange={e => void save({ type: e.target.value as ObjectType })}>
+                {types.map(t => <option key={t}>{t}</option>)}
+              </select>
+            </span>
+          </label>
+          <label className="check">
+            <input type="checkbox" checked={isExternal(object)} onChange={e => void save({ external: e.target.checked })} />
+            Outside service (drawn grey)
+          </label>
+          <Field label="Tech" value={object.tech ?? ''} onSave={tech => save({ tech })} />
+        </div>
+        <Section icon={Text} title="Description" />
         <Field label="Description" value={object.description ?? ''} multiline onSave={description => save({ description })} />
+        <Section icon={Code} title="Code" />
         <Field label="Code (one path per line)" value={Array.isArray(object.code) ? object.code.join('\n') : ''} multiline
           onSave={text => save({ code: text.split('\n').map(line => line.trim()).filter(Boolean) })} />
+        <Section icon={LinkIcon} title="Links" />
+        <Field label="Links (one per line: title | address)" value={linksOf(object).map(linkLine).join('\n')} multiline
+          onSave={text => save({ links: parseLinks(text, linksOf(object)) })} />
       </form>
-      {mine}
       <LineList model={model} id={id} onPick={onPick} onHover={onHover} />
       <p className="muted">id: {id}</p>
-      <button className="danger" onClick={() => void run(m => deleteObject(m, id)).then(saved => saved && onClose())}>Delete</button>
+      <button className="danger" onClick={() => void run(m => deleteObject(m, id)).then(saved => saved && onClose())}><Trash size={16} />Delete</button>
     </Panel>
   )
 }
@@ -152,16 +253,29 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
   if (lines.length === 0) return null
   return (
     <Panel onClose={onClose}>
-      <h2>{nameOf(model, from)} → {nameOf(model, to)}</h2>
+      <header className="hero ends">
+        {[from, to].flatMap((end, i) => {
+          const o = getObject(model, end)
+          const name = (
+            <div key={end + i} className="end">
+              <TypeTile type={o?.type ?? ''} external={o ? isExternal(o) : false} size={40} />
+              <strong>{nameOf(model, end)}</strong>
+            </div>
+          )
+          return i === 0 ? [name, <ArrowRight key="arrow" size={22} />] : [name]
+        })}
+      </header>
+      <h2 className="visually-hidden">{nameOf(model, from)} → {nameOf(model, to)}</h2>
+      <Section icon={Route} title={lines.length === 1 ? 'Connection' : 'Connections'} count={lines.length} />
       {lines.map(({ index, connection: c }) => {
         const which = { from: c.from, to: c.to, label: c.label ?? '' }
         return (
-          <section key={index} className="line">
+          <section key={index} className="line card">
             {(c.from !== from || c.to !== to) && <p className="muted">{nameOf(model, c.from)} → {nameOf(model, c.to)}</p>}
             {editing ? (
               <form className="form" onSubmit={e => e.preventDefault()}>
                 <Field label="Label" value={c.label ?? ''} onSave={label => run(m => relabel(m, which, label))} />
-                <button type="button" className="danger" onClick={() => void run(m => removeConnection(m, which))}>Delete</button>
+                <button type="button" className="danger" onClick={() => void run(m => removeConnection(m, which))}><Trash size={16} />Delete</button>
               </form>
             ) : <p>{c.label || <span className="muted">No label</span>}</p>}
             <ProblemList problems={problems.filter(p => p.connection === index)} />
@@ -174,6 +288,8 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
 
 /** A new object in the current view, with only the types the nesting rules allow there. */
 export function AddPanel({ model, view, run, onAdded, onClose }: Common & { view: string; onAdded: (id: string) => void }) {
+  const types = typesIn(model, view)
+  const [chosen, choose] = useState<string>()
   const add = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = new FormData(e.currentTarget)
@@ -189,11 +305,17 @@ export function AddPanel({ model, view, run, onAdded, onClose }: Common & { view
   }
   return (
     <Panel onClose={onClose}>
-      <h2>Add to {nameOf(model, view)}</h2>
+      <h2 className="iconhead"><span className="badge"><Plus size={14} /></span>Add to {nameOf(model, view)}</h2>
       <form className="form" onSubmit={add}>
-        <label>Type<select name="type">{typesIn(model, view).map(t => <option key={t}>{t}</option>)}</select></label>
+        <label>
+          Type
+          <span className="select-row">
+            <TypeTile type={chosen && types.includes(chosen as ObjectType) ? chosen : types[0] ?? ''} size={28} />
+            <select name="type" onChange={e => choose(e.target.value)}>{types.map(t => <option key={t}>{t}</option>)}</select>
+          </span>
+        </label>
         <label>Name<input name="name" autoFocus /></label>
-        <button>Add</button>
+        <button className="primary"><Plus size={16} />Add</button>
       </form>
     </Panel>
   )
@@ -212,14 +334,14 @@ function withDescription(step: Step, description: string): Step {
 export function Recorder({ model, view, rec, onChange, run, onClose }: Common & { view: string; rec: Recording; onChange: (rec: Recording) => void }) {
   if (!rec.id) return (
     <Panel onClose={onClose}>
-      <h2>New flow</h2>
+      <h2 className="iconhead"><span className="badge"><Route size={14} /></span>New flow</h2>
       <form className="form" onSubmit={e => {
         e.preventDefault()
         const name = String(new FormData(e.currentTarget).get('name')).trim()
         if (name) onChange({ id: newId(name, Object.keys(model.flows), 'flow'), name })
       }}>
         <label>Name<input name="name" autoFocus placeholder="e.g. Customer checks out" /></label>
-        <button>Start recording</button>
+        <button className="primary"><Play size={16} />Start recording</button>
       </form>
     </Panel>
   )
@@ -249,8 +371,8 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
   return (
     <Panel onClose={onClose}>
       {flow
-        ? <form className="form" onSubmit={e => e.preventDefault()}><Field label="Flow" value={flow.name} onSave={name => run(m => updateFlow(m, rec.id, { name }))} /></form>
-        : <h2>{rec.name}</h2>}
+        ? <form className="form" onSubmit={e => e.preventDefault()}><Section icon={Route} title="Flow" /><Field label="Flow" value={flow.name} onSave={name => run(m => updateFlow(m, rec.id, { name }))} /></form>
+        : <h2 className="iconhead"><span className="badge"><Route size={14} /></span>{rec.name}</h2>}
       <ol className="steps form">
         {steps.map((s, i) => (
           <li key={i}>
@@ -261,9 +383,9 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
               <Field label="Detail a reader can open (markdown)" value={String(s.description ?? '')} multiline onSave={description => change(all => all.with(i, withDescription(all[i], description)))} />
             </details>
             <div className="step-buttons">
-              <button aria-label="Move up" disabled={i === 0} onClick={() => void change(all => all.with(i - 1, all[i]).with(i, all[i - 1]))}>↑</button>
-              <button aria-label="Move down" disabled={i === steps.length - 1} onClick={() => void change(all => all.with(i + 1, all[i]).with(i, all[i + 1]))}>↓</button>
-              <button aria-label="Delete step" onClick={() => void change(all => all.filter((_, j) => j !== i))}>×</button>
+              <button aria-label="Move up" disabled={i === 0} onClick={() => void change(all => all.with(i - 1, all[i]).with(i, all[i - 1]))}><ArrowUp size={16} /></button>
+              <button aria-label="Move down" disabled={i === steps.length - 1} onClick={() => void change(all => all.with(i + 1, all[i]).with(i, all[i + 1]))}><ArrowDown size={16} /></button>
+              <button className="danger" aria-label="Delete step" onClick={() => void change(all => all.filter((_, j) => j !== i))}><Trash size={16} /></button>
             </div>
           </li>
         ))}
@@ -276,11 +398,11 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
           </label>
         </form>
       ) : (
-        <p className="muted">{rec.from ? `From ${nameOf(model, rec.from)}. Now click the box it goes to, or the same box for a step it does on its own.` : 'Click the box where the next step starts.'}</p>
+        <p className="muted card">{rec.from ? `From ${nameOf(model, rec.from)}. Now click the box it goes to, or the same box for a step it does on its own.` : 'Click the box where the next step starts.'}</p>
       )}
       <div className="panel-buttons">
-        {flow && <button className="danger" onClick={() => void run(m => deleteFlow(m, rec.id)).then(saved => saved && onClose())}>Delete flow</button>}
-        <button onClick={onClose}>Done</button>
+        {flow && <button className="danger" onClick={() => void run(m => deleteFlow(m, rec.id)).then(saved => saved && onClose())}><Trash size={16} />Delete flow</button>}
+        <button className="primary" onClick={onClose}><Check size={16} />Done</button>
       </div>
     </Panel>
   )

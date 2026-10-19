@@ -1,8 +1,13 @@
+import type { ReactNode } from 'react'
+import { Section } from './Chrome.tsx'
+import { Close, Pencil, Play, Search } from './icons.tsx'
+import type { IconProps } from './icons.tsx'
+
 /** The keyboard shortcuts, as App's key handler has them. Keep the two in step. */
 const READING: [string, string][] = [
   ['Enter', 'Open the selected box'],
   ['Esc', "Close what's open, then go up a level"],
-  ['Backspace', 'Go up a level'],
+  ['Backspace  Z', 'Zoom out: go up a level'],
   ['Ctrl+K or /', 'Find a box'],
   ['F', 'Fit the view'],
   ['?', 'Show these shortcuts'],
@@ -17,15 +22,19 @@ const EDITING: [string, string][] = [
   ['N', 'Add a box'],
   ['Delete', 'Delete the selected box or line'],
   ['Ctrl+Z', 'Undo'],
+  ['Esc  Backspace', 'Straight after dragging a box: take the drag back'],
   ['Ctrl+Y', 'Redo (Ctrl+Shift+Z works too)'],
 ]
 
-function Group({ title, keys }: { title: string; keys: [string, string][] }) {
+/** Two spaces between keys that do the same thing: each is its own cap. */
+const caps = (key: string) => key.split('  ').map(k => <kbd key={k}>{k}</kbd>)
+
+function Group({ icon, title, keys }: { icon: (props?: IconProps) => ReactNode; title: string; keys: [string, string][] }) {
   return (
     <>
-      <h3>{title}</h3>
+      <Section icon={icon} title={title} />
       <dl>
-        {keys.map(([key, what]) => [<dt key={`${key} key`}><kbd>{key}</kbd></dt>, <dd key={`${key} what`}>{what}</dd>])}
+        {keys.map(([key, what]) => [<dt key={`${key} key`}>{caps(key)}</dt>, <dd key={`${key} what`}>{what}</dd>])}
       </dl>
     </>
   )
@@ -35,10 +44,11 @@ function Group({ title, keys }: { title: string; keys: [string, string][] }) {
 export function Shortcuts({ editable, onClose }: { editable: boolean; onClose: () => void }) {
   return (
     <section className="shortcuts" role="dialog" aria-label="Keyboard shortcuts">
-      <button className="close" aria-label="Close" onClick={onClose}>×</button>
-      <Group title="Getting around" keys={READING} />
-      <Group title="Flows" keys={FLOWS} />
-      {editable && <Group title="Edit mode" keys={EDITING} />}
+      <button className="close" aria-label="Close" onClick={onClose}><Close size={16} /></button>
+      <h2>Keyboard shortcuts</h2>
+      <Group icon={Search} title="Getting around" keys={READING} />
+      <Group icon={Play} title="Flows" keys={FLOWS} />
+      {editable && <Group icon={Pencil} title="Edit mode" keys={EDITING} />}
     </section>
   )
 }
