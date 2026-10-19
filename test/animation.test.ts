@@ -155,3 +155,53 @@ test('a longer line takes longer, up to the cap', () => {
   assert.equal(beatsFor(plain('send'), { length: 5000, afterLanding: false }).total, 350 + 1100)
   assert.equal(beatsFor(plain('send'), { length: 0, afterLanding: false }).total, 350 + 500)
 })
+
+const recurse = (depth: number, more: Partial<Animation> = {}): Animation => ({ kind: 'recurse', trigger: 'inside', depth, ...more })
+
+test('recurse, depth 3: the stack climbs, a flag lands, the answers unwind', () => {
+  const { beats, total } = beatsFor(recurse(3), { length: 250, afterLanding: false })
+  assert.equal(total, 3230)
+  assert.deepEqual(beats, [
+    { do: 'pipe', on: 'line', at: 0, dur: 3230 },
+    { do: 'gulp', on: 'from', at: 0, dur: 120 },
+    { do: 'blob', on: 'line', at: 120, dur: 500, dir: 'fwd', glyph: 'envelope' },
+    { do: 'stack', on: 'from', at: 620, dur: 150, level: 1 },
+    { do: 'gulp', on: 'from', at: 620, dur: 120 },
+    { do: 'blob', on: 'line', at: 740, dur: 500, dir: 'fwd', glyph: 'envelope' },
+    { do: 'stack', on: 'from', at: 1240, dur: 150, level: 2 },
+    { do: 'drop', on: 'from', at: 1240, dur: 350, glyph: 'flag' },
+    { do: 'flash', on: 'from', at: 1440, dur: 250 },
+    { do: 'blob', on: 'line', at: 1690, dur: 500, dir: 'back', glyph: 'envelope', tone: 'reply' },
+    { do: 'gulp', on: 'from', at: 2190, dur: 120 },
+    { do: 'stack', on: 'from', at: 2190, dur: 150, level: 1 },
+    { do: 'blob', on: 'line', at: 2310, dur: 500, dir: 'back', glyph: 'envelope', tone: 'reply' },
+    { do: 'gulp', on: 'from', at: 2810, dur: 120 },
+    { do: 'stack', on: 'from', at: 2810, dur: 150, level: 0 },
+    { do: 'ring', on: 'from', at: 2930, dur: 300 },
+  ])
+})
+
+test('recurse: the depth and the length of the pipe set how long it takes', () => {
+  assert.equal(beatsFor(recurse(2), { length: 250, afterLanding: false }).total, 1990)
+  assert.equal(beatsFor(recurse(5), { length: 250, afterLanding: false }).total, 5710)
+  assert.equal(beatsFor(recurse(3), { length: 5000, afterLanding: false }).total, 5630)
+  assert.equal(beatsFor(recurse(3), { length: 0, afterLanding: false }).total, 3230)
+})
+
+test('recurse: the stack levels climb then fall to nothing', () => {
+  const stack = beatsFor(recurse(5), { length: 250, afterLanding: false }).beats.filter(b => b.do === 'stack')
+  assert.deepEqual(stack.map(b => b.level), [1, 2, 3, 4, 3, 2, 1, 0])
+  assert.ok(stack.every(b => b.on === 'from' && b.dur === 150))
+})
+
+test('recurse: carries labels the blobs going in and returns the blobs coming back', () => {
+  const labelled = beatsFor(recurse(3, { carries: 'CNAME', returns: 'A record' }), { length: 250, afterLanding: false }).beats.filter(b => b.do === 'blob')
+  assert.deepEqual(labelled.map(b => [b.dir, b.label]), [['fwd', 'CNAME'], ['fwd', 'CNAME'], ['back', 'A record'], ['back', 'A record']])
+  const bare = beatsFor(recurse(3), { length: 250, afterLanding: false }).beats.filter(b => b.do === 'blob')
+  assert.ok(bare.every(b => !('label' in b)))
+})
+
+test('recurse: every beat is on the box or on its pipe, never on a second box', () => {
+  const { beats } = beatsFor(recurse(4, { carries: 'x', returns: 'y' }), { length: 300, afterLanding: true })
+  assert.ok(beats.every(b => b.on === 'from' || b.on === 'line'))
+})

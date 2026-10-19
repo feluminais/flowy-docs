@@ -21,15 +21,16 @@ const DEPTH_DEFAULT = 3
 /** A step's animation, read: the kind, who sets a callback off (inside unless the file says outside), the word the blob carries, and for recurse its depth and the word that comes back. */
 export type Animation = { kind: AnimationKind; trigger: Trigger; carries?: string; depth?: number; returns?: string }
 
-export type Glyph = 'envelope' | 'bolt' | 'bell'
+export type Glyph = 'envelope' | 'bolt' | 'bell' | 'flag'
 
 /**
  * One thing to draw. `do` says what: the tube along the line (`pipe`), something running through it (`blob`),
  * a ring going out from a box, a flash on it, a squash as it takes something in (`gulp`), waiting dots over it,
- * or a glyph falling onto it (`drop`). `on` says where. Times are milliseconds from the start of the step.
+ * a glyph falling onto it (`drop`), or the pile of ghost cards a recursion leaves under it (`stack`). `on` says where.
+ * Times are milliseconds from the start of the step.
  */
 export type Beat = {
-  do: 'pipe' | 'blob' | 'ring' | 'flash' | 'gulp' | 'wait' | 'drop'
+  do: 'pipe' | 'blob' | 'ring' | 'flash' | 'gulp' | 'wait' | 'drop' | 'stack'
   on: 'from' | 'to' | 'line'
   at: number
   dur: number
@@ -38,8 +39,10 @@ export type Beat = {
   glyph?: Glyph
   /** blob only: a reply is drawn in the answer's colour. */
   tone?: 'reply'
-  /** blob only: the `carries` word, shown instead of the glyph. */
+  /** blob only: the `carries` word, shown instead of the glyph. On the way back of a recursion it is the `returns` word. */
   label?: string
+  /** stack only: how many ghost cards show from this beat on (the stack's height minus one). The card that comes or goes slides over `dur`. */
+  level?: number
 }
 
 const isMap = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -109,6 +112,38 @@ export const followsLanding = (previous: readonly [string, string] | null | unde
 const effect = (d: 'ring' | 'flash' | 'gulp' | 'wait', on: 'from' | 'to', at: number, dur: number): Beat => ({ do: d, on, at, dur })
 
 /**
+ * A recursion: the shape calls itself `depth - 1` times, each call piling a card onto the stack under it. A flag marks the
+ * base case, then the answers come back one level at a time and the cards leave. `T` is how long the loop pipe takes to run.
+ */
+function recurseBeats(a: Animation, T: number): Beat[] {
+  const n = a.depth ?? DEPTH_DEFAULT
+  const gulp = 120
+  const level = gulp + T // one call down, or one answer back
+  const stack = (at: number, cards: number): Beat => ({ do: 'stack', on: 'from', at, dur: 150, level: cards })
+  const body: Beat[] = []
+  for (let j = 1; j < n; j++) {
+    const start = (j - 1) * level
+    body.push(
+      effect('gulp', 'from', start, gulp),
+      { do: 'blob', on: 'line', at: start + gulp, dur: T, dir: 'fwd', glyph: 'envelope', ...(a.carries === undefined ? {} : { label: a.carries }) },
+      stack(start + level, j),
+    )
+  }
+  const bottom = (n - 1) * level
+  body.push({ do: 'drop', on: 'from', at: bottom, dur: 350, glyph: 'flag' }, effect('flash', 'from', bottom + 200, 250))
+  for (let k = 1; k < n; k++) {
+    const start = bottom + 450 + (k - 1) * level
+    body.push(
+      { do: 'blob', on: 'line', at: start, dur: T, dir: 'back', glyph: 'envelope', tone: 'reply', ...(a.returns === undefined ? {} : { label: a.returns }) },
+      effect('gulp', 'from', start + T, gulp),
+      stack(start + T, n - 1 - k),
+    )
+  }
+  body.push(effect('ring', 'from', bottom + 450 + (n - 1) * level, 300))
+  return body
+}
+
+/**
  * The step as beats, in the order they start, with the tube first and how long the whole thing lasts.
  * `length` is how long the line is on screen; `afterLanding` is followsLanding for this step.
  */
@@ -135,7 +170,7 @@ export function beatsFor(a: Animation, { length, afterLanding }: { length: numbe
         if (afterLanding) return [effect('flash', 'from', 0, 250), blob(200, 'bell'), effect('ring', 'to', 200 + T, 400)]
         return [{ do: 'drop', on: 'from', at: 0, dur: 350, glyph: 'bolt' }, effect('flash', 'from', 350, 250), blob(550, 'bell'), effect('ring', 'to', 550 + T, 400)]
       case 'recurse':
-        throw new Error('recurse has no beats yet')
+        return recurseBeats(a, T)
     }
   })()
   const total = Math.max(...body.map(b => b.at + b.dur))
