@@ -4,7 +4,7 @@ import type { Shape } from './look.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Model, ObjectType, Step } from './model.ts'
 import { GROUP_KINDS, isGroupKind, TIMES_MAX, TIMES_MIN, timesOk } from './structure.ts'
-import { memberIds } from './views.ts'
+import { chain, memberIds } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
 export class OpError extends Error {
@@ -83,6 +83,15 @@ export function deleteObject(model: Model, id: string): Model {
   const objects = { ...model.objects }
   delete objects[id]
   return { ...model, objects, connections: model.connections.filter(c => c.from !== id && c.to !== id) }
+}
+
+/**
+ * Delete several objects as one edit. A box and something inside it can go together (the inner one first); any refusal from
+ * deleteObject stops the lot, so nothing is half deleted.
+ */
+export function deleteObjects(model: Model, ids: string[]): Model {
+  const deepestFirst = [...new Set(ids)].sort((a, b) => chain(model, b).length - chain(model, a).length)
+  return deepestFirst.reduce(deleteObject, model)
 }
 
 /** Add a connection. An empty label means no label. */

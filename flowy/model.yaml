@@ -86,10 +86,10 @@ objects:
       command line or a right-click in Explorer, at the size it was last closed at. A sample model
       (Plum) ships with it, and View copies a diagram as Mermaid or saves it as a picture.
 
-      Press E to edit: the forms, dragging, connecting, recording flows, Undo and Redo of the
-      canvas. Every edit goes through the same checks as the browser's and Claude's, and a file
-      changed elsewhere since it was read is never overwritten. Opening never creates files in a
-      repo; only an edit does.
+      Press E to edit: the forms, dragging (one shape, or several picked together), connecting,
+      recording flows, Undo and Redo of the canvas. Every edit goes through the same checks as the
+      browser's and Claude's, and a file changed elsewhere since it was read is never overwritten.
+      Opening never creates files in a repo; only an edit does.
   desktop-core:
     type: component
     in: desktop
