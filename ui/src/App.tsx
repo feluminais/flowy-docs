@@ -9,6 +9,7 @@ import type { LineStyle, Model, Step } from '../../src/core/model.ts'
 import { connect, deleteObject, forgetLayout, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { animationOf, followsLanding } from '../../src/core/animation.ts'
+import { knee, traffic as trafficOf } from '../../src/core/perf.ts'
 import { expandTo, outline } from '../../src/core/outline.ts'
 import type { OutlineRow } from '../../src/core/outline.ts'
 import { chain, hasChildren, nameOf, parentOf, placeEnds, placeStep, stepEnds } from '../../src/core/views.ts'
@@ -22,12 +23,15 @@ import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './gr
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
 import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
-import { Line, LineStyleContext } from './Line.tsx'
+import { Line, LineStyleContext, LineWidthsContext } from './Line.tsx'
+import { TrafficLayer } from './TrafficLayer.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { DWELL, GAP } from './motion.ts'
 import type { NavTab } from './navstate.ts'
 import { keepNav, loadNav } from './navstore.ts'
 import { Explorer, FlowsTab, NavPanel, NavTabs, NavTabsContext, Rail } from './Navigator.tsx'
+import { PerfBody } from './Performance.tsx'
+import { clampPos, loadAt, rampPos, RAMP_STEP_MS, snap, top } from './perfview.ts'
 import { AddPanel, LinePanel, ObjectPanel, OverviewPanel, Recorder } from './Panel.tsx'
 import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
@@ -95,13 +99,23 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
 
 type Back = () => Promise<string | undefined>
 
-function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }: Loaded & { edit: Edit; undo: Back; redo: Back; live: boolean; readOnly: boolean }) {
+function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo, live, readOnly }: Loaded & { edit: Edit; undo: Back; redo: Back; live: boolean; readOnly: boolean }) {
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
   const [viewId, setViewId] = useState(() => readHash(location.hash).view)
   const [side, setSide] = useState<Side>()
   // The right-hand panel's tab. Details shows `side`, or the level you are in; Flows and Explorer are the navigator. Without one the panel follows `side`.
   const [remembered] = useState(loadNav)
-  const [tab, setTab] = useState<NavTab | undefined>(remembered.tab)
+  const [tab, setTab] = useState<NavTab | undefined>(() => (readHash(location.hash).perf ? 'performance' : remembered.tab))
+  // The Performance tab: which run, and where along its tested levels. A whole number is a tested level; a ramp goes between them.
+  const startPos = (id: string, level?: number) => (Object.hasOwn(runs, id) ? clampPos(runs[id], level ?? knee(runs[id])?.index ?? top(runs[id])) : 0)
+  const [runId, setRunId] = useState(() => {
+    const named = readHash(location.hash).perf?.run
+    return named !== undefined && Object.hasOwn(runs, named) ? named : Object.keys(runs)[0] ?? ''
+  })
+  const [pos, setPos] = useState(() => startPos(runId, readHash(location.hash).perf?.level))
+  const [ramping, setRamping] = useState(false)
+  const posNow = useRef(pos) // the ramp reads where it is from here, so a render in between never makes it start over
+  if (!ramping) posNow.current = pos // while it ramps, the ramp is ahead of what the screen shows
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set([ROOT, ...remembered.expanded])) // the project's own row starts open
   const [playing, setPlaying] = useState<{ flow: string; step: number; auto?: boolean } | undefined>(() => {
     const { flow } = readHash(location.hash)
@@ -142,12 +156,16 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   const view = chain(model, viewId).find(v => v === ROOT || canOpen(v)) ?? ROOT
   const recording = editing && side?.kind === 'flow' ? side : undefined
   const flowsHere = Object.entries(model.flows).filter(([, f]) => f.view === view && (editing || f.steps.length > 0))
-  const flow = editing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
+  const loadTest = Object.hasOwn(runs, runId) ? runs[runId] : undefined
+  const showPerf = !editing && (Object.keys(runs).length > 0 || runProblems.length > 0) // the tab is there whenever there is a run, or a run file to complain about
+  const perfOpen = tab === 'performance' && showPerf && loadTest !== undefined
+  // A flow that was playing waits behind the Performance tab, so a step's motion and the traffic never draw at once.
+  const flow = editing || perfOpen ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
   const stepIndex = flow && playing ? Math.min(playing.step, flow.steps.length - 1) : 0
   const step = flow?.steps[stepIndex]
   const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
   const showFlows = totals.flows > 0 || editing // the Flows tab is there whenever there is a flow to find
-  const shownTab: NavTab | undefined = (tab === 'flows' && !showFlows ? undefined : tab) ?? (side ? 'details' : undefined)
+  const shownTab: NavTab | undefined = ((tab === 'flows' && !showFlows) || (tab === 'performance' && !showPerf) ? undefined : tab) ?? (side ? 'details' : undefined)
 
   // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
   // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
@@ -165,9 +183,13 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   const moving = animation !== undefined && placed != null // a step the view can't show doesn't move
   const stepKey = flow && playing ? `${playing.flow}:${stepIndex}:${replays}` : ''
   const graph = useMemo(() => toGraph(model, view, shown, problems), [model, view, shown, problems])
+  const load = loadTest ? loadAt(loadTest, pos) : 0
+  const loadTraffic = useMemo(() => (perfOpen && loadTest ? trafficOf(model, loadTest, load, view) : undefined), [perfOpen, model, loadTest, load, view])
+  const widths = useMemo(() => new Map(loadTraffic?.lines.map(l => [lineId(l.from, l.to), l.width])), [loadTraffic])
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches // no ramp and no traffic: the colours, thickness, badges and numbers say it all
   const picked = side?.kind === 'object' ? [side.id] : recording ? [recording.from, recording.to] : []
   // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.
-  const nodes = graph.nodes.map(n => ({ ...n, position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id) }))
+  const nodes = graph.nodes.map(n => ({ ...n, data: loadTraffic ? { ...n.data, perf: loadTraffic.boxes[n.id] } : n.data, position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id) }))
   // Inside a box, a frame named after it wraps its own boxes and follows them while they're dragged.
   const inner = view === ROOT ? [] : nodes.filter(n => graph.members.includes(n.id))
   const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })))]
@@ -201,7 +223,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   /** Shows what a click on the canvas, a problem or a button points at, in the panel's Details tab. */
   const show = (s: Side | undefined) => {
     setSide(s)
-    setTab(undefined)
+    setTab(t => (t === 'performance' ? t : undefined)) // a click while the Performance tab shows picks what its panel reads out
   }
   const toggleTab = (t: NavTab) => (shownTab === t ? closePanel() : setTab(t))
   const takeBack = async () => {
@@ -315,6 +337,44 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     const wait = setTimeout(() => setPlaying(stepIndex < flow.steps.length - 1 ? { ...playing, step: stepIndex + 1 } : { ...playing, auto: false }), GAP)
     return () => clearTimeout(wait)
   }, [playing?.auto, settledKey, stepKey])
+  // Ramp: the load sweeps up through the tested levels on its own, with a frame for each step of the screen.
+  useEffect(() => {
+    if (!ramping || !loadTest) return
+    let last = performance.now()
+    let shown = last // when the screen last got a position
+    let frame = 0
+    const tick = (t: number) => {
+      const next = rampPos(loadTest, posNow.current, Math.min(100, t - last)) // a tab that was asleep doesn't jump
+      last = t
+      posNow.current = next
+      const done = next >= top(loadTest)
+      if (done || t - shown >= RAMP_STEP_MS) {
+        shown = t
+        setPos(next)
+      }
+      if (done) setRamping(false)
+      else frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [ramping, loadTest])
+  useEffect(() => {
+    if (!perfOpen) setRamping(false)
+  }, [perfOpen])
+  const toggleRamp = () => {
+    if (!loadTest || still) return
+    if (ramping) {
+      setPos(posNow.current) // where it has got to, not where the screen last was
+      return setRamping(false)
+    }
+    if (posNow.current >= top(loadTest)) setPos(0) // at the top, a ramp starts again from the bottom
+    setRamping(true)
+  }
+  const stepLevel = (to: number) => {
+    if (!loadTest) return
+    setRamping(false)
+    setPos(snap(loadTest, to))
+  }
   const pickLines = (value: string) => {
     const style = LINE_STYLES.find(s => s === value) // "" is the project's default
     const own = (s: LineStyle | undefined) => {
@@ -329,6 +389,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     justMoved.current = false
     quiet.current = true // E isn't a step to go back to
     setEditMode(!editing)
+    setTab(t => (t === 'performance' ? undefined : t)) // editing and the Performance tab don't mix: the numbers would sit on a model that is changing
     setNotice(undefined) // "Press E to fix this flow" is stale the moment E is pressed
     setPlaying(undefined)
     setSide(s => (s?.kind === 'object' || s?.kind === 'line' ? s : undefined))
@@ -381,10 +442,13 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
   // on every render. A step the reader takes pushes an entry. Anything else replaces the address: the page
   // opening (which also drops a part that named nothing), Back or a typed address, E, or a live reload that
   // falls back to another view.
-  const address = toHash(view, flow ? playing?.flow : undefined)
+  const address = toHash(view, flow ? playing?.flow : undefined, perfOpen ? { run: runId, level: Math.round(pos) } : undefined)
   useEffect(() => {
-    if (quiet.current || address !== location.hash)
-      history[quiet.current || view !== viewId ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
+    if (quiet.current || address !== location.hash) {
+      const was = readHash(location.hash)
+      const alongRun = perfOpen && was.perf?.run === runId && was.view === view // moving along a run is not a step to go back to
+      history[quiet.current || view !== viewId || alongRun ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
+    }
     quiet.current = false
   })
 
@@ -395,6 +459,12 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
       const named = readHash(location.hash)
       go(named.view)
       if (named.flow !== undefined) setPlaying({ flow: named.flow, step: 0 })
+      setRamping(false)
+      if (named.perf !== undefined && Object.hasOwn(runs, named.perf.run)) {
+        setRunId(named.perf.run)
+        setPos(startPos(named.perf.run, named.perf.level))
+        setTab('performance')
+      } else setTab(t => (t === 'performance' ? undefined : t))
     }
     window.addEventListener('popstate', follow)
     window.addEventListener('hashchange', follow)
@@ -426,6 +496,11 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         else if (layer === 'up') up()
         else return
       }
+      else if (perfOpen && e.key === 'ArrowRight') stepLevel(Math.floor(pos + 1e-6) + 1)
+      else if (perfOpen && e.key === 'ArrowLeft') stepLevel(Math.ceil(pos - 1e-6) - 1)
+      else if (perfOpen && e.key === 'Home') stepLevel(0)
+      else if (perfOpen && loadTest && e.key === 'End') stepLevel(top(loadTest))
+      else if (perfOpen && key === 'p' && plain && !e.repeat) toggleRamp()
       else if (flow && e.key === 'ArrowRight') stepTo(stepIndex + 1)
       else if (flow && e.key === 'ArrowLeft') stepTo(stepIndex - 1)
       else if (flow && e.key === 'Home') stepTo(0)
@@ -445,6 +520,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
       else if (key === 'f' && plain) fitNow.current?.({ ...fitOptions(shownTab !== undefined, flow !== undefined), duration: 300 })
       else if (key === 'l' && plain && !e.repeat && showFlows) toggleTab('flows')
       else if (key === 'o' && plain && !e.repeat) toggleTab('explorer')
+      else if (key === 't' && plain && !e.repeat && showPerf) toggleTab('performance')
       else if (key === 'e' && plain && !e.repeat && !readOnly) toggleEdit()
       else if (editing && key === 'n' && plain && !recording) show({ kind: 'add' })
       else if (editing && e.key === 'Delete') remove()
@@ -459,7 +535,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  const navTabs = <NavTabs tab={shownTab ?? 'details'} showFlows={showFlows} onPick={setTab} />
+  const navTabs = <NavTabs tab={shownTab ?? 'details'} showFlows={showFlows} showPerf={showPerf} onPick={setTab} />
   return (
     <>
       <header className="bar">
@@ -502,9 +578,10 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}><Pencil size={16} />Edit</button>}
       </header>
       <div className="stage">
-        <main ref={canvas} className={['canvas', editing && 'editing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
+        <main ref={canvas} className={['canvas', editing && 'editing', loadTraffic && 'loaded', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={motion && ({ '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` } as CSSProperties)}>
           <LineStyleContext value={lines}>
+            <LineWidthsContext value={widths}>
             <ReactFlow
               key={view} // a fresh canvas per view
               nodes={[...frame, ...nodes]}
@@ -555,8 +632,10 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
               <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} />
               {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
               <Controls showInteractive={false} fitViewOptions={fitOptions(shownTab !== undefined, flow !== undefined)} />
+              {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
               {flow && animation && placed && <StepMotion key={stepKey} ends={placed} animation={animation} afterLanding={followsLanding(shown?.ends[stepIndex - 1], placed)} onDone={() => setSettledKey(stepKey)} />}
             </ReactFlow>
+            </LineWidthsContext>
           </LineStyleContext>
           {nodes.length === 0 && (
             <p className="empty">{editing
@@ -572,7 +651,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
               show({ kind: 'object', id })
             }} />
           )}
-          {shortcuts && <Shortcuts editable={live && !readOnly} onClose={() => setShortcuts(false)} />}
+          {shortcuts && <Shortcuts editable={live && !readOnly} performance={showPerf} onClose={() => setShortcuts(false)} />}
           {notice && (
             <div className="notice" role="status">
               <span>{notice}</span>
@@ -598,6 +677,18 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
           {shownTab === 'flows' && (
             <NavPanel tabs={navTabs} onClose={closePanel}>
               <FlowsTab model={model} view={view} editing={editing} current={recording?.id || (flow ? playing?.flow : undefined)} onOpen={f => openFlow(f.id)} />
+            </NavPanel>
+          )}
+          {shownTab === 'performance' && (
+            <NavPanel tabs={navTabs} onClose={closePanel}>
+              <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runId} pos={pos} ramping={ramping} still={still}
+                selection={side?.kind === 'object' || side?.kind === 'line' ? side : undefined}
+                onRun={id => {
+                  setRamping(false)
+                  setRunId(id)
+                  setPos(startPos(id))
+                }}
+                onPos={stepLevel} onRamp={toggleRamp} />
             </NavPanel>
           )}
           {shownTab === 'explorer' && (
@@ -631,7 +722,7 @@ function Reader({ model, problems, codeBase, edit, undo, redo, live, readOnly }:
             </section>
           )}
         </main>
-        <Rail tab={shownTab} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} onPick={toggleTab} />
+        <Rail tab={shownTab} flows={totals.flows} shapes={totals.shapes} runs={Object.keys(runs).length} showFlows={showFlows} showPerf={showPerf} onPick={toggleTab} />
       </div>
     </>
   )
