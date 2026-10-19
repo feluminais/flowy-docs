@@ -72,7 +72,7 @@ internal sealed class BackLayer : Control
         var world = _viewport.ToWorld(new CorePt(screen.X, screen.Y));
         var pen = new Pen(Brushes.Black, 14 / _viewport.Zoom);
         for (var i = _lines.Count - 1; i >= 0; i--)
-            if (_lines[i].Edge.Id != "step" && _lines[i].Geometry.StrokeContains(pen, new Point(world.X, world.Y))) return _lines[i].Edge.Id;
+            if (!SceneBuilder.IsStepLine(_lines[i].Edge.Id) && _lines[i].Geometry.StrokeContains(pen, new Point(world.X, world.Y))) return _lines[i].Edge.Id;
         return null;
     }
 

@@ -68,6 +68,18 @@ public class SceneTests
         Assert.Null(Edge(scene, "customer web").Label);
     }
 
+    [Theory]
+    [InlineData("step", true)]
+    [InlineData("step-1", true)]
+    [InlineData("lane-12", true)]
+    [InlineData("lane", true)]
+    [InlineData("web api", false)]
+    [InlineData("step api", false)]
+    [InlineData("step-", false)]
+    [InlineData("step-x", false)]
+    [InlineData("steps", false)]
+    public void A_line_a_step_added_is_told_from_a_connection_by_its_id(string id, bool added) => Assert.Equal(added, SceneBuilder.IsStepLine(id));
+
     [Fact]
     public void A_stop_of_several_steps_lights_every_step_and_dims_the_rest()
     {

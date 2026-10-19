@@ -40,6 +40,14 @@ public sealed record Scene(string View, string FrameName, IReadOnlyList<SceneBox
 /// <summary>What toGraph and focusEdges in ui/src/graph.ts make for the canvas. Places come from <see cref="Layout"/> instead of dagre.</summary>
 public static class SceneBuilder
 {
+    /// <summary>Whether a line is one a flow step added (it has no connection of its own: "step", "step-N", "lane-N"), so a click on it opens no panel. The same test as isStepLine in ui/src/graph.ts.</summary>
+    public static bool IsStepLine(string id)
+    {
+        var dash = id.IndexOf('-');
+        var head = dash < 0 ? id : id[..dash];
+        return head is "step" or "lane" && (dash < 0 || (dash + 1 < id.Length && id[(dash + 1)..].All(c => c is >= '0' and <= '9')));
+    }
+
     private const double Gap = 30;
 
     public static string LineId(string from, string to) => $"{from} {to}";

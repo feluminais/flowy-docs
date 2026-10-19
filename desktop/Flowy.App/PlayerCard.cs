@@ -68,7 +68,6 @@ internal sealed class PlayerCard : Border
         }
         var cells = Columns();
         cells.RowSpacing = 0;
-        cells.Margin = new Thickness(0, 2, 0, 0);
         for (var r = 0; r < Math.Max(1, progress.Rows); r++) cells.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
         foreach (var cell in progress.Cells)
         {
@@ -76,7 +75,7 @@ internal sealed class PlayerCard : Border
             segment.Classes.Add("seg");
             if (cell.Stop <= now) segment.Classes.Add("done");
             // A strip four pixels high is hard to point at, so each sits in a taller one that takes the pointer.
-            var hit = new Border { Background = Brushes.Transparent, Padding = new Thickness(0, 3), Child = segment };
+            var hit = new Border { Background = Brushes.Transparent, Padding = new Thickness(0, 2), Child = segment };
             if (cell.Title != "") ToolTip.SetTip(hit, cell.Title);
             Grid.SetColumn(hit, cell.Col);
             Grid.SetRow(hit, cell.Row);
@@ -85,7 +84,7 @@ internal sealed class PlayerCard : Border
         var bar = new StackPanel { Children = { cells } };
         if (progress.Brackets.Count == 0) return bar;
         var brackets = Columns();
-        brackets.Margin = new Thickness(0, -3, 0, 4);
+        brackets.Margin = new Thickness(0, -1, 0, 4);
         foreach (var b in progress.Brackets)
         {
             var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Center };
@@ -126,7 +125,7 @@ internal sealed class PlayerCard : Border
 
     private Control Block(PlayerStep step, bool lane)
     {
-        var block = new StackPanel { Spacing = 4 };
+        var block = new StackPanel { Spacing = lane ? 4 : 8 }; // a card for one step spaces its lines as it always did
         if (step.Lane != "")
         {
             var name = new TextBlock { Text = step.Lane };
