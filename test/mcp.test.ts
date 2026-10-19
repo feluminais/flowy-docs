@@ -138,6 +138,22 @@ test('code paths are checked against the folder that holds the flowy folder', as
   assert.doesNotMatch(await readFile(join(dir, 'model.yaml'), 'utf8'), /code/)
 })
 
+test('links are checked like code paths, and web addresses are not looked up', async t => {
+  const { dir, call } = await setup(t)
+  await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
+  const here = `${basename(dir)}/` // the flowy folder itself sits in its parent, so this path exists
+  assert.equal((await call('put_object', { id: 'shop', links: [{ title: 'Folder', url: here }, { title: 'Status', url: 'https://status.example.com' }] })).error, false)
+  const refused = await call('put_object', { id: 'shop', links: [{ url: here }, { url: 'no-such-doc-for-flowy.md' }] })
+  assert.equal(refused.error, true)
+  assert.match(refused.text, /link path "no-such-doc-for-flowy\.md" doesn't exist/)
+  const scheme = await call('put_object', { id: 'shop', links: [{ url: 'file:///etc/passwd' }] })
+  assert.equal(scheme.error, true)
+  assert.match(scheme.text, /must be a web address/)
+  assert.match(await readFile(join(dir, 'model.yaml'), 'utf8'), /links:\n\s+- title: Folder\n\s+url: /)
+  assert.equal((await call('put_object', { id: 'shop', links: [] })).error, false)
+  assert.doesNotMatch(await readFile(join(dir, 'model.yaml'), 'utf8'), /links/)
+})
+
 test('get_mermaid draws a view or a flow, and wants exactly one of them', async t => {
   const { call } = await setup(t)
   await call('put_object', { id: 'customer', type: 'actor', name: 'Customer' })

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { check, isRepoPath, newProblems, typesIn } from '../src/core/check.ts'
+import { check, isRepoPath, isWebAddress, newProblems, typesIn } from '../src/core/check.ts'
 import type { Model } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 
@@ -232,4 +232,29 @@ test('external is true or false', () => {
 test('lines is straight, curved or angled', () => {
   assert.deepEqual(check({ ...shop(), meta: { lines: 'curved' } }), [])
   assertProblem({ ...shop(), meta: { lines: 'wiggly' } }, 'model.yaml lines must be straight, curved or angled')
+})
+
+test('isWebAddress takes http and https with a host', () => {
+  for (const ok of ['https://example.com', 'http://localhost:4321/#a/b', 'HTTPS://EXAMPLE.COM/a?x=1#y']) assert.equal(isWebAddress(ok), true, ok)
+  for (const bad of ['', 'https://', 'https:///x', 'ftp://x.dev', 'mailto:a@b.c', 'file:///x', 'javascript:alert(1)', '//example.com', 'example.com', 'https://a b.com', 'docs/a.md'])
+    assert.equal(isWebAddress(bad), false, bad)
+})
+
+test('links: a list of web addresses and repo paths that exist', () => {
+  const m = shop()
+  Object.assign(m.objects, raw({
+    a: { type: 'actor', name: 'A', links: 'docs/a.md' },
+    b: { type: 'actor', name: 'B', links: ['docs/a.md', { url: 'docs/a.md' }, { title: ['x'], url: 'docs/a.md' }] },
+    c: { type: 'actor', name: 'C', links: [{ title: 'No address' }, { url: '  ' }] },
+    d: { type: 'actor', name: 'D', links: [{ url: 'file:///etc/passwd' }, { url: 'mailto:a@b.c' }, { url: 'javascript:alert(1)' }, { url: '/etc/passwd' }, { url: 'C:/x' }, { url: '../up' }, { url: 'https://' }, { url: 'ftp://x.dev/f' }] },
+    e: { type: 'actor', name: 'E', links: [{ title: 'Docs', url: 'docs/' }, { url: 'docs/gone.md' }, { title: 'Web', url: 'https://example.com/a?x=1#y' }, { url: 'HTTP://EXAMPLE.COM' }] },
+  }))
+  const messages = check(m, new Set(['docs/gone.md'])).map(p => p.message)
+  const shape = 'links must be a list of entries with a url and, if you like, a title'
+  assert.ok(messages.includes(`a: ${shape}`))
+  assert.ok(messages.includes(`b: ${shape}`))
+  assert.equal(messages.filter(msg => msg === 'c: a link has no url').length, 2)
+  for (const bad of ['file:///etc/passwd', 'mailto:a@b.c', 'javascript:alert(1)', '/etc/passwd', 'C:/x', '../up', 'https://', 'ftp://x.dev/f'])
+    assert.ok(messages.includes(`d: link "${bad}" must be a web address (http or https) or a path in the repo, relative, with / between folders and no "." or ".." parts`), bad)
+  assert.deepEqual(messages.filter(msg => msg.startsWith('e:')), ['e: link path "docs/gone.md" doesn\'t exist'])
 })

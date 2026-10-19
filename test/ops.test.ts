@@ -176,6 +176,18 @@ test('putObject sets code after description, and [] removes it', () => {
   assert.equal('code' in putObject(m, { id: 'api', code: [] }).objects.api, false)
 })
 
+test('putObject sets links after code, puts the title before the address, and [] removes them', () => {
+  const m = putObject(shop(), {
+    id: 'api',
+    code: ['src/api/'],
+    links: [{ url: 'docs/api.md', title: 'API notes' }, { url: 'https://status.example.com', title: '  ' }, { url: 'docs/x.md', note: 'keep' }],
+  })
+  assert.deepEqual(Object.keys(m.objects.api), ['type', 'in', 'name', 'tech', 'code', 'links'])
+  assert.deepEqual(m.objects.api.links, [{ title: 'API notes', url: 'docs/api.md' }, { url: 'https://status.example.com' }, { url: 'docs/x.md', note: 'keep' }])
+  assert.deepEqual(Object.keys((m.objects.api.links as object[])[0]), ['title', 'url'])
+  assert.equal('links' in putObject(m, { id: 'api', links: [] }).objects.api, false)
+})
+
 test('refuseNewProblems counts a missing code path only when it is told what is missing', () => {
   const before = shop()
   const after = putObject(before, { id: 'api', code: ['gone/'] })

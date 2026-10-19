@@ -84,7 +84,7 @@ The rest of the description shows when someone clicks. Spend the words where the
 - **Lead with the point.** Every paragraph, then the detail. Two to four short paragraphs, about 150 words at most.
 - **Say why.** Why it's cut this way, which choice it makes, what it must never do. Plum's Checkout: "Nothing is charged until the restaurant accepts. A rejected order releases the hold." Link a decision record if you keep them, and say in a clause what it means here.
 - **Write behaviour, not implementation.** Would the sentence change if the code did? "Delivers events to one worker at a time, in the order they arrived" survives a rewrite. "Uses a Redis list with BRPOP" doesn't.
-- **Keep out what goes stale:** versions, counts, endpoint lists, file lists. Link the file in `code:`, such as an OpenAPI spec, and let the code stay the source.
+- **Keep out what goes stale:** versions, counts, endpoint lists, file lists. Link the file in `links:`, such as an OpenAPI spec, and let the code stay the source.
 - **Don't repeat what the panel already shows:** the type, the tech, the connections.
 - **Define an acronym where you first use it.** Each text is read alone.
 - **Link out freely.** Point at the runbook, the decision record or the spec rather than retelling them ([what stays outside Flowy](#what-stays-outside-flowy)).
@@ -166,7 +166,8 @@ What changed: the sender is the subject in every step, the endpoint moved into M
 
 - **Two or three paths per box,** never every file. Folders survive a rename better than files.
 - **Give every app, store and component a path.** Actors and outside services are the exceptions. If you can't point at anything, ask whether the box is real.
-- **Link the interface, don't copy it.** Put the OpenAPI file in `code:` instead of listing the endpoints in the panel.
+- **`code:` is for where a box lives, `links:` is for what to read about it.** A runbook or a decision record goes in `links:`.
+- **Link the interface, don't copy it.** Link the OpenAPI file in `links:` instead of listing the endpoints in the panel.
 - **Fix a broken path by pointing it at the new place,** or delete the box if the code is gone. Removing `code:` to clear the "!" hides the problem.
 - **A path that exists proves little.** It doesn't show the description is still right. When code changes what a box does, update its text even though no "!" appears.
 
@@ -178,18 +179,18 @@ One rule keeps the two from drifting apart: **each fact lives in one place.** Th
 
 | Document | Keep it as | The box points to it with |
 | --- | --- | --- |
-| Decision records | One file per decision, such as `docs/adr/0007-hold-then-charge.md` | `code:` on the box the decision shaped, and a sentence in the panel: the choice and what it means here |
-| Runbooks | One file per app or store, such as `docs/runbooks/order-api.md` | `code:` on that app or store |
-| API reference | Generated from the spec (OpenAPI, protobuf), not written by hand | `code:` on the spec file, and no endpoint list in the panel |
-| Onboarding and how-tos | A README or a `docs/` folder, written as steps ("Run it locally") | `code:` on the top-level system |
-| Quality goals, constraints, risks | One short file for the project: what must hold (uptime, where data may live) and where it's fragile | `code:` on the top-level system |
-| Glossary | One file for the terms people argue about | `code:` on the top-level system, and each term spelled out in the teaser where it first appears |
+| Decision records | One file per decision, such as `docs/adr/0007-hold-then-charge.md` | `links:` on the box the decision shaped, and a sentence in the panel: the choice and what it means here |
+| Runbooks | One file per app or store, such as `docs/runbooks/order-api.md` | `links:` on that app or store |
+| API reference | Generated from the spec (OpenAPI, protobuf), not written by hand | `links:` to the spec file, and no endpoint list in the panel |
+| Onboarding and how-tos | A README or a `docs/` folder, written as steps ("Run it locally") | `links:` on the top-level system |
+| Quality goals, constraints, risks | One short file for the project: what must hold (uptime, where data may live) and where it's fragile | `links:` on the top-level system |
+| Glossary | One file for the terms people argue about | `links:` on the top-level system, and each term spelled out in the teaser where it first appears |
 
-Three ways to link, as tested on a local canvas:
+How a box points to a document:
 
-- **List the file in `code:`.** It shows under the description as a link to the file on GitHub or GitLab, and a path that has moved shows up as a problem. This is the link that stays honest. Without a GitHub or GitLab origin the path shows as plain text and is still checked. A document or two can sit beside the two or three code paths.
-- **Use a full URL in a Markdown link** for a document that isn't in the repo, such as a wiki page or a status page. It works on the canvas and on an exported site, but nothing checks it.
-- **Don't use a relative link** such as `[ADR 7](docs/adr/0007-hold-then-charge.md)`. The canvas resolves it against its own address, which answers "not found", and an export holds only the canvas, so it fails there too.
+- **Add it to `links:`.** Each entry has a `title` and a `url`, which is a web address or a path in the repo. They show in a Links section under the description. A repo path is checked, so one that has moved shows up as a problem, and on the canvas it links to the file on GitHub or GitLab. Without a GitHub or GitLab origin it shows as plain text and is still checked.
+- **Use a web address** for a document that isn't in the repo, such as a wiki page or a status page. It opens in a new tab, and nothing checks it.
+- **Don't use a relative Markdown link** in a description, such as `[ADR 7](docs/adr/0007-hold-then-charge.md)`. The canvas resolves it against its own address, which answers "not found", and an export holds only the canvas, so it fails there too. Put the document in `links:`.
 
 A long document can point back at the map. On a hosted export the address follows what's on screen, so a link to `#ordering` opens the inside of Ordering, and `#ordering/place-order` plays that flow.
 
