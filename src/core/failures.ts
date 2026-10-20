@@ -221,6 +221,9 @@ export function rollUp(model: Model, a: Analysis, view: string): Marks {
   return marks
 }
 
+/** Whether a view draws a mode anywhere: as a box, as a line, or as the box that holds both ends of its line. Not the frame the reader is inside, nor a line that touches it. */
+export const drawnIn = (model: Model, view: string, m: Mode): boolean => carrierOf(model, view, m) !== undefined
+
 /** The ids of the modes a drawn shape or line carries in a view, worst first. */
 export function carried(model: Model, a: Analysis, view: string, part: Part): string[] {
   const wanted = carrierKey('box' in part ? { box: part.box } : { line: lineKey(...part.line) })
@@ -249,6 +252,12 @@ export function reach(model: Model, view: string, m: Mode): Reach {
   }
   const affects = [...new Set((m.affects ?? []).flatMap(id => drawn(model, view, id) ?? []))].filter(box => !fails.includes(box))
   return { fails, ...(failsLine === undefined ? {} : { failsLine }), affects }
+}
+
+/** What to light for a picked mode: `reach`, but only when the view draws a part of it that fails. Otherwise lighting would fade everything and outline nothing. */
+export function lightFor(model: Model, view: string, m: Mode): Reach | undefined {
+  const r = reach(model, view, m)
+  return r.fails.length > 0 || r.failsLine !== undefined ? r : undefined
 }
 
 /**

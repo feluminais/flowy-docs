@@ -12,7 +12,7 @@ import { animationOf, followsLanding } from '../../src/core/animation.ts'
 import { captionOf, progressOf } from '../../src/core/captions.ts'
 import { otherLaneSteps, stopIndexOf, stopsOf } from '../../src/core/structure.ts'
 import { knee, traffic as trafficOf } from '../../src/core/perf.ts'
-import { homeView, inView, reach, rollUp, table } from '../../src/core/failures.ts'
+import { drawnIn, homeView, lightFor, rollUp, table } from '../../src/core/failures.ts'
 import type { Mark, Part } from '../../src/core/failures.ts'
 import { expandTo, outline } from '../../src/core/outline.ts'
 import type { OutlineRow } from '../../src/core/outline.ts'
@@ -24,9 +24,9 @@ import { connectionsOf, locate, moveBetween } from './edit.ts'
 import type { Move } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
-import { readHash, toHash } from './hash.ts'
+import { alongFailures, readHash, toHash } from './hash.ts'
 import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
-import { activeAnalysis, firstErrorAt, modeCount, modeIn, neighbour, rowsFor } from './failuresview.ts'
+import { activeAnalysis, firstErrorAt, modeCount, modeIn, neighbour, rowsFor, sideForTab } from './failuresview.ts'
 import type { Filter } from './failuresview.ts'
 import { FailuresBody } from './Failures.tsx'
 import { Line, LineMarksContext, LineStyleContext, LineWidthsContext } from './Line.tsx'
@@ -132,7 +132,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     // An address that names a mode whose part is outside the view it names opens on the view that draws the part.
     const named = readHash(location.hash)
     const m = modeIn(model, named.failures?.analysis, named.failures?.mode)
-    return m !== undefined && !inView(model, named.view, m) ? homeView(model, m) : named.view
+    return m !== undefined && !drawnIn(model, named.view, m) ? homeView(model, m) : named.view
   })
   const [side, setSide] = useState<Side>()
   // The left-hand panel's tab (the navigator: Flows or Explorer), and whether the right-hand Details panel was opened from its rail. Details shows
@@ -305,7 +305,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const part: Part | undefined = side?.kind === 'object' ? { box: side.id } : side?.kind === 'line' ? { line: [side.from, side.to] } : undefined
   const failMarks = useMemo(() => (failuresOpen && analysis ? rollUp(model, analysis, view) : undefined), [failuresOpen, model, analysis, view])
   const lineMarks = useMemo(() => new Map<string, Mark>(Object.entries(failMarks?.lines ?? {})), [failMarks])
-  const lit = useMemo(() => (failuresOpen && mode ? reach(model, view, mode) : undefined), [failuresOpen, model, mode, view])
+  const lit = useMemo(() => (failuresOpen && mode ? lightFor(model, view, mode) : undefined), [failuresOpen, model, mode, view])
   const partKey = part === undefined ? '' : JSON.stringify(part)
   const rows = useMemo(
     () => (failuresOpen && analysis ? rowsFor(model, analysis, view, { band: filter.band, part }) : { here: [], elsewhere: [] }),
@@ -379,6 +379,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const openFailures = () => {
     setDetails(false)
     setPerf(false)
+    setSide(sideForTab) // Add and a flow being recorded are Details' own: left behind the tab they would still take the canvas's clicks
     setFailures(true)
   }
   const closeFailures = () => {
@@ -470,7 +471,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const selectMode = (id: string | undefined) => {
     setModeId(id)
     const m = modeIn(model, analysisKey, id)
-    if (m && !inView(model, view, m)) go(homeView(model, m))
+    if (m && !drawnIn(model, view, m)) go(homeView(model, m))
   }
   /** A click on a shape in the list of those no mode names yet: go to it and pick it. */
   const pickShape = (id: string) => {
@@ -690,16 +691,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // on every render. A step the reader takes pushes an entry. Anything else replaces the address: the page
   // opening (which also drops a part that named nothing), Back or a typed address, E, or a live reload that
   // falls back to another view.
-  const address = toHash(
-    view, flow ? playing?.flow : undefined, perfOpen ? { run: runKey, level: Math.round(here) } : undefined,
-    failuresOpen && analysisKey !== undefined ? { analysis: analysisKey, ...(mode ? { mode: modeId } : {}) } : undefined,
-  )
+  const failuresAt = failuresOpen && analysisKey !== undefined ? { analysis: analysisKey, ...(mode ? { mode: modeId } : {}) } : undefined
+  const address = toHash(view, flow ? playing?.flow : undefined, perfOpen ? { run: runKey, level: Math.round(here) } : undefined, failuresAt)
   useEffect(() => {
     if (quiet.current || address !== location.hash) {
       const was = readHash(location.hash)
       const alongRun = perfOpen && was.perf?.run === runKey && was.view === view // moving along a run is not a step to go back to
-      const alongFailures = failuresOpen && was.failures?.analysis === analysisKey // nor is picking another mode, even one that moves the canvas to its view
-      history[quiet.current || view !== viewId || alongRun || alongFailures ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
+      // Nor is picking another mode, even one that moves the canvas to its view. A zoom with a mode picked is a step: same mode, another view.
+      history[quiet.current || view !== viewId || alongRun || alongFailures(was.failures, failuresAt) ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
     }
     quiet.current = false
     saveState({ hash: address }) // a VS Code panel that is restored opens where the reader was
@@ -731,7 +730,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         setModeId(m ? named.failures.mode : undefined)
         if (m) setSide(undefined) // a picked shape would narrow the list to what it carries, and the mode named here may not be in it
         openFailures()
-        if (m && !inView(model, named.view, m)) go(homeView(model, m)) // the mode's part is outside the view the address names
+        if (m && !drawnIn(model, named.view, m)) go(homeView(model, m)) // the mode's part is outside the view the address names
       } else setFailures(false)
     }
     window.addEventListener('popstate', follow)

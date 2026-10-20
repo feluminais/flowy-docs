@@ -8,7 +8,7 @@ import type { ModeChanges } from '../../src/core/ops.ts'
 import type { Run as LoadRun } from '../../src/core/perf.ts'
 import { isView } from '../../src/core/views.ts'
 import { newId } from './edit.ts'
-import { STATUS_NAMES } from './failuresview.ts'
+import { STATUS_NAMES, toLine, toShape } from './failuresview.ts'
 import { Plus, Trash } from './icons.tsx'
 import { Field } from './Panel.tsx'
 import type { Run } from './Panel.tsx'
@@ -27,7 +27,7 @@ function Choice({ label, value, options, onSave }: { label: ReactNode; value: st
   )
 }
 
-const RATING_OPTIONS: [string, string][] = [['', '–'], ...Array.from({ length: 10 }, (_, i): [string, string] => [String(i + 1), String(i + 1)])]
+const RATING_OPTIONS: [string, string][] = [['', 'Not rated'], ...Array.from({ length: 10 }, (_, i): [string, string] => [String(i + 1), String(i + 1)])]
 const STATUS_OPTIONS: [string, string][] = Object.entries(STATUS_NAMES)
 
 /** Every shape, by the path a reader sees. */
@@ -105,11 +105,11 @@ export function AddMode({ model, analysisId, preset, run, onAdded, onCancel }: {
     <form className="form" onSubmit={add}>
       <label>Part<select value={kind} onChange={e => setKind(e.target.value as 'shape' | 'line')}><option value="shape">A shape</option><option value="line">A line</option></select></label>
       {kind === 'shape'
-        ? <label>Shape<select value={on} onChange={e => setOn(e.target.value)}><option value="">–</option>{shapeOptions(model).map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></label>
+        ? <label>Shape<select value={on} onChange={e => setOn(e.target.value)}><option value="">None</option>{shapeOptions(model).map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></label>
         : (
           <>
-            <label>From<select value={from} onChange={e => { setFrom(e.target.value); setTo(toOptions(model, e.target.value)[0]?.[0] ?? '') }}><option value="">–</option>{fromOptions(model).map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></label>
-            <label>To<select value={to} onChange={e => setTo(e.target.value)}><option value="">–</option>{targets.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></label>
+            <label>From<select value={from} onChange={e => { setFrom(e.target.value); setTo(toOptions(model, e.target.value)[0]?.[0] ?? '') }}><option value="">None</option>{fromOptions(model).map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></label>
+            <label>To<select value={to} onChange={e => setTo(e.target.value)}><option value="">None</option>{targets.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></label>
           </>
         )}
       <label>Mode<input name="mode" autoFocus /></label>
@@ -132,21 +132,25 @@ export function ModeForm({ model, analysisId, modeId, runs, run }: { model: Mode
     <Choice label={label} value={m.after?.[key] ?? ''} options={RATING_OPTIONS} onSave={value => save({ after: { [key]: value } })} />
   )
   const kind = m.on !== undefined && m.on !== '' ? 'shape' : m.from !== undefined || m.to !== undefined ? 'line' : 'shape'
-  const flows: [string, string][] = [['', '–'], ...Object.entries(model.flows).map(([id, f]): [string, string] => [id, f.name || id])]
-  const runList: [string, string][] = [['', '–'], ...Object.entries(runs).map(([id, r]): [string, string] => [id, r.name || id])]
+  const flows: [string, string][] = [['', 'None'], ...Object.entries(model.flows).map(([id, f]): [string, string] => [id, f.name || id])]
+  const runList: [string, string][] = [['', 'None'], ...Object.entries(runs).map(([id, r]): [string, string] => [id, r.name || id])]
   const affects = m.affects ?? []
   const band = bandOf(m)
   return (
     <div className="form">
       {text('Mode', 'mode')}
-      <Choice label="Part" value={kind} options={[['shape', 'A shape'], ['line', 'A line']]}
-        onSave={value => (value === 'shape' ? save({ on: m.from ?? '', from: '', to: '' }) : save({ on: '', from: m.on ?? '', to: '' }))} />
+      {/* A line is offered for a shape only when a connection starts there: a line mode needs one that exists. */}
+      <Choice label="Part" value={kind} options={[['shape', 'A shape'], ...(kind === 'line' || toLine(model, m) !== undefined ? [['line', 'A line'] as [string, string]] : [])]}
+        onSave={value => {
+          const to = value === 'shape' ? toShape(m) : toLine(model, m)
+          return to === undefined ? Promise.resolve(false) : save(to)
+        }} />
       {kind === 'shape'
-        ? <Choice label="Shape" value={m.on ?? ''} options={[['', '–'], ...shapeOptions(model)]} onSave={on => save({ on })} />
+        ? <Choice label="Shape" value={m.on ?? ''} options={[['', 'None'], ...shapeOptions(model)]} onSave={on => save({ on })} />
         : (
           <>
-            <Choice label="From" value={m.from ?? ''} options={[['', '–'], ...fromOptions(model)]} onSave={from => save({ from, to: toOptions(model, from)[0]?.[0] ?? '' })} />
-            <Choice label="To" value={m.to ?? ''} options={[['', '–'], ...toOptions(model, m.from ?? '')]} onSave={to => save({ to })} />
+            <Choice label="From" value={m.from ?? ''} options={[['', 'None'], ...fromOptions(model)]} onSave={from => save({ from, to: toOptions(model, from)[0]?.[0] ?? '' })} />
+            <Choice label="To" value={m.to ?? ''} options={[['', 'None'], ...toOptions(model, m.from ?? '')]} onSave={to => save({ to })} />
           </>
         )}
       {text('Effect', 'effect')}
@@ -154,7 +158,7 @@ export function ModeForm({ model, analysisId, modeId, runs, run }: { model: Mode
       {rating('Severity (1 to 10)', 'severity')}
       {rating('Likelihood (1 to 10)', 'occurrence')}
       {rating('Hard to spot (1 to 10)', 'detection')}
-      <p className="riskline"><span className="label">Risk</span> <strong>{riskOf(m) ?? '–'}</strong> <span className={`sw ${band}`} aria-hidden="true" />{BAND_NAMES[band]}</p>
+      <p className="riskline"><span className="label">Risk</span> <strong>{riskOf(m) ?? 'None'}</strong> <span className={`sw ${band}`} aria-hidden="true" />{BAND_NAMES[band]}</p>
       {after('After: Severity (1 to 10)', 'severity')}
       {after('After: Likelihood (1 to 10)', 'occurrence')}
       {after('After: Hard to spot (1 to 10)', 'detection')}
