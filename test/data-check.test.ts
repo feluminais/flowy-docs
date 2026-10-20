@@ -55,6 +55,12 @@ const cases: [string, unknown, string][] = [
   ['a note that is a list', [{ name: 'a', sample: { x: '1' }, notes: { x: ['n'] } }], 'data "a": notes must map a field to its note'],
   ['a note on no field', [{ name: 'a', sample: { hours: { mon: '1' } }, notes: { 'hours.fri': 'n' } }], 'data "a": the note on "hours.fri" names no field of the sample'],
   ['a list inside a list', [{ name: 'a', sample: { grid: [['a'], ['b']] } }], 'data "a": sample has a list inside a list, which isn\'t shown'],
+  ['a line break in a cell', [{ name: 'a', columns: ['x'], rows: [['a\nb']] }], "data \"a\": text can't hold a line break"],
+  ['a carriage return in a cell', [{ name: 'a', columns: ['x'], rows: [['a\rb']] }], "data \"a\": text can't hold a line break"],
+  ['a line break in a column note', [{ name: 'a', columns: [{ name: 'x', note: 'one\ntwo' }] }], "data \"a\": text can't hold a line break"],
+  ['a line break in a sample key', [{ name: 'a', sample: { 'k\nk': '1' } }], "data \"a\": text can't hold a line break"],
+  ['a line break in a sample value', [{ name: 'a', sample: { k: { j: 'one\ntwo' } } }], "data \"a\": text can't hold a line break"],
+  ['a line break in the entry note', [{ name: 'a', columns: ['x'], note: 'one\n' }], "data \"a\": text can't hold a line break"],
   ['data that is a mapping', {}, 'data must be a list of entries'],
   ['data that is the text ~', '~', 'data must be a list of entries'],
 ]
@@ -89,4 +95,9 @@ test('data of any wrong shape reports problems and never throws', () => {
   const junk: unknown[] = ['x', {}, [null], [[]], [{}], [{ name: 'a', columns: 'c', rows: 'r', sample: 's', notes: 'n' }],
     [{ name: 'a', columns: [null, 3, {}, []], rows: [null, 'x', [null]] }], [{ name: 'a', sample: { x: null, y: [null, [1]], z: { w: [{}] } }, notes: [] }]]
   for (const data of junk) assert.doesNotThrow(() => problems(data), JSON.stringify(data))
+})
+
+test('a line separator character in a cell is not a line break', () => {
+  const separator = `x${String.fromCharCode(0x2028)}y`
+  assert.deepEqual(problems([{ name: 'a', columns: ['x'], rows: [[separator]] }]), [])
 })

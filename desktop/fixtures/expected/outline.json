@@ -22485,6 +22485,1773 @@
     },
     "shape-group": {
       "parseError": true
+    },
+    "data": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 18,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 18,
+            "flows": 0,
+            "problems": 46
+          }
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 18,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 16,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:on-a-system",
+              "kind": "shape",
+              "id": "on-a-system",
+              "parent": "root",
+              "depth": 1,
+              "name": "A system with data",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 18,
+            "flows": 0,
+            "problems": 46
+          }
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "shop"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 18,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 16,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:bad-breaks",
+              "kind": "shape",
+              "id": "bad-breaks",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad breaks",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-columns",
+              "kind": "shape",
+              "id": "bad-columns",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad columns",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-entries",
+              "kind": "shape",
+              "id": "bad-entries",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad entries",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-rows",
+              "kind": "shape",
+              "id": "bad-rows",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad rows",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-samples",
+              "kind": "shape",
+              "id": "bad-samples",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad samples",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:blank-data",
+              "kind": "shape",
+              "id": "blank-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Blank data",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:junk-data",
+              "kind": "shape",
+              "id": "junk-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Data that is a mapping",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:tilde-data",
+              "kind": "shape",
+              "id": "tilde-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Data that is a tilde",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:hostile",
+              "kind": "shape",
+              "id": "hostile",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Hostile cells",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:junk-entries",
+              "kind": "shape",
+              "id": "junk-entries",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Junk entries",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:menu-cache",
+              "kind": "shape",
+              "id": "menu-cache",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Menu cache",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:events",
+              "kind": "shape",
+              "id": "events",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Order events",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:orders-db",
+              "kind": "shape",
+              "id": "orders-db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:proto",
+              "kind": "shape",
+              "id": "proto",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Prototype names",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:quoted-blank-data",
+              "kind": "shape",
+              "id": "quoted-blank-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Quoted blank data",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:profiles",
+              "kind": "shape",
+              "id": "profiles",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Restaurant profiles",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:on-a-system",
+              "kind": "shape",
+              "id": "on-a-system",
+              "parent": "root",
+              "depth": 1,
+              "name": "A system with data",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 18,
+            "flows": 0,
+            "problems": 46
+          }
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "shop",
+            "orders-db",
+            "menu-cache",
+            "events",
+            "profiles",
+            "hostile",
+            "proto",
+            "bad-entries",
+            "bad-columns",
+            "bad-rows",
+            "bad-samples",
+            "bad-breaks",
+            "junk-data",
+            "tilde-data",
+            "blank-data",
+            "quoted-blank-data",
+            "junk-entries",
+            "on-a-system"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 18,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 16,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:bad-breaks",
+              "kind": "shape",
+              "id": "bad-breaks",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad breaks",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-columns",
+              "kind": "shape",
+              "id": "bad-columns",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad columns",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-entries",
+              "kind": "shape",
+              "id": "bad-entries",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad entries",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-rows",
+              "kind": "shape",
+              "id": "bad-rows",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad rows",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-samples",
+              "kind": "shape",
+              "id": "bad-samples",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad samples",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:blank-data",
+              "kind": "shape",
+              "id": "blank-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Blank data",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:junk-data",
+              "kind": "shape",
+              "id": "junk-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Data that is a mapping",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:tilde-data",
+              "kind": "shape",
+              "id": "tilde-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Data that is a tilde",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:hostile",
+              "kind": "shape",
+              "id": "hostile",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Hostile cells",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:junk-entries",
+              "kind": "shape",
+              "id": "junk-entries",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Junk entries",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:menu-cache",
+              "kind": "shape",
+              "id": "menu-cache",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Menu cache",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:events",
+              "kind": "shape",
+              "id": "events",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Order events",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:orders-db",
+              "kind": "shape",
+              "id": "orders-db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:proto",
+              "kind": "shape",
+              "id": "proto",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Prototype names",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:quoted-blank-data",
+              "kind": "shape",
+              "id": "quoted-blank-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Quoted blank data",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:profiles",
+              "kind": "shape",
+              "id": "profiles",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Restaurant profiles",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:on-a-system",
+              "kind": "shape",
+              "id": "on-a-system",
+              "parent": "root",
+              "depth": 1,
+              "name": "A system with data",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 18,
+            "flows": 0,
+            "problems": 46
+          }
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "shop",
+            "orders-db",
+            "menu-cache",
+            "events",
+            "profiles",
+            "hostile",
+            "proto",
+            "bad-entries",
+            "bad-columns",
+            "bad-rows",
+            "bad-samples",
+            "bad-breaks",
+            "junk-data",
+            "tilde-data",
+            "blank-data",
+            "quoted-blank-data",
+            "junk-entries",
+            "on-a-system"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 18,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 16,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:bad-breaks",
+              "kind": "shape",
+              "id": "bad-breaks",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad breaks",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-columns",
+              "kind": "shape",
+              "id": "bad-columns",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad columns",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-entries",
+              "kind": "shape",
+              "id": "bad-entries",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad entries",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-rows",
+              "kind": "shape",
+              "id": "bad-rows",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad rows",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-samples",
+              "kind": "shape",
+              "id": "bad-samples",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad samples",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:blank-data",
+              "kind": "shape",
+              "id": "blank-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Blank data",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:junk-data",
+              "kind": "shape",
+              "id": "junk-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Data that is a mapping",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:tilde-data",
+              "kind": "shape",
+              "id": "tilde-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Data that is a tilde",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:hostile",
+              "kind": "shape",
+              "id": "hostile",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Hostile cells",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:junk-entries",
+              "kind": "shape",
+              "id": "junk-entries",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Junk entries",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:menu-cache",
+              "kind": "shape",
+              "id": "menu-cache",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Menu cache",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:events",
+              "kind": "shape",
+              "id": "events",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Order events",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:orders-db",
+              "kind": "shape",
+              "id": "orders-db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:proto",
+              "kind": "shape",
+              "id": "proto",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Prototype names",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:quoted-blank-data",
+              "kind": "shape",
+              "id": "quoted-blank-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Quoted blank data",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:profiles",
+              "kind": "shape",
+              "id": "profiles",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Restaurant profiles",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:on-a-system",
+              "kind": "shape",
+              "id": "on-a-system",
+              "parent": "root",
+              "depth": 1,
+              "name": "A system with data",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 18,
+            "flows": 0,
+            "problems": 46
+          }
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 18,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 16,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:bad-breaks",
+              "kind": "shape",
+              "id": "bad-breaks",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad breaks",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-columns",
+              "kind": "shape",
+              "id": "bad-columns",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad columns",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-entries",
+              "kind": "shape",
+              "id": "bad-entries",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad entries",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-rows",
+              "kind": "shape",
+              "id": "bad-rows",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad rows",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bad-samples",
+              "kind": "shape",
+              "id": "bad-samples",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Bad samples",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:blank-data",
+              "kind": "shape",
+              "id": "blank-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Blank data",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:junk-data",
+              "kind": "shape",
+              "id": "junk-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Data that is a mapping",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:tilde-data",
+              "kind": "shape",
+              "id": "tilde-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Data that is a tilde",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:menu-cache",
+              "kind": "shape",
+              "id": "menu-cache",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Menu cache",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:proto",
+              "kind": "shape",
+              "id": "proto",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Prototype names",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:quoted-blank-data",
+              "kind": "shape",
+              "id": "quoted-blank-data",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Quoted blank data",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:profiles",
+              "kind": "shape",
+              "id": "profiles",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Restaurant profiles",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:on-a-system",
+              "kind": "shape",
+              "id": "on-a-system",
+              "parent": "root",
+              "depth": 1,
+              "name": "A system with data",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 18,
+            "flows": 0,
+            "problems": 46
+          }
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [],
+          "totals": {
+            "shapes": 18,
+            "flows": 0,
+            "problems": 46
+          }
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 18,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 16,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:on-a-system",
+              "kind": "shape",
+              "id": "on-a-system",
+              "parent": "root",
+              "depth": 1,
+              "name": "A system with data",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 18,
+            "flows": 0,
+            "problems": 46
+          }
+        }
+      ],
+      "groups": [
+        {
+          "view": "root",
+          "editing": false,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        },
+        {
+          "view": "root",
+          "editing": true,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        },
+        {
+          "view": "shop",
+          "editing": false,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        },
+        {
+          "view": "shop",
+          "editing": true,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": true,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "orders-db",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "orders-db",
+          "self": true,
+          "opened": [
+            "orders-db",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "menu-cache",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "menu-cache",
+          "self": true,
+          "opened": [
+            "menu-cache",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "events",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "events",
+          "self": true,
+          "opened": [
+            "events",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "profiles",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "profiles",
+          "self": true,
+          "opened": [
+            "profiles",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "hostile",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "hostile",
+          "self": true,
+          "opened": [
+            "hostile",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "proto",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "proto",
+          "self": true,
+          "opened": [
+            "proto",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "bad-entries",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "bad-entries",
+          "self": true,
+          "opened": [
+            "bad-entries",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "bad-columns",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "bad-columns",
+          "self": true,
+          "opened": [
+            "bad-columns",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "bad-rows",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "bad-rows",
+          "self": true,
+          "opened": [
+            "bad-rows",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "bad-samples",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "bad-samples",
+          "self": true,
+          "opened": [
+            "bad-samples",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "bad-breaks",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "bad-breaks",
+          "self": true,
+          "opened": [
+            "bad-breaks",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "junk-data",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "junk-data",
+          "self": true,
+          "opened": [
+            "junk-data",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "tilde-data",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "tilde-data",
+          "self": true,
+          "opened": [
+            "root",
+            "shop",
+            "tilde-data"
+          ]
+        },
+        {
+          "id": "blank-data",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "blank-data",
+          "self": true,
+          "opened": [
+            "blank-data",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "quoted-blank-data",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "quoted-blank-data",
+          "self": true,
+          "opened": [
+            "quoted-blank-data",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "junk-entries",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "junk-entries",
+          "self": true,
+          "opened": [
+            "junk-entries",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "on-a-system",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "on-a-system",
+          "self": true,
+          "opened": [
+            "on-a-system",
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
     }
   },
   "keys": {

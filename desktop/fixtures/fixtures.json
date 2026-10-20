@@ -19,5 +19,6 @@
   "perf": "desktop/fixtures/cases/perf/flowy",
   "groups": "desktop/fixtures/cases/groups/flowy",
   "shape-groups": "desktop/fixtures/cases/shape-groups/flowy",
-  "shape-group": "desktop/fixtures/cases/shape-group/flowy"
+  "shape-group": "desktop/fixtures/cases/shape-group/flowy",
+  "data": "desktop/fixtures/cases/data/flowy"
 }

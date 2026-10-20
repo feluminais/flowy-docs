@@ -1,0 +1,2581 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "orders-db",
+      "type": "store",
+      "name": "Orders DB",
+      "in": "shop",
+      "tech": "Postgres",
+      "description": "Orders, baskets and refunds.",
+      "data": [
+        {
+          "name": "orders",
+          "kind": "table",
+          "limits": "Kept 7 years, then archived",
+          "note": "One row per order. A refund adds a row to refunds; the order stays.",
+          "columns": [
+            {
+              "name": "id",
+              "key": "primary"
+            },
+            {
+              "name": "customer_id",
+              "to": "customers"
+            },
+            "status",
+            {
+              "name": "total",
+              "note": "Cents, not decimals. Rounding broke the first tax run."
+            },
+            "placed_at",
+            "delivery_notes"
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "c_77",
+              "placed",
+              "2490",
+              "2026-10-19 18:02",
+              "Ring twice, the bell is broken and the courier should leave it with the neighbour in flat 4 if nobody answers"
+            ],
+            [
+              "o_1043",
+              "c_12",
+              "accepted",
+              "1380",
+              "2026-10-19 18:05",
+              ""
+            ],
+            [
+              "o_1044",
+              "c_77",
+              "refunded",
+              "990",
+              "2026-10-19 18:09",
+              "<b>no onions</b> {please}"
+            ]
+          ]
+        },
+        {
+          "name": "order_items",
+          "columns": [
+            {
+              "name": "order_id",
+              "key": "primary",
+              "to": "orders"
+            },
+            {
+              "name": "item_id",
+              "key": "primary"
+            },
+            "quantity",
+            {
+              "name": "unit_price",
+              "note": "Copied from the menu at order time. Menus change; receipts must not."
+            }
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "i_31",
+              "2",
+              "1245"
+            ]
+          ]
+        },
+        {
+          "name": "refunds",
+          "columns": [
+            "id",
+            "order_id",
+            "amount",
+            "reason"
+          ],
+          "limits": "Kept with its order"
+        },
+        {
+          "name": "baskets",
+          "kind": "",
+          "limits": "",
+          "columns": [
+            "id",
+            "customer_id",
+            "items",
+            "expires_at"
+          ]
+        },
+        {
+          "name": "audit",
+          "columns": [
+            "at",
+            "who",
+            "what"
+          ]
+        }
+      ],
+      "shown": [
+        {
+          "name": "orders",
+          "kind": "table",
+          "limits": "Kept 7 years, then archived",
+          "note": "One row per order. A refund adds a row to refunds; the order stays.",
+          "summary": "6 columns",
+          "columns": [
+            {
+              "name": "id",
+              "key": "primary"
+            },
+            {
+              "name": "customer_id",
+              "to": "customers"
+            },
+            {
+              "name": "status"
+            },
+            {
+              "name": "total",
+              "note": "Cents, not decimals. Rounding broke the first tax run."
+            },
+            {
+              "name": "placed_at"
+            },
+            {
+              "name": "delivery_notes"
+            }
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "c_77",
+              "placed",
+              "2490",
+              "2026-10-19 18:02",
+              "Ring twice, the bell is broken and the courier should leave it with the neighbour in flat 4 if nobody answers"
+            ],
+            [
+              "o_1043",
+              "c_12",
+              "accepted",
+              "1380",
+              "2026-10-19 18:05",
+              ""
+            ],
+            [
+              "o_1044",
+              "c_77",
+              "refunded",
+              "990",
+              "2026-10-19 18:09",
+              "<b>no onions</b> {please}"
+            ]
+          ],
+          "lines": [],
+          "notes": [
+            {
+              "name": "total",
+              "text": "Cents, not decimals. Rounding broke the first tax run."
+            }
+          ]
+        },
+        {
+          "name": "order_items",
+          "summary": "4 columns",
+          "columns": [
+            {
+              "name": "order_id",
+              "key": "primary",
+              "to": "orders"
+            },
+            {
+              "name": "item_id",
+              "key": "primary"
+            },
+            {
+              "name": "quantity"
+            },
+            {
+              "name": "unit_price",
+              "note": "Copied from the menu at order time. Menus change; receipts must not."
+            }
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "i_31",
+              "2",
+              "1245"
+            ]
+          ],
+          "lines": [],
+          "notes": [
+            {
+              "name": "unit_price",
+              "text": "Copied from the menu at order time. Menus change; receipts must not."
+            }
+          ]
+        },
+        {
+          "name": "refunds",
+          "limits": "Kept with its order",
+          "summary": "4 columns",
+          "columns": [
+            {
+              "name": "id"
+            },
+            {
+              "name": "order_id"
+            },
+            {
+              "name": "amount"
+            },
+            {
+              "name": "reason"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "baskets",
+          "summary": "4 columns",
+          "columns": [
+            {
+              "name": "id"
+            },
+            {
+              "name": "customer_id"
+            },
+            {
+              "name": "items"
+            },
+            {
+              "name": "expires_at"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "audit",
+          "summary": "3 columns",
+          "columns": [
+            {
+              "name": "at"
+            },
+            {
+              "name": "who"
+            },
+            {
+              "name": "what"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "menu-cache",
+      "type": "store",
+      "name": "Menu cache",
+      "in": "shop",
+      "tech": "Redis",
+      "data": [
+        {
+          "name": "Keys",
+          "limits": "Oldest unused go first at 256 MB",
+          "note": "Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.",
+          "columns": [
+            "Key",
+            "Value",
+            {
+              "name": "Expires",
+              "note": "Set on every write",
+              "never extended on a read.": null
+            }
+          ],
+          "rows": [
+            [
+              "menu:{restaurantId}",
+              "{ items, prices, hours }",
+              "5 min"
+            ],
+            [
+              "menu:42",
+              "{ \"items\": 31 }",
+              "3 min left"
+            ]
+          ]
+        }
+      ],
+      "shown": [
+        {
+          "name": "Keys",
+          "limits": "Oldest unused go first at 256 MB",
+          "note": "Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.",
+          "summary": "3 columns",
+          "columns": [
+            {
+              "name": "Key"
+            },
+            {
+              "name": "Value"
+            },
+            {
+              "name": "Expires",
+              "note": "Set on every write"
+            }
+          ],
+          "rows": [
+            [
+              "menu:{restaurantId}",
+              "{ items, prices, hours }",
+              "5 min"
+            ],
+            [
+              "menu:42",
+              "{ \"items\": 31 }",
+              "3 min left"
+            ]
+          ],
+          "lines": [],
+          "notes": [
+            {
+              "name": "Expires",
+              "text": "Set on every write"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "type": "store",
+      "name": "Order events",
+      "in": "shop",
+      "shape": "queue",
+      "tech": "Kafka",
+      "data": [
+        {
+          "name": "order-events",
+          "kind": "topic",
+          "limits": "Kept 7 days, 6 partitions",
+          "note": "Keyed by order id so one order's messages stay in order.",
+          "columns": [
+            "Key",
+            "Value"
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "{ \"type\": \"placed\", \"total\": 2490 }"
+            ],
+            [
+              "o_1042",
+              "{ \"type\": \"accepted\" }"
+            ]
+          ]
+        }
+      ],
+      "shown": [
+        {
+          "name": "order-events",
+          "kind": "topic",
+          "limits": "Kept 7 days, 6 partitions",
+          "note": "Keyed by order id so one order's messages stay in order.",
+          "summary": "2 columns",
+          "columns": [
+            {
+              "name": "Key"
+            },
+            {
+              "name": "Value"
+            }
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "{ \"type\": \"placed\", \"total\": 2490 }"
+            ],
+            [
+              "o_1042",
+              "{ \"type\": \"accepted\" }"
+            ]
+          ],
+          "lines": [],
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "profiles",
+      "type": "store",
+      "name": "Restaurant profiles",
+      "in": "shop",
+      "tech": "MongoDB",
+      "data": [
+        {
+          "name": "restaurants",
+          "kind": "collection",
+          "sample": {
+            "_id": "r_42",
+            "name": "Noodle Bar",
+            "tags": [
+              "ramen",
+              "vegan"
+            ],
+            "hours": {
+              "mon": "11-22",
+              "tue": "11-22"
+            },
+            "rating": "4.6",
+            "items": [
+              {
+                "name": "Pho"
+              },
+              {
+                "name": "Ramen"
+              }
+            ],
+            "menu": [
+              "plain",
+              "second"
+            ]
+          },
+          "notes": {
+            "hours": "Hours live inside the profile. They are only ever read with it.",
+            "hours.tue": "Closed on public holidays."
+          }
+        }
+      ],
+      "shown": [
+        {
+          "name": "restaurants",
+          "kind": "collection",
+          "summary": "7 fields",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "_id",
+              "value": "r_42",
+              "path": "_id",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "name",
+              "value": "Noodle Bar",
+              "path": "name",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "tags",
+              "value": "[ramen, vegan]",
+              "path": "tags",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "hours",
+              "value": "",
+              "path": "hours",
+              "noted": true
+            },
+            {
+              "depth": 2,
+              "key": "mon",
+              "value": "11-22",
+              "path": "hours.mon",
+              "noted": false
+            },
+            {
+              "depth": 2,
+              "key": "tue",
+              "value": "11-22",
+              "path": "hours.tue",
+              "noted": true
+            },
+            {
+              "depth": 1,
+              "key": "rating",
+              "value": "4.6",
+              "path": "rating",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "items",
+              "value": "",
+              "path": "items",
+              "noted": false
+            },
+            {
+              "depth": 2,
+              "key": "-",
+              "value": "",
+              "noted": false
+            },
+            {
+              "depth": 3,
+              "key": "name",
+              "value": "Pho",
+              "noted": false
+            },
+            {
+              "depth": 2,
+              "key": "-",
+              "value": "",
+              "noted": false
+            },
+            {
+              "depth": 3,
+              "key": "name",
+              "value": "Ramen",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "menu",
+              "value": "[plain, second]",
+              "path": "menu",
+              "noted": false
+            }
+          ],
+          "notes": [
+            {
+              "name": "hours",
+              "text": "Hours live inside the profile. They are only ever read with it."
+            },
+            {
+              "name": "hours.tue",
+              "text": "Closed on public holidays."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hostile",
+      "type": "store",
+      "name": "Hostile cells",
+      "in": "shop",
+      "tech": "Postgres",
+      "data": [
+        {
+          "name": "cells",
+          "columns": [
+            "c0",
+            "c1",
+            "c2",
+            "c3",
+            "c4",
+            "c5",
+            "c6",
+            "c7",
+            "c8",
+            "c9",
+            "c10",
+            "c11"
+          ],
+          "rows": [
+            [
+              "a: b",
+              "# not a comment",
+              "\"quoted\"",
+              "it's",
+              "- dash",
+              "[x]",
+              "{x}",
+              " leading",
+              "trailing ",
+              "",
+              "a, b",
+              "é ü ✓ 日本"
+            ],
+            [
+              "null",
+              "~",
+              "007",
+              "3.10",
+              "true",
+              "yes",
+              "- ",
+              "? x",
+              "% x",
+              "@x",
+              "`x",
+              "a  b"
+            ],
+            [
+              "http://example.com/a?b=c#d",
+              "C:\\path\\file",
+              "a | b",
+              "a > b",
+              "a & b",
+              "a * b",
+              "a ! b",
+              "--- x",
+              "... x",
+              "x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z",
+              "&x",
+              "*x"
+            ]
+          ]
+        },
+        {
+          "name": "notes",
+          "columns": [
+            {
+              "name": "a",
+              "note": "a: b # c"
+            },
+            {
+              "name": "b",
+              "note": "- x, [y] {z}"
+            },
+            {
+              "name": "c",
+              "note": " lead"
+            },
+            {
+              "name": "d",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "name": "doc",
+          "sample": {
+            "list": [
+              "a: b",
+              "# c",
+              "x, y",
+              "",
+              "[z]"
+            ],
+            "text": "a: b # c",
+            "quote": "say \"hi\""
+          },
+          "notes": {
+            "list": "x: y, [z]"
+          }
+        }
+      ],
+      "shown": [
+        {
+          "name": "cells",
+          "summary": "12 columns",
+          "columns": [
+            {
+              "name": "c0"
+            },
+            {
+              "name": "c1"
+            },
+            {
+              "name": "c2"
+            },
+            {
+              "name": "c3"
+            },
+            {
+              "name": "c4"
+            },
+            {
+              "name": "c5"
+            },
+            {
+              "name": "c6"
+            },
+            {
+              "name": "c7"
+            },
+            {
+              "name": "c8"
+            },
+            {
+              "name": "c9"
+            },
+            {
+              "name": "c10"
+            },
+            {
+              "name": "c11"
+            }
+          ],
+          "rows": [
+            [
+              "a: b",
+              "# not a comment",
+              "\"quoted\"",
+              "it's",
+              "- dash",
+              "[x]",
+              "{x}",
+              " leading",
+              "trailing ",
+              "",
+              "a, b",
+              "é ü ✓ 日本"
+            ],
+            [
+              "null",
+              "~",
+              "007",
+              "3.10",
+              "true",
+              "yes",
+              "- ",
+              "? x",
+              "% x",
+              "@x",
+              "`x",
+              "a  b"
+            ],
+            [
+              "http://example.com/a?b=c#d",
+              "C:\\path\\file",
+              "a | b",
+              "a > b",
+              "a & b",
+              "a * b",
+              "a ! b",
+              "--- x",
+              "... x",
+              "x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z",
+              "&x",
+              "*x"
+            ]
+          ],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "notes",
+          "summary": "4 columns",
+          "columns": [
+            {
+              "name": "a",
+              "note": "a: b # c"
+            },
+            {
+              "name": "b",
+              "note": "- x, [y] {z}"
+            },
+            {
+              "name": "c",
+              "note": " lead"
+            },
+            {
+              "name": "d"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": [
+            {
+              "name": "a",
+              "text": "a: b # c"
+            },
+            {
+              "name": "b",
+              "text": "- x, [y] {z}"
+            },
+            {
+              "name": "c",
+              "text": " lead"
+            }
+          ]
+        },
+        {
+          "name": "doc",
+          "summary": "3 fields",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "list",
+              "value": "[a: b, # c, x, y, , [z]]",
+              "path": "list",
+              "noted": true
+            },
+            {
+              "depth": 1,
+              "key": "text",
+              "value": "a: b # c",
+              "path": "text",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "quote",
+              "value": "say \"hi\"",
+              "path": "quote",
+              "noted": false
+            }
+          ],
+          "notes": [
+            {
+              "name": "list",
+              "text": "x: y, [z]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "proto",
+      "type": "store",
+      "name": "Prototype names",
+      "in": "shop",
+      "tech": "MongoDB",
+      "data": [
+        {
+          "name": "names",
+          "sample": {
+            "constructor": "1",
+            "toString": "2"
+          },
+          "notes": {
+            "constructor": "A field named like a prototype member."
+          }
+        },
+        {
+          "name": "loose",
+          "sample": {
+            "x": "1"
+          },
+          "notes": {
+            "toString": "Names no field."
+          }
+        }
+      ],
+      "shown": [
+        {
+          "name": "names",
+          "summary": "2 fields",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "constructor",
+              "value": "1",
+              "path": "constructor",
+              "noted": true
+            },
+            {
+              "depth": 1,
+              "key": "toString",
+              "value": "2",
+              "path": "toString",
+              "noted": false
+            }
+          ],
+          "notes": [
+            {
+              "name": "constructor",
+              "text": "A field named like a prototype member."
+            }
+          ]
+        },
+        {
+          "name": "loose",
+          "summary": "1 field",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "x",
+              "value": "1",
+              "path": "x",
+              "noted": false
+            }
+          ],
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "bad-entries",
+      "type": "store",
+      "name": "Bad entries",
+      "in": "shop",
+      "data": [
+        "text",
+        {
+          "columns": [
+            "a"
+          ]
+        },
+        {
+          "name": " ",
+          "columns": [
+            "a"
+          ]
+        },
+        {
+          "name": "dup",
+          "columns": [
+            "x"
+          ]
+        },
+        {
+          "name": "dup",
+          "columns": [
+            "x"
+          ]
+        },
+        {
+          "name": "needs-body"
+        },
+        {
+          "name": "both",
+          "columns": [
+            "x"
+          ],
+          "sample": {
+            "x": "1"
+          }
+        },
+        {
+          "name": "rows-no-columns",
+          "sample": {
+            "x": "1"
+          },
+          "rows": [
+            [
+              "1"
+            ]
+          ]
+        },
+        {
+          "name": "notes-no-sample",
+          "columns": [
+            "x"
+          ],
+          "notes": {
+            "x": "n"
+          }
+        }
+      ],
+      "shown": [
+        {
+          "name": "dup",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "x"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "dup",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "x"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "both",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "x"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "rows-no-columns",
+          "summary": "1 field",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "x",
+              "value": "1",
+              "path": "x",
+              "noted": false
+            }
+          ],
+          "notes": []
+        },
+        {
+          "name": "notes-no-sample",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "x"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "bad-columns",
+      "type": "store",
+      "name": "Bad columns",
+      "in": "shop",
+      "data": [
+        {
+          "name": "not-a-list",
+          "columns": "x"
+        },
+        {
+          "name": "empty",
+          "columns": []
+        },
+        {
+          "name": "shapes",
+          "columns": [
+            [
+              "a"
+            ],
+            {
+              "key": "primary"
+            },
+            {
+              "name": "dup"
+            },
+            {
+              "name": "dup"
+            },
+            {
+              "name": "k",
+              "key": "foreign"
+            },
+            {
+              "name": "n",
+              "note": [
+                "x"
+              ]
+            },
+            {
+              "name": "t",
+              "to": [
+                "y"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "plain-text",
+          "kind": [
+            "x"
+          ],
+          "limits": [
+            "y"
+          ],
+          "note": [
+            "z"
+          ],
+          "columns": [
+            "a"
+          ]
+        },
+        {
+          "name": "too-many",
+          "columns": [
+            "c0",
+            "c1",
+            "c2",
+            "c3",
+            "c4",
+            "c5",
+            "c6",
+            "c7",
+            "c8",
+            "c9",
+            "c10",
+            "c11",
+            "c12"
+          ]
+        },
+        {
+          "name": "exactly-twelve",
+          "columns": [
+            "c0",
+            "c1",
+            "c2",
+            "c3",
+            "c4",
+            "c5",
+            "c6",
+            "c7",
+            "c8",
+            "c9",
+            "c10",
+            "c11"
+          ]
+        }
+      ],
+      "shown": [
+        {
+          "name": "empty",
+          "summary": "0 columns",
+          "columns": [],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "shapes",
+          "summary": "5 columns",
+          "columns": [
+            {
+              "name": "dup"
+            },
+            {
+              "name": "dup"
+            },
+            {
+              "name": "k"
+            },
+            {
+              "name": "n"
+            },
+            {
+              "name": "t"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "plain-text",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "a"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "too-many",
+          "summary": "13 columns",
+          "columns": [
+            {
+              "name": "c0"
+            },
+            {
+              "name": "c1"
+            },
+            {
+              "name": "c2"
+            },
+            {
+              "name": "c3"
+            },
+            {
+              "name": "c4"
+            },
+            {
+              "name": "c5"
+            },
+            {
+              "name": "c6"
+            },
+            {
+              "name": "c7"
+            },
+            {
+              "name": "c8"
+            },
+            {
+              "name": "c9"
+            },
+            {
+              "name": "c10"
+            },
+            {
+              "name": "c11"
+            },
+            {
+              "name": "c12"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "exactly-twelve",
+          "summary": "12 columns",
+          "columns": [
+            {
+              "name": "c0"
+            },
+            {
+              "name": "c1"
+            },
+            {
+              "name": "c2"
+            },
+            {
+              "name": "c3"
+            },
+            {
+              "name": "c4"
+            },
+            {
+              "name": "c5"
+            },
+            {
+              "name": "c6"
+            },
+            {
+              "name": "c7"
+            },
+            {
+              "name": "c8"
+            },
+            {
+              "name": "c9"
+            },
+            {
+              "name": "c10"
+            },
+            {
+              "name": "c11"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "bad-rows",
+      "type": "store",
+      "name": "Bad rows",
+      "in": "shop",
+      "data": [
+        {
+          "name": "not-a-list",
+          "columns": [
+            "a",
+            "b"
+          ],
+          "rows": "x"
+        },
+        {
+          "name": "shapes",
+          "columns": [
+            "a",
+            "b"
+          ],
+          "rows": [
+            "x",
+            [
+              "a",
+              [
+                "b"
+              ]
+            ],
+            [
+              "a"
+            ],
+            [
+              "a",
+              "b",
+              "c"
+            ]
+          ]
+        },
+        {
+          "name": "one-column",
+          "columns": [
+            "a"
+          ],
+          "rows": [
+            [
+              "a",
+              "b"
+            ]
+          ]
+        },
+        {
+          "name": "too-many",
+          "columns": [
+            "a"
+          ],
+          "rows": [
+            [
+              "1"
+            ],
+            [
+              "2"
+            ],
+            [
+              "3"
+            ],
+            [
+              "4"
+            ],
+            [
+              "5"
+            ],
+            [
+              "6"
+            ],
+            [
+              "7"
+            ],
+            [
+              "8"
+            ],
+            [
+              "9"
+            ]
+          ]
+        },
+        {
+          "name": "exactly-eight",
+          "columns": [
+            "a"
+          ],
+          "rows": [
+            [
+              "1"
+            ],
+            [
+              "2"
+            ],
+            [
+              "3"
+            ],
+            [
+              "4"
+            ],
+            [
+              "5"
+            ],
+            [
+              "6"
+            ],
+            [
+              "7"
+            ],
+            [
+              "8"
+            ]
+          ]
+        }
+      ],
+      "shown": [
+        {
+          "name": "not-a-list",
+          "summary": "2 columns",
+          "columns": [
+            {
+              "name": "a"
+            },
+            {
+              "name": "b"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "shapes",
+          "summary": "2 columns",
+          "columns": [
+            {
+              "name": "a"
+            },
+            {
+              "name": "b"
+            }
+          ],
+          "rows": [
+            [
+              "a",
+              ""
+            ],
+            [
+              "a",
+              ""
+            ],
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "one-column",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "a"
+            }
+          ],
+          "rows": [
+            [
+              "a"
+            ]
+          ],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "too-many",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "a"
+            }
+          ],
+          "rows": [
+            [
+              "1"
+            ],
+            [
+              "2"
+            ],
+            [
+              "3"
+            ],
+            [
+              "4"
+            ],
+            [
+              "5"
+            ],
+            [
+              "6"
+            ],
+            [
+              "7"
+            ],
+            [
+              "8"
+            ],
+            [
+              "9"
+            ]
+          ],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "exactly-eight",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "a"
+            }
+          ],
+          "rows": [
+            [
+              "1"
+            ],
+            [
+              "2"
+            ],
+            [
+              "3"
+            ],
+            [
+              "4"
+            ],
+            [
+              "5"
+            ],
+            [
+              "6"
+            ],
+            [
+              "7"
+            ],
+            [
+              "8"
+            ]
+          ],
+          "lines": [],
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "bad-samples",
+      "type": "store",
+      "name": "Bad samples",
+      "in": "shop",
+      "data": [
+        {
+          "name": "a-list",
+          "sample": [
+            "x"
+          ]
+        },
+        {
+          "name": "empty",
+          "sample": {}
+        },
+        {
+          "name": "too-deep",
+          "sample": {
+            "a": {
+              "b": {
+                "c": {
+                  "d": "1"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "deep-enough",
+          "sample": {
+            "a": {
+              "b": {
+                "c": "1"
+              }
+            }
+          }
+        },
+        {
+          "name": "too-many",
+          "sample": {
+            "f0": "1",
+            "f1": "1",
+            "f2": "1",
+            "f3": "1",
+            "f4": "1",
+            "f5": "1",
+            "f6": "1",
+            "f7": "1",
+            "f8": "1",
+            "f9": "1",
+            "f10": "1",
+            "f11": "1",
+            "f12": "1",
+            "f13": "1",
+            "f14": "1",
+            "f15": "1",
+            "f16": "1",
+            "f17": "1",
+            "f18": "1",
+            "f19": "1",
+            "f20": "1"
+          }
+        },
+        {
+          "name": "exactly-twenty",
+          "sample": {
+            "f0": "1",
+            "f1": "1",
+            "f2": "1",
+            "f3": "1",
+            "f4": "1",
+            "f5": "1",
+            "f6": "1",
+            "f7": "1",
+            "f8": "1",
+            "f9": "1",
+            "f10": "1",
+            "f11": "1",
+            "f12": "1",
+            "f13": "1",
+            "f14": "1",
+            "f15": "1",
+            "f16": "1",
+            "f17": "1",
+            "f18": "1",
+            "f19": "1"
+          }
+        },
+        {
+          "name": "notes-text",
+          "sample": {
+            "x": "1"
+          },
+          "notes": "n"
+        },
+        {
+          "name": "note-list",
+          "sample": {
+            "x": "1"
+          },
+          "notes": {
+            "x": [
+              "a"
+            ]
+          }
+        },
+        {
+          "name": "note-nowhere",
+          "sample": {
+            "hours": {
+              "mon": "1"
+            }
+          },
+          "notes": {
+            "hours.fri": "n"
+          }
+        },
+        {
+          "name": "list-in-list",
+          "sample": {
+            "grid": [
+              [
+                "a"
+              ],
+              [
+                "b"
+              ]
+            ]
+          }
+        }
+      ],
+      "shown": [
+        {
+          "name": "empty",
+          "summary": "0 fields",
+          "columns": [],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "too-deep",
+          "summary": "1 field",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "a",
+              "value": "",
+              "path": "a",
+              "noted": false
+            },
+            {
+              "depth": 2,
+              "key": "b",
+              "value": "",
+              "path": "a.b",
+              "noted": false
+            },
+            {
+              "depth": 3,
+              "key": "c",
+              "value": "",
+              "path": "a.b.c",
+              "noted": false
+            },
+            {
+              "depth": 4,
+              "key": "d",
+              "value": "1",
+              "path": "a.b.c.d",
+              "noted": false
+            }
+          ],
+          "notes": []
+        },
+        {
+          "name": "deep-enough",
+          "summary": "1 field",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "a",
+              "value": "",
+              "path": "a",
+              "noted": false
+            },
+            {
+              "depth": 2,
+              "key": "b",
+              "value": "",
+              "path": "a.b",
+              "noted": false
+            },
+            {
+              "depth": 3,
+              "key": "c",
+              "value": "1",
+              "path": "a.b.c",
+              "noted": false
+            }
+          ],
+          "notes": []
+        },
+        {
+          "name": "too-many",
+          "summary": "21 fields",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "f0",
+              "value": "1",
+              "path": "f0",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f1",
+              "value": "1",
+              "path": "f1",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f2",
+              "value": "1",
+              "path": "f2",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f3",
+              "value": "1",
+              "path": "f3",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f4",
+              "value": "1",
+              "path": "f4",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f5",
+              "value": "1",
+              "path": "f5",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f6",
+              "value": "1",
+              "path": "f6",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f7",
+              "value": "1",
+              "path": "f7",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f8",
+              "value": "1",
+              "path": "f8",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f9",
+              "value": "1",
+              "path": "f9",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f10",
+              "value": "1",
+              "path": "f10",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f11",
+              "value": "1",
+              "path": "f11",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f12",
+              "value": "1",
+              "path": "f12",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f13",
+              "value": "1",
+              "path": "f13",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f14",
+              "value": "1",
+              "path": "f14",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f15",
+              "value": "1",
+              "path": "f15",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f16",
+              "value": "1",
+              "path": "f16",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f17",
+              "value": "1",
+              "path": "f17",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f18",
+              "value": "1",
+              "path": "f18",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f19",
+              "value": "1",
+              "path": "f19",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f20",
+              "value": "1",
+              "path": "f20",
+              "noted": false
+            }
+          ],
+          "notes": []
+        },
+        {
+          "name": "exactly-twenty",
+          "summary": "20 fields",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "f0",
+              "value": "1",
+              "path": "f0",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f1",
+              "value": "1",
+              "path": "f1",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f2",
+              "value": "1",
+              "path": "f2",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f3",
+              "value": "1",
+              "path": "f3",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f4",
+              "value": "1",
+              "path": "f4",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f5",
+              "value": "1",
+              "path": "f5",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f6",
+              "value": "1",
+              "path": "f6",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f7",
+              "value": "1",
+              "path": "f7",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f8",
+              "value": "1",
+              "path": "f8",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f9",
+              "value": "1",
+              "path": "f9",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f10",
+              "value": "1",
+              "path": "f10",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f11",
+              "value": "1",
+              "path": "f11",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f12",
+              "value": "1",
+              "path": "f12",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f13",
+              "value": "1",
+              "path": "f13",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f14",
+              "value": "1",
+              "path": "f14",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f15",
+              "value": "1",
+              "path": "f15",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f16",
+              "value": "1",
+              "path": "f16",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f17",
+              "value": "1",
+              "path": "f17",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f18",
+              "value": "1",
+              "path": "f18",
+              "noted": false
+            },
+            {
+              "depth": 1,
+              "key": "f19",
+              "value": "1",
+              "path": "f19",
+              "noted": false
+            }
+          ],
+          "notes": []
+        },
+        {
+          "name": "notes-text",
+          "summary": "1 field",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "x",
+              "value": "1",
+              "path": "x",
+              "noted": false
+            }
+          ],
+          "notes": []
+        },
+        {
+          "name": "note-list",
+          "summary": "1 field",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "x",
+              "value": "1",
+              "path": "x",
+              "noted": false
+            }
+          ],
+          "notes": []
+        },
+        {
+          "name": "note-nowhere",
+          "summary": "1 field",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "hours",
+              "value": "",
+              "path": "hours",
+              "noted": false
+            },
+            {
+              "depth": 2,
+              "key": "mon",
+              "value": "1",
+              "path": "hours.mon",
+              "noted": false
+            }
+          ],
+          "notes": []
+        },
+        {
+          "name": "list-in-list",
+          "summary": "1 field",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "grid",
+              "value": "",
+              "path": "grid",
+              "noted": false
+            },
+            {
+              "depth": 2,
+              "key": "-",
+              "value": "[a]",
+              "noted": false
+            },
+            {
+              "depth": 2,
+              "key": "-",
+              "value": "[b]",
+              "noted": false
+            }
+          ],
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "bad-breaks",
+      "type": "store",
+      "name": "Bad breaks",
+      "in": "shop",
+      "data": [
+        {
+          "name": "cell",
+          "columns": [
+            "x"
+          ],
+          "rows": [
+            [
+              "a\nb"
+            ]
+          ]
+        },
+        {
+          "name": "note",
+          "columns": [
+            "x"
+          ],
+          "note": "one\n"
+        },
+        {
+          "name": "carriage",
+          "sample": {
+            "k\rk": "1"
+          }
+        },
+        {
+          "name": "separator",
+          "columns": [
+            "x"
+          ],
+          "rows": [
+            [
+              "x y"
+            ]
+          ]
+        }
+      ],
+      "shown": [
+        {
+          "name": "cell",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "x"
+            }
+          ],
+          "rows": [
+            [
+              "a\nb"
+            ]
+          ],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "note",
+          "note": "one\n",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "x"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "carriage",
+          "summary": "1 field",
+          "columns": [],
+          "rows": [],
+          "lines": [
+            {
+              "depth": 1,
+              "key": "k\rk",
+              "value": "1",
+              "path": "k\rk",
+              "noted": false
+            }
+          ],
+          "notes": []
+        },
+        {
+          "name": "separator",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "x"
+            }
+          ],
+          "rows": [
+            [
+              "x y"
+            ]
+          ],
+          "lines": [],
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "junk-data",
+      "type": "store",
+      "name": "Data that is a mapping",
+      "in": "shop",
+      "data": {
+        "a": "1"
+      }
+    },
+    {
+      "id": "tilde-data",
+      "type": "store",
+      "name": "Data that is a tilde",
+      "in": "shop",
+      "data": "~"
+    },
+    {
+      "id": "blank-data",
+      "type": "store",
+      "name": "Blank data",
+      "in": "shop",
+      "data": ""
+    },
+    {
+      "id": "quoted-blank-data",
+      "type": "store",
+      "name": "Quoted blank data",
+      "in": "shop",
+      "data": ""
+    },
+    {
+      "id": "junk-entries",
+      "type": "store",
+      "name": "Junk entries",
+      "in": "shop",
+      "data": [
+        [],
+        {},
+        "null"
+      ]
+    },
+    {
+      "id": "on-a-system",
+      "type": "system",
+      "name": "A system with data",
+      "data": [
+        {
+          "name": "orders",
+          "columns": [
+            "id"
+          ]
+        }
+      ],
+      "shown": [
+        {
+          "name": "orders",
+          "summary": "1 column",
+          "columns": [
+            {
+              "name": "id"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        }
+      ]
+    }
+  ],
+  "connections": [],
+  "layout": {},
+  "flows": [],
+  "problems": [
+    {
+      "file": "model.yaml",
+      "id": "proto",
+      "message": "proto: data \"loose\": the note on \"toString\" names no field of the sample"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-entries",
+      "message": "bad-entries: data entry 1 must be a mapping"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-entries",
+      "message": "bad-entries: data entry 2 has no name"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-entries",
+      "message": "bad-entries: data entry 3 has no name"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-entries",
+      "message": "bad-entries: data \"dup\" appears twice"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-entries",
+      "message": "bad-entries: data \"needs-body\" needs columns or a sample"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-entries",
+      "message": "bad-entries: data \"both\" has both columns and a sample"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-entries",
+      "message": "bad-entries: data \"rows-no-columns\": rows need columns"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-entries",
+      "message": "bad-entries: data \"notes-no-sample\": notes need a sample"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"not-a-list\": columns must be a list"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"empty\": columns is empty"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"shapes\": column 1 must be a name or a mapping"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"shapes\": column 2 has no name"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"shapes\": column \"dup\" appears twice"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"shapes\": column \"k\": key must be primary"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"shapes\": column \"n\": \"note\" must be plain text"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"shapes\": column \"t\": \"to\" must be plain text"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"plain-text\": \"kind\" must be plain text"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"plain-text\": \"limits\" must be plain text"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"plain-text\": \"note\" must be plain text"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-columns",
+      "message": "bad-columns: data \"too-many\": 13 columns, at most 12"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-rows",
+      "message": "bad-rows: data \"not-a-list\": rows must be a list of rows"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-rows",
+      "message": "bad-rows: data \"shapes\": row 1 must be a list of cells"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-rows",
+      "message": "bad-rows: data \"shapes\": row 2 must be a list of cells"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-rows",
+      "message": "bad-rows: data \"shapes\": row 3 has 1 cell but there are 2 columns"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-rows",
+      "message": "bad-rows: data \"shapes\": row 4 has 3 cells but there are 2 columns"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-rows",
+      "message": "bad-rows: data \"one-column\": row 1 has 2 cells but there is 1 column"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-rows",
+      "message": "bad-rows: data \"too-many\": 9 rows, at most 8"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-samples",
+      "message": "bad-samples: data \"a-list\": sample must be a mapping of fields"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-samples",
+      "message": "bad-samples: data \"empty\": sample is empty"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-samples",
+      "message": "bad-samples: data \"too-deep\": sample is nested 4 levels deep, at most 3"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-samples",
+      "message": "bad-samples: data \"too-many\": sample shows 21 fields, at most 20"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-samples",
+      "message": "bad-samples: data \"notes-text\": notes must map a field to its note"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-samples",
+      "message": "bad-samples: data \"note-list\": notes must map a field to its note"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-samples",
+      "message": "bad-samples: data \"note-nowhere\": the note on \"hours.fri\" names no field of the sample"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-samples",
+      "message": "bad-samples: data \"list-in-list\": sample has a list inside a list, which isn't shown"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-breaks",
+      "message": "bad-breaks: data \"cell\": text can't hold a line break"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-breaks",
+      "message": "bad-breaks: data \"note\": text can't hold a line break"
+    },
+    {
+      "file": "model.yaml",
+      "id": "bad-breaks",
+      "message": "bad-breaks: data \"carriage\": text can't hold a line break"
+    },
+    {
+      "file": "model.yaml",
+      "id": "junk-data",
+      "message": "junk-data: data must be a list of entries"
+    },
+    {
+      "file": "model.yaml",
+      "id": "tilde-data",
+      "message": "tilde-data: data must be a list of entries"
+    },
+    {
+      "file": "model.yaml",
+      "id": "junk-entries",
+      "message": "junk-entries: data entry 1 must be a mapping"
+    },
+    {
+      "file": "model.yaml",
+      "id": "junk-entries",
+      "message": "junk-entries: data entry 2 has no name"
+    },
+    {
+      "file": "model.yaml",
+      "id": "junk-entries",
+      "message": "junk-entries: data entry 2 needs columns or a sample"
+    },
+    {
+      "file": "model.yaml",
+      "id": "junk-entries",
+      "message": "junk-entries: data entry 3 must be a mapping"
+    },
+    {
+      "file": "model.yaml",
+      "id": "on-a-system",
+      "message": "on-a-system: only a store can have data"
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "shop",
+        "on-a-system"
+      ],
+      "outsiders": [],
+      "edges": []
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "orders-db",
+        "menu-cache",
+        "events",
+        "profiles",
+        "hostile",
+        "proto",
+        "bad-entries",
+        "bad-columns",
+        "bad-rows",
+        "bad-samples",
+        "bad-breaks",
+        "junk-data",
+        "tilde-data",
+        "blank-data",
+        "quoted-blank-data",
+        "junk-entries"
+      ],
+      "outsiders": [],
+      "edges": []
+    }
+  }
+}

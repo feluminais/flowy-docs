@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { dataShown } from '../../src/core/data.ts'
 import { lineStyle, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
@@ -15,7 +16,13 @@ export const fixtureDirs = (): Record<string, string> =>
     Object.entries(JSON.parse(readFileSync(join(root, 'desktop/fixtures/fixtures.json'), 'utf8')) as Record<string, string>).map(([name, dir]) => [name, join(root, dir)]),
   )
 
-export const expectedPath = (name: string) => join(root, 'desktop/fixtures/expected', `${name}.json`)
+/** What a store's data shows, left out (so every older fixture is unchanged) when it shows nothing. */
+const shownOf = (o: Model['objects'][string]) => {
+  const shown = dataShown(o)
+  return shown.length === 0 ? undefined : shown
+}
+
+export const expectedPath =(name: string) => join(root, 'desktop/fixtures/expected', `${name}.json`)
 
 /**
  * What the native reader (desktop/Flowy.Core) must also say about a model folder: the boxes and lines as parsed, every
@@ -27,7 +34,7 @@ export async function dumpFolder(dir: string): Promise<unknown> {
   const model: Model = modelOf(state)
   return {
     lineStyle: lineStyle(model),
-    objects: Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name, in: o.in, external: o.external, shape: o.shape, color: o.color, opacity: o.opacity, icon: o.icon, tech: o.tech, description: o.description, code: o.code, links: o.links })),
+    objects: Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name, in: o.in, external: o.external, shape: o.shape, color: o.color, opacity: o.opacity, icon: o.icon, tech: o.tech, description: o.description, code: o.code, links: o.links, data: o.data, shown: shownOf(o) })),
     icons: model.meta.icons,
     connections: model.connections.map(c => ({ from: c.from, to: c.to, label: c.label })),
     layout: model.layout,
