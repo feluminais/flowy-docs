@@ -780,7 +780,7 @@
         {
           "from": "send-from",
           "to": "send-to",
-          "text": "Sends again",
+          "text": "Sends again, this time with a word on the blob",
           "animation": {
             "kind": "send",
             "carries": "order 42"
