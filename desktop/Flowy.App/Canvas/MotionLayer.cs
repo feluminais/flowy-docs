@@ -116,7 +116,7 @@ internal sealed class MotionLayer : Control
         // The shape is stretched along the way it runs and no more rotated than that. The glyph or the words in it are not stretched at all.
         var place = Matrix.CreateTranslation(point.X, point.Y);
         var stretch = Matrix.CreateRotation(-angle) * Matrix.CreateScale(1 + 0.3 * s, 1 - 0.15 * s) * Matrix.CreateRotation(angle) * place;
-        var fill = Brush(beat.Tone == "reply" ? "AppBrush" : "AccentBrush");
+        var fill = Brush(beat.Tone switch { "reply" => "AppBrush", "fail" => "DangerBrush", _ => "AccentBrush" });
         var rim = new Pen(bg, 2);
         if (beat.Label is { } label)
         {
@@ -166,7 +166,8 @@ internal sealed class MotionLayer : Control
             }
             case "flash":
             {
-                var wash = accent is ISolidColorBrush solid ? new SolidColorBrush(solid.Color, Flash * (1 - p)) : accent;
+                var tint = beat.Tone == "fail" ? Brush("DangerBrush") : accent; // a refusal flashes in the danger colour
+                var wash = tint is ISolidColorBrush solid ? new SolidColorBrush(solid.Color, Flash * (1 - p)) : tint;
                 var outline = beat.On == "to" ? run.ShapeTo : run.ShapeFrom;
                 if (outline is null) context.DrawRectangle(wash, null, new Avalonia.Rect(r.X, r.Y, r.Width, r.Height), 14, 14);
                 else

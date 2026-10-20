@@ -4,6 +4,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Flowy.App.Canvas;
 using Flowy.Core;
 using Xunit;
 
@@ -148,6 +149,66 @@ public class AnimationTests
         Run(() => reader.PlayingStep >= 1);
         Assert.True(reader.PlayingStep >= 1);
         Assert.False(reader.StepMoving);
+    }
+
+    private static CanvasView.StepRun Failing(string kind, string outcome) => new(new StepAnimation(kind, "inside", null, outcome), "web", "api", false);
+
+    [AvaloniaFact]
+    public void A_call_that_times_out_leaves_its_line_dim_until_another_step_starts_or_the_step_is_stopped()
+    {
+        var (_, reader) = Open("0");
+        try
+        {
+            var done = 0;
+            Assert.Equal(1.0, reader.Canvas.LitFade);
+            Assert.True(reader.Canvas.PlaySteps([Failing("call", "timeout")], () => done++));
+            Run(() => !reader.Canvas.StepMoving);
+            Assert.Equal(1, done);
+            Assert.Equal(0.25, reader.Canvas.LitFade);
+            Assert.True(reader.Canvas.PlaySteps([new CanvasView.StepRun(new StepAnimation("send", "inside", null), "web", "api", false)], null));
+            Assert.Equal(1.0, reader.Canvas.LitFade); // the next step starts at full strength
+            reader.Canvas.StopStep();
+
+            Assert.True(reader.Canvas.PlaySteps([Failing("call", "timeout")], null));
+            Run(() => !reader.Canvas.StepMoving);
+            Assert.Equal(0.25, reader.Canvas.LitFade);
+            reader.Canvas.StopStep();
+            Assert.Equal(1.0, reader.Canvas.LitFade); // leaving the step puts it back
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_step_that_fails_does_not_dim_its_line_and_a_timeout_among_other_steps_dims_the_stop_once()
+    {
+        var (_, reader) = Open("0");
+        try
+        {
+            Assert.True(reader.Canvas.PlaySteps([Failing("send", "fail")], null));
+            Run(() => !reader.Canvas.StepMoving);
+            Assert.Equal(1.0, reader.Canvas.LitFade);
+
+            var done = 0;
+            Assert.True(reader.Canvas.PlaySteps([Failing("call", "timeout"), new CanvasView.StepRun(new StepAnimation("send", "inside", null), "web", "api", false)], () => done++));
+            Run(() => !reader.Canvas.StepMoving);
+            Assert.Equal(1, done);
+            Assert.Equal(0.25, reader.Canvas.LitFade);
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void With_motion_reduced_a_timeout_dims_nothing()
+    {
+        var (_, reader) = Open("1");
+        Assert.False(reader.Canvas.PlaySteps([Failing("call", "timeout")], null));
+        Assert.Equal(1.0, reader.Canvas.LitFade);
     }
 
     [AvaloniaFact]
