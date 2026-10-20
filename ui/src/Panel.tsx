@@ -2,20 +2,21 @@ import { useState } from 'react'
 import type { FocusEvent, FormEvent, ReactNode } from 'react'
 import { encodePath, isRepoPath, isWebAddress, typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
-import { getObject, isExternal, linksOf, ROOT } from '../../src/core/model.ts'
+import type { DataInput } from '../../src/core/data.ts'
+import { getObject, isExternal, linksOf, parseData, ROOT } from '../../src/core/model.ts'
 import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { deleteFlow, deleteObject, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
-import { DataSection } from './Data.tsx'
+import { DataField, DataSection } from './Data.tsx'
 import { connectionsOf, linesOf, newId, problemsOf, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
 import { lineId } from './graph.ts'
 import { openInEditor, vscode } from './host.ts'
 import { Chip, kindClass, lookVars, ObjectTile, Section } from './Chrome.tsx'
 import { ColorPicker, ExternalToggle, IconPicker, KindPicker, OpacityPicker, ShapePicker, TypePicker } from './Pickers.tsx'
-import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Text, Trash, Close } from './icons.tsx'
+import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Table, Text, Trash, Close } from './icons.tsx'
 
 /** Runs one edit and resolves to true once it's saved. Whatever went wrong shows as a notice. */
 export type Run = (op: (model: Model) => Model) => Promise<boolean>
@@ -263,6 +264,12 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
         </div>
         <Section icon={Text} title="Description" />
         <Field label="Description" value={object.description ?? ''} multiline onSave={description => save({ description })} />
+        {(object.type === 'store' || object.data !== undefined) && (
+          <>
+            <Section icon={Table} title="Data" />
+            <DataField object={object} onSave={text => run(m => putObject(m, { id, data: parseData(text) as DataInput[] }))} />
+          </>
+        )}
         <Section icon={Code} title="Code" />
         <Field label="Code (one path per line)" value={Array.isArray(object.code) ? object.code.join('\n') : ''} multiline
           onSave={text => save({ code: text.split('\n').map(line => line.trim()).filter(Boolean) })} />

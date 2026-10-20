@@ -345,6 +345,7 @@ svg { flex: none; }
   background: color-mix(in srgb, var(--warn) 10%, transparent); color: var(--warn-fg); font-size: 12.5px; line-height: 1.4; overflow-wrap: anywhere;
 }
 .data-notes code { margin-right: 6px; }
+.form textarea.data-yaml { font: 12px/1.5 ui-monospace, monospace; white-space: pre; overflow-x: auto; }
 
 .player {
   position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 5;
