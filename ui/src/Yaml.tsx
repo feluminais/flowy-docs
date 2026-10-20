@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import type { KeyboardEvent } from 'react'
 import type { HistoryStore } from './historystore.ts'
 import { scrollToRow, visibleRows } from './window.ts'
-import { blockOf, canRestore, defaultFile, fileOrder, firstMark, neighbour, restoreLabel, rowsFor, SOURCE_NAMES, timeLabel } from './yamlview.ts'
+import { blockOf, canRestore, defaultFile, fileOrder, neighbour, restoreLabel, rowsFor, scrollTarget, SOURCE_NAMES, timeLabel } from './yamlview.ts'
 
 const ROW = 20 // px: every line is this tall, which is what lets the text be windowed
 
@@ -50,7 +50,6 @@ export function Yaml({ store, editing, broken, flow, selected, onRestore, onClea
   const file = chosen !== undefined && paths.includes(chosen) ? chosen : fallback
   useEffect(() => setChosen(undefined), [flow, selected]) // a new context shows its own file
   const rows = useMemo(() => rowsFor(file, shownFiles ?? {}, base), [file, shownFiles, base])
-  const marked = rows.some(r => r.kind === 'add' || r.kind === 'remove')
   const changed = useMemo(
     () => (view.compare
       ? new Set(paths.filter(p => JSON.stringify(shownFiles?.[p]) !== JSON.stringify(base?.[p])))
@@ -59,7 +58,7 @@ export function Yaml({ store, editing, broken, flow, selected, onRestore, onClea
   )
 
   const model = shownFiles?.['model.yaml']
-  const block = file === 'model.yaml' && selected !== undefined && model && 'text' in model ? blockOf(model.text, selected) : undefined
+  const block = useMemo(() => (file === 'model.yaml' && selected !== undefined && model && 'text' in model ? blockOf(model.text, selected) : undefined), [file, selected, model])
   const inBlock = (line: number | undefined) => block !== undefined && line !== undefined && line >= block.start && line <= block.end
 
   useEffect(() => {
@@ -70,14 +69,23 @@ export function Yaml({ store, editing, broken, flow, selected, onRestore, onClea
     watch.observe(el)
     return () => watch.disconnect()
   }, [])
-  // A new version, file or shape brings its first mark into view, else the shape's block, else the top.
+  // A new version, file or comparison brings its first mark into view, else the shape's block, else the top.
   useEffect(() => {
     const el = text.current
-    if (!el) return
-    const mark = firstMark(rows)
-    const target = mark ?? (block ? rows.findIndex(r => r.line === block.start) : -1)
-    el.scrollTop = target < 0 ? 0 : Math.max(0, target * ROW - el.clientHeight / 3)
-  }, [file, view.shownId, view.compare, selected])
+    const at = scrollTarget(rows, block, 'version')
+    if (el) el.scrollTop = at === undefined ? 0 : Math.max(0, at * ROW - el.clientHeight / 3)
+  }, [file, view.shownId, view.compare])
+  // A new selection brings only its shape's block into view, even where the file has marks; with no block, the text stays where it is.
+  const mounted = useRef(false)
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true // the effect above has placed the text
+      return
+    }
+    const el = text.current
+    const at = scrollTarget(rows, block, 'selection')
+    if (el && at !== undefined) el.scrollTop = Math.max(0, at * ROW - el.clientHeight / 3)
+  }, [selected])
   useEffect(() => {
     const el = steps.current
     const at = view.steps.findIndex(s => s.id === view.shownId)
@@ -85,9 +93,19 @@ export function Yaml({ store, editing, broken, flow, selected, onRestore, onClea
     if (el && to !== undefined) el.scrollTop = to
   }, [view.shownId])
 
-  const today = new Date()
+  const today = useMemo(() => new Date(), [view.steps])
   const newest = view.steps[0]?.id
   const pickStep = (id: string | undefined) => void store.pick(id === newest ? undefined : id) // the newest is not a choice: the tab follows it
+  // What does not change as the text scrolls is not worked out again for every scroll event.
+  const marked = useMemo(() => rows.some(r => r.kind === 'add' || r.kind === 'remove'), [rows])
+  const widest = useMemo(() => rows.reduce((n, r) => Math.max(n, r.text.length), 0), [rows])
+  const stepRows = useMemo(() => view.steps.map(s => (
+    <li key={s.id} role="option" aria-selected={s.id === view.shownId} className={classes('ystep', s.id === view.shownId && 'sel')} onClick={() => void store.pick(s.id === view.steps[0].id ? undefined : s.id)}>
+      {SOURCE_NAMES[s.source] && <span className={`ychip ${s.source}`}>{SOURCE_NAMES[s.source]}</span>}
+      <span className="ylabel" title={s.label}>{s.label}</span>
+      <span className="ytime">{timeLabel(s.time, today)}</span>
+    </li>
+  )), [view.steps, view.shownId, today, store])
   const onStepKeys = (e: KeyboardEvent<HTMLUListElement>) => {
     if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
     const next = neighbour(view.steps, view.shownId, e.key === 'ArrowUp' ? -1 : 1)
@@ -107,7 +125,6 @@ export function Yaml({ store, editing, broken, flow, selected, onRestore, onClea
   const allowed = canRestore({ editing, broken })
 
   const { start, end } = visibleRows(scrollTop, height, rows.length, ROW)
-  const widest = rows.reduce((n, r) => Math.max(n, r.text.length), 0)
 
   return (
     <>
@@ -118,7 +135,7 @@ export function Yaml({ store, editing, broken, flow, selected, onRestore, onClea
           </button>
         ))}
       </div>
-      {view.picked !== undefined && view.shown && (
+      {view.picked !== undefined && view.shown?.step.id === view.picked && (
         <div className="ybanner" role="status">
           <span className="ywhen"><b>{timeLabel(view.shown.step.time, today)}</b> · {view.shown.step.label}</span>
           <label className="ycompare"><input type="checkbox" checked={view.compare} onChange={e => store.setCompare(e.target.checked)} />Compare with now</label>
@@ -152,15 +169,7 @@ export function Yaml({ store, editing, broken, flow, selected, onRestore, onClea
       )}
       {view.error && <p className="muted ynote">{view.error}</p>}
       {view.ready && view.steps.length === 0 && view.saving && <p className="muted ynote">No changes yet</p>}
-      <ul ref={steps} className="ysteps" role="listbox" aria-label="History" tabIndex={0} onKeyDown={onStepKeys}>
-        {view.steps.map(s => (
-          <li key={s.id} role="option" aria-selected={s.id === view.shownId} className={classes('ystep', s.id === view.shownId && 'sel')} onClick={() => pickStep(s.id)}>
-            {SOURCE_NAMES[s.source] && <span className={`ychip ${s.source}`}>{SOURCE_NAMES[s.source]}</span>}
-            <span className="ylabel" title={s.label}>{s.label}</span>
-            <span className="ytime">{timeLabel(s.time, today)}</span>
-          </li>
-        ))}
-      </ul>
+      <ul ref={steps} className="ysteps" role="listbox" aria-label="History" tabIndex={0} onKeyDown={onStepKeys}>{stepRows}</ul>
       {view.steps.length > 0 && (
         <div className="yclear">
           {asking

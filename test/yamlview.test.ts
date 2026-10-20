@@ -1,7 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import type { StepFile, StepInfo } from '../src/core/history.ts'
-import { blockOf, canRestore, defaultFile, fileOrder, firstMark, neighbour, restoreLabel, rowsFor, SOURCE_NAMES, timeLabel } from '../ui/src/yamlview.ts'
+import { blockOf, canRestore, defaultFile, fileOrder, firstMark, neighbour, restoreLabel, rowsFor, scrollTarget, SOURCE_NAMES, timeLabel } from '../ui/src/yamlview.ts'
+import type { Row } from '../ui/src/yamlview.ts'
 
 const text = (t: string): StepFile => ({ text: t })
 const step = (id: string): StepInfo => ({ id, time: '2026-10-20T10:00:00.000Z', label: id, source: 'you', app: 'browser', changed: [] })
@@ -96,6 +97,33 @@ test('a time reads as the clock on the same day, and with the date on another', 
   const earlier = timeLabel('2026-10-19T22:56:00.000Z', now, 'en-GB', 'UTC')
   assert.ok(earlier.includes('19') && earlier.includes('22:56'), earlier)
   assert.equal(restoreLabel('2026-10-20T10:15:00.000Z', now, 'en-GB', 'UTC'), 'Restored the version from 10:15')
+})
+
+test('formatting a long list of times builds its formatters once, not once per row', () => {
+  const real = Intl.DateTimeFormat
+  let built = 0
+  Intl.DateTimeFormat = new Proxy(real, { construct: (target, args) => { built++; return Reflect.construct(target, args) } }) as typeof Intl.DateTimeFormat
+  try {
+    const now = new Date('2026-10-20T20:00:00.000Z')
+    for (let i = 0; i < 300; i++) timeLabel(`2026-10-1${i % 9}T10:15:00.000Z`, now, 'en-GB', 'UTC')
+  } finally {
+    Intl.DateTimeFormat = real
+  }
+  assert.ok(built <= 3, `built ${built}`)
+})
+
+test('a new version, file or comparison brings its first mark into view; a new selection only its shape\'s block', () => {
+  const rows: Row[] = [
+    { kind: 'same', text: 'a', line: 1 }, { kind: 'same', text: 'b', line: 2 }, { kind: 'remove', text: 'c' }, { kind: 'add', text: 'C', line: 3 }, { kind: 'same', text: 'd', line: 4 },
+  ]
+  const block = { start: 2, end: 2 }
+  assert.equal(scrollTarget(rows, block, 'version'), 2) // the first mark wins over the block
+  assert.equal(scrollTarget(rows, block, 'selection'), 1) // the block, even with marks in the file
+  assert.equal(scrollTarget(rows, undefined, 'selection'), undefined) // nothing to go to: the scroll stays
+  assert.equal(scrollTarget(rows, undefined, 'version'), 2)
+  const plain = rows.filter(r => r.kind === 'same')
+  assert.equal(scrollTarget(plain, block, 'version'), 1) // no marks: the block
+  assert.equal(scrollTarget(plain, undefined, 'version'), 0) // nothing: the top
 })
 
 test('a step\'s chip names where it came from; the first look has none', () => {

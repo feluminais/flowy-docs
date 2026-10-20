@@ -171,6 +171,35 @@ test('following the newest again turns comparing off, or the marks of the latest
   assert.equal(store.get().compare, true)
 })
 
+test('when the picked step goes away, comparing turns off with it, or the latest change would show no marks', async t => {
+  const client = stub([listOf('b', 'a'), listOf('c', 'b')])
+  const store = createHistoryStore(client)
+  await store.pick('a')
+  store.setCompare(true)
+  await store.refresh() // 'a' is gone from the list now
+  assert.deepEqual([store.get().picked, store.get().compare, store.get().shownId], [undefined, false, 'c'])
+})
+
+test('a pick is not shown as picked until its files are read, so Restore never acts on another step', async t => {
+  const client = { ...stub([listOf('b', 'a')]), step: async (id: string) => { await pause(60); return { step: info(id), files: {} } } }
+  const store = createHistoryStore(client)
+  await store.refresh()
+  const picking = store.pick('a')
+  assert.equal(store.get().picked, undefined)
+  await picking
+  assert.deepEqual([store.get().picked, store.get().shownId, store.get().shown?.step.id], ['a', 'a', 'a'])
+})
+
+test('Review Focus: a server that answers 404 has no history for the tab to show', async t => {
+  const missing = Object.assign(new Error('the server answered 404'), { status: 404 })
+  const store = createHistoryStore({ ...stub([listOf('a')]), list: async () => { throw missing } })
+  await store.refresh()
+  assert.equal(store.get().unavailable, true)
+  const broken = createHistoryStore({ ...stub([listOf('a')]), list: async () => { throw Object.assign(new Error('the server answered 500'), { status: 500 }) } })
+  await broken.refresh()
+  assert.deepEqual([broken.get().unavailable, broken.get().error], [undefined, 'the server answered 500'])
+})
+
 test('what get() returns stays the same until something changes', async t => {
   const store = createHistoryStore(stub([listOf('a')]))
   await store.refresh()

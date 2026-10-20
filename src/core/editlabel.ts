@@ -109,17 +109,22 @@ export function describeEdit(before: Model, after: Model): string | undefined {
   }
   found.push(flowChanges.length === 0 ? undefined : flowChanges.length === 1 ? flowChanges[0] : `Changed ${flowChanges.length} flows`)
 
-  const tidied: string[] = []
-  const moved: string[] = []
+  // The page saves every box of a view the first time one is dragged in it, so a view with its first positions was arranged, not moved shape by shape.
+  const [tidied, arranged, moved]: [string[], string[], string[]] = [[], [], []]
   for (const view of new Set([...Object.keys(before.layout), ...Object.keys(after.layout)])) {
     if (touched.has(view)) continue
     const [b, a] = [before.layout[view] ?? {}, after.layout[view] ?? {}]
+    const placed = Object.keys(a).filter(id => !touched.has(id))
     if (Object.keys(b).some(id => !has(a, id) && has(after.objects, id) && !touched.has(id))) tidied.push(view)
-    else moved.push(...Object.keys(a).filter(id => !touched.has(id) && !(has(b, id) && canon(a[id]) === canon(b[id]))))
+    else if (Object.keys(b).length === 0 && placed.length > 0) arranged.push(view)
+    else moved.push(...placed.filter(id => !(has(b, id) && canon(a[id]) === canon(b[id]))))
   }
+  const viewName = (view: string) => (view === 'root' ? 'the top level' : nameIn(after, view))
   found.push(tidied.length > 0
-    ? tidied.length === 1 ? `Tidied ${tidied[0] === 'root' ? 'the top level' : nameIn(after, tidied[0])}` : `Tidied ${tidied.length} views`
-    : moved.length === 0 ? undefined : moved.length === 1 ? `Moved ${nameIn(after, moved[0])}` : `Moved ${moved.length} shapes`)
+    ? tidied.length === 1 ? `Tidied ${viewName(tidied[0])}` : `Tidied ${tidied.length} views`
+    : arranged.length > 0
+      ? arranged.length === 1 ? `Arranged ${viewName(arranged[0])}` : `Arranged ${arranged.length} views`
+      : moved.length === 0 ? undefined : moved.length === 1 ? `Moved ${nameIn(after, moved[0])}` : `Moved ${moved.length} shapes`)
 
   const [iconsBefore, iconsAfter] = [customIcons(before.meta), customIcons(after.meta)]
   const iconsAdded = Object.keys(iconsAfter).filter(name => !has(iconsBefore, name))

@@ -93,6 +93,16 @@ export const CASES: EditLabelCase[] = [
     m.layout.shop.api = [210, 20]
     m.layout.shop.db = [100, 210]
   }),
+  // The page saves every box of a view when one is first dragged in it, so the label cannot say which one was.
+  make('the first positions of a view', 'Arranged Shop', m => { m.layout.shop = { web: [10, 20], api: [200, 20], db: [100, 200] } }, m => { delete m.layout.shop }),
+  make('the first positions of the top level', 'Arranged the top level', m => { m.layout.root = { customer: [0, 0], shop: [100, 0], mail: [300, 0] } }, m => { delete m.layout.root }),
+  make('the first positions of two views', 'Arranged 2 views', m => {
+    m.layout.shop = { web: [10, 20] }
+    m.layout.api = { auth: [0, 0] }
+  }, m => {
+    delete m.layout.shop
+    delete m.layout.api
+  }),
   make('a view tidied', 'Tidied Shop', m => { delete m.layout.shop }),
   make('the top level tidied', 'Tidied the top level', m => { delete m.layout.root }),
   make('the line style', 'Changed the line style', m => { m.meta.lines = 'curved' }),
