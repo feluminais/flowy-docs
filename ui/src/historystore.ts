@@ -79,7 +79,8 @@ export function createHistoryStore(client: HistoryClient): HistoryStore {
     refresh,
     async pick(id) {
       const { picked: _was, ...rest } = view
-      set(id === undefined ? rest : { ...rest, picked: id })
+      // Following the newest again also stops comparing: marked against the files now, the latest change would show nothing.
+      set(id === undefined ? { ...rest, compare: false } : { ...rest, picked: id })
       await refresh()
     },
     setCompare(on) {

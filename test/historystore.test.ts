@@ -160,6 +160,17 @@ test('comparing with now is a switch, and it tells subscribers once', async t =>
   assert.equal(heard, 1)
 })
 
+test('following the newest again turns comparing off, or the marks of the latest change would be gone', async t => {
+  const store = createHistoryStore(stub([listOf('b', 'a')]))
+  await store.pick('a')
+  store.setCompare(true)
+  await store.pick(undefined)
+  assert.equal(store.get().compare, false)
+  store.setCompare(true)
+  await store.pick('a') // choosing another step keeps the switch
+  assert.equal(store.get().compare, true)
+})
+
 test('what get() returns stays the same until something changes', async t => {
   const store = createHistoryStore(stub([listOf('a')]))
   await store.refresh()

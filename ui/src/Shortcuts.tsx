@@ -12,6 +12,7 @@ const READING: [string, string][] = [
   ['F', 'Fit the view'],
   ['L', 'Show every flow, and play one'],
   ['O', 'Show everything as a tree'],
+  ['Y', 'The files as YAML, and what changed'],
   ['T', 'Show a load-test run on the diagram, where there is one'],
   ['?', 'Show these shortcuts'],
 ]
