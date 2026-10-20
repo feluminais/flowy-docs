@@ -1,8 +1,10 @@
 import { createContext, useContext } from 'react'
-import { BaseEdge, getBezierPath, getSmoothStepPath, getStraightPath, Position, useInternalNode } from '@xyflow/react'
+import { BaseEdge, EdgeLabelRenderer, getBezierPath, getSmoothStepPath, getStraightPath, Position, useInternalNode } from '@xyflow/react'
 import type { EdgeProps, InternalNode, XYPosition } from '@xyflow/react'
+import type { Mark } from '../../src/core/failures.ts'
 import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
+import { FailBadge } from './Box.tsx'
 import { lineEnds, ports, sizeOf } from './graph.ts'
 import { labelOffset } from './motion.ts'
 import type { BoxData, Outline, Rect } from './graph.ts'
@@ -12,6 +14,9 @@ export const LineStyleContext = createContext<LineStyle>('straight')
 
 /** How thick each line is drawn while traffic shows (by line id), where it differs from the usual. */
 export const LineWidthsContext = createContext<ReadonlyMap<string, number>>(new Map())
+
+/** The failure modes each line carries while the Failures tab shows them (by line id): the worst band and the count. */
+export const LineMarksContext = createContext<ReadonlyMap<string, Mark>>(new Map())
 
 const SIDES = { top: Position.Top, right: Position.Right, bottom: Position.Bottom, left: Position.Left }
 
@@ -52,6 +57,7 @@ export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode):
 export function Line({ id, source, target, label, markerEnd, interactionWidth, data }: EdgeProps) {
   const style = useContext(LineStyleContext)
   const width = useContext(LineWidthsContext).get(id)
+  const mark = useContext(LineMarksContext).get(id)
   const a = useInternalNode(source)
   const b = useInternalNode(target)
   if (!a || !b) return null
@@ -60,5 +66,14 @@ export function Line({ id, source, target, label, markerEnd, interactionWidth, d
   const [ra, rb] = [rect(a), rect(b)]
   const aside = data?.lift === true && typeof label === 'string' ? labelOffset(rb.x + rb.width / 2 - (ra.x + ra.width / 2), rb.y + rb.height / 2 - (ra.y + ra.height / 2), label.length) : { x: 0, y: 0 }
   const [labelX, labelY] = [x + aside.x, y + aside.y]
-  return <BaseEdge id={id} path={path} label={label} labelX={labelX} labelY={labelY} markerEnd={markerEnd} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
+  return (
+    <>
+      <BaseEdge id={id} path={path} label={label} labelX={labelX} labelY={labelY} markerEnd={markerEnd} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
+      {mark && (
+        <EdgeLabelRenderer>
+          <FailBadge mark={mark} className="line" style={{ transform: `translate(-50%, -150%) translate(${x}px, ${y}px)` }} />
+        </EdgeLabelRenderer>
+      )}
+    </>
+  )
 }
