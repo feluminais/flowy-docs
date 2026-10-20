@@ -10,10 +10,11 @@ import { httpHistory } from '../ui/src/historyclient.ts'
 import { hostTransport, httpTransport } from '../ui/src/transport.ts'
 
 /** A server with history over a temp folder, and the page's client for it. */
-async function setup(t: TestContext) {
+async function setup(t: TestContext, model?: string) {
   const root = await mkdtemp(join(tmpdir(), 'flowy-client-'))
   const dir = join(root, 'flowy')
   await mkdir(dir, { recursive: true })
+  if (model !== undefined) await writeFile(join(dir, 'model.yaml'), model) // before the server is up, so its watcher has nothing to say about it
   const history = openHistory(dir, { app: 'browser', stateDir: join(root, 'state'), log: () => undefined })
   const server = await startServer({ dir, ui: join(root, 'ui'), port: 0, history })
   t.after(async () => {
@@ -42,9 +43,8 @@ test('a recorded step is listed and can be read with its files', async t => {
 })
 
 test('recording when nothing changed says so', async t => {
-  const { client, put } = await setup(t)
-  await put('model.yaml', 'a: 1\n')
-  await client.record('Added a')
+  const { client } = await setup(t, 'a: 1\n')
+  assert.equal(await client.record('One'), true) // the first look at the folder is not a labelled step, so this one is written
   assert.equal(await client.record('Again'), false)
 })
 
