@@ -29,6 +29,15 @@ public class CodePanelTests
           bare:
             type: system
             name: Bare
+          guess:
+            type: system
+            name: Guess
+            snippets:
+              - text: |-
+                  SELECT id, total
+                  FROM orders
+                  WHERE status = 'placed'
+              - text: hello
         connections: []
         """;
 
@@ -63,6 +72,36 @@ public class CodePanelTests
         Assert.Contains(words, w => w.Contains("const fee = base + km * rate"));
         Assert.Contains(words, w => w == "SELECT 1");
         Assert.Equal(2, reader.Panel.GetVisualDescendants().OfType<Button>().Count(b => Avalonia.Automation.AutomationProperties.GetName(b) == "Copy"));
+    }
+
+    [AvaloniaFact]
+    public void A_snippet_with_no_language_is_named_from_its_code_and_a_bare_word_is_left_plain()
+    {
+        var (temp, _, window, reader) = Open(Source);
+        using var _ = temp;
+        reader.OpenObject("guess");
+        Settle(window);
+        var words = Words(reader).ToList();
+        Assert.Contains("SQL", words);
+        Assert.DoesNotContain("Plain text", words);
+        reader.SetEditing(true);
+        reader.OpenObject("guess");
+        Settle(window);
+        var editor = reader.Panel.CurrentObjectEditor!.SnippetsBox;
+        Assert.Equal("Auto: SQL", editor.LanguageOf(0).Shown);
+        Assert.Equal("Auto: Plain text", editor.LanguageOf(1).Shown);
+    }
+
+    [AvaloniaFact]
+    public void Code_is_drawn_in_colour_and_the_rest_of_the_text_keeps_the_text_colour()
+    {
+        var (temp, _, window, reader) = Open(Source);
+        using var _ = temp;
+        reader.OpenObject("guess");
+        Settle(window);
+        var runs = reader.Panel.GetVisualDescendants().OfType<SelectableTextBlock>().SelectMany(b => b.Inlines!.OfType<Run>()).ToList();
+        Assert.Contains(runs, r => r.Text == "SELECT" && r.Foreground is not null);
+        Assert.Contains(runs, r => r.Text!.Contains("orders") && r.Foreground is null);
     }
 
     [AvaloniaFact]

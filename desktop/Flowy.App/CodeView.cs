@@ -83,10 +83,17 @@ internal static class CodeView
     {
         var block = new SelectableTextBlock { FontFamily = Mono, FontSize = size, TextWrapping = TextWrapping.NoWrap };
         foreach (var run in CodeInk.Runs(text, language))
-            block.Inlines!.Add(new Run(Tabs(run.Text)) { Foreground = run.Kind is { } kind ? resource(BrushName(kind)) : null });
+        {
+            var piece = new Run(Tabs(run.Text));
+            // A run of no kind has no colour of its own, so it takes the text's. (Setting null would draw it with no brush at all.)
+            if (run.Kind is { } kind) piece.Foreground = resource(BrushName(kind));
+            block.Inlines!.Add(piece);
+        }
+        // Room under the last line, so the bar that scrolls a long line does not sit on top of the code.
+        block.Margin = new Thickness(0, 0, 0, 10);
         return new Border
         {
-            Background = resource("BoxBrush"), BorderBrush = resource("LineBrush"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(10, 8),
+            Background = resource("BoxBrush"), BorderBrush = resource("LineBrush"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(10, 8, 10, 0),
             Child = new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, Content = block },
         };
     }
