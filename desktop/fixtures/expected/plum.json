@@ -561,6 +561,10 @@
           "from": "order-api",
           "to": "stripe",
           "text": "Captures the amount it held",
+          "animation": {
+            "kind": "call",
+            "outcome": "timeout"
+          },
           "group": "charge",
           "placed": [
             "order-api",
@@ -569,15 +573,14 @@
           "ends": "Order API → Stripe"
         },
         {
-          "from": "stripe",
-          "to": "order-api",
-          "text": "Doesn't answer within five seconds",
+          "from": "order-api",
+          "text": "Gives up after five seconds and tries again",
           "group": "charge",
           "placed": [
-            "stripe",
+            "order-api",
             "order-api"
           ],
-          "ends": "Stripe → Order API"
+          "ends": "Order API"
         },
         {
           "from": "stripe",
@@ -607,6 +610,10 @@
           "to": "order-api",
           "text": "Declines the card",
           "description": "A decline is final: it is not retried. The hold is released, and the app asks the customer\nfor another card.\n",
+          "animation": {
+            "kind": "send",
+            "outcome": "fail"
+          },
           "group": "outcome",
           "lane": "The card is declined",
           "placed": [

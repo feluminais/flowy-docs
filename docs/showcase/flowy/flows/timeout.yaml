@@ -1,0 +1,4 @@
+name: Timeout
+view: steps
+steps:
+  - { from: timeout-from, to: timeout-to, text: Calls and gets no answer, animation: { kind: call, outcome: timeout } }

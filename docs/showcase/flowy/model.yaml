@@ -5,8 +5,8 @@ objects:
     description: |
       One pair of shapes for each way a step can travel, named for the animation they play.
 
-      Each animation has a flow of its own with a single step to click through: Send, Call, Event, Callback, Flash, Bolt drop
-      and Send with a word (Flash has two, because the step before sets it off).
+      Each animation has a flow of its own with a single step to click through: Send, Call, Event, Callback, Flash, Bolt drop,
+      Send with a word, Fail and Timeout (Flash has two, because the step before sets it off).
 
       **Every step animation** plays them all: press **P** to watch them one after the other.
   structure:
@@ -104,6 +104,30 @@ objects:
     name: Bolt drop · to
     tech: callback, trigger outside
     description: The subscriber.
+  fail-from:
+    type: app
+    in: steps
+    name: Fail · from
+    tech: send, fail
+    description: "`animation: {kind: send, outcome: fail}`. The envelope runs to the receiver, which refuses it."
+  fail-to:
+    type: app
+    in: steps
+    name: Fail · to
+    tech: send, fail
+    description: Flashes when the refusal arrives.
+  timeout-from:
+    type: app
+    in: steps
+    name: Timeout · from
+    tech: call, timeout
+    description: "`animation: {kind: call, outcome: timeout}`. The envelope goes, the sender waits, no reply comes, and the line dims."
+  timeout-to:
+    type: app
+    in: steps
+    name: Timeout · to
+    tech: call, timeout
+    description: Takes the envelope in and never answers.
 
   repeat-from:
     type: app
@@ -229,6 +253,8 @@ connections:
   - { from: after-source, to: after-from, label: hands over }
   - { from: after-from, to: after-to, label: callback }
   - { from: cold-from, to: cold-to, label: callback }
+  - { from: fail-from, to: fail-to, label: fail }
+  - { from: timeout-from, to: timeout-to, label: timeout }
   - { from: repeat-from, to: repeat-to, label: asks and answers }
   - { from: repeat-to, to: repeat-from }
   - { from: branch-from, to: branch-a, label: lane A }

@@ -1,0 +1,4 @@
+name: Fail
+view: steps
+steps:
+  - { from: fail-from, to: fail-to, text: Sends and is refused, animation: { kind: send, outcome: fail } }

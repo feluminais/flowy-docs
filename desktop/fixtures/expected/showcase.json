@@ -5,7 +5,7 @@
       "id": "steps",
       "type": "system",
       "name": "Step animations",
-      "description": "One pair of shapes for each way a step can travel, named for the animation they play.\n\nEach animation has a flow of its own with a single step to click through: Send, Call, Event, Callback, Flash, Bolt drop\nand Send with a word (Flash has two, because the step before sets it off).\n\n**Every step animation** plays them all: press **P** to watch them one after the other.\n"
+      "description": "One pair of shapes for each way a step can travel, named for the animation they play.\n\nEach animation has a flow of its own with a single step to click through: Send, Call, Event, Callback, Flash, Bolt drop,\nSend with a word, Fail and Timeout (Flash has two, because the step before sets it off).\n\n**Every step animation** plays them all: press **P** to watch them one after the other.\n"
     },
     {
       "id": "structure",
@@ -124,6 +124,38 @@
       "in": "steps",
       "tech": "callback, trigger outside",
       "description": "The subscriber."
+    },
+    {
+      "id": "fail-from",
+      "type": "app",
+      "name": "Fail · from",
+      "in": "steps",
+      "tech": "send, fail",
+      "description": "`animation: {kind: send, outcome: fail}`. The envelope runs to the receiver, which refuses it."
+    },
+    {
+      "id": "fail-to",
+      "type": "app",
+      "name": "Fail · to",
+      "in": "steps",
+      "tech": "send, fail",
+      "description": "Flashes when the refusal arrives."
+    },
+    {
+      "id": "timeout-from",
+      "type": "app",
+      "name": "Timeout · from",
+      "in": "steps",
+      "tech": "call, timeout",
+      "description": "`animation: {kind: call, outcome: timeout}`. The envelope goes, the sender waits, no reply comes, and the line dims."
+    },
+    {
+      "id": "timeout-to",
+      "type": "app",
+      "name": "Timeout · to",
+      "in": "steps",
+      "tech": "call, timeout",
+      "description": "Takes the envelope in and never answers."
     },
     {
       "id": "repeat-from",
@@ -318,6 +350,16 @@
       "label": "callback"
     },
     {
+      "from": "fail-from",
+      "to": "fail-to",
+      "label": "fail"
+    },
+    {
+      "from": "timeout-from",
+      "to": "timeout-to",
+      "label": "timeout"
+    },
+    {
       "from": "repeat-from",
       "to": "repeat-to",
       "label": "asks and answers"
@@ -463,6 +505,22 @@
       "cold-to": [
         1360,
         400
+      ],
+      "fail-from": [
+        0,
+        600
+      ],
+      "fail-to": [
+        360,
+        600
+      ],
+      "timeout-from": [
+        1000,
+        600
+      ],
+      "timeout-to": [
+        1360,
+        600
       ]
     },
     "structure": {
@@ -790,6 +848,57 @@
             "send-to"
           ],
           "ends": "Send · from → Send · to"
+        },
+        {
+          "from": "fail-from",
+          "to": "fail-to",
+          "text": "Sends and is refused",
+          "description": "The envelope runs to the receiver, which flashes when the refusal lands.",
+          "animation": {
+            "kind": "send",
+            "outcome": "fail"
+          },
+          "placed": [
+            "fail-from",
+            "fail-to"
+          ],
+          "ends": "Fail · from → Fail · to"
+        },
+        {
+          "from": "timeout-from",
+          "to": "timeout-to",
+          "text": "Calls and gets no answer",
+          "description": "The envelope goes, the sender keeps waiting, no reply comes, and the line dims.",
+          "animation": {
+            "kind": "call",
+            "outcome": "timeout"
+          },
+          "placed": [
+            "timeout-from",
+            "timeout-to"
+          ],
+          "ends": "Timeout · from → Timeout · to"
+        }
+      ]
+    },
+    {
+      "id": "fail",
+      "name": "Fail",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "fail-from",
+          "to": "fail-to",
+          "text": "Sends and is refused",
+          "animation": {
+            "kind": "send",
+            "outcome": "fail"
+          },
+          "placed": [
+            "fail-from",
+            "fail-to"
+          ],
+          "ends": "Fail · from → Fail · to"
         }
       ]
     },
@@ -1039,6 +1148,27 @@
           "ends": "Send · from → Send · to"
         }
       ]
+    },
+    {
+      "id": "timeout",
+      "name": "Timeout",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "timeout-from",
+          "to": "timeout-to",
+          "text": "Calls and gets no answer",
+          "animation": {
+            "kind": "call",
+            "outcome": "timeout"
+          },
+          "placed": [
+            "timeout-from",
+            "timeout-to"
+          ],
+          "ends": "Timeout · from → Timeout · to"
+        }
+      ]
     }
   ],
   "problems": [],
@@ -1068,7 +1198,11 @@
         "after-from",
         "after-to",
         "cold-from",
-        "cold-to"
+        "cold-to",
+        "fail-from",
+        "fail-to",
+        "timeout-from",
+        "timeout-to"
       ],
       "outsiders": [],
       "edges": [
@@ -1112,6 +1246,18 @@
           "from": "cold-from",
           "to": "cold-to",
           "label": "callback",
+          "count": 1
+        },
+        {
+          "from": "fail-from",
+          "to": "fail-to",
+          "label": "fail",
+          "count": 1
+        },
+        {
+          "from": "timeout-from",
+          "to": "timeout-to",
+          "label": "timeout",
           "count": 1
         }
       ]
