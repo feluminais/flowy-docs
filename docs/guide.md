@@ -51,6 +51,7 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
 - A step can carry an `animation:`. When you arrive at it, something runs
   along its line: `call` goes and comes back while the sender waits, `send` and `event` go one
   way, and `callback` shows what set it off (`trigger: outside` when it was the step before).
+  A step that really fails adds an `outcome`: `fail` on a `send` or `call` runs red and flashes the receiver, and `timeout` on a `call` leaves the sender waiting with no reply and dims the line. The step's text still says it failed.
   In the browser the step plays again two and a half seconds after it ends, until you move on (the Repeat button on the card turns that off),
   R plays it again from the start, and Autoplay (P) steps through the flow on its own after the first play. Nothing moves when
   the system asks for less motion, and a step's text always says the same thing. The desktop app
