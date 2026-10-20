@@ -22,8 +22,10 @@ public static class DetectData
     public static readonly (string Language, (Regex Pattern, int Weight)[] Cues)[] Cues =
     [
         ("dockerfile", [
-            (Rx(@"^(FROM|RUN|COPY|ENTRYPOINT|CMD|EXPOSE|WORKDIR|ENV|ARG|USER|HEALTHCHECK)\s", false), 4),
-            (Rx(@"^FROM\s+\S+", false), 4),
+            (Rx(@"^(RUN|COPY|ADD|ENTRYPOINT|CMD|EXPOSE|WORKDIR|ENV|ARG|USER|HEALTHCHECK|VOLUME|LABEL)\s", false), 4),
+            (Rx(@"^FROM\s+(--platform=\S+\s+)?[\w.\/-]+[:@]\S+", false), 4),
+            (Rx(@"^FROM\s+\S+\s+AS\s+\w+", true), 4),
+            (Rx(@"^FROM\s+scratch\s*$", false), 4),
         ]),
         ("bash", [
             (Rx(@"^#!.*\b(ba|z)?sh\b", false), 9),

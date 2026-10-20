@@ -532,6 +532,7 @@
       "snippets": [
         {
           "title": "Delivery fee",
+          "language": "typescript",
           "text": "// Mapbox answers in metres. Round up to the next 500 m.\nconst km = Math.ceil(meters / 500) / 2\nconst fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)"
         }
       ]
