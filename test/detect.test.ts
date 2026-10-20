@@ -47,6 +47,9 @@ test('a word, a number, nothing and prose are left to be drawn plain', () => {
 test('a few unmistakable lines are named', () => {
   assert.equal(guessLanguage('FROM node:22-alpine\nWORKDIR /app\nCOPY . .'), 'dockerfile')
   assert.equal(guessLanguage('SELECT id, total FROM orders WHERE status = \'placed\''), 'sql')
+  assert.equal(guessLanguage('SELECT id, total\nFROM orders\nWHERE status = \'placed\''), 'sql', 'FROM on a line of its own is SQL, not a Dockerfile')
+  assert.equal(guessLanguage('select o.id\nfrom orders o\njoin items i on i.order_id = o.id'), 'sql')
+  assert.equal(guessLanguage('FROM ubuntu\nRUN apt-get update'), 'dockerfile')
   assert.equal(guessLanguage('<?xml version="1.0"?>\n<Project Sdk="Microsoft.NET.Sdk"></Project>'), 'xml')
   assert.equal(guessLanguage('<!DOCTYPE html>\n<html><body><p>Hi</p></body></html>'), 'html')
   assert.equal(guessLanguage('#!/usr/bin/env bash\nset -e\necho "done"'), 'bash')

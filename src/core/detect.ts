@@ -11,8 +11,10 @@ export type Cue = readonly [pattern: RegExp, weight: number]
 
 export const CUES: readonly { language: string; cues: readonly Cue[] }[] = [
   { language: 'dockerfile', cues: [
-    [/^(FROM|RUN|COPY|ENTRYPOINT|CMD|EXPOSE|WORKDIR|ENV|ARG|USER|HEALTHCHECK)\s/m, 4],
-    [/^FROM\s+\S+/m, 4],
+    [/^(RUN|COPY|ADD|ENTRYPOINT|CMD|EXPOSE|WORKDIR|ENV|ARG|USER|HEALTHCHECK|VOLUME|LABEL)\s/m, 4],
+    [/^FROM\s+(--platform=\S+\s+)?[\w.\/-]+[:@]\S+/m, 4],
+    [/^FROM\s+\S+\s+AS\s+\w+/mi, 4],
+    [/^FROM\s+scratch\s*$/m, 4],
   ] },
   { language: 'bash', cues: [
     [/^#!.*\b(ba|z)?sh\b/m, 9],

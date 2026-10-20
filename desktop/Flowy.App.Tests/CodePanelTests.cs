@@ -100,8 +100,9 @@ public class CodePanelTests
         reader.OpenObject("guess");
         Settle(window);
         var runs = reader.Panel.GetVisualDescendants().OfType<SelectableTextBlock>().SelectMany(b => b.Inlines!.OfType<Run>()).ToList();
-        Assert.Contains(runs, r => r.Text == "SELECT" && r.Foreground is not null);
-        Assert.Contains(runs, r => r.Text!.Contains("orders") && r.Foreground is null);
+        // A colour set on the run itself; a plain run sets none and takes the text's (reading Foreground gives the inherited one, so ask whether it is set).
+        Assert.Contains(runs, r => r.Text == "SELECT" && r.IsSet(TextElement.ForegroundProperty));
+        Assert.Contains(runs, r => r.Text!.Contains("orders") && !r.IsSet(TextElement.ForegroundProperty));
     }
 
     [AvaloniaFact]
@@ -209,7 +210,9 @@ public class CodePanelTests
         Assert.Contains("language: sql", Model(dir));
         await Until(() => editor.CardCount == 1);
         editor.RemoveOf(0).RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
-        await Until(() => !Model(dir).Contains("snippets:"));
+        await Until(() => reader.Folder!.Model.GetObject("shop")!.Snippets is null);
+        Assert.DoesNotContain("language: sql", Model(dir));
+        Assert.Contains("name: Guess", Model(dir)); // the other shapes were not touched
     }
 
     [AvaloniaFact]
