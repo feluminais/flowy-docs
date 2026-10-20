@@ -48,6 +48,9 @@ export const risk = (r: Rated): number | undefined =>
 /** The ratings that count: the after ratings once the mode is done, the current ones otherwise. */
 const effective = (m: Mode): Rated => (m.status === 'done' ? ratingsAfter(m) : ratingsOf(m))
 
+/** The risk of the ratings that count (the after ratings once the mode is done), or none when one is missing. */
+export const riskOf = (m: Mode): number | undefined => risk(effective(m))
+
 /**
  * High when severity is 9 or 10, even with the other ratings missing: a severe failure is never quiet and never hides in Not rated.
  * Otherwise Not rated when a rating is missing, then High from a risk of 150, Medium from 60, Low below. Starting values, as the
