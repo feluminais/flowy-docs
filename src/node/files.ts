@@ -131,9 +131,12 @@ async function loadFailures(dir: string, model: Model, read: (rel: string) => Pr
   return problems
 }
 
-/** The failures files that exist but could not be read, as paths Flowy would write. Nothing may replace or delete them: they hold someone's work. */
-export const unreadableFiles = (loaded: Loaded): Set<string> =>
-  new Set(loaded.failureProblems.map(p => p.file).filter(isAllowedPath))
+/**
+ * The skipped file in failures/ that a write to `rel` would run into, if any: that very file, or one whose name differs only in letter case,
+ * which on Windows and macOS is the same file. Nothing may replace or delete such a file: it holds someone's work that Flowy could not read.
+ */
+export const blockedBy = (loaded: Loaded, rel: string): string | undefined =>
+  loaded.failureProblems.map(p => p.file).find(file => file.startsWith('failures/') && file.toLowerCase() === rel.toLowerCase())
 
 /** The `code` and `links` paths in these models that don't exist. They're relative to the folder that holds `dir`. */
 export function missingPaths(dir: string, ...models: Model[]): Set<string> {
