@@ -123,6 +123,22 @@ public class NavigatorTests
     }
 
     [AvaloniaFact]
+    public void The_row_the_canvas_shows_is_the_only_one_the_keyboard_ring_skips()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Explorer);
+        reader.ToggleRow("ordering", true);
+        reader.Navigator.Explorer.Pick("shape:order-api");
+        window.UpdateLayout();
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(["shape:order-api"], reader.Navigator.Explorer.CanvasKeys);
+        reader.Navigator.Explorer.Pick("shape:ordering");
+        window.UpdateLayout();
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(["shape:ordering"], reader.Navigator.Explorer.CanvasKeys);
+    }
+
+    [AvaloniaFact]
     public void Opening_a_shape_in_the_Explorer_zooms_into_it_and_the_tree_follows()
     {
         var (_, reader) = Open();

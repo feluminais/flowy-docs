@@ -772,7 +772,7 @@
     <Setter Property="CornerRadius" Value="6" />
   </Style>
   <Style Selector="ListBox.treelist ListBoxItem:pointerover /template/ ContentPresenter, ListBox.treelist ListBoxItem:selected /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
-  <Style Selector="ListBox.treelist:focus-within ListBoxItem:selected /template/ ContentPresenter">
+  <Style Selector="ListBox.treelist:focus-within ListBoxItem:selected:not(.canvas) /template/ ContentPresenter">
     <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
     <Setter Property="BorderThickness" Value="2" />
   </Style>
