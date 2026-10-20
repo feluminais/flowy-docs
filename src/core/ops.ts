@@ -454,6 +454,67 @@ export function deleteMode(model: Model, analysisId: string, id: string): Model 
   return { ...model, failures: { ...model.failures, [analysisId]: { ...analysis, modes } } }
 }
 
+const MODE_ORDER = ['mode', 'on', 'from', 'to', 'effect', 'cause', 'severity', 'occurrence', 'detection', 'controls', 'action', 'owner', 'status', 'after', 'affects', 'flow', 'step', 'run', 'description']
+const ANALYSIS_ORDER = ['name', 'about', 'scope', 'scale', 'modes']
+const RATING_ORDER = ['severity', 'occurrence', 'detection']
+
+/**
+ * `fields` with `changes` applied; an `undefined` in `changes` removes the key. A key that is already there keeps its place, a new one goes
+ * just after the nearest earlier key of `order` that is present (at the front when none is), and a key `order` does not know stays where it was.
+ */
+function withChanges(fields: object, changes: Record<string, unknown>, order: readonly string[]): Record<string, unknown> {
+  const entries = Object.entries(fields)
+  for (const [key, value] of Object.entries(changes)) {
+    const at = entries.findIndex(([k]) => k === key)
+    if (value === undefined) {
+      if (at !== -1) entries.splice(at, 1)
+    } else if (at !== -1) {
+      entries[at] = [key, value]
+    } else {
+      let after = -1
+      let nearest = -1
+      entries.forEach(([k], i) => {
+        const rank = order.indexOf(k)
+        if (rank !== -1 && rank < order.indexOf(key) && rank > nearest) [nearest, after] = [rank, i]
+      })
+      entries.splice(after + 1, 0, [key, value])
+    }
+  }
+  return Object.fromEntries(entries)
+}
+
+/** What the edit forms change on a mode: a text field set to the text (blank removes it), `after` per rating, `affects` as a list (empty removes it). */
+export type ModeChanges = Partial<Record<'mode' | 'on' | 'from' | 'to' | 'effect' | 'cause' | 'severity' | 'occurrence' | 'detection' | 'controls' | 'action' | 'owner' | 'status' | 'flow' | 'step' | 'run' | 'description', string>>
+  & { after?: Partial<Record<'severity' | 'occurrence' | 'detection', string>>; affects?: string[] }
+
+const blank = (v: string) => v.trim() === ''
+
+/** Change some fields of one mode and nothing else: unlike putMode, what a hand wrote there is kept, and a field stays where it is in the file. */
+export function updateMode(model: Model, analysisId: string, id: string, changes: ModeChanges): Model {
+  const analysis = existingAnalysis(model, analysisId)
+  if (!Object.hasOwn(analysis.modes, id)) throw new OpError(`unknown failure mode "${id}" in "${analysisId}"`)
+  const old = analysis.modes[id]
+  const next: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(changes)) {
+    if (key === 'after') {
+      const ratings = withChanges(old.after ?? {}, Object.fromEntries(Object.entries(value as object).map(([k, v]) => [k, blank(v as string) ? undefined : v])), RATING_ORDER)
+      next.after = Object.keys(ratings).length > 0 ? ratings : undefined
+    } else if (key === 'affects') next.affects = (value as string[]).length > 0 ? [...(value as string[])] : undefined
+    else next[key] = typeof value === 'string' && blank(value) ? undefined : value
+  }
+  const modes = { ...analysis.modes }
+  put(modes, id, withChanges(old, next, MODE_ORDER) as Mode)
+  return { ...model, failures: { ...model.failures, [analysisId]: { ...analysis, modes } } }
+}
+
+/** Rename an analysis, or set its about and scope (blank removes those two). A blank name is kept, so the checker can refuse it. */
+export function updateAnalysis(model: Model, id: string, changes: { name?: string; about?: string; scope?: string }): Model {
+  const analysis = existingAnalysis(model, id)
+  const next: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(changes)) next[key] = key !== 'name' && blank(value) ? undefined : value
+  return { ...model, failures: { ...model.failures, [id]: withChanges(analysis, next, ANALYSIS_ORDER) as Analysis } }
+}
+
 /** Save where boxes sit in one view (layout.yaml). Positions of objects and views that no longer exist are dropped. */
 export function placeBoxes(model: Model, view: string, boxes: Record<string, [number, number]>): Model {
   const merged = { ...model.layout, [view]: { ...(Object.hasOwn(model.layout, view) ? model.layout[view] : {}), ...boxes } }

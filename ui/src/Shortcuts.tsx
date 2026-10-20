@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Section } from './Chrome.tsx'
-import { Activity, Close, Pencil, Play, Search } from './icons.tsx'
+import { Activity, Bolt, Close, Pencil, Play, Search } from './icons.tsx'
 import type { IconProps } from './icons.tsx'
 
 /** The keyboard shortcuts, as App's key handler has them. Keep the two in step. */
@@ -14,6 +14,7 @@ const READING: [string, string][] = [
   ['O', 'Show everything as a tree'],
   ['Y', 'The files as YAML, and what changed'],
   ['T', 'Show a load-test run on the diagram, where there is one'],
+  ['M', 'Show how things fail, worst first'],
   ['?', 'Show these shortcuts'],
 ]
 const FLOWS: [string, string][] = [
@@ -27,6 +28,10 @@ const PERFORMANCE: [string, string][] = [
   ['→  ←', 'Next and previous tested load'],
   ['Home  End', 'Lowest and highest tested load'],
   ['P', 'Ramp the load up on its own, or pause'],
+  ['Esc', 'Close the panel'],
+]
+const FAILURES: [string, string][] = [
+  ['→  ←', 'Next and previous failure'],
   ['Esc', 'Close the panel'],
 ]
 const EDITING: [string, string][] = [
@@ -56,7 +61,7 @@ function Group({ icon, title, keys }: { icon: (props?: IconProps) => ReactNode; 
 }
 
 /** What ? opens. The editing keys only show where the page can edit. */
-export function Shortcuts({ editable, performance, onClose }: { editable: boolean; performance: boolean; onClose: () => void }) {
+export function Shortcuts({ editable, performance, failures, onClose }: { editable: boolean; performance: boolean; failures: boolean; onClose: () => void }) {
   return (
     <section className="shortcuts" role="dialog" aria-label="Keyboard shortcuts">
       <button className="close" aria-label="Close" onClick={onClose}><Close size={16} /></button>
@@ -64,6 +69,7 @@ export function Shortcuts({ editable, performance, onClose }: { editable: boolea
       <Group icon={Search} title="Getting around" keys={READING} />
       <Group icon={Play} title="Flows" keys={FLOWS} />
       {performance && <Group icon={Activity} title="Performance" keys={PERFORMANCE} />}
+      {failures && <Group icon={Bolt} title="Failures" keys={FAILURES} />}
       {editable && <Group icon={Pencil} title="Edit mode" keys={EDITING} />}
     </section>
   )
