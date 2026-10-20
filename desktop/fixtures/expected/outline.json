@@ -5532,6 +5532,3851 @@
         }
       ]
     },
+    "showcase": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 38,
+              "flows": 6,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 38,
+            "flows": 6,
+            "problems": 0
+          }
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 38,
+              "flows": 6,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:structure",
+              "kind": "shape",
+              "id": "structure",
+              "parent": "root",
+              "depth": 1,
+              "name": "Flow structure",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 5,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:performance",
+              "kind": "shape",
+              "id": "performance",
+              "parent": "root",
+              "depth": 1,
+              "name": "Performance",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:steps",
+              "kind": "shape",
+              "id": "steps",
+              "parent": "root",
+              "depth": 1,
+              "name": "Step animations",
+              "type": "system",
+              "external": false,
+              "shapes": 13,
+              "flows": 1,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 38,
+            "flows": 6,
+            "problems": 0
+          }
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "steps"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 38,
+              "flows": 6,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:structure",
+              "kind": "shape",
+              "id": "structure",
+              "parent": "root",
+              "depth": 1,
+              "name": "Flow structure",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 5,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:performance",
+              "kind": "shape",
+              "id": "performance",
+              "parent": "root",
+              "depth": 1,
+              "name": "Performance",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:steps",
+              "kind": "shape",
+              "id": "steps",
+              "parent": "root",
+              "depth": 1,
+              "name": "Step animations",
+              "type": "system",
+              "external": false,
+              "shapes": 13,
+              "flows": 1,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:cold-from",
+              "kind": "shape",
+              "id": "cold-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Bolt drop · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cold-to",
+              "kind": "shape",
+              "id": "cold-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Bolt drop · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:call-from",
+              "kind": "shape",
+              "id": "call-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:call-to",
+              "kind": "shape",
+              "id": "call-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call · to",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:callback-from",
+              "kind": "shape",
+              "id": "callback-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:callback-to",
+              "kind": "shape",
+              "id": "callback-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:event-from",
+              "kind": "shape",
+              "id": "event-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Event · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:event-to",
+              "kind": "shape",
+              "id": "event-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Event · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-from",
+              "kind": "shape",
+              "id": "after-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-source",
+              "kind": "shape",
+              "id": "after-source",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · source",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-to",
+              "kind": "shape",
+              "id": "after-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:send-from",
+              "kind": "shape",
+              "id": "send-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:send-to",
+              "kind": "shape",
+              "id": "send-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send · to",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:every-step-animation",
+              "kind": "flow",
+              "id": "every-step-animation",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Every step animation",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 8,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 38,
+            "flows": 6,
+            "problems": 0
+          }
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "steps",
+            "structure",
+            "performance",
+            "send-from",
+            "send-to",
+            "call-from",
+            "call-to",
+            "event-from",
+            "event-to",
+            "callback-from",
+            "callback-to",
+            "after-source",
+            "after-from",
+            "after-to",
+            "cold-from",
+            "cold-to",
+            "repeat-from",
+            "repeat-to",
+            "branch-from",
+            "branch-a",
+            "branch-b",
+            "parallel-from",
+            "parallel-a",
+            "parallel-b",
+            "parallel-c",
+            "link-from",
+            "link-to",
+            "load",
+            "traffic",
+            "latency",
+            "failing-calls",
+            "strain",
+            "failing-shape",
+            "queue",
+            "not-measured",
+            "rolled-up",
+            "rolled-a",
+            "rolled-b"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 38,
+              "flows": 6,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:structure",
+              "kind": "shape",
+              "id": "structure",
+              "parent": "root",
+              "depth": 1,
+              "name": "Flow structure",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 5,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:branch-from",
+              "kind": "shape",
+              "id": "branch-from",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:branch-a",
+              "kind": "shape",
+              "id": "branch-a",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch · lane A",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:branch-b",
+              "kind": "shape",
+              "id": "branch-b",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch · lane B",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:link-from",
+              "kind": "shape",
+              "id": "link-from",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Flow link · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:link-to",
+              "kind": "shape",
+              "id": "link-to",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Flow link · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-from",
+              "kind": "shape",
+              "id": "parallel-from",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-a",
+              "kind": "shape",
+              "id": "parallel-a",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · lane A",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-b",
+              "kind": "shape",
+              "id": "parallel-b",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · lane B",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-c",
+              "kind": "shape",
+              "id": "parallel-c",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · lane C",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:repeat-from",
+              "kind": "shape",
+              "id": "repeat-from",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Repeat · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:repeat-to",
+              "kind": "shape",
+              "id": "repeat-to",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Repeat · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branch",
+              "kind": "flow",
+              "id": "branch",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:flow-link",
+              "kind": "flow",
+              "id": "flow-link",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Flow link",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:flow-link-next",
+              "kind": "flow",
+              "id": "flow-link-next",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Flow link, the other flow",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel",
+              "kind": "flow",
+              "id": "parallel",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Repeat",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:performance",
+              "kind": "shape",
+              "id": "performance",
+              "parent": "root",
+              "depth": 1,
+              "name": "Performance",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:rolled-up",
+              "kind": "shape",
+              "id": "rolled-up",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Rolled up",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:rolled-a",
+              "kind": "shape",
+              "id": "rolled-a",
+              "parent": "rolled-up",
+              "depth": 3,
+              "name": "Rolled up · A",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:rolled-b",
+              "kind": "shape",
+              "id": "rolled-b",
+              "parent": "rolled-up",
+              "depth": 3,
+              "name": "Rolled up · B",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:failing-calls",
+              "kind": "shape",
+              "id": "failing-calls",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Failing calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:failing-shape",
+              "kind": "shape",
+              "id": "failing-shape",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Failing shape",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:latency",
+              "kind": "shape",
+              "id": "latency",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Latency",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:load",
+              "kind": "shape",
+              "id": "load",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Load",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:not-measured",
+              "kind": "shape",
+              "id": "not-measured",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Not measured",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:queue",
+              "kind": "shape",
+              "id": "queue",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Queue",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:strain",
+              "kind": "shape",
+              "id": "strain",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Strain",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:traffic",
+              "kind": "shape",
+              "id": "traffic",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Traffic",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:steps",
+              "kind": "shape",
+              "id": "steps",
+              "parent": "root",
+              "depth": 1,
+              "name": "Step animations",
+              "type": "system",
+              "external": false,
+              "shapes": 13,
+              "flows": 1,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:cold-from",
+              "kind": "shape",
+              "id": "cold-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Bolt drop · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cold-to",
+              "kind": "shape",
+              "id": "cold-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Bolt drop · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:call-from",
+              "kind": "shape",
+              "id": "call-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:call-to",
+              "kind": "shape",
+              "id": "call-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call · to",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:callback-from",
+              "kind": "shape",
+              "id": "callback-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:callback-to",
+              "kind": "shape",
+              "id": "callback-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:event-from",
+              "kind": "shape",
+              "id": "event-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Event · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:event-to",
+              "kind": "shape",
+              "id": "event-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Event · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-from",
+              "kind": "shape",
+              "id": "after-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-source",
+              "kind": "shape",
+              "id": "after-source",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · source",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-to",
+              "kind": "shape",
+              "id": "after-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:send-from",
+              "kind": "shape",
+              "id": "send-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:send-to",
+              "kind": "shape",
+              "id": "send-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send · to",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:every-step-animation",
+              "kind": "flow",
+              "id": "every-step-animation",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Every step animation",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 8,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 38,
+            "flows": 6,
+            "problems": 0
+          }
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "steps",
+            "structure",
+            "performance",
+            "send-from",
+            "send-to",
+            "call-from",
+            "call-to",
+            "event-from",
+            "event-to",
+            "callback-from",
+            "callback-to",
+            "after-source",
+            "after-from",
+            "after-to",
+            "cold-from",
+            "cold-to",
+            "repeat-from",
+            "repeat-to",
+            "branch-from",
+            "branch-a",
+            "branch-b",
+            "parallel-from",
+            "parallel-a",
+            "parallel-b",
+            "parallel-c",
+            "link-from",
+            "link-to",
+            "load",
+            "traffic",
+            "latency",
+            "failing-calls",
+            "strain",
+            "failing-shape",
+            "queue",
+            "not-measured",
+            "rolled-up",
+            "rolled-a",
+            "rolled-b"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 38,
+              "flows": 6,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:structure",
+              "kind": "shape",
+              "id": "structure",
+              "parent": "root",
+              "depth": 1,
+              "name": "Flow structure",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 5,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:branch-from",
+              "kind": "shape",
+              "id": "branch-from",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:branch-a",
+              "kind": "shape",
+              "id": "branch-a",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch · lane A",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:branch-b",
+              "kind": "shape",
+              "id": "branch-b",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch · lane B",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:link-from",
+              "kind": "shape",
+              "id": "link-from",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Flow link · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:link-to",
+              "kind": "shape",
+              "id": "link-to",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Flow link · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-from",
+              "kind": "shape",
+              "id": "parallel-from",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-a",
+              "kind": "shape",
+              "id": "parallel-a",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · lane A",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-b",
+              "kind": "shape",
+              "id": "parallel-b",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · lane B",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-c",
+              "kind": "shape",
+              "id": "parallel-c",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · lane C",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:repeat-from",
+              "kind": "shape",
+              "id": "repeat-from",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Repeat · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:repeat-to",
+              "kind": "shape",
+              "id": "repeat-to",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Repeat · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branch",
+              "kind": "flow",
+              "id": "branch",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:flow-link",
+              "kind": "flow",
+              "id": "flow-link",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Flow link",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:flow-link-next",
+              "kind": "flow",
+              "id": "flow-link-next",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Flow link, the other flow",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel",
+              "kind": "flow",
+              "id": "parallel",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Repeat",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:performance",
+              "kind": "shape",
+              "id": "performance",
+              "parent": "root",
+              "depth": 1,
+              "name": "Performance",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:rolled-up",
+              "kind": "shape",
+              "id": "rolled-up",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Rolled up",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:rolled-a",
+              "kind": "shape",
+              "id": "rolled-a",
+              "parent": "rolled-up",
+              "depth": 3,
+              "name": "Rolled up · A",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:rolled-b",
+              "kind": "shape",
+              "id": "rolled-b",
+              "parent": "rolled-up",
+              "depth": 3,
+              "name": "Rolled up · B",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:failing-calls",
+              "kind": "shape",
+              "id": "failing-calls",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Failing calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:failing-shape",
+              "kind": "shape",
+              "id": "failing-shape",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Failing shape",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:latency",
+              "kind": "shape",
+              "id": "latency",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Latency",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:load",
+              "kind": "shape",
+              "id": "load",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Load",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:not-measured",
+              "kind": "shape",
+              "id": "not-measured",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Not measured",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:queue",
+              "kind": "shape",
+              "id": "queue",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Queue",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:strain",
+              "kind": "shape",
+              "id": "strain",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Strain",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:traffic",
+              "kind": "shape",
+              "id": "traffic",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Traffic",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:steps",
+              "kind": "shape",
+              "id": "steps",
+              "parent": "root",
+              "depth": 1,
+              "name": "Step animations",
+              "type": "system",
+              "external": false,
+              "shapes": 13,
+              "flows": 1,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:cold-from",
+              "kind": "shape",
+              "id": "cold-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Bolt drop · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cold-to",
+              "kind": "shape",
+              "id": "cold-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Bolt drop · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:call-from",
+              "kind": "shape",
+              "id": "call-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:call-to",
+              "kind": "shape",
+              "id": "call-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call · to",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:callback-from",
+              "kind": "shape",
+              "id": "callback-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:callback-to",
+              "kind": "shape",
+              "id": "callback-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:event-from",
+              "kind": "shape",
+              "id": "event-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Event · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:event-to",
+              "kind": "shape",
+              "id": "event-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Event · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-from",
+              "kind": "shape",
+              "id": "after-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-source",
+              "kind": "shape",
+              "id": "after-source",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · source",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-to",
+              "kind": "shape",
+              "id": "after-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:send-from",
+              "kind": "shape",
+              "id": "send-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:send-to",
+              "kind": "shape",
+              "id": "send-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send · to",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:every-step-animation",
+              "kind": "flow",
+              "id": "every-step-animation",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Every step animation",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 8,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 38,
+            "flows": 6,
+            "problems": 0
+          }
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 38,
+              "flows": 6,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:structure",
+              "kind": "shape",
+              "id": "structure",
+              "parent": "root",
+              "depth": 1,
+              "name": "Flow structure",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 5,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:branch-from",
+              "kind": "shape",
+              "id": "branch-from",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:branch-a",
+              "kind": "shape",
+              "id": "branch-a",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch · lane A",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:branch-b",
+              "kind": "shape",
+              "id": "branch-b",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch · lane B",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-from",
+              "kind": "shape",
+              "id": "parallel-from",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-a",
+              "kind": "shape",
+              "id": "parallel-a",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · lane A",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-b",
+              "kind": "shape",
+              "id": "parallel-b",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · lane B",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:parallel-c",
+              "kind": "shape",
+              "id": "parallel-c",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel · lane C",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:repeat-from",
+              "kind": "shape",
+              "id": "repeat-from",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Repeat · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:repeat-to",
+              "kind": "shape",
+              "id": "repeat-to",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Repeat · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branch",
+              "kind": "flow",
+              "id": "branch",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel",
+              "kind": "flow",
+              "id": "parallel",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Parallel",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "structure",
+              "depth": 2,
+              "name": "Repeat",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:performance",
+              "kind": "shape",
+              "id": "performance",
+              "parent": "root",
+              "depth": 1,
+              "name": "Performance",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:rolled-up",
+              "kind": "shape",
+              "id": "rolled-up",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Rolled up",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:rolled-a",
+              "kind": "shape",
+              "id": "rolled-a",
+              "parent": "rolled-up",
+              "depth": 3,
+              "name": "Rolled up · A",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:failing-calls",
+              "kind": "shape",
+              "id": "failing-calls",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Failing calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:failing-shape",
+              "kind": "shape",
+              "id": "failing-shape",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Failing shape",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:latency",
+              "kind": "shape",
+              "id": "latency",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Latency",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:load",
+              "kind": "shape",
+              "id": "load",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Load",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:not-measured",
+              "kind": "shape",
+              "id": "not-measured",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Not measured",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:strain",
+              "kind": "shape",
+              "id": "strain",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Strain",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:traffic",
+              "kind": "shape",
+              "id": "traffic",
+              "parent": "performance",
+              "depth": 2,
+              "name": "Traffic",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:steps",
+              "kind": "shape",
+              "id": "steps",
+              "parent": "root",
+              "depth": 1,
+              "name": "Step animations",
+              "type": "system",
+              "external": false,
+              "shapes": 13,
+              "flows": 1,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:call-from",
+              "kind": "shape",
+              "id": "call-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:call-to",
+              "kind": "shape",
+              "id": "call-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call · to",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:callback-from",
+              "kind": "shape",
+              "id": "callback-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:callback-to",
+              "kind": "shape",
+              "id": "callback-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-from",
+              "kind": "shape",
+              "id": "after-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-source",
+              "kind": "shape",
+              "id": "after-source",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · source",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:after-to",
+              "kind": "shape",
+              "id": "after-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:every-step-animation",
+              "kind": "flow",
+              "id": "every-step-animation",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Every step animation",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 8,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 38,
+            "flows": 6,
+            "problems": 0
+          }
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [],
+          "totals": {
+            "shapes": 38,
+            "flows": 6,
+            "problems": 0
+          }
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 38,
+              "flows": 6,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:structure",
+              "kind": "shape",
+              "id": "structure",
+              "parent": "root",
+              "depth": 1,
+              "name": "Flow structure",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 5,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:performance",
+              "kind": "shape",
+              "id": "performance",
+              "parent": "root",
+              "depth": 1,
+              "name": "Performance",
+              "type": "system",
+              "external": false,
+              "shapes": 11,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:steps",
+              "kind": "shape",
+              "id": "steps",
+              "parent": "root",
+              "depth": 1,
+              "name": "Step animations",
+              "type": "system",
+              "external": false,
+              "shapes": 13,
+              "flows": 1,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 38,
+            "flows": 6,
+            "problems": 0
+          }
+        }
+      ],
+      "groups": [
+        {
+          "view": "root",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 8,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        },
+        {
+          "view": "root",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 8,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        },
+        {
+          "view": "steps",
+          "editing": false,
+          "here": [
+            {
+              "id": "every-step-animation",
+              "name": "Every step animation",
+              "steps": 8,
+              "view": "steps"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        },
+        {
+          "view": "steps",
+          "editing": true,
+          "here": [
+            {
+              "id": "every-step-animation",
+              "name": "Every step animation",
+              "steps": 8,
+              "view": "steps"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        },
+        {
+          "view": "structure",
+          "editing": false,
+          "here": [
+            {
+              "id": "branch",
+              "name": "Branch",
+              "steps": 4,
+              "view": "structure"
+            },
+            {
+              "id": "flow-link",
+              "name": "Flow link",
+              "steps": 2,
+              "view": "structure"
+            },
+            {
+              "id": "flow-link-next",
+              "name": "Flow link, the other flow",
+              "steps": 2,
+              "view": "structure"
+            },
+            {
+              "id": "parallel",
+              "name": "Parallel",
+              "steps": 5,
+              "view": "structure"
+            },
+            {
+              "id": "repeat",
+              "name": "Repeat",
+              "steps": 3,
+              "view": "structure"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 8,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        },
+        {
+          "view": "structure",
+          "editing": true,
+          "here": [
+            {
+              "id": "branch",
+              "name": "Branch",
+              "steps": 4,
+              "view": "structure"
+            },
+            {
+              "id": "flow-link",
+              "name": "Flow link",
+              "steps": 2,
+              "view": "structure"
+            },
+            {
+              "id": "flow-link-next",
+              "name": "Flow link, the other flow",
+              "steps": 2,
+              "view": "structure"
+            },
+            {
+              "id": "parallel",
+              "name": "Parallel",
+              "steps": 5,
+              "view": "structure"
+            },
+            {
+              "id": "repeat",
+              "name": "Repeat",
+              "steps": 3,
+              "view": "structure"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 8,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        },
+        {
+          "view": "performance",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 8,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        },
+        {
+          "view": "performance",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 8,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        },
+        {
+          "view": "rolled-up",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 8,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        },
+        {
+          "view": "rolled-up",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 8,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 6
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "steps",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "steps",
+          "self": true,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "structure",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "structure",
+          "self": true,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "performance",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "performance",
+          "self": true,
+          "opened": [
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "send-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "send-from",
+          "self": true,
+          "opened": [
+            "root",
+            "send-from",
+            "steps"
+          ]
+        },
+        {
+          "id": "send-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "send-to",
+          "self": true,
+          "opened": [
+            "root",
+            "send-to",
+            "steps"
+          ]
+        },
+        {
+          "id": "call-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "call-from",
+          "self": true,
+          "opened": [
+            "call-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "call-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "call-to",
+          "self": true,
+          "opened": [
+            "call-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "event-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "event-from",
+          "self": true,
+          "opened": [
+            "event-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "event-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "event-to",
+          "self": true,
+          "opened": [
+            "event-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "callback-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "callback-from",
+          "self": true,
+          "opened": [
+            "callback-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "callback-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "callback-to",
+          "self": true,
+          "opened": [
+            "callback-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "after-source",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "after-source",
+          "self": true,
+          "opened": [
+            "after-source",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "after-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "after-from",
+          "self": true,
+          "opened": [
+            "after-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "after-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "after-to",
+          "self": true,
+          "opened": [
+            "after-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "cold-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "cold-from",
+          "self": true,
+          "opened": [
+            "cold-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "cold-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "cold-to",
+          "self": true,
+          "opened": [
+            "cold-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "repeat-from",
+          "self": false,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "repeat-from",
+          "self": true,
+          "opened": [
+            "repeat-from",
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "repeat-to",
+          "self": false,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "repeat-to",
+          "self": true,
+          "opened": [
+            "repeat-to",
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "branch-from",
+          "self": false,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "branch-from",
+          "self": true,
+          "opened": [
+            "branch-from",
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "branch-a",
+          "self": false,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "branch-a",
+          "self": true,
+          "opened": [
+            "branch-a",
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "branch-b",
+          "self": false,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "branch-b",
+          "self": true,
+          "opened": [
+            "branch-b",
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "parallel-from",
+          "self": false,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "parallel-from",
+          "self": true,
+          "opened": [
+            "parallel-from",
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "parallel-a",
+          "self": false,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "parallel-a",
+          "self": true,
+          "opened": [
+            "parallel-a",
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "parallel-b",
+          "self": false,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "parallel-b",
+          "self": true,
+          "opened": [
+            "parallel-b",
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "parallel-c",
+          "self": false,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "parallel-c",
+          "self": true,
+          "opened": [
+            "parallel-c",
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "link-from",
+          "self": false,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "link-from",
+          "self": true,
+          "opened": [
+            "link-from",
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "link-to",
+          "self": false,
+          "opened": [
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "link-to",
+          "self": true,
+          "opened": [
+            "link-to",
+            "root",
+            "structure"
+          ]
+        },
+        {
+          "id": "load",
+          "self": false,
+          "opened": [
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "load",
+          "self": true,
+          "opened": [
+            "load",
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "traffic",
+          "self": false,
+          "opened": [
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "traffic",
+          "self": true,
+          "opened": [
+            "performance",
+            "root",
+            "traffic"
+          ]
+        },
+        {
+          "id": "latency",
+          "self": false,
+          "opened": [
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "latency",
+          "self": true,
+          "opened": [
+            "latency",
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "failing-calls",
+          "self": false,
+          "opened": [
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "failing-calls",
+          "self": true,
+          "opened": [
+            "failing-calls",
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "strain",
+          "self": false,
+          "opened": [
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "strain",
+          "self": true,
+          "opened": [
+            "performance",
+            "root",
+            "strain"
+          ]
+        },
+        {
+          "id": "failing-shape",
+          "self": false,
+          "opened": [
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "failing-shape",
+          "self": true,
+          "opened": [
+            "failing-shape",
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "queue",
+          "self": false,
+          "opened": [
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "queue",
+          "self": true,
+          "opened": [
+            "performance",
+            "queue",
+            "root"
+          ]
+        },
+        {
+          "id": "not-measured",
+          "self": false,
+          "opened": [
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "not-measured",
+          "self": true,
+          "opened": [
+            "not-measured",
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "rolled-up",
+          "self": false,
+          "opened": [
+            "performance",
+            "root"
+          ]
+        },
+        {
+          "id": "rolled-up",
+          "self": true,
+          "opened": [
+            "performance",
+            "rolled-up",
+            "root"
+          ]
+        },
+        {
+          "id": "rolled-a",
+          "self": false,
+          "opened": [
+            "performance",
+            "rolled-up",
+            "root"
+          ]
+        },
+        {
+          "id": "rolled-a",
+          "self": true,
+          "opened": [
+            "performance",
+            "rolled-a",
+            "rolled-up",
+            "root"
+          ]
+        },
+        {
+          "id": "rolled-b",
+          "self": false,
+          "opened": [
+            "performance",
+            "rolled-up",
+            "root"
+          ]
+        },
+        {
+          "id": "rolled-b",
+          "self": true,
+          "opened": [
+            "performance",
+            "rolled-b",
+            "rolled-up",
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
+    },
     "empty": {
       "outlines": [
         {

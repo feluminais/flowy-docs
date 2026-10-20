@@ -1,0 +1,11 @@
+name: Branch
+view: structure
+groups:
+  outcome:
+    kind: branch
+    text: Only one lane happens.
+steps:
+  - { from: branch-from, to: branch-a, text: Hands the order to lane A, group: outcome, lane: The card is accepted }
+  - { from: branch-a, to: branch-from, text: Confirms it, group: outcome }
+  - { from: branch-from, to: branch-b, text: Hands the order to lane B, group: outcome, lane: The card is declined }
+  - { from: branch-from, text: Carries on after the branch }

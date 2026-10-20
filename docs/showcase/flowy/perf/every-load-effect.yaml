@@ -1,0 +1,90 @@
+name: Every load effect
+about: Made-up numbers for the showcase. From 10 to 160 requests a second, each shape under Performance gets one effect stronger. Strain, Failing shape and Queue fill up. Traffic, Latency and Failing calls change the line from Load. Not measured stays plain.
+unit: requests/s
+entry: load
+levels:
+  - load: 10
+    overall: { rate: 10, p50: 50, p95: 90, errors: 0 }
+    objects:
+      strain: { util: 0.1 }
+      failing-shape: { errors: 0 }
+      queue: { queue: 0 }
+      rolled-a: { util: 0.2, queue: 0 }
+      rolled-b: { util: 0.5, queue: 10 }
+    connections:
+      - { from: load, to: traffic, rate: 1, p50: 60, p95: 120, errors: 0 }
+      - { from: load, to: latency, rate: 20, p50: 10, p95: 25, errors: 0 }
+      - { from: load, to: failing-calls, rate: 30, p50: 80, p95: 150, errors: 0 }
+      - { from: load, to: strain, rate: 2, p50: 50, p95: 100, errors: 0 }
+      - { from: load, to: failing-shape, rate: 2, p50: 50, p95: 100, errors: 0 }
+      - { from: load, to: queue, rate: 2, p50: 40, p95: 90, errors: 0 }
+      - { from: load, to: rolled-a, rate: 2, p50: 40, p95: 90, errors: 0 }
+      - { from: load, to: rolled-b, rate: 2, p50: 40, p95: 90, errors: 0 }
+  - load: 20
+    overall: { rate: 20, p50: 55, p95: 110, errors: 0 }
+    objects:
+      strain: { util: 0.35 }
+      failing-shape: { errors: 0.01 }
+      queue: { queue: 0 }
+      rolled-a: { util: 0.4, queue: 0 }
+      rolled-b: { util: 0.45, queue: 10 }
+    connections:
+      - { from: load, to: traffic, rate: 5, p50: 60, p95: 120, errors: 0 }
+      - { from: load, to: latency, rate: 20, p50: 40, p95: 100, errors: 0 }
+      - { from: load, to: failing-calls, rate: 30, p50: 80, p95: 150, errors: 0 }
+      - { from: load, to: strain, rate: 5, p50: 50, p95: 100, errors: 0 }
+      - { from: load, to: failing-shape, rate: 5, p50: 50, p95: 100, errors: 0 }
+      - { from: load, to: queue, rate: 5, p50: 40, p95: 90, errors: 0 }
+      - { from: load, to: rolled-a, rate: 4, p50: 40, p95: 90, errors: 0 }
+      - { from: load, to: rolled-b, rate: 4, p50: 40, p95: 90, errors: 0 }
+  - load: 40
+    overall: { rate: 40, p50: 80, p95: 220, errors: 0.02 }
+    objects:
+      strain: { util: 0.6 }
+      failing-shape: { errors: 0.025 }
+      queue: { queue: 40 }
+      rolled-a: { util: 0.6, queue: 5 }
+      rolled-b: { util: 0.4, queue: 10 }
+    connections:
+      - { from: load, to: traffic, rate: 20, p50: 60, p95: 120, errors: 0 }
+      - { from: load, to: latency, rate: 20, p50: 150, p95: 400, errors: 0 }
+      - { from: load, to: failing-calls, rate: 30, p50: 80, p95: 150, errors: 0.05 }
+      - { from: load, to: strain, rate: 10, p50: 50, p95: 100, errors: 0 }
+      - { from: load, to: failing-shape, rate: 10, p50: 50, p95: 100, errors: 0 }
+      - { from: load, to: queue, rate: 15, p50: 40, p95: 90, errors: 0 }
+      - { from: load, to: rolled-a, rate: 8, p50: 40, p95: 90, errors: 0 }
+      - { from: load, to: rolled-b, rate: 8, p50: 40, p95: 90, errors: 0 }
+  - load: 80
+    overall: { rate: 80, p50: 200, p95: 600, errors: 0.08 }
+    objects:
+      strain: { util: 0.85 }
+      failing-shape: { errors: 0.04 }
+      queue: { queue: 400 }
+      rolled-a: { util: 0.75, queue: 30 }
+      rolled-b: { util: 0.35, queue: 10 }
+    connections:
+      - { from: load, to: traffic, rate: 80, p50: 60, p95: 120, errors: 0 }
+      - { from: load, to: latency, rate: 20, p50: 600, p95: 1500, errors: 0 }
+      - { from: load, to: failing-calls, rate: 30, p50: 80, p95: 150, errors: 0.2 }
+      - { from: load, to: strain, rate: 20, p50: 50, p95: 100, errors: 0 }
+      - { from: load, to: failing-shape, rate: 20, p50: 50, p95: 100, errors: 0 }
+      - { from: load, to: queue, rate: 40, p50: 40, p95: 90, errors: 0 }
+      - { from: load, to: rolled-a, rate: 16, p50: 40, p95: 90, errors: 0 }
+      - { from: load, to: rolled-b, rate: 16, p50: 40, p95: 90, errors: 0 }
+  - load: 160
+    overall: { rate: 160, p50: 700, p95: 2200, errors: 0.2 }
+    objects:
+      strain: { util: 1 }
+      failing-shape: { errors: 0.08 }
+      queue: { queue: 3000 }
+      rolled-a: { util: 0.9, queue: 120 }
+      rolled-b: { util: 0.3, queue: 10 }
+    connections:
+      - { from: load, to: traffic, rate: 300, p50: 60, p95: 120, errors: 0 }
+      - { from: load, to: latency, rate: 20, p50: 2500, p95: 6000, errors: 0 }
+      - { from: load, to: failing-calls, rate: 30, p50: 80, p95: 150, errors: 0.5 }
+      - { from: load, to: strain, rate: 40, p50: 50, p95: 100, errors: 0 }
+      - { from: load, to: failing-shape, rate: 40, p50: 50, p95: 100, errors: 0 }
+      - { from: load, to: queue, rate: 100, p50: 40, p95: 90, errors: 0 }
+      - { from: load, to: rolled-a, rate: 32, p50: 40, p95: 90, errors: 0 }
+      - { from: load, to: rolled-b, rate: 32, p50: 40, p95: 90, errors: 0 }

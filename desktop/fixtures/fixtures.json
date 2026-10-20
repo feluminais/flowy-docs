@@ -1,6 +1,7 @@
 {
   "example": "example",
   "plum": "docs/demo/flowy",
+  "showcase": "docs/showcase/flowy",
   "empty": "desktop/fixtures/cases/empty/flowy",
   "problems": "desktop/fixtures/cases/problems/flowy",
   "links": "desktop/fixtures/cases/links/flowy",

@@ -1,0 +1,248 @@
+objects:
+  steps:
+    type: system
+    name: Step animations
+    description: |
+      One pair of shapes for each way a step can travel, named for the animation they play.
+
+      Open the flow **Every step animation** and press **P** to watch them one after the other,
+      or step to one and press **R** to play it again.
+  structure:
+    type: system
+    name: Flow structure
+    description: |
+      One set of shapes for each way steps can be grouped: **Repeat**, **Branch**, **Parallel** and **Flow link**.
+
+      Each has a flow of the same name, with the chip, lane tabs and progress bar that go with it.
+  performance:
+    type: system
+    name: Performance
+    description: |
+      One shape for each thing a load test can show, named for what it shows.
+
+      Open the Performance tab (**T**), pick **Every load effect**, then press **Ramp** or step the levels with the arrow keys.
+
+  send-from:
+    type: app
+    in: steps
+    name: Send · from
+    tech: send
+    description: "`animation: send`. Something runs one way along the line. The sender does not wait."
+  send-to:
+    type: store
+    in: steps
+    shape: queue
+    name: Send · to
+    tech: send
+    description: Takes the envelope in with a squash.
+  call-from:
+    type: app
+    in: steps
+    name: Call · from
+    tech: call
+    description: "`animation: call`. The envelope goes, the sender waits, and the reply comes back."
+  call-to:
+    type: store
+    in: steps
+    name: Call · to
+    tech: call
+    description: Takes the envelope in, then answers.
+  event-from:
+    type: app
+    in: steps
+    name: Event · from
+    tech: event
+    description: "`animation: event`. A bolt runs along the line, and the receiver flashes."
+  event-to:
+    type: app
+    in: steps
+    shape: hexagon
+    name: Event · to
+    tech: event
+    description: Flashes when the bolt arrives.
+  callback-from:
+    type: app
+    in: steps
+    name: Callback · from
+    tech: callback
+    description: "`animation: callback`. A ring leaves this shape and a bell runs to the subscriber."
+  callback-to:
+    type: app
+    in: steps
+    name: Callback · to
+    tech: callback
+    description: The subscriber. A ring goes out when the bell arrives.
+  after-source:
+    type: app
+    in: steps
+    name: Flash · source
+    tech: send, then callback
+    description: Hands something to the publisher, which is what sets the callback off.
+  after-from:
+    type: app
+    in: steps
+    name: Flash · from
+    tech: callback, trigger outside
+    description: "`animation: {kind: callback, trigger: outside}`, right after a step that landed here. This shape flashes, then the bell runs."
+  after-to:
+    type: app
+    in: steps
+    name: Flash · to
+    tech: callback, trigger outside
+    description: The subscriber.
+  cold-from:
+    type: app
+    in: steps
+    name: Bolt drop · from
+    tech: callback, trigger outside
+    description: "`animation: {kind: callback, trigger: outside}`, with no step before it that landed here. A bolt drops onto this shape, then the bell runs."
+  cold-to:
+    type: app
+    in: steps
+    name: Bolt drop · to
+    tech: callback, trigger outside
+    description: The subscriber.
+
+  repeat-from:
+    type: app
+    in: structure
+    name: Repeat · from
+    description: The caller. It asks again until the service answers.
+  repeat-to:
+    type: app
+    in: structure
+    name: Repeat · to
+    description: The service. It is busy on the first two tries.
+  branch-from:
+    type: app
+    in: structure
+    name: Branch · from
+    description: Decides which lane happens.
+  branch-a:
+    type: app
+    in: structure
+    name: Branch · lane A
+    description: Takes the first lane.
+  branch-b:
+    type: app
+    in: structure
+    name: Branch · lane B
+    description: Takes the second lane.
+  parallel-from:
+    type: app
+    in: structure
+    name: Parallel · from
+    description: Starts all three lanes together.
+  parallel-a:
+    type: app
+    in: structure
+    name: Parallel · lane A
+    description: Has two steps, so lane A keeps going after the others have finished.
+  parallel-b:
+    type: app
+    in: structure
+    name: Parallel · lane B
+    description: One step.
+  parallel-c:
+    type: app
+    in: structure
+    name: Parallel · lane C
+    description: One step.
+  link-from:
+    type: app
+    in: structure
+    name: Flow link · from
+    description: Hands the story to another flow.
+  link-to:
+    type: app
+    in: structure
+    name: Flow link · to
+    description: Where the other flow carries on.
+
+  load:
+    type: app
+    in: performance
+    name: Load
+    description: Where the load comes in. Every shape below is reached from here.
+  traffic:
+    type: app
+    in: performance
+    name: Traffic
+    description: The line from Load gets thicker and busier as the load goes up. The shape itself stays plain.
+  latency:
+    type: app
+    in: performance
+    name: Latency
+    description: The dots on the line from Load slow down as calls take longer. The shape itself stays plain.
+  failing-calls:
+    type: app
+    in: performance
+    name: Failing calls
+    description: More and more of the dots on the line from Load turn red. The shape itself stays plain.
+  strain:
+    type: app
+    in: performance
+    name: Strain
+    description: The outline runs from green to red as the shape fills up.
+  failing-shape:
+    type: app
+    in: performance
+    name: Failing shape
+    description: The shape fails more of its calls. Failing 5% is as strained as full, so the outline runs to red early.
+  queue:
+    type: store
+    in: performance
+    shape: queue
+    name: Queue
+    description: A number appears on the shape when calls wait. It has no outline strain because only the waiting was measured.
+  not-measured:
+    type: app
+    in: performance
+    name: Not measured
+    description: Nothing was measured here, so it stays plain at every load. Missing is never drawn as zero.
+  rolled-up:
+    type: app
+    in: performance
+    name: Rolled up
+    description: |
+      A shape that holds others shows the worst strain inside it and the waiting added up.
+
+      Double-click it to see each part.
+  rolled-a:
+    type: component
+    in: rolled-up
+    name: Rolled up · A
+    description: Fills up as the load goes up.
+  rolled-b:
+    type: component
+    in: rolled-up
+    name: Rolled up · B
+    description: Keeps a steady queue.
+
+connections:
+  - { from: send-from, to: send-to, label: send }
+  - { from: call-from, to: call-to, label: call }
+  - { from: event-from, to: event-to, label: event }
+  - { from: callback-from, to: callback-to, label: callback }
+  - { from: after-source, to: after-from, label: hands over }
+  - { from: after-from, to: after-to, label: callback }
+  - { from: cold-from, to: cold-to, label: callback }
+  - { from: repeat-from, to: repeat-to, label: asks }
+  - { from: repeat-to, to: repeat-from, label: answers }
+  - { from: branch-from, to: branch-a, label: lane A }
+  - { from: branch-from, to: branch-b, label: lane B }
+  - { from: parallel-from, to: parallel-a, label: lane A }
+  - { from: parallel-a, to: parallel-from, label: lane A answers }
+  - { from: parallel-from, to: parallel-b, label: lane B }
+  - { from: parallel-from, to: parallel-c, label: lane C }
+  - { from: link-from, to: link-to, label: hands over }
+  - { from: link-to, to: link-from, label: answers }
+  - { from: load, to: traffic, label: calls }
+  - { from: load, to: latency, label: calls }
+  - { from: load, to: failing-calls, label: calls }
+  - { from: load, to: strain, label: calls }
+  - { from: load, to: failing-shape, label: calls }
+  - { from: load, to: queue, label: calls }
+  - { from: load, to: not-measured, label: calls }
+  - { from: load, to: rolled-a, label: calls }
+  - { from: load, to: rolled-b, label: calls }

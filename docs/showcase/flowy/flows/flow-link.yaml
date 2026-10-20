@@ -1,0 +1,5 @@
+name: Flow link
+view: structure
+steps:
+  - { from: link-from, to: link-to, text: Asks for the work }
+  - { from: link-to, to: link-from, text: Hands the rest of the story to another flow, flow: flow-link-next }

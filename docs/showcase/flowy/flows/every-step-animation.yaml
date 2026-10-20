@@ -1,0 +1,35 @@
+name: Every step animation
+view: steps
+steps:
+  - from: send-from
+    to: send-to
+    text: Sends one way and carries on without waiting
+    animation: send
+    description: A tube along the line, an envelope running through it, and a squash at each end.
+  - from: call-from
+    to: call-to
+    text: Calls and waits for the answer
+    animation: call
+    description: The envelope goes, dots wait over the caller, and the reply comes back in the answer's colour.
+  - from: event-from
+    to: event-to
+    text: Raises an event
+    animation: event
+    description: A bolt runs along the line and the receiver flashes when it arrives.
+  - from: callback-from
+    to: callback-to
+    text: Runs a callback on its subscriber
+    animation: callback
+    description: A ring leaves the publisher, a bell runs to the subscriber, and a ring goes out there.
+  - { from: after-source, to: after-from, text: Hands the publisher something, animation: send }
+  - from: after-from
+    to: after-to
+    text: Runs a callback that the step before set off
+    animation: { kind: callback, trigger: outside }
+    description: The publisher flashes, because the step before landed on it, and then the bell runs.
+  - from: cold-from
+    to: cold-to
+    text: Runs a callback that something outside set off
+    animation: { kind: callback, trigger: outside }
+    description: No step before landed on the publisher, so a bolt drops onto it first and then the bell runs.
+  - { from: send-from, to: send-to, text: Sends again, this time with a word on the blob, animation: { kind: send, carries: order 42 } }

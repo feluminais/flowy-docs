@@ -1,0 +1,12 @@
+name: Parallel
+view: structure
+groups:
+  fan:
+    kind: parallel
+    text: Lane A has two steps, so it carries on after B and C have finished.
+steps:
+  - { from: parallel-from, to: parallel-a, text: Starts lane A, group: fan, lane: Lane A, animation: event }
+  - { from: parallel-a, to: parallel-from, text: Lane A answers, group: fan, animation: send }
+  - { from: parallel-from, to: parallel-b, text: Starts lane B, group: fan, lane: Lane B, animation: event }
+  - { from: parallel-from, to: parallel-c, text: Starts lane C, group: fan, lane: Lane C, animation: event }
+  - { from: parallel-from, text: Carries on once all three are done }
