@@ -5,6 +5,8 @@ import { ANIMATION_KINDS, animationOf } from '../src/core/animation.ts'
 import { knee, traffic } from '../src/core/perf.ts'
 import type { Metrics } from '../src/core/perf.ts'
 import { GROUP_KINDS, runsOf, stopsOf } from '../src/core/structure.ts'
+import { fileData, serializeFile } from '../src/core/model.ts'
+import { modelOf } from '../src/core/state.ts'
 import { loadState } from '../src/node/files.ts'
 
 /**
@@ -23,6 +25,13 @@ test('the showcase loads with nothing wrong in it, in its flows or in its run', 
   assert.deepEqual(state.problems, [])
   assert.equal('runProblems' in state, false)
   assert.ok(run, 'perf/every-load-effect.yaml is missing')
+})
+
+test('every file of the showcase writes back, so it can be edited in edit mode', () => {
+  const whole = modelOf(state)
+  for (const file of ['model.yaml', ...Object.keys(whole.flows).map(id => `flows/${id}.yaml`)])
+    // A comma inside unquoted text in a { } line ends the value and leaves a key with no value, which can't be written.
+    assert.doesNotThrow(() => serializeFile(file, fileData(whole, file)), `${file} can't be written back`)
 })
 
 test('every shape inside a showcase view is named for the animation it plays, and no two share a name', () => {
