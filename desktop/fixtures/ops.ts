@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { typesIn } from '../../src/core/check.ts'
 import { modelFiles, ROOT, serializeLayout } from '../../src/core/model.ts'
+import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
 import { connect, deleteFlow, deleteObject, deleteObjects, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setLines, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
@@ -172,7 +173,7 @@ const filesOf = (m: Model) => ({ ...modelFiles(m), 'layout.yaml': serializeLayou
 export async function dumpOps(): Promise<unknown> {
   const state = await loadState(join(root, 'desktop/fixtures/cases/edit/flowy'))
   if ('parseError' in state) throw new Error('the edit case can\'t be read')
-  let model: Model = { ...state.model, flows: state.flows, layout: state.layout }
+  let model: Model = modelOf(state)
   const initial = filesOf(model)
   const results = STEPS.map(spec => {
     try {
@@ -187,7 +188,7 @@ export async function dumpOps(): Promise<unknown> {
   })
   const names = ['Orders DB', 'orders db', 'Café Étoile', 'Naïve  Résumé', '日本語', '---', 'x'.repeat(100), '  Spaces  ', 'What?!', '1st place', 'API', 'api', 'Ünïcödé 2', 'a/b\c', '']
   const ids = names.flatMap(name => [[], ['orders-db', 'orders-db-2', 'API']].map(taken => ({ name, taken, id: newId(name, taken, 'component') })))
-  const start: Model = { ...state.model, flows: state.flows, layout: state.layout }
+  const start: Model = modelOf(state)
   const types = [ROOT, ...Object.keys(start.objects), 'nowhere'].map(view => ({ view, types: typesIn(start, view) }))
   return { initial, results, ids, types }
 }

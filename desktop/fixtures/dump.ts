@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { lineStyle, ROOT } from '../../src/core/model.ts'
+import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
 import { computeView, isView, placeStep, stepEnds } from '../../src/core/views.ts'
 import { loadState } from '../../src/node/files.ts'
@@ -23,7 +24,7 @@ export const expectedPath = (name: string) => join(root, 'desktop/fixtures/expec
 export async function dumpFolder(dir: string): Promise<unknown> {
   const state = await loadState(dir)
   if ('parseError' in state) return { parseError: state.parseError }
-  const model: Model = { ...state.model, flows: state.flows, layout: state.layout }
+  const model: Model = modelOf(state)
   return {
     lineStyle: lineStyle(model),
     objects: Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name, in: o.in, external: o.external, shape: o.shape, color: o.color, opacity: o.opacity, icon: o.icon, tech: o.tech, description: o.description, code: o.code, links: o.links })),

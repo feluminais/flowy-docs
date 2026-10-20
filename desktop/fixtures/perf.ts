@@ -1,6 +1,7 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ParseError, ROOT } from '../../src/core/model.ts'
+import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
 import { interpolate, knee, kneeText, parseRun, rollUp, strain, traffic } from '../../src/core/perf.ts'
 import type { Metrics } from '../../src/core/perf.ts'
@@ -79,7 +80,7 @@ export async function dumpPerf(): Promise<unknown> {
 
   const state = await loadState(PERF_DIR)
   if ('parseError' in state) throw new Error('the perf fixture folder must load')
-  const model: Model = { ...state.model, flows: state.flows, layout: state.layout }
+  const model: Model = modelOf(state)
   const runs = state.runs ?? {}
   const views = [ROOT, 'shop', 'web', 'orders', 'db']
   const computed = Object.entries(runs).map(([id, run]) => {
@@ -123,7 +124,7 @@ const AREA = { x: 10, y: 3, width: 90, height: 50 }
 export async function dumpPerfView(): Promise<unknown> {
   const state = await loadState(PERF_DIR)
   if ('parseError' in state) throw new Error('the perf fixture folder must load')
-  const model: Model = { ...state.model, flows: state.flows, layout: state.layout }
+  const model: Model = modelOf(state)
   const runs = state.runs ?? {}
   const ramp = runs.ramp
   const views = [ROOT, 'shop', 'web']

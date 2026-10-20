@@ -2,18 +2,20 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { ANIMATION_KINDS } from '../core/animation.ts'
 import { check } from '../core/check.ts'
+import { analysisText, BAND_NAMES, bandOf, riskOf, STATUSES } from '../core/failures.ts'
 import { mcpLabel } from '../core/history.ts'
 import { ICON_GROUPS } from '../core/icons.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
 import { changedFiles, getObject, OBJECT_TYPES, parseFile, ROOT } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
-import { connect, deleteFlow, deleteIcon, deleteObject, disconnect, putFlow, putIcon, putObject, refuseNewProblems } from '../core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, disconnect, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
 import { GROUP_KINDS } from '../core/structure.ts'
 import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
-import { loadDir, missingPaths, saveFile, VersionConflict } from './files.ts'
+import { blockedBy, loadDir, missingPaths, saveFile, VersionConflict } from './files.ts'
 import type { History } from './history.ts'
+import { blockedMessage } from './writes.ts'
 
 const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML files in the repo.
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
@@ -42,6 +44,11 @@ Writing a flow, so it reads the way the code works:
 - A step may carry animation (send, call, callback or event) so it plays as something travelling between the two shapes. Tag only a step whose way of travelling adds to its text: call when the sender waits for the answer, send or event when it doesn't, callback when something sets off a reply to a subscriber (trigger: "outside" when that came in at the step before). Leave most steps untagged, and make the text read the same with the motion off.
 - Neighbouring steps may be a group, declared once under groups and joined with group on each step. A repeat is the same steps run again: times is the limit the code really has (never a number for the picture), and until says what stops it; the backoff goes in the group's text. A branch is alternatives: each lane starts at the step that says lane, named by its condition in plain words, and every lane is told in turn. A failure that is a single step can be a lane; one that is a story stays its own flow. Parallel lanes all start together: a fan-out to several receivers is one-step lanes, so every step still has one "to". Keep a group's steps next to each other, and don't put one group inside another. A step may say flow: the id of another flow that tells what happens next. Say in the step text what the group says, so the text reads the same without it.
 - A step's More (its description) holds why, timing, failure behaviour or limits, not a repeat of the step.
+Writing failure modes (put_failures, put_failure), when asked for a failure analysis:
+- One row per way a part fails. The mode is a condition stated as a fact ("Stripe doesn't answer within five seconds"). The effect is what a person or another part then sees. Name the part with on (a shape) or with from and to (a line that exists, in that direction).
+- Rate honestly, and leave a rating out rather than guess it: a mode without all three ratings is shown as Not rated. Severity, occurrence and detection are whole numbers from 1 to 10; for detection, 10 means nobody would notice. Severity 9 or 10 is always High.
+- Put what exists today in controls and what to do next in action. Name the flow that tells the failure in flow, and the shapes it hurts in affects. Never work out affects from the direction of the lines.
+- put_failure replaces the whole mode: read it with get_model first, which holds every field of a mode (get_failures is only the table), and send every field you want kept.
 After writing: every write is checked, and a write that would add a problem is refused and nothing is saved. Read the answer, fix the cause (find the right path, name or end) and write again. Don't repeat the same call or drop the field to get past it. Finish by saying what you read from the code, what you inferred and what you left out.`
 
 /**
@@ -92,11 +99,17 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   const write = (op: (model: Model) => Model, done: string | ((before: Model) => string), label: string) => inOrder(async () => {
     for (let attempt = 1; ; attempt++) {
       try {
-        const { model, versions } = await loadDir(dir)
+        const loaded = await loadDir(dir)
+        const { model, versions } = loaded
         const next = op(model)
         refuseNewProblems(model, next, missingPaths(dir, model, next)) // the canvas refuses the same edits, except missing code paths, which only Node can see
         // Every op changes at most one file today, so a failure can't leave a half-applied multi-file change.
         const changes = changedFiles(model, next)
+        // An analysis file that was skipped because it can't be read holds someone's work: it is never replaced or deleted.
+        for (const [rel] of changes) {
+          const blocking = blockedBy(loaded, rel)
+          if (blocking !== undefined) return fail(`Refused, nothing saved. ${blockedMessage(blocking, rel)}`)
+        }
         // Never write what can't be read back: if saving and loading ever disagree, refuse instead of breaking the folder.
         try {
           for (const [rel, text] of changes) if (text !== null) parseFile(rel, text)
@@ -124,10 +137,10 @@ export function createMcpServer(dir: string, history?: History): McpServer {
 
   // Known limit: returns the whole model; add filters if models grow past a few hundred objects
   server.registerTool('get_model', {
-    description: 'Everything in the model: objects, connections, flows, the custom icons put_icon defined (name → SVG path data), and current problems.',
+    description: 'Everything in the model: objects, connections, flows, failure analyses, the custom icons put_icon defined (name → SVG path data), and current problems.',
     inputSchema: {}, // without a schema the SDK runs this one step sooner and it overtakes earlier calls
     annotations: readOnly,
-  }, () => read(m => ({ objects: m.objects, connections: m.connections, flows: m.flows, icons: customIcons(m.meta), problems: check(m, missingPaths(dir, m)) })))
+  }, () => read(m => ({ objects: m.objects, connections: m.connections, flows: m.flows, failures: m.failures, icons: customIcons(m.meta), problems: check(m, missingPaths(dir, m)) })))
 
   server.registerTool('get_view', {
     description: 'What one diagram shows: members (its shapes), outsiders (faded shapes from elsewhere that connect in) and edges (connections merged to that zoom level).',
@@ -243,6 +256,99 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     inputSchema: { id: id('Flow id (its file name without .yaml)') },
     annotations: destructive,
   }, input => write(m => deleteFlow(m, input.id), `Deleted flow ${input.id}.`, mcpLabel('delete_flow', input)))
+
+  const rating = z.number().int().min(1).max(10)
+  const modeFields = {
+    mode: z.string().describe('How the part fails, as a condition stated as a fact: "Stripe doesn\'t answer within five seconds"'),
+    on: z.string().max(64).optional().describe('Id of the shape that fails. Give this, or from and to for a line, not both'),
+    from: z.string().max(64).optional().describe('For a line: the id of the shape it starts at. It must be a connection in the model, in that direction'),
+    to: z.string().max(64).optional().describe('For a line: the id of the shape it goes to'),
+    effect: z.string().optional().describe('What a person or another part then sees'),
+    cause: z.string().optional().describe('Why it happens'),
+    severity: rating.optional().describe('1 to 10: how bad the effect is. 9 or 10 is always High'),
+    occurrence: rating.optional().describe('1 to 10: how likely it is'),
+    detection: rating.optional().describe('1 to 10: how hard it is to spot. 10 means nobody would notice'),
+    controls: z.string().optional().describe('What exists today to prevent it or catch it'),
+    action: z.string().optional().describe('What to do next'),
+    owner: z.string().optional().describe('Who does it'),
+    status: z.enum(STATUSES).optional().describe('open (the default), planned, done, or accepted (known and left alone). Once done, the after ratings count'),
+    after: z.strictObject({ severity: rating.optional(), occurrence: rating.optional(), detection: rating.optional() }).optional()
+      .describe('The ratings once the next action is done; a rating left out stays as it is'),
+    affects: z.array(z.string().max(64)).optional().describe('Ids of the shapes the failure hurts, written by you and never worked out from the lines'),
+    flow: z.string().max(64).optional().describe('The id of the flow that tells this failure'),
+    step: z.number().int().min(1).optional().describe('Which step of that flow, counting from 1'),
+    run: z.string().max(64).optional().describe('The id of a performance run that shows it'),
+    description: z.string().optional().describe('More, in markdown: why the ratings are what they are'),
+  }
+  const analysisSaved = (model: Model, aid: string) => {
+    const counts = { high: 0, medium: 0, low: 0, unrated: 0 }
+    const modes = Object.values(model.failures[aid].modes)
+    for (const m of modes) counts[bandOf(m)]++
+    return `Saved failure analysis ${aid}: ${modes.length} mode${modes.length === 1 ? '' : 's'}, ${counts.high} High, ${counts.medium} Medium, ${counts.low} Low, ${counts.unrated} Not rated.`
+  }
+  const modeSaved = (model: Model, aid: string, mid: string) => {
+    const m = model.failures[aid].modes[mid]
+    const n = riskOf(m)
+    const band = BAND_NAMES[bandOf(m)]
+    return `Saved ${mid} in ${aid}: ${n === undefined ? band : `Risk ${n}, ${band}`}.`
+  }
+
+  server.registerTool('get_failures', {
+    description: 'The failure analyses, worst mode first, each as a table with its coverage (which shapes have no analysis yet), then the problems their files have. Give an analysis id for one, and format csv for a table to paste into a spreadsheet.',
+    inputSchema: {
+      analysis: z.string().max(64).optional().describe('An analysis id. Leave out for all of them'),
+      format: z.enum(['markdown', 'csv']).optional().describe('markdown (the default) or csv'),
+    },
+    annotations: readOnly,
+  }, ({ analysis, format }) => inOrder(async () => {
+    try {
+      const loaded = await loadDir(dir)
+      const { model } = loaded
+      if (analysis !== undefined && !Object.hasOwn(model.failures, analysis)) throw new Error(`unknown analysis "${analysis}"`)
+      const ids = analysis === undefined ? Object.keys(model.failures) : [analysis]
+      const problems = [...check(model, missingPaths(dir, model)).filter(p => p.file.startsWith('failures/')), ...loaded.failureProblems]
+        .filter(p => analysis === undefined || p.file === `failures/${analysis}.yaml`)
+      const parts = ids.map(aid => analysisText(model, aid, model.failures[aid], format ?? 'markdown'))
+      if (problems.length > 0) parts.push(`Problems:\n${problems.map(p => `- ${p.file}: ${p.message}`).join('\n')}`)
+      return ok(parts.length > 0 ? parts.join('\n\n') : 'No failure analyses yet. Add one with put_failures.')
+    } catch (e) {
+      return fail(e)
+    }
+  }))
+
+  server.registerTool('put_failures', {
+    description: 'Create or replace a failure analysis (FMEA): a file of failure modes, one per way a part fails. Replacing drops everything the old one had. Answers with how many modes are High, Medium, Low and Not rated.',
+    inputSchema: {
+      id: id('Analysis id, also its file name'),
+      name: z.string().describe('Title, e.g. "Ordering"'),
+      about: z.string().optional().describe('Who rated it, when, and what the ratings rest on'),
+      scope: z.string().max(64).optional().describe('"root" or the id of a shape with children: the shapes the coverage counts. Leave out for everything'),
+      scale: z.record(z.string(), z.strictObject({ low: z.string().optional(), high: z.string().optional() })).optional()
+        .describe('What the ends of each rating mean: { severity: { low, high }, occurrence: { low, high }, detection: { low, high } }'),
+      modes: z.record(z.string().max(64), z.strictObject(modeFields)).describe('The modes, by id (lowercase letters, digits and dashes)'),
+    },
+  }, input => write(m => putAnalysis(m, input), before => analysisSaved(putAnalysis(before, input), input.id), mcpLabel('put_failures', input)))
+
+  server.registerTool('delete_failures', {
+    description: 'Delete a failure analysis and all its modes.',
+    inputSchema: { id: id('Analysis id (its file name without .yaml)') },
+    annotations: destructive,
+  }, input => write(m => deleteAnalysis(m, input.id), `Deleted failure analysis ${input.id}.`, mcpLabel('delete_failures', input)))
+
+  server.registerTool('put_failure', {
+    description: 'Create or replace one failure mode of an analysis that exists (put_failures makes one). Replacing drops everything the old mode had, so read it with get_model first (get_failures is only the table) and send every field to keep. Answers with its risk and band.',
+    inputSchema: { analysis: id('Analysis id'), id: id('Mode id'), ...modeFields },
+  }, input => write(
+    m => putMode(m, input.analysis, input.id, input),
+    before => modeSaved(putMode(before, input.analysis, input.id, input), input.analysis, input.id),
+    mcpLabel('put_failure', input),
+  ))
+
+  server.registerTool('delete_failure', {
+    description: 'Delete one failure mode from an analysis.',
+    inputSchema: { analysis: id('Analysis id'), id: id('Mode id') },
+    annotations: destructive,
+  }, input => write(m => deleteMode(m, input.analysis, input.id), `Deleted ${input.id} from ${input.analysis}.`, mcpLabel('delete_failure', input)))
 
   return server
 }

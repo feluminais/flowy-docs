@@ -4,7 +4,8 @@ import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promise
 import { dirname, join, resolve } from 'node:path'
 import { check, isRepoPath } from '../core/check.ts'
 import type { Problem } from '../core/check.ts'
-import { emptyModel, ID_RULE, isValidId, linksOf, ParseError, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/model.ts'
+import { runLinkProblems } from '../core/failures.ts'
+import { emptyModel, ID_RULE, isValidId, linksOf, ParseError, parseAnalysisFile, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
 import { checkRun, parseRun } from '../core/perf.ts'
 import type { Run } from '../core/perf.ts'
@@ -13,9 +14,10 @@ import { codeBase } from './git.ts'
 
 /**
  * The model plus a content hash per file (null = file missing), used to detect outside edits.
- * `ignored` lists flow files Flowy skips because they end in .yml, not .yaml.
+ * `ignored` lists flow files Flowy skips because they end in .yml, not .yaml. `failureProblems` is what is wrong with the files in
+ * failures/ that were skipped: one that can't be read, a .yml file, a name that isn't an id. A skipped file is no part of the model.
  */
-export type Loaded = { model: Model; versions: Record<string, string | null>; ignored: string[] }
+export type Loaded = { model: Model; versions: Record<string, string | null>; ignored: string[]; failureProblems: Problem[] }
 
 /** The file changed since the caller read it. */
 export class VersionConflict extends Error {
@@ -28,9 +30,13 @@ export class VersionConflict extends Error {
   }
 }
 
+/** The folders that hold one `<id>.yaml` file per thing: the files Flowy may create and delete. */
+export const WRITTEN_FOLDERS = ['flows', 'failures'] as const
+
 export const isAllowedPath = (rel: unknown): rel is string =>
   rel === 'model.yaml' || rel === 'layout.yaml'
-  || (typeof rel === 'string' && rel.startsWith('flows/') && rel.endsWith('.yaml') && isValidId(rel.slice('flows/'.length, -'.yaml'.length)))
+  || (typeof rel === 'string' && WRITTEN_FOLDERS.some(folder =>
+    rel.startsWith(`${folder}/`) && rel.endsWith('.yaml') && isValidId(rel.slice(folder.length + 1, -'.yaml'.length))))
 
 export const hashText = (text: string) => createHash('sha256').update(text).digest('hex').slice(0, 16)
 
@@ -82,8 +88,55 @@ export async function loadDir(dir: string): Promise<Loaded> {
     // Not `model.flows[id] = ...`: a file named __proto__.yaml would replace the prototype and the flow would vanish.
     if (text !== null) Object.defineProperty(model.flows, id, { value: parseFlowFile(id, text), enumerable: true, writable: true, configurable: true })
   }
-  return { model, versions, ignored: files.filter(n => n.endsWith('.yml')).map(n => `flows/${n}`) }
+  const failureProblems = await loadFailures(dir, model, read)
+  return { model, versions, ignored: files.filter(n => n.endsWith('.yml')).map(n => `flows/${n}`), failureProblems }
 }
+
+/** What goes wrong with one file, worded for the problems list: "line 3: ..." for a syntax error, else the reason. */
+const problemOf = (file: string, e: unknown): Problem => ({
+  file,
+  message: e instanceof ParseError ? (e.line === undefined ? e.reason : `line ${e.line}: ${e.reason}`) : `can't be read: ${e instanceof Error ? e.message : String(e)}`,
+})
+
+/**
+ * Reads failures/*.yaml into model.failures. Unlike a flow, an analysis that can't be read never stops the model loading: it is skipped and
+ * becomes a problem, because the architecture is worth more than the analysis. Flowy never writes over such a file (see unreadableFiles).
+ */
+async function loadFailures(dir: string, model: Model, read: (rel: string) => Promise<string | null>): Promise<Problem[]> {
+  const problems: Problem[] = []
+  const entries = await readdir(join(dir, 'failures'), { withFileTypes: true }).catch((e: NodeJS.ErrnoException) => {
+    if (e.code !== 'ENOENT' && e.code !== 'ENOTDIR') problems.push({ file: 'failures', message: `can't be read: ${e.message}` })
+    return []
+  })
+  for (const name of entries.filter(e => e.isFile() || e.isSymbolicLink()).map(e => e.name).sort()) {
+    const file = `failures/${name}`
+    if (name.endsWith('.yml')) {
+      problems.push({ file, message: `Flowy reads analysis files that end in .yaml, so this one is ignored. Rename it to ${name.replace(/\.yml$/, '.yaml')}.` })
+      continue
+    }
+    if (!name.endsWith('.yaml')) continue
+    const id = name.slice(0, -'.yaml'.length)
+    if (!isValidId(id)) {
+      problems.push({ file, message: `"${id}" is not a valid analysis id: the file name must ${ID_RULE}` })
+      continue
+    }
+    try {
+      const text = await read(file)
+      // Ids pass isValidId, so "__proto__" can't get here; defineProperty keeps it that way.
+      if (text !== null) Object.defineProperty(model.failures, id, { value: parseAnalysisFile(id, text), enumerable: true, writable: true, configurable: true })
+    } catch (e) {
+      problems.push(problemOf(file, e))
+    }
+  }
+  return problems
+}
+
+/**
+ * The skipped file in failures/ that a write to `rel` would run into, if any: that very file, or one whose name differs only in letter case,
+ * which on Windows and macOS is the same file. Nothing may replace or delete such a file: it holds someone's work that Flowy could not read.
+ */
+export const blockedBy = (loaded: Loaded, rel: string): string | undefined =>
+  loaded.failureProblems.map(p => p.file).find(file => file.startsWith('failures/') && file.toLowerCase() === rel.toLowerCase())
 
 /** The `code` and `links` paths in these models that don't exist. They're relative to the folder that holds `dir`. */
 export function missingPaths(dir: string, ...models: Model[]): Set<string> {
@@ -124,8 +177,7 @@ export async function loadRuns(dir: string, model: Model): Promise<{ runs: Recor
       problems.push(...parsed.problems, ...checkRun(id, parsed.run, model))
     } catch (e) {
       // Any failure is this file's problem: an unreadable one must not stop the model loading either.
-      const message = e instanceof ParseError ? (e.line === undefined ? e.reason : `line ${e.line}: ${e.reason}`) : `can't be read: ${e instanceof Error ? e.message : String(e)}`
-      problems.push({ file, message })
+      problems.push(problemOf(file, e))
     }
   }
   return { runs, problems }
@@ -134,17 +186,21 @@ export async function loadRuns(dir: string, model: Model): Promise<{ runs: Recor
 /** The folder as the canvas reads it, or the file that can't be read: what GET /api/state answers and an export carries. */
 export async function loadState(dir: string): Promise<State> {
   try {
-    const { model, versions, ignored } = await loadDir(dir)
-    const { flows, layout, ...rest } = model
+    const { model, versions, ignored, failureProblems: unread } = await loadDir(dir)
+    const { flows, layout, failures, ...rest } = model
     const base = await codeBase(dirname(resolve(dir)))
     // A flow file that isn't read is no part of the model, so it isn't a problem check() can see.
     const skipped = ignored.map(file => ({ file, message: `Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to ${file.replace(/\.yml$/, '.yaml')}.` }))
     const { runs, problems: runProblems } = await loadRuns(dir, model)
+    // A mode's run link needs the runs, which are not in the model, so it is checked here. The rest of an analysis is checked in check().
+    const failureProblems = [...unread, ...Object.entries(model.failures).flatMap(([id, a]) => runLinkProblems(id, a, runs))]
     return {
       model: rest, layout, flows, problems: [...check(model, missingPaths(dir, model)), ...skipped], versions,
+      ...(Object.keys(failures).length > 0 ? { failures } : {}),
       ...(base ? { codeBase: base } : {}),
       ...(Object.keys(runs).length > 0 ? { runs } : {}),
       ...(runProblems.length > 0 ? { runProblems } : {}),
+      ...(failureProblems.length > 0 ? { failureProblems } : {}),
     }
   } catch (e) {
     if (e instanceof ParseError) return { parseError: { file: e.file, line: e.line, message: e.reason } }
