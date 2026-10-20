@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { lineKey } from '../src/core/failures.ts'
 import { parseRun } from '../src/core/perf.ts'
-import { activeAnalysis, afterText, bandCounts, firstErrorAt, modeCount, neighbour, ratingCells, rowsFor, STATUS_NAMES } from '../ui/src/failuresview.ts'
+import { activeAnalysis, afterText, bandCounts, firstErrorAt, modeCount, modeIn, neighbour, ratingCells, rowsFor, STATUS_NAMES } from '../ui/src/failuresview.ts'
 import { lineId } from '../ui/src/graph.ts'
 import { shopWithFailures } from './fixtures.ts'
 
@@ -31,6 +31,12 @@ test('activeAnalysis keeps a known id, else the first, else none', () => {
   assert.equal(activeAnalysis(two, ''), 'ordering')
   assert.equal(activeAnalysis({}, 'x'), undefined)
   assert.equal(activeAnalysis(two, 'constructor'), 'ordering')
+})
+
+test('modeIn finds a mode by analysis and id, and nothing for a name that is not there, however it is spelt', () => {
+  assert.equal(modeIn(m, 'ordering', 'db-down'), a.modes['db-down'])
+  for (const [analysis, mode] of [['nope', 'db-down'], ['ordering', 'nope'], ['ordering', undefined], [undefined, 'db-down'], ['constructor', 'db-down'], ['ordering', 'constructor'], ['ordering', '__proto__']] as const)
+    assert.equal(modeIn(m, analysis, mode), undefined, `${analysis} ${mode}`)
 })
 
 test('modeCount adds up the modes of every analysis', () => {
