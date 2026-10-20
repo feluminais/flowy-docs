@@ -1,12 +1,15 @@
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Templates;
+using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Flowy.App.Canvas;
 using Flowy.Core;
+using Path = Avalonia.Controls.Shapes.Path;
 
 namespace Flowy.App;
 
@@ -92,14 +95,18 @@ internal sealed class ObjectEditor : StackPanel
     private readonly FieldBox _description;
     private readonly FieldBox _links;
     private readonly FieldBox _code;
-    private readonly ComboBox _type = new() { HorizontalAlignment = HorizontalAlignment.Stretch, ItemTemplate = Chrome.TypeItem };
-    private readonly CheckBox _external = new() { Content = "Outside service (drawn grey)" };
-    private readonly ComboBox _shape = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
-    private readonly ComboBox _color = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
-    private readonly ComboBox _icon = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly Chooser _type;
+    private readonly ToggleButton _external = Chrome.OutsideSwitch();
+    private readonly Chooser _shape;
+    private readonly Chooser _color;
+    private readonly IconPicker _icon;
     private readonly FieldBox _hex;
-    private readonly FieldBox _opacity;
-    private Dictionary<string, string> _iconData = [];
+    private readonly FadeBar _fade = new();
+    private readonly TextBlock _fadeValue;
+    private readonly Button _fadeReset = new();
+    private readonly List<(string Shape, Path Outline)> _outlines = [];
+    private readonly Ellipse _defaultSwatch = new() { Width = 20, Height = 20, StrokeThickness = 2, StrokeDashArray = [2, 2] };
+    private string? _customColor;
     private string _defaultShape = "rectangle";
     private const string Default = "";
     private readonly StackPanel _header = new();
@@ -121,47 +128,25 @@ internal sealed class ObjectEditor : StackPanel
         _links = new FieldBox("Links (one per line: title | address)", "", true, v => Put(new ObjectInput(id, Links: LinkText.Parse(v, _rawLinks))));
         _code = new FieldBox("Code (one path per line)", "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())));
         _hex = new FieldBox("Custom color (#rrggbb)", "", false, v => Put(new ObjectInput(id, Color: v.Trim())));
-        _opacity = new FieldBox("Opacity (0 to 100)", "", false, v => Put(new ObjectInput(id, Opacity: v.Trim())));
-        _shape.ItemTemplate = new FuncDataTemplate<string>((shape, _) => new TextBlock { Text = shape == Default ? $"Default ({_defaultShape})" : shape, VerticalAlignment = VerticalAlignment.Center });
-        _color.ItemTemplate = new FuncDataTemplate<string>((color, _) => new TextBlock { Text = color == Default ? "Default (the type's)" : color, VerticalAlignment = VerticalAlignment.Center });
-        _icon.ItemTemplate = new FuncDataTemplate<string>((icon, _) => new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 9,
-            Children =
-            {
-                Icons.Make(icon is not null && icon != Default && _iconData.TryGetValue(icon, out var d) ? d : Icons.Cube, "ticon", 16),
-                new TextBlock { Text = icon == Default ? "Default (the type's)" : icon, VerticalAlignment = VerticalAlignment.Center },
-            },
-        });
-        _shape.SelectionChanged += async (_, _) =>
-        {
-            if (!_syncing && _shape.SelectedItem is string shape) await Put(new ObjectInput(id, Shape: shape));
-        };
-        _color.SelectionChanged += async (_, _) =>
-        {
-            if (_syncing || _color.SelectedItem is not string color) return;
-            if (color == Default || Look.IsColorName(color)) await Put(new ObjectInput(id, Color: color)); // a custom colour in the list is the file's own: nothing to save
-        };
-        _icon.SelectionChanged += async (_, _) =>
-        {
-            if (!_syncing && _icon.SelectedItem is string icon) await Put(new ObjectInput(id, Icon: icon));
-        };
-        Avalonia.Automation.AutomationProperties.SetName(_shape, "Shape");
-        Avalonia.Automation.AutomationProperties.SetName(_color, "Color");
-        Avalonia.Automation.AutomationProperties.SetName(_icon, "Icon");
-        _type.SelectionChanged += async (_, _) =>
-        {
-            if (!_syncing && _type.SelectedItem is string type) await Put(new ObjectInput(id, Type: type));
-        };
+        _type = new Chooser("Type", new WrapPanel(), v => Put(new ObjectInput(id, Type: v)));
+        _shape = new Chooser("Shape", new UniformGrid { Columns = 4 }, v => Put(new ObjectInput(id, Shape: v)), v => v == Default ? $"Default ({_defaultShape})" : Pick.Cap(v));
+        _color = new Chooser("Color", new UniformGrid { Columns = 6 }, v => Put(new ObjectInput(id, Color: v)), v => v == Default ? "Default (the type's)" : Look.IsColorName(v) ? Pick.Cap(v) : v);
+        _icon = new IconPicker(v => Put(new ObjectInput(id, Icon: v)));
+        BuildShapes();
+        BuildColors();
         _external.IsCheckedChanged += async (_, _) =>
         {
             if (!_syncing) await Put(new ObjectInput(id, External: _external.IsChecked == true));
         };
-        Avalonia.Automation.AutomationProperties.SetName(_type, "Type");
+        Avalonia.Automation.AutomationProperties.SetName(_fade, "Opacity (0 to 100)");
+        _fade.Moved += v => _fadeValue!.Text = $"{v}%";
+        _fade.Committed += v => Put(new ObjectInput(id, Opacity: v.ToString(CultureInfo.InvariantCulture)));
+        _fadeReset.Classes.Add("reset");
+        _fadeReset.Content = new TextBlock { Text = "Default", FontSize = 12 };
+        Avalonia.Automation.AutomationProperties.SetName(_fadeReset, "Default opacity");
+        _fadeReset.Click += async (_, _) => await Put(new ObjectInput(id, Opacity: ""));
+        var opacityHead = Pick.Head("Opacity", out _fadeValue, _fadeReset);
 
-        var typeCaption = new TextBlock { Text = "Type", FontSize = 12 };
-        typeCaption.Classes.Add("muted");
         var delete = new Button { HorizontalAlignment = HorizontalAlignment.Left };
         delete.Classes.Add("tool");
         delete.Classes.Add("danger");
@@ -173,9 +158,9 @@ internal sealed class ObjectEditor : StackPanel
         Children.Add(_header);
         Children.Add(_problems);
         Children.Add(Chrome.Section(Icons.Pencil, "Details"));
-        Children.Add(new StackPanel { Spacing = 12, Children = { _name, new StackPanel { Spacing = 4, Children = { typeCaption, _type } }, _external, _tech } });
+        Children.Add(new StackPanel { Spacing = 12, Children = { _name, _type, _external, _tech } });
         Children.Add(Chrome.Section(Icons.Sparkles, "Look"));
-        Children.Add(new StackPanel { Spacing = 12, Children = { Captioned("Shape", _shape), Captioned("Color", _color), _hex, _opacity, Captioned("Icon", _icon) } });
+        Children.Add(new StackPanel { Spacing = 14, Children = { _shape, _color, _hex, new StackPanel { Spacing = 6, Children = { opacityHead, _fade } }, _icon } });
         Children.Add(Chrome.Section(Icons.Text, "Description"));
         Children.Add(_description);
         Children.Add(Chrome.Section(Icons.Link, "Links"));
@@ -187,24 +172,43 @@ internal sealed class ObjectEditor : StackPanel
         Children.Add(delete);
     }
 
-    private static StackPanel Captioned(string caption, Control control)
+    /// <summary>The shapes as outlines, in the object's colour: the type's own first, then every shape. Their colours follow the object in <see cref="Update"/>.</summary>
+    private void BuildShapes()
     {
-        var text = new TextBlock { Text = caption, FontSize = 12 };
-        text.Classes.Add("muted");
-        return new StackPanel { Spacing = 4, Children = { text, control } };
+        foreach (var shape in new[] { Default }.Concat(Look.ShapeNames))
+        {
+            var outline = new Path { Data = Geometry.Parse(LookData.Shapes[shape == Default ? _defaultShape : shape].Path), Stretch = Stretch.Uniform, Width = 62, Height = 23, StrokeThickness = 1.5, StrokeJoin = PenLineJoin.Round, HorizontalAlignment = HorizontalAlignment.Center };
+            _outlines.Add((shape, outline));
+            var name = shape == Default ? "Default" : Pick.Cap(shape);
+            var label = new TextBlock { Text = name, FontSize = 10.5, HorizontalAlignment = HorizontalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+            _shape.Add(shape, shape == Default ? $"Default ({_defaultShape})" : name, new StackPanel { Spacing = 5, Children = { outline, label } }, "outline");
+        }
+    }
+
+    /// <summary>The colours as swatches in the colour the canvas draws: the type's own first, drawn as an outline, then every name.</summary>
+    private void BuildColors()
+    {
+        _color.Add(Default, "Default (the type's)", _defaultSwatch, "swatch");
+        foreach (var name in Look.ColorNames)
+        {
+            var pair = Look.ColorPair(name)!.Value;
+            _color.Add(name, Pick.Cap(name), new Ellipse { Width = 20, Height = 20, Fill = ThemeBrushes.For(pair.Light, pair.Dark) }, "swatch");
+        }
     }
 
     internal FieldBox NameField => _name;
 
-    internal ComboBox ShapeBox => _shape;
+    internal Chooser TypeChoices => _type;
 
-    internal ComboBox ColorBox => _color;
+    internal Chooser ShapeChoices => _shape;
 
-    internal ComboBox IconBox => _icon;
+    internal Chooser ColorChoices => _color;
+
+    internal IconPicker IconChoice => _icon;
+
+    internal FadeBar OpacityBar => _fade;
 
     internal FieldBox HexField => _hex;
-
-    internal FieldBox OpacityField => _opacity;
 
     internal FieldBox TechField => _tech;
 
@@ -214,9 +218,7 @@ internal sealed class ObjectEditor : StackPanel
 
     internal FieldBox LinksField => _links;
 
-    internal ComboBox TypeBox => _type;
-
-    internal CheckBox ExternalBox => _external;
+    internal ToggleButton ExternalBox => _external;
 
     public void Update(Model model, IReadOnlyList<Problem> problems)
     {
@@ -231,25 +233,55 @@ internal sealed class ObjectEditor : StackPanel
         // A type the nesting rules don't allow here stays in the list, so the form shows what the file says.
         var types = Checks.TypesIn(model, Views.ParentOf(model, Id));
         if (!string.IsNullOrEmpty(o.Type) && !types.Contains(o.Type)) types.Add(o.Type);
-        _type.ItemsSource = types;
-        _type.SelectedItem = o.Type;
+        if (!_type.Ids.SequenceEqual(types))
+        {
+            _type.Clear();
+            foreach (var t in types) _type.Add(t, t, new StackPanel { Spacing = 5, Children = { Chrome.TypeTile(t, false, 32), new TextBlock { Text = t, FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center } } }, "typecell");
+        }
+        _type.Show(o.Type);
         _external.IsChecked = Model.IsExternal(o);
+
+        // The shapes: each outline in the object's colour, and the first one as what its type draws.
         _defaultShape = Look.ShapeOf(new FlowyObject(o.Type, null, null, null, null, null, null));
-        _shape.ItemsSource = new[] { Default }.Concat(Look.ShapeNames).ToList();
-        _shape.SelectedItem = Look.IsShape(o.Shape) ? o.Shape : Default;
+        var pair = Pick.ColorOf(o);
+        foreach (var (shape, outline) in _outlines)
+        {
+            if (shape == Default) outline.Data = Geometry.Parse(LookData.Shapes[_defaultShape].Path);
+            outline.Stroke = ThemeBrushes.For(pair.Light, pair.Dark);
+            outline.Fill = ThemeBrushes.For(pair.Light, pair.Dark, 0.15);
+        }
+        _shape.Show(Look.IsShape(o.Shape) ? o.Shape : Default);
+
+        // The colours: a hex colour, or one the checks will report, gets a swatch of its own so the form says what the file says.
         var named = Look.IsColorName(o.Color);
-        var colors = new[] { Default }.Concat(Look.ColorNames).ToList();
-        if (!string.IsNullOrEmpty(o.Color) && !named) colors.Add(o.Color); // a hex colour, or one the checks will report, stays in the list so the form says what the file says
-        _color.ItemsSource = colors;
-        _color.SelectedItem = string.IsNullOrEmpty(o.Color) ? Default : o.Color;
+        var typePair = Look.ColorPair(Look.TypeColor(o))!.Value;
+        _defaultSwatch.Stroke = ThemeBrushes.For(typePair.Light, typePair.Dark);
+        var custom = !string.IsNullOrEmpty(o.Color) && !named ? o.Color : null;
+        if (_customColor is not null && _customColor != custom)
+        {
+            _color.Remove(_customColor);
+            _customColor = null;
+        }
+        if (custom is not null && !_color.Has(custom))
+        {
+            var drawn = Look.ColorPair(custom);
+            var swatch = new Ellipse { Width = 20, Height = 20 };
+            if (drawn is { } p) swatch.Fill = ThemeBrushes.For(p.Light, p.Dark);
+            else (swatch.Stroke, swatch.StrokeThickness, swatch.StrokeDashArray) = (Brushes.Gray, 2, [1, 1]); // not a colour at all: the checks say so
+            _color.Add(custom, custom, swatch, "swatch");
+            _customColor = custom;
+        }
+        _color.Show(string.IsNullOrEmpty(o.Color) ? Default : o.Color);
         _hex.Sync(!named ? o.Color ?? "" : "");
-        _opacity.Sync(o.Opacity ?? "");
-        _iconData = LookData.Icons.ToDictionary(kv => kv.Key, kv => kv.Value);
-        foreach (var (name, d) in Look.CustomIcons(model.Meta)) _iconData[name] = d;
-        var icons = new[] { Default }.Concat(_iconData.Keys).ToList();
-        if (!string.IsNullOrEmpty(o.Icon) && !_iconData.ContainsKey(o.Icon)) icons.Add(o.Icon);
-        _icon.ItemsSource = icons;
-        _icon.SelectedItem = string.IsNullOrEmpty(o.Icon) ? Default : o.Icon;
+
+        // The opacity: a bar over a fade of that colour, with a way back to the default once it is set.
+        var set = Look.IsOpacity(o.Opacity);
+        var shown = Look.FillOpacity(o);
+        _fade.SetColor(pair);
+        _fade.Value = shown;
+        _fadeValue.Text = set ? $"{shown}%" : $"Default ({shown}%)";
+        _fadeReset.IsVisible = set;
+        _icon.Update(model, o);
         _syncing = false;
 
         var mine = Navigation.ProblemsOf(model, problems, Id);
@@ -341,7 +373,7 @@ internal sealed class LineEditor : StackPanel
 /// <summary>Add a box to the view you are in: a type from those that fit here, and a name.</summary>
 internal sealed class AddForm : StackPanel
 {
-    private readonly ComboBox _type = new() { HorizontalAlignment = HorizontalAlignment.Stretch, ItemTemplate = Chrome.TypeItem };
+    private readonly Chooser _type = new("Type", new WrapPanel(), _ => Task.FromResult(true));
     private readonly TextBox _name = new();
     private Func<Task> _submit = () => Task.CompletedTask;
 
@@ -355,12 +387,9 @@ internal sealed class AddForm : StackPanel
             Children.Add(owner.Muted($"Nothing can go inside {Views.NameOf(model, view)}."));
             return;
         }
-        _type.ItemsSource = types;
-        _type.SelectedIndex = 0;
-        Avalonia.Automation.AutomationProperties.SetName(_type, "Type");
+        foreach (var t in types) _type.Add(t, t, new StackPanel { Spacing = 5, Children = { Chrome.TypeTile(t, false, 32), new TextBlock { Text = t, FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center } } }, "typecell");
+        _type.Show(types[0]);
         Avalonia.Automation.AutomationProperties.SetName(_name, "Name");
-        var typeCaption = new TextBlock { Text = "Type", FontSize = 12 };
-        typeCaption.Classes.Add("muted");
         var nameCaption = new TextBlock { Text = "Name", FontSize = 12 };
         nameCaption.Classes.Add("muted");
         var add = new Button { HorizontalAlignment = HorizontalAlignment.Left };
@@ -370,7 +399,7 @@ internal sealed class AddForm : StackPanel
         async Task Do()
         {
             var name = (_name.Text ?? "").Trim();
-            if (name == "" || _type.SelectedItem is not string type) return;
+            if (name == "" || _type.Chosen is not { } type) return;
             var id = "";
             var saved = await run(d =>
             {
@@ -387,7 +416,7 @@ internal sealed class AddForm : StackPanel
             e.Handled = true;
             await Do();
         };
-        Children.Add(new StackPanel { Spacing = 4, Children = { typeCaption, _type } });
+        Children.Add(_type);
         Children.Add(new StackPanel { Spacing = 4, Children = { nameCaption, _name } });
         Children.Add(add);
         AttachedToVisualTree += (_, _) => Dispatcher.UIThread.Post(() => _name.Focus());
@@ -395,12 +424,12 @@ internal sealed class AddForm : StackPanel
 
     internal TextBox NameBox => _name;
 
-    internal ComboBox TypeBox => _type;
+    internal Chooser TypeChoices => _type;
 
     /// <summary>What a test does: pick a type, type a name and press Add.</summary>
     internal Task SubmitAsync(string type, string name)
     {
-        _type.SelectedItem = type;
+        _type.Show(type);
         _name.Text = name;
         return _submit();
     }

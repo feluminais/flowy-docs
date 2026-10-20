@@ -321,7 +321,11 @@ Editing (press E):
 - [ ] In Shop, drag Web app away: the frame follows it. Press Tidy: Web app goes back and
       `example/layout.yaml` loses `shop`. Ctrl+Z puts it where you dragged it. Tidy again with
       nothing dragged: a notice says there's nothing to tidy.
-- [ ] Tick "Outside service" on Customer: its tile goes grey with a cloud. Untick it.
+- [ ] Switch on Outside service on Customer: its tile goes grey with a cloud. Switch it off.
+- [ ] In API's panel click Cylinder under Shape, Teal under Color, drag Opacity to 60 and pick an icon from the grid
+      under Icon: each shows on the canvas as you pick it, and `shape`, `color`, `opacity` and `icon` appear for `api`
+      in `example/model.yaml`. Click Default in each (the dashed swatch for Color): the keys go. Ctrl+Z walks them back.
+      Type `bank` in the icon filter: only `building-bank` is left.
 
 `git checkout example` puts the tracked files back. Delete `example/layout.yaml` and the new
 flow's file by hand.
