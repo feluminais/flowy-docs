@@ -475,13 +475,12 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 /* A tagged step playing (see StepMotion.tsx): a pipe along the step's line, a blob running through it, and rings and flashes on the boxes. */
 .motion { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; z-index: 2; } /* above the lit line, which sits at 1, so the pipe covers it */
 .motion path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-/* The step's line while it plays: the lit line again, bolder and brighter, with a glow and no outline. */
-.motion .core { stroke: color-mix(in srgb, var(--accent) 85%, white); stroke-width: 7; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 85%, transparent)); }
+.motion .route { stroke: none; } /* only measured, so the blob knows where to run */
 .motion .blob circle, .motion .blob rect { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
 .motion .blob.reply circle, .motion .blob.reply rect { fill: var(--app); }
 .motion .blob text { fill: var(--bg); font-size: 15px; font-weight: 600; }
-.motion rect.ring { fill: none; stroke: var(--accent); stroke-width: 3; }
-.motion rect.flash { fill: var(--accent); }
+.motion .ring { fill: none; stroke: var(--accent); stroke-width: 3; vector-effect: non-scaling-stroke; }
+.motion .flash { fill: var(--accent); }
 .motion .dots circle { fill: var(--accent); }
 .motion .glyph { fill: none; stroke: var(--bg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .motion .glyph.drop { stroke: var(--accent); stroke-width: 2.2; }

@@ -56,7 +56,7 @@ export function Line({ id, source, target, label, markerEnd, interactionWidth, d
   const b = useInternalNode(target)
   if (!a || !b) return null
   const [path, x, y] = draw(style, rect(a), rect(b), outline(a), outline(b))
-  // A step that moves plays a pipe along this line, so its label steps aside instead of sitting under the pipe.
+  // A step that moves runs a blob along this line, so its label steps aside instead of sitting under the blob.
   const [ra, rb] = [rect(a), rect(b)]
   const aside = data?.lift === true && typeof label === 'string' ? labelOffset(rb.x + rb.width / 2 - (ra.x + ra.width / 2), rb.y + rb.height / 2 - (ra.y + ra.height / 2), label.length) : { x: 0, y: 0 }
   const [labelX, labelY] = [x + aside.x, y + aside.y]

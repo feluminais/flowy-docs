@@ -1,11 +1,14 @@
 import { useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useInternalNode, ViewportPortal } from '@xyflow/react'
+import type { InternalNode } from '@xyflow/react'
 import { beatsFor } from '../../src/core/animation.ts'
 import type { Animation, Beat, Glyph } from '../../src/core/animation.ts'
-import type { Rect } from './graph.ts'
+import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
+import { BOX } from './graph.ts'
+import type { BoxData, Rect } from './graph.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
-import { active, bump, cyclePeriod, distance, DWELL, ease, progress, squashTile, tubeOpacity } from './motion.ts'
+import { active, bump, cyclePeriod, distance, DWELL, ease, progress, squashTile } from './motion.ts'
 
 // The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
 const GLYPHS: Record<Glyph, string> = {
@@ -14,6 +17,8 @@ const GLYPHS: Record<Glyph, string> = {
   bell: 'M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6M9 17v1a3 3 0 0 0 6 0v-1',
 }
 const HIDDEN = { display: 'none' } as const
+/** How strongly a shape lights up when it flashes, at the start. */
+const FLASH = 0.55
 /** Every motion on screen and how long it takes, so the ones of a stop (a fan-out plays several) start again together. */
 const running = new Map<symbol, number>()
 
@@ -21,9 +26,13 @@ const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').match
 /** The drawn tile of a box on the canvas, which a gulp squashes. */
 const tile = (id: string) => document.querySelector<HTMLElement>(`.react-flow__node[data-id="${CSS.escape(id)}"] .box`)
 
-/** What one beat looks like before it starts. The frame loop below moves and shows it. The tube and a gulp draw nothing of their own. */
-function shape(b: Beat, i: number, from: Rect, to: Rect): ReactNode {
+/** The outline of the shape a box is drawn as, in the 200 by 72 area every shape is drawn in. */
+const outlineOf = (n: InternalNode): string => SHAPE_DEFS[shapeOf((n.data as BoxData).object)].path
+
+/** What one beat looks like before it starts. The frame loop below moves and shows it. The pipe beat and a gulp draw nothing of their own: the line is the lit line the canvas already draws. */
+function shape(b: Beat, i: number, from: Rect, to: Rect, paths: [string, string]): ReactNode {
   const r = b.on === 'to' ? to : from
+  const path = b.on === 'to' ? paths[1] : paths[0]
   switch (b.do) {
     case 'blob':
       return (
@@ -40,10 +49,11 @@ function shape(b: Beat, i: number, from: Rect, to: Rect): ReactNode {
           </g>
         </g>
       )
+    // The ring and the flash follow the outline of the shape they are on, whatever it is, so a hexagon flashes as a hexagon.
     case 'ring':
-      return <rect key={i} data-beat={i} className="ring" style={HIDDEN} />
+      return <path key={i} data-beat={i} className="ring" d={path} style={HIDDEN} />
     case 'flash':
-      return <rect key={i} data-beat={i} className="flash" x={r.x} y={r.y} width={r.width} height={r.height} rx={14} style={HIDDEN} />
+      return <path key={i} data-beat={i} className="flash" d={path} transform={`translate(${r.x} ${r.y}) scale(${r.width / BOX.width} ${r.height / BOX.height})`} style={HIDDEN} />
     case 'wait':
       return <g key={i} data-beat={i} className="dots" style={HIDDEN}>{[-12, 0, 12].map(dx => <circle key={dx} cx={r.x + r.width / 2 + dx} cy={r.y - 14} r={3.5} />)}</g>
     case 'drop':
@@ -66,7 +76,7 @@ type Props = {
 }
 
 /**
- * Plays one step's animation over the canvas: the line as a pipe, a blob running through it, and rings, flashes
+ * Plays one step's animation over the canvas: a blob running along the step's line, and rings, flashes
  * and squashes on the boxes. Mount it keyed by the step (and replay), so a new step cancels the old one.
  * When the system asks for less motion it draws nothing and only reports that it is done.
  */
@@ -90,8 +100,7 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
   useEffect(() => {
     if (!svg || !from || !to) return
     const [a, b] = [rect(from), rect(to)]
-    const route = svg.querySelector<SVGPathElement>('.tube .core')!
-    const tube = svg.querySelector<SVGElement>('.tube')!
+    const route = svg.querySelector<SVGPathElement>('.route')!
     const length = route.getTotalLength()
     const { beats, total } = beatsFor(animation, { length, afterLanding })
     const nodes = beats.map((_, i) => svg.querySelector<SVGElement>(`[data-beat="${i}"]`))
@@ -110,7 +119,7 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
         const on = active(beat, t)
         const p = progress(beat, t)
         if (node) node.style.display = on ? '' : 'none'
-        if (beat.do === 'pipe') tube.style.opacity = String(tubeOpacity(beat, t))
+        if (beat.do === 'pipe') return
         else if (beat.do === 'gulp' && on && beat.on !== 'line') squash[beat.on] = Math.max(squash[beat.on], bump(p))
         else if (!node || !on) return
         else if (beat.do === 'blob') {
@@ -125,13 +134,10 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
         } else if (beat.do === 'ring') {
           const r = beat.on === 'to' ? b : a
           const grow = 6 + 22 * p
-          node.setAttribute('x', String(r.x - grow))
-          node.setAttribute('y', String(r.y - grow))
-          node.setAttribute('width', String(r.width + 2 * grow))
-          node.setAttribute('height', String(r.height + 2 * grow))
-          node.setAttribute('rx', String(14 + grow))
+          // The outline, scaled about the middle of the shape to the size the ring has grown to.
+          node.setAttribute('transform', `translate(${r.x + r.width / 2} ${r.y + r.height / 2}) scale(${(r.width + 2 * grow) / BOX.width} ${(r.height + 2 * grow) / BOX.height}) translate(${-BOX.width / 2} ${-BOX.height / 2})`)
           node.style.opacity = String(1 - p)
-        } else if (beat.do === 'flash') node.style.opacity = String(0.4 * (1 - p))
+        } else if (beat.do === 'flash') node.style.opacity = String(FLASH * (1 - p))
         else if (beat.do === 'wait') [...node.children].forEach((dot, k) => ((dot as SVGElement).style.opacity = Math.floor(t / 150) % 3 === k ? '1' : '0.3'))
         else if (beat.do === 'drop') {
           const r = beat.on === 'to' ? b : a
@@ -174,10 +180,8 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
   return (
     <ViewportPortal>
       <svg ref={setSvg} className="motion" aria-hidden="true">
-        <g className="tube" style={{ opacity: 0 }}>
-          <path className="core" d={d} />
-        </g>
-        {beatsFor(animation, { length: 0, afterLanding }).beats.map((beat, i) => shape(beat, i, a, b))}
+        <path className="route" d={d} />
+        {beatsFor(animation, { length: 0, afterLanding }).beats.map((beat, i) => shape(beat, i, a, b, [outlineOf(from), outlineOf(to)]))}
       </svg>
     </ViewportPortal>
   )

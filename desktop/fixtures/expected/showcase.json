@@ -813,6 +813,7 @@
           "from": "after-from",
           "to": "after-to",
           "text": "Runs a callback that the step before set off",
+          "description": "The publisher lights up, because the step before landed on it. Then a bell runs to the subscriber and a ring goes out there.\n\nA send squashes its two ends and runs an envelope. This one flashes its start, runs a bell and rings its end.\n",
           "animation": {
             "kind": "callback",
             "trigger": "outside"

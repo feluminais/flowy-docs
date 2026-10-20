@@ -2,4 +2,11 @@ name: Flash
 view: steps
 steps:
   - { from: after-source, to: after-from, text: Hands the publisher something, animation: send }
-  - { from: after-from, to: after-to, text: Runs a callback that the step before set off, animation: { kind: callback, trigger: outside } }
+  - from: after-from
+    to: after-to
+    text: Runs a callback that the step before set off
+    animation: { kind: callback, trigger: outside }
+    description: |
+      The publisher lights up, because the step before landed on it. Then a bell runs to the subscriber and a ring goes out there.
+
+      A send squashes its two ends and runs an envelope. This one flashes its start, runs a bell and rings its end.
