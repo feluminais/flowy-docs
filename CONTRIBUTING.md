@@ -37,7 +37,11 @@ the same test after a fix); they name shapes and connections of the model, so a 
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
 `--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
-and `--search re` for the search. Retake them when the app changes how it looks.
+`--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
+Retake them when the app changes how it looks.
+
+`docs/images/hero.png`, the picture at the top of the README, is cut from those screenshots. After retaking them, run
+`uv run --with pillow docs/images/hero.py` to build it again.
 
 ## The animation showcase
 

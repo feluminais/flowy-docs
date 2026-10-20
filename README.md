@@ -14,7 +14,7 @@
   <a href="CONTRIBUTING.md">Build &amp; contribute</a>
 </p>
 
-![The overview of Plum, a food-delivery service, in the Flowy Docs app: customers, restaurants, couriers and support agents, four systems and three outside services](docs/images/desktop-overview.png)
+![Flowy Docs on Plum, a food-delivery service: the Ordering view with a store's tables open in its panel, search, a flow playing, the shape pickers of edit mode, a load-test replay, and the dark theme behind](docs/images/hero.png)
 
 Readers start at the big picture and open only the shape they care about. The model is plain YAML in a `flowy/` folder:
 people, systems, apps, stores and components, the connections between them, and step-by-step flows. It sits in git next
@@ -200,6 +200,8 @@ the same way, so git sees no difference between a change made in one and a chang
 - **Add** offers only the types that fit where you are: actors and systems at the top, apps and stores inside a system, components
   inside an app or store.
 - Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and source, and a store's data. A field saves when you leave it.
+- **Ctrl+click** adds a shape to the selection, **Shift+drag** draws a box round some and **Ctrl+A** takes them all. Drag any of them to move
+  them together, or press **Delete** to remove them as one edit.
 - **Tidy** forgets where shapes were dragged and lays the view out again with as few crossing lines as it finds.
 - **New flow** records a walkthrough: click the shape where a step starts and the shape it goes to, type what happens, press
   Enter, repeat.
@@ -274,6 +276,8 @@ It is a native app, not a browser in a window: it reads a repo's `flowy/` folder
 side panel, flows, search and problems, in light or dark, and it reloads when the files change. A file that breaks keeps the
 last good model on screen, with the file and line in a banner, and stays read-only until it is fixed. It edits too: **E** turns on
 the same forms, dragging, connecting and flow recording as the browser, with Undo and Redo.
+
+![The dark theme: the Ordering view with Order API's panel open beside it](docs/images/desktop-dark.png)
 
 - **File › Open Folder** (Ctrl+O), a folder dropped on the window, or **Open Recent**. Give it a repo and it opens the repo's
   `flowy/` folder. A folder with no model is refused with a message. Opening never creates a file; only an edit does, and only `model.yaml`,
