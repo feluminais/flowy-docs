@@ -3453,6 +3453,80 @@
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\docs\\showcase\\flowy",
+      "rel": "flows/every-step-animation.yaml",
+      "data": {
+        "name": "Every step animation",
+        "view": "steps",
+        "steps": [
+          {
+            "from": "send-from",
+            "to": "send-to",
+            "text": "Sends one way and carries on without waiting",
+            "animation": "send",
+            "description": "A tube along the line, an envelope running through it, and a squash at each end."
+          },
+          {
+            "from": "call-from",
+            "to": "call-to",
+            "text": "Calls and waits for the answer",
+            "animation": "call",
+            "description": "The envelope goes, dots wait over the caller, and the reply comes back in the answer's colour."
+          },
+          {
+            "from": "event-from",
+            "to": "event-to",
+            "text": "Raises an event",
+            "animation": "event",
+            "description": "A bolt runs along the line and the receiver flashes when it arrives."
+          },
+          {
+            "from": "callback-from",
+            "to": "callback-to",
+            "text": "Runs a callback on its subscriber",
+            "animation": "callback",
+            "description": "A ring leaves the publisher, a bell runs to the subscriber, and a ring goes out there."
+          },
+          {
+            "from": "after-source",
+            "to": "after-from",
+            "text": "Hands the publisher something",
+            "animation": "send"
+          },
+          {
+            "from": "after-from",
+            "to": "after-to",
+            "text": "Runs a callback that the step before set off",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside"
+            },
+            "description": "The publisher flashes, because the step before landed on it, and then the bell runs."
+          },
+          {
+            "from": "cold-from",
+            "to": "cold-to",
+            "text": "Runs a callback that something outside set off",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside"
+            },
+            "description": "No step before landed on the publisher, so a bolt drops onto it first and then the bell runs."
+          },
+          {
+            "from": "send-from",
+            "to": "send-to",
+            "text": "Sends again, this time with a word on the blob",
+            "animation": {
+              "kind": "send",
+              "carries": "order 42"
+            }
+          }
+        ]
+      },
+      "text": "name: Every step animation\nview: steps\nsteps:\n  - from: send-from\n    to: send-to\n    text: Sends one way and carries on without waiting\n    animation: send\n    description: A tube along the line, an envelope running through it, and a squash at each end.\n  - from: call-from\n    to: call-to\n    text: Calls and waits for the answer\n    animation: call\n    description: The envelope goes, dots wait over the caller, and the reply comes back in the answer's colour.\n  - from: event-from\n    to: event-to\n    text: Raises an event\n    animation: event\n    description: A bolt runs along the line and the receiver flashes when it arrives.\n  - from: callback-from\n    to: callback-to\n    text: Runs a callback on its subscriber\n    animation: callback\n    description: A ring leaves the publisher, a bell runs to the subscriber, and a ring goes out there.\n  - from: after-source\n    to: after-from\n    text: Hands the publisher something\n    animation: send\n  - from: after-from\n    to: after-to\n    text: Runs a callback that the step before set off\n    animation:\n      kind: callback\n      trigger: outside\n    description: The publisher flashes, because the step before landed on it, and then the bell runs.\n  - from: cold-from\n    to: cold-to\n    text: Runs a callback that something outside set off\n    animation:\n      kind: callback\n      trigger: outside\n    description: No step before landed on the publisher, so a bolt drops onto it first and then the bell runs.\n  - from: send-from\n    to: send-to\n    text: Sends again, this time with a word on the blob\n    animation:\n      kind: send\n      carries: order 42\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\docs\\showcase\\flowy",
       "rel": "flows/flash.yaml",
       "data": {
         "name": "Flash",
@@ -3471,11 +3545,12 @@
             "animation": {
               "kind": "callback",
               "trigger": "outside"
-            }
+            },
+            "description": "The publisher lights up, because the step before landed on it. Then a bell runs to the subscriber and a ring goes out there.\n\nA send squashes its two ends and runs an envelope. This one flashes its start, runs a bell and rings its end.\n"
           }
         ]
       },
-      "text": "name: Flash\nview: steps\nsteps:\n  - from: after-source\n    to: after-from\n    text: Hands the publisher something\n    animation: send\n  - from: after-from\n    to: after-to\n    text: Runs a callback that the step before set off\n    animation:\n      kind: callback\n      trigger: outside\n"
+      "text": "name: Flash\nview: steps\nsteps:\n  - from: after-source\n    to: after-from\n    text: Hands the publisher something\n    animation: send\n  - from: after-from\n    to: after-to\n    text: Runs a callback that the step before set off\n    animation:\n      kind: callback\n      trigger: outside\n    description: |\n      The publisher lights up, because the step before landed on it. Then a bell runs to the subscriber and a ring goes out there.\n\n      A send squashes its two ends and runs an envelope. This one flashes its start, runs a bell and rings its end.\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\docs\\showcase\\flowy",
