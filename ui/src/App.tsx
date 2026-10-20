@@ -28,7 +28,7 @@ import { Line, LineStyleContext, LineWidthsContext } from './Line.tsx'
 import { TrafficLayer } from './TrafficLayer.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { DWELL, GAP } from './motion.ts'
-import { clampWidth } from './navstate.ts'
+import { clampWidth, openTab } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { keepNav, loadNav } from './navstore.ts'
 import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, Sash } from './Navigator.tsx'
@@ -213,7 +213,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const yamlStore = useMemo(() => (live && historyApi ? createHistoryStore(historyApi) : undefined), [live, historyApi])
   useEffect(() => { void yamlStore?.refresh() }, [yamlStore, changes]) // after every load, whether it worked or not: a change may have left a file broken
   const showYaml = yamlStore !== undefined
-  const nav: NavTab | undefined = (tab === 'flows' && !showFlows) || (tab === 'yaml' && !showYaml) ? undefined : tab
+  const nav = openTab(tab, { flows: showFlows, yaml: showYaml })
   const detailsOpen = (details || side !== undefined) && !perfOpen // the Performance panel is in its place while it is open
   const rightOpen = detailsOpen || perfOpen // a panel on the right, whichever it is
 

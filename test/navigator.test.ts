@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { clampWidth, MAX_WIDTH, MIN_WIDTH, parseNav } from '../ui/src/navstate.ts'
+import { clampWidth, MAX_WIDTH, MIN_WIDTH, openTab, parseNav } from '../ui/src/navstate.ts'
 import { scrollToRow, visibleRows } from '../ui/src/window.ts'
 
 test('a window shows the rows in view and a few more each side, and never more than there are', () => {
@@ -20,6 +20,15 @@ test('scrolling to a row moves as little as it can, and not at all when the row 
   assert.equal(scrollToRow(10, 0, 300, 30), 30) // one row below: just far enough to show it
   assert.equal(scrollToRow(2, 300, 300, 30), 60) // above: the row's top at the top
   assert.equal(scrollToRow(0, 0, 300, 30), undefined)
+})
+
+test('Review Focus: a remembered tab opens only where it exists (not YAML on an exported page or in VS Code)', () => {
+  assert.equal(openTab('yaml', { flows: true, yaml: false }), undefined)
+  assert.equal(openTab('yaml', { flows: false, yaml: true }), 'yaml')
+  assert.equal(openTab('flows', { flows: false, yaml: true }), undefined)
+  assert.equal(openTab('flows', { flows: true, yaml: false }), 'flows')
+  assert.equal(openTab('explorer', { flows: false, yaml: false }), 'explorer')
+  assert.equal(openTab(undefined, { flows: true, yaml: true }), undefined)
 })
 
 test('stored navigator state is read as far as it can be trusted', () => {

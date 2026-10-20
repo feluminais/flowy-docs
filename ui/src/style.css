@@ -607,18 +607,16 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
  * The YAML tab. The files are text with the last change marked in them: a line added is green with a +, a line removed is red, struck through and
  * has a −, so the colour is never the only copy. Under the text is the history. Every text row is 20px so that only the rows in view are drawn.
  */
-.yfiles { flex: none; display: flex; gap: 2px; overflow-x: auto; margin: 0 -4px; padding: 0 4px; border-bottom: 1px solid var(--line); }
+.yfiles { flex: none; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: thin; margin: 0 -4px; padding: 0 4px; border-bottom: 1px solid var(--line); }
 .panel .yfiles button { flex: none; min-height: 28px; padding: 0 8px; border-radius: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--muted); font-size: 12.5px; }
 .panel .yfiles button:hover:not(:disabled) { background: none; color: var(--fg); }
 .panel .yfiles button[aria-selected='true'] { color: var(--fg); border-bottom-color: var(--accent); }
 .ydot { display: inline-block; width: 6px; height: 6px; margin-left: 6px; border-radius: 50%; background: var(--accent); }
-.ybanner { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 10px; border-radius: 8px; background: var(--warn-bg); color: var(--warn-fg); font-size: 13px; }
+.ybanner { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 10px; border-radius: 8px; background: var(--tint); font-size: 13px; }
 .ybanner .ywhen { flex: 1 1 100%; overflow-wrap: anywhere; }
 .ybanner .ycompare { display: flex; align-items: center; gap: 6px; }
 .ybanner .yactions { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.panel .ybanner button { color: var(--warn-fg); }
 .panel .ybanner button.primary { color: var(--bg); }
-.ybanner kbd { background: transparent; }
 .ytext { flex: 1; min-height: 120px; overflow: auto; position: relative; margin: 0 -4px; outline: 0; font: 12.5px/20px ui-monospace, 'Cascadia Mono', Consolas, monospace; }
 .ytext:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
 .yrows { position: relative; }
