@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Layout;
-using Avalonia.Controls.Templates;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Flowy.App.Canvas;
 using Flowy.Core;
@@ -63,14 +63,25 @@ internal static class Chrome
         return tile;
     }
 
-    /// <summary>How a picker shows an object type: its tile, then its name.</summary>
-    public static IDataTemplate TypeItem { get; } = new FuncDataTemplate<string>((type, _) =>
-        new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 9,
-            Children = { TypeTile(type, false, 22), new TextBlock { Text = type, VerticalAlignment = VerticalAlignment.Center } },
-        });
+    /// <summary>The switch for an outside service: the grey cloud tile it is drawn with, its name, and a switch that slides over when it is on.</summary>
+    public static ToggleButton OutsideSwitch()
+    {
+        var thumb = new Avalonia.Controls.Shapes.Ellipse { Width = 14, Height = 14, Margin = new Thickness(2), HorizontalAlignment = HorizontalAlignment.Left, Classes = { "thumb" } };
+        var track = new Border { Width = 30, Height = 18, CornerRadius = new CornerRadius(9), VerticalAlignment = VerticalAlignment.Center, Child = thumb, Classes = { "track" } };
+        var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10 };
+        var tile = TypeTile(null, true, 28);
+        var label = new TextBlock { Text = "Outside service", VerticalAlignment = VerticalAlignment.Center };
+        row.Children.Add(tile);
+        row.Children.Add(label);
+        row.Children.Add(track);
+        Grid.SetColumn(label, 1);
+        Grid.SetColumn(track, 2);
+        var toggle = new ToggleButton { Content = row, HorizontalContentAlignment = HorizontalAlignment.Stretch };
+        toggle.Classes.Add("pick");
+        toggle.Classes.Add("wide");
+        AutomationProperties.SetName(toggle, "Outside service");
+        return toggle;
+    }
 
     /// <summary>A small rounded label: an optional icon and some text. <paramref name="kind"/> picks its colour: an object type, "warn" or nothing.</summary>
     public static Control Chip(string text, string? icon = null, string? kind = null)

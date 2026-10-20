@@ -349,7 +349,7 @@ public class RecorderTests
         await recorder.GroupTimes("retry")!.Commit();
         await Until(() => FlowFile(dir, "order").Contains("times: 5"));
 
-        reader.Panel.CurrentRecorder!.GroupKindBox("retry").SelectedItem = "branch";
+        await reader.Panel.CurrentRecorder!.GroupKind("retry").Choose("branch");
         await Until(() => FlowFile(dir, "order").Contains("kind: branch"));
         var file = FlowFile(dir, "order");
         Assert.DoesNotContain("times:", file);
