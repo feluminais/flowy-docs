@@ -42,10 +42,12 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   with numbers read as numbers ("step 2" before "step 10"). A click shows a shape where it's drawn; Enter
   or a double-click zooms into it, and the tree follows you as you zoom. Flows (L) lists every flow, each
   level's by name: first those in the level you're in, then all the others under the level they play in,
-  and a click goes there and plays it. The numbers on the icons are how many shapes and flows there are
+  and a click goes there and plays it. In the browser version a YAML tab (Y) beside them shows the files
+  as text, with every change to them ([YAML and history](#yaml-and-history)). The numbers on the icons are how many shapes and flows there are
   in all. Details, on the right (its own icon, or a click on a shape or a line), is what the
   click picked. Where the folder has load-test runs, a Performance icon below it (T) puts a run's panel
-  in Details' place: see [Performance](#performance). Drag the inner edge of either panel to resize it,
+  in Details' place: see [Performance](#performance). Where it has failure analyses, a Failures icon (M) does the same: see
+  [Failure modes](#failure-modes). Drag the inner edge of either panel to resize it,
   and double-click it to put the width back.
 - Pick a flow in the Flows tab to play it step by step: ← and → move, Home and End jump to the first
   and last step, Esc stops. A step can be one shape doing something on its own, and a step with more
@@ -116,13 +118,60 @@ checks, and write the same text, so a change made in one looks the same in git a
 
 Every save goes through the same checks as Claude's edits: a change that would add a problem is
 refused, and nothing is written. If a file changed on disk in the meantime, the save is dropped
-and the page reloads. Git keeps the history.
+and the page reloads. Git keeps the history, and the browser version's [YAML tab](#yaml-and-history) keeps every step.
 
 Ctrl+Z, or Undo, takes back your last change on this page, then the one before. It goes back as
 far as the page has been open. Ctrl+Y or Ctrl+Shift+Z, or Redo, puts back what you undid, until
 you make a new change. If the file changed since (Claude, your editor, another tab), undo and redo
 leave it alone and say so. Undo brings back what the file said, not how it was written: like any
 save, it drops YAML comments and writes the file in Flowy's own layout.
+
+## YAML and history
+
+In the browser version, the **YAML** tab of the left-hand panel (beside Explorer and Flows, or **Y**) shows the model's files as text
+and keeps every change to them. It stays open beside Details, so a change can be watched while you edit. It is read only: change a
+model on the canvas, or in your editor.
+
+![The YAML tab: model.yaml with the line Claude's last edit changed marked in red and green, and under it the steps from First seen up to a change to Website's tech](images/yaml.png)
+
+**The files.** There is a tab for each file: `model.yaml`, `layout.yaml` when there is one, every `flows/<id>.yaml` and every
+`failures/<id>.yaml`. The text is the file as it is on disk, comments included, so you can see that saving drops them. Load-test runs in
+`perf/` are left out, because Flowy only reads them. The panel opens on the file that fits where you are, and picking a shape on the
+canvas takes it to that shape's block in `model.yaml`.
+
+**What the last change did.** When the files change, the panel marks the change in the file it shows: an added line in green, a removed
+line in red with a strike. A dot on a file's tab means the change touched that file. The marks follow the newest step, whoever made it,
+until you pick an older one.
+
+**Steps.** Under the text, newest first, each change is a step with a label, a time and a badge for where it came from:
+
+| Badge | Where it came from | Looks like |
+| --- | --- | --- |
+| You | An edit in Flowy | Moved Checkout, Renamed Cart to Basket, Connected Checkout to Stripe, Tidied Ordering |
+| Claude | A write through the MCP server | Claude: put_object menu-cache |
+| Outside | Files changed some other way | Changed outside Flowy: flows/capture-payment.yaml |
+| Restored | A restore (below) | Restored the version from 14:02 |
+
+The first step, **First seen**, is the folder as Flowy found it, and a change made while Flowy was closed shows up as a step the next
+time it opens the folder. One edit is one step, even when it writes several files.
+
+**Looking back.** Pick a step to see its files as they were. A mark says how that version differs from the step before it. **Compare
+with now** marks it against the files today instead: red is what a restore would take away, green is what it would bring back. **Back
+to now** returns to the newest step. The canvas keeps showing the current model.
+
+**Restore** puts every file of the step back. A file that didn't exist then is removed, and one that has gone since comes back. It is
+a step of its own ("Restored the version from 14:02"), and the files as they were just before are recorded first, so a restore can't
+lose work that nobody saved to git. Ctrl+Z takes it back. Restore writes into the repo, so it needs edit mode (E), like every other
+change.
+
+**Where it is kept.** In your application data folder, never in the repo: `%APPDATA%\Flowy Docs` on Windows, `~/.config/Flowy Docs` (or
+`$XDG_CONFIG_HOME`) elsewhere, and `FLOWY_STATE_DIR` moves it. `git status` doesn't change and Flowy makes no commits. Opening a folder
+for the first time stores a copy of its YAML there as the First seen step. Each project path has its own trail, so a folder that is
+moved or renamed starts a new one, and nothing follows the folder to another computer. The newest 300 steps are kept; **Clear history**
+at the foot of the panel asks first, then empties them. If the history can't be written, an edit still saves, the tab says "History isn't being saved", and Restore is refused.
+
+It is in the browser version only. An exported page has no files to show, the VS Code panel has no history, and the desktop app
+doesn't have the tab yet.
 
 ## Shapes, colour and icons
 
@@ -530,6 +579,111 @@ The checks keep the section small. They refuse:
 Saving writes the code as a block of lines (`text: |-`), so a change to one line is one line in git. What to put in a snippet is in
 [Writing good Flowy docs](writing.md#show-a-few-lines-of-code).
 
+## Failure modes
+
+A failure analysis holds how a system breaks as data: for a part, how it fails, what that causes, how bad, how likely and how hard to
+spot it is, what exists to deal with it and what to do next. It lives in `flowy/failures/<name>.yaml` (the name follows the same rule
+as a flow's file name), one file for each scope you would review in one meeting, such as Ordering or Delivery, and a folder can hold
+several.
+
+```yaml
+name: Order to door
+about: Made-up ratings for the demo, not a review of anything real.
+scale:
+  severity: { low: Nobody notices, high: A customer loses money or the kitchen stops }
+  occurrence: { low: Never seen, high: Most days }
+  detection: { low: An alert fires within a minute, high: We hear from a customer }
+modes:
+  stripe-timeout:
+    from: checkout
+    to: stripe
+    mode: Stripe doesn't answer within five seconds
+    effect: The order waits on a hold that may or may not exist.
+    cause: Stripe is slow, or the network between Plum and Stripe drops.
+    severity: 8
+    occurrence: 4
+    detection: 3
+    controls: Three tries with backoff. The idempotency key stops a double hold.
+    action: Page when more than 1% of holds time out for five minutes.
+    owner: Payments
+    status: planned
+    after: { severity: 8, occurrence: 4, detection: 1 }
+    affects: [customer-app, kitchen-tablet]
+    flow: capture-payment
+    step: 1
+```
+
+- A mode is keyed by its id: lowercase letters, digits and dashes, unique in the file. The key is what an address and an MCP write use.
+- A mode names its part with `on: <shape id>` for a shape, or with `from` and `to` for a line. Exactly one of the two. A line must be a
+  connection in the model, in that direction, so the badge has a line to sit on.
+- Everything but `mode` and the part is optional. `about`, `scope` (`root`, the default, or the id of a shape that holds others: the
+  parts that count towards coverage) and `scale` (what the ends of each rating mean, shown under it) belong to the analysis.
+- A rating is a whole number from 1 to 10. A rating that is missing is **Not rated** on screen, never a zero. The file keeps the usual
+  FMEA names so a row copied from a spreadsheet keeps its meaning, and the tab says it in plain words:
+
+  | In the file | On screen | 10 means |
+  | --- | --- | --- |
+  | `severity` | Severity | The worst result |
+  | `occurrence` | Likelihood | It keeps happening |
+  | `detection` | Hard to spot | Nobody would notice |
+
+- `controls` is what exists today, `action` what to do next, and `owner` who does it. `status` is `open` (the default), `planned`, `done`
+  or `accepted` (known, and left alone). `after` holds the ratings once the action is done.
+- `affects` lists the shapes the failure hurts. You write it: Flowy doesn't work it out from the lines, because a line's direction
+  means different things (the order API calls Stripe, but the tracking service pushes to the customer app).
+- `flow` names the flow that tells the failure, and `step` the step in it, numbered as the player numbers them. `run` names a run that
+  shows it. `description` is More, in Markdown.
+- Unknown keys are kept when Flowy writes the file back.
+
+**How it ranks.** Risk is Severity times Likelihood times Hard to spot, from 1 to 1000, and there is none when a rating is missing.
+The band follows: High when Severity is 9 or 10, even with the other ratings missing, since a severe failure never belongs in the quiet
+group. Otherwise Not rated when a rating is missing, then High from a risk of 150, Medium from 60 and Low below that. The list runs
+High, Medium, Low, then Not rated, and inside a band by risk, highest first, with ties in the order of the file. A mode that is `done`
+counts by its `after` ratings, and the panel shows both ("96 to 32").
+
+**Coverage.** "Analysed 8 of 26" counts the shapes that hold nothing, inside the analysis's scope, that have at least one mode, as the
+part or as an end of a line. Actors are left out, because nothing of ours fails there. Outside services count, since a failing Stripe is
+a failure you design for. Lines don't count. **Not analysed** lists the shapes left.
+
+**Reading it.** Open the Failures tab on the right edge, or press **M**. Pick an analysis if there are several. A shape or a line that
+has modes carries a badge: the colour of its worst band and how many. A shape that holds others adds up what is inside it, so at the
+overview you see which system holds the risk and zoom in to find where, as in Performance. Four items count the modes by band, and a
+click on one filters the list. The list has two groups: **This view**, the modes whose part is inside the level on screen, and **Other
+views**, and picking one of those moves the canvas to the level that draws its part. Pick a mode to see all of it: Effect, Cause, the
+three ratings drawn as ten small cells, Controls, Next action with the owner and status, and what it affects. On the canvas its part is
+outlined in red, what it affects in a lighter outline, and the rest fades. ← and → move down the list and Esc closes the tab. A click on
+a shape or a line shows the modes on it. **Show it** plays the flow that tells the failure. **Seen in a run** appears when `run` is set
+and the part has errors in it, and opens Performance at the first load where it does. The address is
+`#<view>/failures/<analysis>/<mode>`.
+
+**Writing it.** In edit mode the tab stays open and gains **New analysis** (a name and a scope), **Add failure mode** and a form for
+each mode: the part, the text, the three ratings, the status, what it affects, the flow and the run. Every save goes through the same
+checks as the rest of the model. Claude does the same through the MCP server: `get_failures` answers with the ranked table, the
+coverage and the problems, `put_failure` writes one mode, `delete_failure` removes one, and `put_failures` and `delete_failures`
+write and remove a whole analysis. Every write is checked. How to word a mode is in [Writing good Flowy docs](writing.md#failure-modes).
+
+**Getting it out.** **Copy as table** and **Copy as CSV** in the tab copy the ranked list with the words the screen uses. So does the
+command line, which prints one table for each analysis:
+
+```bash
+node /path/to/flowy-docs/dist/cli.js failures --analysis ordering --format csv
+```
+
+`--format` is `markdown` (the default) or `csv`, and `--analysis` picks one. A problem in a file goes to stderr and the command exits
+with 1, so a CI job can run it. A cell in the CSV that starts with `=`, `+`, `-` or `@` gets a leading quote mark, so a spreadsheet doesn't
+run it.
+
+**Checks.** Flowy checks an analysis the way it checks `code:` paths, so it can't quietly point at parts that are gone: a part that
+isn't in the model, both forms of part or neither, an `affects` entry that isn't a shape, a missing `mode`, a rating outside 1 to 10, an
+unknown `status`, a `flow`, `step` or `run` that doesn't exist, an id that breaks the rule or appears twice, and a `scope` that isn't
+`root` or a shape that holds others. A change that would add a problem is refused. So is deleting a shape or a connection that a mode
+names. A file that can't be read at all is a problem too, and it never stops the model from loading: the file is skipped and left as it
+is. Renaming a shape by hand in `model.yaml` leaves its modes pointing at nothing, and the checks say so.
+
+**Where it works.** The browser version and an exported page show failure modes. The desktop app doesn't draw them yet, and it doesn't
+know a mode names a shape, so deleting that shape there goes through and the browser then lists the mode as a problem. Plum has an
+analysis, [Order to door](demo/flowy/failures/ordering.yaml), and `node dist/cli.js --dir docs/demo/flowy` from a clone opens it.
+
 ## Let Claude build it
 
 From the root of the repo you want to document, once the clone is built as the
@@ -540,7 +694,8 @@ claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
 Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and
-`flowy/flows/*.yaml`, and refuses any change that would break the model. Add `--dir <folder>`
+`flowy/flows/*.yaml`, and refuses any change that would break the model. Ask how the system fails and it can write a
+[failure analysis](#failure-modes) in `flowy/failures/` too, leaving a rating out rather than guessing it. Add `--dir <folder>`
 after `mcp` to keep the files somewhere other than `./flowy`.
 
 Claude can also note where each shape lives in the code (`code: [src/api/]`). A path that doesn't
@@ -582,7 +737,7 @@ node /path/to/flowy-docs/dist/cli.js export
 It writes a read-only copy of the canvas to `./flowy-site`, with the model inside its `index.html`.
 Put the folder on any static host, such as GitHub Pages, and send the link. Browsers won't run it
 straight from disk. To show it in Notion or Confluence, embed the link. `--dir` picks the model
-folder and `--out` the export folder. An export carries any load-test runs too.
+folder and `--out` the export folder. An export carries any load-test runs and failure analyses too, and has no YAML tab.
 
 Export again after the model changes. Only what the export wrote is replaced, so a `.git` or a
 `CNAME` you keep next to it stays. A folder with other files in it is left alone, and so is one
@@ -626,7 +781,7 @@ zoom and drag to pan, **F** to fit, the side panel with the description, its cod
 origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one) and the one on the right (**T** for load-test runs), flows that play with ← and → (Home and End go to the first and last
 step) with a step's animation, **R** to play it again and **P** to let the flow run on its own, **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a shape that sits
-beside the one you're in slides across instead of zooming in.**
+beside the one you're in slides across instead of zooming in.** It doesn't have the browser's YAML tab (**Y**) or Failures tab (**M**) yet.
 
 The links in a shape's panel open on your computer. A web address opens in the browser, a folder in the file explorer, and a file in your
 default app if it is a document (Markdown, text, PDF, a common image). Any other file, such as a script or a program, is shown in its
