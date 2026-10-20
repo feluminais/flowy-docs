@@ -30,9 +30,11 @@ function shape(b: Beat, i: number, from: Rect, to: Rect): ReactNode {
       return (
         <g key={i} data-beat={i} style={HIDDEN}>
           <g className={b.tone === 'reply' ? 'blob reply' : 'blob'}>
-            {b.label === undefined
-              ? <circle r={15} />
-              : <rect x={-(b.label.length * 4 + 10)} y={-13} width={b.label.length * 8 + 20} height={26} rx={13} />}
+            <g className="stretch">
+              {b.label === undefined
+                ? <circle r={15} />
+                : <rect x={-(b.label.length * 4 + 10)} y={-13} width={b.label.length * 8 + 20} height={26} rx={13} />}
+            </g>
             {b.label === undefined
               ? <path className="glyph" d={GLYPHS[b.glyph!]} transform="translate(-9 -9) scale(0.75)" />
               : <text textAnchor="middle" dominantBaseline="central">{b.label}</text>}
@@ -95,6 +97,7 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
     const length = bore.getTotalLength()
     const { beats, total } = beatsFor(animation, { length, afterLanding })
     const nodes = beats.map((_, i) => svg.querySelector<SVGElement>(`[data-beat="${i}"]`))
+    const stretches = nodes.map(n => n?.querySelector<SVGElement>('.stretch') ?? null)
     const tiles = { from: tile(ends[0]), to: tile(ends[1]) }
     const me = Symbol('motion')
     running.set(me, total)
@@ -119,8 +122,9 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
           const behind = bore.getPointAtLength(Math.max(0, pos - 2))
           const ahead = bore.getPointAtLength(Math.min(length, pos + 2))
           const angle = (Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * 180) / Math.PI
-          // Stretched along the way it runs, and no more rotated than that: the glyph stays upright.
-          node.setAttribute('transform', `translate(${here.x} ${here.y}) rotate(${angle}) scale(${1 + 0.3 * bump(p)} ${1 - 0.15 * bump(p)}) rotate(${-angle})`)
+          // The shape is stretched along the way it runs, and no more rotated than that. The glyph or the words in it are not stretched at all.
+          node.setAttribute('transform', `translate(${here.x} ${here.y})`)
+          stretches[i]?.setAttribute('transform', `rotate(${angle}) scale(${1 + 0.3 * bump(p)} ${1 - 0.15 * bump(p)}) rotate(${-angle})`)
           swelling = pos
         } else if (beat.do === 'ring') {
           const r = beat.on === 'to' ? b : a
