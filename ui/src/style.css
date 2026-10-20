@@ -549,9 +549,13 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .motion .route { stroke: none; } /* only measured, so the blob knows where to run */
 .motion .blob circle, .motion .blob rect { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
 .motion .blob.reply circle, .motion .blob.reply rect { fill: var(--app); }
+.motion .blob.fail circle, .motion .blob.fail rect { fill: var(--danger); } /* a step that fails runs red, the same red as a failing call in Performance */
 .motion .blob text { fill: var(--bg); font-size: 15px; font-weight: 600; }
 .motion .ring { fill: none; stroke: var(--accent); stroke-width: 3; vector-effect: non-scaling-stroke; }
 .motion .flash { fill: var(--accent); }
+.motion .flash.fail { fill: var(--danger); }
+/* A step that times out dims the lines it lit: StepMotion sets --lit on the canvas while the fade runs, and the line stays dim until the step is left. */
+.react-flow__edge.active, .react-flow__edge.step { opacity: var(--lit, 1); }
 .motion .dots circle { fill: var(--accent); }
 .motion .glyph { fill: none; stroke: var(--bg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .motion .glyph.drop { stroke: var(--accent); stroke-width: 2.2; }
