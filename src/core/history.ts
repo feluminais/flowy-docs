@@ -13,6 +13,15 @@ export type Step = { id: string; time: string; label: string; source: StepSource
 /** A step as the list shows it: `changed` is the files it changed against the step before it. */
 export type StepInfo = Omit<Step, 'files'> & { changed: string[] }
 
+/** A file as the panel shows it: its text, or the fact that it is not text. */
+export type StepFile = { text: string } | { notText: true }
+
+/** A step with its files, and the step before it in the list (what the marks are against). */
+export type StepView = { step: StepInfo; files: Record<string, StepFile>; previous?: { id: string; files: Record<string, StepFile> } }
+
+/** The files as they are on disk now, as text, with each one's version. */
+export type YamlNow = { files: Record<string, StepFile>; versions: Record<string, string> }
+
 /** The newest this many steps of a folder are kept. */
 export const HISTORY_LIMIT = 300
 
