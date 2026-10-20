@@ -320,12 +320,11 @@
     {
       "from": "repeat-from",
       "to": "repeat-to",
-      "label": "asks"
+      "label": "asks and answers"
     },
     {
       "from": "repeat-to",
-      "to": "repeat-from",
-      "label": "answers"
+      "to": "repeat-from"
     },
     {
       "from": "branch-from",
@@ -344,8 +343,7 @@
     },
     {
       "from": "parallel-a",
-      "to": "parallel-from",
-      "label": "lane A answers"
+      "to": "parallel-from"
     },
     {
       "from": "parallel-from",
@@ -360,12 +358,11 @@
     {
       "from": "link-from",
       "to": "link-to",
-      "label": "hands over"
+      "label": "hands over and answers"
     },
     {
       "from": "link-to",
-      "to": "link-from",
-      "label": "answers"
+      "to": "link-from"
     },
     {
       "from": "load",
@@ -992,13 +989,13 @@
         {
           "from": "repeat-from",
           "to": "repeat-to",
-          "label": "asks",
+          "label": "asks and answers",
           "count": 1
         },
         {
           "from": "repeat-to",
           "to": "repeat-from",
-          "label": "answers",
+          "label": "",
           "count": 1
         },
         {
@@ -1022,7 +1019,7 @@
         {
           "from": "parallel-a",
           "to": "parallel-from",
-          "label": "lane A answers",
+          "label": "",
           "count": 1
         },
         {
@@ -1040,13 +1037,13 @@
         {
           "from": "link-from",
           "to": "link-to",
-          "label": "hands over",
+          "label": "hands over and answers",
           "count": 1
         },
         {
           "from": "link-to",
           "to": "link-from",
-          "label": "answers",
+          "label": "",
           "count": 1
         }
       ]
