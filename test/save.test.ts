@@ -5,7 +5,7 @@ import { existsSync, writeFileSync } from 'node:fs'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { deleteFlow, placeBoxes, putFlow, putObject } from '../src/core/ops.ts'
+import { deleteFlow, placeBoxes, putAnalysis, putFlow, putObject } from '../src/core/ops.ts'
 import { startServer } from '../src/node/server.ts'
 import { CHANGED_OUTSIDE, REDO_STALE, saveEdit, UNDO_STALE, undoEdit } from '../ui/src/save.ts'
 import type { Undo } from '../ui/src/save.ts'
@@ -51,6 +51,17 @@ test('a file that changes between reading and writing gets the 409 notice, and t
   })
   assert.equal(message, CHANGED_OUTSIDE)
   assert.equal(await read('model.yaml'), outside)
+})
+
+test('a save refused because an analysis file can\'t be read says so, and is not called a change from outside', async t => {
+  const { dir, read, save } = await setup(t)
+  await mkdir(join(dir, 'failures'))
+  await writeFile(join(dir, 'failures', 'bad.yaml'), 'name: [unclosed\n')
+  const message = await save(m => putAnalysis(m, { id: 'bad', name: 'B', modes: {} }))
+  assert.equal(message, "Couldn't save failures/bad.yaml: failures/bad.yaml can't be read, so it isn't replaced. Fix or delete it by hand.")
+  assert.notEqual(message, CHANGED_OUTSIDE)
+  assert.equal(await read('failures/bad.yaml'), 'name: [unclosed\n')
+  assert.equal(await save(m => putObject(m, { id: 'web', type: 'app', in: 'shop', name: 'Web app' })), undefined) // other files still save
 })
 
 test('layout and flow edits write their own files, and deleting a flow removes it', async t => {

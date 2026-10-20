@@ -16,12 +16,12 @@ export const CHANGED_OUTSIDE = 'This file changed outside Flowy. Reloaded.'
 const text = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 /** A State as the canvas's model, its problems, and where code links go. Throws with a message for the user when a file can't be read. */
-export function fromState(state: State): { model: Model; versions: Record<string, string | null>; problems: Problem[]; codeBase?: string; runs: Record<string, Run>; runProblems: Problem[] } {
+export function fromState(state: State): { model: Model; versions: Record<string, string | null>; problems: Problem[]; codeBase?: string; runs: Record<string, Run>; runProblems: Problem[]; failureProblems: Problem[] } {
   if ('parseError' in state) {
     const { file, line, message } = state.parseError
     throw new Error(`Can't read ${file}${line === undefined ? '' : ` (line ${line})`}: ${message}. Fix the file and this page updates.`)
   }
-  return { model: modelOf(state), versions: state.versions, problems: state.problems, codeBase: state.codeBase, runs: state.runs ?? {}, runProblems: state.runProblems ?? [] }
+  return { model: modelOf(state), versions: state.versions, problems: state.problems, codeBase: state.codeBase, runs: state.runs ?? {}, runProblems: state.runProblems ?? [], failureProblems: state.failureProblems ?? [] }
 }
 
 /**
@@ -78,7 +78,8 @@ export async function saveEdit(op: (model: Model) => Model, via: Via = '', onSav
     const changes = changesBetween(model, next)
     for (const { file, data } of changes) {
       const reply = await write(transport, file, data, versions[file] ?? null)
-      if (reply.status === 409) return CHANGED_OUTSIDE
+      // A 409 with nothing said is a file that moved on since it was read. One that says why (a file that can't be read, an analysis in the way) is told as it is.
+      if (reply.status === 409 && errorOf(reply) === undefined) return CHANGED_OUTSIDE
       if (!ok(reply)) return failed('save', file, reply)
       // A flow or analysis that didn't exist goes away again. model.yaml and layout.yaml can't be deleted, so they go back to empty.
       const before = versions[file] == null && isRemovableFile(file) ? null : fileData(model, file)
