@@ -19,6 +19,8 @@ export type State =
     runs?: Record<string, Run>
     /** What is wrong with those files: one that can't be read, an object it names that isn't there. Kept apart from `problems`, which is the model's. Left out when there are none. */
     runProblems?: Problem[]
+    /** What is wrong with the files in failures/ that were skipped (one that can't be read, a .yml file) and with run links. The analyses' other problems are in `problems`. Left out when there are none. */
+    failureProblems?: Problem[]
   }
   | { parseError: { file: string; line?: number; message: string } }
 
