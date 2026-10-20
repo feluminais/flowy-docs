@@ -182,6 +182,13 @@ function gridProblems(label: string, entry: Record<string, unknown>, out: string
   if (rows.length > DATA_MAX.rows) out.push(`${label}: ${rows.length} rows, at most ${DATA_MAX.rows}`)
 }
 
+/** Whether any text in a value, the keys of a mapping included, holds a line break. */
+function hasLineBreak(node: unknown): boolean {
+  if (typeof node === 'string') return /[\r\n]/.test(node)
+  if (Array.isArray(node)) return node.some(hasLineBreak)
+  return isMap(node) && Object.entries(node).some(([key, value]) => hasLineBreak(key) || hasLineBreak(value))
+}
+
 /** Whether a list sits directly inside a list anywhere in the sample, which the picture cannot draw. */
 function hasNestedList(node: unknown): boolean {
   if (Array.isArray(node)) return node.some(item => Array.isArray(item) || hasNestedList(item))
@@ -221,6 +228,7 @@ export function dataProblems(o: FlowyObject): string[] {
     else if (names.has(name)) out.push(`data "${name}" appears twice`)
     if (name !== undefined) names.add(name)
     const label = name === undefined ? `data entry ${i + 1}` : `data "${name}"`
+    if (hasLineBreak(entry)) out.push(`${label}: text can't hold a line break`)
     for (const field of ['kind', 'limits', 'note']) if (entry[field] !== undefined && typeof entry[field] !== 'string') out.push(`${label}: "${field}" must be plain text`)
     const [grid, document] = [present(entry.columns), present(entry.sample)]
     if (!grid && !document) out.push(`${label} needs columns or a sample`)
