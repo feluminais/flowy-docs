@@ -780,10 +780,7 @@
   <Style Selector="Border.treerow:pointerover"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
   <Style Selector="Border.treerow.sel"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <Style Selector="Border.twist"><Setter Property="Background" Value="Transparent" /></Style>
-  <Style Selector="TextBlock.treename.sel">
-    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-  </Style>
+  <Style Selector="TextBlock.treename.sel"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="TextBlock.treename.dim, TextBlock.treecount"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Border.treedot"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
 </Styles>
