@@ -7,7 +7,7 @@ import { flowGroups, outline, outlineKey } from '../../src/core/outline.ts'
 import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
-import { Activity, ChevronRight, Close, Home, Info, Pencil, Play, Route, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
+import { Activity, ChevronRight, Close, FileCode, Home, Info, Pencil, Play, Route, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
 import { MAX_WIDTH, MIN_WIDTH } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { scrollToRow, visibleRows } from './window.ts'
@@ -17,8 +17,8 @@ const ROW = 30 // px: every row of the tree is this tall, which is what lets it 
 const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-export function NavTabs({ tab, showFlows, onPick }: { tab: NavTab; showFlows: boolean; onPick: (tab: NavTab) => void }) {
-  const tabs: [NavTab, string][] = [['explorer', 'Explorer'], ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : [])]
+export function NavTabs({ tab, showFlows, showYaml, onPick }: { tab: NavTab; showFlows: boolean; showYaml: boolean; onPick: (tab: NavTab) => void }) {
+  const tabs: [NavTab, string][] = [['explorer', 'Explorer'], ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []), ...(showYaml ? [['yaml', 'YAML'] as [NavTab, string]] : [])]
   return (
     <div className="navtabs" role="tablist" aria-label="Panel">
       {tabs.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => onPick(id)}>{label}</button>)}
@@ -35,12 +35,13 @@ function RailButton({ label, hint, Icon, pressed, count, onClick }: { label: str
   )
 }
 
-/** The slim column of icons on the left edge for the Flows list and the Explorer tree. It is always there, and the counts on it say how much the documentation holds. */
-export function NavRail({ tab, flows, shapes, showFlows, onPick }: { tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean; onPick: (tab: NavTab) => void }) {
+/** The slim column of icons on the left edge for the Flows list, the Explorer tree and the YAML. It is always there, and the counts on it say how much the documentation holds. */
+export function NavRail({ tab, flows, shapes, showFlows, showYaml, onPick }: { tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean; showYaml: boolean; onPick: (tab: NavTab) => void }) {
   return (
     <nav className="rail left" aria-label="Navigator">
       <RailButton label="Explorer" hint="O" Icon={ExplorerIcon} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
       {showFlows && <RailButton label="Flows" hint="L" Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
+      {showYaml && <RailButton label="YAML" hint="Y" Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />}
     </nav>
   )
 }

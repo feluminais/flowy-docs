@@ -48,8 +48,11 @@ import { copyMessage } from '../../src/core/host.ts'
 import { saveState, vscode } from './host.ts'
 import { useReveal } from './reveal.ts'
 import { useColorMode } from './hosttheme.ts'
+import { createHistoryStore } from './historystore.ts'
+import type { HistoryClient } from './historyclient.ts'
 import { useModel } from './useModel.ts'
-import type { Edit, Loaded } from './useModel.ts'
+import type { Edit, Loaded, Restore } from './useModel.ts'
+import { Yaml } from './Yaml.tsx'
 
 const nodeTypes = { box: Box, frame: Frame }
 const edgeTypes = { line: Line }
@@ -83,11 +86,11 @@ function pick(rec: Recording, id: string): Recording {
 }
 
 export function App() {
-  const { loaded, banner, edit, undo, redo, live } = useModel()
+  const { loaded, banner, edit, undo, redo, restore, history, changes, live } = useModel()
   return (
     <div className="app">
       {banner && <div className="banner" role="alert">{banner}</div>}
-      {loaded && <Reader {...loaded} edit={edit} undo={undo} redo={redo} live={live} readOnly={!live || banner !== undefined} />}
+      {loaded && <Reader {...loaded} edit={edit} undo={undo} redo={redo} restore={restore} historyApi={history} changes={changes} live={live} readOnly={!live || banner !== undefined} broken={banner !== undefined} />}
     </div>
   )
 }
@@ -114,7 +117,9 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
 
 type Back = () => Promise<string | undefined>
 
-function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo, live, readOnly }: Loaded & { edit: Edit; undo: Back; redo: Back; live: boolean; readOnly: boolean }) {
+function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo, restore, historyApi, changes, live, readOnly, broken }: Loaded & {
+  edit: Edit; undo: Back; redo: Back; restore: Restore; historyApi?: HistoryClient; changes: number; live: boolean; readOnly: boolean; broken: boolean
+}) {
   const colorMode = useColorMode()
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
   const [viewId, setViewId] = useState(() => readHash(location.hash).view)
@@ -204,7 +209,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const stop = flow ? stops[stopIndex] : undefined
   const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
   const showFlows = totals.flows > 0 || editing // the Flows tab is there whenever there is a flow to find
-  const nav: NavTab | undefined = tab === 'flows' && !showFlows ? undefined : tab
+  // The YAML tab needs a server that keeps the history: not an exported page, not the VS Code webview.
+  const yamlStore = useMemo(() => (live && historyApi ? createHistoryStore(historyApi) : undefined), [live, historyApi])
+  useEffect(() => { void yamlStore?.refresh() }, [yamlStore, changes]) // after every load, whether it worked or not: a change may have left a file broken
+  const showYaml = yamlStore !== undefined
+  const nav: NavTab | undefined = (tab === 'flows' && !showFlows) || (tab === 'yaml' && !showYaml) ? undefined : tab
   const detailsOpen = (details || side !== undefined) && !perfOpen // the Performance panel is in its place while it is open
   const rightOpen = detailsOpen || perfOpen // a panel on the right, whichever it is
 
@@ -664,6 +673,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       else if (key === 'f' && plain) fitNow.current?.({ ...fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0), duration: 300 })
       else if (key === 'l' && plain && !e.repeat && showFlows) toggleTab('flows')
       else if (key === 'o' && plain && !e.repeat) toggleTab('explorer')
+      else if (key === 'y' && plain && !e.repeat && showYaml) toggleTab('yaml')
       else if (key === 't' && plain && !e.repeat && showPerf) (perfOpen ? closePerf() : openPerf())
       else if (key === 'e' && plain && !e.repeat && !readOnly) toggleEdit()
       else if (editing && key === 'n' && plain && !recording) show({ kind: 'add' })
@@ -682,7 +692,20 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
 
   /** What the canvas can give one panel: all of it but a strip to look at, and what the other panel takes. */
   const spare = (other: number) => (canvas.current?.clientWidth ?? Infinity) - 160 - other
-  const navTabs = <NavTabs tab={nav ?? 'explorer'} showFlows={showFlows} onPick={setTab} />
+  const navTabs = <NavTabs tab={nav ?? 'explorer'} showFlows={showFlows} showYaml={showYaml} onPick={setTab} />
+  // Putting a version back from the YAML tab: the notice says which, and a shape dragged earlier shows where the file says.
+  const restoreVersion = async (id: string, seen: Record<string, string | null>, label: string) => {
+    justMoved.current = false
+    setNotice(undefined)
+    const message = await restore(id, seen, label)
+    setNotice(message ?? `${label}.`)
+    setMoved(new Map())
+    return message
+  }
+  const clearHistory = async () => {
+    await historyApi?.clear()
+    await yamlStore?.refresh()
+  }
   return (
     <>
       <header className="bar">
@@ -725,7 +748,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}><Pencil size={16} />Edit</button>}
       </header>
       <div className="stage">
-        <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} onPick={toggleTab} />
+        <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} showYaml={showYaml} onPick={toggleTab} />
         <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           <LineStyleContext value={lines}>
@@ -868,6 +891,12 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
               <Explorer model={model} problems={problems} editing={editing} expanded={expanded} onToggle={toggleOpen} here={view} selected={selectedBox}
                 playing={flow ? playing?.flow : undefined} onPick={pickRow} onOpen={openRow} />
+            </NavPanel>
+          )}
+          {nav === 'yaml' && yamlStore && (
+            <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
+              <Yaml store={yamlStore}editing={editing} broken={broken} flow={recording?.id || (flow ? playing?.flow : undefined) || undefined} selected={selectedBox}
+                onRestore={restoreVersion} onClear={clearHistory} />
             </NavPanel>
           )}
           {nav && <Sash side="nav" width={navWidth} onResize={w => setNavWidth(clampWidth(w, spare(rightOpen ? detailsWidth : 0)))} onReset={() => setNavWidth(NAV)} />}

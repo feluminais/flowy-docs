@@ -1,5 +1,5 @@
-/** Which tab of the left-hand panel is showing: the flows list or the Explorer tree. Details, on the right, has no tabs. */
-export type NavTab = 'flows' | 'explorer'
+/** Which tab of the left-hand panel is showing: the flows list, the Explorer tree, or the files as YAML with their history. Details, on the right, has no tabs. */
+export type NavTab = 'flows' | 'explorer' | 'yaml'
 
 /** What the navigator remembers for this project: the list or tree that was open, which shapes were open in the tree, and how wide the two side panels are. */
 export type NavSaved = { tab?: NavTab; expanded: string[]; navWidth?: number; detailsWidth?: number }
@@ -22,7 +22,7 @@ export function parseNav(text: string | null): NavSaved {
     const { tab, expanded, navWidth, detailsWidth } = raw as { tab?: unknown; expanded?: unknown; navWidth?: unknown; detailsWidth?: unknown }
     const [nav, details] = [widthOf(navWidth), widthOf(detailsWidth)]
     return {
-      ...(tab === 'flows' || tab === 'explorer' ? { tab } : {}),
+      ...(tab === 'flows' || tab === 'explorer' || tab === 'yaml' ? { tab } : {}),
       expanded: Array.isArray(expanded) ? expanded.filter((id): id is string => typeof id === 'string').slice(0, MAX_OPEN) : [],
       ...(nav === undefined ? {} : { navWidth: nav }),
       ...(details === undefined ? {} : { detailsWidth: details }),
