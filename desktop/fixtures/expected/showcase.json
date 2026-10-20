@@ -235,14 +235,14 @@
       "type": "app",
       "name": "Strain",
       "in": "performance",
-      "description": "The outline runs from green to red as the shape fills up."
+      "description": "Busy. The outline runs from green to red as the shape uses more of its capacity, from 10% at 10 requests/s to 100% at 160."
     },
     {
       "id": "failing-shape",
       "type": "app",
       "name": "Failing shape",
       "in": "performance",
-      "description": "The shape fails more of its calls. Failing 5% is as strained as full, so the outline runs to red early."
+      "description": "Busy because calls fail. Failing 5% counts as full, so the outline runs to red early."
     },
     {
       "id": "queue",
@@ -250,7 +250,7 @@
       "name": "Queue",
       "in": "performance",
       "shape": "queue",
-      "description": "A number appears on the shape when calls wait. It has no outline strain because only the waiting was measured."
+      "description": "Waiting. The number is how many calls are waiting, from 0 to 3000. The outline stays plain because only the waiting was measured."
     },
     {
       "id": "not-measured",
@@ -271,14 +271,14 @@
       "type": "component",
       "name": "Rolled up · A",
       "in": "rolled-up",
-      "description": "Fills up as the load goes up."
+      "description": "Busy and waiting both grow. At 10 requests/s it is 20% busy with nothing waiting, and at 160 it is 90% busy with 120 waiting."
     },
     {
       "id": "rolled-b",
       "type": "component",
       "name": "Rolled up · B",
       "in": "rolled-up",
-      "description": "Keeps a steady queue."
+      "description": "Waits for 10 calls at every load, and gets less busy as the load goes up, from 50% to 30%."
     }
   ],
   "connections": [
