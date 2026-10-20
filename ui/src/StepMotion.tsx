@@ -8,7 +8,7 @@ import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import { BOX } from './graph.ts'
 import type { BoxData, Rect } from './graph.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
-import { active, bump, cyclePeriod, distance, DWELL, ease, progress, squashTile } from './motion.ts'
+import { active, bump, cyclePeriod, distance, DWELL, ease, litOpacity, progress, squashTile } from './motion.ts'
 
 // The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
 const GLYPHS: Record<Glyph, string> = {
@@ -37,7 +37,7 @@ function shape(b: Beat, i: number, from: Rect, to: Rect, paths: [string, string]
     case 'blob':
       return (
         <g key={i} data-beat={i} style={HIDDEN}>
-          <g className={b.tone === 'reply' ? 'blob reply' : 'blob'}>
+          <g className={b.tone === undefined ? 'blob' : `blob ${b.tone}`}>
             <g className="stretch">
               {b.label === undefined
                 ? <circle r={15} />
@@ -53,7 +53,7 @@ function shape(b: Beat, i: number, from: Rect, to: Rect, paths: [string, string]
     case 'ring':
       return <path key={i} data-beat={i} className="ring" d={path} style={HIDDEN} />
     case 'flash':
-      return <path key={i} data-beat={i} className="flash" d={path} transform={`translate(${r.x} ${r.y}) scale(${r.width / BOX.width} ${r.height / BOX.height})`} style={HIDDEN} />
+      return <path key={i} data-beat={i} className={b.tone === 'fail' ? 'flash fail' : 'flash'} d={path} transform={`translate(${r.x} ${r.y}) scale(${r.width / BOX.width} ${r.height / BOX.height})`} style={HIDDEN} />
     case 'wait':
       return <g key={i} data-beat={i} className="dots" style={HIDDEN}>{[-12, 0, 12].map(dx => <circle key={dx} cx={r.x + r.width / 2 + dx} cy={r.y - 14} r={3.5} />)}</g>
     case 'drop':
@@ -106,6 +106,9 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
     const nodes = beats.map((_, i) => svg.querySelector<SVGElement>(`[data-beat="${i}"]`))
     const stretches = nodes.map(n => n?.querySelector<SVGElement>('.stretch') ?? null)
     const tiles = { from: tile(ends[0]), to: tile(ends[1]) }
+    // A timeout dims the lit lines through `--lit` on the canvas (see style.css). Only a motion that has a fade writes it, so the other steps of a stop never undo it.
+    const fades = beats.some(b => b.do === 'fade')
+    const canvas = fades ? svg.closest<HTMLElement>('.react-flow') : null
     const me = Symbol('motion')
     running.set(me, total)
     const who = { from: Symbol('from'), to: Symbol('to') } // two asks, so a step that is both its ends squashes by the larger
@@ -149,6 +152,7 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
         const el = tiles[side]
         if (el) squashTile(el, who[side], squash[side])
       }
+      canvas?.style.setProperty('--lit', String(litOpacity(beats, t)))
     }
 
     // Plays, and with Repeat on rests and plays again until the step is left. Autoplay hears about the first play only.
@@ -167,6 +171,7 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
     return () => {
       running.delete(me)
       cancelAnimationFrame(frameId)
+      canvas?.style.removeProperty('--lit')
       for (const side of ['from', 'to'] as const) {
         const el = tiles[side]
         if (el) squashTile(el, who[side], 0)
