@@ -145,9 +145,10 @@ internal sealed class CanvasView : Border
         StopStep();
         if (MotionSettings.Reduced) return false;
         var outline = (string id) => _scene!.Boxes.First(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Edge : null; // the pipe meets each shape on its outline, as the line does
+        var shape = (string id) => _scene!.Boxes.First(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Path : null; // and a ring or a flash follows it
         var playing = runs.Where(r => RectOf(r.From) is not null && RectOf(r.To) is not null).ToList();
         if (playing.Count == 0) return false;
-        var started = _motion.Start(playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To))).ToList());
+        var started = _motion.Start(playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To), shape(r.From), shape(r.To))).ToList());
         var total = started.Max(s => s.Total);
         StepMoving = true;
         _step = Anim.Run(this, total, t => t, t =>
