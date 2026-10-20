@@ -34,7 +34,7 @@ export async function dumpFolder(dir: string): Promise<unknown> {
   const model: Model = modelOf(state)
   return {
     lineStyle: lineStyle(model),
-    objects: Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name, in: o.in, external: o.external, shape: o.shape, color: o.color, opacity: o.opacity, icon: o.icon, tech: o.tech, description: o.description, code: o.code, links: o.links, data: o.data, shown: shownOf(o) })),
+    objects: Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name, in: o.in, external: o.external, shape: o.shape, color: o.color, opacity: o.opacity, icon: o.icon, tech: o.tech, description: o.description, code: o.code, links: o.links, snippets: o.snippets, data: o.data, shown: shownOf(o) })),
     icons: model.meta.icons,
     connections: model.connections.map(c => ({ from: c.from, to: c.to, label: c.label })),
     layout: model.layout,

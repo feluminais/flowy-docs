@@ -37,7 +37,8 @@ public class EditOpsTests
                     s["code"]?.AsArray().Select(c => c!.GetValue<string>()).ToList(),
                     s["links"] is null ? null : Entries(s["links"]),
                     Str(s, "shape"), Str(s, "color"), s["opacity"]?.ToString(), Str(s, "icon"),
-                    s["data"] is null ? null : YamlWriterTests.Tree(s["data"])));
+                    s["data"] is null ? null : YamlWriterTests.Tree(s["data"]),
+                    s["snippets"] is null ? null : Entries(s["snippets"])));
             case "deleteObject": return EditOps.DeleteObject(doc, Str(s, "id")!);
             case "deleteObjects": return EditOps.DeleteObjects(doc, s["ids"]!.AsArray().Select(i => i!.GetValue<string>()).ToList());
             case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label")));

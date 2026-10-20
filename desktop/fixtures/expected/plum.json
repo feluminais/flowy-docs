@@ -528,6 +528,12 @@
       "description": "Works out the total: items, delivery fee (by distance) and any promotion.\n\nThe delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n",
       "code": [
         "services/order-api/src/pricing.ts"
+      ],
+      "snippets": [
+        {
+          "title": "Delivery fee",
+          "text": "// Mapbox answers in metres. Round up to the next 500 m.\nconst km = Math.ceil(meters / 500) / 2\nconst fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)"
+        }
       ]
     },
     {
@@ -545,7 +551,13 @@
       "type": "component",
       "name": "Order status",
       "in": "order-api",
-      "description": "Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step."
+      "description": "Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step.",
+      "snippets": [
+        {
+          "title": "Accepting an order",
+          "text": "UPDATE orders\nSET status = 'accepted', updated_at = now()\nWHERE id = $1 AND status = 'placed'"
+        }
+      ]
     },
     {
       "id": "refunds",

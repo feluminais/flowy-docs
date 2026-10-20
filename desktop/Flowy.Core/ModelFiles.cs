@@ -55,9 +55,10 @@ public static class ModelFiles
             m.TryGetValue("code", out var code);
             m.TryGetValue("links", out var links);
             m.TryGetValue("data", out var data);
+            m.TryGetValue("snippets", out var snippets);
             map.Add(id, new FlowyObject(Text(m, "type"), Text(m, "name"), Text(m, "in"), Text(m, "external"), Text(m, "tech"), Text(m, "description"), code, links)
             {
-                Shape = Text(m, "shape"), Color = Text(m, "color"), Opacity = Text(m, "opacity"), Icon = Text(m, "icon"), Data = data,
+                Shape = Text(m, "shape"), Color = Text(m, "color"), Opacity = Text(m, "opacity"), Icon = Text(m, "icon"), Data = data, Snippets = snippets,
             });
         }
         var list = connectionList.Select(c =>
