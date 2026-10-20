@@ -11,6 +11,7 @@ import type { Model } from '../core/model.ts'
 import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, disconnect, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
+import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
 import { GROUP_KINDS } from '../core/structure.ts'
 import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
 import { blockedBy, loadDir, missingPaths, saveFile, VersionConflict } from './files.ts'
@@ -34,7 +35,10 @@ Looks (shape, color, opacity, icon) are optional; the type already picks a good 
 Writing text:
 - A description's first paragraph is the hover teaser: a sentence on what the object does for others, in words its name doesn't hold. Start apps and components with a verb. No "responsible for", no praise. Later paragraphs: why, limits, risks. No versions, counts or endpoint lists.
 - A connection label is a few words from the side that starts it, and reads as a sentence between the two names ("publishes order events to"). Say what moves; never "uses". A reply is not a connection.
-- Put long documents (runbooks, decision records, specs, wiki pages) in links, not in a description. code: is where an object lives.
+- Put long documents (runbooks, decision records, specs, wiki pages) in links, not in a description. code: is the files and folders an object lives in.
+Writing code (put_object's snippets), so a panel shows the few lines that explain an object:
+- Only where a few lines say what a sentence can't: a formula, a query, the request or event an object takes. Copy them from the repo as they are, never rewrite or invent them, and leave out secrets, tokens and real data. At most ${SNIPPET_MAX.snippets} snippets of ${SNIPPET_MAX.lines} lines; anything longer is a file, listed in code.
+- title says what the lines are ("Delivery fee"). Leave language out unless the code is too short to tell: Flowy works it out, and the reader can pick another. snippets replaces the whole list: read the object with get_model first and send every snippet you want kept.
 Writing data (put_object's data), so a store shows what it holds:
 - Only for a store the code shows, and only the few tables, key sets, topics or collections a reader needs to follow the flows, never the whole schema. Take names, columns and keys from a migration, a schema file or the code that builds the keys, and add nothing you can't point to.
 - Sample rows are invented. They are never copied from a real database, a dump or a log, and carry no real names, emails, phone numbers or ids: use made-up ones like o_1042 and Noodle Bar. Two or three rows, at most 8.
@@ -189,7 +193,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   }))
 
   server.registerTool('put_object', {
-    description: 'Create or update an object. On update, omitted fields stay as they are, "" removes in, shape, color, opacity, icon, tech or description, [] removes code, links or data, and external: false removes external.',
+    description: 'Create or update an object. On update, omitted fields stay as they are, "" removes in, shape, color, opacity, icon, tech or description, [] removes code, links, snippets or data, and external: false removes external.',
     inputSchema: {
       id: id('Object id'),
       type: z.enum(OBJECT_TYPES).optional()
@@ -212,6 +216,8 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         .describe('Files and folders in the repo this object lives in, relative to the folder that holds flowy/, e.g. ["src/api/"]. Each must exist. [] removes them.'),
       links: z.array(z.object({ url: z.string(), title: z.string().optional() })).optional()
         .describe('Long documents and pages that belong to this object (a runbook, a decision record, a spec, a wiki page). url is a web address (http or https) or a path in the repo, relative to the folder that holds flowy/, which must exist. title is what the reader sees. [] removes them.'),
+      snippets: z.array(z.object({ text: z.string().max(8000), title: z.string().max(120).optional(), language: z.string().max(40).optional() })).max(SNIPPET_MAX.snippets).optional()
+        .describe(`A few lines of code that explain this object (the formula, the query, the request it takes), each shown in its panel with colours. At most ${SNIPPET_MAX.snippets} snippets of ${SNIPPET_MAX.lines} lines. Long code belongs in a file, listed in code. title is a short name. language is one of ${LANGUAGES.map(l => l.id).join(', ')}; leave it out and Flowy works it out from the code, which is right for most snippets of five lines or more. Replaces the whole list, so read the object with get_model first and send every snippet to keep. [] removes them.`),
       data: z.array(dataEntry).optional()
         .describe('What a store holds, drawn in its panel as tables with sample rows, key sets, topics or documents. Only a store can have it. Replaces the whole list, so read the store with get_model first and send every entry to keep. [] removes it. Sample rows are invented, never real data.'),
     },

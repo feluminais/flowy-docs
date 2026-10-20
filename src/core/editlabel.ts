@@ -12,9 +12,11 @@ function canon(value: unknown): string {
 const has = (o: object, key: string) => Object.hasOwn(o, key)
 const cut = (name: string) => (name.length > MAX_NAME ? `${name.slice(0, MAX_NAME)}…` : name)
 
-/** What a changed key of an object is called in a label. */
+/** What a changed key of an object is called in a label: the name its panel gives it ("source" for the files in `code`, "code" for the `snippets`). */
 function fieldWord(key: string): string {
-  if (key === 'type' || key === 'tech' || key === 'description' || key === 'code' || key === 'links' || key === 'data' || key === 'external') return key
+  if (key === 'code') return 'source'
+  if (key === 'snippets') return 'code'
+  if (key === 'type' || key === 'tech' || key === 'description' || key === 'links' || key === 'data' || key === 'external') return key
   return key === 'shape' || key === 'color' || key === 'opacity' || key === 'icon' ? 'look' : 'details'
 }
 

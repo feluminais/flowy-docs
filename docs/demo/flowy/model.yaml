@@ -187,6 +187,12 @@ objects:
       Works out the total: items, delivery fee (by distance) and any promotion.
 
       The delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.
+    snippets:
+      - title: Delivery fee
+        text: |-
+          // Mapbox answers in metres. Round up to the next 500 m.
+          const km = Math.ceil(meters / 500) / 2
+          const fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)
   checkout:
     type: component
     in: order-api
@@ -201,6 +207,12 @@ objects:
     in: order-api
     name: Order status
     description: Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step.
+    snippets:
+      - title: Accepting an order
+        text: |-
+          UPDATE orders
+          SET status = 'accepted', updated_at = now()
+          WHERE id = $1 AND status = 'placed'
   refunds:
     type: component
     in: order-api

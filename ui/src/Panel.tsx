@@ -9,6 +9,7 @@ import { deleteFlow, deleteObject, groupSteps, OpError, putFlow, putGroup, putOb
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
+import { CodeFields, CodeSection } from './Code.tsx'
 import { DataField, DataSection } from './Data.tsx'
 import { connectionsOf, linesOf, newId, problemsOf, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
@@ -221,7 +222,7 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
 
 type Lines = { onPick: (id: string) => void; onHover: (line?: string) => void }
 
-/** An object's description, links, code and connections, or in edit mode a form for its name, type, tech, description, code and links. */
+/** An object's description, code, links, source and connections, or in edit mode a form for its name, type, tech, description, code, source and links. */
 export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClose, onPick, onHover }: Common & Lines & { id: string; editing: boolean; problems: Problem[]; codeBase?: string }) {
   const object = getObject(model, id)
   if (!object) return null
@@ -236,6 +237,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
       <Section icon={Text} title="Description" />
       <div className="prose">{object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}</div>
       <DataSection object={object} />
+      <CodeSection object={object} />
       <LinkList object={object} codeBase={codeBase} />
       <CodeList object={object} codeBase={codeBase} />
       <LineList model={model} id={id} onPick={onPick} onHover={onHover} />
@@ -270,6 +272,8 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
             <DataField object={object} onSave={text => run(m => putObject(m, { id, data: parseData(text) as DataInput[] }))} />
           </>
         )}
+        <Section icon={Code} title="Code" />
+        <CodeFields object={object} onSave={snippets => save({ snippets })} />
         <Section icon={Folder} title="Source" />
         <Field label="Files and folders (one per line)" value={Array.isArray(object.code) ? object.code.join('\n') : ''} multiline
           onSave={text => save({ code: text.split('\n').map(line => line.trim()).filter(Boolean) })} />

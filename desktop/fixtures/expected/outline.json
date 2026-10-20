@@ -24252,6 +24252,801 @@
           ]
         }
       ]
+    },
+    "snippets": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 5,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 5,
+            "flows": 0,
+            "problems": 11
+          }
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 5,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:awkward",
+              "kind": "shape",
+              "id": "awkward",
+              "parent": "root",
+              "depth": 1,
+              "name": "Awkward",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:good",
+              "kind": "shape",
+              "id": "good",
+              "parent": "root",
+              "depth": 1,
+              "name": "Good",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:notalist",
+              "kind": "shape",
+              "id": "notalist",
+              "parent": "root",
+              "depth": 1,
+              "name": "Not a list",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:problems",
+              "kind": "shape",
+              "id": "problems",
+              "parent": "root",
+              "depth": 1,
+              "name": "Problems",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:toomany",
+              "kind": "shape",
+              "id": "toomany",
+              "parent": "root",
+              "depth": 1,
+              "name": "Too many",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 5,
+            "flows": 0,
+            "problems": 11
+          }
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 5,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:awkward",
+              "kind": "shape",
+              "id": "awkward",
+              "parent": "root",
+              "depth": 1,
+              "name": "Awkward",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:good",
+              "kind": "shape",
+              "id": "good",
+              "parent": "root",
+              "depth": 1,
+              "name": "Good",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:notalist",
+              "kind": "shape",
+              "id": "notalist",
+              "parent": "root",
+              "depth": 1,
+              "name": "Not a list",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:problems",
+              "kind": "shape",
+              "id": "problems",
+              "parent": "root",
+              "depth": 1,
+              "name": "Problems",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:toomany",
+              "kind": "shape",
+              "id": "toomany",
+              "parent": "root",
+              "depth": 1,
+              "name": "Too many",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 5,
+            "flows": 0,
+            "problems": 11
+          }
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "good",
+            "awkward",
+            "problems",
+            "notalist",
+            "toomany"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 5,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:awkward",
+              "kind": "shape",
+              "id": "awkward",
+              "parent": "root",
+              "depth": 1,
+              "name": "Awkward",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:good",
+              "kind": "shape",
+              "id": "good",
+              "parent": "root",
+              "depth": 1,
+              "name": "Good",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:notalist",
+              "kind": "shape",
+              "id": "notalist",
+              "parent": "root",
+              "depth": 1,
+              "name": "Not a list",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:problems",
+              "kind": "shape",
+              "id": "problems",
+              "parent": "root",
+              "depth": 1,
+              "name": "Problems",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:toomany",
+              "kind": "shape",
+              "id": "toomany",
+              "parent": "root",
+              "depth": 1,
+              "name": "Too many",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 5,
+            "flows": 0,
+            "problems": 11
+          }
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "good",
+            "awkward",
+            "problems",
+            "notalist",
+            "toomany"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 5,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:awkward",
+              "kind": "shape",
+              "id": "awkward",
+              "parent": "root",
+              "depth": 1,
+              "name": "Awkward",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:good",
+              "kind": "shape",
+              "id": "good",
+              "parent": "root",
+              "depth": 1,
+              "name": "Good",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:notalist",
+              "kind": "shape",
+              "id": "notalist",
+              "parent": "root",
+              "depth": 1,
+              "name": "Not a list",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:problems",
+              "kind": "shape",
+              "id": "problems",
+              "parent": "root",
+              "depth": 1,
+              "name": "Problems",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:toomany",
+              "kind": "shape",
+              "id": "toomany",
+              "parent": "root",
+              "depth": 1,
+              "name": "Too many",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 5,
+            "flows": 0,
+            "problems": 11
+          }
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 5,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:awkward",
+              "kind": "shape",
+              "id": "awkward",
+              "parent": "root",
+              "depth": 1,
+              "name": "Awkward",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:notalist",
+              "kind": "shape",
+              "id": "notalist",
+              "parent": "root",
+              "depth": 1,
+              "name": "Not a list",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:toomany",
+              "kind": "shape",
+              "id": "toomany",
+              "parent": "root",
+              "depth": 1,
+              "name": "Too many",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 5,
+            "flows": 0,
+            "problems": 11
+          }
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [],
+          "totals": {
+            "shapes": 5,
+            "flows": 0,
+            "problems": 11
+          }
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 5,
+              "flows": 0,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:awkward",
+              "kind": "shape",
+              "id": "awkward",
+              "parent": "root",
+              "depth": 1,
+              "name": "Awkward",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:good",
+              "kind": "shape",
+              "id": "good",
+              "parent": "root",
+              "depth": 1,
+              "name": "Good",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:notalist",
+              "kind": "shape",
+              "id": "notalist",
+              "parent": "root",
+              "depth": 1,
+              "name": "Not a list",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:problems",
+              "kind": "shape",
+              "id": "problems",
+              "parent": "root",
+              "depth": 1,
+              "name": "Problems",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:toomany",
+              "kind": "shape",
+              "id": "toomany",
+              "parent": "root",
+              "depth": 1,
+              "name": "Too many",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 5,
+            "flows": 0,
+            "problems": 11
+          }
+        }
+      ],
+      "groups": [
+        {
+          "view": "root",
+          "editing": false,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        },
+        {
+          "view": "root",
+          "editing": true,
+          "here": [],
+          "elsewhere": [],
+          "total": 0
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "good",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "good",
+          "self": true,
+          "opened": [
+            "good",
+            "root"
+          ]
+        },
+        {
+          "id": "awkward",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "awkward",
+          "self": true,
+          "opened": [
+            "awkward",
+            "root"
+          ]
+        },
+        {
+          "id": "problems",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "problems",
+          "self": true,
+          "opened": [
+            "problems",
+            "root"
+          ]
+        },
+        {
+          "id": "notalist",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "notalist",
+          "self": true,
+          "opened": [
+            "notalist",
+            "root"
+          ]
+        },
+        {
+          "id": "toomany",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "toomany",
+          "self": true,
+          "opened": [
+            "root",
+            "toomany"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
     }
   },
   "keys": {

@@ -1,0 +1,189 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "good",
+      "type": "system",
+      "name": "Good",
+      "snippets": [
+        {
+          "title": "Delivery fee",
+          "text": "const km = Math.ceil(meters / 500) / 2\nconst fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)"
+        },
+        {
+          "language": "C#",
+          "text": "public decimal Fee(decimal km) => Base + km * Rate;"
+        },
+        {
+          "title": "Accepting an order",
+          "language": "sql",
+          "text": "UPDATE orders\nSET status = 'accepted'\nWHERE id = $1\n"
+        },
+        {
+          "language": "text",
+          "text": "just words"
+        }
+      ]
+    },
+    {
+      "id": "awkward",
+      "type": "system",
+      "name": "Awkward",
+      "snippets": [
+        {
+          "text": "# a comment first\nkey: value\n  indented\n\tafter a tab\n\nafter a blank line"
+        },
+        {
+          "text": "  starts with two spaces\nback at the margin"
+        }
+      ]
+    },
+    {
+      "id": "problems",
+      "type": "system",
+      "name": "Problems",
+      "snippets": [
+        {
+          "text": "x",
+          "language": "klingon"
+        },
+        {
+          "title": "No text"
+        },
+        {
+          "text": "  "
+        },
+        {
+          "text": [
+            "a",
+            "b"
+          ]
+        },
+        "plain",
+        {
+          "text": "x",
+          "title": [
+            "t"
+          ]
+        },
+        {
+          "text": "x",
+          "language": [
+            "ts"
+          ]
+        },
+        {
+          "text": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\nline 21\nline 22\nline 23\nline 24\nline 25\nline 26\nline 27\nline 28\nline 29\nline 30\nline 31\nline 32\nline 33\nline 34\nline 35\nline 36\nline 37\nline 38\nline 39\nline 40\nline 41"
+        }
+      ]
+    },
+    {
+      "id": "notalist",
+      "type": "system",
+      "name": "Not a list",
+      "snippets": "some code"
+    },
+    {
+      "id": "toomany",
+      "type": "system",
+      "name": "Too many",
+      "snippets": [
+        {
+          "text": "a"
+        },
+        {
+          "text": "b"
+        },
+        {
+          "text": "c"
+        },
+        {
+          "text": "d"
+        },
+        {
+          "text": "e"
+        },
+        {
+          "text": "f"
+        },
+        {
+          "text": "g"
+        }
+      ]
+    }
+  ],
+  "connections": [],
+  "layout": {},
+  "flows": [],
+  "problems": [
+    {
+      "file": "model.yaml",
+      "id": "problems",
+      "message": "problems: snippet 1: unknown language \"klingon\" (use typescript, javascript, json, yaml, csharp, java, kotlin, python, go, rust, sql, bash, powershell, html, xml, css, dockerfile, markdown, c, cpp, php, ruby, swift, text, or leave it out to have it worked out)"
+    },
+    {
+      "file": "model.yaml",
+      "id": "problems",
+      "message": "problems: snippet 2 has no text"
+    },
+    {
+      "file": "model.yaml",
+      "id": "problems",
+      "message": "problems: snippet 3 has no text"
+    },
+    {
+      "file": "model.yaml",
+      "id": "problems",
+      "message": "problems: snippet 4: text must be plain text"
+    },
+    {
+      "file": "model.yaml",
+      "id": "problems",
+      "message": "problems: snippet 5 must be a mapping with text"
+    },
+    {
+      "file": "model.yaml",
+      "id": "problems",
+      "message": "problems: snippet 6: title must be plain text"
+    },
+    {
+      "file": "model.yaml",
+      "id": "problems",
+      "message": "problems: snippet 7: language must be plain text"
+    },
+    {
+      "file": "model.yaml",
+      "id": "problems",
+      "message": "problems: snippet 8 is 41 lines, at most 40. Put long code in a file and list it under Source."
+    },
+    {
+      "file": "model.yaml",
+      "id": "problems",
+      "message": "problems: 8 snippets, at most 6"
+    },
+    {
+      "file": "model.yaml",
+      "id": "notalist",
+      "message": "notalist: snippets must be a list of entries with text and, if you like, a title and a language"
+    },
+    {
+      "file": "model.yaml",
+      "id": "toomany",
+      "message": "toomany: 7 snippets, at most 6"
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "good",
+        "awkward",
+        "problems",
+        "notalist",
+        "toomany"
+      ],
+      "outsiders": [],
+      "edges": []
+    }
+  }
+}
