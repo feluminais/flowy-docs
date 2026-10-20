@@ -182,9 +182,12 @@ function gridProblems(label: string, entry: Record<string, unknown>, out: string
   if (rows.length > DATA_MAX.rows) out.push(`${label}: ${rows.length} rows, at most ${DATA_MAX.rows}`)
 }
 
+/** What ends a line: the two usual ones, and the three separators that YAML 1.1 readers (the desktop app's) take for line breaks. */
+const LINE_BREAKS = ['\n', '\r', String.fromCharCode(0x85), String.fromCharCode(0x2028), String.fromCharCode(0x2029)]
+
 /** Whether any text in a value, the keys of a mapping included, holds a line break. */
 function hasLineBreak(node: unknown): boolean {
-  if (typeof node === 'string') return /[\r\n]/.test(node)
+  if (typeof node === 'string') return LINE_BREAKS.some(c => node.includes(c))
   if (Array.isArray(node)) return node.some(hasLineBreak)
   return isMap(node) && Object.entries(node).some(([key, value]) => hasLineBreak(key) || hasLineBreak(value))
 }

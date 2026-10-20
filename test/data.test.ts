@@ -70,3 +70,9 @@ test('a field named like a prototype member is not noted', () => {
   assert.deepEqual(doc.lines.map(l => l.noted), [false, false])
   assert.deepEqual(doc.notes, [])
 })
+
+test('blank is what trim() removes: a name of only U+FEFF is no name, and a kind of only U+0085 is kept', () => {
+  const [entry] = dataShown(store([{ name: 'a', columns: ['x'], kind: String.fromCharCode(0x85) }, { name: String.fromCharCode(0xfeff), columns: ['x'] }]))
+  assert.equal(entry.kind, String.fromCharCode(0x85))
+  assert.equal(dataShown(store([{ name: String.fromCharCode(0xfeff), columns: ['x'] }])).length, 0)
+})

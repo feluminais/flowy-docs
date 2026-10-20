@@ -97,7 +97,9 @@ test('data of any wrong shape reports problems and never throws', () => {
   for (const data of junk) assert.doesNotThrow(() => problems(data), JSON.stringify(data))
 })
 
-test('a line separator character in a cell is not a line break', () => {
-  const separator = `x${String.fromCharCode(0x2028)}y`
-  assert.deepEqual(problems([{ name: 'a', columns: ['x'], rows: [[separator]] }]), [])
+test('the separator characters YAML 1.1 readers take for line breaks are line breaks here too', () => {
+  for (const code of [0x85, 0x2028, 0x2029]) {
+    const cell = `x${String.fromCharCode(code)}y`
+    assert.ok(problems([{ name: 'a', columns: ['x'], rows: [[cell]] }]).includes(`db: data "a": text can't hold a line break`), code.toString(16))
+  }
 })

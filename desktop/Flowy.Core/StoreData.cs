@@ -20,7 +20,14 @@ public static class StoreData
     /// <summary>How much the section shows, so it stays a picture of the few tables that matter and never a dump.</summary>
     public const int MaxColumns = 12, MaxRows = 8, MaxDepth = 3, MaxFields = 20;
 
-    private static string? Text(object? v) => v is string s && !string.IsNullOrWhiteSpace(s) ? s : null;
+    /// <summary>What JavaScript's <c>trim()</c> removes, which is not what .NET calls white space: U+FEFF is in, U+0085 is out. The TypeScript side is the oracle.</summary>
+    private static bool IsJsSpace(char c) =>
+        c is '\t' or '\n' or '\v' or '\f' or '\r' or ' ' or (char)0xa0 or (char)0x1680 or (>= (char)0x2000 and <= (char)0x200a)
+            or (char)0x2028 or (char)0x2029 or (char)0x202f or (char)0x205f or (char)0x3000 or (char)0xfeff;
+
+    private static bool JsBlank(string s) => s.All(IsJsSpace);
+
+    private static string? Text(object? v) => v is string s && !JsBlank(s) ? s : null;
 
     private static bool Present(object? v) => v is not (null or "");
 
@@ -30,7 +37,7 @@ public static class StoreData
 
     private static DataColumn? ColumnOf(object? raw)
     {
-        if (raw is string s) return string.IsNullOrWhiteSpace(s) ? null : new DataColumn(s, null, null, null);
+        if (raw is string s) return JsBlank(s) ? null : new DataColumn(s, null, null, null);
         if (raw is not OrderedDictionary<string, object?> map || Text(Get(map, "name")) is not { } name) return null;
         return new DataColumn(name, Get(map, "key") is "primary" ? "primary" : null, Text(Get(map, "to")), Text(Get(map, "note")));
     }
@@ -120,7 +127,7 @@ public static class StoreData
 
     // ---- editing --------------------------------------------------------------------------------------------------
 
-    private static bool Blank(object? v) => v is string s && string.IsNullOrWhiteSpace(s);
+    private static bool Blank(object? v) => v is string s && JsBlank(s);
 
     private static OrderedDictionary<string, object?> Rest(OrderedDictionary<string, object?> map, params string[] taken)
     {
@@ -215,8 +222,8 @@ public static class StoreData
     public static string Serialize(object? data) =>
         data is null or "" or List<object?> { Count: 0 } ? "" : YamlWriter.Write(data is List<object?> entries ? entries.Select(CompactEntry).ToList() : data);
 
-    /// <summary>The edit box's text as data, read as the files are. Blank text is an empty list. Throws a <see cref="ParseError"/> (file "data") for text that is not YAML. The twin of <c>parseData</c>.</summary>
-    public static object? ParseText(string text) => string.IsNullOrWhiteSpace(text) ? new List<object?>() : YamlText.Parse("data", text);
+    /// <summary>The edit box's text as data, read as the files are. Blank text is an empty list. Throws a <see cref="ParseError"/> (file "data") for text that is not YAML. Text with nothing in it but comments reads as `~`, which is not a list, so it is refused like any other data that is not one (the TypeScript side reads it as null and is refused the same way). The twin of <c>parseData</c>.</summary>
+    public static object? ParseText(string text) => JsBlank(text) ? new List<object?>() : YamlText.Parse("data", text) ?? "~";
 
     // ---- the checks ----------------------------------------------------------------------------------------------
 
@@ -266,10 +273,10 @@ public static class StoreData
         if (rows.Count > MaxRows) output.Add($"{label}: {rows.Count} rows, at most {MaxRows}");
     }
 
-    /// <summary>Whether any text in a value, the keys of a mapping included, holds a line break.</summary>
+    /// <summary>Whether any text in a value, the keys of a mapping included, holds a line break (or one of the separators that read as one).</summary>
     private static bool HasLineBreak(object? node) => node switch
     {
-        string s => s.IndexOfAny(['\r', '\n']) >= 0,
+        string s => s.IndexOfAny(['\r', '\n', (char)0x85, (char)0x2028, (char)0x2029]) >= 0, // the separators too: YAML 1.1 readers take them for line breaks
         List<object?> list => list.Any(HasLineBreak),
         OrderedDictionary<string, object?> map => map.Any(kv => HasLineBreak(kv.Key) || HasLineBreak(kv.Value)),
         _ => false,

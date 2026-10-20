@@ -68,6 +68,42 @@ public class StoreDataTests
     public void Problems_refuses_data_on_anything_but_a_store() =>
         Assert.Equal(["only a store can have data"], StoreData.Problems(Store("""[{ "name": "a", "columns": ["x"] }]""", "system")));
 
+    /// <summary>An object whose one entry holds <paramref name="cell"/> in a row, a note and a kind, built as a tree so the text is exactly what is given.</summary>
+    private static FlowyObject WithText(string text, string field = "rows")
+    {
+        var entry = new OrderedDictionary<string, object?> { ["name"] = "a", ["columns"] = new List<object?> { "x" } };
+        if (field == "rows") entry["rows"] = new List<object?> { new List<object?> { text } };
+        else entry[field] = text;
+        return new FlowyObject("store", "S", null, null, null, null, null) { Data = new List<object?> { entry } };
+    }
+
+    [Theory]
+    [InlineData(0x85)]
+    [InlineData(0x2028)]
+    [InlineData(0x2029)]
+    public void The_separator_characters_YAML_1_1_readers_take_for_line_breaks_are_line_breaks_here_too(int code) =>
+        Assert.Contains("data \"a\": text can't hold a line break", StoreData.Problems(WithText($"x{(char)code}y")));
+
+    [Fact]
+    public void Blank_text_is_what_JavaScript_trims_not_what_dotnet_calls_white_space()
+    {
+        // U+FEFF is blank to JavaScript and not to .NET; U+0085 is the other way round. The TypeScript side says: no name, and a kept kind.
+        var named = new OrderedDictionary<string, object?> { ["name"] = ((char)0xFEFF).ToString(), ["columns"] = new List<object?> { "x" }, ["kind"] = ((char)0x85).ToString() };
+        var o = new FlowyObject("store", "S", null, null, null, null, null) { Data = new List<object?> { named } };
+        Assert.Contains("data entry 1 has no name", StoreData.Problems(o));
+        Assert.Empty(StoreData.Shown(o));
+        named["name"] = "a";
+        Assert.Equal(((char)0x85).ToString(), StoreData.Shown(o)[0].Kind);
+    }
+
+    [Fact]
+    public void ParseText_of_text_with_only_comments_is_refused_like_any_data_that_is_not_a_list()
+    {
+        var parsed = StoreData.ParseText("# nothing here");
+        Assert.NotNull(parsed);
+        Assert.Contains("data must be a list of entries", StoreData.Problems(new FlowyObject("store", "S", null, null, null, null, null) { Data = parsed }));
+    }
+
     [Fact]
     public void Blank_data_is_no_data() => Assert.Empty(StoreData.Problems(Store("\"\"")));
 

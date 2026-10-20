@@ -22,7 +22,7 @@ const shownOf = (o: Model['objects'][string]) => {
   return shown.length === 0 ? undefined : shown
 }
 
-export const expectedPath =(name: string) => join(root, 'desktop/fixtures/expected', `${name}.json`)
+export const expectedPath = (name: string) => join(root, 'desktop/fixtures/expected', `${name}.json`)
 
 /**
  * What the native reader (desktop/Flowy.Core) must also say about a model folder: the boxes and lines as parsed, every

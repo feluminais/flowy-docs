@@ -35,7 +35,7 @@ function Grid({ entry }: { entry: DataShown }) {
 /** A document: one sample, a field to a line, nesting shown by indent. */
 function Doc({ entry }: { entry: DataShown }) {
   return (
-    <div className="data-doc">
+    <div className="data-doc" tabIndex={0} role="region" aria-label={`${entry.name} sample`}>
       {entry.lines.map((line, i) => (
         <div key={i} className="data-line" style={{ paddingLeft: (line.depth - 1) * 14 }}>
           <span className="data-key">{line.key}</span>
@@ -73,7 +73,7 @@ export function DataSection({ object }: { object: FlowyObject }) {
   const entries = object.type === 'store' ? dataShown(object) : []
   if (entries.length === 0) return null
   return (
-    <section className="data" aria-label="Data">
+    <section className="data">
       <Section icon={Table} title="Data" count={entries.length} />
       {entries.map((entry, i) => <Entry key={`${i}:${entry.name}`} entry={entry} open={i === 0} />)}
     </section>
