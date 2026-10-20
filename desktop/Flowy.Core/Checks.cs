@@ -113,6 +113,7 @@ public static class Checks
                         }
                     }
             }
+            foreach (var message in StoreData.Problems(o)) P(message);
             if (Missing(o.Type))
             {
                 P("type is missing");

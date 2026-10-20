@@ -5156,6 +5156,872 @@
       "text": "name: Every shape a group can take\nview: shop\ngroups:\n  first:\n    kind: parallel\n  fan:\n    kind: parallel\n  maybe:\n    kind: branch\n  poll:\n    kind: repeat\n    until: the job is done\n  again:\n    kind: repeat\n    times: 2\n  last:\n    kind: branch\nsteps:\n  - from: api\n    to: billing\n    text: Starts together with Dispatch\n    group: first\n    lane: Billing\n  - from: api\n    to: dispatch\n    text: Starts together with Billing\n    group: first\n    lane: Dispatch\n  - from: api\n    to: billing\n    text: Asks Billing for a total\n  - from: api\n    to: billing\n    text: Lane A one\n    group: fan\n    lane: A\n  - from: billing\n    to: db\n    text: Lane A two\n    group: fan\n  - from: api\n    to: dispatch\n    text: Lane B only\n    group: fan\n    lane: B\n  - from: api\n    to: db\n    text: Lane C one\n    group: fan\n    lane: C\n  - from: db\n    to: api\n    text: Lane C two\n    group: fan\n  - from: api\n    to: db\n    text: Lane C three\n    group: fan\n  - from: api\n    to: dispatch\n    text: Books a courier\n    group: maybe\n    lane: A courier is wanted\n  - from: api\n    to: db\n    text: Checks the job\n    group: poll\n  - from: api\n    to: db\n    text: Saves\n    group: again\n  - from: api\n    to: db\n    text: Saves once more\n    group: again\n  - from: api\n    to: billing\n    text: Ends the flow\n    group: last\n    lane: Last\n"
     },
     {
+      "folder": "M:\\Projects\\Flowy Docs\\desktop\\fixtures\\cases\\data\\flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {
+          "shop": {
+            "type": "system",
+            "name": "Shop"
+          },
+          "orders-db": {
+            "type": "store",
+            "in": "shop",
+            "name": "Orders DB",
+            "tech": "Postgres",
+            "description": "Orders, baskets and refunds.",
+            "data": [
+              {
+                "name": "orders",
+                "kind": "table",
+                "limits": "Kept 7 years, then archived",
+                "note": "One row per order. A refund adds a row to refunds; the order stays.",
+                "columns": [
+                  {
+                    "name": "id",
+                    "key": "primary"
+                  },
+                  {
+                    "name": "customer_id",
+                    "to": "customers"
+                  },
+                  "status",
+                  {
+                    "name": "total",
+                    "note": "Cents, not decimals. Rounding broke the first tax run."
+                  },
+                  "placed_at",
+                  "delivery_notes"
+                ],
+                "rows": [
+                  [
+                    "o_1042",
+                    "c_77",
+                    "placed",
+                    "2490",
+                    "2026-10-19 18:02",
+                    "Ring twice, the bell is broken and the courier should leave it with the neighbour in flat 4 if nobody answers"
+                  ],
+                  [
+                    "o_1043",
+                    "c_12",
+                    "accepted",
+                    "1380",
+                    "2026-10-19 18:05",
+                    ""
+                  ],
+                  [
+                    "o_1044",
+                    "c_77",
+                    "refunded",
+                    "990",
+                    "2026-10-19 18:09",
+                    "<b>no onions</b> {please}"
+                  ]
+                ]
+              },
+              {
+                "name": "order_items",
+                "columns": [
+                  {
+                    "name": "order_id",
+                    "key": "primary",
+                    "to": "orders"
+                  },
+                  {
+                    "name": "item_id",
+                    "key": "primary"
+                  },
+                  "quantity",
+                  {
+                    "name": "unit_price",
+                    "note": "Copied from the menu at order time. Menus change; receipts must not."
+                  }
+                ],
+                "rows": [
+                  [
+                    "o_1042",
+                    "i_31",
+                    "2",
+                    "1245"
+                  ]
+                ]
+              },
+              {
+                "name": "refunds",
+                "columns": [
+                  "id",
+                  "order_id",
+                  "amount",
+                  "reason"
+                ],
+                "limits": "Kept with its order"
+              },
+              {
+                "name": "baskets",
+                "kind": "",
+                "limits": "",
+                "columns": [
+                  "id",
+                  "customer_id",
+                  "items",
+                  "expires_at"
+                ]
+              },
+              {
+                "name": "audit",
+                "columns": [
+                  "at",
+                  "who",
+                  "what"
+                ]
+              }
+            ]
+          },
+          "menu-cache": {
+            "type": "store",
+            "in": "shop",
+            "name": "Menu cache",
+            "tech": "Redis",
+            "data": [
+              {
+                "name": "Keys",
+                "limits": "Oldest unused go first at 256 MB",
+                "note": "Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.",
+                "columns": [
+                  "Key",
+                  "Value",
+                  {
+                    "name": "Expires",
+                    "note": "Set on every write, never extended on a read."
+                  }
+                ],
+                "rows": [
+                  [
+                    "menu:{restaurantId}",
+                    "{ items, prices, hours }",
+                    "5 min"
+                  ],
+                  [
+                    "menu:42",
+                    "{ \"items\": 31 }",
+                    "3 min left"
+                  ]
+                ]
+              }
+            ]
+          },
+          "events": {
+            "type": "store",
+            "in": "shop",
+            "name": "Order events",
+            "shape": "queue",
+            "tech": "Kafka",
+            "data": [
+              {
+                "name": "order-events",
+                "kind": "topic",
+                "limits": "Kept 7 days, 6 partitions",
+                "note": "Keyed by order id so one order's messages stay in order.",
+                "columns": [
+                  "Key",
+                  "Value"
+                ],
+                "rows": [
+                  [
+                    "o_1042",
+                    "{ \"type\": \"placed\", \"total\": 2490 }"
+                  ],
+                  [
+                    "o_1042",
+                    "{ \"type\": \"accepted\" }"
+                  ]
+                ]
+              }
+            ]
+          },
+          "profiles": {
+            "type": "store",
+            "in": "shop",
+            "name": "Restaurant profiles",
+            "tech": "MongoDB",
+            "data": [
+              {
+                "name": "restaurants",
+                "kind": "collection",
+                "sample": {
+                  "_id": "r_42",
+                  "name": "Noodle Bar",
+                  "tags": [
+                    "ramen",
+                    "vegan"
+                  ],
+                  "hours": {
+                    "mon": "11-22",
+                    "tue": "11-22"
+                  },
+                  "rating": "4.6",
+                  "items": [
+                    {
+                      "name": "Pho"
+                    },
+                    {
+                      "name": "Ramen"
+                    }
+                  ],
+                  "menu": [
+                    "plain",
+                    "second"
+                  ]
+                },
+                "notes": {
+                  "hours": "Hours live inside the profile. They are only ever read with it.",
+                  "hours.tue": "Closed on public holidays."
+                }
+              }
+            ]
+          },
+          "hostile": {
+            "type": "store",
+            "in": "shop",
+            "name": "Hostile cells",
+            "tech": "Postgres",
+            "data": [
+              {
+                "name": "cells",
+                "columns": [
+                  "c0",
+                  "c1",
+                  "c2",
+                  "c3",
+                  "c4",
+                  "c5",
+                  "c6",
+                  "c7",
+                  "c8",
+                  "c9",
+                  "c10",
+                  "c11"
+                ],
+                "rows": [
+                  [
+                    "a: b",
+                    "# not a comment",
+                    "\"quoted\"",
+                    "it's",
+                    "- dash",
+                    "[x]",
+                    "{x}",
+                    " leading",
+                    "trailing ",
+                    "",
+                    "a, b",
+                    "é ü ✓ 日本"
+                  ],
+                  [
+                    "null",
+                    "~",
+                    "007",
+                    "3.10",
+                    "true",
+                    "yes",
+                    "- ",
+                    "? x",
+                    "% x",
+                    "@x",
+                    "`x",
+                    "a  b"
+                  ],
+                  [
+                    "http://example.com/a?b=c#d",
+                    "C:\\path\\file",
+                    "a | b",
+                    "a > b",
+                    "a & b",
+                    "a * b",
+                    "a ! b",
+                    "--- x",
+                    "... x",
+                    "x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z",
+                    "&x",
+                    "*x"
+                  ]
+                ]
+              },
+              {
+                "name": "notes",
+                "columns": [
+                  {
+                    "name": "a",
+                    "note": "a: b # c"
+                  },
+                  {
+                    "name": "b",
+                    "note": "- x, [y] {z}"
+                  },
+                  {
+                    "name": "c",
+                    "note": " lead"
+                  },
+                  {
+                    "name": "d",
+                    "note": ""
+                  }
+                ]
+              },
+              {
+                "name": "doc",
+                "sample": {
+                  "list": [
+                    "a: b",
+                    "# c",
+                    "x, y",
+                    "",
+                    "[z]"
+                  ],
+                  "text": "a: b # c",
+                  "quote": "say \"hi\""
+                },
+                "notes": {
+                  "list": "x: y, [z]"
+                }
+              }
+            ]
+          },
+          "proto": {
+            "type": "store",
+            "in": "shop",
+            "name": "Prototype names",
+            "tech": "MongoDB",
+            "data": [
+              {
+                "name": "names",
+                "sample": {
+                  "constructor": "1",
+                  "toString": "2"
+                },
+                "notes": {
+                  "constructor": "A field named like a prototype member."
+                }
+              },
+              {
+                "name": "loose",
+                "sample": {
+                  "x": "1"
+                },
+                "notes": {
+                  "toString": "Names no field."
+                }
+              }
+            ]
+          },
+          "bad-entries": {
+            "type": "store",
+            "in": "shop",
+            "name": "Bad entries",
+            "data": [
+              "text",
+              {
+                "columns": [
+                  "a"
+                ]
+              },
+              {
+                "name": " ",
+                "columns": [
+                  "a"
+                ]
+              },
+              {
+                "name": "dup",
+                "columns": [
+                  "x"
+                ]
+              },
+              {
+                "name": "dup",
+                "columns": [
+                  "x"
+                ]
+              },
+              {
+                "name": "needs-body"
+              },
+              {
+                "name": "both",
+                "columns": [
+                  "x"
+                ],
+                "sample": {
+                  "x": "1"
+                }
+              },
+              {
+                "name": "rows-no-columns",
+                "sample": {
+                  "x": "1"
+                },
+                "rows": [
+                  [
+                    "1"
+                  ]
+                ]
+              },
+              {
+                "name": "notes-no-sample",
+                "columns": [
+                  "x"
+                ],
+                "notes": {
+                  "x": "n"
+                }
+              }
+            ]
+          },
+          "bad-columns": {
+            "type": "store",
+            "in": "shop",
+            "name": "Bad columns",
+            "data": [
+              {
+                "name": "not-a-list",
+                "columns": "x"
+              },
+              {
+                "name": "empty",
+                "columns": []
+              },
+              {
+                "name": "shapes",
+                "columns": [
+                  [
+                    "a"
+                  ],
+                  {
+                    "key": "primary"
+                  },
+                  {
+                    "name": "dup"
+                  },
+                  {
+                    "name": "dup"
+                  },
+                  {
+                    "name": "k",
+                    "key": "foreign"
+                  },
+                  {
+                    "name": "n",
+                    "note": [
+                      "x"
+                    ]
+                  },
+                  {
+                    "name": "t",
+                    "to": [
+                      "y"
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "plain-text",
+                "kind": [
+                  "x"
+                ],
+                "limits": [
+                  "y"
+                ],
+                "note": [
+                  "z"
+                ],
+                "columns": [
+                  "a"
+                ]
+              },
+              {
+                "name": "too-many",
+                "columns": [
+                  "c0",
+                  "c1",
+                  "c2",
+                  "c3",
+                  "c4",
+                  "c5",
+                  "c6",
+                  "c7",
+                  "c8",
+                  "c9",
+                  "c10",
+                  "c11",
+                  "c12"
+                ]
+              },
+              {
+                "name": "exactly-twelve",
+                "columns": [
+                  "c0",
+                  "c1",
+                  "c2",
+                  "c3",
+                  "c4",
+                  "c5",
+                  "c6",
+                  "c7",
+                  "c8",
+                  "c9",
+                  "c10",
+                  "c11"
+                ]
+              }
+            ]
+          },
+          "bad-rows": {
+            "type": "store",
+            "in": "shop",
+            "name": "Bad rows",
+            "data": [
+              {
+                "name": "not-a-list",
+                "columns": [
+                  "a",
+                  "b"
+                ],
+                "rows": "x"
+              },
+              {
+                "name": "shapes",
+                "columns": [
+                  "a",
+                  "b"
+                ],
+                "rows": [
+                  "x",
+                  [
+                    "a",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "a"
+                  ],
+                  [
+                    "a",
+                    "b",
+                    "c"
+                  ]
+                ]
+              },
+              {
+                "name": "one-column",
+                "columns": [
+                  "a"
+                ],
+                "rows": [
+                  [
+                    "a",
+                    "b"
+                  ]
+                ]
+              },
+              {
+                "name": "too-many",
+                "columns": [
+                  "a"
+                ],
+                "rows": [
+                  [
+                    "1"
+                  ],
+                  [
+                    "2"
+                  ],
+                  [
+                    "3"
+                  ],
+                  [
+                    "4"
+                  ],
+                  [
+                    "5"
+                  ],
+                  [
+                    "6"
+                  ],
+                  [
+                    "7"
+                  ],
+                  [
+                    "8"
+                  ],
+                  [
+                    "9"
+                  ]
+                ]
+              },
+              {
+                "name": "exactly-eight",
+                "columns": [
+                  "a"
+                ],
+                "rows": [
+                  [
+                    "1"
+                  ],
+                  [
+                    "2"
+                  ],
+                  [
+                    "3"
+                  ],
+                  [
+                    "4"
+                  ],
+                  [
+                    "5"
+                  ],
+                  [
+                    "6"
+                  ],
+                  [
+                    "7"
+                  ],
+                  [
+                    "8"
+                  ]
+                ]
+              }
+            ]
+          },
+          "bad-samples": {
+            "type": "store",
+            "in": "shop",
+            "name": "Bad samples",
+            "data": [
+              {
+                "name": "a-list",
+                "sample": [
+                  "x"
+                ]
+              },
+              {
+                "name": "empty",
+                "sample": {}
+              },
+              {
+                "name": "too-deep",
+                "sample": {
+                  "a": {
+                    "b": {
+                      "c": {
+                        "d": "1"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "name": "deep-enough",
+                "sample": {
+                  "a": {
+                    "b": {
+                      "c": "1"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "too-many",
+                "sample": {
+                  "f0": "1",
+                  "f1": "1",
+                  "f2": "1",
+                  "f3": "1",
+                  "f4": "1",
+                  "f5": "1",
+                  "f6": "1",
+                  "f7": "1",
+                  "f8": "1",
+                  "f9": "1",
+                  "f10": "1",
+                  "f11": "1",
+                  "f12": "1",
+                  "f13": "1",
+                  "f14": "1",
+                  "f15": "1",
+                  "f16": "1",
+                  "f17": "1",
+                  "f18": "1",
+                  "f19": "1",
+                  "f20": "1"
+                }
+              },
+              {
+                "name": "exactly-twenty",
+                "sample": {
+                  "f0": "1",
+                  "f1": "1",
+                  "f2": "1",
+                  "f3": "1",
+                  "f4": "1",
+                  "f5": "1",
+                  "f6": "1",
+                  "f7": "1",
+                  "f8": "1",
+                  "f9": "1",
+                  "f10": "1",
+                  "f11": "1",
+                  "f12": "1",
+                  "f13": "1",
+                  "f14": "1",
+                  "f15": "1",
+                  "f16": "1",
+                  "f17": "1",
+                  "f18": "1",
+                  "f19": "1"
+                }
+              },
+              {
+                "name": "notes-text",
+                "sample": {
+                  "x": "1"
+                },
+                "notes": "n"
+              },
+              {
+                "name": "note-list",
+                "sample": {
+                  "x": "1"
+                },
+                "notes": {
+                  "x": [
+                    "a"
+                  ]
+                }
+              },
+              {
+                "name": "note-nowhere",
+                "sample": {
+                  "hours": {
+                    "mon": "1"
+                  }
+                },
+                "notes": {
+                  "hours.fri": "n"
+                }
+              },
+              {
+                "name": "list-in-list",
+                "sample": {
+                  "grid": [
+                    [
+                      "a"
+                    ],
+                    [
+                      "b"
+                    ]
+                  ]
+                }
+              }
+            ]
+          },
+          "bad-breaks": {
+            "type": "store",
+            "in": "shop",
+            "name": "Bad breaks",
+            "data": [
+              {
+                "name": "cell",
+                "columns": [
+                  "x"
+                ],
+                "rows": [
+                  [
+                    "a\nb"
+                  ]
+                ]
+              },
+              {
+                "name": "note",
+                "columns": [
+                  "x"
+                ],
+                "note": "one\n"
+              },
+              {
+                "name": "carriage",
+                "sample": {
+                  "k\rk": "1"
+                }
+              },
+              {
+                "name": "separator",
+                "columns": [
+                  "x"
+                ],
+                "rows": [
+                  [
+                    "x y"
+                  ]
+                ]
+              }
+            ]
+          },
+          "junk-data": {
+            "type": "store",
+            "in": "shop",
+            "name": "Data that is a mapping",
+            "data": {
+              "a": "1"
+            }
+          },
+          "tilde-data": {
+            "type": "store",
+            "in": "shop",
+            "name": "Data that is a tilde",
+            "data": "~"
+          },
+          "blank-data": {
+            "type": "store",
+            "in": "shop",
+            "name": "Blank data",
+            "data": ""
+          },
+          "quoted-blank-data": {
+            "type": "store",
+            "in": "shop",
+            "name": "Quoted blank data",
+            "data": ""
+          },
+          "junk-entries": {
+            "type": "store",
+            "in": "shop",
+            "name": "Junk entries",
+            "data": [
+              [],
+              {},
+              "null"
+            ]
+          },
+          "on-a-system": {
+            "type": "system",
+            "name": "A system with data",
+            "data": [
+              {
+                "name": "orders",
+                "columns": [
+                  "id"
+                ]
+              }
+            ]
+          }
+        },
+        "connections": []
+      },
+      "text": "objects:\n  shop:\n    type: system\n    name: Shop\n  orders-db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds; the order stays.\n        columns:\n          - {name: id, key: primary}\n          - {name: customer_id, to: customers}\n          - status\n          - {name: total, note: \"Cents, not decimals. Rounding broke the first tax run.\"}\n          - placed_at\n          - delivery_notes\n        rows:\n          - [o_1042, c_77, placed, 2490, 2026-10-19 18:02, \"Ring twice, the bell is broken and the courier should leave it with the neighbour in flat 4 if nobody answers\"]\n          - [o_1043, c_12, accepted, 1380, 2026-10-19 18:05, \"\"]\n          - [o_1044, c_77, refunded, 990, 2026-10-19 18:09, \"<b>no onions</b> {please}\"]\n      - name: order_items\n        columns:\n          - {name: order_id, key: primary, to: orders}\n          - {name: item_id, key: primary}\n          - quantity\n          - {name: unit_price, note: Copied from the menu at order time. Menus change; receipts must not.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n      - name: refunds\n        columns: [id, order_id, amount, reason]\n        limits: Kept with its order\n      - name: baskets\n        kind:\n        limits:\n        columns: [id, customer_id, items, expires_at]\n      - name: audit\n        columns: [at, who, what]\n  menu-cache:\n    type: store\n    in: shop\n    name: Menu cache\n    tech: Redis\n    data:\n      - name: Keys\n        limits: Oldest unused go first at 256 MB\n        note: Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.\n        columns:\n          - Key\n          - Value\n          - {name: Expires, note: \"Set on every write, never extended on a read.\"}\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: shop\n    name: Order events\n    shape: queue\n    tech: Kafka\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id so one order's messages stay in order.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n  profiles:\n    type: store\n    in: shop\n    name: Restaurant profiles\n    tech: MongoDB\n    data:\n      - name: restaurants\n        kind: collection\n        sample:\n          _id: r_42\n          name: Noodle Bar\n          tags: [ramen, vegan]\n          hours:\n            mon: 11-22\n            tue: 11-22\n          rating: 4.6\n          items:\n            - name: Pho\n            - name: Ramen\n          menu: [plain, second]\n        notes:\n          hours: Hours live inside the profile. They are only ever read with it.\n          hours.tue: Closed on public holidays.\n  hostile:\n    type: store\n    in: shop\n    name: Hostile cells\n    tech: Postgres\n    data:\n      - name: cells\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]\n        rows:\n          - [\"a: b\", \"# not a comment\", '\"quoted\"', it's, \"- dash\", \"[x]\", \"{x}\", \" leading\", \"trailing \", \"\", \"a, b\", é ü ✓ 日本]\n          - [null, ~, 007, 3.10, true, yes, \"- \", \"? x\", \"% x\", \"@x\", \"`x\", a  b]\n          - [http://example.com/a?b=c#d, C:\\path\\file, a | b, a > b, a & b, a * b, a ! b, --- x, ... x, x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z, \"&x\", \"*x\"]\n      - name: notes\n        columns:\n          - {name: a, note: \"a: b # c\"}\n          - {name: b, note: \"- x, [y] {z}\"}\n          - {name: c, note: \" lead\"}\n          - {name: d, note: \"\"}\n      - name: doc\n        sample:\n          list: [\"a: b\", \"# c\", \"x, y\", \"\", \"[z]\"]\n          text: \"a: b # c\"\n          quote: say \"hi\"\n        notes:\n          list: \"x: y, [z]\"\n  proto:\n    type: store\n    in: shop\n    name: Prototype names\n    tech: MongoDB\n    data:\n      - name: names\n        sample:\n          constructor: 1\n          toString: 2\n        notes:\n          constructor: A field named like a prototype member.\n      - name: loose\n        sample:\n          x: 1\n        notes:\n          toString: Names no field.\n  bad-entries:\n    type: store\n    in: shop\n    name: Bad entries\n    data:\n      - text\n      - columns: [a]\n      - name: \" \"\n        columns: [a]\n      - name: dup\n        columns: [x]\n      - name: dup\n        columns: [x]\n      - name: needs-body\n      - name: both\n        columns: [x]\n        sample:\n          x: 1\n      - name: rows-no-columns\n        sample:\n          x: 1\n        rows:\n          - [1]\n      - name: notes-no-sample\n        columns: [x]\n        notes:\n          x: n\n  bad-columns:\n    type: store\n    in: shop\n    name: Bad columns\n    data:\n      - name: not-a-list\n        columns: x\n      - name: empty\n        columns: []\n      - name: shapes\n        columns:\n          - - a\n          - {key: primary}\n          - {name: dup}\n          - {name: dup}\n          - {name: k, key: foreign}\n          - {name: n, note: [x]}\n          - {name: t, to: [y]}\n      - name: plain-text\n        kind:\n          - x\n        limits:\n          - y\n        note:\n          - z\n        columns: [a]\n      - name: too-many\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12]\n      - name: exactly-twelve\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]\n  bad-rows:\n    type: store\n    in: shop\n    name: Bad rows\n    data:\n      - name: not-a-list\n        columns: [a, b]\n        rows: x\n      - name: shapes\n        columns: [a, b]\n        rows:\n          - x\n          - [a, [b]]\n          - [a]\n          - [a, b, c]\n      - name: one-column\n        columns: [a]\n        rows:\n          - [a, b]\n      - name: too-many\n        columns: [a]\n        rows:\n          - [1]\n          - [2]\n          - [3]\n          - [4]\n          - [5]\n          - [6]\n          - [7]\n          - [8]\n          - [9]\n      - name: exactly-eight\n        columns: [a]\n        rows:\n          - [1]\n          - [2]\n          - [3]\n          - [4]\n          - [5]\n          - [6]\n          - [7]\n          - [8]\n  bad-samples:\n    type: store\n    in: shop\n    name: Bad samples\n    data:\n      - name: a-list\n        sample: [x]\n      - name: empty\n        sample: {}\n      - name: too-deep\n        sample:\n          a:\n            b:\n              c:\n                d: 1\n      - name: deep-enough\n        sample:\n          a:\n            b:\n              c: 1\n      - name: too-many\n        sample:\n          f0: 1\n          f1: 1\n          f2: 1\n          f3: 1\n          f4: 1\n          f5: 1\n          f6: 1\n          f7: 1\n          f8: 1\n          f9: 1\n          f10: 1\n          f11: 1\n          f12: 1\n          f13: 1\n          f14: 1\n          f15: 1\n          f16: 1\n          f17: 1\n          f18: 1\n          f19: 1\n          f20: 1\n      - name: exactly-twenty\n        sample:\n          f0: 1\n          f1: 1\n          f2: 1\n          f3: 1\n          f4: 1\n          f5: 1\n          f6: 1\n          f7: 1\n          f8: 1\n          f9: 1\n          f10: 1\n          f11: 1\n          f12: 1\n          f13: 1\n          f14: 1\n          f15: 1\n          f16: 1\n          f17: 1\n          f18: 1\n          f19: 1\n      - name: notes-text\n        sample:\n          x: 1\n        notes: n\n      - name: note-list\n        sample:\n          x: 1\n        notes:\n          x:\n            - a\n      - name: note-nowhere\n        sample:\n          hours:\n            mon: 1\n        notes:\n          hours.fri: n\n      - name: list-in-list\n        sample:\n          grid:\n            - [a]\n            - [b]\n  bad-breaks:\n    type: store\n    in: shop\n    name: Bad breaks\n    data:\n      - name: cell\n        columns: [x]\n        rows:\n          - [\"a\\nb\"]\n      - name: note\n        columns: [x]\n        note: |\n          one\n      - name: carriage\n        sample:\n          \"k\\rk\": 1\n      - name: separator\n        columns: [x]\n        rows:\n          - [\"x y\"]\n  junk-data:\n    type: store\n    in: shop\n    name: Data that is a mapping\n    data:\n      a: 1\n  tilde-data:\n    type: store\n    in: shop\n    name: Data that is a tilde\n    data: ~\n  blank-data:\n    type: store\n    in: shop\n    name: Blank data\n    data:\n  quoted-blank-data:\n    type: store\n    in: shop\n    name: Quoted blank data\n    data:\n  junk-entries:\n    type: store\n    in: shop\n    name: Junk entries\n    data:\n      - []\n      - {}\n      - null\n  on-a-system:\n    type: system\n    name: A system with data\n    data:\n      - name: orders\n        columns: [id]\nconnections: []\n"
+    },
+    {
       "folder": "docs/demo/flowy",
       "rel": "model.yaml",
       "data": {
