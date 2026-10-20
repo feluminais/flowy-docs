@@ -48,7 +48,7 @@ Writing failure modes (put_failures, put_failure), when asked for a failure anal
 - One row per way a part fails. The mode is a condition stated as a fact ("Stripe doesn't answer within five seconds"). The effect is what a person or another part then sees. Name the part with on (a shape) or with from and to (a line that exists, in that direction).
 - Rate honestly, and leave a rating out rather than guess it: a mode without all three ratings is shown as Not rated. Severity, occurrence and detection are whole numbers from 1 to 10; for detection, 10 means nobody would notice. Severity 9 or 10 is always High.
 - Put what exists today in controls and what to do next in action. Name the flow that tells the failure in flow, and the shapes it hurts in affects. Never work out affects from the direction of the lines.
-- put_failure replaces the whole mode: read get_failures first and send every field you want kept.
+- put_failure replaces the whole mode: read it with get_model first, which holds every field of a mode (get_failures is only the table), and send every field you want kept.
 After writing: every write is checked, and a write that would add a problem is refused and nothing is saved. Read the answer, fix the cause (find the right path, name or end) and write again. Don't repeat the same call or drop the field to get past it. Finish by saying what you read from the code, what you inferred and what you left out.`
 
 /**
@@ -336,7 +336,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   }, input => write(m => deleteAnalysis(m, input.id), `Deleted failure analysis ${input.id}.`, mcpLabel('delete_failures', input)))
 
   server.registerTool('put_failure', {
-    description: 'Create or replace one failure mode of an analysis that exists (put_failures makes one). Replacing drops everything the old mode had, so send every field to keep. Answers with its risk and band.',
+    description: 'Create or replace one failure mode of an analysis that exists (put_failures makes one). Replacing drops everything the old mode had, so read it with get_model first (get_failures is only the table) and send every field to keep. Answers with its risk and band.',
     inputSchema: { analysis: id('Analysis id'), id: id('Mode id'), ...modeFields },
   }, input => write(
     m => putMode(m, input.analysis, input.id, input),
