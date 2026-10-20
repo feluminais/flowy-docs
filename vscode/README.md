@@ -31,10 +31,11 @@ is plain YAML that sits in git next to the code it describes.
 ## Getting a model
 
 A model is a `flowy/` folder at the root of your repo: `model.yaml` for the shapes and connections, and `flows/*.yaml` for
-walkthroughs. The quickest way to get one is to ask Claude. From the root of the repo:
+walkthroughs. The quickest way to get one is to ask Claude. From the root of the repo, with the Flowy Docs clone built once
+(the [README](https://github.com/feluminais/flowy-docs#let-claude-build-it) says how):
 
 ```bash
-claude mcp add flowy -- npx flowy-docs mcp
+claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
 Then ask it to "map this repo into Flowy". You can also write the files by hand. How, and what to put in them, is in the
@@ -56,7 +57,7 @@ and asks which to open when it finds several.
 ## Also in the Flowy Docs family
 
 The same folders open in a [native desktop app](https://github.com/feluminais/flowy-docs/releases) and in any browser
-with `npx flowy-docs`, which can also export a read-only copy for a static host. Source, issues and the full guide:
+(run from a clone of the repo), which can also export a read-only copy for a static host. Source, issues and the full guide:
 [github.com/feluminais/flowy-docs](https://github.com/feluminais/flowy-docs).
 
 ## License

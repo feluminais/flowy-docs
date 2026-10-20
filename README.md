@@ -39,6 +39,27 @@ want to read:
 node /path/to/flowy-docs/dist/cli.js
 ```
 
+**The VS Code extension** shows the same canvas in an editor tab, and reads and edits there too. It isn't on the Marketplace yet,
+so you install it from a file you build yourself. From a [clone of this repo](#the-browser-version) (Node 22.18 or later):
+
+```bash
+npm install
+npm install --prefix vscode
+npm run package:vscode
+```
+
+That writes `vscode/flowy-docs-<version>.vsix`. In VS Code, open the Extensions view, choose **… › Install from VSIX…** and pick the
+file, or run:
+
+```bash
+code --install-extension vscode/flowy-docs-<version>.vsix
+```
+
+Then open a repo that has a `flowy/` folder and run **Flowy: Open Docs** from the command palette (Ctrl+Shift+P). It needs VS Code
+1.95 or later and a folder on disk that you trust. To update, pull, build the file again and install it again (add `--force` to the
+command above if the version didn't change). More in [vscode/README.md](vscode/README.md), and how it is packaged in
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 Both read, and both edit. Press **E** to change a model by hand ([below](#edit-it)), or ask Claude
 ([below](#let-claude-build-it)). Whichever one has the folder open shows every save as it happens, so the app and a browser can
 be open on the same model at once.
