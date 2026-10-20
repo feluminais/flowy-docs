@@ -56,6 +56,7 @@ internal static class Icons
     public const string ArrowUp = "M12 5l0 14M18 11l-6 -6M6 11l6 -6";
     public const string ArrowDown = "M12 5l0 14M18 13l-6 6M6 13l6 6";
     public const string Check = "M5 12l5 5l10 -10";
+    public const string Copy = "M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667zM4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1";
     public const string Fit = "M4 9v-3a2 2 0 0 1 2 -2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1 -2 2h-3M9 20h-3a2 2 0 0 1 -2 -2v-3";
 
     // What runs through a step's pipe (Mail, Bolt, Bell), and the player's Pause and Reload.

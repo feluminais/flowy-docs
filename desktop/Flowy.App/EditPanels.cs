@@ -108,6 +108,7 @@ internal sealed class ObjectEditor : StackPanel
     private readonly FieldBox _links;
     private readonly FieldBox _code;
     private readonly FieldBox _data;
+    private readonly SnippetsEditor _snippets;
     private readonly StackPanel _dataSection = new() { Spacing = 12 };
     private readonly Chooser _type;
     private readonly ToggleButton _external = Chrome.OutsideSwitch();
@@ -142,6 +143,7 @@ internal sealed class ObjectEditor : StackPanel
         _links = new FieldBox("Links (one per line: title | address)", "", true, v => Put(new ObjectInput(id, Links: LinkText.Parse(v, _rawLinks))));
         _code = new FieldBox("Files and folders (one per line)", "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())));
         // The text is the store's data as the file holds it. Text that is not YAML is refused here with the reader's message, like any other refusal, and stays in the box.
+        _snippets = new SnippetsEditor(id, run);
         _data = new FieldBox("Data", "", true, v =>
         {
             try
@@ -192,6 +194,8 @@ internal sealed class ObjectEditor : StackPanel
         _dataSection.Children.Add(Chrome.Section(Icons.Table, "Data"));
         _dataSection.Children.Add(_data);
         Children.Add(_dataSection);
+        Children.Add(Chrome.Section(Icons.Code, "Code"));
+        Children.Add(_snippets);
         Children.Add(Chrome.Section(Icons.Link, "Links"));
         Children.Add(_links);
         Children.Add(Chrome.Section(Icons.Folder, "Source"));
@@ -249,6 +253,8 @@ internal sealed class ObjectEditor : StackPanel
 
     internal FieldBox DataField => _data;
 
+    internal SnippetsEditor SnippetsBox => _snippets;
+
     internal ToggleButton ExternalBox => _external;
 
     public void Update(Model model, IReadOnlyList<Problem> problems)
@@ -262,6 +268,7 @@ internal sealed class ObjectEditor : StackPanel
         _rawLinks = o.Links;
         _links.Sync(LinkText.Format(o));
         _data.Sync(StoreData.Serialize(o.Data));
+        _snippets.Sync(o);
         // A store has data; anything else only shows the box while it holds a data key, so a wrong one can be taken out.
         _dataSection.IsVisible = o.Type == "store" || o.Data is not null;
         // A type the nesting rules don't allow here stays in the list, so the form shows what the file says.
