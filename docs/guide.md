@@ -20,7 +20,7 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
 - Lines have no labels until you point at one. Click a shape and its lines show theirs while the
   others fade.
 - Lines (top bar) switches between straight, curved and right-angled lines for your own screen.
-  "Project default" goes back to the project's choice.
+  Pick the project's own style and your screen follows the project again.
 - Faded, dashed shapes live elsewhere in the model. They show up because something here connects to
   them, and they wait around the edges (people above, the rest beside, below or above, wherever
   fewer lines cross) while what's inside sits in the middle.
@@ -76,8 +76,8 @@ checks, and write the same text, so a change made in one looks the same in git a
 - Add (or N) puts a shape in the current view. It offers only the types that fit there: actors and
   systems at the top, apps and stores inside a system, components inside an app or store.
   Double-click an empty system, app or store to open it and add what goes inside.
-- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and code. A field saves when you leave
-  it. Code takes one path per line, relative to the folder that holds `flowy/`. A path that
+- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and source. A field saves when you leave
+  it. Source takes one file or folder per line, relative to the folder that holds `flowy/`. A path that
   doesn't exist shows up as a problem.
 - A store's **Data** box holds its data as the lines the file holds ([Data](#data)).
 - Links takes one per line, as `title | address`, or an address alone. An address is a web address
@@ -384,7 +384,8 @@ does, and **Go there** gets back to it.
 **What to remember.** This is a replay. Flowy never predicts a load nobody tested, so the slider stops at the highest one. How
 strained a shape looks is its `util`, or its failure rate counted twenty times (5% failing is as bad as full), whichever is
 worse. Nothing moves when the system asks for less motion; the colours, thickness, badges and numbers stay. An exported page
-carries the runs, so its Performance tab works too. The desktop app reads runs too, with the same panel and keys.
+carries the runs, so its Performance tab works too. The desktop app reads runs too, with the same panel and keys. In edit mode the
+tab is greyed out and **T** does nothing.
 
 **Making one.** Any tool that can write this file works. `perf-lab/` in the Flowy repo is a small shop that really runs, with a
 load generator that measures it and writes runs of this shape: `npm run lab:run` makes one, and

@@ -78,20 +78,11 @@ internal sealed partial class ReaderView
         UpdateEmpty();
     }
 
-    /// <summary>The line picker. Reading, it changes only this screen and has a "project default"; editing, it changes the project's own style.</summary>
+    /// <summary>The line picker. Reading, it changes only this screen; editing, it changes the project's own style. Its list never changes: a pick redraws from inside its own SelectionChanged, and clearing its items there throws.</summary>
     private void SyncLinePicker(Model model)
     {
-        string[] styles = ["Lines: straight", "Lines: curved", "Lines: right-angled"];
-        string[] items = Editing ? styles : [$"Lines: project default ({LineName(model.LineStyle)})", .. styles];
-        // A pick in reading mode redraws from inside the picker's own SelectionChanged, and clearing its items there throws (and leaves the list empty).
-        if (!_linePicker.Items.OfType<string>().SequenceEqual(items))
-        {
-            _linePicker.Items.Clear();
-            foreach (var item in items) _linePicker.Items.Add(item);
-        }
-        _linePicker.SelectedIndex = Editing
-            ? model.LineStyle switch { "curved" => 1, "angled" => 2, _ => 0 }
-            : _ownLines switch { "straight" => 1, "curved" => 2, "angled" => 3, _ => 0 };
+        var style = Editing ? model.LineStyle : _ownLines ?? model.LineStyle;
+        _linePicker.SelectedIndex = style switch { "curved" => 1, "angled" => 2, _ => 0 };
     }
 
     // ---- doing it ----------------------------------------------------------------------------------------------

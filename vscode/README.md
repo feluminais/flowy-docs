@@ -13,7 +13,7 @@ is plain YAML that sits in git next to the code it describes.
   time, with **Autoplay**.
 - **Edit it.** Press **E** in the panel to add shapes, rename them, drag them, connect them, write flows, and undo or redo.
   Every edit is written to the YAML files, checked the same way Claude's edits are.
-- **Jump to the code.** A path under **Code** opens in the editor beside the panel. A folder shows in the Explorer.
+- **Jump to the code.** A path under **Source** opens in the editor beside the panel. A folder shows in the Explorer.
 - **Jump from the code.** Right-click a file in the Explorer or the editor and choose **Show This File in the Docs**. The
   panel shows the shape whose `code` lists that file, or the folder it is in. If two shapes list it equally you pick one.
 - **Find things from the palette.** **Flowy: Open Flow…** plays a flow you pick. **Flowy: Go to Shape…** shows a shape you

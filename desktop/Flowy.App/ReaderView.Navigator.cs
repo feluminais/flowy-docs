@@ -180,7 +180,7 @@ internal sealed partial class ReaderView
         var showFlows = ShowFlows;
         _rail.Update(tab, totals.Flows, totals.Shapes, showFlows);
         _detailsRail.Update(DetailsOpen ? PanelTab.Details : PerfOpen ? PanelTab.Performance : null, 0, 0, false);
-        _detailsRail.UpdatePerformance(ShowPerf, _folder?.Runs?.Count ?? 0, PerfOpen);
+        _detailsRail.UpdatePerformance(ShowPerf, _folder?.Runs?.Count ?? 0, PerfOpen, Editing);
         if (tab is { } open) _nav.Show(open, showFlows);
         else _nav.Hide();
         ApplyWidths();

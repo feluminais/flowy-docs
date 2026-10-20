@@ -86,12 +86,15 @@ internal sealed class NavRail : Border
         SetCount(PanelTab.Explorer, "Explorer", shapes);
     }
 
-    /// <summary>The right rail's Performance button: there only when the folder has runs (the number on it is how many) and the reader is not editing.</summary>
-    public void UpdatePerformance(bool show, int runs, bool open)
+    /// <summary>The right rail's Performance button: there only when the folder has runs (the number on it is how many), and greyed out while the reader is editing.</summary>
+    public void UpdatePerformance(bool show, int runs, bool open, bool editing)
     {
         if (!_entries.TryGetValue(PanelTab.Performance, out var entry)) return;
         entry.Show(show);
         entry.Activate(open);
+        entry.Button.IsEnabled = !editing;
+        ToolTip.SetTip(entry.Button, editing ? "Performance (not while editing)" : "Performance (T)");
+        ToolTip.SetShowOnDisabled(entry.Button, true);
         SetCount(PanelTab.Performance, "Performance", runs);
     }
 
@@ -103,9 +106,9 @@ internal sealed class NavRail : Border
         AutomationProperties.SetName(entry.Button, $"{name}, {n}");
     }
 
-    /// <summary>What a test can look at: the label of each icon, and the count on it.</summary>
-    internal IEnumerable<(string Name, bool Visible, string? Count)> Shown =>
-        _entries.Select(kv => (AutomationProperties.GetName(kv.Value.Button) ?? "", kv.Value.Button.IsVisible, kv.Value.Badge.IsVisible ? kv.Value.Count.Text : null));
+    /// <summary>What a test can look at: the label of each icon, whether it can be clicked, and the count on it.</summary>
+    internal IEnumerable<(string Name, bool Visible, bool Enabled, string? Count)> Shown =>
+        _entries.Select(kv => (AutomationProperties.GetName(kv.Value.Button) ?? "", kv.Value.Button.IsVisible, kv.Value.Button.IsEnabled, kv.Value.Badge.IsVisible ? kv.Value.Count.Text : null));
 
     internal void Press(PanelTab tab) => Picked?.Invoke(tab);
 }

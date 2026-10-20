@@ -22,12 +22,15 @@ internal sealed partial class ReaderView
     private double _rampLast;
     private double _rampShown;
 
-    /// <summary>The tab is there whenever there is a run, or a run file to complain about, and never while editing.</summary>
-    private bool ShowPerf => !Editing && _folder is { } f && ((f.Runs?.Count ?? 0) > 0 || (f.RunProblems?.Count ?? 0) > 0);
+    /// <summary>The tab is there whenever there is a run, or a run file to complain about.</summary>
+    private bool ShowPerf => _folder is { } f && ((f.Runs?.Count ?? 0) > 0 || (f.RunProblems?.Count ?? 0) > 0);
+
+    /// <summary>While editing the tab is greyed out: the numbers would sit on a model that is changing.</summary>
+    private bool CanPerf => !Editing && ShowPerf;
 
     private LoadRun? LoadTest => _folder?.Runs is { } runs && PerfView.ActiveRun(runs, _runId) is { Length: > 0 } id ? runs[id] : null;
 
-    private bool PerfOpen => _perf && ShowPerf; // with only a broken run file there is no load to show, but the panel can say what is wrong
+    private bool PerfOpen => _perf && CanPerf; // with only a broken run file there is no load to show, but the panel can say what is wrong
 
     /// <summary>A panel on the right, whichever it is.</summary>
     private bool RightOpen => DetailsOpen || PerfOpen;
@@ -47,7 +50,7 @@ internal sealed partial class ReaderView
 
     private void OpenPerf()
     {
-        if (!ShowPerf || _folder?.Runs is not { } runs) return;
+        if (!CanPerf || _folder?.Runs is not { } runs) return;
         _runId = PerfView.ActiveRun(runs, _runId);
         if (LoadTest is { } run) _pos = _posNow = StartPos(run);
         _details = false; // so that closing it again doesn't leave Details open in its place

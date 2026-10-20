@@ -199,7 +199,7 @@ the same way, so git sees no difference between a change made in one and a chang
 - Drag from the dot under a shape onto another shape to connect them, then type a label.
 - **Add** offers only the types that fit where you are: actors and systems at the top, apps and stores inside a system, components
   inside an app or store.
-- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and code, and a store's data. A field saves when you leave it.
+- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and source, and a store's data. A field saves when you leave it.
 - **Tidy** forgets where shapes were dragged and lays the view out again with as few crossing lines as it finds.
 - **New flow** records a walkthrough: click the shape where a step starts and the shape it goes to, type what happens, press
   Enter, repeat.

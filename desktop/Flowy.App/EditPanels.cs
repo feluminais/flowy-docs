@@ -140,7 +140,7 @@ internal sealed class ObjectEditor : StackPanel
         _tech = new FieldBox("Tech", "", false, v => Put(new ObjectInput(id, Tech: v)));
         _description = new FieldBox("Description (Markdown)", "", true, v => Put(new ObjectInput(id, Description: v)));
         _links = new FieldBox("Links (one per line: title | address)", "", true, v => Put(new ObjectInput(id, Links: LinkText.Parse(v, _rawLinks))));
-        _code = new FieldBox("Code (one path per line)", "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())));
+        _code = new FieldBox("Files and folders (one per line)", "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())));
         // The text is the store's data as the file holds it. Text that is not YAML is refused here with the reader's message, like any other refusal, and stays in the box.
         _data = new FieldBox("Data", "", true, v =>
         {
@@ -194,7 +194,7 @@ internal sealed class ObjectEditor : StackPanel
         Children.Add(_dataSection);
         Children.Add(Chrome.Section(Icons.Link, "Links"));
         Children.Add(_links);
-        Children.Add(Chrome.Section(Icons.Code, "Code"));
+        Children.Add(Chrome.Section(Icons.Folder, "Source"));
         Children.Add(_code);
         Children.Add(_lines);
         Children.Add(owner.Muted($"id: {id}", 12));

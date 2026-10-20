@@ -331,16 +331,27 @@ public class ReaderTests
     {
         var (_, reader) = Open();
         var picker = reader.LinePicker;
-        Assert.Equal(4, picker.Items.Count);
+        Assert.Equal(3, picker.Items.Count);
 
-        foreach (var (index, style) in new[] { (2, "curved"), (3, "angled"), (1, "straight"), (0, "straight") })
+        foreach (var (index, style) in new[] { (1, "curved"), (2, "angled"), (0, "straight") })
         {
             picker.IsDropDownOpen = true;
             picker.SelectedIndex = index;
             picker.IsDropDownOpen = false;
-            Assert.Equal(4, picker.Items.Count);
+            Assert.Equal(3, picker.Items.Count);
             Assert.Equal(index, picker.SelectedIndex);
             Assert.Equal(style, reader.LineStyle);
         }
+    }
+
+    [AvaloniaFact]
+    public void Picking_the_projects_own_line_style_hands_the_screen_back_to_the_project()
+    {
+        var (_, reader) = Open(); // the project draws straight lines
+        var picks = new List<string?>();
+        reader.LinesPicked += picks.Add;
+        reader.LinePicker.SelectedIndex = 1;
+        reader.LinePicker.SelectedIndex = 0;
+        Assert.Equal(["curved", null], picks);
     }
 }
