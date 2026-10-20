@@ -1,8 +1,9 @@
 import { check, newProblems } from './check.ts'
+import { analysesText, usersOfConnection, usersOfObject } from './failures.ts'
 import { iconProblem } from './look.ts'
 import type { Shape } from './look.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
-import type { Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Model, ObjectType, Step } from './model.ts'
+import type { Analysis, Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Mode, Model, ObjectType, Step } from './model.ts'
 import { GROUP_KINDS, isGroupKind, TIMES_MAX, TIMES_MIN, timesOk } from './structure.ts'
 import { chain, memberIds } from './views.ts'
 
@@ -21,6 +22,15 @@ export type ConnectionInput = { from: string; to: string; label?: string }
 /** A group as put_flow gives it: `times` may be a number, which is written as text. */
 export type GroupInput = { kind?: string; text?: string; times?: string | number; until?: string; [extra: string]: unknown }
 export type FlowInput = { id: string; name: string; view: string; steps: Step[]; groups?: Record<string, GroupInput> }
+/** A failure mode as put_failure gives it: ratings and `step` are numbers, which are written as text. */
+export type ModeInput = {
+  mode: string; on?: string; from?: string; to?: string; effect?: string; cause?: string
+  severity?: number; occurrence?: number; detection?: number
+  controls?: string; action?: string; owner?: string; status?: string
+  after?: { severity?: number; occurrence?: number; detection?: number }
+  affects?: string[]; flow?: string; step?: number; run?: string; description?: string
+}
+export type AnalysisInput = { id: string; name: string; about?: string; scope?: string; scale?: Analysis['scale']; modes: Record<string, ModeInput> }
 
 const FIELDS = ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description', 'code', 'links'] as const
 const CLEARABLE = ['in', 'shape', 'color', 'opacity', 'icon', 'tech', 'description'] as const
@@ -80,6 +90,8 @@ export function deleteObject(model: Model, id: string): Model {
     .map(([fid]) => fid)
   if (flows.length)
     throw new OpError(`"${id}" is used by flow${flows.length > 1 ? 's' : ''} ${flows.join(', ')}. Change or delete those first.`)
+  const analyses = usersOfObject(model, id)
+  if (analyses.length) throw new OpError(`"${id}" is used by ${analysesText(analyses)}. Change or delete those first.`)
   const objects = { ...model.objects }
   delete objects[id]
   return { ...model, objects, connections: model.connections.filter(c => c.from !== id && c.to !== id) }
@@ -110,7 +122,16 @@ export function disconnect(model: Model, { from, to, label }: ConnectionInput): 
     throw new OpError(`no connection ${from} → ${to}${label === undefined ? '' : ` labelled "${label}"`}`
       + (existing.length ? ` (there is ${existing.join(', ')})` : ''))
   }
-  return { ...model, connections: model.connections.filter(c => !matches(c)) }
+  const connections = model.connections.filter(c => !matches(c))
+  keepLinesOfModes(model, connections, from, to)
+  return { ...model, connections }
+}
+
+/** Refuses a change that would leave a line mode with no connection from → to, as a flow's shapes can't be deleted from under it. */
+function keepLinesOfModes(model: Model, remaining: Connection[], from: string, to: string) {
+  if (remaining.some(c => c.from === from && c.to === to)) return
+  const analyses = usersOfConnection(model, from, to)
+  if (analyses.length) throw new OpError(`connection ${from} → ${to} is used by ${analysesText(analyses)}. Change or delete those first.`)
 }
 
 /** Where the first from → to connection labelled `label` ("" or none: unlabelled) is. */
@@ -122,7 +143,9 @@ function findConnection(model: Model, { from, to, label = '' }: ConnectionInput)
 
 /** Remove one connection: the first that matches. Unlike disconnect, exact duplicates go one at a time. */
 export function removeConnection(model: Model, which: ConnectionInput): Model {
-  return { ...model, connections: model.connections.toSpliced(findConnection(model, which), 1) }
+  const connections = model.connections.toSpliced(findConnection(model, which), 1)
+  keepLinesOfModes(model, connections, which.from, which.to)
+  return { ...model, connections }
 }
 
 /** Give one connection (the first that matches) a new label, in place. "" removes the label. */
@@ -352,6 +375,83 @@ export function deleteFlow(model: Model, id: string): Model {
   const flows = { ...model.flows }
   delete flows[id]
   return { ...model, flows }
+}
+
+/** Sets an own property, so an id like "__proto__" is data and never the prototype. */
+function put<T>(target: Record<string, T>, key: string, value: T) {
+  Object.defineProperty(target, key, { value, enumerable: true, writable: true, configurable: true })
+}
+
+/** A mode as it is written to a file: fields in a stable order, numbers as text, a blank string or an empty list left out. */
+function modeOf(input: ModeInput): Mode {
+  const out: Record<string, unknown> = {}
+  const text = (key: keyof ModeInput) => {
+    const v = input[key]
+    if (typeof v === 'string' && v.trim() !== '') out[key] = v
+  }
+  const number = (key: keyof ModeInput) => {
+    const v = input[key]
+    if (typeof v === 'number') out[key] = String(v)
+  }
+  for (const key of ['mode', 'on', 'from', 'to', 'effect', 'cause'] as const) text(key)
+  for (const key of ['severity', 'occurrence', 'detection'] as const) number(key)
+  for (const key of ['controls', 'action', 'owner', 'status'] as const) text(key)
+  const after = Object.fromEntries((['severity', 'occurrence', 'detection'] as const).flatMap(k => (typeof input.after?.[k] === 'number' ? [[k, String(input.after[k])]] : [])))
+  if (Object.keys(after).length > 0) out.after = after
+  if (input.affects?.length) out.affects = [...input.affects]
+  text('flow')
+  number('step')
+  text('run')
+  text('description')
+  return out as Mode
+}
+
+function existingAnalysis(model: Model, id: string): Analysis {
+  if (!Object.hasOwn(model.failures, id)) throw new OpError(`unknown analysis "${id}"`)
+  if (!isValidId(id)) throw new OpError(`failures/${id}.yaml has an invalid file name, so it can't be changed here. Rename or delete it by hand.`)
+  return model.failures[id]
+}
+
+/** Create or replace a failure analysis. Replacing drops everything the old one had, hand-written extra keys included. */
+export function putAnalysis(model: Model, { id, name, about, scope, scale, modes }: AnalysisInput): Model {
+  if (!isValidId(id)) throw new OpError(`"${id}" is not a valid analysis id: ${ID_RULE}`)
+  // Analysis ids are file names, and Windows and macOS don't tell Ordering.yaml from ordering.yaml.
+  const clash = Object.keys(model.failures).find(other => other !== id && other.toLowerCase() === id.toLowerCase())
+  if (clash) throw new OpError(`failures/${clash}.yaml already exists and differs only in case. Rename or delete that file by hand.`)
+  const written: Record<string, Mode> = {}
+  for (const [mid, input] of Object.entries(modes)) put(written, mid, modeOf(input))
+  const has = (v: string | undefined): v is string => typeof v === 'string' && v.trim() !== ''
+  const analysis: Analysis = {
+    name,
+    ...(has(about) ? { about } : {}),
+    ...(has(scope) ? { scope } : {}),
+    ...(scale && Object.keys(scale).length > 0 ? { scale } : {}),
+    modes: written,
+  }
+  return { ...model, failures: { ...model.failures, [id]: analysis } }
+}
+
+export function deleteAnalysis(model: Model, id: string): Model {
+  existingAnalysis(model, id)
+  const failures = { ...model.failures }
+  delete failures[id]
+  return { ...model, failures }
+}
+
+/** Create or replace one mode of an analysis, keeping its place. Replacing drops everything the old mode had. */
+export function putMode(model: Model, analysisId: string, id: string, input: ModeInput): Model {
+  const analysis = existingAnalysis(model, analysisId)
+  const modes = { ...analysis.modes }
+  put(modes, id, modeOf(input))
+  return { ...model, failures: { ...model.failures, [analysisId]: { ...analysis, modes } } }
+}
+
+export function deleteMode(model: Model, analysisId: string, id: string): Model {
+  const analysis = existingAnalysis(model, analysisId)
+  if (!Object.hasOwn(analysis.modes, id)) throw new OpError(`unknown failure mode "${id}" in "${analysisId}"`)
+  const modes = { ...analysis.modes }
+  delete modes[id]
+  return { ...model, failures: { ...model.failures, [analysisId]: { ...analysis, modes } } }
 }
 
 /** Save where boxes sit in one view (layout.yaml). Positions of objects and views that no longer exist are dropped. */
