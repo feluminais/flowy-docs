@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowy.Core;
@@ -92,6 +93,26 @@ public class DataPanelTests
         Dispatcher.UIThread.RunJobs();
         return (temp, reader);
     }
+
+    /// <summary>The same model in edit mode, with the form of one box open: the box's id, and where it sits (the shop, or the top level).</summary>
+    private static (TempFolder Temp, string Dir, Window Window, ReaderView Reader) OpenEditing(string id, bool inShop = true)
+    {
+        var temp = new TempFolder();
+        var dir = Path.Combine(temp.Path, "flowy");
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "model.yaml"), Model);
+        var reader = new ReaderView();
+        var window = new Window { Width = 1200, Height = 800, Content = reader };
+        window.Show();
+        reader.Load(FolderLoader.Load(dir), dir);
+        reader.SetEditing(true);
+        if (inShop) reader.GoTo("shop");
+        reader.OpenObject(id);
+        EditModeTests.Settle(window);
+        return (temp, dir, window, reader);
+    }
+
+    private static string FileText(string dir) => File.ReadAllText(Path.Combine(dir, "model.yaml"));
 
     /// <summary>The words on show in the panel: a control inside a closed entry is not on show.</summary>
     private static List<string> Shown(ReaderView reader) =>
@@ -197,5 +218,73 @@ public class DataPanelTests
         using var _ = temp;
         Assert.DoesNotContain("DATA", Shown(reader));
         Assert.Empty(Heads(reader));
+    }
+
+    [AvaloniaFact]
+    public async Task The_box_holds_the_lines_the_file_holds_and_a_change_is_saved_with_its_row_on_one_line()
+    {
+        var (temp, dir, _, reader) = OpenEditing("orders-db");
+        using var _ = temp;
+        var form = reader.Panel.CurrentObjectEditor!;
+        Assert.StartsWith("- name: orders\n  kind: table\n  limits: Kept 7 years, then archived\n", form.DataField.Text);
+        Assert.Contains("    - [o_1042, c_77, placed, 2490]\n", form.DataField.Text);
+        form.DataField.Text = form.DataField.Text.Replace("c_77, placed", "c_77, cancelled");
+        await form.DataField.Commit();
+        await EditModeTests.Until(() => FileText(dir).Contains("cancelled"));
+        Assert.Contains("          - [o_1042, c_77, cancelled, 2490]\n", FileText(dir));
+    }
+
+    [AvaloniaFact]
+    public async Task Broken_text_and_a_short_row_are_refused_with_the_reason_and_the_typed_text_stays()
+    {
+        var (temp, dir, _, reader) = OpenEditing("orders-db");
+        using var _ = temp;
+        var form = reader.Panel.CurrentObjectEditor!;
+        var before = FileText(dir);
+
+        form.DataField.Text = "- [a";
+        await form.DataField.Commit();
+        Assert.StartsWith("data", reader.NoticeText);
+        Assert.Equal("- [a", form.DataField.Text);
+        Assert.Equal(before, FileText(dir));
+
+        form.DataField.Text = "- name: x\n  columns: [a, b]\n  rows:\n    - [1]\n";
+        await form.DataField.Commit();
+        Assert.Contains("row 1 has 1 cell but there are 2 columns", reader.NoticeText);
+        Assert.StartsWith("- name: x", form.DataField.Text);
+        Assert.Equal(before, FileText(dir));
+    }
+
+    [AvaloniaFact]
+    public async Task Blank_text_removes_the_data_and_undo_brings_it_back()
+    {
+        var (temp, dir, window, reader) = OpenEditing("orders-db");
+        using var _ = temp;
+        var form = reader.Panel.CurrentObjectEditor!;
+        form.DataField.Text = "";
+        await form.DataField.Commit();
+        await EditModeTests.Until(() => reader.Folder!.Model.GetObject("orders-db")!.Data is null);
+        Assert.DoesNotContain("name: order_items", FileText(dir));
+
+        window.Focus();
+        EditModeTests.Press(window, Key.Z, PhysicalKey.Z, RawInputModifiers.Control);
+        await EditModeTests.Until(() => reader.Folder!.Model.GetObject("orders-db")!.Data is not null);
+        Assert.Contains("name: order_items", FileText(dir));
+    }
+
+    [AvaloniaFact]
+    public void A_store_has_the_data_box_and_a_system_has_none_unless_it_holds_data_that_must_go()
+    {
+        var (temp, _, _, store) = OpenEditing("orders-db");
+        using var _ = temp;
+        Assert.True(store.Panel.CurrentObjectEditor!.DataField.IsEffectivelyVisible);
+
+        var (temp2, _, _, plain) = OpenEditing("shop", inShop: false);
+        using var __ = temp2;
+        Assert.False(plain.Panel.CurrentObjectEditor!.DataField.IsEffectivelyVisible);
+
+        var (temp3, _, _, loose) = OpenEditing("loose", inShop: false);
+        using var ___ = temp3;
+        Assert.True(loose.Panel.CurrentObjectEditor!.DataField.IsEffectivelyVisible);
     }
 }
