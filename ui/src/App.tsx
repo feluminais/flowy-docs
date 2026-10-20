@@ -12,6 +12,8 @@ import { animationOf, followsLanding } from '../../src/core/animation.ts'
 import { captionOf, progressOf } from '../../src/core/captions.ts'
 import { otherLaneSteps, stopIndexOf, stopsOf } from '../../src/core/structure.ts'
 import { knee, traffic as trafficOf } from '../../src/core/perf.ts'
+import { homeView, inView, reach, rollUp, table } from '../../src/core/failures.ts'
+import type { Mark, Part } from '../../src/core/failures.ts'
 import { expandTo, outline } from '../../src/core/outline.ts'
 import type { OutlineRow } from '../../src/core/outline.ts'
 import { chain, hasChildren, isView, nameOf, parentOf, placeEnds, placeStep, stepEnds } from '../../src/core/views.ts'
@@ -24,7 +26,10 @@ import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, size
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
 import { readHash, toHash } from './hash.ts'
 import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
-import { Line, LineStyleContext, LineWidthsContext } from './Line.tsx'
+import { activeAnalysis, firstErrorAt, modeCount, modeIn, neighbour, rowsFor } from './failuresview.ts'
+import type { Filter } from './failuresview.ts'
+import { FailuresBody } from './Failures.tsx'
+import { Line, LineMarksContext, LineStyleContext, LineWidthsContext } from './Line.tsx'
 import { TrafficLayer } from './TrafficLayer.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { DWELL, GAP } from './motion.ts'
@@ -118,12 +123,17 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
 
 type Back = () => Promise<string | undefined>
 
-function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo, restore, historyApi, changes, live, readOnly, broken }: Loaded & {
+function Reader({ model, problems, codeBase, runs, runProblems, failureProblems, edit, undo, redo, restore, historyApi, changes, live, readOnly, broken }: Loaded & {
   edit: Edit; undo: Back; redo: Back; restore: Restore; historyApi?: HistoryClient; changes: number; live: boolean; readOnly: boolean; broken: boolean
 }) {
   const colorMode = useColorMode()
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
-  const [viewId, setViewId] = useState(() => readHash(location.hash).view)
+  const [viewId, setViewId] = useState(() => {
+    // An address that names a mode whose part is outside the view it names opens on the view that draws the part.
+    const named = readHash(location.hash)
+    const m = modeIn(model, named.failures?.analysis, named.failures?.mode)
+    return m !== undefined && !inView(model, named.view, m) ? homeView(model, m) : named.view
+  })
   const [side, setSide] = useState<Side>()
   // The left-hand panel's tab (the navigator: Flows or Explorer), and whether the right-hand Details panel was opened from its rail. Details shows
   // `side`, or the level you are in, so a `side` opens it too.
@@ -147,6 +157,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
     return named !== undefined && Object.hasOwn(runs, named) ? named : Object.keys(runs)[0] ?? ''
   })
   const [pos, setPos] = useState(() => startPos(runId, readHash(location.hash).perf?.level))
+  // The Failures panel takes Details' place too: which analysis, which mode is picked in it, and what the list is narrowed to.
+  const [failures, setFailures] = useState(() => readHash(location.hash).failures !== undefined)
+  const [analysisId, setAnalysisId] = useState(() => readHash(location.hash).failures?.analysis ?? '')
+  const [modeId, setModeId] = useState<string | undefined>(() => readHash(location.hash).failures?.mode)
+  const [filter, setFilter] = useState<Filter>({})
   const [ramping, setRamping] = useState(false)
   const posNow = useRef(pos) // the ramp reads where it is from here, so a render in between never makes it start over
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set([ROOT, ...remembered.expanded])) // the project's own row starts open
@@ -217,8 +232,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   if (!ramping) posNow.current = here // while it ramps, the ramp is ahead of what the screen shows
   const showPerf = !editing && (Object.keys(runs).length > 0 || runProblems.length > 0) // the tab is there whenever there is a run, or a run file to complain about
   const perfOpen = perf && showPerf && loadTest !== undefined
-  // A flow that was playing waits behind the Performance tab, so a step's motion and the traffic never draw at once.
-  const flow = editing || perfOpen ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
+  // The Failures tab is there whenever there is an analysis or a file of one to complain about, and always in edit mode, so the first analysis can be made.
+  const analysisKey = activeAnalysis(model.failures, analysisId)
+  const analysis = analysisKey === undefined ? undefined : model.failures[analysisKey]
+  const mode = modeIn(model, analysisKey, modeId)
+  const showFailures = Object.keys(model.failures).length > 0 || failureProblems.length > 0 || editing
+  const failuresOpen = failures && showFailures
+  // A flow that was playing waits behind the Performance and Failures tabs, so a step's motion, the traffic and the risk marks never draw at once.
+  const flow = editing || perfOpen || failuresOpen ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
   // The player moves through stops, not steps: a stop is what is on screen at once (see structure.ts). `playing.step` is a stop.
   const stops = useMemo(() => (flow ? stopsOf(flow) : []), [flow])
   const stopIndex = flow && playing ? Math.max(0, Math.min(playing.step, stops.length - 1)) : 0
@@ -233,8 +254,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const yamlGone = useSyncExternalStore(subscribeYaml, () => yamlStore?.get().unavailable === true)
   const showYaml = yamlStore !== undefined && !yamlGone
   const nav = openTab(tab, { flows: showFlows, yaml: showYaml })
-  const detailsOpen = (details || side !== undefined) && !perfOpen // the Performance panel is in its place while it is open
-  const rightOpen = detailsOpen || perfOpen // a panel on the right, whichever it is
+  const detailsOpen = (details || side !== undefined) && !perfOpen && !failuresOpen // the Performance and Failures panels are in its place while they are open
+  const rightOpen = detailsOpen || perfOpen || failuresOpen // a panel on the right, whichever it is
 
   // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
   // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
@@ -280,13 +301,29 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches // no ramp and no traffic: the colours, thickness, badges and numbers say it all
   const chosen = side?.kind === 'objects' ? side.ids : side?.kind === 'object' ? [side.id] : [] // the shapes picked for editing, one or several
   const picked = recording ? [recording.from, recording.to] : chosen
+  // What the Failures tab draws: the badges (rolled up to what this view draws), and for a picked mode its part, what it affects, and the rest faded.
+  const part: Part | undefined = side?.kind === 'object' ? { box: side.id } : side?.kind === 'line' ? { line: [side.from, side.to] } : undefined
+  const failMarks = useMemo(() => (failuresOpen && analysis ? rollUp(model, analysis, view) : undefined), [failuresOpen, model, analysis, view])
+  const lineMarks = useMemo(() => new Map<string, Mark>(Object.entries(failMarks?.lines ?? {})), [failMarks])
+  const lit = useMemo(() => (failuresOpen && mode ? reach(model, view, mode) : undefined), [failuresOpen, model, mode, view])
+  const partKey = part === undefined ? '' : JSON.stringify(part)
+  const rows = useMemo(
+    () => (failuresOpen && analysis ? rowsFor(model, analysis, view, { band: filter.band, part }) : { here: [], elsewhere: [] }),
+    [failuresOpen, model, analysis, view, filter.band, partKey], // `part` is `partKey` in words
+  )
+  const litClass = (id: string) => (lit === undefined ? undefined : lit.fails.includes(id) ? 'fails' : lit.affects.includes(id) ? 'affected' : 'dim')
   // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.
-  const nodes = graph.nodes.map(n => ({ ...n, data: loadTraffic ? { ...n.data, perf: loadTraffic.boxes[n.id] } : n.data, position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id) }))
+  const nodes = graph.nodes.map(n => ({
+    ...n,
+    data: loadTraffic || failMarks ? { ...n.data, ...(loadTraffic ? { perf: loadTraffic.boxes[n.id] } : {}), ...(failMarks && Object.hasOwn(failMarks.boxes, n.id) ? { fail: failMarks.boxes[n.id] } : {}) } : n.data,
+    className: [n.className, litClass(n.id)].filter(Boolean).join(' ') || undefined,
+    position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id),
+  }))
   // Inside a box, a frame named after it wraps its own boxes and follows them while they're dragged.
   const inner = view === ROOT ? [] : nodes.filter(n => graph.members.includes(n.id))
   // A click on its outline is a click on that shape: its Details open, as the rail's button opens them. While a flow is recorded or a load shows,
   // the panel has its own work, so the outline takes no click.
-  const openLevel = recording || perfOpen ? undefined : () => {
+  const openLevel = recording || perfOpen || failuresOpen ? undefined : () => {
     justMoved.current = false
     clearTimeout(opening.current)
     if (details && side === undefined) return closeDetails() // its Details are already showing: a second click closes them
@@ -300,8 +337,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const pipes = still ? '' : animated.map(m => lineId(m.placed[0], m.placed[1])).join('\n')
   const edges = useMemo(() => {
     const lifted = new Set(pipes === '' ? [] : pipes.split('\n'))
-    return focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }).map(e => (lifted.has(e.id) ? { ...e, data: { lift: true } } : e))
-  }, [graph, selectedBox, selectedLine, hovered, pipes])
+    const drawn = focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }).map(e => (lifted.has(e.id) ? { ...e, data: { lift: true } } : e))
+    // A picked failure mode outlines its line and fades every other.
+    return lit === undefined ? drawn : drawn.map(e => ({ ...e, className: [e.className, e.id === lit.failsLine ? 'fails' : 'dim'].filter(Boolean).join(' ') }))
+  }, [graph, selectedBox, selectedLine, hovered, pipes, lit])
   // The tree follows the canvas: going into a level opens it, and a selected shape is brought into view. It only ever opens rows.
   const reveal = (id: string, self: boolean) =>
     setExpanded(e => {
@@ -327,11 +366,24 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
     setDetails(false)
   }
   /** Shows what a click on the canvas, a problem or a button points at, in the Details panel on the right (or, while Performance is open, in its readings). */
-  const show = (s: Side | undefined) => setSide(s)
+  const show = (s: Side | undefined) => {
+    if (s?.kind === 'add' || s?.kind === 'flow') setFailures(false) // their panels are Details' own, which the Failures tab holds the place of
+    setSide(s)
+  }
   const toggleTab = (t: NavTab) => setTab(nav === t ? undefined : t)
   const openPerf = () => {
     setDetails(false) // so that closing it again doesn't leave Details open in its place
+    setFailures(false)
     setPerf(true)
+  }
+  const openFailures = () => {
+    setDetails(false)
+    setPerf(false)
+    setFailures(true)
+  }
+  const closeFailures = () => {
+    setFailures(false)
+    setSide(undefined) // what was picked to narrow its list is no reason for Details to open in its place
   }
   const closePerf = () => {
     setPerf(false)
@@ -350,17 +402,22 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
     setMoved(new Map())
   }
   // Fenced, so it pastes straight into a README or a PR, where GitHub draws it.
-  const copyMermaid = async () => {
-    const diagram = flow && playing ? flowToMermaid(model, playing.flow) : viewToMermaid(model, view)
-    const text = '```mermaid\n' + diagram + '```\n'
+  const copyText = async (text: string, notice: string) => {
     try {
       // In VS Code the editor writes it: a webview can't count on the clipboard API, which wants the page focused.
       if (vscode) vscode.postMessage(copyMessage(text))
       else await navigator.clipboard.writeText(text)
-      setNotice(`Copied ${flow ? 'this flow' : 'this view'} as Mermaid. Paste it into a README or a PR: GitHub draws it.`)
+      setNotice(notice)
     } catch {
       setNotice("Couldn't copy: the browser didn't allow it.")
     }
+  }
+  const copyMermaid = () => {
+    const diagram = flow && playing ? flowToMermaid(model, playing.flow) : viewToMermaid(model, view)
+    return copyText('```mermaid\n' + diagram + '```\n', `Copied ${flow ? 'this flow' : 'this view'} as Mermaid. Paste it into a README or a PR: GitHub draws it.`)
+  }
+  const copyFailures = (format: 'markdown' | 'csv') => {
+    if (analysis) void copyText(table(model, analysis, format), format === 'csv' ? 'Copied this analysis as CSV.' : 'Copied this analysis as a table.')
   }
   const go = (id: string) => {
     justMoved.current = false
@@ -408,6 +465,40 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
     if (f.view !== view) go(f.view)
     if (editing) show({ kind: 'flow', id, name: f.name })
     else setPlaying({ flow: id, step: 0 })
+  }
+  /** Pick a mode in the Failures list; when its part is outside this view, the canvas goes to the view that draws it. */
+  const selectMode = (id: string | undefined) => {
+    setModeId(id)
+    const m = modeIn(model, analysisKey, id)
+    if (m && !inView(model, view, m)) go(homeView(model, m))
+  }
+  /** A click on a shape in the list of those no mode names yet: go to it and pick it. */
+  const pickShape = (id: string) => {
+    if (parentOf(model, id) !== view) go(parentOf(model, id))
+    setSide({ kind: 'object', id })
+  }
+  /** Show it: play the flow that tells a failure, at the step it names (counted from 1), or open it to edit. */
+  const showFlow = (id: string, step?: number) => {
+    const f = Object.hasOwn(model.flows, id) ? model.flows[id] : undefined
+    if (!f || f.steps.length === 0 || !isView(model, f.view)) return setNotice("That flow can't play yet.")
+    closeFailures()
+    if (f.view !== view) go(f.view)
+    if (editing) show({ kind: 'flow', id, name: f.name })
+    else setPlaying({ flow: id, step: stopIndexOf(stopsOf(f), step === undefined ? 0 : Math.max(0, step - 1)) })
+  }
+  /** Seen in a run: open Performance on the first tested level where the mode's part has errors, on the view that draws it. */
+  const seenInRun = (id: string) => {
+    const m = modeIn(model, analysisKey, id)
+    const name = m?.run
+    if (m === undefined || name === undefined || !Object.hasOwn(runs, name)) return
+    const at = firstErrorAt(model, runs[name], m)
+    if (at === undefined) return
+    closeFailures()
+    go(homeView(model, m))
+    setRamping(false)
+    setRunId(name)
+    setPos(clampPos(runs[name], at))
+    openPerf()
   }
   // VS Code asks to show a shape (the one a file belongs to, or a pick from its list) or a flow.
   useReveal(target => {
@@ -553,6 +644,13 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const jump = (p: Problem) => {
     const spot = locate(model, p)
     go(spot.view)
+    if (spot.failure) {
+      setAnalysisId(spot.failure.analysis)
+      setModeId(spot.failure.mode)
+      setFilter({})
+      setSide(undefined)
+      return openFailures()
+    }
     if (spot.object) show({ kind: 'object', id: spot.object })
     else if (spot.line) show({ kind: 'line', from: spot.line[0], to: spot.line[1] })
     else if (spot.flow !== undefined && editing) show({ kind: 'flow', id: spot.flow, name: model.flows[spot.flow].name })
@@ -592,12 +690,16 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   // on every render. A step the reader takes pushes an entry. Anything else replaces the address: the page
   // opening (which also drops a part that named nothing), Back or a typed address, E, or a live reload that
   // falls back to another view.
-  const address = toHash(view, flow ? playing?.flow : undefined, perfOpen ? { run: runKey, level: Math.round(here) } : undefined)
+  const address = toHash(
+    view, flow ? playing?.flow : undefined, perfOpen ? { run: runKey, level: Math.round(here) } : undefined,
+    failuresOpen && analysisKey !== undefined ? { analysis: analysisKey, ...(mode ? { mode: modeId } : {}) } : undefined,
+  )
   useEffect(() => {
     if (quiet.current || address !== location.hash) {
       const was = readHash(location.hash)
       const alongRun = perfOpen && was.perf?.run === runKey && was.view === view // moving along a run is not a step to go back to
-      history[quiet.current || view !== viewId || alongRun ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
+      const alongFailures = failuresOpen && was.failures?.analysis === analysisKey // nor is picking another mode, even one that moves the canvas to its view
+      history[quiet.current || view !== viewId || alongRun || alongFailures ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
     }
     quiet.current = false
     saveState({ hash: address }) // a VS Code panel that is restored opens where the reader was
@@ -623,6 +725,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
         setPos(startPos(named.perf.run, named.perf.level))
         openPerf()
       } else setPerf(false)
+      if (named.failures !== undefined && Object.hasOwn(model.failures, named.failures.analysis)) {
+        const m = modeIn(model, named.failures.analysis, named.failures.mode)
+        setAnalysisId(named.failures.analysis)
+        setModeId(m ? named.failures.mode : undefined)
+        if (m) setSide(undefined) // a picked shape would narrow the list to what it carries, and the mode named here may not be in it
+        openFailures()
+        if (m && !inView(model, named.view, m)) go(homeView(model, m)) // the mode's part is outside the view the address names
+      } else setFailures(false)
     }
     window.addEventListener('popstate', follow)
     window.addEventListener('hashchange', follow)
@@ -668,6 +778,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
         else if (layer === 'step' && recording) setSide({ ...recording, from: undefined, to: undefined })
         else if (layer === 'panel') {
           if (perfOpen) closePerf()
+          else if (failuresOpen) closeFailures()
           else closeDetails()
         }
         else if (layer === 'up') up()
@@ -678,6 +789,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       else if (perfOpen && e.key === 'Home') stepLevel(0)
       else if (perfOpen && loadTest && e.key === 'End') stepLevel(top(loadTest))
       else if (perfOpen && key === 'p' && plain && !e.repeat) toggleRamp()
+      // In edit mode the arrow keys nudge a picked shape, so the list is stepped with them only outside it.
+      else if (failuresOpen && !editing && analysis && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+        selectMode(neighbour([...rows.here, ...rows.elsewhere].map(r => r.id), mode ? modeId : undefined, e.key === 'ArrowRight' ? 1 : -1))
+      }
       else if (flow && e.key === 'ArrowRight') stepTo(stopIndex + 1)
       else if (flow && e.key === 'ArrowLeft') stepTo(stopIndex - 1)
       else if (flow && e.key === 'Home') stepTo(0)
@@ -699,6 +814,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       else if (key === 'o' && plain && !e.repeat) toggleTab('explorer')
       else if (key === 'y' && plain && !e.repeat && showYaml) toggleTab('yaml')
       else if (key === 't' && plain && !e.repeat && showPerf) (perfOpen ? closePerf() : openPerf())
+      else if (key === 'm' && plain && !e.repeat && showFailures) (failuresOpen ? closeFailures() : openFailures())
       else if (key === 'e' && plain && !e.repeat && !readOnly) toggleEdit()
       else if (editing && key === 'n' && plain && !recording) show({ kind: 'add' })
       else if (editing && e.key === 'Delete') remove()
@@ -773,10 +889,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       </header>
       <div className="stage">
         <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} showYaml={showYaml} onPick={toggleTab} />
-        <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
+        <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           <LineStyleContext value={lines}>
             <LineWidthsContext value={widths}>
+            <LineMarksContext value={lineMarks}>
             <ReactFlow
               key={view} // a fresh canvas per view
               nodes={[...frame, ...nodes]}
@@ -853,6 +970,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
               ))}
               {flow && <GroupMarks marks={marks} />}
             </ReactFlow>
+            </LineMarksContext>
             </LineWidthsContext>
           </LineStyleContext>
           {nodes.length === 0 && (
@@ -869,7 +987,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
               show({ kind: 'object', id })
             }} />
           )}
-          {shortcuts && <Shortcuts editable={live && !readOnly} performance={showPerf} onClose={() => setShortcuts(false)} />}
+          {shortcuts && <Shortcuts editable={live && !readOnly} performance={showPerf} failures={showFailures} onClose={() => setShortcuts(false)} />}
           {notice && (
             <div className="notice" role="status">
               <span>{notice}</span>
@@ -906,6 +1024,20 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
                 onPos={stepLevel} onRamp={toggleRamp} />
             </aside>
           )}
+          {failuresOpen && (
+            <aside className="panel perfpanel failpanel">
+              <button className="close" aria-label="Close" onClick={closeFailures}><Close size={16} /></button>
+              <FailuresBody model={model} view={view} runs={runs} problems={problems} failureProblems={failureProblems} analysisId={analysisKey} modeId={mode ? modeId : undefined}
+                rows={rows} filter={filter} part={part}
+                onAnalysis={id => {
+                  setAnalysisId(id)
+                  setModeId(undefined)
+                  setFilter({})
+                }}
+                onMode={selectMode} onFilter={setFilter} onClearPart={() => setSide(undefined)} onPickShape={pickShape}
+                onShowFlow={showFlow} onSeenInRun={seenInRun} onCopy={copyFailures} />
+            </aside>
+          )}
           {nav === 'flows' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
               <FlowsTab model={model} view={view} editing={editing} current={recording?.id || (flow ? playing?.flow : undefined)} onOpen={f => openFlow(f.id)} />
@@ -930,8 +1062,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
               trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={() => setReplays(n => n + 1)} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
           )}
         </main>
-        <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else { setPerf(false); setDetails(true) } }}
-          perf={showPerf ? { open: perfOpen, runs: Object.keys(runs).length, onToggle: () => (perfOpen ? closePerf() : openPerf()) } : undefined} />
+        <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else { setPerf(false); setFailures(false); setDetails(true) } }}
+          perf={showPerf ? { open: perfOpen, runs: Object.keys(runs).length, onToggle: () => (perfOpen ? closePerf() : openPerf()) } : undefined}
+          failures={showFailures ? { open: failuresOpen, count: modeCount(model), onToggle: () => (failuresOpen ? closeFailures() : openFailures()) } : undefined} />
       </div>
     </>
   )

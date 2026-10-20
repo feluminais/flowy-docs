@@ -60,6 +60,7 @@ export const Copy = one('M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667
 // Our own, drawn for the rail: an i with no serifs, which stays sharp at 18 pixels
 export const Info = one('M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 7.5h.01M12 11.5v5')
 export const Activity = one('M3 12h4l3 8l4 -16l3 8h4')
+export const Bolt = one('M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11')
 // Our own: a folder with what is in it hanging below
 export const Explorer = one('M4 3h4l2 2h9a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-15a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2zM7 11v9.5h3M7 15.5h3M13 15.5h8M13 20.5h8')
 // Tabler's file-code: the file icon of icons.ts with a pair of angle brackets on it

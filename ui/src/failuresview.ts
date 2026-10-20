@@ -16,6 +16,13 @@ export type Filter = { band?: Band; left?: boolean }
 /** The analysis on show: the one asked for if it is there, else the first, else none. */
 export const activeAnalysis = (analyses: Record<string, Analysis>, id: string): string | undefined => (Object.hasOwn(analyses, id) ? id : Object.keys(analyses)[0])
 
+/** The mode an address or a click names, or none: an analysis or mode that is not there (or is spelt like something on the prototype) is nothing. */
+export function modeIn(model: Model, analysis: string | undefined, mode: string | undefined): Mode | undefined {
+  if (analysis === undefined || mode === undefined || !Object.hasOwn(model.failures, analysis)) return undefined
+  const modes = model.failures[analysis].modes
+  return Object.hasOwn(modes, mode) ? modes[mode] : undefined
+}
+
 /** How many modes the folder holds, all analyses together: the count on the rail. */
 export const modeCount = (model: Model): number => Object.values(model.failures).reduce((n, a) => n + Object.keys(a.modes).length, 0)
 

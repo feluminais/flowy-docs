@@ -7,7 +7,7 @@ import { flowGroups, outline, outlineKey } from '../../src/core/outline.ts'
 import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
-import { Activity, ChevronRight, Close, FileCode, Home, Info, Pencil, Play, Route, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
+import { Activity, Bolt, ChevronRight, Close, FileCode, Home, Info, Pencil, Play, Route, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
 import { MAX_WIDTH, MIN_WIDTH } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { scrollToRow, visibleRows } from './window.ts'
@@ -47,11 +47,15 @@ export function NavRail({ tab, flows, shapes, showFlows, showYaml, onPick }: { t
 }
 
 /** The slim column on the right edge: a button for the Details panel, and below it one for Performance where there is a load-test run to show (it takes Details' place). */
-export function DetailsRail({ open, onToggle, perf }: { open: boolean; onToggle: () => void; perf?: { open: boolean; runs: number; onToggle: () => void } }) {
+export function DetailsRail({ open, onToggle, perf, failures }: {
+  open: boolean; onToggle: () => void; perf?: { open: boolean; runs: number; onToggle: () => void }; failures?: { open: boolean; count: number; onToggle: () => void }
+}) {
+  const label = ['Details', perf && 'performance', failures && 'failures'].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' and $1')
   return (
-    <nav className="rail" aria-label={perf ? 'Details and performance' : 'Details'}>
+    <nav className="rail" aria-label={label}>
       <RailButton label="Details" Icon={Info} pressed={open} onClick={onToggle} />
       {perf && <RailButton label="Performance" hint="T" Icon={Activity} count={perf.runs} pressed={perf.open} onClick={perf.onToggle} />}
+      {failures && <RailButton label="Failures" hint="M" Icon={Bolt} count={failures.count} pressed={failures.open} onClick={failures.onToggle} />}
     </nav>
   )
 }
