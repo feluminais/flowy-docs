@@ -1,6 +1,10 @@
 /** Which tab of the left-hand panel is showing: the flows list, the Explorer tree, or the files as YAML with their history. Details, on the right, has no tabs. */
 export type NavTab = 'flows' | 'explorer' | 'yaml'
 
+/** The tab that opens: the one remembered, unless it is not there to show (no flows to list, or no server that keeps the history for the YAML tab). */
+export const openTab = (tab: NavTab | undefined, shows: { flows: boolean; yaml: boolean }): NavTab | undefined =>
+  (tab === 'flows' && !shows.flows) || (tab === 'yaml' && !shows.yaml) ? undefined : tab
+
 /** What the navigator remembers for this project: the list or tree that was open, which shapes were open in the tree, and how wide the two side panels are. */
 export type NavSaved = { tab?: NavTab; expanded: string[]; navWidth?: number; detailsWidth?: number }
 

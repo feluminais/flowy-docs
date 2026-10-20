@@ -156,7 +156,7 @@ export function Yaml({ store, editing, broken, flow, selected, onRestore, onClea
         {view.steps.map(s => (
           <li key={s.id} role="option" aria-selected={s.id === view.shownId} className={classes('ystep', s.id === view.shownId && 'sel')} onClick={() => pickStep(s.id)}>
             {SOURCE_NAMES[s.source] && <span className={`ychip ${s.source}`}>{SOURCE_NAMES[s.source]}</span>}
-            <span className="ylabel">{s.label}</span>
+            <span className="ylabel" title={s.label}>{s.label}</span>
             <span className="ytime">{timeLabel(s.time, today)}</span>
           </li>
         ))}
