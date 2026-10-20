@@ -1,6 +1,8 @@
 import { requestMessage, responseOf } from '../../src/core/host.ts'
 import type { Outcome, Request } from '../../src/core/host.ts'
 import type { State } from '../../src/core/state.ts'
+import { httpHistory } from './historyclient.ts'
+import type { HistoryClient } from './historyclient.ts'
 
 /** What a write answers with: the HTTP status and the JSON body, whoever carried it. */
 export type Reply = { status: number; body: unknown }
@@ -14,11 +16,14 @@ export type Transport = {
   state: () => Promise<State>
   /** PUT a file's content (`body` is `{ version, data }`) or DELETE a flow (`{ version }`). Resolves to the answer, whatever its status. */
   write: (method: 'PUT' | 'DELETE', file: string, body: unknown) => Promise<Reply>
+  /** The folder's history, where there is a server that keeps it. The VS Code webview has none, and so no YAML tab. */
+  history?: HistoryClient
 }
 
 /** The local server at `base`: '' for the page's own origin, or an address, for tests. */
 export function httpTransport(base = ''): Transport {
   return {
+    history: httpHistory(base),
     async state() {
       const res = await fetch(`${base}/api/state`)
       if (!res.ok) throw new Error(`the server answered ${res.status}`)

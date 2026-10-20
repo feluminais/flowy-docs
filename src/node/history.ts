@@ -5,18 +5,14 @@ import {
   changedPaths, CLOSED_LABEL, collapseSteps, fallbackLabel, FIRST_LABEL, HISTORY_LIMIT, HISTORY_SLACK, isLabelled, outsideLabel, planRetention,
   sameFiles, stepId, stepInfos,
 } from '../core/history.ts'
-import type { Step, StepApp, StepInfo, StepSource } from '../core/history.ts'
+import type { Step, StepApp, StepFile, StepInfo, StepSource, StepView, YamlNow } from '../core/history.ts'
 import { hashBytes, isAllowedPath, saveRaw, VersionConflict } from './files.ts'
 import { defaultStateDir, historyKey, openStore } from './history-store.ts'
 
+export type { StepFile, StepView, YamlNow }
+
 /** The files a step covers, as they are on disk now: each path's version, and the bytes behind each version. */
 export type Snapshot = { files: Record<string, string>; bytes: Map<string, Uint8Array> }
-
-/** A file as the panel shows it: its text, or the fact that it is not text. */
-export type StepFile = { text: string } | { notText: true }
-
-/** A step with its files, and the step before it in the list (what the marks are against). */
-export type StepView = { step: StepInfo; files: Record<string, StepFile>; previous?: { id: string; files: Record<string, StepFile> } }
 
 /** `saved: false`: the history could not be written. `id`: the step that holds the files as they are now (none when the folder is empty). */
 export type Ensured = { saved: boolean; id?: string }
@@ -49,7 +45,7 @@ export type History = {
   /** The files as they are on disk now. Reads them, never parses them. */
   snapshot(): Promise<Snapshot>
   /** The files as they are on disk now, as text, with their versions. */
-  now(): Promise<{ files: Record<string, StepFile>; versions: Record<string, string> }>
+  now(): Promise<YamlNow>
   /** The steps, newest first. */
   list(): Promise<StepInfo[]>
   read(id: string): Promise<StepView | undefined>
