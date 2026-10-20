@@ -6,9 +6,32 @@ export const GAP = 900
 export const DWELL = 2200
 
 /** How long a step that moves rests between plays while you stay on it, in ms. */
-export const REST = 1000
+export const REST = 2500
 
 type Span = { at: number; dur: number }
+
+/** Half the thickness of what runs along a line: the blob, the widest thing in the pipe. */
+const PIPE_HALF = 15
+/** The clear space between the pipe and a label moved off it. */
+const LABEL_GAP = 6
+
+/**
+ * Where to move a line's label so it sits beside the pipe that plays along the line, not in it: perpendicular to the line, on the
+ * upper side (the right side of a vertical line), far enough that a label of `chars` characters clears the pipe at any slope.
+ * `dx` and `dy` run from one end of the line to the other.
+ */
+export function labelOffset(dx: number, dy: number, chars: number): { x: number; y: number } {
+  const len = Math.hypot(dx, dy)
+  if (len === 0) return { x: 0, y: -(PIPE_HALF + LABEL_GAP + 10) }
+  let nx = dy / len
+  let ny = -dx / len
+  if (ny > 0 || (ny === 0 && nx < 0)) {
+    nx = -nx
+    ny = -ny
+  }
+  const far = PIPE_HALF + LABEL_GAP + Math.abs(nx) * (chars * 3 + 6) + Math.abs(ny) * 10
+  return { x: nx * far || 0, y: ny * far || 0 } // || 0: no negative zero
+}
 
 /** How long one round takes when several steps play together: the longest of them, then a rest, so they all start again at once. */
 export const cyclePeriod = (totals: Iterable<number>): number => Math.max(0, ...totals) + REST

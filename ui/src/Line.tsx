@@ -4,6 +4,7 @@ import type { EdgeProps, InternalNode, XYPosition } from '@xyflow/react'
 import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { lineEnds, ports, sizeOf } from './graph.ts'
+import { labelOffset } from './motion.ts'
 import type { BoxData, Outline, Rect } from './graph.ts'
 
 /** How lines are drawn: the project's style, or this reader's own. App provides it. */
@@ -48,12 +49,16 @@ export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode):
  * sit above, beside and below the members, so lines that always left at the bottom would loop around.
  * Curved and right-angled lines leave from the middle of the facing side.
  */
-export function Line({ id, source, target, label, markerEnd, interactionWidth }: EdgeProps) {
+export function Line({ id, source, target, label, markerEnd, interactionWidth, data }: EdgeProps) {
   const style = useContext(LineStyleContext)
   const width = useContext(LineWidthsContext).get(id)
   const a = useInternalNode(source)
   const b = useInternalNode(target)
   if (!a || !b) return null
-  const [path, labelX, labelY] = draw(style, rect(a), rect(b), outline(a), outline(b))
+  const [path, x, y] = draw(style, rect(a), rect(b), outline(a), outline(b))
+  // A step that moves plays a pipe along this line, so its label steps aside instead of sitting under the pipe.
+  const [ra, rb] = [rect(a), rect(b)]
+  const aside = data?.lift === true && typeof label === 'string' ? labelOffset(rb.x + rb.width / 2 - (ra.x + ra.width / 2), rb.y + rb.height / 2 - (ra.y + ra.height / 2), label.length) : { x: 0, y: 0 }
+  const [labelX, labelY] = [x + aside.x, y + aside.y]
   return <BaseEdge id={id} path={path} label={label} labelX={labelX} labelY={labelY} markerEnd={markerEnd} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
 }

@@ -58,6 +58,8 @@ type Props = {
   animation: Animation
   /** Whether the step before ended at this step's source (see followsLanding). */
   afterLanding: boolean
+  /** Whether it plays again after a rest, until the step is left. */
+  repeat: boolean
   /** Called once when the motion has finished, or after a moment when motion is reduced. */
   onDone: () => void
 }
@@ -67,13 +69,15 @@ type Props = {
  * and squashes on the boxes. Mount it keyed by the step (and replay), so a new step cancels the old one.
  * When the system asks for less motion it draws nothing and only reports that it is done.
  */
-export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
+export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Props) {
   const style = useContext(LineStyleContext)
   const from = useInternalNode(ends[0])
   const to = useInternalNode(ends[1])
   const [svg, setSvg] = useState<SVGSVGElement | null>(null)
   const done = useRef(onDone)
   done.current = onDone
+  const again = useRef(repeat)
+  again.current = repeat
   const still = reducedMotion()
 
   useEffect(() => {
@@ -149,12 +153,12 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
       }
     }
 
-    // Plays, rests, and plays again until the step is left. Autoplay hears about the first play only.
+    // Plays, and with Repeat on rests and plays again until the step is left. Autoplay hears about the first play only.
     let finished = false
     const loop = (now: number) => {
       start ??= now
       const since = now - start
-      frame(since % cyclePeriod(running.values()))
+      frame(again.current ? since % cyclePeriod(running.values()) : Math.min(since, total))
       if (!finished && since >= total) {
         finished = true
         done.current()
@@ -181,6 +185,7 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
         <g className="tube" style={{ opacity: 0 }}>
           <path className="wall" d={d} />
           <path className="bore" d={d} />
+          <path className="core" d={d} />
         </g>
         <path className="bulge wall" d={d} style={HIDDEN} />
         <path className="bulge bore" d={d} style={HIDDEN} />

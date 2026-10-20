@@ -118,6 +118,8 @@ svg { flex: none; }
 .bar > button:hover:not(:disabled) svg, .panel button:hover:not(:disabled, .close, .link) svg, .player-buttons button:hover:not(:disabled) svg { color: var(--fg); }
 .bar > button[aria-pressed='true'] { background: var(--tint); color: var(--accent); font-weight: 600; }
 .bar > button[aria-pressed='true'] svg { color: inherit; }
+.player-buttons button[aria-pressed='true'] { background: var(--tint); color: var(--accent); }
+.player-buttons button[aria-pressed='true'] svg { color: inherit; }
 .bar > button:disabled, .panel button:disabled, .player-buttons button:disabled { cursor: default; opacity: 0.4; }
 .bar > button:focus-visible, .crumbs button:focus-visible, .panel button:focus-visible, .player-buttons button:focus-visible, .problems summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
 .panel button.primary, .player-buttons button.primary { background: var(--accent); color: var(--bg); font-weight: 600; }
@@ -468,6 +470,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .motion path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .motion .wall { stroke: color-mix(in srgb, var(--accent) 65%, var(--fg)); stroke-width: 15; }
 .motion .bore { stroke: var(--bg); stroke-width: 10; }
+/* The lit line again, in the middle of the pipe, because the pipe covers the real one while it plays. */
+.motion .core { stroke: var(--accent); stroke-width: 3; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 70%, transparent)); }
 .motion .bulge.wall { stroke-width: 23; }
 .motion .bulge.bore { stroke-width: 18; }
 .motion .blob circle, .motion .blob rect { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
