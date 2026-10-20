@@ -709,3 +709,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .cells i { width: 8px; height: 12px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 2px; }
 .cells i.on { background: var(--fg); border-color: var(--fg); }
 .riskline { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0; }
+.fail .about .form { margin-top: 8px; }
+.affects { display: grid; gap: 4px; font-size: 12px; }
+.affects .label { color: var(--muted); }
+.affects ul { margin: 0; }

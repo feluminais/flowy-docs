@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import type { Problem } from '../../src/core/check.ts'
 import { bandOf, BAND_NAMES, coverage, partName, ratingsOf, reach, riskOf } from '../../src/core/failures.ts'
 import type { Band, Part, Ranked } from '../../src/core/failures.ts'
@@ -9,7 +9,10 @@ import { Description } from './Box.tsx'
 import { Section } from './Chrome.tsx'
 import { afterText, bandCounts, firstErrorAt, ratingCells, STATUS_NAMES } from './failuresview.ts'
 import type { Filter } from './failuresview.ts'
-import { Activity, Alert, Close, Copy, Info, Route } from './icons.tsx'
+import { AddMode, AnalysisForm, ModeForm, NewAnalysis } from './FailuresEdit.tsx'
+import type { Preset } from './FailuresEdit.tsx'
+import { Activity, Alert, Close, Copy, Info, Plus, Route } from './icons.tsx'
+import type { Run as Edit } from './Panel.tsx'
 import { KeyItem, KeyRow } from './Performance.tsx'
 
 /** What the Failures tab's body is told: the folder, the analysis on show and the mode picked in it, the rows to list, and what to do about a click. */
@@ -37,7 +40,14 @@ export type FailuresProps = {
   onShowFlow: (flowId: string, step?: number) => void
   onSeenInRun: (modeId: string) => void
   onCopy: (format: 'markdown' | 'csv') => void
+  /** In edit mode the tab holds the forms that write an analysis; `run` saves one edit and says whether it was saved. */
+  editing: boolean
+  run: Edit
 }
+
+/** Where a new mode starts: the shape picked, or the line picked when it is a connection of the model (a merged line may not be). */
+const presetOf = (model: Model, part?: Part): Preset =>
+  part === undefined ? {} : 'box' in part ? { on: part.box } : model.connections.some(c => c.from === part.line[0] && c.to === part.line[1]) ? { from: part.line[0], to: part.line[1] } : {}
 
 const BAND_ORDER: Band[] = ['high', 'medium', 'low', 'unrated']
 const RATINGS = [['severity', 'Severity'], ['occurrence', 'Likelihood'], ['detection', 'Hard to spot']] as const
@@ -45,6 +55,7 @@ const RATINGS = [['severity', 'Severity'], ['occurrence', 'Likelihood'], ['detec
 /** The Failures tab's body, read only: which analysis, how it adds up, what to look at first, and everything about the mode picked. */
 export function FailuresBody(p: FailuresProps) {
   const { model, analysisId, modeId, rows, filter, part } = p
+  const [adding, setAdding] = useState<Preset>()
   const analysis = analysisId !== undefined && Object.hasOwn(model.failures, analysisId) ? model.failures[analysisId] : undefined
   const ids = Object.keys(model.failures)
   const mode = analysis && modeId !== undefined && Object.hasOwn(analysis.modes, modeId) ? analysis.modes[modeId] : undefined
@@ -55,7 +66,15 @@ export function FailuresBody(p: FailuresProps) {
       <ul className="plain">{problems.map((x, i) => <li key={i}><span className="muted">{x.file}</span> {x.message}</li>)}</ul>
     </>
   )
-  if (!analysis) return <div className="perf fail">{problems.length === 0 && <p className="muted">No failure analyses.</p>}{problemList}</div>
+  if (!analysis) {
+    return (
+      <div className="perf fail">
+        {problems.length === 0 && <p className="muted">No failure analyses.</p>}
+        {p.editing && <NewAnalysis model={model} run={p.run} onMade={p.onAnalysis} />}
+        {problemList}
+      </div>
+    )
+  }
 
   const counts = bandCounts(analysis)
   const covered = coverage(model, analysis)
@@ -90,7 +109,9 @@ export function FailuresBody(p: FailuresProps) {
       {ids.length > 1
         ? <select aria-label="Analysis" value={analysisId} onChange={e => { p.onAnalysis(e.target.value); e.target.blur() }}>{ids.map(id => <option key={id} value={id}>{model.failures[id].name || id}</option>)}</select>
         : <h2>{analysis.name || analysisId}</h2>}
-      {analysis.about && <details className="about"><summary>About</summary><p>{analysis.about}</p></details>}
+      {p.editing && analysisId !== undefined && <AnalysisForm model={model} id={analysisId} run={p.run} />}
+      {p.editing && <details className="about"><summary>New analysis</summary><NewAnalysis model={model} run={p.run} onMade={p.onAnalysis} /></details>}
+      {!p.editing && analysis.about && <details className="about"><summary>About</summary><p>{analysis.about}</p></details>}
       <div className="perf-buttons">
         <button onClick={() => p.onCopy('markdown')}><Copy size={16} />Copy as table</button>
         <button onClick={() => p.onCopy('csv')}><Copy size={16} />Copy as CSV</button>
@@ -111,12 +132,21 @@ export function FailuresBody(p: FailuresProps) {
       </p>
       {picked !== undefined && <span className="chip partchip">{picked}<button className="link" aria-label="Clear" onClick={p.onClearPart}><Close size={12} /></button></span>}
 
+      {p.editing && analysisId !== undefined && (adding !== undefined
+        ? <AddMode key={JSON.stringify(adding)} model={model} analysisId={analysisId} preset={adding} run={p.run} onAdded={id => { setAdding(undefined); p.onMode(id) }} onCancel={() => setAdding(undefined)} />
+        : <button onClick={() => setAdding(presetOf(model, part))}><Plus size={16} />Add failure mode</button>)}
+
       {filter.left
         ? (
           <>
             <Section icon={Info} title="Not analysed" count={covered.left.length} />
             <ul className="failrows">
-              {covered.left.map(id => <li key={id}><button className="failrow" onClick={() => p.onPickShape(id)}><span className="what"><span>{partName(model, { on: id })}</span></span></button></li>)}
+              {covered.left.map(id => (
+                <li key={id}>
+                  <button className="failrow" onClick={() => p.onPickShape(id)}><span className="what"><span>{partName(model, { on: id })}</span></span></button>
+                  {p.editing && <button className="link" onClick={() => setAdding({ on: id })}>Add failure mode</button>}
+                </li>
+              ))}
             </ul>
           </>
         )
@@ -128,7 +158,16 @@ export function FailuresBody(p: FailuresProps) {
           </>
         )}
 
-      {mode && (
+      {mode && p.editing && analysisId !== undefined && modeId !== undefined && (
+        <>
+          <Section icon={Alert} title={partName(model, mode)} />
+          <ModeForm model={model} analysisId={analysisId} modeId={modeId} runs={p.runs} run={p.run} />
+          <div className="perf-buttons">
+            {flowShown && mode.flow !== undefined && <button onClick={() => p.onShowFlow(mode.flow!, mode.step === undefined ? undefined : Number(mode.step))}><Route size={16} />Show it</button>}
+          </div>
+        </>
+      )}
+      {mode && !p.editing && (
         <>
           <Section icon={Alert} title={partName(model, mode)} />
           <p className="modeline"><strong>{mode.mode}</strong></p>

@@ -1035,7 +1035,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                   setFilter({})
                 }}
                 onMode={selectMode} onFilter={setFilter} onClearPart={() => setSide(undefined)} onPickShape={pickShape}
-                onShowFlow={showFlow} onSeenInRun={seenInRun} onCopy={copyFailures} />
+                onShowFlow={showFlow} onSeenInRun={seenInRun} onCopy={copyFailures} editing={editing} run={run} />
             </aside>
           )}
           {nav === 'flows' && (
