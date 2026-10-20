@@ -87,7 +87,7 @@ test('the run has every load effect, and the strongest level shows each one', ()
 test('at the strongest load the canvas shows strain, waiting, failing calls and slow calls, and leaves what was not measured plain', () => {
   assert.ok(run)
   const top = run.levels[run.levels.length - 1].load
-  const t = traffic({ ...model, flows, layout: state.layout }, run, top, 'performance')
+  const t = traffic({ ...model, flows, failures: {}, layout: state.layout }, run, top, 'performance')
   assert.ok(Object.values(t.boxes).some(b => b.strain !== undefined && b.strain >= 0.85), 'no shape is near full')
   assert.ok(Object.values(t.boxes).some(b => b.queue > 0), 'no shape shows a waiting badge')
   assert.ok(t.lines.some(l => l.failed >= 0.2), 'no line has failing calls')
