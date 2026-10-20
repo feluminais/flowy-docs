@@ -60,6 +60,7 @@ internal sealed class ExplorerView : Grid
             if (_settingSelection) return;
             _focus = (_list.SelectedItem as OutlineRow)?.Key;
         };
+        _list.ContainerPrepared += (_, e) => e.Container.Classes.Set("canvas", _rows[e.Index].Key == _current); // the keyboard ring skips the row the canvas shows
         _list.AddHandler(KeyDownEvent, OnListKey, RoutingStrategies.Tunnel);
         _list.PointerEntered += (_, _) => _using = true;
         _list.PointerExited += (_, _) => _using = false;
@@ -86,6 +87,9 @@ internal sealed class ExplorerView : Grid
     internal IReadOnlyList<OutlineRow> Rows => _rows;
 
     internal string? FocusKey => _focus;
+
+    /// <summary>The rows the keyboard ring leaves alone because the canvas already shows them.</summary>
+    internal IEnumerable<string> CanvasKeys => _list.GetRealizedContainers().Where(c => c.Classes.Contains("canvas")).Select(c => ((OutlineRow)c.DataContext!).Key);
 
     internal string SummaryText => _summary.Text ?? "";
 
