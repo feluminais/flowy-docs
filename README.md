@@ -111,9 +111,9 @@ something on its own, and a step with more to say has a **More**. In the browser
 `#ordering/place-order` plays Customer places an order; send it to someone and they land on the same step.
 
 A step can also say how it travels. Tag it `animation: call` and its line turns into a pipe with something running
-through it and back while the sender waits; `send` and `event` go one way, and `callback` shows what set it off. **R** plays the
-step again, and **Autoplay** (**P**) steps through the flow on its own. Nothing moves when the system asks for less motion, and
-the step's text still says the same thing. The app and the browser play them alike.
+through it and back while the sender waits; `send` and `event` go one way, and `callback` shows what set it off. In the browser the
+step plays again after a short rest until you move on, **R** plays it again from the start, and **Autoplay** (**P**) steps through the flow
+on its own. Nothing moves when the system asks for less motion, and the step's text still says the same thing. The app plays each step once.
 
 Neighbouring steps can also belong together. A flow file can mark them as a `repeat` that runs up to a stated number of times,
 a `branch` of lanes of which one happens, or `parallel` lanes that all happen at once, and a step can say that another flow

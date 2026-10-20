@@ -36,8 +36,8 @@ public class BeatsTests
         var travel = Expected()["travel"]!.AsArray();
         Assert.True(travel.Count > 5);
         foreach (var t in travel) Assert.Equal(t!["ms"]!.GetValue<int>(), Animations.Travel(t["length"]!.GetValue<double>()));
-        Assert.Equal(500, Animations.Travel(double.NaN));
-        Assert.Equal(500, Animations.Travel(double.PositiveInfinity));
+        Assert.Equal(1200, Animations.Travel(double.NaN));
+        Assert.Equal(1200, Animations.Travel(double.PositiveInfinity));
     }
 
     [Fact]

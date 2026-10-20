@@ -262,7 +262,8 @@ Reading:
 
 Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flowy`, then the same folder in the desktop app):
 
-- [ ] Open *Every step animation* (`#steps/every-step-animation`) and press P: eight steps play in turn. Send runs an envelope one way, Call goes and
+- [ ] Open *Every step animation* (`#steps/every-step-animation`) and press P: eight steps play in turn, each taking two to four seconds. In the browser a step plays again after a rest until you move on, and nothing draws over the pipe
+      while it runs. Send runs an envelope one way, Call goes and
       comes back while dots wait over the caller, Event runs a bolt and flashes the receiver, Callback sends a ring, then a bell, then a ring, a callback
       after a step flashes its publisher first, one from outside drops a bolt on it, and the last Send carries the words "order 42". Every shape
       squashes or flashes where the animation says it does, on the queue, the cylinder and the hexagon too. With the system's animation effects off, nothing moves.

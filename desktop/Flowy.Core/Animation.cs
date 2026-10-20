@@ -60,9 +60,9 @@ public static class Animations
         return new StepAnimation(kind, trigger, carries);
     }
 
-    /// <summary>How long something takes to run the length of a line: half a second to a bit over one.</summary>
+    /// <summary>How long something takes to run the length of a line: at least 1.2 seconds, so the eye can follow it, and at most 2.2.</summary>
     public static int Travel(double length) =>
-        double.IsFinite(length) ? (int)Math.Min(1100, Math.Max(500, Math.Floor(length * 2 + 0.5))) : 500;
+        double.IsFinite(length) ? (int)Math.Min(2200, Math.Max(1200, Math.Floor(length * 3 + 0.5))) : 1200;
 
     /// <summary>Whether the step before ended at the box this one starts from, so a callback "triggered outside" was just kicked by it.</summary>
     public static bool Follows((string From, string To)? previous, (string From, string To)? current) =>
@@ -78,31 +78,31 @@ public static class Animations
         switch (a.Kind)
         {
             case "send":
-                body = [Effect("gulp", "from", 0, 150), Blob(150, "envelope"), Effect("gulp", "to", 150 + t, 200)];
+                body = [Effect("gulp", "from", 0, 250), Blob(250, "envelope"), Effect("gulp", "to", 250 + t, 300)];
                 break;
             case "call":
             {
-                var landed = 150 + t;
-                var back = landed + 300;
+                var landed = 250 + t;
+                var back = landed + 600;
                 body =
                 [
-                    Effect("gulp", "from", 0, 150), Blob(150, "envelope"), Effect("gulp", "to", landed, 200), Effect("wait", "from", landed, 300),
+                    Effect("gulp", "from", 0, 250), Blob(250, "envelope"), Effect("gulp", "to", landed, 300), Effect("wait", "from", landed, 600),
                     new Beat("blob", "line", back, t, "back", "envelope", "reply"),
-                    Effect("gulp", "from", back + t, 200),
+                    Effect("gulp", "from", back + t, 300),
                 ];
                 break;
             }
             case "event":
-                body = [Effect("gulp", "from", 0, 150), Blob(150, "bolt"), Effect("flash", "to", 150 + t, 250)];
+                body = [Effect("gulp", "from", 0, 250), Blob(250, "bolt"), Effect("flash", "to", 250 + t, 450)];
                 break;
             case "callback" when a.Trigger == "inside":
-                body = [Effect("ring", "from", 0, 400), Blob(300, "bell"), Effect("ring", "to", 300 + t, 400)];
+                body = [Effect("ring", "from", 0, 600), Blob(450, "bell"), Effect("ring", "to", 450 + t, 600)];
                 break;
             case "callback" when afterLanding:
-                body = [Effect("flash", "from", 0, 250), Blob(200, "bell"), Effect("ring", "to", 200 + t, 400)];
+                body = [Effect("flash", "from", 0, 450), Blob(300, "bell"), Effect("ring", "to", 300 + t, 600)];
                 break;
             case "callback":
-                body = [new Beat("drop", "from", 0, 350, Glyph: "bolt"), Effect("flash", "from", 350, 250), Blob(550, "bell"), Effect("ring", "to", 550 + t, 400)];
+                body = [new Beat("drop", "from", 0, 600, Glyph: "bolt"), Effect("flash", "from", 600, 450), Blob(850, "bell"), Effect("ring", "to", 850 + t, 600)];
                 break;
             default:
                 throw new ArgumentException($"unknown animation kind \"{a.Kind}\"");
