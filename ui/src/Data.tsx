@@ -1,5 +1,6 @@
 import { dataShown } from '../../src/core/data.ts'
 import type { DataShown } from '../../src/core/data.ts'
+import { serializeData } from '../../src/core/model.ts'
 import type { FlowyObject } from '../../src/core/model.ts'
 import { Section } from './Chrome.tsx'
 import { Clock, Table } from './icons.tsx'
@@ -76,5 +77,24 @@ export function DataSection({ object }: { object: FlowyObject }) {
       <Section icon={Table} title="Data" count={entries.length} />
       {entries.map((entry, i) => <Entry key={`${i}:${entry.name}`} entry={entry} open={i === 0} />)}
     </section>
+  )
+}
+
+/**
+ * A store's data as the text of its edit box: the lines the file holds, saved when you leave the box. Unlike a one-line field it keeps what
+ * you typed when the save is refused, so a slip in a long table is fixed in place and not typed again.
+ */
+export function DataField({ object, onSave }: { object: FlowyObject; onSave: (text: string) => Promise<boolean> }) {
+  const value = serializeData(object.data)
+  // Keyed by the saved text, so the box shows the new text after every reload.
+  return (
+    <label>
+      Data
+      <textarea
+        key={value} className="data-yaml" defaultValue={value} rows={10} spellCheck={false}
+        placeholder={'- name: orders\n  columns: [id, total]\n  rows:\n    - [o_1042, 2490]'}
+        onBlur={e => { if (e.currentTarget.value !== value) void onSave(e.currentTarget.value) }}
+      />
+    </label>
   )
 }
