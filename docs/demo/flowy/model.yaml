@@ -189,6 +189,7 @@ objects:
       The delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.
     snippets:
       - title: Delivery fee
+        language: typescript
         text: |-
           // Mapbox answers in metres. Round up to the next 500 m.
           const km = Math.ceil(meters / 500) / 2
