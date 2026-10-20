@@ -226,7 +226,6 @@ internal sealed partial class ReaderView : Grid
     private Control BuildBar()
     {
         BuildEditBar();
-        _linePicker.Items.Add("Lines: project default");
         _linePicker.Items.Add("Lines: straight");
         _linePicker.Items.Add("Lines: curved");
         _linePicker.Items.Add("Lines: right-angled");
@@ -234,14 +233,14 @@ internal sealed partial class ReaderView : Grid
         _linePicker.SelectionChanged += (_, _) =>
         {
             if (_syncing) return;
+            var style = _linePicker.SelectedIndex switch { 1 => "curved", 2 => "angled", _ => "straight" };
             if (Editing)
             {
                 // In edit mode the picker sets the project's style, which everyone sees (lines: in model.yaml).
-                var style = _linePicker.SelectedIndex switch { 1 => "curved", 2 => "angled", _ => "straight" };
                 _ = RunAsync(d => EditOps.SetLines(d, style));
                 return;
             }
-            _ownLines = _linePicker.SelectedIndex switch { 1 => "straight", 2 => "curved", 3 => "angled", _ => null };
+            _ownLines = style == (_folder?.Model.LineStyle ?? "straight") ? null : style; // the project's own style isn't kept as a pick: the screen follows the project again
             LinesPicked?.Invoke(_ownLines);
             Refresh();
         };
@@ -547,8 +546,6 @@ internal sealed partial class ReaderView : Grid
         icon.Margin = new Thickness(0, 2, 0, 0);
         return icon;
     }
-
-    private static string LineName(string style) => style == "angled" ? "right-angled" : style;
 
     private void RefreshPanel(Model model, string view)
     {
@@ -909,7 +906,7 @@ internal sealed partial class ReaderView : Grid
             _shortcuts = null;
             return;
         }
-        _shortcuts = new ShortcutsCard(() => ShowShortcuts(false), ShowPerf);
+        _shortcuts = new ShortcutsCard(() => ShowShortcuts(false), CanPerf);
         _overlay.Children.Add(_shortcuts);
     }
 
@@ -1017,7 +1014,7 @@ internal sealed partial class ReaderView : Grid
         else if (e.PhysicalKey == PhysicalKey.F && plain) FitNow();
         else if (e.PhysicalKey == PhysicalKey.L && plain && ShowFlows) ToggleTab(PanelTab.Flows);
         else if (e.PhysicalKey == PhysicalKey.O && plain) ToggleTab(PanelTab.Explorer);
-        else if (e.PhysicalKey == PhysicalKey.T && plain && ShowPerf) TogglePerf();
+        else if (e.PhysicalKey == PhysicalKey.T && plain && CanPerf) TogglePerf();
         // Z zooms out, always: in edit mode Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
         else if ((e.Key == Key.Back || e.PhysicalKey == PhysicalKey.Z) && plain && view != Names.Root && Recording is null) Up();
         else return;

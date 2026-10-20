@@ -231,8 +231,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const loadTest = runKey ? runs[runKey] : undefined
   const here = loadTest ? clampPos(loadTest, pos) : 0
   if (!ramping) posNow.current = here // while it ramps, the ramp is ahead of what the screen shows
-  const showPerf = !editing && (Object.keys(runs).length > 0 || runProblems.length > 0) // the tab is there whenever there is a run, or a run file to complain about
-  const perfOpen = perf && showPerf && loadTest !== undefined
+  const showPerf = Object.keys(runs).length > 0 || runProblems.length > 0 // the tab is there whenever there is a run, or a run file to complain about
+  const canPerf = showPerf && !editing // while editing the tab is greyed out: the numbers would sit on a model that is changing
+  const perfOpen = perf && canPerf && loadTest !== undefined
   // The Failures tab is there whenever there is an analysis or a file of one to complain about, and always in edit mode, so the first analysis can be made.
   const analysisKey = activeAnalysis(model.failures, analysisId)
   const analysis = analysisKey === undefined ? undefined : model.failures[analysisKey]
@@ -611,14 +612,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     setPos(snap(loadTest, to))
   }
   const pickLines = (value: string) => {
-    const style = LINE_STYLES.find(s => s === value) // "" is the project's default
+    const style = LINE_STYLES.find(s => s === value)
+    if (style === undefined) return
     const own = (s: LineStyle | undefined) => {
       keepOwnLines(s)
       setMine(s)
     }
     // In edit mode the project's style is what you see, so once it's saved your own choice goes.
     if (editing) void run(m => setLines(m, style)).then(saved => saved && own(undefined))
-    else own(style)
+    else own(style === projectLines ? undefined : style) // the project's own style isn't kept as a pick: the screen follows the project again
   }
   const toggleEdit = () => {
     justMoved.current = false
@@ -814,7 +816,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       else if (key === 'l' && plain && !e.repeat && showFlows) toggleTab('flows')
       else if (key === 'o' && plain && !e.repeat) toggleTab('explorer')
       else if (key === 'y' && plain && !e.repeat && showYaml) toggleTab('yaml')
-      else if (key === 't' && plain && !e.repeat && showPerf) (perfOpen ? closePerf() : openPerf())
+      else if (key === 't' && plain && !e.repeat && canPerf) (perfOpen ? closePerf() : openPerf())
       else if (key === 'm' && plain && !e.repeat && showFailures) (failuresOpen ? closeFailures() : openFailures())
       else if (key === 'e' && plain && !e.repeat && !readOnly) toggleEdit()
       else if (editing && key === 'n' && plain && !recording) show({ kind: 'add' })
@@ -872,13 +874,12 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           </button>
         )}
         <span className="grow" />
-        <select aria-label="Line style" value={editing ? projectLines : mine ?? ''}
+        <select aria-label="Line style" value={lines}
           title={editing ? 'How lines look for everyone (saved in model.yaml)' : 'How lines look on this screen'}
           onChange={e => {
             pickLines(e.target.value)
             e.target.blur()
           }}>
-          {!editing && <option value="">Lines: project default ({LINE_NAMES[projectLines]})</option>}
           {LINE_STYLES.map(s => <option key={s} value={s}>Lines: {LINE_NAMES[s]}</option>)}
         </select>
         {/* mousedown would blur the open field, closing it, and the click would open it again */}
@@ -988,7 +989,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               show({ kind: 'object', id })
             }} />
           )}
-          {shortcuts && <Shortcuts editable={live && !readOnly} performance={showPerf} failures={showFailures} onClose={() => setShortcuts(false)} />}
+          {shortcuts && <Shortcuts editable={live && !readOnly} performance={canPerf} failures={showFailures} onClose={() => setShortcuts(false)} />}
           {notice && (
             <div className="notice" role="status">
               <span>{notice}</span>
@@ -1062,7 +1063,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
         </main>
         <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else { setPerf(false); setFailures(false); setDetails(true) } }}
-          perf={showPerf ? { open: perfOpen, runs: Object.keys(runs).length, onToggle: () => (perfOpen ? closePerf() : openPerf()) } : undefined}
+          perf={showPerf ? { open: perfOpen, runs: Object.keys(runs).length, off: editing ? 'not while editing' : undefined, onToggle: () => (perfOpen ? closePerf() : openPerf()) } : undefined}
           failures={showFailures ? { open: failuresOpen, count: modeCount(model), onToggle: () => (failuresOpen ? closeFailures() : openFailures()) } : undefined} />
       </div>
     </>

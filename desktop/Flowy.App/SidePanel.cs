@@ -191,7 +191,7 @@ internal sealed class SidePanel : Border
         var paths = o.Code is List<object?> code ? code.OfType<string>().ToList() : [];
         if (paths.Count > 0)
         {
-            column.Children.Add(Chrome.Section(Icons.Code, "Code", paths.Count));
+            column.Children.Add(Chrome.Section(Icons.Folder, "Source", paths.Count));
             column.Children.Add(CodeList(paths, codeBase));
         }
         column.Children.Add(LinesOf(model, id, pick, hover));
