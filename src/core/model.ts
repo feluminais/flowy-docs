@@ -306,24 +306,38 @@ function flowTextLists(node: unknown) {
  * that is a mapping, a `columns` list of only bare names, and a list of text inside a sample. Everything else stays block style. Only acts on
  * nodes of the expected kind, so a hand-written `data` of the wrong shape is written as it is, never rejected here (check() reports it).
  */
+function compactEntries(data: unknown) {
+  if (!isSeq(data)) return
+  for (const entry of data.items) {
+    if (!isYamlMap(entry)) continue
+    const columns = entry.get('columns', true)
+    if (isSeq(columns)) {
+      if (columns.items.every(item => isScalar(item))) flowSeq(columns)
+      else for (const column of columns.items) if (isYamlMap(column)) flowMap(column)
+    }
+    const rows = entry.get('rows', true)
+    if (isSeq(rows)) for (const row of rows.items) if (isSeq(row)) flowSeq(row)
+    flowTextLists(entry.get('sample', true))
+  }
+}
+
 function compactData(doc: Document) {
   const objects = doc.get('objects', true)
   if (!isYamlMap(objects)) return
-  for (const { value: object } of objects.items) {
-    const data = isYamlMap(object) ? object.get('data', true) : undefined
-    if (!isSeq(data)) continue
-    for (const entry of data.items) {
-      if (!isYamlMap(entry)) continue
-      const columns = entry.get('columns', true)
-      if (isSeq(columns)) {
-        if (columns.items.every(item => isScalar(item))) flowSeq(columns)
-        else for (const column of columns.items) if (isYamlMap(column)) flowMap(column)
-      }
-      const rows = entry.get('rows', true)
-      if (isSeq(rows)) for (const row of rows.items) if (isSeq(row)) flowSeq(row)
-      flowTextLists(entry.get('sample', true))
-    }
-  }
+  for (const { value: object } of objects.items) compactEntries(isYamlMap(object) ? object.get('data', true) : undefined)
+}
+
+/** A store's `data` as the text of the edit box: the same one-line forms the file uses, with no wrapper. Empty text for none. */
+export function serializeData(data: unknown): string {
+  if (data === undefined || data === '' || (Array.isArray(data) && data.length === 0)) return ''
+  const doc = new Document(data, { schema: 'failsafe', aliasDuplicateObjects: false })
+  compactEntries(doc.contents)
+  return doc.toString({ lineWidth: 0, flowCollectionPadding: false })
+}
+
+/** The edit box's text as data, read as the files are (failsafe, so every value is text). Blank text is an empty list. Throws a ParseError for text that is not YAML. */
+export function parseData(text: string): unknown {
+  return text.trim() === '' ? [] : readYaml('data', text)
 }
 
 /** model.yaml's text: like the other files, plus the one-line forms a store's data is written in (see compactData). */
