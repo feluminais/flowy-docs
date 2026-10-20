@@ -1,0 +1,295 @@
+objects:
+  shop:
+    type: system
+    name: Shop
+  orders-db:
+    type: store
+    in: shop
+    name: Orders DB
+    tech: Postgres
+    description: Orders, baskets and refunds.
+    data:
+      - name: orders
+        kind: table
+        limits: Kept 7 years, then archived
+        note: One row per order. A refund adds a row to refunds; the order stays.
+        columns:
+          - {name: id, key: primary}
+          - {name: customer_id, to: customers}
+          - status
+          - {name: total, note: "Cents, not decimals. Rounding broke the first tax run."}
+          - placed_at
+          - delivery_notes
+        rows:
+          - [o_1042, c_77, placed, 2490, 2026-10-19 18:02, "Ring twice, the bell is broken and the courier should leave it with the neighbour in flat 4 if nobody answers"]
+          - [o_1043, c_12, accepted, 1380, 2026-10-19 18:05, ""]
+          - [o_1044, c_77, refunded, 990, 2026-10-19 18:09, "<b>no onions</b> {please}"]
+      - name: order_items
+        columns:
+          - {name: order_id, key: primary, to: orders}
+          - {name: item_id, key: primary}
+          - quantity
+          - {name: unit_price, note: Copied from the menu at order time. Menus change; receipts must not.}
+        rows:
+          - [o_1042, i_31, 2, 1245]
+      - name: refunds
+        columns: [id, order_id, amount, reason]
+        limits: Kept with its order
+      - name: baskets
+        kind:
+        limits:
+        columns: [id, customer_id, items, expires_at]
+      - name: audit
+        columns: [at, who, what]
+  menu-cache:
+    type: store
+    in: shop
+    name: Menu cache
+    tech: Redis
+    data:
+      - name: Keys
+        limits: Oldest unused go first at 256 MB
+        note: Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.
+        columns:
+          - Key
+          - Value
+          - {name: Expires, note: "Set on every write, never extended on a read."}
+        rows:
+          - ["menu:{restaurantId}", "{ items, prices, hours }", 5 min]
+          - [menu:42, '{ "items": 31 }', 3 min left]
+  events:
+    type: store
+    in: shop
+    name: Order events
+    shape: queue
+    tech: Kafka
+    data:
+      - name: order-events
+        kind: topic
+        limits: Kept 7 days, 6 partitions
+        note: Keyed by order id so one order's messages stay in order.
+        columns: [Key, Value]
+        rows:
+          - [o_1042, '{ "type": "placed", "total": 2490 }']
+          - [o_1042, '{ "type": "accepted" }']
+  profiles:
+    type: store
+    in: shop
+    name: Restaurant profiles
+    tech: MongoDB
+    data:
+      - name: restaurants
+        kind: collection
+        sample:
+          _id: r_42
+          name: Noodle Bar
+          tags: [ramen, vegan]
+          hours:
+            mon: 11-22
+            tue: 11-22
+          rating: "4.6"
+          items:
+            - name: Pho
+            - name: Ramen
+          menu:
+            - plain
+            - second
+        notes:
+          hours: Hours live inside the profile. They are only ever read with it.
+          hours.tue: Closed on public holidays.
+  hostile:
+    type: store
+    in: shop
+    name: Hostile cells
+    tech: Postgres
+    data:
+      - name: cells
+        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]
+        rows:
+          - ["a: b", "# not a comment", "\"quoted\"", "it's", "- dash", "[x]", "{x}", " leading", "trailing ", "", "a, b", "é ü ✓ 日本"]
+          - ["null", "~", "007", "3.10", "true", "yes", "- ", "? x", "% x", "@x", "`x", "a  b"]
+          - ["http://example.com/a?b=c#d", "C:\\path\\file", "a | b", "a > b", "a & b", "a * b", "a ! b", "--- x", "... x", "x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z", "&x", "*x"]
+      - name: notes
+        columns:
+          - {name: a, note: "a: b # c"}
+          - {name: b, note: "- x, [y] {z}"}
+          - {name: c, note: " lead"}
+          - {name: d, note: ""}
+      - name: doc
+        sample:
+          list: ["a: b", "# c", "x, y", "", "[z]"]
+          text: "a: b # c"
+          quote: "say \"hi\""
+        notes:
+          list: "x: y, [z]"
+  proto:
+    type: store
+    in: shop
+    name: Prototype names
+    tech: MongoDB
+    data:
+      - name: names
+        sample:
+          constructor: "1"
+          toString: "2"
+        notes:
+          constructor: A field named like a prototype member.
+      - name: loose
+        sample:
+          x: "1"
+        notes:
+          toString: Names no field.
+  bad-entries:
+    type: store
+    in: shop
+    name: Bad entries
+    data:
+      - text
+      - columns: [a]
+      - name: " "
+        columns: [a]
+      - name: dup
+        columns: [x]
+      - name: dup
+        columns: [x]
+      - name: needs-body
+      - name: both
+        columns: [x]
+        sample: {x: "1"}
+      - name: rows-no-columns
+        sample: {x: "1"}
+        rows:
+          - ["1"]
+      - name: notes-no-sample
+        columns: [x]
+        notes: {x: n}
+  bad-columns:
+    type: store
+    in: shop
+    name: Bad columns
+    data:
+      - name: not-a-list
+        columns: x
+      - name: empty
+        columns: []
+      - name: shapes
+        columns:
+          - [a]
+          - {key: primary}
+          - {name: dup}
+          - {name: dup}
+          - {name: k, key: foreign}
+          - {name: n, note: [x]}
+          - {name: t, to: [y]}
+      - name: plain-text
+        kind: [x]
+        limits: [y]
+        note: [z]
+        columns: [a]
+      - name: too-many
+        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12]
+      - name: exactly-twelve
+        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]
+  bad-rows:
+    type: store
+    in: shop
+    name: Bad rows
+    data:
+      - name: not-a-list
+        columns: [a, b]
+        rows: x
+      - name: shapes
+        columns: [a, b]
+        rows:
+          - x
+          - [a, [b]]
+          - [a]
+          - [a, b, c]
+      - name: one-column
+        columns: [a]
+        rows:
+          - [a, b]
+      - name: too-many
+        columns: [a]
+        rows: [[1], [2], [3], [4], [5], [6], [7], [8], [9]]
+      - name: exactly-eight
+        columns: [a]
+        rows: [[1], [2], [3], [4], [5], [6], [7], [8]]
+  bad-samples:
+    type: store
+    in: shop
+    name: Bad samples
+    data:
+      - name: a-list
+        sample: [x]
+      - name: empty
+        sample: {}
+      - name: too-deep
+        sample: {a: {b: {c: {d: "1"}}}}
+      - name: deep-enough
+        sample: {a: {b: {c: "1"}}}
+      - name: too-many
+        sample: {f0: "1", f1: "1", f2: "1", f3: "1", f4: "1", f5: "1", f6: "1", f7: "1", f8: "1", f9: "1", f10: "1", f11: "1", f12: "1", f13: "1", f14: "1", f15: "1", f16: "1", f17: "1", f18: "1", f19: "1", f20: "1"}
+      - name: exactly-twenty
+        sample: {f0: "1", f1: "1", f2: "1", f3: "1", f4: "1", f5: "1", f6: "1", f7: "1", f8: "1", f9: "1", f10: "1", f11: "1", f12: "1", f13: "1", f14: "1", f15: "1", f16: "1", f17: "1", f18: "1", f19: "1"}
+      - name: notes-text
+        sample: {x: "1"}
+        notes: n
+      - name: note-list
+        sample: {x: "1"}
+        notes: {x: [a]}
+      - name: note-nowhere
+        sample: {hours: {mon: "1"}}
+        notes: {hours.fri: n}
+      - name: list-in-list
+        sample: {grid: [[a], [b]]}
+  bad-breaks:
+    type: store
+    in: shop
+    name: Bad breaks
+    data:
+      - name: cell
+        columns: [x]
+        rows:
+          - ["a\nb"]
+      - name: note
+        columns: [x]
+        note: |
+          one
+      - name: carriage
+        sample: {"k\rk": "1"}
+  junk-data:
+    type: store
+    in: shop
+    name: Data that is a mapping
+    data:
+      a: "1"
+  tilde-data:
+    type: store
+    in: shop
+    name: Data that is a tilde
+    data: ~
+  blank-data:
+    type: store
+    in: shop
+    name: Blank data
+    data:
+  quoted-blank-data:
+    type: store
+    in: shop
+    name: Quoted blank data
+    data: ""
+  junk-entries:
+    type: store
+    in: shop
+    name: Junk entries
+    data:
+      - []
+      - {}
+      - null
+  on-a-system:
+    type: system
+    name: A system with data
+    data:
+      - name: orders
+        columns: [id]

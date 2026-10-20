@@ -442,6 +442,35 @@
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
   <Style Selector="Path.rowicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <!-- The Data section of a store: an entry's header is a toggle that is plain until pointed at; a grid has its headings on a faint fill and a rule between rows; a note is a strip with the column or field it is about. -->
+  <Style Selector="ToggleButton.datahead">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0,3" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="ToggleButton.datahead /template/ ContentPresenter, ToggleButton.datahead:checked /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.datahead:pointerover /template/ ContentPresenter, ToggleButton.datahead:checked:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.datahead:focus-visible /template/ ContentPresenter"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /><Setter Property="BorderThickness" Value="1.5" /></Style>
+  <Style Selector="Border.datafill"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /><Setter Property="BorderThickness" Value="0,0,0,1" /></Style>
+  <Style Selector="Border.datarule"><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /><Setter Property="BorderThickness" Value="0,1,0,0" /><Setter Property="Opacity" Value="0.6" /></Style>
+  <Style Selector="Ellipse.datadot"><Setter Property="Fill" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector="Border.datacode"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /><Setter Property="CornerRadius" Value="4" /><Setter Property="Padding" Value="5,1" /></Style>
+  <Style Selector="Border.datanote">
+    <Setter Property="Background" Value="{DynamicResource WarnTintBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+    <Setter Property="BorderThickness" Value="3,0,0,0" />
+    <Setter Property="CornerRadius" Value="0,6,6,0" />
+    <Setter Property="Padding" Value="10,4" />
+  </Style>
   <Style Selector="Path.warnicon"><Setter Property="Stroke" Value="{DynamicResource WarnFgBrush}" /></Style>
 
   <!-- A box: its shape (a fill, a tint of its own colour, an outline, and a coloured outline over it), the tile, the name, how many are inside. -->

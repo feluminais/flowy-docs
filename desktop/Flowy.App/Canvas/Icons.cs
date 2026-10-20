@@ -29,6 +29,8 @@ internal static class Icons
     public const string Folder = "M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2";
     public const string Code = "M7 8l-4 4l4 4M17 8l4 4l-4 4M14 4l-4 16";
     public const string Text = "M4 6l16 0M4 12l10 0M4 18l14 0";
+    public const string Table = "M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14zM3 10h18M10 3v18";
+    public const string Clock = "M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 7v5l3 3";
     public const string Pencil = "M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4M13.5 6.5l4 4";
     public const string Plus = "M12 5l0 14M5 12l14 0";
     public const string Minus = "M5 12l14 0";

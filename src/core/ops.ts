@@ -1,4 +1,6 @@
 import { check, newProblems } from './check.ts'
+import { tidyData } from './data.ts'
+import type { DataInput } from './data.ts'
 import { analysesText, usersOfConnection, usersOfObject } from './failures.ts'
 import { iconProblem } from './look.ts'
 import type { Shape } from './look.ts'
@@ -17,6 +19,8 @@ export type ObjectInput = {
   /** How it is drawn: "" removes the shape, colour or icon, and an opacity of "" removes that. */
   shape?: Shape | ''; color?: string; opacity?: number | ''; icon?: string
   tech?: string; description?: string; code?: string[]; links?: Link[]
+  /** What a store holds (see data.ts). Replaces the whole list; [] removes it. */
+  data?: DataInput[]
 }
 export type ConnectionInput = { from: string; to: string; label?: string }
 /** A group as put_flow gives it: `times` may be a number, which is written as text. */
@@ -32,15 +36,15 @@ export type ModeInput = {
 }
 export type AnalysisInput = { id: string; name: string; about?: string; scope?: string; scale?: Analysis['scale']; modes: Record<string, ModeInput> }
 
-const FIELDS = ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description', 'code', 'links'] as const
+const FIELDS = ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description', 'code', 'links', 'data'] as const
 const CLEARABLE = ['in', 'shape', 'color', 'opacity', 'icon', 'tech', 'description'] as const
 
 /**
  * Create or update an object. Omitted fields stay as they are; "" removes in, shape, color, opacity, icon, tech or
- * description, [] removes code or links, and external: false removes external.
+ * description, [] removes code, links or data, and external: false removes external.
  * Only the known fields are copied from the input, so a new object's keys always come out
- * in the order type, name, in, external, shape, color, opacity, icon, tech, description, code, links, and stray input keys never land in the model.
- * A link keeps its extra keys, comes out with its title before its url, and loses a blank title.
+ * in the order type, name, in, external, shape, color, opacity, icon, tech, description, code, links, data, and stray input keys never land in the model.
+ * A link keeps its extra keys, comes out with its title before its url, and loses a blank title. `data` replaces the whole list (see tidyData).
  */
 export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid id: ${ID_RULE}`)
@@ -54,6 +58,8 @@ export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   if (Array.isArray(next.code) && next.code.length === 0) delete next.code
   if (fields.links !== undefined) next.links = fields.links.map(({ title, ...rest }) => (title?.trim() ? { title, ...rest } : rest))
   if (Array.isArray(next.links) && next.links.length === 0) delete next.links
+  if (fields.data !== undefined) next.data = tidyData(fields.data)
+  if (Array.isArray(next.data) && next.data.length === 0) delete next.data
   // On disk it's `external: true`, which the failsafe schema reads back as the text "true".
   if (next.external === true) next.external = 'true'
   else if (next.external === false) delete next.external

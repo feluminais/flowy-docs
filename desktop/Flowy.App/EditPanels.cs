@@ -25,23 +25,35 @@ internal sealed class FieldBox : StackPanel
 {
     private readonly TextBox _box;
     private readonly Func<string, Task<bool>> _save;
+    private readonly bool _keepOnRefusal;
     private string _saved;
 
-    public FieldBox(string label, string value, bool multiline, Func<string, Task<bool>> save)
+    /// <param name="placeholder">What an empty box shows.</param>
+    /// <param name="keepOnRefusal">A refused save leaves what was typed in the box, so a slip in a long text is fixed where it is. Every other field shows the saved text again.</param>
+    /// <param name="mono">A monospace face and no wrapping, for text where the columns line up (a store's data).</param>
+    public FieldBox(string label, string value, bool multiline, Func<string, Task<bool>> save, string? placeholder = null, bool keepOnRefusal = false, bool mono = false)
     {
         Spacing = 4;
         _saved = value;
         _save = save;
+        _keepOnRefusal = keepOnRefusal;
         var caption = new TextBlock { Text = label, FontSize = 12 };
         caption.Classes.Add("muted");
         _box = new TextBox
         {
             Text = value,
             AcceptsReturn = multiline,
-            TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap,
+            TextWrapping = multiline && !mono ? TextWrapping.Wrap : TextWrapping.NoWrap,
             MinHeight = multiline ? 96 : 0,
             MaxHeight = multiline ? 320 : double.PositiveInfinity,
+            PlaceholderText = placeholder,
         };
+        if (mono)
+        {
+            _box.FontFamily = new FontFamily("Cascadia Mono, Consolas, Menlo, monospace");
+            _box.FontSize = 12;
+            ScrollViewer.SetHorizontalScrollBarVisibility(_box, ScrollBarVisibility.Auto);
+        }
         Avalonia.Automation.AutomationProperties.SetName(_box, label);
         _box.LostFocus += async (_, _) => await Commit();
         if (!multiline)
@@ -72,7 +84,7 @@ internal sealed class FieldBox : StackPanel
         var text = Plain(Text);
         if (text == _saved) return;
         if (await _save(text)) _saved = text;
-        else Text = _saved;
+        else if (!_keepOnRefusal) Text = _saved;
     }
 
     /// <summary>The model now says <paramref name="value"/>. A box with the focus keeps what is being typed.</summary>
@@ -83,7 +95,7 @@ internal sealed class FieldBox : StackPanel
     }
 }
 
-/// <summary>An object's form: name, type, outside service, tech, its look (shape, colour, opacity, icon), description, links and code, then its problems and connections, its id, and delete.</summary>
+/// <summary>An object's form: name, type, outside service, tech, its look (shape, colour, opacity, icon), description, a store's data, links and code, then its problems and connections, its id, and delete.</summary>
 internal sealed class ObjectEditor : StackPanel
 {
     private readonly SidePanel _owner;
@@ -95,6 +107,8 @@ internal sealed class ObjectEditor : StackPanel
     private readonly FieldBox _description;
     private readonly FieldBox _links;
     private readonly FieldBox _code;
+    private readonly FieldBox _data;
+    private readonly StackPanel _dataSection = new() { Spacing = 12 };
     private readonly Chooser _type;
     private readonly ToggleButton _external = Chrome.OutsideSwitch();
     private readonly Chooser _shape;
@@ -127,6 +141,18 @@ internal sealed class ObjectEditor : StackPanel
         _description = new FieldBox("Description (Markdown)", "", true, v => Put(new ObjectInput(id, Description: v)));
         _links = new FieldBox("Links (one per line: title | address)", "", true, v => Put(new ObjectInput(id, Links: LinkText.Parse(v, _rawLinks))));
         _code = new FieldBox("Files and folders (one per line)", "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())));
+        // The text is the store's data as the file holds it. Text that is not YAML is refused here with the reader's message, like any other refusal, and stays in the box.
+        _data = new FieldBox("Data", "", true, v =>
+        {
+            try
+            {
+                return Put(new ObjectInput(id, Data: StoreData.ParseText(v)));
+            }
+            catch (ParseError e)
+            {
+                return run(_ => throw new OpError(e.Message));
+            }
+        }, "- name: orders\n  columns: [id, total]\n  rows:\n    - [o_1042, 2490]", keepOnRefusal: true, mono: true);
         _hex = new FieldBox("Custom color (#rrggbb)", "", false, v => Put(new ObjectInput(id, Color: v.Trim())));
         _type = new Chooser("Type", new WrapPanel(), v => Put(new ObjectInput(id, Type: v)));
         _shape = new Chooser("Shape", new UniformGrid { Columns = 4 }, v => Put(new ObjectInput(id, Shape: v)), v => v == Default ? $"Default ({_defaultShape})" : Pick.Cap(v));
@@ -163,6 +189,9 @@ internal sealed class ObjectEditor : StackPanel
         Children.Add(new StackPanel { Spacing = 14, Children = { _shape, _color, _hex, new StackPanel { Spacing = 6, Children = { opacityHead, _fade } }, _icon } });
         Children.Add(Chrome.Section(Icons.Text, "Description"));
         Children.Add(_description);
+        _dataSection.Children.Add(Chrome.Section(Icons.Table, "Data"));
+        _dataSection.Children.Add(_data);
+        Children.Add(_dataSection);
         Children.Add(Chrome.Section(Icons.Link, "Links"));
         Children.Add(_links);
         Children.Add(Chrome.Section(Icons.Folder, "Source"));
@@ -218,6 +247,8 @@ internal sealed class ObjectEditor : StackPanel
 
     internal FieldBox LinksField => _links;
 
+    internal FieldBox DataField => _data;
+
     internal ToggleButton ExternalBox => _external;
 
     public void Update(Model model, IReadOnlyList<Problem> problems)
@@ -230,6 +261,9 @@ internal sealed class ObjectEditor : StackPanel
         _code.Sync(o.Code is List<object?> code ? string.Join("\n", code.OfType<string>()) : "");
         _rawLinks = o.Links;
         _links.Sync(LinkText.Format(o));
+        _data.Sync(StoreData.Serialize(o.Data));
+        // A store has data; anything else only shows the box while it holds a data key, so a wrong one can be taken out.
+        _dataSection.IsVisible = o.Type == "store" || o.Data is not null;
         // A type the nesting rules don't allow here stays in the list, so the form shows what the file says.
         var types = Checks.TypesIn(model, Views.ParentOf(model, Id));
         if (!string.IsNullOrEmpty(o.Type) && !types.Contains(o.Type)) types.Add(o.Type);
