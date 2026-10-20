@@ -55,6 +55,13 @@ test('every step animation kind is played by a step, and the callback is shown a
   assert.ok(carries > 0, 'no step carries a word on its blob')
 })
 
+test('every step animation kind has a flow of one step to click through, and so does a callback from outside', () => {
+  const single = flowList.filter(([, flow]) => flow.steps.length === 1).map(([, flow]) => animationOf(flow.steps[0]))
+  for (const kind of ANIMATION_KINDS) assert.ok(single.some(a => a?.kind === kind), `no flow of one step plays "${kind}": add one to docs/showcase`)
+  assert.ok(single.some(a => a?.kind === 'callback' && a.trigger === 'outside'), 'no flow of one step plays a callback from outside')
+  assert.ok(single.some(a => a?.carries !== undefined), 'no flow of one step carries a word')
+})
+
 test('every kind of group is drawn by a flow, and a step can hand its story to another flow and can act on its own', () => {
   for (const kind of GROUP_KINDS) {
     assert.ok(flowList.some(([, flow]) => runsOf(flow).some(r => r.kind === kind)), `no flow has a "${kind}" group: add one to docs/showcase`)

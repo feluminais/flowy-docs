@@ -1,0 +1,4 @@
+name: Callback
+view: steps
+steps:
+  - { from: callback-from, to: callback-to, text: Runs a callback on its subscriber, animation: callback }

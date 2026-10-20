@@ -1,0 +1,4 @@
+name: Send with a word
+view: steps
+steps:
+  - { from: send-from, to: send-to, text: Sends a word on the blob, animation: { kind: send, carries: order 42 } }

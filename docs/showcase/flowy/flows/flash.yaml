@@ -1,0 +1,5 @@
+name: Flash
+view: steps
+steps:
+  - { from: after-source, to: after-from, text: Hands the publisher something, animation: send }
+  - { from: after-from, to: after-to, text: Runs a callback that the step before set off, animation: { kind: callback, trigger: outside } }

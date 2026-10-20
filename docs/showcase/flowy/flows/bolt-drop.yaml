@@ -1,0 +1,4 @@
+name: Bolt drop
+view: steps
+steps:
+  - { from: cold-from, to: cold-to, text: Runs a callback that something outside set off, animation: { kind: callback, trigger: outside } }

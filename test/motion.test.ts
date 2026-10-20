@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { active, bump, cyclePeriod, dashAround, distance, ease, labelOffset, progress, REST, tubeOpacity } from '../ui/src/motion.ts'
+import { active, bump, cyclePeriod, distance, ease, labelOffset, progress, REST, tubeOpacity } from '../ui/src/motion.ts'
 
 const beat = { at: 100, dur: 400 }
 
@@ -50,11 +50,6 @@ test('a blob runs forward from the start of the line and back from its end', () 
   assert.equal(distance(undefined, 1, 200), 200)
   assert.equal(distance('back', 0, 200), 200)
   assert.equal(distance('back', 1, 200), 0)
-})
-
-test('dashAround leaves one stretch of the path drawn, centred on a point', () => {
-  assert.deepEqual(dashAround(100, 300, 40), { array: '40 640', offset: -80 })
-  assert.deepEqual(dashAround(0, 300, 40), { array: '40 640', offset: 20 })
 })
 
 test('steps that play together loop together: the longest one, then a rest', () => {

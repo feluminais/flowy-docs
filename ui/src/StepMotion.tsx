@@ -5,7 +5,7 @@ import { beatsFor } from '../../src/core/animation.ts'
 import type { Animation, Beat, Glyph } from '../../src/core/animation.ts'
 import type { Rect } from './graph.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
-import { active, bump, cyclePeriod, dashAround, distance, DWELL, ease, progress, squashTile, tubeOpacity } from './motion.ts'
+import { active, bump, cyclePeriod, distance, DWELL, ease, progress, squashTile, tubeOpacity } from './motion.ts'
 
 // The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
 const GLYPHS: Record<Glyph, string> = {
@@ -13,7 +13,6 @@ const GLYPHS: Record<Glyph, string> = {
   bolt: 'M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11',
   bell: 'M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6M9 17v1a3 3 0 0 0 6 0v-1',
 }
-const SWELL = 46 // px of tube that bulges around a blob
 const HIDDEN = { display: 'none' } as const
 /** Every motion on screen and how long it takes, so the ones of a stop (a fan-out plays several) start again together. */
 const running = new Map<symbol, number>()
@@ -91,10 +90,9 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
   useEffect(() => {
     if (!svg || !from || !to) return
     const [a, b] = [rect(from), rect(to)]
-    const bore = svg.querySelector<SVGPathElement>('.tube .bore')!
+    const route = svg.querySelector<SVGPathElement>('.tube .core')!
     const tube = svg.querySelector<SVGElement>('.tube')!
-    const swells = svg.querySelectorAll<SVGPathElement>('.bulge')
-    const length = bore.getTotalLength()
+    const length = route.getTotalLength()
     const { beats, total } = beatsFor(animation, { length, afterLanding })
     const nodes = beats.map((_, i) => svg.querySelector<SVGElement>(`[data-beat="${i}"]`))
     const stretches = nodes.map(n => n?.querySelector<SVGElement>('.stretch') ?? null)
@@ -107,7 +105,6 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
 
     const frame = (t: number) => {
       const squash = { from: 0, to: 0 }
-      let swelling: number | undefined
       beats.forEach((beat, i) => {
         const node = nodes[i]
         const on = active(beat, t)
@@ -118,14 +115,13 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
         else if (!node || !on) return
         else if (beat.do === 'blob') {
           const pos = distance(beat.dir, p, length)
-          const here = bore.getPointAtLength(pos)
-          const behind = bore.getPointAtLength(Math.max(0, pos - 2))
-          const ahead = bore.getPointAtLength(Math.min(length, pos + 2))
+          const here = route.getPointAtLength(pos)
+          const behind = route.getPointAtLength(Math.max(0, pos - 2))
+          const ahead = route.getPointAtLength(Math.min(length, pos + 2))
           const angle = (Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * 180) / Math.PI
           // The shape is stretched along the way it runs, and no more rotated than that. The glyph or the words in it are not stretched at all.
           node.setAttribute('transform', `translate(${here.x} ${here.y})`)
           stretches[i]?.setAttribute('transform', `rotate(${angle}) scale(${1 + 0.3 * bump(p)} ${1 - 0.15 * bump(p)}) rotate(${-angle})`)
-          swelling = pos
         } else if (beat.do === 'ring') {
           const r = beat.on === 'to' ? b : a
           const grow = 6 + 22 * p
@@ -143,14 +139,6 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
           node.style.opacity = String(1 - Math.max(0, (p - 0.8) / 0.2))
         }
       })
-      for (const swell of swells) {
-        swell.style.display = swelling === undefined ? 'none' : ''
-        if (swelling !== undefined) {
-          const dash = dashAround(swelling, length, SWELL)
-          swell.style.strokeDasharray = dash.array
-          swell.style.strokeDashoffset = String(dash.offset)
-        }
-      }
       for (const side of ['from', 'to'] as const) {
         const el = tiles[side]
         if (el) squashTile(el, who[side], squash[side])
@@ -187,12 +175,8 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
     <ViewportPortal>
       <svg ref={setSvg} className="motion" aria-hidden="true">
         <g className="tube" style={{ opacity: 0 }}>
-          <path className="wall" d={d} />
-          <path className="bore" d={d} />
           <path className="core" d={d} />
         </g>
-        <path className="bulge wall" d={d} style={HIDDEN} />
-        <path className="bulge bore" d={d} style={HIDDEN} />
         {beatsFor(animation, { length: 0, afterLanding }).beats.map((beat, i) => shape(beat, i, a, b))}
       </svg>
     </ViewportPortal>

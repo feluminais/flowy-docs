@@ -14,7 +14,6 @@ namespace Flowy.App.Canvas;
 /// </summary>
 internal sealed class MotionLayer : Control
 {
-    private const double Swell = 46; // how much of the pipe bulges around a blob
 
     private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To);
 
@@ -101,8 +100,9 @@ internal sealed class MotionLayer : Control
             foreach (var beat in run.Beats.Where(b => b.Do == "pipe"))
             {
                 using var fade = context.PushOpacity(MotionMath.TubeOpacity(beat, _t));
-                context.DrawGeometry(null, Round(Brush("AccentBrush"), 15), run.Line);
-                context.DrawGeometry(null, Round(Brush("BgBrush"), 10), run.Line);
+                // The step's line, bolder, with a soft glow and no outline.
+                using (context.PushOpacity(0.3)) context.DrawGeometry(null, Round(Brush("AccentBrush"), 14), run.Line);
+                context.DrawGeometry(null, Round(Brush("AccentBrush"), 7), run.Line);
             }
             foreach (var beat in run.Beats.Where(b => b.Do == "blob" && MotionMath.Active(b, _t))) DrawBlob(context, run, beat);
             foreach (var beat in run.Beats.Where(b => b.Do is "ring" or "flash" or "wait" or "drop" && MotionMath.Active(b, _t))) DrawEffect(context, run, beat);
@@ -113,13 +113,7 @@ internal sealed class MotionLayer : Control
     {
         var p = MotionMath.Progress(beat, _t);
         var at = MotionMath.Distance(beat.Dir, p, run.Length);
-        var accent = Brush("AccentBrush");
         var bg = Brush("BgBrush");
-        if (run.Line.TryGetSegment(Math.Max(0, at - Swell / 2), Math.Min(run.Length, at + Swell / 2), true, out var swell) && swell is not null)
-        {
-            context.DrawGeometry(null, Round(accent, 23), swell);
-            context.DrawGeometry(null, Round(bg, 18), swell);
-        }
         if (!run.Line.TryGetPointAndTangentAtDistance(at, out var point, out var tangent)) return;
         var angle = Math.Atan2(tangent.Y, tangent.X);
         var s = MotionMath.Bump(p);

@@ -1,0 +1,4 @@
+name: Event
+view: steps
+steps:
+  - { from: event-from, to: event-to, text: Raises an event, animation: event }
