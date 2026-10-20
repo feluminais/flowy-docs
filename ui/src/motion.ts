@@ -10,14 +10,14 @@ export const REST = 2500
 
 type Span = { at: number; dur: number }
 
-/** Half the thickness of what runs along a line: the blob, the widest thing in the pipe. */
+/** Half the thickness of what runs along a line: the blob. */
 const PIPE_HALF = 15
-/** The clear space between the pipe and a label moved off it. */
+/** The clear space between the blob and a label moved off its path. */
 const LABEL_GAP = 6
 
 /**
- * Where to move a line's label so it sits beside the pipe that plays along the line, not in it: perpendicular to the line, on the
- * upper side (the right side of a vertical line), far enough that a label of `chars` characters clears the pipe at any slope.
+ * Where to move a line's label so it sits beside the blob's path along the line, not under the blob: perpendicular to the line, on the
+ * upper side (the right side of a vertical line), far enough that a label of `chars` characters clears the blob at any slope.
  * `dx` and `dy` run from one end of the line to the other.
  */
 export function labelOffset(dx: number, dy: number, chars: number): { x: number; y: number } {

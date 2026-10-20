@@ -8,14 +8,17 @@ using CoreRect = Flowy.Core.Rect;
 namespace Flowy.App.Canvas;
 
 /// <summary>
-/// A tagged step playing: the line between its two boxes as a pipe, a blob running through it with the pipe swelling around it, and rings,
+/// A tagged step playing: a blob running along the line between its two boxes (the lit line the canvas already draws), and rings,
 /// flashes and waiting dots on the boxes. It sits over the boxes in the same camera, takes no pointer, and draws one step's beats at the
 /// time it is given (see <see cref="MotionMath"/>). The squash of a box is the canvas's job.
 /// </summary>
 internal sealed class MotionLayer : Control
 {
 
-    private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To);
+    private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To, Geometry? ShapeFrom, Geometry? ShapeTo);
+
+    /// <summary>How strongly a shape lights up when it flashes, at the start.</summary>
+    private const double Flash = 0.55;
 
     private static readonly Dictionary<string, Geometry> Glyphs = [];
 
@@ -40,7 +43,7 @@ internal sealed class MotionLayer : Control
     }
 
     /// <summary>One step to draw: its animation, whether it follows a landing, the line style, and the two boxes (with the outline each shape has).</summary>
-    public sealed record RunSpec(StepAnimation Animation, bool AfterLanding, string Style, CoreRect From, CoreRect To, double[]? OutlineFrom = null, double[]? OutlineTo = null);
+    public sealed record RunSpec(StepAnimation Animation, bool AfterLanding, string Style, CoreRect From, CoreRect To, double[]? OutlineFrom = null, double[]? OutlineTo = null, string? ShapeFrom = null, string? ShapeTo = null);
 
     /// <summary>
     /// Gets ready to draw several steps at once, each on the line between its boxes in its style, with the beats for how long it is.
@@ -54,7 +57,7 @@ internal sealed class MotionLayer : Control
         {
             var line = Geometry.Parse(LinePaths.Build(s.Style, s.From, s.To, s.OutlineFrom, s.OutlineTo).Data);
             var (beats, total) = Animations.BeatsFor(s.Animation, line.ContourLength, s.AfterLanding);
-            runs.Add(new Run(beats, line, line.ContourLength, s.From, s.To));
+            runs.Add(new Run(beats, line, line.ContourLength, s.From, s.To, s.ShapeFrom is null ? null : Geometry.Parse(s.ShapeFrom), s.ShapeTo is null ? null : Geometry.Parse(s.ShapeTo)));
             started.Add((beats, total));
         }
         _runs = runs;
@@ -97,13 +100,6 @@ internal sealed class MotionLayer : Control
 
         foreach (var run in _runs)
         {
-            foreach (var beat in run.Beats.Where(b => b.Do == "pipe"))
-            {
-                using var fade = context.PushOpacity(MotionMath.TubeOpacity(beat, _t));
-                // The step's line, bolder, with a soft glow and no outline.
-                using (context.PushOpacity(0.3)) context.DrawGeometry(null, Round(Brush("AccentBrush"), 14), run.Line);
-                context.DrawGeometry(null, Round(Brush("AccentBrush"), 7), run.Line);
-            }
             foreach (var beat in run.Beats.Where(b => b.Do == "blob" && MotionMath.Active(b, _t))) DrawBlob(context, run, beat);
             foreach (var beat in run.Beats.Where(b => b.Do is "ring" or "flash" or "wait" or "drop" && MotionMath.Active(b, _t))) DrawEffect(context, run, beat);
         }
@@ -154,17 +150,30 @@ internal sealed class MotionLayer : Control
         var accent = Brush("AccentBrush");
         switch (beat.Do)
         {
+            // The ring and the flash follow the outline of the shape they are on, drawn in the 200 by 72 area every shape has.
             case "ring":
             {
                 var grow = 6 + 22 * p;
                 using var fade = context.PushOpacity(1 - p);
-                context.DrawRectangle(null, new Pen(accent, 3), new Avalonia.Rect(r.X - grow, r.Y - grow, r.Width + 2 * grow, r.Height + 2 * grow), 14 + grow, 14 + grow);
+                var outline = beat.On == "to" ? run.ShapeTo : run.ShapeFrom;
+                if (outline is null) context.DrawRectangle(null, new Pen(accent, 3), new Avalonia.Rect(r.X - grow, r.Y - grow, r.Width + 2 * grow, r.Height + 2 * grow), 14 + grow, 14 + grow);
+                else
+                {
+                    outline.Transform = new MatrixTransform(Matrix.CreateTranslation(-100, -36) * Matrix.CreateScale((r.Width + 2 * grow) / 200, (r.Height + 2 * grow) / 72) * Matrix.CreateTranslation(r.X + r.Width / 2, r.Y + r.Height / 2));
+                    context.DrawGeometry(null, new Pen(accent, 3), outline);
+                }
                 break;
             }
             case "flash":
             {
-                var wash = accent is ISolidColorBrush solid ? new SolidColorBrush(solid.Color, 0.4 * (1 - p)) : accent;
-                context.DrawRectangle(wash, null, new Avalonia.Rect(r.X, r.Y, r.Width, r.Height), 14, 14);
+                var wash = accent is ISolidColorBrush solid ? new SolidColorBrush(solid.Color, Flash * (1 - p)) : accent;
+                var outline = beat.On == "to" ? run.ShapeTo : run.ShapeFrom;
+                if (outline is null) context.DrawRectangle(wash, null, new Avalonia.Rect(r.X, r.Y, r.Width, r.Height), 14, 14);
+                else
+                {
+                    outline.Transform = new MatrixTransform(Matrix.CreateScale(r.Width / 200, r.Height / 72) * Matrix.CreateTranslation(r.X, r.Y));
+                    context.DrawGeometry(wash, null, outline);
+                }
                 break;
             }
             case "wait":
