@@ -22,10 +22,10 @@ internal sealed class ExplorerView : Grid
 {
     private const double RowHeight = 30;
 
-    private readonly TextBlock _summary = new() { FontSize = 12, Classes = { "muted" }, Margin = new Thickness(2, 0) };
+    private readonly TextBlock _summary = new() { FontSize = 12, Classes = { "muted" }, Margin = new Thickness(2, 0, FlowsView.Inset + 2, 0) };
     private readonly TextBox _find = new() { PlaceholderText = "Filter the tree", Classes = { "bare" } };
     private readonly ListBox _list = new() { Classes = { "treelist" }, SelectionMode = SelectionMode.Single };
-    private readonly TextBlock _note = new() { Margin = new Thickness(6, 8), FontSize = 13, TextWrapping = TextWrapping.Wrap, Classes = { "muted" }, IsVisible = false };
+    private readonly TextBlock _note = new() { Margin = new Thickness(6, 8, FlowsView.Inset + 6, 8), FontSize = 13, TextWrapping = TextWrapping.Wrap, Classes = { "muted" }, IsVisible = false };
     private IReadOnlyList<OutlineRow> _rows = [];
     private Model? _model;
     private string _current = "";
@@ -44,8 +44,9 @@ internal sealed class ExplorerView : Grid
     {
         RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)];
         RowSpacing = 8;
-        Margin = new Thickness(12);
+        Margin = new Thickness(12, 12, 0, 12); // no margin on the right: the tree's scroll bar sits on the panel's edge, where the sash is
         var field = FlowsView.Field(_find, Icons.Search);
+        field.Margin = new Thickness(0, 0, FlowsView.Inset, 0);
         SetRow(field, 1);
         SetRow(_note, 2);
         SetRow(_list, 3);

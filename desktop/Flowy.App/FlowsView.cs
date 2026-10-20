@@ -15,7 +15,10 @@ namespace Flowy.App;
 internal sealed class FlowsView : Grid
 {
     private readonly TextBox _find = new() { PlaceholderText = "Find a flow", Classes = { "bare" } };
-    private readonly StackPanel _list = new() { Spacing = 0 };
+    /// <summary>The space a navigator tab keeps between its content and the panel's right edge, inside the scroll area so the scroll bar can sit on the edge.</summary>
+    internal const double Inset = 12;
+
+    private readonly StackPanel _list = new() { Spacing = 0, Margin = new Thickness(0, 0, Inset, 0) };
     private readonly HashSet<string> _closed = [];
     private Model? _model;
     private string _view = Names.Root;
@@ -43,8 +46,9 @@ internal sealed class FlowsView : Grid
     {
         RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)];
         RowSpacing = 8;
-        Margin = new Thickness(12);
+        Margin = new Thickness(12, 12, 0, 12); // no margin on the right: the list's scroll bar sits on the panel's edge, where the sash is
         var field = Field(_find, Icons.Search);
+        field.Margin = new Thickness(0, 0, Inset, 0);
         _find.TextChanged += (_, _) => Rebuild();
         var scroll = new ScrollViewer { Content = _list, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
         SetRow(scroll, 1);

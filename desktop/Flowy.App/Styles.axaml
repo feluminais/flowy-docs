@@ -763,7 +763,7 @@
   <Style Selector="ListBox.treelist">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Padding" Value="0" />
+    <Setter Property="Padding" Value="0,0,12,0" /> <!-- FlowsView.Inset: inside the scroll area, so the scroll bar can sit on the panel's edge -->
   </Style>
   <Style Selector="ListBox.treelist ListBoxItem">
     <Setter Property="Padding" Value="0" />
