@@ -117,16 +117,15 @@ internal sealed class FlowsView : Grid
         var shown = new List<FlowRef>();
 
         _list.Children.Clear();
-        var where = Views.NameOf(_model, _view);
-        _list.Children.Add(Heading($"In {where}", groups.Here.Count));
+        _list.Children.Add(Heading("This view", groups.Here.Count));
         foreach (var f in here)
         {
             _list.Children.Add(Row(f));
             shown.Add(f);
         }
-        if (groups.Here.Count == 0) _list.Children.Add(Note($"No flows in {where}.{(other > 0 ? $" {other} elsewhere." : "")}"));
-        else if (here.Count == 0) _list.Children.Add(Note("Nothing here matches."));
-        if (groups.Elsewhere.Count > 0) _list.Children.Add(Heading("Everywhere else", other));
+        if (groups.Here.Count == 0) { if (groups.Total > 0) _list.Children.Add(Note("No flows on this view.")); }
+        else if (here.Count == 0) _list.Children.Add(Note("No matches."));
+        if (groups.Elsewhere.Count > 0) _list.Children.Add(Heading("Other views", other));
         foreach (var (group, flows) in elsewhere)
         {
             var open = needle != "" || !_closed.Contains(group.View);

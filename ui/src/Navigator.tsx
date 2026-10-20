@@ -136,11 +136,11 @@ export function FlowsTab({ model, view, editing, current, onOpen }: { model: Mod
           }
         }} />
       <div className="navscroll">
-        <h3 className="navhead"><span>In {nameOf(model, view)}</span><span className="muted">{groups.here.length}</span></h3>
+        <h3 className="navhead"><span>This view</span><span className="muted">{groups.here.length}</span></h3>
         {here.length > 0 && here.map(row)}
-        {groups.here.length === 0 && <p className="muted navnote">No flows in {nameOf(model, view)}.{otherCount > 0 && ` ${otherCount} elsewhere.`}</p>}
-        {groups.here.length > 0 && here.length === 0 && <p className="muted navnote">Nothing here matches.</p>}
-        {groups.elsewhere.length > 0 && <h3 className="navhead"><span>Everywhere else</span><span className="muted">{otherCount}</span></h3>}
+        {groups.here.length === 0 && groups.total > 0 && <p className="muted navnote">No flows on this view.</p>}
+        {groups.here.length > 0 && here.length === 0 && <p className="muted navnote">No matches.</p>}
+        {groups.elsewhere.length > 0 && <h3 className="navhead"><span>Other views</span><span className="muted">{otherCount}</span></h3>}
         {elsewhere.map(g => {
           const open = needle !== '' || !closed.has(g.view)
           return (
