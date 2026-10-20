@@ -2323,7 +2323,7 @@
             "stripe"
           ],
           [
-            "stripe",
+            "order-api",
             "order-api"
           ],
           [
@@ -2655,7 +2655,7 @@
             "stripe"
           ],
           [
-            "stripe",
+            "order-api",
             "order-api"
           ],
           [
@@ -2987,7 +2987,7 @@
             "stripe"
           ],
           [
-            "stripe",
+            "order-api",
             "order-api"
           ],
           [
@@ -3329,7 +3329,7 @@
             "stripe"
           ],
           [
-            "stripe",
+            "order-api",
             "order-api"
           ],
           [

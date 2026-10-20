@@ -33,3 +33,13 @@ steps:
     animation: { kind: callback, trigger: outside }
     description: No step before landed on the publisher, so a bolt drops onto it first and then the bell runs.
   - { from: send-from, to: send-to, text: "Sends again, this time with a word on the blob", animation: { kind: send, carries: order 42 } }
+  - from: fail-from
+    to: fail-to
+    text: Sends and is refused
+    animation: { kind: send, outcome: fail }
+    description: The envelope runs to the receiver, which flashes when the refusal lands.
+  - from: timeout-from
+    to: timeout-to
+    text: Calls and gets no answer
+    animation: { kind: call, outcome: timeout }
+    description: The envelope goes, the sender keeps waiting, no reply comes, and the line dims.

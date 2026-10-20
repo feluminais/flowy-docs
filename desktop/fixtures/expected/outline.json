@@ -5547,8 +5547,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 38,
-              "flows": 13,
+              "shapes": 42,
+              "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -5556,8 +5556,8 @@
             }
           ],
           "totals": {
-            "shapes": 38,
-            "flows": 13,
+            "shapes": 42,
+            "flows": 15,
             "problems": 0
           }
         },
@@ -5576,8 +5576,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 38,
-              "flows": 13,
+              "shapes": 42,
+              "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5624,8 +5624,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 13,
-              "flows": 8,
+              "shapes": 17,
+              "flows": 10,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -5633,8 +5633,8 @@
             }
           ],
           "totals": {
-            "shapes": 38,
-            "flows": 13,
+            "shapes": 42,
+            "flows": 15,
             "problems": 0
           }
         },
@@ -5654,8 +5654,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 38,
-              "flows": 13,
+              "shapes": 42,
+              "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5702,8 +5702,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 13,
-              "flows": 8,
+              "shapes": 17,
+              "flows": 10,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5838,6 +5838,38 @@
               "match": true
             },
             {
+              "key": "shape:fail-from",
+              "kind": "shape",
+              "id": "fail-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:fail-to",
+              "kind": "shape",
+              "id": "fail-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:after-from",
               "kind": "shape",
               "id": "after-from",
@@ -5909,6 +5941,38 @@
               "depth": 2,
               "name": "Send · to",
               "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:timeout-from",
+              "kind": "shape",
+              "id": "timeout-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Timeout · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:timeout-to",
+              "kind": "shape",
+              "id": "timeout-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Timeout · to",
+              "type": "app",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -5991,7 +6055,23 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
-              "steps": 8,
+              "steps": 10,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:fail",
+              "kind": "flow",
+              "id": "fail",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -6044,11 +6124,27 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:timeout",
+              "kind": "flow",
+              "id": "timeout",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Timeout",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
-            "shapes": 38,
-            "flows": 13,
+            "shapes": 42,
+            "flows": 15,
             "problems": 0
           }
         },
@@ -6072,6 +6168,10 @@
             "after-to",
             "cold-from",
             "cold-to",
+            "fail-from",
+            "fail-to",
+            "timeout-from",
+            "timeout-to",
             "repeat-from",
             "repeat-to",
             "branch-from",
@@ -6105,8 +6205,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 38,
-              "flows": 13,
+              "shapes": 42,
+              "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6585,8 +6685,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 13,
-              "flows": 8,
+              "shapes": 17,
+              "flows": 10,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6721,6 +6821,38 @@
               "match": true
             },
             {
+              "key": "shape:fail-from",
+              "kind": "shape",
+              "id": "fail-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:fail-to",
+              "kind": "shape",
+              "id": "fail-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:after-from",
               "kind": "shape",
               "id": "after-from",
@@ -6792,6 +6924,38 @@
               "depth": 2,
               "name": "Send · to",
               "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:timeout-from",
+              "kind": "shape",
+              "id": "timeout-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Timeout · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:timeout-to",
+              "kind": "shape",
+              "id": "timeout-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Timeout · to",
+              "type": "app",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -6874,7 +7038,23 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
-              "steps": 8,
+              "steps": 10,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:fail",
+              "kind": "flow",
+              "id": "fail",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -6927,11 +7107,27 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:timeout",
+              "kind": "flow",
+              "id": "timeout",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Timeout",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
-            "shapes": 38,
-            "flows": 13,
+            "shapes": 42,
+            "flows": 15,
             "problems": 0
           }
         },
@@ -6955,6 +7151,10 @@
             "after-to",
             "cold-from",
             "cold-to",
+            "fail-from",
+            "fail-to",
+            "timeout-from",
+            "timeout-to",
             "repeat-from",
             "repeat-to",
             "branch-from",
@@ -6988,8 +7188,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 38,
-              "flows": 13,
+              "shapes": 42,
+              "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -7468,8 +7668,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 13,
-              "flows": 8,
+              "shapes": 17,
+              "flows": 10,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -7604,6 +7804,38 @@
               "match": true
             },
             {
+              "key": "shape:fail-from",
+              "kind": "shape",
+              "id": "fail-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:fail-to",
+              "kind": "shape",
+              "id": "fail-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:after-from",
               "kind": "shape",
               "id": "after-from",
@@ -7675,6 +7907,38 @@
               "depth": 2,
               "name": "Send · to",
               "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:timeout-from",
+              "kind": "shape",
+              "id": "timeout-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Timeout · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:timeout-to",
+              "kind": "shape",
+              "id": "timeout-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Timeout · to",
+              "type": "app",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -7757,7 +8021,23 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
-              "steps": 8,
+              "steps": 10,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:fail",
+              "kind": "flow",
+              "id": "fail",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -7810,11 +8090,27 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:timeout",
+              "kind": "flow",
+              "id": "timeout",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Timeout",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
-            "shapes": 38,
-            "flows": 13,
+            "shapes": 42,
+            "flows": 15,
             "problems": 0
           }
         },
@@ -7831,8 +8127,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 38,
-              "flows": 13,
+              "shapes": 42,
+              "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8215,8 +8511,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 13,
-              "flows": 8,
+              "shapes": 17,
+              "flows": 10,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8277,6 +8573,38 @@
               "parent": "steps",
               "depth": 2,
               "name": "Callback · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:fail-from",
+              "kind": "shape",
+              "id": "fail-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:fail-to",
+              "kind": "shape",
+              "id": "fail-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail · to",
               "type": "app",
               "external": false,
               "shapes": 0,
@@ -8376,7 +8704,23 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
-              "steps": 8,
+              "steps": 10,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:fail",
+              "kind": "flow",
+              "id": "fail",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Fail",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -8416,8 +8760,8 @@
             }
           ],
           "totals": {
-            "shapes": 38,
-            "flows": 13,
+            "shapes": 42,
+            "flows": 15,
             "problems": 0
           }
         },
@@ -8430,8 +8774,8 @@
           "editing": false,
           "rows": [],
           "totals": {
-            "shapes": 38,
-            "flows": 13,
+            "shapes": 42,
+            "flows": 15,
             "problems": 0
           }
         },
@@ -8450,8 +8794,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 38,
-              "flows": 13,
+              "shapes": 42,
+              "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8498,8 +8842,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 13,
-              "flows": 8,
+              "shapes": 17,
+              "flows": 10,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -8507,8 +8851,8 @@
             }
           ],
           "totals": {
-            "shapes": 38,
-            "flows": 13,
+            "shapes": 42,
+            "flows": 15,
             "problems": 0
           }
         }
@@ -8592,7 +8936,13 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 8,
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
                   "view": "steps"
                 },
                 {
@@ -8612,11 +8962,17 @@
                   "name": "Send with a word",
                   "steps": 1,
                   "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
                 }
               ]
             }
           ],
-          "total": 13
+          "total": 15
         },
         {
           "view": "root",
@@ -8696,7 +9052,13 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 8,
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
                   "view": "steps"
                 },
                 {
@@ -8716,11 +9078,17 @@
                   "name": "Send with a word",
                   "steps": 1,
                   "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
                 }
               ]
             }
           ],
-          "total": 13
+          "total": 15
         },
         {
           "view": "steps",
@@ -8753,7 +9121,13 @@
             {
               "id": "every-step-animation",
               "name": "Every step animation",
-              "steps": 8,
+              "steps": 10,
+              "view": "steps"
+            },
+            {
+              "id": "fail",
+              "name": "Fail",
+              "steps": 1,
               "view": "steps"
             },
             {
@@ -8771,6 +9145,12 @@
             {
               "id": "send-with-a-word",
               "name": "Send with a word",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "timeout",
+              "name": "Timeout",
               "steps": 1,
               "view": "steps"
             }
@@ -8816,7 +9196,7 @@
               ]
             }
           ],
-          "total": 13
+          "total": 15
         },
         {
           "view": "steps",
@@ -8849,7 +9229,13 @@
             {
               "id": "every-step-animation",
               "name": "Every step animation",
-              "steps": 8,
+              "steps": 10,
+              "view": "steps"
+            },
+            {
+              "id": "fail",
+              "name": "Fail",
+              "steps": 1,
               "view": "steps"
             },
             {
@@ -8867,6 +9253,12 @@
             {
               "id": "send-with-a-word",
               "name": "Send with a word",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "timeout",
+              "name": "Timeout",
               "steps": 1,
               "view": "steps"
             }
@@ -8912,7 +9304,7 @@
               ]
             }
           ],
-          "total": 13
+          "total": 15
         },
         {
           "view": "structure",
@@ -8984,7 +9376,13 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 8,
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
                   "view": "steps"
                 },
                 {
@@ -9004,11 +9402,17 @@
                   "name": "Send with a word",
                   "steps": 1,
                   "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
                 }
               ]
             }
           ],
-          "total": 13
+          "total": 15
         },
         {
           "view": "structure",
@@ -9080,7 +9484,13 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 8,
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
                   "view": "steps"
                 },
                 {
@@ -9100,11 +9510,17 @@
                   "name": "Send with a word",
                   "steps": 1,
                   "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
                 }
               ]
             }
           ],
-          "total": 13
+          "total": 15
         },
         {
           "view": "performance",
@@ -9184,7 +9600,13 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 8,
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
                   "view": "steps"
                 },
                 {
@@ -9204,11 +9626,17 @@
                   "name": "Send with a word",
                   "steps": 1,
                   "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
                 }
               ]
             }
           ],
-          "total": 13
+          "total": 15
         },
         {
           "view": "performance",
@@ -9288,7 +9716,13 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 8,
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
                   "view": "steps"
                 },
                 {
@@ -9308,11 +9742,17 @@
                   "name": "Send with a word",
                   "steps": 1,
                   "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
                 }
               ]
             }
           ],
-          "total": 13
+          "total": 15
         },
         {
           "view": "rolled-up",
@@ -9392,7 +9832,13 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 8,
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
                   "view": "steps"
                 },
                 {
@@ -9412,11 +9858,17 @@
                   "name": "Send with a word",
                   "steps": 1,
                   "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
                 }
               ]
             }
           ],
-          "total": 13
+          "total": 15
         },
         {
           "view": "rolled-up",
@@ -9496,7 +9948,13 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 8,
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
                   "view": "steps"
                 },
                 {
@@ -9516,11 +9974,17 @@
                   "name": "Send with a word",
                   "steps": 1,
                   "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
                 }
               ]
             }
           ],
-          "total": 13
+          "total": 15
         }
       ],
       "expandTo": [
@@ -9800,6 +10264,74 @@
             "cold-to",
             "root",
             "steps"
+          ]
+        },
+        {
+          "id": "fail-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "fail-from",
+          "self": true,
+          "opened": [
+            "fail-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "fail-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "fail-to",
+          "self": true,
+          "opened": [
+            "fail-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "timeout-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "timeout-from",
+          "self": true,
+          "opened": [
+            "root",
+            "steps",
+            "timeout-from"
+          ]
+        },
+        {
+          "id": "timeout-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "timeout-to",
+          "self": true,
+          "opened": [
+            "root",
+            "steps",
+            "timeout-to"
           ]
         },
         {

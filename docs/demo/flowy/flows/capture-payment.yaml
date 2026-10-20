@@ -8,8 +8,8 @@ groups:
   outcome:
     kind: branch
 steps:
-  - { from: order-api, to: stripe, text: Captures the amount it held, group: charge }
-  - { from: stripe, to: order-api, text: Doesn't answer within five seconds, group: charge }
+  - { from: order-api, to: stripe, text: Captures the amount it held, group: charge, animation: { kind: call, outcome: timeout } }
+  - { from: order-api, text: Gives up after five seconds and tries again, group: charge }
   - { from: stripe, to: order-api, text: Confirms the charge, group: outcome, lane: The charge goes through }
   - { from: order-api, to: orders-db, text: Marks the order paid, group: outcome }
   - from: stripe
@@ -17,6 +17,7 @@ steps:
     text: Declines the card
     group: outcome
     lane: The card is declined
+    animation: { kind: send, outcome: fail }
     description: |
       A decline is final: it is not retried. The hold is released, and the app asks the customer
       for another card.

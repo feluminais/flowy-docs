@@ -12,6 +12,10 @@ steps:
   after-to: [720, 400]
   cold-from: [1000, 400]
   cold-to: [1360, 400]
+  fail-from: [0, 600]
+  fail-to: [360, 600]
+  timeout-from: [1000, 600]
+  timeout-to: [1360, 600]
 structure:
   repeat-from: [0, 0]
   repeat-to: [360, 0]

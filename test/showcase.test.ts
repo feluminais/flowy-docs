@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
-import { ANIMATION_KINDS, animationOf } from '../src/core/animation.ts'
+import { ANIMATION_KINDS, animationOf, OUTCOMES } from '../src/core/animation.ts'
 import { knee, traffic } from '../src/core/perf.ts'
 import type { Metrics } from '../src/core/perf.ts'
 import { GROUP_KINDS, runsOf, stopsOf } from '../src/core/structure.ts'
@@ -43,6 +43,7 @@ test('every shape inside a showcase view is named for the animation it plays, an
 
 test('every step animation kind is played by a step, and the callback is shown after a step and with none before it', () => {
   const played = new Set<string>()
+  const outcomes = new Set<string>()
   const outside = { afterStep: 0, cold: 0 }
   let carries = 0
   for (const [, flow] of flowList) {
@@ -51,6 +52,7 @@ test('every step animation kind is played by a step, and the callback is shown a
       const a = animationOf(step)
       if (a === undefined) return
       played.add(a.kind)
+      if (a.outcome !== undefined) outcomes.add(a.outcome)
       if (a.carries !== undefined) carries++
       if (a.kind === 'callback' && a.trigger === 'outside') {
         if (stop.before.some(b => flow.steps[b].to === step.from)) outside.afterStep++
@@ -59,6 +61,7 @@ test('every step animation kind is played by a step, and the callback is shown a
     }))
   }
   for (const kind of ANIMATION_KINDS) assert.ok(played.has(kind), `no step plays "${kind}": add a pair of shapes named for it, and a step, to docs/showcase`)
+  for (const outcome of OUTCOMES) assert.ok(outcomes.has(outcome), `no step plays outcome "${outcome}": add a pair of shapes named for it, and a step, to docs/showcase`)
   assert.ok(outside.afterStep > 0, 'no callback that a step before it set off')
   assert.ok(outside.cold > 0, 'no callback that something outside set off, with no step before it')
   assert.ok(carries > 0, 'no step carries a word on its blob')
@@ -67,6 +70,7 @@ test('every step animation kind is played by a step, and the callback is shown a
 test('every step animation kind has a flow of one step to click through, and so does a callback from outside', () => {
   const single = flowList.filter(([, flow]) => flow.steps.length === 1).map(([, flow]) => animationOf(flow.steps[0]))
   for (const kind of ANIMATION_KINDS) assert.ok(single.some(a => a?.kind === kind), `no flow of one step plays "${kind}": add one to docs/showcase`)
+  for (const outcome of OUTCOMES) assert.ok(single.some(a => a?.outcome === outcome), `no flow of one step plays outcome "${outcome}": add one to docs/showcase`)
   assert.ok(single.some(a => a?.kind === 'callback' && a.trigger === 'outside'), 'no flow of one step plays a callback from outside')
   assert.ok(single.some(a => a?.carries !== undefined), 'no flow of one step carries a word')
 })
