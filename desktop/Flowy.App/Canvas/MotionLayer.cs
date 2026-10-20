@@ -123,20 +123,24 @@ internal sealed class MotionLayer : Control
         if (!run.Line.TryGetPointAndTangentAtDistance(at, out var point, out var tangent)) return;
         var angle = Math.Atan2(tangent.Y, tangent.X);
         var s = MotionMath.Bump(p);
-        // Stretched along the way it runs and no more rotated than that, so the glyph stays upright.
-        using var _ = context.PushTransform(
-            Matrix.CreateRotation(-angle) * Matrix.CreateScale(1 + 0.3 * s, 1 - 0.15 * s) * Matrix.CreateRotation(angle) * Matrix.CreateTranslation(point.X, point.Y));
+        // The shape is stretched along the way it runs and no more rotated than that. The glyph or the words in it are not stretched at all.
+        var place = Matrix.CreateTranslation(point.X, point.Y);
+        var stretch = Matrix.CreateRotation(-angle) * Matrix.CreateScale(1 + 0.3 * s, 1 - 0.15 * s) * Matrix.CreateRotation(angle) * place;
         var fill = Brush(beat.Tone == "reply" ? "AppBrush" : "AccentBrush");
         var rim = new Pen(bg, 2);
         if (beat.Label is { } label)
         {
             var text = new FormattedText(label, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 12, bg);
-            context.DrawRectangle(fill, rim, new Avalonia.Rect(-text.Width / 2 - 10, -13, text.Width + 20, 26), 13, 13);
+            using (context.PushTransform(stretch))
+                context.DrawRectangle(fill, rim, new Avalonia.Rect(-text.Width / 2 - 10, -13, text.Width + 20, 26), 13, 13);
+            using var _ = context.PushTransform(place);
             context.DrawText(text, new Point(-text.Width / 2, -text.Height / 2));
         }
         else
         {
-            context.DrawEllipse(fill, rim, new Point(0, 0), 15, 15);
+            using (context.PushTransform(stretch))
+                context.DrawEllipse(fill, rim, new Point(0, 0), 15, 15);
+            using var _ = context.PushTransform(place);
             DrawGlyph(context, beat.Glyph, bg, 18, new Point(0, 0));
         }
     }
