@@ -312,7 +312,7 @@ Editing (press E):
 - [ ] Press N: the Add panel opens.
 - [ ] Select API and press Delete: the notice says it still contains auth and orders. Select
       Cache and press Delete: it goes.
-- [ ] Select API, type `src/cli.ts` in Code and press Tab: `example/model.yaml` gets a
+- [ ] Select API, type `src/cli.ts` under Source and press Tab: `example/model.yaml` gets a
       `code` list with `src/cli.ts`. Clear the field and press Tab: `code` is gone.
 - [ ] Press New flow, name it, click Customer then Web app, type a step and press Enter. Add a
       second step, move it up with ↑, delete it with ×. Leave edit mode and play the new flow.

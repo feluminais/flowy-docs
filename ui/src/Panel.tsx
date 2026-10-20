@@ -112,8 +112,8 @@ function CodeList({ object, codeBase }: { object: FlowyObject; codeBase?: string
   if (paths.length === 0) return null
   return (
     <>
-      <Section icon={Code} title="Code" count={paths.length} />
-      <ul className="code-list" aria-label="Code">
+      <Section icon={Folder} title="Source" count={paths.length} />
+      <ul className="code-list" aria-label="Source">
         {paths.map((p, i) => (
           <li key={i}>
             {p.endsWith('/') ? <Folder size={16} /> : <File size={16} />}
@@ -261,8 +261,8 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
         </div>
         <Section icon={Text} title="Description" />
         <Field label="Description" value={object.description ?? ''} multiline onSave={description => save({ description })} />
-        <Section icon={Code} title="Code" />
-        <Field label="Code (one path per line)" value={Array.isArray(object.code) ? object.code.join('\n') : ''} multiline
+        <Section icon={Folder} title="Source" />
+        <Field label="Files and folders (one per line)" value={Array.isArray(object.code) ? object.code.join('\n') : ''} multiline
           onSave={text => save({ code: text.split('\n').map(line => line.trim()).filter(Boolean) })} />
         <Section icon={LinkIcon} title="Links" />
         <Field label="Links (one per line: title | address)" value={linksOf(object).map(linkLine).join('\n')} multiline
