@@ -33,7 +33,8 @@ npm run dev:ui
 `docs/demo/` is Plum, the made-up delivery service in the README's screenshots. `node src/cli.ts --dir docs/demo/flowy`
 opens it. Its `code:` paths point at placeholder files beside it, so the canvas shows no problems. Its `flowy/perf/` holds
 two load-test runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute, and
-the same test after a fix); they name shapes and connections of the model, so a rename there is a run problem. The screenshots in
+the same test after a fix); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
+is an eight-mode failure analysis with made-up ratings, and it names shapes, connections, a flow and a run in the same way. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
 `--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
@@ -42,6 +43,12 @@ Retake them when the app changes how it looks.
 
 `docs/images/hero.png`, the picture at the top of the README, is cut from those screenshots. After retaking them, run
 `uv run --with pillow docs/images/hero.py` to build it again.
+
+`docs/images/failures.png` and `docs/images/yaml.png` are the browser version in the light theme at twice the pixel density, in a 1200 by 1000
+and a 1200 by 760 window. Serve a copy of `docs/demo` (`FLOWY_STATE_DIR=<empty folder> node src/cli.ts --dir <copy>/flowy --no-open`, so the
+copy's history stays out of your own and the demo is not written to). For the first, open `#ordering/failures/ordering/stripe-timeout`. For the
+second, press E and change a few things (a shape's Tech, a line of a flow's file in an editor, a `put_object` through `node src/cli.ts mcp`) so
+the list has You, Claude and Outside steps, press Y, and pick the step Claude wrote.
 
 ## The animation showcase
 
@@ -299,6 +306,25 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
 - [ ] Press E with the Performance panel open: it closes and the button leaves the rail; E again brings the button back. Open
       `#shop/perf/ramp/2` in a new tab: it opens on that load. With the system's reduce-motion setting on there are no dots, no Ramp
       button and no easing between loads, and the outlines, thickness, badges and numbers still show. Light and dark both read.
+
+Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
+
+- [ ] The right rail has a Failures button under Performance with an 8 on it, and M opens its panel in Details' place with `#root/failures/ordering` in the
+      address. The key reads High 2, Medium 2, Low 3 and Not rated 1, then "Analysed 8 of 26" and "Not analysed (18)". At the overview Ordering
+      carries a red 4 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), ETA to Mapbox (108),
+      Checkout to Stripe (96) and on down to Fleet DB, which is Not rated.
+- [ ] Open `#ordering/failures/ordering/stripe-timeout`: Order API and the line to Stripe are outlined red, Kitchen tablet and Customer app in a lighter outline,
+      and the rest fades. The panel reads Risk 96 Medium, "After: 96 to 32". Show it plays The payment is captured. Open `#delivery/failures/ordering/eta-mapbox-fails`:
+      Seen in a run opens `#dispatch/perf/dinner-rush/3`. ← → move down the list, and Esc closes the panel.
+- [ ] Press E with the panel open: it stays, and gains New analysis, Add failure mode and a form for the mode picked. Copy as table and Copy as CSV put the ranked
+      list on the clipboard. `node src/cli.ts failures --dir docs/demo/flowy` prints the same table and exits with 0. Light and dark both read.
+
+YAML (press Y, in a copy of `docs/demo` served with `FLOWY_STATE_DIR` pointing at an empty folder, so the history stays out of your own):
+
+- [ ] The left panel gains a YAML tab beside Explorer and Flows, with a tab for `model.yaml`, `failures/ordering.yaml` and each flow, and one step, First seen. Press E, change
+      a shape's Tech, and press Tab: a "You" step appears, and the changed line shows red above green. Change a file in an editor: an "Outside" step appears.
+- [ ] Pick the older step: its files show with the marks against the step before it, and Restore is greyed out with "Edit to restore" beside it. Press E, then Restore: the
+      model goes back, a "Restored" step is on top, and Ctrl+Z puts the change back. Clear history asks first, and Clear empties the list. An exported page and the VS Code panel have no YAML tab.
 
 Editing (press E):
 

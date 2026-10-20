@@ -1,0 +1,116 @@
+name: Order to door
+about: Made-up ratings for the demo, not a review of anything real.
+scale:
+  severity: { low: Nobody notices, high: A customer loses money or the kitchen stops }
+  occurrence: { low: Never seen, high: Most days }
+  detection: { low: An alert fires within a minute, high: We hear from a customer }
+modes:
+  stripe-timeout:
+    from: checkout
+    to: stripe
+    mode: Stripe doesn't answer within five seconds
+    effect: The order waits on a hold that may or may not exist.
+    cause: Stripe is slow, or the network between Plum and Stripe drops.
+    severity: 8
+    occurrence: 4
+    detection: 3
+    controls: Three tries with backoff. The idempotency key stops a double hold.
+    action: Page when more than 1% of holds time out for five minutes.
+    owner: Payments
+    status: planned
+    after: { severity: 8, occurrence: 4, detection: 1 }
+    affects: [customer-app, kitchen-tablet]
+    flow: capture-payment
+    step: 1
+  card-declined:
+    from: checkout
+    to: stripe
+    mode: Stripe declines the card
+    effect: The order is not placed, and the customer is asked for another card.
+    cause: The card is short of funds, expired or blocked.
+    severity: 3
+    occurrence: 7
+    detection: 2
+    controls: The hold is released and the app asks again.
+    owner: Payments
+    status: accepted
+    affects: [customer-app]
+    flow: capture-payment
+    step: 5
+  refund-not-recorded:
+    on: refunds
+    mode: Stripe refunds the money but the database write fails
+    effect: The customer has the money back, and Plum still shows the order as paid.
+    cause: Orders DB is out of reach at the moment the refund is saved.
+    severity: 9
+    occurrence: 2
+    detection: 7
+    controls: Support can see the refund in Stripe.
+    action: Compare refunds with Stripe every night.
+    owner: Support tools
+    status: open
+    affects: [support-console]
+    description: |
+      The refund and the write are two steps, so one can happen without the other.
+      The nightly comparison finds the gap. It does not close it.
+  orders-db-down:
+    on: orders-db
+    mode: Orders DB is unavailable
+    effect: No order can be placed or read until it is back.
+    cause: The primary fails, or a failover takes longer than planned.
+    severity: 10
+    occurrence: 2
+    detection: 1
+    controls: A standby takes over within a minute.
+    action: Rehearse the failover every quarter.
+    owner: Platform
+    status: planned
+    affects: [customer-app, web, kitchen-tablet, order-api]
+  double-tap:
+    on: order-api
+    mode: A double tap places two orders
+    effect: The customer is charged twice for one basket.
+    cause: The app sends the order again when the first reply is slow.
+    severity: 6
+    occurrence: 5
+    detection: 4
+    controls: Every order carries an idempotency key, and a second order with the same key is refused.
+    owner: Ordering
+    status: done
+    after: { severity: 6, occurrence: 1, detection: 4 }
+    affects: [customer-app]
+  menu-cache-stale:
+    on: menu-cache
+    mode: Serves a menu five minutes late
+    effect: A customer orders a dish the kitchen has just taken off.
+    cause: The cache refreshes every five minutes.
+    severity: 2
+    occurrence: 8
+    detection: 3
+    controls: The kitchen can refuse an item, and the customer is told.
+    owner: Ordering
+    status: accepted
+    affects: [customer-app, web]
+  eta-mapbox-fails:
+    from: eta
+    to: mapbox
+    mode: Mapbox calls fail at dinner rush
+    effect: Dispatch has no travel times, so couriers are matched on distance alone.
+    cause: Plum passes Mapbox's rate limit once orders pass 900 a minute.
+    severity: 6
+    occurrence: 6
+    detection: 3
+    controls: Dispatch falls back to straight-line distance.
+    action: Batch the travel-time calls, as the second run tries.
+    owner: Delivery
+    status: planned
+    after: { severity: 6, occurrence: 2, detection: 3 }
+    affects: [dispatch, offers]
+    run: dinner-rush
+  fleet-position-writes:
+    on: fleet-db
+    mode: Position writes fail
+    effect: Live tracking shows an old position, or none.
+    owner: Delivery
+    status: open
+    affects: [tracking]

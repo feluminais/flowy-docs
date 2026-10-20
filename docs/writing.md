@@ -194,6 +194,28 @@ steps:
 
 What changed: the sender is the subject in every step, the endpoint moved into More, the hold is something the Order API does to Stripe rather than something Stripe does, the event step says nobody is waited for, and each step says what passes.
 
+## Failure modes
+
+A failure analysis ranks how the system breaks, for someone deciding what to fix first. The format is in
+[the guide](guide.md#failure-modes).
+
+- **State a mode as a fact, one way of failing to a row.** "Stripe doesn't answer within five seconds" is a mode. "Payment problems" is a
+  heading. A part that fails three ways gets three rows.
+- **The effect is what a person or another part sees.** "The order waits on a hold that may or may not exist." says what happens next.
+  "Payment fails" repeats the mode.
+- **Rate what you can defend, and leave the rest out.** A mode with no ratings shows as Not rated and stays in the list. Ratings
+  made up to fill a column make the ranking look sharper than it is. Say in `about` who rated it and what the ratings rest on.
+- **Controls are what exists today, and the next action is what to do.** "Three tries with backoff" is a control. "Page when more than
+  1% of holds time out for five minutes" is an action. Mark a mode `done` once the action is in, with the ratings you now expect in
+  `after`, and `accepted` when the team has decided to live with it.
+- **Name what a failure affects.** `affects` lists the shapes it hurts. You write it, because Flowy can't tell that a failing Stripe
+  stops the kitchen tablet.
+- **Link the story and the evidence.** `flow` and `step` point at the flow that tells the failure, and `run` at a load-test run that
+  shows it. A mode with no flow is still worth writing.
+- **Keep a row to a line each.** More (`description`) is for the why, and a long analysis of one part belongs in a document the shape
+  links to.
+- **Give a severity of 9 or 10 on purpose.** It makes the mode High whatever the other ratings say.
+
 ## Point at code
 
 `code:` lists the files and folders a shape lives in. A path that doesn't exist shows up as a problem, so the model can't quietly point at code that's gone.
@@ -278,6 +300,7 @@ Claude's usual mistakes are shapes at the wrong level (every class a shape), pla
 - Does every shape you built have a `code:` path that exists?
 - Does anything long (a procedure, a table, a decision) live in a document the shape links to, rather than in its panel?
 - Does each store show only the tables a flow touches, with invented rows and notes that say why?
+- Does each failure mode name one way of failing, with an effect a reader could see and ratings you can defend or have left out?
 - Is anything planned or deprecated marked in its teaser?
 - Does every shape, colour and icon that isn't the type's default say something, and does each colour mean one thing?
 - Is anything that was guessed marked as an open question?
