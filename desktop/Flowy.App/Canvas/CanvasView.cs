@@ -166,9 +166,10 @@ internal sealed class CanvasView : Border
                 }
             }
             foreach (var (id, amounts) in asked) Squash(id, MotionMath.Largest(amounts));
+            _back.LitFade = started.Min(s => MotionMath.LitOpacity(s.Beats, now));
         }, () =>
         {
-            StopStep();
+            EndStep(keepFade: true); // a line that timed out stays dim until the step is left
             done?.Invoke();
         });
         return true;
@@ -192,13 +193,19 @@ internal sealed class CanvasView : Border
     }
 
     /// <summary>Stops the step's animation where it is and puts the boxes back.</summary>
-    public void StopStep()
+    public void StopStep() => EndStep(keepFade: false);
+
+    /// <summary>How strong the lines a step has lit are drawn: 1, or less once a step that timed out has dimmed them.</summary>
+    public double LitFade => _back.LitFade;
+
+    private void EndStep(bool keepFade)
     {
         _step?.Dispose();
         _step = null;
         StepMoving = false;
         _motion.Clear();
         foreach (var box in _boxes.Values) box.SetSquash(0);
+        if (!keepFade) _back.LitFade = 1;
     }
 
     private void Squash(string id, double amount)

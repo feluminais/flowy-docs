@@ -96,7 +96,22 @@ internal sealed class BackLayer : Control
     private IBrush Brush(string key) =>
         this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
 
-    private static double Fade(SceneEdge e) => e.Flags.HasFlag(EdgeFlags.Dim) ? 0.15 : e.Flags.HasFlag(EdgeFlags.Lane) ? 0.55 : e.Flags.HasFlag(EdgeFlags.Faint) ? 0.25 : 1;
+    private double _litFade = 1;
+
+    /// <summary>How strong the lines a step has lit are drawn: 1, or less while a step that timed out has dimmed them (see MotionMath.LitOpacity).</summary>
+    public double LitFade
+    {
+        get => _litFade;
+        set
+        {
+            if (_litFade == value) return;
+            _litFade = value;
+            InvalidateVisual();
+        }
+    }
+
+    private double Fade(SceneEdge e) =>
+        e.Flags.HasFlag(EdgeFlags.Dim) ? 0.15 : e.Flags.HasFlag(EdgeFlags.Lane) ? 0.55 : e.Flags.HasFlag(EdgeFlags.Faint) ? 0.25 : e.Flags.HasFlag(EdgeFlags.Active) || e.Flags.HasFlag(EdgeFlags.Step) ? _litFade : 1;
 
     public override void Render(DrawingContext context)
     {
