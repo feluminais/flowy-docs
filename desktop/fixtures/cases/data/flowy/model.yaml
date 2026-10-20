@@ -53,7 +53,7 @@ objects:
         columns:
           - Key
           - Value
-          - {name: Expires, note: Set on every write, never extended on a read.}
+          - {name: Expires, note: "Set on every write, never extended on a read."}
         rows:
           - ["menu:{restaurantId}", "{ items, prices, hours }", 5 min]
           - [menu:42, '{ "items": 31 }', 3 min left]
