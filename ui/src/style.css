@@ -555,7 +555,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .motion .flash { fill: var(--accent); }
 .motion .flash.fail { fill: var(--danger); }
 /* A step that times out dims the lines it lit: StepMotion sets --lit on the canvas while the fade runs, and the line stays dim until the step is left. */
-.react-flow__edge.active, .react-flow__edge.step { opacity: var(--lit, 1); }
+.react-flow__edge.active:not(.faint, .dim), .react-flow__edge.step:not(.faint, .dim) { opacity: var(--lit, 1); } /* a faint or dim line keeps its own fade, as on the desktop */
 .motion .dots circle { fill: var(--accent); }
 .motion .glyph { fill: none; stroke: var(--bg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .motion .glyph.drop { stroke: var(--accent); stroke-width: 2.2; }
