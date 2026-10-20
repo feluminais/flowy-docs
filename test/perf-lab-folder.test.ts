@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
 import { modelFiles } from '../src/core/model.ts'
+import { modelOf } from '../src/core/state.ts'
 import { knee } from '../src/core/perf.ts'
 import { loadState } from '../src/node/files.ts'
 
@@ -34,6 +35,6 @@ test('the folders the repo ships can be edited in the canvas: their files can al
     const state = await loadState(join(import.meta.dirname, dir))
     assert.ok('model' in state, dir)
     // a flow-style line with an unquoted comma in a label reads as a stray key with no value, which the writer refuses
-    assert.doesNotThrow(() => modelFiles({ ...state.model, flows: state.flows, layout: state.layout }), dir)
+    assert.doesNotThrow(() => modelFiles(modelOf(state)), dir)
   }
 })

@@ -1,6 +1,7 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ROOT } from '../../src/core/model.ts'
+import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
 import { isView, placeStep } from '../../src/core/views.ts'
 import { loadState } from '../../src/node/files.ts'
@@ -15,7 +16,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url))
 async function load(folder: string) {
   const state = await loadState(join(root, folder))
   if ('parseError' in state) throw new Error(`${folder} can't be read`)
-  const model: Model = { ...state.model, flows: state.flows, layout: state.layout }
+  const model: Model = modelOf(state)
   return { model, problems: state.problems }
 }
 

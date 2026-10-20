@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { flowToMermaid, mermaidText, viewToMermaid } from '../../src/core/mermaid.ts'
 import { ROOT } from '../../src/core/model.ts'
+import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
 import { isView } from '../../src/core/views.ts'
 import { loadState } from '../../src/node/files.ts'
@@ -16,7 +17,7 @@ export async function dumpMermaid(): Promise<unknown> {
   for (const folder of ['docs/demo/flowy', 'example', 'desktop/fixtures/cases/problems/flowy', 'desktop/fixtures/cases/look/flowy', 'desktop/fixtures/cases/groups/flowy']) {
     const state = await loadState(join(root, folder))
     if ('parseError' in state) throw new Error(`${folder} can't be read`)
-    const model: Model = { ...state.model, flows: state.flows, layout: state.layout }
+    const model: Model = modelOf(state)
     const views = [ROOT, ...Object.keys(model.objects)].filter(id => isView(model, id))
     folders.push({
       folder,
