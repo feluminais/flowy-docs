@@ -227,16 +227,16 @@ connections:
   - { from: after-source, to: after-from, label: hands over }
   - { from: after-from, to: after-to, label: callback }
   - { from: cold-from, to: cold-to, label: callback }
-  - { from: repeat-from, to: repeat-to, label: asks }
-  - { from: repeat-to, to: repeat-from, label: answers }
+  - { from: repeat-from, to: repeat-to, label: asks and answers }
+  - { from: repeat-to, to: repeat-from }
   - { from: branch-from, to: branch-a, label: lane A }
   - { from: branch-from, to: branch-b, label: lane B }
   - { from: parallel-from, to: parallel-a, label: lane A }
-  - { from: parallel-a, to: parallel-from, label: lane A answers }
+  - { from: parallel-a, to: parallel-from }
   - { from: parallel-from, to: parallel-b, label: lane B }
   - { from: parallel-from, to: parallel-c, label: lane C }
-  - { from: link-from, to: link-to, label: hands over }
-  - { from: link-to, to: link-from, label: answers }
+  - { from: link-from, to: link-to, label: hands over and answers }
+  - { from: link-to, to: link-from }
   - { from: load, to: traffic, label: calls }
   - { from: load, to: latency, label: calls }
   - { from: load, to: failing-calls, label: calls }
