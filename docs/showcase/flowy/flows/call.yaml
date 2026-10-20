@@ -1,0 +1,4 @@
+name: Call
+view: steps
+steps:
+  - { from: call-from, to: call-to, text: Calls and waits for the answer, animation: call }

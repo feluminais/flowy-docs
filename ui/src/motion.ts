@@ -54,15 +54,6 @@ export const tubeOpacity = (b: Span, t: number): number => Math.min(1, Math.max(
 /** How far along a line of length `len` a blob is at progress `p`, running forward or back. */
 export const distance = (dir: 'fwd' | 'back' | undefined, p: number, len: number): number => (dir === 'back' ? 1 - ease(p) : ease(p)) * len
 
-/**
- * The dash settings that draw one stretch of a path of length `len`: `window` long and centred on `pos`.
- * The gap is longer than the path, so the pattern never repeats on it.
- */
-export const dashAround = (pos: number, len: number, window: number): { array: string; offset: number } => ({
-  array: `${window} ${len * 2 + window}`,
-  offset: -(pos - window / 2),
-})
-
 /** The biggest of some squashes, 0 for none. */
 export const largest = (amounts: Iterable<number>): number => Math.max(0, ...amounts)
 

@@ -5548,7 +5548,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 38,
-              "flows": 6,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -5557,7 +5557,7 @@
           ],
           "totals": {
             "shapes": 38,
-            "flows": 6,
+            "flows": 13,
             "problems": 0
           }
         },
@@ -5577,7 +5577,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 38,
-              "flows": 6,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5625,7 +5625,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -5634,7 +5634,7 @@
           ],
           "totals": {
             "shapes": 38,
-            "flows": 6,
+            "flows": 13,
             "problems": 0
           }
         },
@@ -5655,7 +5655,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 38,
-              "flows": 6,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5703,7 +5703,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5918,6 +5918,70 @@
               "match": true
             },
             {
+              "key": "flow:bolt-drop",
+              "kind": "flow",
+              "id": "bolt-drop",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Bolt drop",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:call",
+              "kind": "flow",
+              "id": "call",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:callback",
+              "kind": "flow",
+              "id": "callback",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:event",
+              "kind": "flow",
+              "id": "event",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Event",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:every-step-animation",
               "kind": "flow",
               "id": "every-step-animation",
@@ -5932,11 +5996,59 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:flash",
+              "kind": "flow",
+              "id": "flash",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:send",
+              "kind": "flow",
+              "id": "send",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:send-with-a-word",
+              "kind": "flow",
+              "id": "send-with-a-word",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send with a word",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 38,
-            "flows": 6,
+            "flows": 13,
             "problems": 0
           }
         },
@@ -5994,7 +6106,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 38,
-              "flows": 6,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6474,7 +6586,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6689,6 +6801,70 @@
               "match": true
             },
             {
+              "key": "flow:bolt-drop",
+              "kind": "flow",
+              "id": "bolt-drop",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Bolt drop",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:call",
+              "kind": "flow",
+              "id": "call",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:callback",
+              "kind": "flow",
+              "id": "callback",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:event",
+              "kind": "flow",
+              "id": "event",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Event",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:every-step-animation",
               "kind": "flow",
               "id": "every-step-animation",
@@ -6703,11 +6879,59 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:flash",
+              "kind": "flow",
+              "id": "flash",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:send",
+              "kind": "flow",
+              "id": "send",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:send-with-a-word",
+              "kind": "flow",
+              "id": "send-with-a-word",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send with a word",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 38,
-            "flows": 6,
+            "flows": 13,
             "problems": 0
           }
         },
@@ -6765,7 +6989,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 38,
-              "flows": 6,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -7245,7 +7469,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -7460,6 +7684,70 @@
               "match": true
             },
             {
+              "key": "flow:bolt-drop",
+              "kind": "flow",
+              "id": "bolt-drop",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Bolt drop",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:call",
+              "kind": "flow",
+              "id": "call",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:callback",
+              "kind": "flow",
+              "id": "callback",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:event",
+              "kind": "flow",
+              "id": "event",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Event",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:every-step-animation",
               "kind": "flow",
               "id": "every-step-animation",
@@ -7474,11 +7762,59 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:flash",
+              "kind": "flow",
+              "id": "flash",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:send",
+              "kind": "flow",
+              "id": "send",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:send-with-a-word",
+              "kind": "flow",
+              "id": "send-with-a-word",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send with a word",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 38,
-            "flows": 6,
+            "flows": 13,
             "problems": 0
           }
         },
@@ -7496,7 +7832,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 38,
-              "flows": 6,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -7880,7 +8216,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -7999,6 +8335,38 @@
               "match": true
             },
             {
+              "key": "flow:call",
+              "kind": "flow",
+              "id": "call",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Call",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:callback",
+              "kind": "flow",
+              "id": "callback",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Callback",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:every-step-animation",
               "kind": "flow",
               "id": "every-step-animation",
@@ -8013,11 +8381,43 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:flash",
+              "kind": "flow",
+              "id": "flash",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Flash",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:send-with-a-word",
+              "kind": "flow",
+              "id": "send-with-a-word",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Send with a word",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 38,
-            "flows": 6,
+            "flows": 13,
             "problems": 0
           }
         },
@@ -8031,7 +8431,7 @@
           "rows": [],
           "totals": {
             "shapes": 38,
-            "flows": 6,
+            "flows": 13,
             "problems": 0
           }
         },
@@ -8051,7 +8451,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 38,
-              "flows": 6,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8099,7 +8499,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 1,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -8108,7 +8508,7 @@
           ],
           "totals": {
             "shapes": 38,
-            "flows": 6,
+            "flows": 13,
             "problems": 0
           }
         }
@@ -8166,15 +8566,57 @@
               ],
               "flows": [
                 {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "every-step-animation",
                   "name": "Every step animation",
                   "steps": 8,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
                   "view": "steps"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 13
         },
         {
           "view": "root",
@@ -8228,24 +8670,108 @@
               ],
               "flows": [
                 {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "every-step-animation",
                   "name": "Every step animation",
                   "steps": 8,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
                   "view": "steps"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 13
         },
         {
           "view": "steps",
           "editing": false,
           "here": [
             {
+              "id": "bolt-drop",
+              "name": "Bolt drop",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "call",
+              "name": "Call",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "callback",
+              "name": "Callback",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "event",
+              "name": "Event",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
               "id": "every-step-animation",
               "name": "Every step animation",
               "steps": 8,
+              "view": "steps"
+            },
+            {
+              "id": "flash",
+              "name": "Flash",
+              "steps": 2,
+              "view": "steps"
+            },
+            {
+              "id": "send",
+              "name": "Send",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "send-with-a-word",
+              "name": "Send with a word",
+              "steps": 1,
               "view": "steps"
             }
           ],
@@ -8290,16 +8816,58 @@
               ]
             }
           ],
-          "total": 6
+          "total": 13
         },
         {
           "view": "steps",
           "editing": true,
           "here": [
             {
+              "id": "bolt-drop",
+              "name": "Bolt drop",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "call",
+              "name": "Call",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "callback",
+              "name": "Callback",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "event",
+              "name": "Event",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
               "id": "every-step-animation",
               "name": "Every step animation",
               "steps": 8,
+              "view": "steps"
+            },
+            {
+              "id": "flash",
+              "name": "Flash",
+              "steps": 2,
+              "view": "steps"
+            },
+            {
+              "id": "send",
+              "name": "Send",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "send-with-a-word",
+              "name": "Send with a word",
+              "steps": 1,
               "view": "steps"
             }
           ],
@@ -8344,7 +8912,7 @@
               ]
             }
           ],
-          "total": 6
+          "total": 13
         },
         {
           "view": "structure",
@@ -8390,15 +8958,57 @@
               ],
               "flows": [
                 {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "every-step-animation",
                   "name": "Every step animation",
                   "steps": 8,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
                   "view": "steps"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 13
         },
         {
           "view": "structure",
@@ -8444,15 +9054,57 @@
               ],
               "flows": [
                 {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "every-step-animation",
                   "name": "Every step animation",
                   "steps": 8,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
                   "view": "steps"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 13
         },
         {
           "view": "performance",
@@ -8506,15 +9158,57 @@
               ],
               "flows": [
                 {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "every-step-animation",
                   "name": "Every step animation",
                   "steps": 8,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
                   "view": "steps"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 13
         },
         {
           "view": "performance",
@@ -8568,15 +9262,57 @@
               ],
               "flows": [
                 {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "every-step-animation",
                   "name": "Every step animation",
                   "steps": 8,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
                   "view": "steps"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 13
         },
         {
           "view": "rolled-up",
@@ -8630,15 +9366,57 @@
               ],
               "flows": [
                 {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "every-step-animation",
                   "name": "Every step animation",
                   "steps": 8,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
                   "view": "steps"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 13
         },
         {
           "view": "rolled-up",
@@ -8692,15 +9470,57 @@
               ],
               "flows": [
                 {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "every-step-animation",
                   "name": "Every step animation",
                   "steps": 8,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
                   "view": "steps"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 13
         }
       ],
       "expandTo": [

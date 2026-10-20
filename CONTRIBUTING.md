@@ -46,7 +46,7 @@ in the desktop app. `node src/cli.ts --dir docs/showcase/flowy` opens it, and so
 `dotnet run --project desktop/Flowy.App -- docs/showcase`. Each shape is named for the animation it plays (Send · from, Flash · to), and its second line holds the tag that sets it off.
 It has three views:
 
-- Step animations: the flow Every step animation plays each way a step can travel. Press **P** to watch them one after the other, or step to one and press **R**.
+- Step animations: a flow of one step for each way a step can travel (Send, Call, Event, Callback, Flash, Bolt drop, Send with a word), so you can click through them, and Every step animation, which plays them all: press **P** to watch them one after the other, or **R** to play a step again.
 - Flow structure: a flow each for Repeat, Branch, Parallel and Flow link.
 - Performance: the run Every load effect (**T**) gives each shape one effect of load, and **Ramp** sweeps all of them.
 
@@ -263,7 +263,7 @@ Reading:
 Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flowy`, then the same folder in the desktop app):
 
 - [ ] Open *Every step animation* (`#steps/every-step-animation`) and press P: eight steps play in turn, each taking two to four seconds. In the browser a step plays again two and a half seconds after it ends until you move on, the Repeat button on the card turns that off (and is
-      remembered), the line's label sits beside the pipe, and nothing draws over the pipe while it runs. Send runs an envelope one way, Call goes and
+      remembered), the line's label sits beside the line, and the line has no outline while it runs. Send runs an envelope one way, Call goes and
       comes back while dots wait over the caller, Event runs a bolt and flashes the receiver, Callback sends a ring, then a bell, then a ring, a callback
       after a step flashes its publisher first, one from outside drops a bolt on it, and the last Send carries the words "order 42". Every shape
       squashes or flashes where the animation says it does, on the queue, the cylinder and the hexagon too. With the system's animation effects off, nothing moves.

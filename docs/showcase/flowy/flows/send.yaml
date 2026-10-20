@@ -1,0 +1,4 @@
+name: Send
+view: steps
+steps:
+  - { from: send-from, to: send-to, text: Sends one way and carries on without waiting, animation: send }

@@ -5,7 +5,7 @@
       "id": "steps",
       "type": "system",
       "name": "Step animations",
-      "description": "One pair of shapes for each way a step can travel, named for the animation they play.\n\nOpen the flow **Every step animation** and press **P** to watch them one after the other,\nor step to one and press **R** to play it again.\n"
+      "description": "One pair of shapes for each way a step can travel, named for the animation they play.\n\nEach animation has a flow of its own with a single step to click through: Send, Call, Event, Callback, Flash, Bolt drop\nand Send with a word (Flash has two, because the step before sets it off).\n\n**Every step animation** plays them all: press **P** to watch them one after the other.\n"
     },
     {
       "id": "structure",
@@ -552,6 +552,27 @@
   },
   "flows": [
     {
+      "id": "bolt-drop",
+      "name": "Bolt drop",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "cold-from",
+          "to": "cold-to",
+          "text": "Runs a callback that something outside set off",
+          "animation": {
+            "kind": "callback",
+            "trigger": "outside"
+          },
+          "placed": [
+            "cold-from",
+            "cold-to"
+          ],
+          "ends": "Bolt drop · from → Bolt drop · to"
+        }
+      ]
+    },
+    {
       "id": "branch",
       "name": "Branch",
       "view": "structure",
@@ -607,6 +628,60 @@
           "text": "Only one lane happens."
         }
       }
+    },
+    {
+      "id": "call",
+      "name": "Call",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "call-from",
+          "to": "call-to",
+          "text": "Calls and waits for the answer",
+          "animation": "call",
+          "placed": [
+            "call-from",
+            "call-to"
+          ],
+          "ends": "Call · from → Call · to"
+        }
+      ]
+    },
+    {
+      "id": "callback",
+      "name": "Callback",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "callback-from",
+          "to": "callback-to",
+          "text": "Runs a callback on its subscriber",
+          "animation": "callback",
+          "placed": [
+            "callback-from",
+            "callback-to"
+          ],
+          "ends": "Callback · from → Callback · to"
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "name": "Event",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "event-from",
+          "to": "event-to",
+          "text": "Raises an event",
+          "animation": "event",
+          "placed": [
+            "event-from",
+            "event-to"
+          ],
+          "ends": "Event · from → Event · to"
+        }
+      ]
     },
     {
       "id": "every-step-animation",
@@ -715,6 +790,38 @@
             "send-to"
           ],
           "ends": "Send · from → Send · to"
+        }
+      ]
+    },
+    {
+      "id": "flash",
+      "name": "Flash",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "after-source",
+          "to": "after-from",
+          "text": "Hands the publisher something",
+          "animation": "send",
+          "placed": [
+            "after-source",
+            "after-from"
+          ],
+          "ends": "Flash · source → Flash · from"
+        },
+        {
+          "from": "after-from",
+          "to": "after-to",
+          "text": "Runs a callback that the step before set off",
+          "animation": {
+            "kind": "callback",
+            "trigger": "outside"
+          },
+          "placed": [
+            "after-from",
+            "after-to"
+          ],
+          "ends": "Flash · from → Flash · to"
         }
       ]
     },
@@ -892,6 +999,45 @@
           "text": "Waits a little longer before each new try."
         }
       }
+    },
+    {
+      "id": "send-with-a-word",
+      "name": "Send with a word",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "send-from",
+          "to": "send-to",
+          "text": "Sends a word on the blob",
+          "animation": {
+            "kind": "send",
+            "carries": "order 42"
+          },
+          "placed": [
+            "send-from",
+            "send-to"
+          ],
+          "ends": "Send · from → Send · to"
+        }
+      ]
+    },
+    {
+      "id": "send",
+      "name": "Send",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "send-from",
+          "to": "send-to",
+          "text": "Sends one way and carries on without waiting",
+          "animation": "send",
+          "placed": [
+            "send-from",
+            "send-to"
+          ],
+          "ends": "Send · from → Send · to"
+        }
+      ]
     }
   ],
   "problems": [],

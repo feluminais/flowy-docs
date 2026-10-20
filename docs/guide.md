@@ -48,8 +48,8 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   to say has a More you can open. When a step lands on a shape that stands for a part inside it, the
   player names the part too ("Scheduler in Core"), so two steps on two parts of one shape don't read
   as a round trip.
-- A step can carry an `animation:`. When you arrive at it, its line turns into a pipe and something
-  runs through it: `call` goes and comes back while the sender waits, `send` and `event` go one
+- A step can carry an `animation:`. When you arrive at it, its line turns bold and bright and something
+  runs along it: `call` goes and comes back while the sender waits, `send` and `event` go one
   way, and `callback` shows what set it off (`trigger: outside` when it was the step before).
   In the browser the step plays again two and a half seconds after it ends, until you move on (the Repeat button on the card turns that off),
   R plays it again from the start, and Autoplay (P) steps through the flow on its own after the first play. Nothing moves when

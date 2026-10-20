@@ -468,12 +468,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 /* A tagged step playing (see StepMotion.tsx): a pipe along the step's line, a blob running through it, and rings and flashes on the boxes. */
 .motion { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; z-index: 2; } /* above the lit line, which sits at 1, so the pipe covers it */
 .motion path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.motion .wall { stroke: color-mix(in srgb, var(--accent) 65%, var(--fg)); stroke-width: 15; }
-.motion .bore { stroke: var(--bg); stroke-width: 10; }
-/* The lit line again, in the middle of the pipe, because the pipe covers the real one while it plays. */
-.motion .core { stroke: var(--accent); stroke-width: 3; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 70%, transparent)); }
-.motion .bulge.wall { stroke-width: 23; }
-.motion .bulge.bore { stroke-width: 18; }
+/* The step's line while it plays: the lit line again, bolder and brighter, with a glow and no outline. */
+.motion .core { stroke: color-mix(in srgb, var(--accent) 85%, white); stroke-width: 7; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 85%, transparent)); }
 .motion .blob circle, .motion .blob rect { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
 .motion .blob.reply circle, .motion .blob.reply rect { fill: var(--app); }
 .motion .blob text { fill: var(--bg); font-size: 15px; font-weight: 600; }

@@ -5,8 +5,10 @@ objects:
     description: |
       One pair of shapes for each way a step can travel, named for the animation they play.
 
-      Open the flow **Every step animation** and press **P** to watch them one after the other,
-      or step to one and press **R** to play it again.
+      Each animation has a flow of its own with a single step to click through: Send, Call, Event, Callback, Flash, Bolt drop
+      and Send with a word (Flash has two, because the step before sets it off).
+
+      **Every step animation** plays them all: press **P** to watch them one after the other.
   structure:
     type: system
     name: Flow structure
