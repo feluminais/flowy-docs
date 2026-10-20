@@ -135,13 +135,14 @@ export async function loadRuns(dir: string, model: Model): Promise<{ runs: Recor
 export async function loadState(dir: string): Promise<State> {
   try {
     const { model, versions, ignored } = await loadDir(dir)
-    const { flows, layout, ...rest } = model
+    const { flows, layout, failures, ...rest } = model
     const base = await codeBase(dirname(resolve(dir)))
     // A flow file that isn't read is no part of the model, so it isn't a problem check() can see.
     const skipped = ignored.map(file => ({ file, message: `Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to ${file.replace(/\.yml$/, '.yaml')}.` }))
     const { runs, problems: runProblems } = await loadRuns(dir, model)
     return {
       model: rest, layout, flows, problems: [...check(model, missingPaths(dir, model)), ...skipped], versions,
+      ...(Object.keys(failures).length > 0 ? { failures } : {}),
       ...(base ? { codeBase: base } : {}),
       ...(Object.keys(runs).length > 0 ? { runs } : {}),
       ...(runProblems.length > 0 ? { runProblems } : {}),

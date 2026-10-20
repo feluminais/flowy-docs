@@ -1,10 +1,11 @@
 import type { Problem } from '../../src/core/check.ts'
 import { describeEdit } from '../../src/core/editlabel.ts'
 import { fallbackLabel } from '../../src/core/history.ts'
-import { fileData } from '../../src/core/model.ts'
+import { fileData, isRemovableFile } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
 import { refuseNewProblems } from '../../src/core/ops.ts'
 import type { Run } from '../../src/core/perf.ts'
+import { modelOf } from '../../src/core/state.ts'
 import type { State } from '../../src/core/state.ts'
 import { changesBetween } from './edit.ts'
 import { httpTransport } from './transport.ts'
@@ -20,7 +21,7 @@ export function fromState(state: State): { model: Model; versions: Record<string
     const { file, line, message } = state.parseError
     throw new Error(`Can't read ${file}${line === undefined ? '' : ` (line ${line})`}: ${message}. Fix the file and this page updates.`)
   }
-  return { model: { ...state.model, flows: state.flows, layout: state.layout }, versions: state.versions, problems: state.problems, codeBase: state.codeBase, runs: state.runs ?? {}, runProblems: state.runProblems ?? [] }
+  return { model: modelOf(state), versions: state.versions, problems: state.problems, codeBase: state.codeBase, runs: state.runs ?? {}, runProblems: state.runProblems ?? [] }
 }
 
 /**
@@ -79,8 +80,8 @@ export async function saveEdit(op: (model: Model) => Model, via: Via = '', onSav
       const reply = await write(transport, file, data, versions[file] ?? null)
       if (reply.status === 409) return CHANGED_OUTSIDE
       if (!ok(reply)) return failed('save', file, reply)
-      // A flow that didn't exist goes away again. model.yaml and layout.yaml can't be deleted, so they go back to empty.
-      const before = versions[file] == null && file.startsWith('flows/') ? null : fileData(model, file)
+      // A flow or analysis that didn't exist goes away again. model.yaml and layout.yaml can't be deleted, so they go back to empty.
+      const before = versions[file] == null && isRemovableFile(file) ? null : fileData(model, file)
       undo.unshift({ file, data: before, now: data, version: versionOf(reply) })
     }
     if (undo.length) {
