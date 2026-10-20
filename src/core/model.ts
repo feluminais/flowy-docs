@@ -1,4 +1,5 @@
-import { Document, parse, stringify, visit, YAMLParseError } from 'yaml'
+import { Document, isMap as isYamlMap, isScalar, isSeq, parse, stringify, visit, YAMLParseError } from 'yaml'
+import type { YAMLMap, YAMLSeq } from 'yaml'
 
 export const ROOT = 'root'
 export const OBJECT_TYPES = ['actor', 'system', 'app', 'store', 'component'] as const
@@ -276,7 +277,58 @@ export function fileData(m: Model, rel: string): unknown {
 /** Whether a file may be absent and so can be created and deleted: a flow or a failure analysis. model.yaml and layout.yaml stay. */
 export const isRemovableFile = (rel: string): boolean => rel.startsWith('flows/') || rel.startsWith('failures/')
 
-export const serializeModelFile = (m: Model) => dump(fileData(m, 'model.yaml'))
+/** An empty string in a flow collection must be quoted: `[a, , b]` does not parse. */
+function flowSeq(seq: YAMLSeq) {
+  seq.flow = true
+  for (const item of seq.items) if (isScalar(item) && item.value === '') item.type = 'QUOTE_DOUBLE'
+}
+
+function flowMap(map: YAMLMap) {
+  map.flow = true
+  for (const pair of map.items) if (isScalar(pair.value) && pair.value.value === '') pair.value.type = 'QUOTE_DOUBLE'
+}
+
+/** In a sample document, a list of only text is written on one line. */
+function flowTextLists(node: unknown) {
+  if (isSeq(node)) {
+    if (node.items.every(item => isScalar(item))) flowSeq(node)
+    else for (const item of node.items) flowTextLists(item)
+  } else if (isYamlMap(node)) for (const pair of node.items) flowTextLists(pair.value)
+}
+
+/**
+ * Marks what a store's `data` writes on one line, so a table of eight rows stays eight lines and a diff stays readable: each row, each column
+ * that is a mapping, a `columns` list of only bare names, and a list of text inside a sample. Everything else stays block style. Only acts on
+ * nodes of the expected kind, so a hand-written `data` of the wrong shape is written as it is, never rejected here (check() reports it).
+ */
+function compactData(doc: Document) {
+  const objects = doc.get('objects', true)
+  if (!isYamlMap(objects)) return
+  for (const { value: object } of objects.items) {
+    const data = isYamlMap(object) ? object.get('data', true) : undefined
+    if (!isSeq(data)) continue
+    for (const entry of data.items) {
+      if (!isYamlMap(entry)) continue
+      const columns = entry.get('columns', true)
+      if (isSeq(columns)) {
+        if (columns.items.every(item => isScalar(item))) flowSeq(columns)
+        else for (const column of columns.items) if (isYamlMap(column)) flowMap(column)
+      }
+      const rows = entry.get('rows', true)
+      if (isSeq(rows)) for (const row of rows.items) if (isSeq(row)) flowSeq(row)
+      flowTextLists(entry.get('sample', true))
+    }
+  }
+}
+
+/** model.yaml's text: like the other files, plus the one-line forms a store's data is written in (see compactData). */
+function dumpModel(value: unknown): string {
+  const doc = new Document(value, { schema: 'failsafe', aliasDuplicateObjects: false })
+  compactData(doc)
+  return doc.toString({ lineWidth: 0, flowCollectionPadding: false })
+}
+
+export const serializeModelFile = (m: Model) => dumpModel(fileData(m, 'model.yaml'))
 export const serializeFlow = (flow: Flow) => dump(flow)
 export const serializeAnalysis = (a: Analysis) => dump(a)
 
@@ -301,7 +353,7 @@ export function parseFile(rel: string, text: string): ReturnType<typeof parseMod
  * Not a check: parse the result with parseFile before writing it.
  */
 export const serializeFile = (rel: string, data: unknown): string =>
-  rel === 'layout.yaml' ? serializeLayout(data as Layout) : dump(data)
+  rel === 'layout.yaml' ? serializeLayout(data as Layout) : rel === 'model.yaml' ? dumpModel(data) : dump(data)
 
 /** Every file MCP may write, as path → text. layout.yaml belongs to the canvas. */
 export function modelFiles(m: Model): Record<string, string> {
