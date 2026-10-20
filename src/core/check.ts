@@ -2,6 +2,7 @@ import { COLOR_NAMES, iconProblem, isColor, isKnownIcon, isOpacity, isShape, SHA
 import { getObject, ID_RULE, isValidId, LINE_STYLES, OBJECT_TYPES, ROOT } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
 import { animationProblem } from './animation.ts'
+import { analysisProblems } from './failures.ts'
 import { structureProblems } from './structure.ts'
 import { isView, placeStep } from './views.ts'
 
@@ -162,6 +163,8 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       else p(`step ${sq.step + 1}: ${sq.message}`, { step: sq.step })
     }
   }
+
+  for (const [aid, a] of Object.entries(model.failures)) problems.push(...analysisProblems(model, aid, a))
   return problems
 }
 

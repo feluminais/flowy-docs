@@ -1,4 +1,5 @@
-import { getObject, ROOT } from './model.ts'
+import type { Problem } from './check.ts'
+import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Analysis, Mode, Model } from './model.ts'
 import { chain, isView, memberIds, nameOf } from './views.ts'
 
@@ -98,4 +99,65 @@ export function partName(model: Model, m: Mode): string {
   if (typeof m.on === 'string' && m.on !== '') return chain(model, m.on).filter(id => id !== ROOT).reverse().map(id => nameOf(model, id)).join(' > ')
   if (typeof m.from === 'string' && typeof m.to === 'string') return `${nameOf(model, m.from)} to ${nameOf(model, m.to)}`
   return ''
+}
+
+/** Text with something in it. A blank value in a file is as good as none. */
+const has = (v: unknown): v is string => typeof v === 'string' && v.trim() !== ''
+
+/**
+ * What is wrong with one analysis, given the model it points into: a part that isn't there, a rating that isn't one, a flow or step that
+ * doesn't exist. `check` adds these to the model's problems, so an edit that makes one is refused. A mode's problems carry its id and
+ * start with it, so a list of problems says which mode. Whether a run exists needs the runs, which are not in the model: see runLinkProblems.
+ */
+export function analysisProblems(model: Model, aid: string, a: Analysis): Problem[] {
+  const file = `failures/${aid}.yaml`
+  const problems: Problem[] = []
+  if (!isValidId(aid)) problems.push({ file, message: `"${aid}" is not a valid analysis id: the file name must ${ID_RULE}` })
+  if (!has(a.name)) problems.push({ file, message: 'name is missing' })
+  if (has(a.scope) && !isView(model, a.scope)) problems.push({ file, message: `scope "${a.scope}" must be "root" or an object with children` })
+  for (const [mid, m] of Object.entries(a.modes)) {
+    const p = (message: string) => problems.push({ file, id: mid, message: `${mid}: ${message}` })
+    if (!isValidId(mid)) p(`the id must ${ID_RULE}`)
+    if (!has(m.mode)) p('"mode" is missing')
+
+    const line = has(m.from) || has(m.to)
+    if (has(m.on) && line) p('has "on" and also "from" or "to"; use one or the other')
+    else if (has(m.on)) {
+      if (!getObject(model, m.on)) p(`unknown object "${m.on}"`)
+    } else if (line) {
+      if (!has(m.from) || !has(m.to)) p('"from" and "to" go together')
+      else {
+        const unknown = [...new Set([m.from, m.to])].filter(end => !getObject(model, end))
+        for (const end of unknown) p(`unknown object "${end}"`)
+        if (unknown.length === 0 && !model.connections.some(c => c.from === m.from && c.to === m.to)) p(`${m.from} → ${m.to} is not a connection in the model`)
+      }
+    } else p('needs "on" (a shape) or "from" and "to" (a line)')
+
+    for (const id of m.affects ?? []) if (!getObject(model, id)) p(`affects: unknown object "${id}"`)
+
+    for (const key of RATING_KEYS) if (has(m[key]) && ratingOf(m[key]) === undefined) p(`${key} must be a whole number from 1 to 10`)
+    for (const key of RATING_KEYS) if (has(m.after?.[key]) && ratingOf(m.after?.[key]) === undefined) p(`after ${key} must be a whole number from 1 to 10`)
+
+    if (has(m.status) && !(STATUSES as readonly string[]).includes(m.status)) p(`status "${m.status}" must be open, planned, done or accepted`)
+
+    const flow = has(m.flow) ? m.flow : undefined
+    const known = flow !== undefined && Object.hasOwn(model.flows, flow)
+    if (flow !== undefined && !known) p(`flow "${flow}" doesn't exist`)
+    if (has(m.step)) {
+      if (flow === undefined) p('step needs a flow')
+      else if (!/^[1-9]\d*$/.test(m.step)) p('step must be a whole number from 1')
+      else if (known && Number(m.step) > model.flows[flow].steps.length) {
+        const count = model.flows[flow].steps.length
+        p(`step ${m.step} is outside flow "${flow}", which has ${count === 1 ? '1 step' : `${count} steps`}`)
+      }
+    }
+  }
+  return problems
+}
+
+/** The modes of an analysis whose `run` names a run that isn't in perf/. Kept apart because the model doesn't hold runs: loadState calls this. */
+export function runLinkProblems(aid: string, a: Analysis, runs: Record<string, unknown>): Problem[] {
+  return Object.entries(a.modes)
+    .filter(([, m]) => has(m.run) && !Object.hasOwn(runs, m.run))
+    .map(([mid, m]) => ({ file: `failures/${aid}.yaml`, id: mid, message: `${mid}: run "${m.run}" doesn't exist` }))
 }
