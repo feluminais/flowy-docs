@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import type { Model } from '../../src/core/model.ts'
+import { modelOf as modelOfState } from '../../src/core/state.ts'
 import type { State } from '../../src/core/state.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -15,5 +16,5 @@ export async function modelOf(dir: string): Promise<Model | undefined> {
     void vscode.window.showErrorMessage(`Flowy can't read ${file}${line === undefined ? '' : ` (line ${line})`}: ${message}`)
     return undefined
   }
-  return { ...state.model, flows: state.flows, layout: state.layout }
+  return modelOfState(state)
 }
