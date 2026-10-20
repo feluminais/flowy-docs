@@ -92,6 +92,64 @@ function linesOf(sample: Record<string, unknown>, notes: Record<string, unknown>
   return lines
 }
 
+/**
+ * A store's data as `put_object` and the edit forms give it. Numbers and booleans are accepted anywhere a value goes and written as text.
+ * A `sample` is any nesting of text, lists and mappings.
+ */
+export type DataInput = {
+  name: string
+  kind?: string
+  limits?: string
+  note?: string
+  columns?: (string | { name: string; key?: 'primary'; to?: string; note?: string })[]
+  rows?: (string | number | boolean)[][]
+  sample?: Record<string, unknown>
+  notes?: Record<string, string>
+}
+
+const blank = (v: unknown) => typeof v === 'string' && v.trim() === ''
+
+/** Numbers and booleans become text and null becomes "", at any depth; everything else is kept. */
+function asText(v: unknown): unknown {
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v)
+  if (v === null || v === undefined) return ''
+  if (Array.isArray(v)) return v.map(asText)
+  if (isMap(v)) return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, asText(x)]))
+  return v
+}
+
+const mapList = (v: unknown, f: (x: unknown) => unknown) => (Array.isArray(v) ? v.map(f) : v)
+
+function tidyColumn(c: unknown): unknown {
+  if (!isMap(c)) return c
+  const { name, key, to, note, ...rest } = c
+  const tidy: Record<string, unknown> = { name }
+  for (const [field, value] of [['key', key], ['to', to], ['note', note]] as const) if (value !== undefined && !blank(value)) tidy[field] = value
+  Object.assign(tidy, rest)
+  return Object.keys(tidy).length === 1 && typeof name === 'string' ? name : tidy
+}
+
+function tidyEntry(e: unknown): unknown {
+  if (!isMap(e)) return e
+  const { name, kind, limits, note, columns, rows, sample, notes, ...rest } = e
+  const tidy: Record<string, unknown> = { name }
+  for (const [field, value] of [['kind', kind], ['limits', limits], ['note', note]] as const) if (value !== undefined && !blank(value)) tidy[field] = value
+  if (columns !== undefined) tidy.columns = mapList(columns, tidyColumn)
+  if (rows !== undefined) tidy.rows = mapList(rows, row => mapList(row, asText))
+  if (sample !== undefined) tidy.sample = asText(sample)
+  if (notes !== undefined && !(isMap(notes) && Object.keys(notes).length === 0)) tidy.notes = notes
+  return Object.assign(tidy, rest)
+}
+
+/**
+ * The entries of a `data` as they go to disk: keys in the order name, kind, limits, note, columns, rows, sample, notes (others after); a
+ * blank kind, limits, note, key or `to` left out; a column with only a name written as the bare name; numbers and booleans as text.
+ * A value of the wrong shape is carried through unchanged for check() to report. Never throws.
+ */
+export function tidyData(input: DataInput[]): unknown[] {
+  return input.map(tidyEntry)
+}
+
 const present = (v: unknown) => v !== undefined && v !== ''
 
 function gridProblems(label: string, entry: Record<string, unknown>, out: string[]) {
