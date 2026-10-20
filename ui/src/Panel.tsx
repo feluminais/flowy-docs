@@ -1,10 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { FocusEvent, FormEvent, ReactNode } from 'react'
 import { encodePath, isRepoPath, isWebAddress, typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/check.ts'
-import { ICON_GROUPS } from '../../src/core/icons.ts'
-import { COLOR_NAMES, colorPair, customIcons, fillOpacity, iconData, isColorName, SHAPES, shapeOf } from '../../src/core/look.ts'
-import type { Shape } from '../../src/core/look.ts'
 import { getObject, isExternal, linksOf, ROOT } from '../../src/core/model.ts'
 import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { deleteFlow, deleteObject, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setStepGroup, updateFlow } from '../../src/core/ops.ts'
@@ -15,7 +12,8 @@ import { connectionsOf, linesOf, newId, problemsOf, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
 import { lineId } from './graph.ts'
 import { openInEditor, vscode } from './host.ts'
-import { Chip, kindClass, lookVars, ObjectTile, Section, TypeTile } from './Chrome.tsx'
+import { Chip, kindClass, lookVars, ObjectTile, Section } from './Chrome.tsx'
+import { ColorPicker, ExternalToggle, IconPicker, KindPicker, OpacityPicker, ShapePicker, TypePicker } from './Pickers.tsx'
 import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Text, Trash, Close } from './icons.tsx'
 
 /** Runs one edit and resolves to true once it's saved. Whatever went wrong shows as a notice. */
@@ -83,34 +81,6 @@ function Field({ label, value, multiline, list, placeholder, onSave }: { label: 
       {multiline
         ? <textarea key={value} defaultValue={value} rows={8} onBlur={save} />
         : <input key={value} defaultValue={value} list={list} placeholder={placeholder} onBlur={save} onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()} />}
-    </label>
-  )
-}
-
-/**
- * A colour from the names, or any colour the browser's picker makes. The picker reports every move of the cursor as an input
- * event and only its closing as a change, so it is saved on the change.
- */
-function ColorField({ color, onSave }: { color?: string; onSave: (color: string) => Promise<boolean> }) {
-  const named = isColorName(color)
-  const picker = useRef<HTMLInputElement>(null)
-  useEffect(() => {
-    const el = picker.current
-    const save = () => void onSave(el!.value)
-    el?.addEventListener('change', save)
-    return () => el?.removeEventListener('change', save)
-  })
-  return (
-    <label>
-      Color
-      <span className="select-row">
-        <select value={named ? color : color ? 'custom' : ''} onChange={e => e.target.value !== 'custom' && void onSave(e.target.value)}>
-          <option value="">Default (the type's)</option>
-          {COLOR_NAMES.map(c => <option key={c}>{c}</option>)}
-          {color && !named && <option value="custom">{color}</option>}
-        </select>
-        <input key={color} ref={picker} type="color" defaultValue={colorPair(color)?.[0] ?? '#888888'} aria-label="Pick any colour" />
-      </span>
     </label>
   )
 }
@@ -270,7 +240,6 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
   )
   // A type the nesting rules don't allow here stays in the list, so the form shows what the file says.
   const types = [...new Set([...typesIn(model, parentOf(model, id)), object.type])].filter(Boolean)
-  const iconNames = [...ICON_GROUPS.flatMap(g => g.names), ...Object.keys(customIcons(model.meta))]
   return (
     <Panel onClose={onClose}>
       {header}
@@ -279,43 +248,16 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
         <Section icon={Pencil} title="Details" />
         <div className="card">
           <Field label="Name" value={object.name ?? ''} onSave={name => save({ name })} />
-          <label>
-            Type
-            <span className="select-row">
-              <TypeTile type={object.type} size={28} />
-              <select value={object.type} onChange={e => void save({ type: e.target.value as ObjectType })}>
-                {types.map(t => <option key={t}>{t}</option>)}
-              </select>
-            </span>
-          </label>
-          <label className="check">
-            <input type="checkbox" checked={isExternal(object)} onChange={e => void save({ external: e.target.checked })} />
-            Outside service (drawn grey)
-          </label>
+          <TypePicker types={types} value={object.type} onPick={type => void save({ type })} />
+          <ExternalToggle on={isExternal(object)} onToggle={external => void save({ external })} />
           <Field label="Tech" value={object.tech ?? ''} onSave={tech => save({ tech })} />
         </div>
         <Section icon={Sparkles} title="Look" />
         <div className="card">
-          <label>
-            Shape
-            <select value={object.shape ?? ''} onChange={e => void save({ shape: e.target.value as Shape | '' })}>
-              <option value="">Default ({shapeOf({ type: object.type })})</option>
-              {SHAPES.map(s => <option key={s}>{s}</option>)}
-            </select>
-          </label>
-          <ColorField color={object.color} onSave={color => save({ color })} />
-          <Field label="Opacity (0 to 100)" value={object.opacity ?? ''} placeholder={String(fillOpacity(object))}
-            onSave={text => save({ opacity: text.trim() === '' ? '' : Number(text) })} />
-          <label>
-            Icon
-            <span className="select-row">
-              <TypeTile type={object.type} external={isExternal(object)} size={28} d={iconData(model, object)} style={lookVars(object)} />
-              <input key={object.icon ?? ''} list="flowy-icons" defaultValue={object.icon ?? ''} placeholder="Default (the type's)"
-                onBlur={e => e.currentTarget.value !== (object.icon ?? '') && void save({ icon: e.currentTarget.value.trim() })}
-                onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()} />
-            </span>
-            <datalist id="flowy-icons">{iconNames.map(n => <option key={n} value={n} />)}</datalist>
-          </label>
+          <ShapePicker object={object} onPick={shape => void save({ shape })} />
+          <ColorPicker object={object} onSave={color => save({ color })} />
+          <OpacityPicker object={object} onSave={opacity => save({ opacity })} />
+          <IconPicker model={model} object={object} onPick={icon => void save({ icon })} />
         </div>
         <Section icon={Text} title="Description" />
         <Field label="Description" value={object.description ?? ''} multiline onSave={description => save({ description })} />
@@ -376,10 +318,10 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
 export function AddPanel({ model, view, run, onAdded, onClose }: Common & { view: string; onAdded: (id: string) => void }) {
   const types = typesIn(model, view)
   const [chosen, choose] = useState<string>()
+  const type = (chosen && types.includes(chosen as ObjectType) ? chosen : types[0] ?? '') as ObjectType
   const add = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = new FormData(e.currentTarget)
-    const type = form.get('type') as ObjectType
     const name = String(form.get('name')).trim()
     if (!name) return
     let id = ''
@@ -393,13 +335,7 @@ export function AddPanel({ model, view, run, onAdded, onClose }: Common & { view
     <Panel onClose={onClose}>
       <h2 className="iconhead"><span className="badge"><Plus size={14} /></span>Add to {nameOf(model, view)}</h2>
       <form className="form" onSubmit={add}>
-        <label>
-          Type
-          <span className="select-row">
-            <TypeTile type={chosen && types.includes(chosen as ObjectType) ? chosen : types[0] ?? ''} size={28} />
-            <select name="type" onChange={e => choose(e.target.value)}>{types.map(t => <option key={t}>{t}</option>)}</select>
-          </span>
-        </label>
+        <TypePicker types={types} value={type} onPick={choose} />
         <label>Name<input name="name" autoFocus /></label>
         <button className="primary"><Plus size={16} />Add</button>
       </form>
@@ -416,8 +352,9 @@ function withDescription(step: Step, description: string): Step {
   return description.trim() ? { ...rest, description } : rest
 }
 
-const KIND_NAMES: Record<string, string> = { repeat: 'Repeat', branch: 'Branch: one lane happens', parallel: 'Parallel: all lanes at once' }
+const KIND_NAMES: Record<string, string> = { repeat: 'Repeat', branch: 'Branch', parallel: 'Parallel' }
 const KIND_ICONS: Record<string, typeof Repeat> = { repeat: Repeat, branch: GitFork, parallel: ArrowsSplit }
+const KINDS = Object.entries(KIND_NAMES).map(([id, name]) => ({ id, name, Icon: KIND_ICONS[id] }))
 /** A value of a table by a key from a file: only the table's own keys count, so a kind called "constructor" is not on it. */
 const own = <T,>(table: Record<string, T>, key: unknown): T | undefined => (typeof key === 'string' && Object.hasOwn(table, key) ? table[key] : undefined)
 const hasLanes = (group?: Group) => group?.kind === 'branch' || group?.kind === 'parallel'
@@ -459,18 +396,21 @@ function StepStructure({ step, self, groups, others, onGroup, onLane, onFlow }: 
 /** The groups of the flow being recorded: how each one behaves, and a form that puts a stretch of its steps in a new one. */
 function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps: Step[]; groups: Record<string, Group>; edit: Run }) {
   const ids = Object.keys(groups)
+  const [kind, setKind] = useState('repeat')
   const add = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.currentTarget
     const data = new FormData(form)
     const text = String(data.get('text')).trim()
-    const kind = String(data.get('kind'))
     const id = newId(text || kind, ids, 'group')
     const saved = await edit(m => {
       const grouped = groupSteps(m, flowId, id, kind, Number(data.get('first')), Number(data.get('last')))
       return text ? putGroup(grouped, flowId, id, { ...grouped.flows[flowId].groups![id], text }) : grouped
     })
-    if (saved) form.reset()
+    if (saved) {
+      form.reset()
+      setKind('repeat')
+    }
   }
   const range = (name: string) => (
     <select name={name} defaultValue={steps.length - 1}>{steps.map((_, i) => <option key={i} value={i}>{i + 1}</option>)}</select>
@@ -492,13 +432,7 @@ function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps:
                   <strong>{gid}</strong>
                   <button className="danger" aria-label={`Remove group ${gid}`} title="Remove the group. Its steps stay" onClick={() => void edit(m => removeGroup(m, flowId, gid))}><Trash size={16} /></button>
                 </div>
-                <label>
-                  Kind
-                  <select value={own(KIND_NAMES, g.kind) === undefined ? '' : String(g.kind)} onChange={e => { const kind = e.target.value; void edit(m => setGroupKind(m, flowId, gid, kind)) }}>
-                    {own(KIND_NAMES, g.kind) === undefined && <option value="" disabled>Choose a kind</option>}
-                    {Object.entries(KIND_NAMES).map(([k, name]) => <option key={k} value={k}>{name}</option>)}
-                  </select>
-                </label>
+                <KindPicker kinds={KINDS} value={own(KIND_NAMES, g.kind) === undefined ? '' : String(g.kind)} onPick={kind => void edit(m => setGroupKind(m, flowId, gid, kind))} />
                 {g.kind === 'repeat' && (
                   <>
                     <Field label="Times (2 to 99)" value={String(g.times ?? '')} onSave={value => save('times', value.trim())} />
@@ -514,7 +448,7 @@ function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps:
       {steps.length > 0 && (
         <form className="form" key={steps.length} onSubmit={add}>
           <label>Put steps in a new group<input name="text" placeholder="What it is, e.g. Retry the charge" /></label>
-          <label>Kind<select name="kind" defaultValue="repeat">{Object.entries(KIND_NAMES).map(([k, name]) => <option key={k} value={k}>{name}</option>)}</select></label>
+          <KindPicker kinds={KINDS} value={kind} onPick={setKind} />
           <div className="pair"><label>From step{range('first')}</label><label>To step{range('last')}</label></div>
           <button className="primary"><Plus size={16} />Group these steps</button>
         </form>

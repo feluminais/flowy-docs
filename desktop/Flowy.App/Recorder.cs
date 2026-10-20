@@ -33,7 +33,7 @@ internal sealed class Recorder : StackPanel
     private sealed class GroupCard
     {
         public required string Id;
-        public required ComboBox KindBox;
+        public required Chooser Kind;
         public FieldBox? Times;
         public FieldBox? Until;
         public required FieldBox Text;
@@ -42,7 +42,7 @@ internal sealed class Recorder : StackPanel
 
     private static readonly (string Kind, string Name)[] KindNames =
     [
-        ("repeat", "Repeat"), ("branch", "Branch: one lane happens"), ("parallel", "Parallel: all lanes at once"),
+        ("repeat", "Repeat"), ("branch", "Branch"), ("parallel", "Parallel"),
     ];
 
     private readonly SidePanel _owner;
@@ -92,7 +92,7 @@ internal sealed class Recorder : StackPanel
 
     internal IReadOnlyList<string> GroupIds => _cards.Select(c => c.Id).ToList();
 
-    internal ComboBox GroupKindBox(string id) => _cards.First(c => c.Id == id).KindBox;
+    internal Chooser GroupKind(string id) => _cards.First(c => c.Id == id).Kind;
 
     internal FieldBox? GroupTimes(string id) => _cards.First(c => c.Id == id).Times;
 
@@ -104,7 +104,7 @@ internal sealed class Recorder : StackPanel
 
     private Func<Task<bool>> _addGroup = () => Task.FromResult(false);
     private TextBox? _newGroupText;
-    private ComboBox? _newGroupKind;
+    private Chooser? _newGroupKind;
     private ComboBox? _newGroupFirst;
     private ComboBox? _newGroupLast;
 
@@ -112,7 +112,7 @@ internal sealed class Recorder : StackPanel
     internal Task<bool> AddGroupAsync(string text, string kind, int first, int last)
     {
         _newGroupText!.Text = text;
-        _newGroupKind!.SelectedItem = kind;
+        _newGroupKind!.Show(kind);
         _newGroupFirst!.SelectedItem = first;
         _newGroupLast!.SelectedItem = last;
         return _addGroup();
@@ -546,8 +546,7 @@ internal sealed class Recorder : StackPanel
             options[key] = value;
             return EditOps.PutGroup(d, flowId, id, options);
         });
-        var kindChoice = new Choice<string>("Kind", KindNames.Select(k => k.Kind).ToList(), kind ?? "", k => KindName(k), k => Edit(flowId, d => EditOps.SetGroupKind(d, flowId, id, k)));
-        var kindBox = kindChoice.Box;
+        var kindChoice = Pick.Kinds("Kind", KindNames, kind, k => Edit(flowId, d => EditOps.SetGroupKind(d, flowId, id, k)));
         var remove = new Button();
         remove.Classes.Add("tool");
         remove.Classes.Add("danger");
@@ -565,11 +564,11 @@ internal sealed class Recorder : StackPanel
         var card = new GroupCard
         {
             Id = id,
-            KindBox = kindBox,
+            Kind = kindChoice,
             Text = new FieldBox("Text the player shows", "", false, v => Option("text", v)),
             Remove = remove,
         };
-        var body = new StackPanel { Spacing = 8, Children = { head, Captioned("Kind", kindBox) } };
+        var body = new StackPanel { Spacing = 8, Children = { head, kindChoice } };
         if (kind == "repeat")
         {
             card.Times = new FieldBox("Times (2 to 99)", "", false, v => Option("times", Structure.JsTrim(v)));
@@ -586,8 +585,7 @@ internal sealed class Recorder : StackPanel
     {
         var text = new TextBox { PlaceholderText = "What it is, e.g. Retry the charge" };
         Avalonia.Automation.AutomationProperties.SetName(text, "Put steps in a new group");
-        var kinds = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch, ItemsSource = KindNames.Select(k => k.Kind).ToList(), SelectedIndex = 0, ItemTemplate = new FuncDataTemplate<string>((k, _) => new TextBlock { Text = KindName(k) }) };
-        Avalonia.Automation.AutomationProperties.SetName(kinds, "New group kind");
+        var kinds = Pick.Kinds("Kind", KindNames, "repeat", _ => Task.FromResult(true));
         var numbers = Enumerable.Range(1, stepCount).ToList();
         ComboBox Range() => new() { HorizontalAlignment = HorizontalAlignment.Stretch, ItemsSource = numbers, SelectedItem = stepCount };
         var first = Range();
@@ -602,7 +600,7 @@ internal sealed class Recorder : StackPanel
         async Task<bool> Submit()
         {
             var what = (text.Text ?? "").Trim();
-            var kind = kinds.SelectedItem as string ?? "repeat";
+            var kind = kinds.Chosen ?? "repeat";
             var from = (first.SelectedItem as int? ?? stepCount) - 1;
             var to = (last.SelectedItem as int? ?? stepCount) - 1;
             var id = Navigation.NewId(what == "" ? kind : what, ids, "group");
@@ -632,6 +630,6 @@ internal sealed class Recorder : StackPanel
         pair.Children.Add(from1);
         pair.Children.Add(to1);
         Grid.SetColumn(to1, 1);
-        return new StackPanel { Spacing = 8, Children = { Captioned("Put steps in a new group", text), Captioned("Kind", kinds), pair, add } };
+        return new StackPanel { Spacing = 8, Children = { Captioned("Put steps in a new group", text), kinds, pair, add } };
     }
 }

@@ -192,7 +192,7 @@ Colour is a way to say something, so decide what first and say it once:
 ### Icons
 
 An icon says what a shape is at a glance, in a small space. There are about 150 built in (from [Tabler Icons](https://tabler.io/icons)),
-picked for what people document. Type a name into the Icon field, which suggests as you type, or write `icon: name`.
+picked for what people document. Pick one from the grid under Icon, which filters as you type, or write `icon: name`.
 
 **People.** `user`, `users`, `user-circle`, `user-check`, `user-cog`, `user-shield`, `users-group`, `headset`, `robot`, `id-badge-2`, `heart-handshake`
 
