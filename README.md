@@ -111,7 +111,7 @@ something on its own, and a step with more to say has a **More**. In the browser
 `#ordering/place-order` plays Customer places an order; send it to someone and they land on the same step.
 
 A step can also say how it travels. Give it `animation: call` and something runs
-along its line and back while the sender waits; `send` and `event` go one way, and `callback` shows what set it off. In the browser the
+along its line and back while the sender waits; `send` and `event` go one way, and `callback` shows what set it off. A step that really fails can say how it ends: `animation: { kind: send, outcome: fail }` runs red and flashes the receiver, and `animation: { kind: call, outcome: timeout }` leaves the sender waiting with no reply and dims the line. In the browser the
 step plays again two and a half seconds after it ends until you move on (the Repeat button on the card turns that off), **R** plays it again from the start, and **Autoplay** (**P**) steps through the flow
 on its own. Nothing moves when the system asks for less motion, and the step's text still says the same thing. The app plays each step once. When Claude writes your flows it asks how much to animate: None, Key steps or Every step.
 
