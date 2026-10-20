@@ -18,6 +18,23 @@ test('an address that is not ids opens the overview, and a flow that is not an i
   assert.deepEqual(readHash('#shop/'), { view: 'shop' })
 })
 
+test('an address can name a failure analysis and a mode, and goes both ways', () => {
+  assert.equal(toHash('shop', undefined, undefined, { analysis: 'ordering' }), '#shop/failures/ordering')
+  assert.equal(toHash('shop', undefined, undefined, { analysis: 'ordering', mode: 'db-down' }), '#shop/failures/ordering/db-down')
+  assert.equal(toHash(ROOT, undefined, undefined, { analysis: 'ordering' }), '#root/failures/ordering')
+  assert.deepEqual(readHash('#shop/failures/ordering'), { view: 'shop', failures: { analysis: 'ordering' } })
+  assert.deepEqual(readHash('#shop/failures/ordering/db-down'), { view: 'shop', failures: { analysis: 'ordering', mode: 'db-down' } })
+  for (const f of [{ analysis: 'a' }, { analysis: 'a', mode: 'b' }]) assert.deepEqual(readHash(toHash('shop', undefined, undefined, f)), { view: 'shop', failures: f })
+  assert.deepEqual(readHash('#shop/failures/constructor'), { view: 'shop', failures: { analysis: 'constructor' } }) // an id, so a valid name
+  assert.equal(toHash('shop', undefined, { run: 'ramp', level: 1 }, { analysis: 'ordering' }), '#shop/perf/ramp/1') // a run on show wins
+})
+
+test('an address that is not a failure address reads as the overview, or as a flow called failures', () => {
+  for (const hash of ['#shop/failures/Ordering', '#shop/failures/ordering/Bad', '#shop/failures/ordering/x/y', '#shop/failure/ordering', '#Bad/failures/ordering', '#shop/failures/', '#shop/failures//x'])
+    assert.deepEqual(readHash(hash), { view: ROOT }, hash)
+  assert.deepEqual(readHash('#shop/failures'), { view: 'shop', flow: 'failures' })
+})
+
 test('an address can name a run and a tested level, and no other address reads as one', () => {
   assert.equal(toHash('shop', undefined, { run: 'ramp', level: 4 }), '#shop/perf/ramp/4')
   assert.equal(toHash(ROOT, undefined, { run: 'ramp', level: 0 }), '#root/perf/ramp/0')
