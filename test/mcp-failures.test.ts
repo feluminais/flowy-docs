@@ -149,3 +149,11 @@ test('the instructions tell how to write failure modes', async t => {
   const { client } = await setup(t)
   assert.match(client.getInstructions() ?? '', /Writing failure modes/)
 })
+
+test('a replace is read from get_model, which holds every field of a mode, not from get_failures, which is only the table', async t => {
+  const { client } = await setup(t)
+  assert.match(client.getInstructions() ?? '', /put_failure replaces the whole mode: read it with get_model first/)
+  const tools = (await client.listTools()).tools
+  assert.match(tools.find(tool => tool.name === 'put_failure')?.description ?? '', /get_model/)
+  assert.doesNotMatch(client.getInstructions() ?? '', /read get_failures first/)
+})
