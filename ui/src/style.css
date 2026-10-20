@@ -657,3 +657,20 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .yclear { flex: none; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; }
 .panel .yclear button { min-height: 26px; padding: 0 8px; color: var(--muted); }
 .panel .yclear button.danger { color: var(--danger); }
+
+/*
+ * The Failures tab. A badge at a shape's top left (the top right holds the queue count) says how many failure modes it carries, in the colour of the
+ * worst one; a line wears the same badge at its label. The text is --bg so it reads on each fill in both themes. A selected mode outlines its part,
+ * outlines what it affects lighter, and fades the rest. The panel is Failures.tsx.
+ */
+.fail-badge { position: absolute; top: -9px; left: -7px; z-index: 2; min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 10px; color: var(--bg); font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
+.fail-badge.line { top: 0; left: 0; pointer-events: none; }
+.fail-badge.high { background: var(--danger); }
+.fail-badge.medium { background: var(--warn); }
+.fail-badge.low { background: var(--muted); }
+.fail-badge.unrated { background: var(--bg); color: var(--fg); box-shadow: inset 0 0 0 1px var(--line); }
+.react-flow__node.fails .shape path { stroke: var(--danger); stroke-width: 3; }
+.react-flow__node.affected .shape path { stroke: color-mix(in srgb, var(--danger) 45%, transparent); stroke-width: 2; }
+.react-flow__edge.fails .react-flow__edge-path { stroke: var(--danger); stroke-width: 2.5; }
+.canvas.failing .react-flow__node, .canvas.failing .react-flow__edge { transition: opacity 0.2s; }
+@media (prefers-reduced-motion: reduce) { .canvas.failing .react-flow__node, .canvas.failing .react-flow__edge { transition: none; } }

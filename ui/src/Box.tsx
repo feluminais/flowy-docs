@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react'
-import type { MouseEvent, PointerEvent } from 'react'
+import type { CSSProperties, MouseEvent, PointerEvent } from 'react'
 import { Handle, NodeToolbar, Position, useConnection } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
 import Markdown from 'react-markdown'
+import { BAND_NAMES } from '../../src/core/failures.ts'
+import type { Mark } from '../../src/core/failures.ts'
 import { fillOpacity, isColor, onFill, SHAPE_DEFS, shapeOf, showsTile } from '../../src/core/look.ts'
 import { isExternal } from '../../src/core/model.ts'
 import { lookVars } from './Chrome.tsx'
@@ -14,6 +16,12 @@ export function Description({ text }: { text: string }) {
   return <Markdown components={{ a: props => <a {...props} target="_blank" rel="noreferrer" /> }}>{text}</Markdown>
 }
 
+/** How many failure modes a shape or line carries, in the colour of the worst one. The count and the band's name are also its label, so the colour is never the only copy. */
+export function FailBadge({ mark, className, style }: { mark: Mark; className?: string; style?: CSSProperties }) {
+  const label = `${mark.count} failure${mark.count === 1 ? '' : 's'}, ${BAND_NAMES[mark.band]}`
+  return <span className={['fail-badge', mark.band, className].filter(Boolean).join(' ')} style={style} role="img" aria-label={label} title={label}>{mark.count}</span>
+}
+
 /** The first paragraph of a description: everything up to the first blank line. */
 export const teaser = (description?: string) => description?.trim().split(/\n\s*\n/)[0]
 
@@ -22,7 +30,7 @@ export const teaser = (description?: string) => description?.trim().split(/\n\s*
  * icon (grey with a cloud when it's external), its name, its tech (or type), and how many shapes it opens onto. Hovering
  * shows the teaser. In edit mode a line starts at the dot at the bottom, and while it's being drawn the whole shape is a place to drop it.
  */
-export function Box({ id, data: { object, inside, icon, perf }, isConnectable }: NodeProps<BoxNode>) {
+export function Box({ id, data: { object, inside, icon, perf, fail }, isConnectable }: NodeProps<BoxNode>) {
   const [hover, setHover] = useState(false)
   const connecting = useConnection(c => c.inProgress)
   const short = teaser(object.description)
@@ -43,6 +51,7 @@ export function Box({ id, data: { object, inside, icon, perf }, isConnectable }:
         <div className="box-meta">{[external && 'external', object.tech || object.type].filter(Boolean).join(' · ')}</div>
       </div>
       {perf && perf.queue > 0 && <span className="queue-badge" title={`${perf.queue} waiting`}>{perf.queue}</span>}
+      {fail && <FailBadge mark={fail} />}
       {inside > 0 && <span className="inside" style={{ right: badge[0], bottom: badge[1] }}><ZoomIn />{inside} inside</span>}
       <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} />
       {short && (
