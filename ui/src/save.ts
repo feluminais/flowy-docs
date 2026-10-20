@@ -1,4 +1,6 @@
 import type { Problem } from '../../src/core/check.ts'
+import { describeEdit } from '../../src/core/editlabel.ts'
+import { fallbackLabel } from '../../src/core/history.ts'
 import { fileData } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
 import { refuseNewProblems } from '../../src/core/ops.ts'
@@ -62,16 +64,18 @@ export const REDO_STALE = stale('redo')
 /**
  * One canvas edit, done the way MCP does it: read the files fresh, apply `op`, refuse new problems,
  * then write each changed file with the version just read. Resolves to what to tell the user,
- * or undefined once it's saved, and then hands `onSaved` how to undo it.
+ * or undefined once it's saved, and then tells the history what the edit did (see describeEdit) and
+ * hands `onSaved` how to undo it, with that label.
  */
-export async function saveEdit(op: (model: Model) => Model, via: Via = '', onSaved?: (undo: Undo) => void): Promise<string | undefined> {
+export async function saveEdit(op: (model: Model) => Model, via: Via = '', onSaved?: (undo: Undo, label: string) => void): Promise<string | undefined> {
   try {
     const transport = transportOf(via)
     const { model, versions } = await fetchModel(transport)
     const next = op(model)
     refuseNewProblems(model, next)
     const undo: Undo = []
-    for (const { file, data } of changesBetween(model, next)) {
+    const changes = changesBetween(model, next)
+    for (const { file, data } of changes) {
       const reply = await write(transport, file, data, versions[file] ?? null)
       if (reply.status === 409) return CHANGED_OUTSIDE
       if (!ok(reply)) return failed('save', file, reply)
@@ -79,7 +83,11 @@ export async function saveEdit(op: (model: Model) => Model, via: Via = '', onSav
       const before = versions[file] == null && file.startsWith('flows/') ? null : fileData(model, file)
       undo.unshift({ file, data: before, now: data, version: versionOf(reply) })
     }
-    if (undo.length) onSaved?.(undo)
+    if (undo.length) {
+      const label = describeEdit(model, next) ?? fallbackLabel(changes.map(c => c.file))
+      await transport.history?.record(label)
+      onSaved?.(undo, label)
+    }
   } catch (e) {
     return text(e)
   }
@@ -89,9 +97,9 @@ export async function saveEdit(op: (model: Model) => Model, via: Via = '', onSav
  * Put back what one saved edit changed, but only where nothing changed since. It isn't checked for
  * problems: it goes back to what was saved before. Resolves to what to tell the user, or undefined
  * once it's done, and then hands `onDone` how to take this back in turn (a redo, or an undo of a redo).
- * `word` names it in messages.
+ * `word` names it in messages. With the `label` of the edit, the history gets a step: "Undid: <label>" or "Redid: <label>".
  */
-export async function undoEdit(undo: Undo, via: Via = '', onDone?: (back: Undo) => void, word: 'undo' | 'redo' = 'undo'): Promise<string | undefined> {
+export async function undoEdit(undo: Undo, via: Via = '', onDone?: (back: Undo) => void, word: 'undo' | 'redo' = 'undo', label?: string): Promise<string | undefined> {
   try {
     const transport = transportOf(via)
     const back: Undo = []
@@ -105,8 +113,28 @@ export async function undoEdit(undo: Undo, via: Via = '', onDone?: (back: Undo) 
       if (!ok(reply)) return failed(word, file, reply)
       back.unshift({ file, data: now, now: data, version: versionOf(reply) })
     }
+    if (label !== undefined) await transport.history?.record(`${word === 'undo' ? 'Undid' : 'Redid'}: ${label}`.slice(0, MAX_LABEL))
     onDone?.(back)
   } catch (e) {
     return text(e)
+  }
+}
+
+/** The longest label the history takes. */
+const MAX_LABEL = 200
+
+/**
+ * Puts an earlier version of the folder's files back (see the YAML tab), as one step of the history. `seen` is the version of each file the
+ * caller last read; left out, the files are read now. Answers the step that holds what the files were just before, which putting back again
+ * undoes the restore with, or what to tell the user when it could not be done.
+ */
+export async function restoreVersion(id: string, label: string, via: Via = '', seen?: Record<string, string | null>): Promise<{ message?: string; before?: string }> {
+  try {
+    const history = transportOf(via).history
+    if (!history) return { message: "History isn't available here." }
+    const answer = await history.restore(id, seen ?? (await history.yaml()).versions, label)
+    return answer.ok ? (answer.before ? { before: answer.before } : {}) : { message: answer.message }
+  } catch (e) {
+    return { message: text(e) }
   }
 }
