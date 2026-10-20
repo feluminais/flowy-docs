@@ -138,7 +138,7 @@ objects:
       animation-frame callback, not a timer, which ticks unevenly), and instant when the system asks
       for less motion.
 
-      A tagged flow step plays over the shapes: a pipe along its line, something running through it,
+      An animated flow step plays over the shapes: a pipe along its line, something running through it,
       and the shapes ringing, flashing or squashing. The same frame-driven clock runs it and Autoplay's
       waits, and nothing moves when the system asks for less motion.
 
@@ -204,7 +204,7 @@ objects:
       The page: shapes you zoom into, lines that stay quiet until you point at them, flows that play
       step by step, and edit mode behind E.
 
-      A step tagged with an `animation:` plays as a pipe with a blob running through it, and Autoplay
+      A step with an `animation:` plays as a pipe with a blob running through it, and Autoplay
       steps through a flow on its own. A Performance tab plays a load-test run back over the diagram.
 
       A rail of icons on the left edge opens a panel with two tabs: the whole documentation as a
@@ -229,7 +229,8 @@ objects:
       it wrote. A write that loses a race on the file is retried once.
 
       Its instructions hand Claude the writing rules: survey the repo and check the list first, what
-      earns a shape, and how to word a description, a label and a flow step.
+      earns a shape, and how to word a description, a label and a flow step. Before the first flow
+      Claude asks how much to animate: None, Key steps or Every step.
   exporter:
     type: app
     in: flowy
@@ -332,7 +333,7 @@ objects:
     name: Step motion
     code: [ui/src/StepMotion.tsx, ui/src/motion.ts]
     description: |
-      Draws a tagged step over the canvas: the line as a pipe, a blob running through it, and rings,
+      Draws an animated step over the canvas: the line as a pipe, a blob running through it, and rings,
       flashes and squashes on the shapes. It asks core for the beats and knows nothing about kinds.
 
       Nothing moves when the system asks for less motion; Autoplay then waits a few seconds on each step.
@@ -412,7 +413,7 @@ objects:
     name: Animation
     code: [src/core/animation.ts, desktop/Flowy.Core/Animation.cs]
     description: |
-      What a flow step's `animation:` tag may say, and what each kind does, written as a timed list of
+      What a flow step's `animation:` may say, and what each kind does, written as a timed list of
       beats: a tube along the line, a blob running through it, a ring or flash or gulp on a shape.
 
       Nothing here draws. The canvas and the desktop app each draw the beats, so a new kind is a
@@ -538,7 +539,7 @@ connections:
   - { from: ops, to: check, label: refuses what adds a problem }
   - { from: ops, to: model, label: writes it back as YAML }
   - { from: check, to: views, label: can this view show it }
-  - { from: check, to: animation, label: asks if a step's tag is right }
+  - { from: check, to: animation, label: asks if a step's animation is right }
   - { from: check, to: structure, label: asks if a flow's groups and links are right }
   - { from: mermaid, to: structure, label: draws a group as a block }
   - { from: views, to: model, label: reads }
