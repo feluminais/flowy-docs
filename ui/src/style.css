@@ -607,7 +607,9 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
  * The YAML tab. The files are text with the last change marked in them: a line added is green with a +, a line removed is red, struck through and
  * has a −, so the colour is never the only copy. Under the text is the history. Every text row is 20px so that only the rows in view are drawn.
  */
-.yfiles { flex: none; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: thin; margin: 0 -4px; padding: 0 4px; border-bottom: 1px solid var(--line); }
+.yfiles { flex: none; overflow-x: auto; scrollbar-width: thin; margin: 0 -4px; }
+/* The line under the tabs belongs to the row, not to the scroller, so the scrollbar sits below the line and never over the tabs. */
+.ytabs { display: flex; gap: 2px; width: max-content; min-width: 100%; box-sizing: border-box; padding: 0 4px; border-bottom: 1px solid var(--line); }
 .panel .yfiles button { flex: none; min-height: 28px; padding: 0 8px; border-radius: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--muted); font-size: 12.5px; }
 .panel .yfiles button:hover:not(:disabled) { background: none; color: var(--fg); }
 .panel .yfiles button[aria-selected='true'] { color: var(--fg); border-bottom-color: var(--accent); }

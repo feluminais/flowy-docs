@@ -128,12 +128,14 @@ export function Yaml({ store, editing, broken, flow, selected, onRestore, onClea
 
   return (
     <>
-      <div className="yfiles" role="tablist" aria-label="Files">
-        {paths.map(p => (
-          <button key={p} role="tab" aria-selected={p === file} aria-label={changed.has(p) ? `${p}, changed` : p} title={p} onClick={() => setChosen(p)}>
-            {tabName(p)}{changed.has(p) && <i className="ydot" aria-hidden="true" />}
-          </button>
-        ))}
+      <div className="yfiles">
+        <div className="ytabs" role="tablist" aria-label="Files">
+          {paths.map(p => (
+            <button key={p} role="tab" aria-selected={p === file} aria-label={changed.has(p) ? `${p}, changed` : p} title={p} onClick={() => setChosen(p)}>
+              {tabName(p)}{changed.has(p) && <i className="ydot" aria-hidden="true" />}
+            </button>
+          ))}
+        </div>
       </div>
       {view.picked !== undefined && view.shown?.step.id === view.picked && (
         <div className="ybanner" role="status">
