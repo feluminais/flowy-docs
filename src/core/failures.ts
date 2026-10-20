@@ -101,6 +101,51 @@ export function partName(model: Model, m: Mode): string {
   return ''
 }
 
+/** The columns of the exported table, in order: the words a reader sees, which are not the keys a file keeps. The After columns follow when some mode has an `after`. */
+const COLUMNS = ['Risk band', 'Part', 'Mode', 'Effect', 'Cause', 'Severity', 'Likelihood', 'Hard to spot', 'Risk', 'Controls', 'Next action', 'Owner', 'Status']
+const AFTER_COLUMNS = ['Severity after', 'Likelihood after', 'Hard to spot after']
+
+/** A cell for a spreadsheet that opens a CSV: one that starts with = + - @ or a tab or return would run as a formula, so it gets a leading quote mark. */
+const guarded = (cell: string) => (/^[=+\-@\t\r]/.test(cell) ? `'${cell}` : cell)
+const csvCell = (cell: string) => {
+  const safe = guarded(cell)
+  return /[",\r\n]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe
+}
+const markdownCell = (cell: string) => cell.replaceAll('|', '\\|').replace(/\r\n|\r|\n/g, '<br>')
+
+/**
+ * The modes as a table, worst first, with the words the screen uses. Risk and Risk band follow the ratings that count, so a done mode shows
+ * its after ratings' risk. The After columns appear only when some mode has an `after`. A Markdown cell escapes | and line breaks; a CSV
+ * cell is quoted when it needs it and guarded against running as a formula.
+ */
+export function table(model: Model, a: Analysis, format: 'markdown' | 'csv'): string {
+  const ranked = rank(a)
+  const withAfter = ranked.some(r => r.mode.after !== undefined)
+  const head = withAfter ? [...COLUMNS, ...AFTER_COLUMNS] : COLUMNS
+  const rows = ranked.map(({ mode: m, risk: n, band }) => [
+    BAND_NAMES[band], partName(model, m), m.mode ?? '', m.effect ?? '', m.cause ?? '',
+    m.severity ?? '', m.occurrence ?? '', m.detection ?? '', n === undefined ? '' : String(n),
+    m.controls ?? '', m.action ?? '', m.owner ?? '', typeof m.status === 'string' && m.status.trim() !== '' ? m.status : 'open',
+    ...(withAfter ? RATING_KEYS.map(key => m.after?.[key] ?? '') : []),
+  ])
+  if (format === 'csv') return [head, ...rows].map(cells => cells.map(csvCell).join(',')).join('\n')
+  const line = (cells: string[]) => `| ${cells.map(markdownCell).join(' | ')} |`
+  return [line(head), line(head.map(() => '---')), ...rows.map(line)].join('\n')
+}
+
+/** "Analysed 3 of 4", and when some are left a second line naming them by their path. */
+export function coverageText(model: Model, a: Analysis): string {
+  const { analysed, left } = coverage(model, a)
+  const first = `Analysed ${analysed.length} of ${analysed.length + left.length}`
+  return left.length === 0 ? first : `${first}\nNot analysed: ${left.map(id => partName(model, { on: id })).join(', ')}`
+}
+
+/** One analysis for a reader: in Markdown a heading, the coverage and the table; in CSV the table alone, since anything else would break the file. */
+export function analysisText(model: Model, id: string, a: Analysis, format: 'markdown' | 'csv'): string {
+  if (format === 'csv') return table(model, a, 'csv')
+  return `## ${a.name.trim() === '' ? id : `${a.name} (${id})`}\n\n${coverageText(model, a)}\n\n${table(model, a, 'markdown')}`
+}
+
 /** Text with something in it. A blank value in a file is as good as none. */
 const has = (v: unknown): v is string => typeof v === 'string' && v.trim() !== ''
 
