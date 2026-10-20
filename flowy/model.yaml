@@ -380,7 +380,7 @@ objects:
     name: Side panel
     code: [ui/src/Panel.tsx, ui/src/Chrome.tsx, ui/src/icons.tsx, ui/src/Search.tsx]
     description: |
-      A shape's description, code links and connections (out and in) while reading; the fields, the flow recorder and Add while editing. Search finds a shape anywhere in the model.
+      A shape's description, a store's data, code links and connections (out and in) while reading; the fields, the flow recorder and Add while editing. Search finds a shape anywhere in the model.
 
       It looks like the desktop app: a header in the shape's own colour with its tile and chips, then
       section headings and cards, and icons on the bar's buttons.
@@ -430,6 +430,15 @@ objects:
 
       Nothing here draws. The checker reports a wrong group, and Mermaid turns a good one into a
       loop, alt or par block, so the rules live here once for the browser and the desktop app.
+  store-data:
+    type: component
+    in: core
+    name: Store data
+    code: [src/core/data.ts, desktop/Flowy.Core/StoreData.cs]
+    description: |
+      What a store holds: tables as columns and sample rows, key sets, topics and sample documents, each with a limits line and short notes. It works out what the Data section shows and what is wrong with the data: a row of the wrong width, a sample nested too deep, a note on a field that is not there.
+
+      The author types it, or Claude writes it from the code. Flowy never connects to a database. Nothing here draws: the canvas and the desktop app each draw the entries, and the desktop app's port (`StoreData.cs`) is kept equal by fixtures.
   perf:
     type: component
     in: core
@@ -541,6 +550,9 @@ connections:
   - { from: check, to: views, label: can this view show it }
   - { from: check, to: animation, label: asks if a step's animation is right }
   - { from: check, to: structure, label: asks if a flow's groups and links are right }
+  - { from: check, to: store-data, label: asks if a store's data is right }
+  - { from: panel, to: store-data, label: what a store holds }
+  - { from: ops, to: store-data, label: puts an entry's keys in order }
   - { from: mermaid, to: structure, label: draws a group as a block }
   - { from: views, to: model, label: reads }
   - { from: outline, to: views, label: asks what each shape holds }
