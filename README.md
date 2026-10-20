@@ -110,10 +110,10 @@ every flow so you can pick one and play it step by step. A step is one shape han
 something on its own, and a step with more to say has a **More**. In the browser the address follows what's on screen, so
 `#ordering/place-order` plays Customer places an order; send it to someone and they land on the same step.
 
-A step can also say how it travels. Tag it `animation: call` and its line turns bold and bright with something running
+A step can also say how it travels. Give it `animation: call` and its line turns bold and bright with something running
 along it and back while the sender waits; `send` and `event` go one way, and `callback` shows what set it off. In the browser the
 step plays again two and a half seconds after it ends until you move on (the Repeat button on the card turns that off), **R** plays it again from the start, and **Autoplay** (**P**) steps through the flow
-on its own. Nothing moves when the system asks for less motion, and the step's text still says the same thing. The app plays each step once.
+on its own. Nothing moves when the system asks for less motion, and the step's text still says the same thing. The app plays each step once. When Claude writes your flows it asks how much to animate: None, Key steps or Every step.
 
 Neighbouring steps can also belong together. A flow file can mark them as a `repeat` that runs up to a stated number of times,
 a `branch` of lanes of which one happens, or `parallel` lanes that all happen at once, and a step can say that another flow
