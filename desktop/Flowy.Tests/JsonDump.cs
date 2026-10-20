@@ -37,6 +37,19 @@ internal static class JsonDump
         _ => throw new ArgumentException($"can't dump a {v.GetType()}"),
     };
 
+    /// <summary>What a store's data shows, in the shape dump.ts gives it; null (so the key is left out) when it shows nothing.</summary>
+    private static JsonNode? Shown(FlowyObject o)
+    {
+        var entries = StoreData.Shown(o);
+        if (entries.Count == 0) return null;
+        return new JsonArray(entries.Select(e => (JsonNode?)Obj(
+            ("name", e.Name), ("kind", e.Kind), ("limits", e.Limits), ("note", e.Note), ("summary", e.Summary),
+            ("columns", Arr(e.Columns.Select(c => Obj(("name", c.Name), ("key", c.Key), ("to", c.To), ("note", c.Note))))),
+            ("rows", new JsonArray(e.Rows.Select(row => (JsonNode?)new JsonArray(row.Select(cell => (JsonNode?)JsonValue.Create(cell)).ToArray())).ToArray())),
+            ("lines", Arr(e.Lines.Select(l => Obj(("depth", l.Depth), ("key", l.Key), ("value", l.Value), ("path", l.Path), ("noted", JsonValue.Create(l.Noted)))))),
+            ("notes", Arr(e.Notes.Select(n => Obj(("name", n.Name), ("text", n.Text))))))).ToArray());
+    }
+
     private static JsonNode? Pair((string From, string To)? ends) => ends is { } e ? Arr([e.From, e.To]) : null;
 
     public static JsonNode Dump(string dir)
@@ -65,7 +78,8 @@ internal static class JsonDump
             ("objects", Arr(m.Objects.Select(kv => Obj(
                 ("id", kv.Key), ("type", kv.Value.Type), ("name", kv.Value.Name), ("in", kv.Value.In), ("external", kv.Value.External),
                 ("shape", kv.Value.Shape), ("color", kv.Value.Color), ("opacity", kv.Value.Opacity), ("icon", kv.Value.Icon),
-                ("tech", kv.Value.Tech), ("description", kv.Value.Description), ("code", Raw(kv.Value.Code)), ("links", Raw(kv.Value.Links)))))),
+                ("tech", kv.Value.Tech), ("description", kv.Value.Description), ("code", Raw(kv.Value.Code)), ("links", Raw(kv.Value.Links)),
+                ("data", Raw(kv.Value.Data)), ("shown", Shown(kv.Value)))))),
             ("icons", m.Meta.TryGetValue("icons", out var icons) ? Raw(icons) : null),
             ("connections", Arr(m.Connections.Select(c => Obj(("from", c.From), ("to", c.To), ("label", c.Label))))),
             ("layout", new JsonObject(m.Layout.Select(view => KeyValuePair.Create(view.Key, (JsonNode?)new JsonObject(

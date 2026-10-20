@@ -35,6 +35,11 @@ Writing text:
 - A description's first paragraph is the hover teaser: a sentence on what the object does for others, in words its name doesn't hold. Start apps and components with a verb. No "responsible for", no praise. Later paragraphs: why, limits, risks. No versions, counts or endpoint lists.
 - A connection label is a few words from the side that starts it, and reads as a sentence between the two names ("publishes order events to"). Say what moves; never "uses". A reply is not a connection.
 - Put long documents (runbooks, decision records, specs, wiki pages) in links, not in a description. code: is where an object lives.
+Writing data (put_object's data), so a store shows what it holds:
+- Only for a store the code shows, and only the few tables, key sets, topics or collections a reader needs to follow the flows, never the whole schema. Take names, columns and keys from a migration, a schema file or the code that builds the keys, and add nothing you can't point to.
+- Sample rows are invented. They are never copied from a real database, a dump or a log, and carry no real names, emails, phone numbers or ids: use made-up ones like o_1042 and Noodle Bar. Two or three rows, at most 8.
+- A note is one line that says why, not what: "Cents, not decimals. Rounding broke the first tax run." Leave it out when the name says it all. limits is one line on how long data is kept or how much fits ("Kept 7 years, then archived", "Oldest unused go first at 256 MB").
+- A table is columns and rows. A key-value store is columns Key, Value and Expires, a stream is columns Key and Value with a message on each row, a document store is a sample document. data replaces the whole list: read the store with get_model first and send every entry you want kept. [] removes it.
 Writing a flow, so it reads the way the code works:
 - One trigger, one story, usually 3-9 steps, named for the goal. A failure gets its own flow.
 - A step's text says what passes from "from" to "to", from the side of "from": "Hands the order to Billing", "Asks Pricing for the total". When "from" asks and gets its answer in the same step, say so, and don't add a step going back unless something new is sent.
@@ -70,6 +75,24 @@ const ok = (value: unknown): Result => ({
   content: [{ type: 'text', text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }],
 })
 const fail = (e: unknown): Result => ({ ...ok(e instanceof Error ? e.message : String(e)), isError: true })
+
+const dataText = z.union([z.string(), z.number(), z.boolean()])
+const sampleValue: z.ZodType<unknown> = z.lazy(() => z.union([dataText, z.array(sampleValue), z.record(z.string(), sampleValue)]))
+const dataEntry = z.object({
+  name: z.string().describe('The table, key set, topic or collection, as a developer names it, e.g. "orders" or "Keys".'),
+  kind: z.string().optional().describe('A word for what it is, shown small beside the name: "table", "collection", "topic".'),
+  limits: z.string().optional().describe('One line on how long the data is kept or how much fits, e.g. "Kept 7 years, then archived".'),
+  note: z.string().optional().describe('One line on why it is this way. Not what it is.'),
+  columns: z.array(z.union([z.string(), z.object({
+    name: z.string(),
+    key: z.literal('primary').optional().describe('Only "primary", for a primary key.'),
+    to: z.string().optional().describe('The table this column points to, which makes it a foreign key.'),
+    note: z.string().optional().describe('One line on why, shown under the data.'),
+  })])).optional().describe('A grid: the column headings. A bare string is a column with nothing else. At most 12. Give columns or sample, not both.'),
+  rows: z.array(z.array(dataText)).optional().describe('Invented sample rows, each as many cells as there are columns. At most 8. Numbers are written as text.'),
+  sample: z.record(z.string(), sampleValue).optional().describe('A document: one invented sample, as nested fields (3 levels at most, 20 fields at most). Instead of columns.'),
+  notes: z.record(z.string(), z.string()).optional().describe('For a sample: a field (a dotted path like "hours.mon" for a nested one) mapped to a one-line note.'),
+})
 
 /** `history`: when given, every write is also a step in the folder's history. A history that can't be written never fails a tool call. */
 export function createMcpServer(dir: string, history?: History): McpServer {
@@ -166,7 +189,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   }))
 
   server.registerTool('put_object', {
-    description: 'Create or update an object. On update, omitted fields stay as they are, "" removes in, shape, color, opacity, icon, tech or description, [] removes code or links, and external: false removes external.',
+    description: 'Create or update an object. On update, omitted fields stay as they are, "" removes in, shape, color, opacity, icon, tech or description, [] removes code, links or data, and external: false removes external.',
     inputSchema: {
       id: id('Object id'),
       type: z.enum(OBJECT_TYPES).optional()
@@ -189,6 +212,8 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         .describe('Files and folders in the repo this object lives in, relative to the folder that holds flowy/, e.g. ["src/api/"]. Each must exist. [] removes them.'),
       links: z.array(z.object({ url: z.string(), title: z.string().optional() })).optional()
         .describe('Long documents and pages that belong to this object (a runbook, a decision record, a spec, a wiki page). url is a web address (http or https) or a path in the repo, relative to the folder that holds flowy/, which must exist. title is what the reader sees. [] removes them.'),
+      data: z.array(dataEntry).optional()
+        .describe('What a store holds, drawn in its panel as tables with sample rows, key sets, topics or documents. Only a store can have it. Replaces the whole list, so read the store with get_model first and send every entry to keep. [] removes it. Sample rows are invented, never real data.'),
     },
   }, input => write(m => putObject(m, input), before => `${getObject(before, input.id) ? 'Updated' : 'Created'} ${input.id}.`, mcpLabel('put_object', input)))
 

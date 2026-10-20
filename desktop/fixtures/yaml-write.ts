@@ -88,5 +88,11 @@ export async function dumpYamlWrite(): Promise<unknown> {
       }
     }
   }
-  return { strings, shapes, layouts, files }
+  // A store's data is written on one-line forms. Text the data check refuses (a line break) or that the C# writer words differently on purpose (the separators) is left out.
+  const apart = [10, 13, 0x85, 0x2028, 0x2029].map(c => String.fromCharCode(c))
+  const flowCells = STRINGS.filter(s => !apart.some(c => s.includes(c))).map(s => ({
+    s,
+    ...out('model.yaml', { objects: { db: { type: 'store', name: 'S', data: [{ name: 'a', columns: [{ name: 'c', note: s }], rows: [[s]] }, { name: 'b', sample: { list: [s] } }] } }, connections: [] }),
+  }))
+  return { strings, shapes, layouts, files, flowCells }
 }

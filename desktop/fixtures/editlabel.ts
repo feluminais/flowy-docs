@@ -118,6 +118,7 @@ export const CASES: EditLabelCase[] = [
     m.connections.push({ from: 'web', to: 'db' })
     m.layout.shop.api = [210, 20]
   }),
+  make('a changed data', "Changed Orders DB's data", m => { m.objects.db.data = [{ name: 'orders', columns: ['id'] }] }),
   make('nothing changed', undefined, () => undefined),
 ]
 

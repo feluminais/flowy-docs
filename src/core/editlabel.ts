@@ -14,7 +14,7 @@ const cut = (name: string) => (name.length > MAX_NAME ? `${name.slice(0, MAX_NAM
 
 /** What a changed key of an object is called in a label. */
 function fieldWord(key: string): string {
-  if (key === 'type' || key === 'tech' || key === 'description' || key === 'code' || key === 'links' || key === 'external') return key
+  if (key === 'type' || key === 'tech' || key === 'description' || key === 'code' || key === 'links' || key === 'data' || key === 'external') return key
   return key === 'shape' || key === 'color' || key === 'opacity' || key === 'icon' ? 'look' : 'details'
 }
 

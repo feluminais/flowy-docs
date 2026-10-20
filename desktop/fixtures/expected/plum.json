@@ -114,7 +114,264 @@
       "name": "Orders DB",
       "in": "ordering",
       "tech": "Postgres",
-      "description": "Orders, baskets and refunds. The source of truth for what a customer owes and was charged."
+      "description": "Orders, baskets and refunds. The source of truth for what a customer owes and was charged.",
+      "data": [
+        {
+          "name": "orders",
+          "kind": "table",
+          "limits": "Kept 7 years, then archived",
+          "note": "One row per order. A refund adds a row to refunds; the order stays.",
+          "columns": [
+            {
+              "name": "id",
+              "key": "primary"
+            },
+            {
+              "name": "customer_id",
+              "to": "customers"
+            },
+            {
+              "name": "total",
+              "note": "Cents, not decimals. Rounding broke the first tax run."
+            }
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "c_77",
+              "2490"
+            ],
+            [
+              "o_1043",
+              "c_12",
+              "1380"
+            ],
+            [
+              "o_1044",
+              "c_77",
+              "990"
+            ]
+          ]
+        },
+        {
+          "name": "order_items",
+          "columns": [
+            {
+              "name": "order_id",
+              "key": "primary",
+              "to": "orders"
+            },
+            {
+              "name": "item_id",
+              "key": "primary"
+            },
+            "quantity",
+            {
+              "name": "unit_price",
+              "note": "Copied from the menu at order time. Menus change; receipts must not."
+            }
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "i_31",
+              "2",
+              "1245"
+            ],
+            [
+              "o_1043",
+              "i_8",
+              "1",
+              "1380"
+            ]
+          ]
+        },
+        {
+          "name": "refunds",
+          "limits": "Kept with its order",
+          "columns": [
+            {
+              "name": "id",
+              "key": "primary"
+            },
+            {
+              "name": "order_id",
+              "to": "orders"
+            },
+            "amount",
+            "reason"
+          ],
+          "rows": [
+            [
+              "r_9",
+              "o_1044",
+              "990",
+              "Wrong item"
+            ]
+          ]
+        },
+        {
+          "name": "baskets",
+          "limits": "Swept after 24 hours",
+          "columns": [
+            {
+              "name": "id",
+              "key": "primary"
+            },
+            {
+              "name": "customer_id",
+              "to": "customers"
+            },
+            "items",
+            "expires_at"
+          ]
+        }
+      ],
+      "shown": [
+        {
+          "name": "orders",
+          "kind": "table",
+          "limits": "Kept 7 years, then archived",
+          "note": "One row per order. A refund adds a row to refunds; the order stays.",
+          "summary": "3 columns",
+          "columns": [
+            {
+              "name": "id",
+              "key": "primary"
+            },
+            {
+              "name": "customer_id",
+              "to": "customers"
+            },
+            {
+              "name": "total",
+              "note": "Cents, not decimals. Rounding broke the first tax run."
+            }
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "c_77",
+              "2490"
+            ],
+            [
+              "o_1043",
+              "c_12",
+              "1380"
+            ],
+            [
+              "o_1044",
+              "c_77",
+              "990"
+            ]
+          ],
+          "lines": [],
+          "notes": [
+            {
+              "name": "total",
+              "text": "Cents, not decimals. Rounding broke the first tax run."
+            }
+          ]
+        },
+        {
+          "name": "order_items",
+          "summary": "4 columns",
+          "columns": [
+            {
+              "name": "order_id",
+              "key": "primary",
+              "to": "orders"
+            },
+            {
+              "name": "item_id",
+              "key": "primary"
+            },
+            {
+              "name": "quantity"
+            },
+            {
+              "name": "unit_price",
+              "note": "Copied from the menu at order time. Menus change; receipts must not."
+            }
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "i_31",
+              "2",
+              "1245"
+            ],
+            [
+              "o_1043",
+              "i_8",
+              "1",
+              "1380"
+            ]
+          ],
+          "lines": [],
+          "notes": [
+            {
+              "name": "unit_price",
+              "text": "Copied from the menu at order time. Menus change; receipts must not."
+            }
+          ]
+        },
+        {
+          "name": "refunds",
+          "limits": "Kept with its order",
+          "summary": "4 columns",
+          "columns": [
+            {
+              "name": "id",
+              "key": "primary"
+            },
+            {
+              "name": "order_id",
+              "to": "orders"
+            },
+            {
+              "name": "amount"
+            },
+            {
+              "name": "reason"
+            }
+          ],
+          "rows": [
+            [
+              "r_9",
+              "o_1044",
+              "990",
+              "Wrong item"
+            ]
+          ],
+          "lines": [],
+          "notes": []
+        },
+        {
+          "name": "baskets",
+          "limits": "Swept after 24 hours",
+          "summary": "4 columns",
+          "columns": [
+            {
+              "name": "id",
+              "key": "primary"
+            },
+            {
+              "name": "customer_id",
+              "to": "customers"
+            },
+            {
+              "name": "items"
+            },
+            {
+              "name": "expires_at"
+            }
+          ],
+          "rows": [],
+          "lines": [],
+          "notes": []
+        }
+      ]
     },
     {
       "id": "menu-cache",
@@ -122,7 +379,64 @@
       "name": "Menu cache",
       "in": "ordering",
       "tech": "Redis",
-      "description": "Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires."
+      "description": "Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires.",
+      "data": [
+        {
+          "name": "Keys",
+          "limits": "Oldest unused go first at 256 MB",
+          "note": "A restaurant's edit takes up to five minutes to show up. Shorter put too much load on Postgres.",
+          "columns": [
+            "Key",
+            "Value",
+            "Expires"
+          ],
+          "rows": [
+            [
+              "menu:{restaurantId}",
+              "{ items, prices, hours }",
+              "5 min"
+            ],
+            [
+              "menu:r_42",
+              "{ \"items\": 31 }",
+              "3 min left"
+            ]
+          ]
+        }
+      ],
+      "shown": [
+        {
+          "name": "Keys",
+          "limits": "Oldest unused go first at 256 MB",
+          "note": "A restaurant's edit takes up to five minutes to show up. Shorter put too much load on Postgres.",
+          "summary": "3 columns",
+          "columns": [
+            {
+              "name": "Key"
+            },
+            {
+              "name": "Value"
+            },
+            {
+              "name": "Expires"
+            }
+          ],
+          "rows": [
+            [
+              "menu:{restaurantId}",
+              "{ items, prices, hours }",
+              "5 min"
+            ],
+            [
+              "menu:r_42",
+              "{ \"items\": 31 }",
+              "3 min left"
+            ]
+          ],
+          "lines": [],
+          "notes": []
+        }
+      ]
     },
     {
       "id": "events",
@@ -131,7 +445,66 @@
       "in": "ordering",
       "shape": "queue",
       "tech": "Kafka",
-      "description": "One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\nDispatch reads from it, and so does the warehouse.\n"
+      "description": "One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\nDispatch reads from it, and so does the warehouse.\n",
+      "data": [
+        {
+          "name": "order-events",
+          "kind": "topic",
+          "limits": "Kept 7 days, 6 partitions",
+          "note": "Keyed by order id, so one order's messages stay in order.",
+          "columns": [
+            "Key",
+            "Value"
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "{ \"type\": \"placed\", \"total\": 2490 }"
+            ],
+            [
+              "o_1042",
+              "{ \"type\": \"accepted\" }"
+            ],
+            [
+              "o_1042",
+              "{ \"type\": \"picked-up\" }"
+            ]
+          ]
+        }
+      ],
+      "shown": [
+        {
+          "name": "order-events",
+          "kind": "topic",
+          "limits": "Kept 7 days, 6 partitions",
+          "note": "Keyed by order id, so one order's messages stay in order.",
+          "summary": "2 columns",
+          "columns": [
+            {
+              "name": "Key"
+            },
+            {
+              "name": "Value"
+            }
+          ],
+          "rows": [
+            [
+              "o_1042",
+              "{ \"type\": \"placed\", \"total\": 2490 }"
+            ],
+            [
+              "o_1042",
+              "{ \"type\": \"accepted\" }"
+            ],
+            [
+              "o_1042",
+              "{ \"type\": \"picked-up\" }"
+            ]
+          ],
+          "lines": [],
+          "notes": []
+        }
+      ]
     },
     {
       "id": "menu",
