@@ -94,7 +94,7 @@ function ObjectHeader({ model, id, object, problems }: { model: Model; id: strin
 }
 
 /** A text field that saves when you leave it or press Enter, and shows the saved text again if saving fails. */
-function Field({ label, value, multiline, list, placeholder, onSave }: { label: ReactNode; value: string; multiline?: boolean; list?: string; placeholder?: string; onSave: (value: string) => Promise<boolean> }) {
+export function Field({ label, value, multiline, list, placeholder, onSave }: { label: ReactNode; value: string; multiline?: boolean; list?: string; placeholder?: string; onSave: (value: string) => Promise<boolean> }) {
   const save = async (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = e.currentTarget
     if (input.value !== value && !(await onSave(input.value))) input.value = value
