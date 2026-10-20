@@ -6,7 +6,7 @@ import {
   sameFiles, stepId, stepInfos,
 } from '../core/history.ts'
 import type { Step, StepApp, StepFile, StepInfo, StepSource, StepView, YamlNow } from '../core/history.ts'
-import { hashBytes, isAllowedPath, saveRaw, VersionConflict } from './files.ts'
+import { hashBytes, isAllowedPath, saveRaw, VersionConflict, WRITTEN_FOLDERS } from './files.ts'
 import { defaultStateDir, historyKey, openStore } from './history-store.ts'
 
 export type { StepFile, StepView, YamlNow }
@@ -100,13 +100,15 @@ export function openHistory(dir: string, options: HistoryOptions): History {
     }
     await add('model.yaml')
     await add('layout.yaml')
-    let flows: string[] = []
-    try {
-      flows = (await readdir(join(dir, 'flows'))).sort()
-    } catch (e) {
-      if (!ABSENT.has((e as NodeJS.ErrnoException).code ?? '')) throw e
+    for (const folder of WRITTEN_FOLDERS) {
+      let names: string[] = []
+      try {
+        names = (await readdir(join(dir, folder))).sort()
+      } catch (e) {
+        if (!ABSENT.has((e as NodeJS.ErrnoException).code ?? '')) throw e
+      }
+      for (const name of names) if (isAllowedPath(`${folder}/${name}`)) await add(`${folder}/${name}`)
     }
-    for (const name of flows) if (isAllowedPath(`flows/${name}`)) await add(`flows/${name}`)
     return { files, bytes }
   }
 

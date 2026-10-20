@@ -1,6 +1,7 @@
 import { isAbsolute, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { fileData, serializeFile, serializeLayout } from '../../src/core/model.ts'
+import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
 import { loadState } from '../../src/node/files.ts'
 import { fixtureDirs } from './dump.ts'
@@ -76,7 +77,7 @@ export async function dumpYamlWrite(): Promise<unknown> {
   for (const dir of [...Object.values(fixtureDirs()), 'docs/demo/flowy', 'example']) {
     const state = await loadState(isAbsolute(dir) ? dir : join(root, dir)) // fixtureDirs() gives absolute paths, the two shipped folders are relative
     if ('parseError' in state) continue
-    const model: Model = { ...state.model, flows: state.flows, layout: state.layout }
+    const model: Model = modelOf(state)
     const rels = ['model.yaml', ...Object.keys(model.flows).map(id => `flows/${id}.yaml`)]
     for (const rel of rels) {
       // A file with an empty value the failsafe schema reads as null can't be written by the TypeScript either: the editor refuses it.

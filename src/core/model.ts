@@ -44,16 +44,39 @@ export type Group = { kind?: string; text?: string; times?: string; until?: stri
 export type Flow = { name: string; view: string; steps: Step[]; groups?: Record<string, Group>; [extra: string]: unknown }
 export type Layout = Record<string, Record<string, [number, number]>>
 
+/** The three ratings of a failure mode, as the text of a whole number from 1 to 10 (every file value is text). failures.ts reads them as numbers. */
+export type Ratings = { severity?: string; occurrence?: string; detection?: string; [extra: string]: unknown }
+/**
+ * One way a part can fail, in a failure analysis. `on` names a shape, or `from` and `to` a line. `after` holds the ratings once the
+ * next action is done; `affects` lists the shapes the failure hurts. Every known text field is text when present; check() reports what is wrong.
+ */
+export type Mode = Ratings & {
+  mode?: string; on?: string; from?: string; to?: string; effect?: string; cause?: string
+  controls?: string; action?: string; owner?: string; status?: string
+  flow?: string; step?: string; run?: string; description?: string
+  after?: Ratings; affects?: string[]
+}
+/** A failure analysis: `failures/<id>.yaml`. `scope` is "root" or a shape with children; `scale` says what the ends of each rating mean. */
+export type Analysis = {
+  name: string
+  about?: string
+  scope?: string
+  scale?: Record<string, { low?: string; high?: string }>
+  modes: Record<string, Mode>
+  [extra: string]: unknown
+}
+
 export type Model = {
   objects: Record<string, FlowyObject>
   connections: Connection[]
   flows: Record<string, Flow>
+  failures: Record<string, Analysis>
   layout: Layout
   /** Other top-level keys of model.yaml, kept so saving never drops them. */
   meta: Record<string, unknown>
 }
 
-export const emptyModel = (): Model => ({ objects: {}, connections: [], flows: {}, layout: {}, meta: {} })
+export const emptyModel = (): Model => ({ objects: {}, connections: [], flows: {}, failures: {}, layout: {}, meta: {} })
 
 /** The project's line style. Anything unknown draws straight; check() reports it. */
 export const lineStyle = (model: Model): LineStyle => LINE_STYLES.find(s => s === model.meta.lines) ?? 'straight'
@@ -126,6 +149,10 @@ const TEXT_FIELDS = {
   flow: ['name', 'view'],
   step: ['from', 'to', 'text', 'description', 'group', 'lane', 'flow'],
   group: ['kind', 'text', 'times', 'until'],
+  analysis: ['name', 'about', 'scope'],
+  mode: ['mode', 'on', 'from', 'to', 'effect', 'cause', 'severity', 'occurrence', 'detection', 'controls', 'action', 'owner', 'status', 'flow', 'step', 'run', 'description'],
+  ratings: ['severity', 'occurrence', 'detection'],
+  scale: ['low', 'high'],
 } as const
 
 /**
@@ -172,6 +199,42 @@ export function parseFlowFile(id: string, text: string): Flow {
   return flow
 }
 
+/**
+ * Checks the file's shape only: the right kinds of value in the right places. Whether a part exists, a rating is in range or a status is
+ * known is for check(). A blank `after` or `affects` is no section. A missing name reads as "" and a missing `modes` as none.
+ */
+export function parseAnalysisFile(id: string, text: string): Analysis {
+  const file = `failures/${id}.yaml`
+  const doc = orEmpty(readYaml(file, text), {})
+  if (!isMap(doc)) throw new ParseError(file, 'expected a mapping with "name" and "modes"')
+  checkEntry(file, 'analysis', doc, TEXT_FIELDS.analysis)
+  const rawModes = orEmpty(doc.modes, {})
+  if (!isMap(rawModes)) throw new ParseError(file, '"modes" must map ids to mappings')
+  const modes: Record<string, Mode> = {}
+  for (const [mid, raw] of Object.entries(rawModes)) {
+    const at = `mode "${mid}"`
+    checkEntry(file, at, raw, TEXT_FIELDS.mode)
+    const mode = { ...(raw as Mode) }
+    const after = orEmpty(mode.after, undefined)
+    if (after === undefined) delete mode.after
+    else if (!isMap(after)) throw new ParseError(file, `${at}: "after" must be a mapping of ratings`)
+    else checkEntry(file, `${at} after`, after, TEXT_FIELDS.ratings)
+    const affects = orEmpty(mode.affects, undefined)
+    if (affects === undefined) delete mode.affects
+    else if (!Array.isArray(affects) || affects.some(a => typeof a !== 'string')) throw new ParseError(file, `${at}: "affects" must be a list of ids`)
+    // Not `modes[mid] = ...`: a mode named __proto__ would replace the prototype and vanish.
+    Object.defineProperty(modes, mid, { value: mode, enumerable: true, writable: true, configurable: true })
+  }
+  const scale = orEmpty(doc.scale, undefined)
+  if (scale !== undefined) {
+    if (!isMap(scale)) throw new ParseError(file, '"scale" must map ratings to a low and a high')
+    for (const [rating, ends] of Object.entries(scale)) checkEntry(file, `scale "${rating}"`, ends, TEXT_FIELDS.scale)
+  }
+  const analysis = { ...doc, name: typeof doc.name === 'string' ? doc.name : '', modes } as Analysis
+  if (scale === undefined) delete analysis.scale
+  return analysis
+}
+
 function toPoint(v: unknown): [number, number] | undefined {
   if (!Array.isArray(v) || v.length !== 2) return undefined
   const [x, y] = v.map(n => (typeof n === 'string' && n.trim() !== '' ? Number(n) : NaN))
@@ -206,11 +269,16 @@ const dump = (value: unknown) => stringify(value, { schema: 'failsafe', lineWidt
 export function fileData(m: Model, rel: string): unknown {
   if (rel === 'model.yaml') return { ...m.meta, objects: m.objects, connections: m.connections }
   if (rel === 'layout.yaml') return m.layout
+  if (rel.startsWith('failures/')) return m.failures[rel.slice('failures/'.length, -'.yaml'.length)]
   return m.flows[rel.slice('flows/'.length, -'.yaml'.length)]
 }
 
+/** Whether a file may be absent and so can be created and deleted: a flow or a failure analysis. model.yaml and layout.yaml stay. */
+export const isRemovableFile = (rel: string): boolean => rel.startsWith('flows/') || rel.startsWith('failures/')
+
 export const serializeModelFile = (m: Model) => dump(fileData(m, 'model.yaml'))
 export const serializeFlow = (flow: Flow) => dump(flow)
+export const serializeAnalysis = (a: Analysis) => dump(a)
 
 export function serializeLayout(layout: Layout): string {
   const doc = new Document(layout, { aliasDuplicateObjects: false })
@@ -218,10 +286,11 @@ export function serializeLayout(layout: Layout): string {
   return doc.toString({ lineWidth: 0, flowCollectionPadding: false })
 }
 
-/** Parse one file of the folder, picked by its path (model.yaml, layout.yaml or flows/<id>.yaml). Throws ParseError. */
-export function parseFile(rel: string, text: string): ReturnType<typeof parseModelFile> | Layout | Flow {
+/** Parse one file of the folder, picked by its path (model.yaml, layout.yaml, flows/<id>.yaml or failures/<id>.yaml). Throws ParseError. */
+export function parseFile(rel: string, text: string): ReturnType<typeof parseModelFile> | Layout | Flow | Analysis {
   if (rel === 'model.yaml') return parseModelFile(text)
   if (rel === 'layout.yaml') return parseLayoutFile(text)
+  if (rel.startsWith('failures/')) return parseAnalysisFile(rel.slice('failures/'.length, -'.yaml'.length), text)
   return parseFlowFile(rel.slice('flows/'.length, -'.yaml'.length), text)
 }
 
@@ -238,6 +307,7 @@ export const serializeFile = (rel: string, data: unknown): string =>
 export function modelFiles(m: Model): Record<string, string> {
   const files: Record<string, string> = { 'model.yaml': serializeModelFile(m) }
   for (const [id, flow] of Object.entries(m.flows)) files[`flows/${id}.yaml`] = serializeFlow(flow)
+  for (const [id, analysis] of Object.entries(m.failures)) files[`failures/${id}.yaml`] = serializeAnalysis(analysis)
   return files
 }
 

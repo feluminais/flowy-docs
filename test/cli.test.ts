@@ -1,8 +1,9 @@
 import { test } from 'node:test'
+import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn, spawnSync } from 'node:child_process'
 import { once } from 'node:events'
-import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { State } from '../src/core/state.ts'
@@ -87,4 +88,76 @@ test('flowy mermaid prints a flow or a view, and wants exactly one', () => {
   const unknown = spawnSync(process.execPath, ['src/cli.ts', 'mermaid', '--dir', 'example', '--flow', 'nope'], { encoding: 'utf8' })
   assert.equal(unknown.status, 1)
   assert.match(unknown.stderr, /unknown flow "nope"/)
+})
+
+const SHOP = 'objects:\n  shop: { type: system, name: Shop }\n  db: { type: store, in: shop, name: Orders DB }\n'
+const ORDERING = 'name: Ordering\nmodes:\n  down:\n    mode: The database is unreachable\n    on: db\n    severity: 10\n    occurrence: 2\n    detection: 2\n'
+
+/** A flowy/ folder holding the shop and the given files under failures/. */
+async function failuresFolder(t: TestContext, files: Record<string, string>) {
+  const dir = await mkdtemp(join(tmpdir(), 'flowy-cli-failures-'))
+  t.after(() => rm(dir, { recursive: true, force: true }))
+  await writeFile(join(dir, 'model.yaml'), SHOP)
+  await mkdir(join(dir, 'failures'))
+  for (const [name, text] of Object.entries(files)) await writeFile(join(dir, 'failures', name), text)
+  const flowy = (...args: string[]) => spawnSync(process.execPath, ['src/cli.ts', ...args, '--dir', dir], { encoding: 'utf8' })
+  return { dir, flowy }
+}
+
+test('flowy failures prints each analysis as a table and exits 0', async t => {
+  const { flowy } = await failuresFolder(t, { 'ordering.yaml': ORDERING, 'other.yaml': 'name: Other\n' })
+  const run = flowy('failures')
+  assert.equal(run.status, 0, run.stderr)
+  assert.equal(run.stderr, '')
+  assert.ok(run.stdout.startsWith('## Ordering (ordering)\n\nAnalysed 1 of 1\n\n| Risk band | Part |'), run.stdout)
+  assert.match(run.stdout, /\n\n## Other \(other\)\n/)
+  assert.match(run.stdout, /\| High \| Shop > Orders DB \| The database is unreachable \|/)
+})
+
+test('flowy failures --format csv prints csv, and --analysis picks one', async t => {
+  const { flowy } = await failuresFolder(t, { 'ordering.yaml': ORDERING, 'other.yaml': 'name: Other\n' })
+  const csv = flowy('failures', '--analysis', 'ordering', '--format', 'csv')
+  assert.equal(csv.status, 0, csv.stderr)
+  assert.equal(csv.stdout, 'Risk band,Part,Mode,Effect,Cause,Severity,Likelihood,Hard to spot,Risk,Controls,Next action,Owner,Status\nHigh,Shop > Orders DB,The database is unreachable,,,10,2,2,40,,,,open\n')
+  const other = flowy('failures', '--analysis', 'other')
+  assert.doesNotMatch(other.stdout, /Ordering/)
+  assert.match(other.stdout, /^## Other \(other\)/)
+})
+
+test('flowy failures prints a problem to stderr and exits 1, with the table still printed', async t => {
+  const { flowy } = await failuresFolder(t, { 'ordering.yaml': `${ORDERING}  bad:\n    mode: x\n    on: gone\n` })
+  const run = flowy('failures')
+  assert.equal(run.status, 1)
+  assert.match(run.stdout, /The database is unreachable/)
+  assert.equal(run.stderr, 'failures/ordering.yaml: bad: unknown object "gone"\n')
+})
+
+test('flowy failures reports a file it could not read, and an analysis, a format or a folder that is not there', async t => {
+  const { flowy, dir } = await failuresFolder(t, { 'bad.yaml': 'name: [unclosed\n' })
+  const unreadable = flowy('failures')
+  assert.equal(unreadable.status, 1)
+  assert.equal(unreadable.stdout, '')
+  assert.match(unreadable.stderr, /^failures\/bad\.yaml: line \d+: /)
+  const unknown = flowy('failures', '--analysis', 'nope')
+  assert.deepEqual([unknown.status, unknown.stdout, unknown.stderr], [1, '', 'unknown analysis "nope"\n'])
+  const format = flowy('failures', '--format', 'xml')
+  assert.deepEqual([format.status, format.stderr], [1, 'The format must be markdown or csv, not "xml".\n'])
+  await rm(join(dir, 'failures', 'bad.yaml'))
+  const none = flowy('failures')
+  assert.equal(none.status, 1)
+  assert.equal(none.stderr, `No failure analyses in ${dir}.\n`)
+  await writeFile(join(dir, 'model.yaml'), 'objects: [\n')
+  const broken = flowy('failures')
+  assert.equal(broken.status, 1)
+  assert.match(broken.stderr, /^model\.yaml(:\d+)?: /)
+})
+
+test('--analysis and --format belong to flowy failures, and anywhere else print the usage line', async t => {
+  const { flowy } = await failuresFolder(t, { 'ordering.yaml': ORDERING })
+  for (const args of [['--analysis', 'ordering'], ['export', '--format', 'csv'], ['mermaid', '--view', 'shop', '--format', 'csv'], ['failures', '--flow', 'x']]) {
+    const run = flowy(...args)
+    assert.equal(run.status, 1, args.join(' '))
+    assert.match(run.stderr, /^Usage: flowy/, args.join(' '))
+    assert.match(run.stderr, /flowy failures \[--analysis <id>\] \[--format markdown\|csv\]/, args.join(' '))
+  }
 })

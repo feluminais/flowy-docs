@@ -1,4 +1,5 @@
 import { ROOT } from '../../src/core/model.ts'
+import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
 import { expandTo, flowGroups, outline, outlineKey } from '../../src/core/outline.ts'
 import type { OutlineKey, OutlineRow } from '../../src/core/outline.ts'
@@ -30,7 +31,7 @@ export async function dumpOutline(): Promise<unknown> {
       folders[name] = { parseError: true }
       continue
     }
-    const model: Model = { ...state.model, flows: state.flows, layout: state.layout }
+    const model: Model = modelOf(state)
     const ids = Object.keys(model.objects)
     const views = [ROOT, ...ids.filter(id => isView(model, id))]
     const everything = [ROOT, ...ids]
