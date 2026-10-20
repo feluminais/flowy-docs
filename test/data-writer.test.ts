@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { stringify } from 'yaml'
-import { fileData, parseModelFile, serializeFile, serializeModelFile } from '../src/core/model.ts'
+import { fileData, parseData, parseModelFile, serializeData, serializeFile, serializeModelFile } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 
@@ -97,4 +97,25 @@ test('a line break in a cell, a note or a sample list is written quoted, on one 
   const text = serializeModelFile(withData(data))
   assert.match(text, /^ {10}- \["Error:\\nnot found", /m)
   assert.match(text, /^ {10}list: \["Error:\\nnot found", /m)
+})
+
+test('serializeData gives the lines that sit under data in the file, outdented', () => {
+  const lines = serializeModelFile(withData(entries)).split('\n')
+  const start = lines.indexOf('    data:')
+  const block = lines.slice(start + 1).filter((_, i, rest) => rest.slice(0, i + 1).every(l => l.startsWith('      ')))
+  assert.ok(block.length > 10)
+  assert.equal(serializeData(entries), `${block.map(l => l.slice(6)).join('\n')}\n`)
+})
+
+test('serializeData is empty for no data', () => {
+  for (const none of [undefined, [], '']) assert.equal(serializeData(none), '')
+})
+
+test('parseData reads what serializeData wrote, and blank text is an empty list', () => {
+  assert.deepEqual(parseData(serializeData(entries)), entries)
+  for (const blank of ['', '  \n']) assert.deepEqual(parseData(blank), [])
+})
+
+test('parseData of text that is not YAML throws a ParseError', () => {
+  assert.throws(() => parseData('- [a'), (e: Error) => e.name === 'ParseError' && e.message.startsWith('data'))
 })
