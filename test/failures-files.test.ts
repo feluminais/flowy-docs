@@ -5,7 +5,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { ID_RULE } from '../src/core/model.ts'
-import { hashText, isAllowedPath, loadDir, loadState, unreadableFiles } from '../src/node/files.ts'
+import { blockedBy, hashText, isAllowedPath, loadDir, loadState } from '../src/node/files.ts'
 import { openHistory } from '../src/node/history.ts'
 import { applyWrite } from '../src/node/writes.ts'
 
@@ -148,7 +148,19 @@ test('applyWrite will not overwrite or delete a failures file that could not be 
   }
   assert.equal(await readFile(join(dir, 'failures', 'bad.yaml'), 'utf8'), broken)
   assert.equal((await applyWrite(dir, 'PUT', 'model.yaml', { version: null, data: { objects: {}, connections: [] } })).status, 200)
-  assert.deepEqual([...unreadableFiles(await loadDir(dir))], ['failures/bad.yaml'])
+  const loaded = await loadDir(dir)
+  assert.equal(blockedBy(loaded, 'failures/bad.yaml'), 'failures/bad.yaml')
+  assert.equal(blockedBy(loaded, 'failures/good.yaml'), undefined)
+  assert.equal(blockedBy(loaded, 'model.yaml'), undefined)
+})
+
+test('a skipped file is in the way of a write to the same name in other letters, because Windows and macOS see one file', async t => {
+  const { dir, put } = await setup(t)
+  await put('failures/Ordering.yaml', ORDERING) // not a valid id, so skipped
+  const reply = await applyWrite(dir, 'PUT', 'failures/ordering.yaml', { version: null, data: { name: 'O', modes: {} } })
+  assert.deepEqual(reply, { status: 409, body: { error: "failures/Ordering.yaml is in the way (the same file name in other letters), so failures/ordering.yaml isn't written. Rename or delete it by hand." } })
+  assert.equal(await readFile(join(dir, 'failures', 'Ordering.yaml'), 'utf8'), ORDERING)
+  assert.equal(blockedBy(await loadDir(dir), 'failures/ordering.yaml'), 'failures/Ordering.yaml')
 })
 
 test('the history snapshot takes failures files that Flowy may write and nothing else in that folder', async t => {
