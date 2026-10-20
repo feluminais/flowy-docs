@@ -83,6 +83,27 @@ public class StoreDataTests
     }
 
     [Fact]
+    public void Tidy_orders_keys_drops_blanks_and_writes_a_column_with_only_a_name_bare()
+    {
+        var tidy = (List<object?>)StoreData.Tidy(YamlWriterTests.Tree(JsonNode.Parse("""
+            [{ "notes": { "x": "n" }, "sample": { "x": "1" }, "note": "n", "limits": "", "kind": "", "name": "a", "extra": "kept" },
+             { "name": "g", "columns": [{ "note": "n", "to": "t", "key": "primary", "name": "id" }, { "name": "x" }, { "name": "y", "to": "", "note": "" }] }]
+            """)))!;
+        Assert.Equal(["name", "note", "sample", "notes", "extra"], ((OrderedDictionary<string, object?>)tidy[0]!).Keys);
+        var columns = (List<object?>)((OrderedDictionary<string, object?>)tidy[1]!)["columns"]!;
+        Assert.Equal(["name", "key", "to", "note"], ((OrderedDictionary<string, object?>)columns[0]!).Keys);
+        Assert.Equal("x", columns[1]);
+        Assert.Equal("y", columns[2]);
+    }
+
+    [Fact]
+    public void Tidy_carries_a_data_of_the_wrong_shape_through()
+    {
+        Assert.Equal("oops", StoreData.Tidy("oops"));
+        Assert.Equal("text", ((List<object?>)StoreData.Tidy(new List<object?> { "text" })!)[0]);
+    }
+
+    [Fact]
     public void Serialize_is_empty_for_no_data()
     {
         Assert.Equal("", StoreData.Serialize(null));
