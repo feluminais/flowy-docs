@@ -74,8 +74,8 @@ checks, and write the same text, so a change made in one looks the same in git a
 - Add (or N) puts a shape in the current view. It offers only the types that fit there: actors and
   systems at the top, apps and stores inside a system, components inside an app or store.
   Double-click an empty system, app or store to open it and add what goes inside.
-- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and code. A field saves when you leave
-  it. Code takes one path per line, relative to the folder that holds `flowy/`. A path that
+- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and source. A field saves when you leave
+  it. Source takes one file or folder per line, relative to the folder that holds `flowy/`. A path that
   doesn't exist shows up as a problem.
 - Links takes one per line, as `title | address`, or an address alone. An address is a web address
   (http or https) or a path in the repo, relative to the folder that holds `flowy/`. Anything else
