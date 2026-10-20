@@ -247,3 +247,22 @@ test('put_flow takes a step animation, and refuses one that is not a kind', asyn
   const misspelled = await call('put_flow', { id: 'bad', name: 'Bad', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x', animation: { kind: 'send', carry: 'x' } }] })
   assert.equal(misspelled.error, true)
 })
+
+test('put_flow takes a step outcome, and refuses one the kind cannot have', async t => {
+  const { dir, call } = await setup(t)
+  await call('put_object', { id: 'customer', type: 'actor', name: 'Customer' })
+  await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
+  const saved = await call('put_flow', { id: 'visit', name: 'Visit', view: 'root', steps: [
+    { from: 'customer', to: 'shop', text: 'Pays', animation: { kind: 'call', outcome: 'timeout' } },
+    { from: 'shop', to: 'customer', text: 'Declines the card', animation: { kind: 'send', outcome: 'fail', carries: 'declined' } },
+  ] })
+  assert.equal(saved.error, false, saved.text)
+  const flow = JSON.parse((await call('get_model')).text).flows.visit
+  assert.deepEqual(flow.steps[0].animation, { kind: 'call', outcome: 'timeout' })
+  assert.deepEqual(flow.steps[1].animation, { kind: 'send', outcome: 'fail', carries: 'declined' })
+  assert.match(await readFile(join(dir, 'flows', 'visit.yaml'), 'utf8'), /outcome: timeout/)
+
+  const refused = await call('put_flow', { id: 'bad', name: 'Bad', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x', animation: { kind: 'send', outcome: 'timeout' } }] })
+  assert.equal(refused.error, true)
+  assert.match(refused.text, /animation outcome timeout only applies to call/)
+})

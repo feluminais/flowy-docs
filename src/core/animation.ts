@@ -9,28 +9,36 @@ export const ANIMATION_KINDS = ['send', 'call', 'callback', 'event'] as const
 export type AnimationKind = (typeof ANIMATION_KINDS)[number]
 export const TRIGGERS = ['inside', 'outside'] as const
 export type Trigger = (typeof TRIGGERS)[number]
-const OPTIONS = ['kind', 'trigger', 'carries'] as const
+/** How the exchange a step draws ends: refused (`fail`) or never answered (`timeout`). Without one the exchange simply works. */
+export const OUTCOMES = ['fail', 'timeout'] as const
+export type Outcome = (typeof OUTCOMES)[number]
+const OPTIONS = ['kind', 'trigger', 'carries', 'outcome'] as const
 
-/** A step's animation, read: the kind, who sets a callback off (inside unless the file says outside), and the word the blob carries. */
-export type Animation = { kind: AnimationKind; trigger: Trigger; carries?: string }
+/** After the request lands, how long the sender's waiting dots run when nobody answers, and then how long the line takes to fade. */
+const TIMEOUT_WAIT = 1800
+const TIMEOUT_FADE = 600
+
+/** A step's animation, read: the kind, who sets a callback off (inside unless the file says outside), the word the blob carries, and how it ends. */
+export type Animation = { kind: AnimationKind; trigger: Trigger; carries?: string; outcome?: Outcome }
 
 export type Glyph = 'envelope' | 'bolt' | 'bell'
 
 /**
  * One thing to draw. `do` says what: the tube along the line (`pipe`), something running through it (`blob`),
  * a ring going out from a box, a flash on it, a squash as it takes something in (`gulp`), waiting dots over it,
- * or a glyph falling onto it (`drop`). `on` says where. Times are milliseconds from the start of the step.
+ * a glyph falling onto it (`drop`), or the step's lit line dimming and staying dim (`fade`). `on` says where.
+ * Times are milliseconds from the start of the step.
  */
 export type Beat = {
-  do: 'pipe' | 'blob' | 'ring' | 'flash' | 'gulp' | 'wait' | 'drop'
+  do: 'pipe' | 'blob' | 'ring' | 'flash' | 'gulp' | 'wait' | 'drop' | 'fade'
   on: 'from' | 'to' | 'line'
   at: number
   dur: number
   /** blob only: `fwd` runs from the step's `from` to its `to`, `back` the other way. */
   dir?: 'fwd' | 'back'
   glyph?: Glyph
-  /** blob only: a reply is drawn in the answer's colour. */
-  tone?: 'reply'
+  /** blob: a reply is drawn in the answer's colour. blob and flash: `fail` is drawn in the danger colour. */
+  tone?: 'reply' | 'fail'
   /** blob only: the `carries` word, shown instead of the glyph. */
   label?: string
 }
@@ -53,10 +61,13 @@ export function animationProblem(raw: unknown, hasTo: boolean): string | undefin
   if (isMap(raw)) {
     const extra = Object.keys(raw).find(k => !OPTIONS.some(o => o === k))
     if (extra !== undefined) return `unknown animation option "${extra}" (use ${OPTIONS.join(', ')})`
-    const { trigger, carries } = raw
+    const { trigger, carries, outcome } = raw
     if (trigger !== undefined && !TRIGGERS.some(t => t === trigger)) return `animation trigger must be ${TRIGGERS.join(' or ')}`
     if (trigger !== undefined && kind !== 'callback') return 'animation trigger only applies to callback'
     if (carries !== undefined && (typeof carries !== 'string' || carries.trim() === '')) return 'animation carries must be a word'
+    if (outcome !== undefined && !OUTCOMES.some(o => o === outcome)) return `animation outcome must be ${OUTCOMES.join(' or ')}`
+    if (outcome === 'timeout' && kind !== 'call') return 'animation outcome timeout only applies to call'
+    if (outcome === 'fail' && kind !== 'send' && kind !== 'call') return 'animation outcome fail only applies to send and call'
   }
   if (!hasTo) return `animation "${kind}" needs a "to"`
   return undefined
@@ -71,6 +82,7 @@ export function animationOf(step: { to?: string; animation?: unknown }): Animati
     kind: map.kind as AnimationKind,
     trigger: map.trigger === 'outside' ? 'outside' : 'inside',
     ...(typeof map.carries === 'string' ? { carries: map.carries } : {}),
+    ...(map.outcome === 'fail' || map.outcome === 'timeout' ? { outcome: map.outcome } : {}),
   }
 }
 
@@ -89,17 +101,31 @@ const effect = (d: 'ring' | 'flash' | 'gulp' | 'wait', on: 'from' | 'to', at: nu
  */
 export function beatsFor(a: Animation, { length, afterLanding }: { length: number; afterLanding: boolean }): { beats: Beat[]; total: number } {
   const T = travelMs(length)
-  const blob = (at: number, glyph: Glyph): Beat => ({ do: 'blob', on: 'line', at, dur: T, dir: 'fwd', glyph, ...(a.carries === undefined ? {} : { label: a.carries }) })
+  const failed = a.outcome === 'fail'
+  // A refusal is the news, so everything that runs is the danger tone and the receiver flashes in it when it lands.
+  const blob = (at: number, glyph: Glyph): Beat => ({
+    do: 'blob', on: 'line', at, dur: T, dir: 'fwd', glyph,
+    ...(failed ? { tone: 'fail' as const } : {}),
+    ...(a.carries === undefined ? {} : { label: a.carries }),
+  })
+  const refused = (at: number): Beat[] => (failed ? [{ do: 'flash', on: 'to', at, dur: 450, tone: 'fail' }] : [])
   const body = ((): Beat[] => {
     switch (a.kind) {
       case 'send':
-        return [effect('gulp', 'from', 0, 250), blob(250, 'envelope'), effect('gulp', 'to', 250 + T, 300)]
+        return [effect('gulp', 'from', 0, 250), blob(250, 'envelope'), effect('gulp', 'to', 250 + T, 300), ...refused(250 + T)]
       case 'call': {
         const landed = 250 + T
+        if (a.outcome === 'timeout') {
+          // Nobody answers: the sender keeps waiting, nothing comes back, and the line dims.
+          return [
+            effect('gulp', 'from', 0, 250), blob(250, 'envelope'), effect('gulp', 'to', landed, 300), effect('wait', 'from', landed, TIMEOUT_WAIT),
+            { do: 'fade', on: 'line', at: landed + TIMEOUT_WAIT, dur: TIMEOUT_FADE },
+          ]
+        }
         const back = landed + 600
         return [
-          effect('gulp', 'from', 0, 250), blob(250, 'envelope'), effect('gulp', 'to', landed, 300), effect('wait', 'from', landed, 600),
-          { do: 'blob', on: 'line', at: back, dur: T, dir: 'back', glyph: 'envelope', tone: 'reply' },
+          effect('gulp', 'from', 0, 250), blob(250, 'envelope'), effect('gulp', 'to', landed, 300), ...refused(landed), effect('wait', 'from', landed, 600),
+          { do: 'blob', on: 'line', at: back, dur: T, dir: 'back', glyph: 'envelope', tone: failed ? 'fail' : 'reply' },
           effect('gulp', 'from', back + T, 300),
         ]
       }

@@ -269,3 +269,15 @@ test('a step keeps its animation through putFlow and updateFlow', () => {
   const edited = updateFlow(put, 'tagged', { steps: put.flows.tagged.steps.map((s, i) => (i === 0 ? { ...s, text: 'Taps' } : s)) })
   assert.deepEqual(edited.flows.tagged.steps[0], { from: 'customer', to: 'web', text: 'Taps', animation: 'call' })
 })
+
+test('a step keeps its outcome, key for key, through putFlow and updateFlow', () => {
+  const steps = [
+    { from: 'customer', to: 'web', text: 'Clicks', animation: { kind: 'call', outcome: 'timeout' } },
+    { from: 'web', to: 'api', text: 'Declines', animation: { kind: 'send', carries: 'declined', outcome: 'fail' } },
+  ]
+  const put = putFlow(shop(), { id: 'failing', name: 'Failing', view: 'shop', steps })
+  assert.deepEqual(put.flows.failing.steps, steps)
+  const edited = updateFlow(put, 'failing', { steps: put.flows.failing.steps.map((s, i) => (i === 0 ? { ...s, text: 'Taps' } : s)) })
+  assert.deepEqual(edited.flows.failing.steps[0], { from: 'customer', to: 'web', text: 'Taps', animation: { kind: 'call', outcome: 'timeout' } })
+  assert.deepEqual(edited.flows.failing.steps[1], steps[1])
+})
