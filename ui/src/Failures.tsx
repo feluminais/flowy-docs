@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react'
 import type { Problem } from '../../src/core/check.ts'
-import { bandOf, BAND_NAMES, coverage, partName, ratingsOf, reach, riskOf } from '../../src/core/failures.ts'
+import { bandOf, BAND_NAMES, coverage, partName, lightFor, ratingsOf, riskOf } from '../../src/core/failures.ts'
 import type { Band, Part, Ranked } from '../../src/core/failures.ts'
 import type { Model } from '../../src/core/model.ts'
 import type { Run } from '../../src/core/perf.ts'
@@ -81,7 +81,7 @@ export function FailuresBody(p: FailuresProps) {
   const total = covered.analysed.length + covered.left.length
   const listed = rows.here.length + rows.elsewhere.length
   const picked = part === undefined ? undefined : partName(model, 'box' in part ? { on: part.box } : { from: part.line[0], to: part.line[1] })
-  const lit = mode ? reach(model, p.view, mode) : undefined
+  const lit = mode ? lightFor(model, p.view, mode) : undefined
   const flowShown = mode?.flow !== undefined && Object.hasOwn(model.flows, mode.flow)
   const run = mode?.run !== undefined && Object.hasOwn(p.runs, mode.run) ? p.runs[mode.run] : undefined
   const seen = mode && run ? firstErrorAt(model, run, mode) !== undefined : false
@@ -182,13 +182,13 @@ export function FailuresBody(p: FailuresProps) {
               <div className="rating" key={key}>
                 <span className="label">{label}</span>
                 <span className="cells" aria-hidden="true">{ratingCells(value).map((on, i) => <i key={i} className={on ? 'on' : undefined} />)}</span>
-                <span className="value">{value ?? '–'}</span>
+                <span className="value">{value ?? 'Not rated'}</span>
                 {scale && (scale.low || scale.high) && <span className="ends muted"><span>1: {scale.low}</span><span>10: {scale.high}</span></span>}
               </div>
             )
           })}
           <p className="riskline">
-            <span className="label">Risk</span> <strong>{riskOf(mode) ?? '–'}</strong> <span className={`sw ${bandOf(mode)}`} aria-hidden="true" />{BAND_NAMES[bandOf(mode)]}
+            <span className="label">Risk</span> <strong>{riskOf(mode) ?? 'None'}</strong> <span className={`sw ${bandOf(mode)}`} aria-hidden="true" />{BAND_NAMES[bandOf(mode)]}
             {afterText(mode) !== undefined && <span className="muted"> · After: {afterText(mode)}</span>}
           </p>
           <dl className="faildl">

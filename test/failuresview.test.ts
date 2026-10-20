@@ -2,7 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { lineKey } from '../src/core/failures.ts'
 import { parseRun } from '../src/core/perf.ts'
-import { activeAnalysis, afterText, bandCounts, firstErrorAt, modeCount, modeIn, neighbour, ratingCells, rowsFor, STATUS_NAMES } from '../ui/src/failuresview.ts'
+import { activeAnalysis, afterText, bandCounts, firstErrorAt, modeCount, modeIn, neighbour, ratingCells, rowsFor, sideForTab, STATUS_NAMES, toLine, toShape } from '../ui/src/failuresview.ts'
+import { refuseNewProblems, updateMode } from '../src/core/ops.ts'
 import { lineId } from '../ui/src/graph.ts'
 import { shopWithFailures } from './fixtures.ts'
 
@@ -105,6 +106,28 @@ test('firstErrorAt is the first tested level where the mode\'s part has errors',
   assert.equal(firstErrorAt(m, run, a.modes['web-glitch']), undefined) // never measured
   assert.equal(firstErrorAt(m, run, { mode: 'x', on: 'gone' }), undefined)
   assert.equal(firstErrorAt(m, run, { mode: 'x' }), undefined)
+})
+
+test('toLine turns a shape mode into a line on a connection the shape starts, and toShape turns it back', () => {
+  assert.deepEqual(toLine(m, { mode: 'x', on: 'web' }), { on: '', from: 'web', to: 'api' })
+  assert.deepEqual(toLine(m, { mode: 'x', on: 'customer' }), { on: '', from: 'customer', to: 'web' })
+  assert.equal(toLine(m, { mode: 'x', on: 'db' }), undefined) // nothing leaves it, so there is no line to put the mode on
+  assert.equal(toLine(m, { mode: 'x', on: 'gone' }), undefined)
+  assert.equal(toLine(m, { mode: 'x' }), undefined)
+  assert.deepEqual(toShape({ mode: 'x', from: 'web', to: 'api' }), { on: 'web', from: '', to: '' })
+  // what the picker saves is something the checker accepts
+  const changes = toLine(m, m.failures.ordering.modes['web-glitch'])
+  assert.ok(changes)
+  assert.doesNotThrow(() => refuseNewProblems(m, updateMode(m, 'ordering', 'web-glitch', changes)))
+  assert.doesNotThrow(() => refuseNewProblems(m, updateMode(m, 'ordering', 'mail-timeout', toShape(m.failures.ordering.modes['mail-timeout']))))
+})
+
+test('sideForTab drops the panels that are Details\' own (Add and a flow being recorded) when the tab opens, and keeps a picked shape or line', () => {
+  assert.equal(sideForTab({ kind: 'add' }), undefined)
+  assert.equal(sideForTab({ kind: 'flow', id: 'x' }), undefined)
+  const object = { kind: 'object', id: 'db' }
+  assert.equal(sideForTab(object), object)
+  assert.equal(sideForTab(undefined), undefined)
 })
 
 test('a line is known by the same text in the core and on the canvas', () => {

@@ -18,6 +18,13 @@ export type Perf = { run: string; level: number }
 /** The failure analysis the Failures tab shows, and the mode in it that is picked, if one is: `#<view>/failures/<analysis>/<mode>`. */
 export type Failures = { analysis: string; mode?: string }
 
+/**
+ * Whether the address moves along the Failures tab rather than to a new place: the same analysis with another mode picked (or none, or the
+ * first). Such a step replaces the entry, so Back still undoes opening the tab and every zoom, which is a step even with a mode picked.
+ */
+export const alongFailures = (was: Failures | undefined, now: Failures | undefined): boolean =>
+  was !== undefined && now !== undefined && was.analysis === now.analysis && was.mode !== now.mode
+
 /** What an address names. One that isn't made of ids opens the overview. A flow can be called `perf` or `failures`: only the longer forms name a run or an analysis. */
 export function readHash(hash: string): { view: string; flow?: string; perf?: Perf; failures?: Failures } {
   const parts = hash.replace(/^#/, '').split('/')

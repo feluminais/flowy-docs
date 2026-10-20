@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ROOT } from '../src/core/model.ts'
-import { readHash, toHash } from '../ui/src/hash.ts'
+import { alongFailures, readHash, toHash } from '../ui/src/hash.ts'
 
 test('an address and what it names go both ways', () => {
   const cases: [string, string?][] = [[ROOT], ['shop'], ['shop', 'checkout'], [ROOT, 'tour']]
@@ -27,6 +27,16 @@ test('an address can name a failure analysis and a mode, and goes both ways', ()
   for (const f of [{ analysis: 'a' }, { analysis: 'a', mode: 'b' }]) assert.deepEqual(readHash(toHash('shop', undefined, undefined, f)), { view: 'shop', failures: f })
   assert.deepEqual(readHash('#shop/failures/constructor'), { view: 'shop', failures: { analysis: 'constructor' } }) // an id, so a valid name
   assert.equal(toHash('shop', undefined, { run: 'ramp', level: 1 }, { analysis: 'ordering' }), '#shop/perf/ramp/1') // a run on show wins
+})
+
+test('only picking another mode replaces the address, so Back still undoes opening the tab and each zoom', () => {
+  assert.equal(alongFailures({ analysis: 'a', mode: 'x' }, { analysis: 'a', mode: 'y' }), true)
+  assert.equal(alongFailures({ analysis: 'a' }, { analysis: 'a', mode: 'x' }), true)
+  assert.equal(alongFailures({ analysis: 'a', mode: 'x' }, { analysis: 'a' }), true)
+  assert.equal(alongFailures({ analysis: 'a', mode: 'x' }, { analysis: 'a', mode: 'x' }), false) // the view changed: a zoom is a step
+  assert.equal(alongFailures({ analysis: 'a', mode: 'x' }, { analysis: 'b', mode: 'y' }), false)
+  assert.equal(alongFailures(undefined, { analysis: 'a', mode: 'x' }), false) // opening the tab
+  assert.equal(alongFailures({ analysis: 'a', mode: 'x' }, undefined), false) // closing it
 })
 
 test('an address that is not a failure address reads as the overview, or as a flow called failures', () => {

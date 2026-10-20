@@ -1,6 +1,8 @@
 import { bandOf, carried, homeView, inView, lineKey, rank, ratingsAfter, ratingsOf, risk } from '../../src/core/failures.ts'
 import type { Band, Part, Ranked } from '../../src/core/failures.ts'
+import { getObject } from '../../src/core/model.ts'
 import type { Analysis, Mode, Model } from '../../src/core/model.ts'
+import type { ModeChanges } from '../../src/core/ops.ts'
 import type { Run } from '../../src/core/perf.ts'
 import { placeEnds, placeStep } from '../../src/core/views.ts'
 import { boxSeries, lineSeries } from './perfview.ts'
@@ -22,6 +24,22 @@ export function modeIn(model: Model, analysis: string | undefined, mode: string 
   const modes = model.failures[analysis].modes
   return Object.hasOwn(modes, mode) ? modes[mode] : undefined
 }
+
+/**
+ * The changes that put a shape's mode on a line instead: the first connection that starts at the shape. None when nothing starts there (or the mode has no
+ * shape), because a line mode needs a connection that exists and the checker refuses one that isn't.
+ */
+export function toLine(model: Model, m: Mode): ModeChanges | undefined {
+  const on = typeof m.on === 'string' && m.on !== '' && getObject(model, m.on) ? m.on : undefined
+  const to = on === undefined ? undefined : model.connections.find(c => c.from === on && getObject(model, c.to))?.to
+  return on === undefined || to === undefined ? undefined : { on: '', from: on, to }
+}
+
+/** The changes that put a line's mode on the shape it starts at. */
+export const toShape = (m: Mode): ModeChanges => ({ on: m.from ?? '', from: '', to: '' })
+
+/** The side panel once the Failures tab opens: Add and a flow being recorded are Details' own and go, a picked shape or line stays to narrow the list. */
+export const sideForTab = <T extends { kind: string }>(side: T | undefined): T | undefined => (side?.kind === 'add' || side?.kind === 'flow' ? undefined : side)
 
 /** How many modes the folder holds, all analyses together: the count on the rail. */
 export const modeCount = (model: Model): number => Object.values(model.failures).reduce((n, a) => n + Object.keys(a.modes).length, 0)

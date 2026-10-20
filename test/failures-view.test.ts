@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { carried, homeView, inView, lineKey, reach, rollUp } from '../src/core/failures.ts'
+import { carried, drawnIn, homeView, inView, lightFor, lineKey, reach, rollUp } from '../src/core/failures.ts'
 import type { Marks } from '../src/core/failures.ts'
 import type { Mode } from '../src/core/model.ts'
 import { connect } from '../src/core/ops.ts'
@@ -84,6 +84,29 @@ test('reach: the drawn parts that fail, and the drawn shapes it hurts that are n
   assert.deepEqual(reach(m, 'shop', mode('mail-timeout')), { fails: ['api', 'mail'], failsLine: 'api mail', affects: [] })
   assert.deepEqual(reach(m, 'web', mode('db-down')), { fails: [], affects: [] }) // the view cannot draw it
   assert.deepEqual(reach(m, 'api', { ...mode('auth-lock'), affects: ['web', 'orders', 'orders'] }), { fails: ['auth'], affects: ['orders'] })
+})
+
+test('drawnIn says whether a view draws a mode anywhere: not for the frame the reader is inside, nor for a line that touches it', () => {
+  const touchesFrame: Mode = { mode: 'x', from: 'web', to: 'api' }
+  assert.equal(drawnIn(m, 'shop', mode('auth-lock')), true)
+  assert.equal(drawnIn(m, 'api', mode('auth-lock')), true)
+  assert.equal(drawnIn(m, 'root', mode('db-down')), true)
+  assert.equal(drawnIn(m, 'api', mode('mail-timeout')), true) // a line drawn to an outsider
+  assert.equal(drawnIn(m, 'api', mode('api-slow')), false) // api is the frame of this view
+  assert.equal(drawnIn(m, 'shop', mode('api-slow')), true)
+  assert.equal(drawnIn(m, 'api', touchesFrame), false)
+  assert.equal(drawnIn(m, 'shop', touchesFrame), true)
+  assert.equal(drawnIn(m, 'web', mode('db-down')), false)
+  assert.equal(drawnIn(m, 'shop', { mode: 'x', on: 'gone' }), false)
+})
+
+test('lightFor lights a picked mode only when the view draws a part of it that fails, so nothing fades to nothing', () => {
+  assert.deepEqual(lightFor(m, 'shop', mode('db-down')), { fails: ['db'], affects: [] })
+  assert.deepEqual(lightFor(m, 'shop', mode('mail-timeout')), { fails: ['api', 'mail'], failsLine: 'api mail', affects: [] })
+  assert.equal(lightFor(m, 'api', mode('api-slow')), undefined) // the frame fails: no box or line to outline
+  assert.equal(lightFor(m, 'api', { ...mode('api-slow'), affects: ['orders'] }), undefined) // something affected is not enough: the part that fails is not drawn
+  assert.equal(lightFor(m, 'api', { mode: 'x', from: 'web', to: 'api' }), undefined)
+  assert.equal(lightFor(m, 'web', mode('db-down')), undefined)
 })
 
 test('lineKey is the text a drawn line is known by', () => {
