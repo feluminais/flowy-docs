@@ -112,7 +112,7 @@ something on its own, and a step with more to say has a **More**. In the browser
 
 A step can also say how it travels. Tag it `animation: call` and its line turns into a pipe with something running
 through it and back while the sender waits; `send` and `event` go one way, and `callback` shows what set it off. In the browser the
-step plays again after a short rest until you move on, **R** plays it again from the start, and **Autoplay** (**P**) steps through the flow
+step plays again two and a half seconds after it ends until you move on (the Repeat button on the card turns that off), **R** plays it again from the start, and **Autoplay** (**P**) steps through the flow
 on its own. Nothing moves when the system asks for less motion, and the step's text still says the same thing. The app plays each step once.
 
 Neighbouring steps can also belong together. A flow file can mark them as a `repeat` that runs up to a stated number of times,

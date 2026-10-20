@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { active, bump, cyclePeriod, dashAround, distance, ease, progress, REST, tubeOpacity } from '../ui/src/motion.ts'
+import { active, bump, cyclePeriod, dashAround, distance, ease, labelOffset, progress, REST, tubeOpacity } from '../ui/src/motion.ts'
 
 const beat = { at: 100, dur: 400 }
 
@@ -61,4 +61,17 @@ test('steps that play together loop together: the longest one, then a rest', () 
   assert.equal(cyclePeriod([1900]), 1900 + REST)
   assert.equal(cyclePeriod([1900, 3550, 2250]), 3550 + REST)
   assert.equal(cyclePeriod([]), REST)
+})
+
+test('a label moves off the pipe, to the upper side of the line and further for a long label on a steep one', () => {
+  const flat = labelOffset(300, 0, 5)
+  assert.equal(flat.x, 0)
+  assert.equal(flat.y, -(15 + 6 + 10))
+  assert.deepEqual(labelOffset(-300, 0, 5), flat) // a line drawn the other way has the same upper side
+  const steep = labelOffset(0, 300, 5)
+  assert.equal(steep.y, 0) // a vertical line's label goes to its right
+  assert.equal(steep.x, 15 + 6 + 5 * 3 + 6)
+  assert.ok(labelOffset(0, 300, 20).x > steep.x)
+  assert.ok(labelOffset(100, 100, 10).y < 0) // up, on any slope
+  assert.deepEqual(labelOffset(0, 0, 4), { x: 0, y: -31 })
 })

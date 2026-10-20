@@ -31,6 +31,7 @@ import { DWELL, GAP } from './motion.ts'
 import { clampWidth, openTab } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { keepNav, loadNav } from './navstore.ts'
+import { store } from './store.ts'
 import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, Sash } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
 import { activeRun, clampPos, loadAt, rampFrom, rampPos, RAMP_STEP_MS, snap, top } from './perfview.ts'
@@ -154,6 +155,21 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
     return flow === undefined ? undefined : { flow, step: 0 }
   })
   const [replays, setReplays] = useState(0) // R counts up, and a new count plays the step again
+  const [repeat, setRepeat] = useState(() => {
+    try {
+      return store.get('flowy.repeat') !== 'off'
+    } catch {
+      return true
+    }
+  }) // whether a step that moves plays again after a rest
+  const toggleRepeat = () => {
+    setRepeat(!repeat)
+    try {
+      store.set('flowy.repeat', repeat ? 'off' : 'on')
+    } catch {
+      // storage is blocked: the choice lasts until the page closes
+    }
+  }
   const [settledKey, setSettledKey] = useState('') // the step (and replay) whose motion has finished
   const [editMode, setEditMode] = useState(false)
   const [notice, setNotice] = useState<string>()
@@ -280,7 +296,12 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })), openLevel)]
   const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
   const selectedBox = side?.kind === 'object' ? side.id : undefined
-  const edges = useMemo(() => focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }), [graph, selectedBox, selectedLine, hovered])
+  // The lines a pipe plays along move their labels aside (see Line), unless motion is reduced and there is no pipe.
+  const pipes = still ? '' : animated.map(m => lineId(m.placed[0], m.placed[1])).join('\n')
+  const edges = useMemo(() => {
+    const lifted = new Set(pipes === '' ? [] : pipes.split('\n'))
+    return focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }).map(e => (lifted.has(e.id) ? { ...e, data: { lift: true } } : e))
+  }, [graph, selectedBox, selectedLine, hovered, pipes])
   // The tree follows the canvas: going into a level opens it, and a selected shape is brought into view. It only ever opens rows.
   const reveal = (id: string, self: boolean) =>
     setExpanded(e => {
@@ -828,7 +849,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
               <Controls showInteractive={false} fitViewOptions={fitOptions(rightOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
               {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
               {flow && stop && animated.map(m => (
-                <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} onDone={() => finished(m.i)} />
+                <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
               ))}
               {flow && <GroupMarks marks={marks} />}
             </ReactFlow>
@@ -906,7 +927,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
           {rightOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && stop && caption && progress && (
             <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} auto={playing?.auto === true} moving={moving}
-              trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={() => setReplays(n => n + 1)} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
+              trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={() => setReplays(n => n + 1)} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
           )}
         </main>
         <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else { setPerf(false); setDetails(true) } }}
