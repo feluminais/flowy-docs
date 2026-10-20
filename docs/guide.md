@@ -51,9 +51,10 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
 - A step can carry an `animation:`. When you arrive at it, its line turns into a pipe and something
   runs through it: `call` goes and comes back while the sender waits, `send` and `event` go one
   way, and `callback` shows what set it off (`trigger: outside` when it was the step before).
-  R plays the step again, and Autoplay (P) steps through the flow on its own. Nothing moves when
+  In the browser the step plays again after a short rest until you move on, R plays it again from the start,
+  and Autoplay (P) steps through the flow on its own after the first play. Nothing moves when
   the system asks for less motion, and a step's text always says the same thing. The desktop app
-  plays them the same way.
+  plays each step once.
 - A flow whose steps are grouped (see [Repeats, branches and parallel steps](#repeats-branches-and-parallel-steps)) is played in
   stops: a chip names the group, a branch shows its lanes as tabs, the bar has a bracket under each group, and the lanes of a parallel
   group are one stop, lit and moving together. A step that says `flow:` has an Open flow button, and a bar to come back.

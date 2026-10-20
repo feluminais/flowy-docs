@@ -74,8 +74,8 @@ export function animationOf(step: { to?: string; animation?: unknown }): Animati
   }
 }
 
-/** How long something takes to run the length of a line (in the same units the renderer measures it): half a second to a bit over one. */
-export const travelMs = (length: number): number => (Number.isFinite(length) ? Math.min(1100, Math.max(500, Math.floor(length * 2 + 0.5))) : 500)
+/** How long something takes to run the length of a line (in the same units the renderer measures it): at least 1.2 seconds, so the eye can follow it, and at most 2.2. */
+export const travelMs = (length: number): number => (Number.isFinite(length) ? Math.min(2200, Math.max(1200, Math.floor(length * 3 + 0.5))) : 1200)
 
 /** Whether the step before ended at the box this one starts from, so a callback "triggered outside" was just kicked by it. */
 export const followsLanding = (previous: readonly [string, string] | null | undefined, current: readonly [string, string] | null | undefined): boolean =>
@@ -93,22 +93,22 @@ export function beatsFor(a: Animation, { length, afterLanding }: { length: numbe
   const body = ((): Beat[] => {
     switch (a.kind) {
       case 'send':
-        return [effect('gulp', 'from', 0, 150), blob(150, 'envelope'), effect('gulp', 'to', 150 + T, 200)]
+        return [effect('gulp', 'from', 0, 250), blob(250, 'envelope'), effect('gulp', 'to', 250 + T, 300)]
       case 'call': {
-        const landed = 150 + T
-        const back = landed + 300
+        const landed = 250 + T
+        const back = landed + 600
         return [
-          effect('gulp', 'from', 0, 150), blob(150, 'envelope'), effect('gulp', 'to', landed, 200), effect('wait', 'from', landed, 300),
+          effect('gulp', 'from', 0, 250), blob(250, 'envelope'), effect('gulp', 'to', landed, 300), effect('wait', 'from', landed, 600),
           { do: 'blob', on: 'line', at: back, dur: T, dir: 'back', glyph: 'envelope', tone: 'reply' },
-          effect('gulp', 'from', back + T, 200),
+          effect('gulp', 'from', back + T, 300),
         ]
       }
       case 'event':
-        return [effect('gulp', 'from', 0, 150), blob(150, 'bolt'), effect('flash', 'to', 150 + T, 250)]
+        return [effect('gulp', 'from', 0, 250), blob(250, 'bolt'), effect('flash', 'to', 250 + T, 450)]
       case 'callback':
-        if (a.trigger === 'inside') return [effect('ring', 'from', 0, 400), blob(300, 'bell'), effect('ring', 'to', 300 + T, 400)]
-        if (afterLanding) return [effect('flash', 'from', 0, 250), blob(200, 'bell'), effect('ring', 'to', 200 + T, 400)]
-        return [{ do: 'drop', on: 'from', at: 0, dur: 350, glyph: 'bolt' }, effect('flash', 'from', 350, 250), blob(550, 'bell'), effect('ring', 'to', 550 + T, 400)]
+        if (a.trigger === 'inside') return [effect('ring', 'from', 0, 600), blob(450, 'bell'), effect('ring', 'to', 450 + T, 600)]
+        if (afterLanding) return [effect('flash', 'from', 0, 450), blob(300, 'bell'), effect('ring', 'to', 300 + T, 600)]
+        return [{ do: 'drop', on: 'from', at: 0, dur: 600, glyph: 'bolt' }, effect('flash', 'from', 600, 450), blob(850, 'bell'), effect('ring', 'to', 850 + T, 600)]
     }
   })()
   const total = Math.max(...body.map(b => b.at + b.dur))

@@ -5,7 +5,7 @@ import { beatsFor } from '../../src/core/animation.ts'
 import type { Animation, Beat, Glyph } from '../../src/core/animation.ts'
 import type { Rect } from './graph.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
-import { active, bump, dashAround, distance, DWELL, ease, progress, squashTile, tubeOpacity } from './motion.ts'
+import { active, bump, cyclePeriod, dashAround, distance, DWELL, ease, progress, squashTile, tubeOpacity } from './motion.ts'
 
 // The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
 const GLYPHS: Record<Glyph, string> = {
@@ -15,6 +15,8 @@ const GLYPHS: Record<Glyph, string> = {
 }
 const SWELL = 46 // px of tube that bulges around a blob
 const HIDDEN = { display: 'none' } as const
+/** Every motion on screen and how long it takes, so the ones of a stop (a fan-out plays several) start again together. */
+const running = new Map<symbol, number>()
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 /** The drawn tile of a box on the canvas, which a gulp squashes. */
@@ -90,6 +92,8 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
     const { beats, total } = beatsFor(animation, { length, afterLanding })
     const nodes = beats.map((_, i) => svg.querySelector<SVGElement>(`[data-beat="${i}"]`))
     const tiles = { from: tile(ends[0]), to: tile(ends[1]) }
+    const me = Symbol('motion')
+    running.set(me, total)
     const who = { from: Symbol('from'), to: Symbol('to') } // two asks, so a step that is both its ends squashes by the larger
     let frameId = 0
     let start: number | undefined
@@ -145,15 +149,21 @@ export function StepMotion({ ends, animation, afterLanding, onDone }: Props) {
       }
     }
 
+    // Plays, rests, and plays again until the step is left. Autoplay hears about the first play only.
+    let finished = false
     const loop = (now: number) => {
       start ??= now
-      const t = now - start
-      frame(t)
-      if (t < total) frameId = requestAnimationFrame(loop)
-      else done.current()
+      const since = now - start
+      frame(since % cyclePeriod(running.values()))
+      if (!finished && since >= total) {
+        finished = true
+        done.current()
+      }
+      frameId = requestAnimationFrame(loop)
     }
     frameId = requestAnimationFrame(loop)
     return () => {
+      running.delete(me)
       cancelAnimationFrame(frameId)
       for (const side of ['from', 'to'] as const) {
         const el = tiles[side]

@@ -464,7 +464,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .more summary { cursor: pointer; color: var(--muted); font-size: 13px; }
 
 /* A tagged step playing (see StepMotion.tsx): a pipe along the step's line, a blob running through it, and rings and flashes on the boxes. */
-.motion { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+.motion { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; z-index: 2; } /* above the lit line, which sits at 1, so the pipe covers it */
 .motion path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .motion .wall { stroke: color-mix(in srgb, var(--accent) 65%, var(--fg)); stroke-width: 15; }
 .motion .bore { stroke: var(--bg); stroke-width: 10; }

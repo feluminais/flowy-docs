@@ -59,9 +59,9 @@ public class MotionMathTests
     public void A_gulp_squashes_the_box_it_is_on_while_it_runs()
     {
         var (beats, _) = Animations.BeatsFor(new StepAnimation("send", "inside", null), 250, false);
-        Assert.Equal((1.0, 0.0), MotionMath.Squash(beats, 75)); // the sender's squeeze, half way
-        Assert.Equal((0.0, 0.0), MotionMath.Squash(beats, 400)); // the blob is on its way
-        Assert.Equal((0.0, 1.0), MotionMath.Squash(beats, 750)); // the receiver takes it in
+        Assert.Equal((1.0, 0.0), MotionMath.Squash(beats, 125)); // the sender's squeeze, half way
+        Assert.Equal((0.0, 0.0), MotionMath.Squash(beats, 700)); // the blob is on its way
+        Assert.Equal((0.0, 1.0), MotionMath.Squash(beats, 1600)); // the receiver takes it in
         Assert.Equal((0.0, 0.0), MotionMath.Squash(beats, 5000));
     }
 

@@ -44,8 +44,8 @@ test('problems say what to fix', () => {
   for (const [raw, hasTo, expected] of cases) assert.equal(animationProblem(raw, hasTo), expected, JSON.stringify(raw))
 })
 
-test('travel time follows the length of the line, between half a second and a bit over one', () => {
-  const cases: [number, number][] = [[0, 500], [100, 500], [250, 500], [400, 800], [333.3, 667], [1000, 1100], [5000, 1100], [Number.NaN, 500], [Number.POSITIVE_INFINITY, 500]]
+test('travel time follows the length of the line, between 1.2 and 2.2 seconds', () => {
+  const cases: [number, number][] = [[0, 1200], [100, 1200], [250, 1200], [400, 1200], [333.3, 1200], [500, 1500], [600, 1800], [1000, 2200], [5000, 2200], [Number.NaN, 1200], [Number.POSITIVE_INFINITY, 1200]]
   for (const [length, ms] of cases) assert.equal(travelMs(length), ms, String(length))
 })
 
@@ -59,65 +59,65 @@ test('a step follows a landing when the step before ended where it starts', () =
 
 test('send: a squeeze, a blob along the line, a gulp where it lands', () => {
   const { beats, total } = beatsFor(plain('send'), { length: 400, afterLanding: false })
-  assert.equal(total, 1150)
+  assert.equal(total, 1750)
   assert.deepEqual(beats, [
-    { do: 'pipe', on: 'line', at: 0, dur: 1150 },
-    { do: 'gulp', on: 'from', at: 0, dur: 150 },
-    { do: 'blob', on: 'line', at: 150, dur: 800, dir: 'fwd', glyph: 'envelope' },
-    { do: 'gulp', on: 'to', at: 950, dur: 200 },
+    { do: 'pipe', on: 'line', at: 0, dur: 1750 },
+    { do: 'gulp', on: 'from', at: 0, dur: 250 },
+    { do: 'blob', on: 'line', at: 250, dur: 1200, dir: 'fwd', glyph: 'envelope' },
+    { do: 'gulp', on: 'to', at: 1450, dur: 300 },
   ])
 })
 
 test('call: the sender waits, then a reply comes back the same way', () => {
   const { beats, total } = beatsFor(plain('call'), { length: 250, afterLanding: false })
-  assert.equal(total, 1650)
+  assert.equal(total, 3550)
   assert.deepEqual(beats, [
-    { do: 'pipe', on: 'line', at: 0, dur: 1650 },
-    { do: 'gulp', on: 'from', at: 0, dur: 150 },
-    { do: 'blob', on: 'line', at: 150, dur: 500, dir: 'fwd', glyph: 'envelope' },
-    { do: 'gulp', on: 'to', at: 650, dur: 200 },
-    { do: 'wait', on: 'from', at: 650, dur: 300 },
-    { do: 'blob', on: 'line', at: 950, dur: 500, dir: 'back', glyph: 'envelope', tone: 'reply' },
-    { do: 'gulp', on: 'from', at: 1450, dur: 200 },
+    { do: 'pipe', on: 'line', at: 0, dur: 3550 },
+    { do: 'gulp', on: 'from', at: 0, dur: 250 },
+    { do: 'blob', on: 'line', at: 250, dur: 1200, dir: 'fwd', glyph: 'envelope' },
+    { do: 'gulp', on: 'to', at: 1450, dur: 300 },
+    { do: 'wait', on: 'from', at: 1450, dur: 600 },
+    { do: 'blob', on: 'line', at: 2050, dur: 1200, dir: 'back', glyph: 'envelope', tone: 'reply' },
+    { do: 'gulp', on: 'from', at: 3250, dur: 300 },
   ])
 })
 
 test('event: a bolt, and a flash instead of a gulp', () => {
   const { beats, total } = beatsFor(plain('event'), { length: 250, afterLanding: false })
-  assert.equal(total, 900)
+  assert.equal(total, 1900)
   assert.deepEqual(beats.slice(1), [
-    { do: 'gulp', on: 'from', at: 0, dur: 150 },
-    { do: 'blob', on: 'line', at: 150, dur: 500, dir: 'fwd', glyph: 'bolt' },
-    { do: 'flash', on: 'to', at: 650, dur: 250 },
+    { do: 'gulp', on: 'from', at: 0, dur: 250 },
+    { do: 'blob', on: 'line', at: 250, dur: 1200, dir: 'fwd', glyph: 'bolt' },
+    { do: 'flash', on: 'to', at: 1450, dur: 450 },
   ])
 })
 
 test('callback triggered inside: a ring at the source first, because nothing came in', () => {
   const { beats, total } = beatsFor(plain('callback'), { length: 250, afterLanding: true })
-  assert.equal(total, 1200)
+  assert.equal(total, 2250)
   assert.deepEqual(beats.slice(1), [
-    { do: 'ring', on: 'from', at: 0, dur: 400 },
-    { do: 'blob', on: 'line', at: 300, dur: 500, dir: 'fwd', glyph: 'bell' },
-    { do: 'ring', on: 'to', at: 800, dur: 400 },
+    { do: 'ring', on: 'from', at: 0, dur: 600 },
+    { do: 'blob', on: 'line', at: 450, dur: 1200, dir: 'fwd', glyph: 'bell' },
+    { do: 'ring', on: 'to', at: 1650, dur: 600 },
   ])
 })
 
 test('callback triggered outside: kicked if the step before landed here, otherwise a bolt drops in first', () => {
   const outside = plain('callback', { trigger: 'outside' })
   const after = beatsFor(outside, { length: 250, afterLanding: true })
-  assert.equal(after.total, 1100)
+  assert.equal(after.total, 2100)
   assert.deepEqual(after.beats.slice(1), [
-    { do: 'flash', on: 'from', at: 0, dur: 250 },
-    { do: 'blob', on: 'line', at: 200, dur: 500, dir: 'fwd', glyph: 'bell' },
-    { do: 'ring', on: 'to', at: 700, dur: 400 },
+    { do: 'flash', on: 'from', at: 0, dur: 450 },
+    { do: 'blob', on: 'line', at: 300, dur: 1200, dir: 'fwd', glyph: 'bell' },
+    { do: 'ring', on: 'to', at: 1500, dur: 600 },
   ])
   const alone = beatsFor(outside, { length: 250, afterLanding: false })
-  assert.equal(alone.total, 1450)
+  assert.equal(alone.total, 2650)
   assert.deepEqual(alone.beats.slice(1), [
-    { do: 'drop', on: 'from', at: 0, dur: 350, glyph: 'bolt' },
-    { do: 'flash', on: 'from', at: 350, dur: 250 },
-    { do: 'blob', on: 'line', at: 550, dur: 500, dir: 'fwd', glyph: 'bell' },
-    { do: 'ring', on: 'to', at: 1050, dur: 400 },
+    { do: 'drop', on: 'from', at: 0, dur: 600, glyph: 'bolt' },
+    { do: 'flash', on: 'from', at: 600, dur: 450 },
+    { do: 'blob', on: 'line', at: 850, dur: 1200, dir: 'fwd', glyph: 'bell' },
+    { do: 'ring', on: 'to', at: 2050, dur: 600 },
   ])
 })
 
@@ -128,6 +128,6 @@ test('carries labels the blob going out, and not the reply', () => {
 })
 
 test('a longer line takes longer, up to the cap', () => {
-  assert.equal(beatsFor(plain('send'), { length: 5000, afterLanding: false }).total, 350 + 1100)
-  assert.equal(beatsFor(plain('send'), { length: 0, afterLanding: false }).total, 350 + 500)
+  assert.equal(beatsFor(plain('send'), { length: 5000, afterLanding: false }).total, 550 + 2200)
+  assert.equal(beatsFor(plain('send'), { length: 0, afterLanding: false }).total, 550 + 1200)
 })

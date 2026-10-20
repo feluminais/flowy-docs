@@ -5,7 +5,13 @@ export const GAP = 900
 /** How long Autoplay stays on a step that doesn't move, or when motion is reduced, in ms. */
 export const DWELL = 2200
 
+/** How long a step that moves rests between plays while you stay on it, in ms. */
+export const REST = 1000
+
 type Span = { at: number; dur: number }
+
+/** How long one round takes when several steps play together: the longest of them, then a rest, so they all start again at once. */
+export const cyclePeriod = (totals: Iterable<number>): number => Math.max(0, ...totals) + REST
 
 /** How far through a beat the moment `t` is: 0 before it, 1 after it. */
 export const progress = (b: Span, t: number): number => Math.min(1, Math.max(0, (t - b.at) / b.dur))
