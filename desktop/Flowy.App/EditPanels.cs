@@ -126,7 +126,7 @@ internal sealed class ObjectEditor : StackPanel
         _tech = new FieldBox("Tech", "", false, v => Put(new ObjectInput(id, Tech: v)));
         _description = new FieldBox("Description (Markdown)", "", true, v => Put(new ObjectInput(id, Description: v)));
         _links = new FieldBox("Links (one per line: title | address)", "", true, v => Put(new ObjectInput(id, Links: LinkText.Parse(v, _rawLinks))));
-        _code = new FieldBox("Code (one path per line)", "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())));
+        _code = new FieldBox("Files and folders (one per line)", "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())));
         _hex = new FieldBox("Custom color (#rrggbb)", "", false, v => Put(new ObjectInput(id, Color: v.Trim())));
         _type = new Chooser("Type", new WrapPanel(), v => Put(new ObjectInput(id, Type: v)));
         _shape = new Chooser("Shape", new UniformGrid { Columns = 4 }, v => Put(new ObjectInput(id, Shape: v)), v => v == Default ? $"Default ({_defaultShape})" : Pick.Cap(v));
@@ -165,7 +165,7 @@ internal sealed class ObjectEditor : StackPanel
         Children.Add(_description);
         Children.Add(Chrome.Section(Icons.Link, "Links"));
         Children.Add(_links);
-        Children.Add(Chrome.Section(Icons.Code, "Code"));
+        Children.Add(Chrome.Section(Icons.Folder, "Source"));
         Children.Add(_code);
         Children.Add(_lines);
         Children.Add(owner.Muted($"id: {id}", 12));
