@@ -7,17 +7,19 @@ import { join } from 'node:path'
 import { openHistory } from '../src/node/history.ts'
 import { startServer } from '../src/node/server.ts'
 
-type Options = { blockStateDir?: boolean; gateMs?: number; folder?: 'empty' | 'missing' | 'with-model' }
+type Options = { blockStateDir?: boolean; gateMs?: number; folder?: 'empty' | 'missing' | 'with-model'; watchDelayMs?: number }
 
 /** A server over a model folder with history turned on, its state in a temp folder. The gate waits `gateMs` for a label (400 unless a test says). */
-async function setup(t: TestContext, { blockStateDir = false, gateMs = 400, folder = 'empty' }: Options = {}) {
+async function setup(t: TestContext, { blockStateDir = false, gateMs = 400, folder = 'empty', watchDelayMs = 0 }: Options = {}) {
   const root = await mkdtemp(join(tmpdir(), 'flowy-server-history-'))
   const dir = join(root, 'flowy')
   if (folder !== 'missing') await mkdir(dir, { recursive: true })
   if (folder === 'with-model') await writeFile(join(dir, 'model.yaml'), 'objects: {}\nconnections: []\n')
   const stateDir = join(root, 'state')
   if (blockStateDir) await writeFile(stateDir, 'in the way')
-  const history = openHistory(dir, { app: 'browser', stateDir, log: () => undefined })
+  const real = openHistory(dir, { app: 'browser', stateDir, log: () => undefined })
+  // A recorder that takes its time over what the folder watcher notices, to see which comes first: the step or the news of it.
+  const history = watchDelayMs === 0 ? real : { ...real, ensureCurrent: async (why: 'open' | 'watch' | 'write') => (why === 'watch' ? (await pause(watchDelayMs), real.ensureCurrent(why)) : real.ensureCurrent(why)) }
   const server = await startServer({ dir, ui: join(root, 'ui'), port: 0, history, gateMs })
   t.after(async () => {
     await server.close()
@@ -95,6 +97,24 @@ test('a change made by another program becomes an outside step', async t => {
   await writeFile(join(dir, 'model.yaml'), 'objects: { x: { type: actor, name: X } }\nconnections: []\n')
   const list = await until(steps, s => s.length > 1)
   assert.deepEqual(list.map(s => s.label), ['Changed outside Flowy: model.yaml', 'First seen'])
+})
+
+test('the page is told of a change only after the step for it is recorded', async t => {
+  const { base, dir, steps } = await setup(t, { folder: 'with-model', watchDelayMs: 300 })
+  const events = await fetch(`${base}/api/events`)
+  const reader = events.body!.getReader()
+  const decoder = new TextDecoder()
+  let heard = ''
+  const hear = async (word: string) => {
+    const end = Date.now() + 5000
+    while (!heard.includes(word) && Date.now() < end) heard += decoder.decode((await reader.read()).value)
+    return heard.includes(word)
+  }
+  assert.ok(await hear('retry'))
+  await writeFile(join(dir, 'model.yaml'), 'objects: { x: { type: actor, name: X } }\nconnections: []\n')
+  assert.ok(await hear('data: changed'))
+  assert.equal((await steps())[0].label, 'Changed outside Flowy: model.yaml')
+  await reader.cancel().catch(() => undefined) // before the server closes the stream under it
 })
 
 test('Review Focus: an unwritable history never fails an edit, and says so', async t => {

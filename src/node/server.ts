@@ -110,9 +110,10 @@ export async function startServer({ dir, ui, port, history, gateMs }: { dir: str
   const watcher = watch(dir, { recursive: true }, (_event, name) => {
     if (name?.endsWith('.tmp')) return // saveFile's temp files; the rename that follows is reported on its own
     clearTimeout(timer)
-    timer = setTimeout(() => {
+    timer = setTimeout(async () => {
+      // A change nobody labelled is recorded before the page hears of it, so the list it then asks for already has the step.
+      await steps?.filesChanged().catch(() => undefined)
       for (const client of clients) client.write('data: changed\n\n')
-      void steps?.filesChanged().catch(() => undefined) // a change nobody labelled
     }, 100)
   })
   watcher.on('error', e => console.error(`Stopped watching ${dir} (${e.message}). Restart flowy to get live updates.`))
