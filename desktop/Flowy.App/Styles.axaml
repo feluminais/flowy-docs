@@ -788,6 +788,9 @@
   <Style Selector="Button.railbutton Path.railicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Button.railbutton:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
   <Style Selector="Button.railbutton:pointerover Path.railicon"><Setter Property="Stroke" Value="{DynamicResource FgBrush}" /></Style>
+  <Style Selector="Button.railbutton:disabled"><Setter Property="Opacity" Value="0.4" /></Style>
+  <Style Selector="Button.railbutton:disabled /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+  <Style Selector="Button.railbutton:disabled Path.railicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Button.railbutton.active /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <Style Selector="Button.railbutton.active Path.railicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Border.railcount">

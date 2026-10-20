@@ -80,10 +80,10 @@ public class ReentrancyTests
         var (_, reader) = Open();
         var picker = reader.LinePicker;
         picker.IsDropDownOpen = true;
-        reader.SetEditing(true); // the list loses "project default"
+        reader.SetEditing(true);
         Assert.Equal(3, picker.Items.Count);
-        reader.SetEditing(false); // and gets it back
-        Assert.Equal(4, picker.Items.Count);
+        reader.SetEditing(false);
+        Assert.Equal(3, picker.Items.Count);
         Assert.Equal(0, picker.SelectedIndex);
     }
 }

@@ -26,9 +26,9 @@ export function NavTabs({ tab, showFlows, showYaml, onPick }: { tab: NavTab; sho
   )
 }
 
-function RailButton({ label, hint, Icon, pressed, count, onClick }: { label: string; hint?: string; Icon: typeof Info; pressed: boolean; count?: number; onClick: () => void }) {
+function RailButton({ label, hint, Icon, pressed, count, off, onClick }: { label: string; hint?: string; Icon: typeof Info; pressed: boolean; count?: number; off?: string; onClick: () => void }) {
   return (
-    <button aria-pressed={pressed} aria-label={count === undefined ? label : `${label}, ${count}`} title={hint ? `${label} (${hint})` : label} onClick={onClick}>
+    <button aria-pressed={pressed} aria-label={count === undefined ? label : `${label}, ${count}`} title={off ? `${label} (${off})` : hint ? `${label} (${hint})` : label} disabled={off !== undefined} onClick={onClick}>
       <Icon size={18} />
       {count !== undefined && <span className="count" aria-hidden="true">{count > 999 ? '999+' : count}</span>}
     </button>
@@ -46,15 +46,18 @@ export function NavRail({ tab, flows, shapes, showFlows, showYaml, onPick }: { t
   )
 }
 
-/** The slim column on the right edge: a button for the Details panel, and below it one for Performance where there is a load-test run to show (it takes Details' place). */
+/**
+ * The slim column on the right edge: a button for the Details panel, and below it one for Performance where there is a load-test run to show (it takes Details' place).
+ * `perf.off` greys that button out and says why in its tooltip: the tab stays where it is while the panel can't be used.
+ */
 export function DetailsRail({ open, onToggle, perf, failures }: {
-  open: boolean; onToggle: () => void; perf?: { open: boolean; runs: number; onToggle: () => void }; failures?: { open: boolean; count: number; onToggle: () => void }
+  open: boolean; onToggle: () => void; perf?: { open: boolean; runs: number; off?: string; onToggle: () => void }; failures?: { open: boolean; count: number; onToggle: () => void }
 }) {
   const label = ['Details', perf && 'performance', failures && 'failures'].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' and $1')
   return (
     <nav className="rail" aria-label={label}>
       <RailButton label="Details" Icon={Info} pressed={open} onClick={onToggle} />
-      {perf && <RailButton label="Performance" hint="T" Icon={Activity} count={perf.runs} pressed={perf.open} onClick={perf.onToggle} />}
+      {perf && <RailButton label="Performance" hint="T" Icon={Activity} count={perf.runs} pressed={perf.open} off={perf.off} onClick={perf.onToggle} />}
       {failures && <RailButton label="Failures" hint="M" Icon={Bolt} count={failures.count} pressed={failures.open} onClick={failures.onToggle} />}
     </nav>
   )

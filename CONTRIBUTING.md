@@ -226,7 +226,7 @@ Reading:
 - [ ] With the system's reduce-motion setting on (Windows: Settings › Accessibility › Visual
       effects › Animation effects off), opening and closing a box is instant.
 - [ ] Lines: pick curved, then right-angled. In API every line follows, labels still show on hover,
-      and a reload keeps your pick. "Project default" goes back to straight, and
+      and a reload keeps your pick. Pick straight again: the lines go back to the project's, and
       `example/model.yaml` is unchanged.
 - [ ] Every zoom fits the whole diagram in the window, and doesn't open the side panel. Resize the
       window: it fits again.
