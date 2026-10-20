@@ -8,6 +8,7 @@ import { deleteFlow, deleteObject, groupSteps, OpError, putFlow, putGroup, putOb
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
+import { DataSection } from './Data.tsx'
 import { connectionsOf, linesOf, newId, problemsOf, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
 import { lineId } from './graph.ts'
@@ -233,6 +234,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClo
       {mine}
       <Section icon={Text} title="Description" />
       <div className="prose">{object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}</div>
+      <DataSection object={object} />
       <LinkList object={object} codeBase={codeBase} />
       <CodeList object={object} codeBase={codeBase} />
       <LineList model={model} id={id} onPick={onPick} onHover={onHover} />
