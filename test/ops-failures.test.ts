@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { connect, deleteAnalysis, deleteMode, deleteObject, disconnect, OpError, putAnalysis, putMode, refuseNewProblems, removeConnection } from '../src/core/ops.ts'
+import { connect, deleteAnalysis, deleteMode, deleteObject, disconnect, OpError, putAnalysis, putMode, refuseNewProblems, removeConnection, updateAnalysis, updateMode } from '../src/core/ops.ts'
 import type { ModeInput } from '../src/core/ops.ts'
 import { usersOfConnection, usersOfObject } from '../src/core/failures.ts'
 import { ID_RULE } from '../src/core/model.ts'
@@ -124,4 +124,75 @@ test('refuseNewProblems refuses a putMode with an unknown part and names it', ()
   const after = putMode(before, 'ordering', 'bad', { mode: 'x', on: 'gone' })
   assert.throws(() => refuseNewProblems(before, after), (e: unknown) => e instanceof OpError && /failures\/ordering\.yaml: bad: unknown object "gone"/.test(e.message))
   assert.doesNotThrow(() => refuseNewProblems(before, putMode(before, 'ordering', 'good', { mode: 'x', on: 'web', severity: 3 })))
+})
+
+test('updateMode sets a field as text, removes one set to blank, and leaves every other field and mode alone', () => {
+  const before = shopWithFailures()
+  const m = updateMode(before, 'ordering', 'api-slow', { severity: '9', owner: 'Payments' })
+  assert.deepEqual(m.failures.ordering.modes['api-slow'], { ...before.failures.ordering.modes['api-slow'], severity: '9', owner: 'Payments' })
+  assert.deepEqual(m.failures.ordering.modes['db-down'], before.failures.ordering.modes['db-down'])
+  const cleared = updateMode(before, 'ordering', 'db-down', { effect: '', cause: '  ' })
+  assert.equal(Object.hasOwn(cleared.failures.ordering.modes['db-down'], 'effect'), false)
+  assert.equal(Object.hasOwn(cleared.failures.ordering.modes['db-down'], 'cause'), false)
+})
+
+test('updateMode merges after per rating, and an emptied after is gone', () => {
+  const start = shopWithFailures()
+  const one = updateMode(start, 'ordering', 'auth-lock', { after: { occurrence: '1' } })
+  assert.deepEqual(one.failures.ordering.modes['auth-lock'].after, { occurrence: '1' })
+  const two = updateMode(one, 'ordering', 'auth-lock', { after: { severity: '6' } })
+  assert.deepEqual(Object.keys(two.failures.ordering.modes['auth-lock'].after ?? {}), ['severity', 'occurrence'])
+  const none = updateMode(two, 'ordering', 'auth-lock', { after: { severity: '', occurrence: '' } })
+  assert.equal(Object.hasOwn(none.failures.ordering.modes['auth-lock'], 'after'), false)
+})
+
+test('updateMode sets and clears affects', () => {
+  const set = updateMode(shopWithFailures(), 'ordering', 'db-down', { affects: ['web', 'api'] })
+  assert.deepEqual(set.failures.ordering.modes['db-down'].affects, ['web', 'api'])
+  const gone = updateMode(set, 'ordering', 'db-down', { affects: [] })
+  assert.equal(Object.hasOwn(gone.failures.ordering.modes['db-down'], 'affects'), false)
+})
+
+test('updateMode keeps a hand-written key, keeps keys in place, and puts a new one after the nearest earlier key', () => {
+  const before = shopWithFailures()
+  before.failures.ordering.modes.tidy = { mode: 'x', on: 'db', reviewed: 'by hand', description: 'More.' }
+  const sev = updateMode(before, 'ordering', 'tidy', { severity: '4' })
+  assert.deepEqual(Object.keys(sev.failures.ordering.modes.tidy), ['mode', 'on', 'severity', 'reviewed', 'description']) // just after `on`, the nearest earlier key present
+  assert.equal(sev.failures.ordering.modes.tidy.reviewed, 'by hand')
+  const cause = updateMode(sev, 'ordering', 'tidy', { cause: 'A reason.' })
+  assert.deepEqual(Object.keys(cause.failures.ordering.modes.tidy), ['mode', 'on', 'cause', 'severity', 'reviewed', 'description'])
+  const again = updateMode(cause, 'ordering', 'tidy', { severity: '5' })
+  assert.deepEqual(Object.keys(again.failures.ordering.modes.tidy), ['mode', 'on', 'cause', 'severity', 'reviewed', 'description']) // an existing key keeps its place
+  assert.equal(again.failures.ordering.modes.tidy.severity, '5')
+})
+
+test('updateMode and updateAnalysis refuse what is not there', () => {
+  refused(() => updateMode(shop(), 'nope', 'x', { effect: 'e' }), 'unknown analysis "nope"')
+  refused(() => updateMode(shopWithFailures(), 'ordering', 'nope', { effect: 'e' }), 'unknown failure mode "nope" in "ordering"')
+  refused(() => updateAnalysis(shop(), 'nope', { name: 'N' }), 'unknown analysis "nope"')
+})
+
+test('an update the checker refuses is refused whole: a blank mode, a rating of 11, a part that is not there', () => {
+  const before = shopWithFailures()
+  const refuse = (changes: Parameters<typeof updateMode>[3], message: RegExp) =>
+    assert.throws(() => refuseNewProblems(before, updateMode(before, 'ordering', 'api-slow', changes)), (e: unknown) => e instanceof OpError && message.test(e.message))
+  refuse({ mode: '' }, /api-slow: "mode" is missing/)
+  refuse({ severity: '11' }, /api-slow: severity must be a whole number from 1 to 10/)
+  refuse({ on: 'gone' }, /api-slow: unknown object "gone"/)
+  assert.doesNotThrow(() => refuseNewProblems(before, updateMode(before, 'ordering', 'api-slow', { severity: '8' })))
+})
+
+test('updateAnalysis renames, sets and clears about and scope, and keeps the rest', () => {
+  const start = shopWithFailures()
+  const { name, scope, modes } = start.failures.ordering
+  start.failures.ordering = { name, scope, scale: { severity: { low: 'Nobody notices', high: 'Money is lost' } }, modes }
+  const named = updateAnalysis(start, 'ordering', { name: 'Orders', about: 'Rated by the team.', scope: 'api' })
+  assert.deepEqual(Object.keys(named.failures.ordering), ['name', 'about', 'scope', 'scale', 'modes'])
+  assert.deepEqual([named.failures.ordering.name, named.failures.ordering.about, named.failures.ordering.scope], ['Orders', 'Rated by the team.', 'api'])
+  assert.deepEqual(named.failures.ordering.scale, start.failures.ordering.scale)
+  const cleared = updateAnalysis(named, 'ordering', { about: '', scope: '' })
+  assert.deepEqual(Object.keys(cleared.failures.ordering), ['name', 'scale', 'modes'])
+  const blankName = updateAnalysis(start, 'ordering', { name: '' })
+  assert.equal(blankName.failures.ordering.name, '') // kept, so the checker can refuse it
+  assert.throws(() => refuseNewProblems(start, blankName), (e: unknown) => e instanceof OpError && /name is missing/.test(e.message))
 })

@@ -1,4 +1,5 @@
 import type { Problem } from '../../src/core/check.ts'
+import { homeView } from '../../src/core/failures.ts'
 import { changedFiles, fileData, getObject, isValidId, ROOT, serializeLayout } from '../../src/core/model.ts'
 import type { Connection, Model, Step } from '../../src/core/model.ts'
 import { chain, isView, parentOf, placeEnds } from '../../src/core/views.ts'
@@ -75,7 +76,7 @@ export function linesOf(model: Model, id: string): { out: BoxLine[]; in: BoxLine
 }
 
 /** Where the canvas shows a problem: the view to open, and the box, line or flow step in it. */
-export type Spot = { view: string; object?: string; line?: [string, string]; flow?: string; step?: number }
+export type Spot = { view: string; object?: string; line?: [string, string]; flow?: string; step?: number; failure?: { analysis: string; mode?: string } }
 
 export function locate(model: Model, problem: Problem): Spot {
   if (problem.id !== undefined && getObject(model, problem.id)) return { view: parentOf(model, problem.id), object: problem.id }
@@ -89,6 +90,13 @@ export function locate(model: Model, problem: Problem): Spot {
       if (line) return { view, line }
     }
     return { view: parentOf(model, end), object: end }
+  }
+  const analysis = /^failures\/(.+)\.yaml$/.exec(problem.file)?.[1]
+  if (analysis !== undefined && Object.hasOwn(model.failures, analysis)) {
+    // A mode's problems start with its id and ": " (the id is no shape id: it never names an object). The longest id that fits is the mode.
+    const modes = model.failures[analysis].modes
+    const mode = Object.keys(modes).filter(id => problem.message.startsWith(`${id}: `)).sort((a, b) => b.length - a.length)[0]
+    return mode === undefined ? { view: ROOT, failure: { analysis } } : { view: homeView(model, modes[mode]), failure: { analysis, mode } }
   }
   const flow = /^flows\/(.+)\.yaml$/.exec(problem.file)?.[1]
   if (flow !== undefined && Object.hasOwn(model.flows, flow)) {
