@@ -98,6 +98,9 @@ internal sealed class MarkdownView : StackPanel
     private Control Code(CodeBlock code)
     {
         var text = code.Lines.Lines is null ? "" : string.Join('\n', code.Lines.Lines.Take(code.Lines.Count).Select(l => l.Slice.ToString()));
+        // A fence that names a language Flowy knows is drawn in colour, as in the browser; one that names none stays as it is.
+        if (code is FencedCodeBlock { Info: { } info } && Snippets.LanguageOf(info.Split(' ', 2)[0]) is { } language)
+            return CodeView.Block(string.Join('\n', Snippets.CodeLines(text)), language.Id, Resource, _size - 1);
         return new Border
         {
             Background = Resource("BoxBrush"), BorderBrush = Resource("LineBrush"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(10, 8),

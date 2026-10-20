@@ -181,6 +181,7 @@ internal sealed class SidePanel : Border
         column.Children.Add(Chrome.Section(Icons.Text, "Description"));
         column.Children.Add(string.IsNullOrEmpty(o.Description) ? Muted("No description yet.") : new MarkdownView(o.Description, 14.5));
         if (DataView.Build(id, o, Resource, _openEntries) is { } data) column.Children.Add(data);
+        if (CodeView.Build(o, Resource) is { } snippets) column.Children.Add(snippets);
 
         var boxLinks = Links.Of(o);
         if (boxLinks.Count > 0)

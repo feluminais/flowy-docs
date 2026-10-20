@@ -88,6 +88,21 @@ public static partial class Snippets
     }
 
     /// <summary>
+    /// The well-formed entries of a box's <c>snippets</c> as the mappings the file held, copied, so an edit form can change them and write the whole
+    /// list back with every extra key kept. Entries <see cref="Of"/> would skip are left out, as <c>snippetsOf</c> does for the browser's form.
+    /// </summary>
+    public static List<OrderedDictionary<string, object?>> Entries(FlowyObject o)
+    {
+        var good = Of(o).Count;
+        if (o.Snippets is not List<object?> list || good == 0) return [];
+        return list.OfType<OrderedDictionary<string, object?>>()
+            .Where(map => map.TryGetValue("text", out var text) && text is string code && !IsBlank(code)
+                && (!map.TryGetValue("title", out var title) || title is string) && (!map.TryGetValue("language", out var language) || language is string))
+            .Select(map => new OrderedDictionary<string, object?>(map))
+            .ToList();
+    }
+
+    /// <summary>
     /// What an object's <c>snippets</c> hold, as the tree to put in a file: line breaks as <c>\n</c>, no blank lines around the code, a blank title
     /// and a blank language left out, a language written as its id (one that isn't known stays, for the checks to report), and the keys in the order
     /// title, language, text, then the extra ones. Anything that isn't a list is carried through.
