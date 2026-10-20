@@ -41,10 +41,10 @@ const CLEARABLE = ['in', 'shape', 'color', 'opacity', 'icon', 'tech', 'descripti
 
 /**
  * Create or update an object. Omitted fields stay as they are; "" removes in, shape, color, opacity, icon, tech or
- * description, [] removes code or links, and external: false removes external.
+ * description, [] removes code, links or data, and external: false removes external.
  * Only the known fields are copied from the input, so a new object's keys always come out
- * in the order type, name, in, external, shape, color, opacity, icon, tech, description, code, links, and stray input keys never land in the model.
- * A link keeps its extra keys, comes out with its title before its url, and loses a blank title.
+ * in the order type, name, in, external, shape, color, opacity, icon, tech, description, code, links, data, and stray input keys never land in the model.
+ * A link keeps its extra keys, comes out with its title before its url, and loses a blank title. `data` replaces the whole list (see tidyData).
  */
 export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid id: ${ID_RULE}`)

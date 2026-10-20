@@ -125,8 +125,9 @@ function tidyColumn(c: unknown): unknown {
   const { name, key, to, note, ...rest } = c
   const tidy: Record<string, unknown> = { name }
   for (const [field, value] of [['key', key], ['to', to], ['note', note]] as const) if (value !== undefined && !blank(value)) tidy[field] = value
-  Object.assign(tidy, rest)
-  return Object.keys(tidy).length === 1 && typeof name === 'string' ? name : tidy
+  // Spread, not Object.assign: a hand-written `__proto__` key must stay a key and not set the prototype.
+  const column = { ...tidy, ...rest }
+  return Object.keys(column).length === 1 && typeof name === 'string' ? name : column
 }
 
 function tidyEntry(e: unknown): unknown {
@@ -138,16 +139,18 @@ function tidyEntry(e: unknown): unknown {
   if (rows !== undefined) tidy.rows = mapList(rows, row => mapList(row, asText))
   if (sample !== undefined) tidy.sample = asText(sample)
   if (notes !== undefined && !(isMap(notes) && Object.keys(notes).length === 0)) tidy.notes = notes
-  return Object.assign(tidy, rest)
+  return { ...tidy, ...rest }
 }
 
 /**
  * The entries of a `data` as they go to disk: keys in the order name, kind, limits, note, columns, rows, sample, notes (others after); a
  * blank kind, limits, note, key or `to` left out; a column with only a name written as the bare name; numbers and booleans as text.
- * A value of the wrong shape is carried through unchanged for check() to report. Never throws.
+ * A value of the wrong shape, a `data` that is not a list included, is carried through unchanged for check() to report.
  */
-export function tidyData(input: DataInput[]): unknown[] {
-  return input.map(tidyEntry)
+export function tidyData(input: DataInput[]): unknown[]
+export function tidyData(input: unknown): unknown
+export function tidyData(input: unknown): unknown {
+  return Array.isArray(input) ? input.map(tidyEntry) : input
 }
 
 const present = (v: unknown) => v !== undefined && v !== ''
@@ -179,10 +182,17 @@ function gridProblems(label: string, entry: Record<string, unknown>, out: string
   if (rows.length > DATA_MAX.rows) out.push(`${label}: ${rows.length} rows, at most ${DATA_MAX.rows}`)
 }
 
+/** Whether a list sits directly inside a list anywhere in the sample, which the picture cannot draw. */
+function hasNestedList(node: unknown): boolean {
+  if (Array.isArray(node)) return node.some(item => Array.isArray(item) || hasNestedList(item))
+  return isMap(node) && Object.values(node).some(hasNestedList)
+}
+
 function sampleProblems(label: string, entry: Record<string, unknown>, out: string[]) {
   const sample = entry.sample
   if (!isMap(sample)) return out.push(`${label}: sample must be a mapping of fields`)
   if (Object.keys(sample).length === 0) return out.push(`${label}: sample is empty`)
+  if (hasNestedList(sample)) out.push(`${label}: sample has a list inside a list, which isn't shown`)
   const lines = linesOf(sample, {})
   const depth = Math.max(...lines.map(l => l.depth))
   if (depth > DATA_MAX.depth) out.push(`${label}: sample is nested ${depth} levels deep, at most ${DATA_MAX.depth}`)

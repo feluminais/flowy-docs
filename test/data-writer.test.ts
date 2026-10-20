@@ -86,3 +86,15 @@ test('data of the wrong shape is written without throwing and reads back as it w
     assert.deepEqual(roundTrip(withData(data)), data, JSON.stringify(data))
   }
 })
+
+test('a line break in a cell, a note or a sample list is written quoted, on one line, and survives a save', () => {
+  const cells = ['Error:\nnot found', 'Status:\n- ok', '-\nb', ':\ntrue', 'two\r\nlines', 'x\u2028y']
+  const data = [
+    { name: 'logs', columns: cells.map((_, i) => ({ name: `c${i}`, note: cells[i] })), rows: [cells] },
+    { name: 'doc', sample: { list: cells } },
+  ]
+  assert.deepEqual(roundTrip(withData(data)), data)
+  const text = serializeModelFile(withData(data))
+  assert.match(text, /^ {10}- \["Error:\\nnot found", /m)
+  assert.match(text, /^ {10}list: \["Error:\\nnot found", /m)
+})
