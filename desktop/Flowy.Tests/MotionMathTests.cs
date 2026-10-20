@@ -66,6 +66,24 @@ public class MotionMathTests
     }
 
     [Fact]
+    public void A_timeout_dims_the_lit_line_and_leaves_it_dimmed()
+    {
+        var all = Motion()["lit"]!.AsArray();
+        Assert.True(all.Count >= 6);
+        var (beats, _) = Animations.BeatsFor(new StepAnimation("call", "inside", null, "timeout"), 250, false);
+        foreach (var e in all)
+            Assert.Equal(e!["lit"]!.GetValue<double>(), MotionMath.LitOpacity(beats, e["t"]!.GetValue<double>()), 9);
+        Assert.Equal(0.25, MotionMath.LitFloor);
+    }
+
+    [Fact]
+    public void Beats_with_no_fade_leave_the_lit_line_at_full_strength()
+    {
+        var (beats, _) = Animations.BeatsFor(new StepAnimation("send", "inside", null), 250, false);
+        foreach (var t in new[] { 0.0, 1000, 9000 }) Assert.Equal(1.0, MotionMath.LitOpacity(beats, t));
+    }
+
+    [Fact]
     public void A_box_several_steps_squash_takes_the_largest_squash_and_none_is_none()
     {
         Assert.Equal(0, MotionMath.Largest([]));

@@ -15,6 +15,7 @@ public class BeatsTests
     {
         var o = new JsonObject { ["kind"] = a.Kind, ["trigger"] = a.Trigger };
         if (a.Carries is not null) o["carries"] = a.Carries;
+        if (a.Outcome is not null) o["outcome"] = a.Outcome;
         return o;
     }
 
