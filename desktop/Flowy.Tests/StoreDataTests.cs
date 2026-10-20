@@ -72,6 +72,33 @@ public class StoreDataTests
     public void Blank_data_is_no_data() => Assert.Empty(StoreData.Problems(Store("\"\"")));
 
     [Fact]
+    public void Serialize_gives_the_lines_that_sit_under_data_and_ParseText_reads_them_back()
+    {
+        var entries = YamlWriterTests.Tree(JsonNode.Parse("""
+            [{ "name": "orders", "columns": [{ "name": "id", "key": "primary" }, "status"], "rows": [["o_1", ""]] }, { "name": "d", "sample": { "tags": ["a", "b"] } }]
+            """));
+        var text = StoreData.Serialize(entries);
+        Assert.Equal("- name: orders\n  columns:\n    - {name: id, key: primary}\n    - status\n  rows:\n    - [o_1, \"\"]\n- name: d\n  sample:\n    tags: [a, b]\n", text);
+        Assert.True(YamlWriterTests.Same(entries, StoreData.ParseText(text)));
+    }
+
+    [Fact]
+    public void Serialize_is_empty_for_no_data()
+    {
+        Assert.Equal("", StoreData.Serialize(null));
+        Assert.Equal("", StoreData.Serialize(""));
+        Assert.Equal("", StoreData.Serialize(new List<object?>()));
+    }
+
+    [Fact]
+    public void ParseText_of_blank_text_is_an_empty_list_and_of_broken_text_throws_a_ParseError()
+    {
+        Assert.Empty((List<object?>)StoreData.ParseText("  \n")!);
+        var e = Assert.Throws<ParseError>(() => StoreData.ParseText("- [a"));
+        Assert.Equal("data", e.File);
+    }
+
+    [Fact]
     public void Problems_never_throws_on_junk()
     {
         foreach (var json in new[] { "\"x\"", "{}", "[[]]", "[{}]", """[{ "name": "a", "columns": "c", "rows": "r", "sample": "s", "notes": "n" }]""",

@@ -118,6 +118,61 @@ public static class StoreData
         return shown;
     }
 
+    // ---- writing --------------------------------------------------------------------------------------------------
+
+    /// <summary>
+    /// What a store's data writes on one line, so a table of eight rows stays eight lines and a diff stays readable: each row, each column that is a
+    /// mapping, a <c>columns</c> list of only bare names, and a list of text inside a sample. Everything else stays block style. The twin of
+    /// <c>compactData</c> in src/core/model.ts: only nodes of the expected kind are marked, so a hand-written data of the wrong shape is written as it is.
+    /// Returns a copy with <see cref="FlowSeq"/> and <see cref="FlowMap"/> marks; the tree it is given is not changed.
+    /// </summary>
+    public static object? Compact(object? objects)
+    {
+        if (objects is not OrderedDictionary<string, object?> map) return objects;
+        var copy = new OrderedDictionary<string, object?>();
+        foreach (var (id, o) in map)
+        {
+            if (o is OrderedDictionary<string, object?> obj && obj.TryGetValue("data", out var data) && data is List<object?> entries)
+            {
+                var changed = new OrderedDictionary<string, object?>(obj) { ["data"] = entries.Select(CompactEntry).ToList() };
+                copy[id] = changed;
+            }
+            else copy[id] = o;
+        }
+        return copy;
+    }
+
+    private static object? CompactEntry(object? e)
+    {
+        if (e is not OrderedDictionary<string, object?> entry) return e;
+        var copy = new OrderedDictionary<string, object?>(entry);
+        if (entry.TryGetValue("columns", out var c) && c is List<object?> columns)
+            copy["columns"] = columns.All(item => item is string)
+                ? new FlowSeq(columns)
+                : columns.Select(column => column is OrderedDictionary<string, object?> map ? new FlowMap(map) : column).ToList();
+        if (entry.TryGetValue("rows", out var r) && r is List<object?> rows)
+            copy["rows"] = rows.Select(row => row is List<object?> cells ? new FlowSeq(cells) : row).ToList();
+        if (entry.TryGetValue("sample", out var sample)) copy["sample"] = FlowTextLists(sample);
+        return copy;
+    }
+
+    /// <summary>In a sample document, a list of only text is written on one line.</summary>
+    private static object? FlowTextLists(object? node)
+    {
+        if (node is List<object?> list) return list.All(item => item is string) ? new FlowSeq(list) : list.Select(FlowTextLists).ToList();
+        if (node is not OrderedDictionary<string, object?> map) return node;
+        var copy = new OrderedDictionary<string, object?>();
+        foreach (var (key, value) in map) copy[key] = FlowTextLists(value);
+        return copy;
+    }
+
+    /// <summary>A store's data as the text of the edit box: the same one-line forms the file uses, with no wrapper. Empty text for none. The twin of <c>serializeData</c>.</summary>
+    public static string Serialize(object? data) =>
+        data is null or "" or List<object?> { Count: 0 } ? "" : YamlWriter.Write(data is List<object?> entries ? entries.Select(CompactEntry).ToList() : data);
+
+    /// <summary>The edit box's text as data, read as the files are. Blank text is an empty list. Throws a <see cref="ParseError"/> (file "data") for text that is not YAML. The twin of <c>parseData</c>.</summary>
+    public static object? ParseText(string text) => string.IsNullOrWhiteSpace(text) ? new List<object?>() : YamlText.Parse("data", text);
+
     // ---- the checks ----------------------------------------------------------------------------------------------
 
     private static void GridProblems(string label, OrderedDictionary<string, object?> entry, List<string> output)

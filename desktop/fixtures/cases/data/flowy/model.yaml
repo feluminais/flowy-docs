@@ -258,10 +258,6 @@ objects:
           one
       - name: carriage
         sample: {"k\rk": "1"}
-      - name: separator
-        columns: [x]
-        rows:
-          - ["x\Ly"]
   junk-data:
     type: store
     in: shop

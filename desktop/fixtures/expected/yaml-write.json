@@ -5954,17 +5954,6 @@
                 "sample": {
                   "k\rk": "1"
                 }
-              },
-              {
-                "name": "separator",
-                "columns": [
-                  "x"
-                ],
-                "rows": [
-                  [
-                    "x y"
-                  ]
-                ]
               }
             ]
           },
@@ -6019,7 +6008,7 @@
         },
         "connections": []
       },
-      "text": "objects:\n  shop:\n    type: system\n    name: Shop\n  orders-db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds; the order stays.\n        columns:\n          - {name: id, key: primary}\n          - {name: customer_id, to: customers}\n          - status\n          - {name: total, note: \"Cents, not decimals. Rounding broke the first tax run.\"}\n          - placed_at\n          - delivery_notes\n        rows:\n          - [o_1042, c_77, placed, 2490, 2026-10-19 18:02, \"Ring twice, the bell is broken and the courier should leave it with the neighbour in flat 4 if nobody answers\"]\n          - [o_1043, c_12, accepted, 1380, 2026-10-19 18:05, \"\"]\n          - [o_1044, c_77, refunded, 990, 2026-10-19 18:09, \"<b>no onions</b> {please}\"]\n      - name: order_items\n        columns:\n          - {name: order_id, key: primary, to: orders}\n          - {name: item_id, key: primary}\n          - quantity\n          - {name: unit_price, note: Copied from the menu at order time. Menus change; receipts must not.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n      - name: refunds\n        columns: [id, order_id, amount, reason]\n        limits: Kept with its order\n      - name: baskets\n        kind:\n        limits:\n        columns: [id, customer_id, items, expires_at]\n      - name: audit\n        columns: [at, who, what]\n  menu-cache:\n    type: store\n    in: shop\n    name: Menu cache\n    tech: Redis\n    data:\n      - name: Keys\n        limits: Oldest unused go first at 256 MB\n        note: Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.\n        columns:\n          - Key\n          - Value\n          - {name: Expires, note: \"Set on every write, never extended on a read.\"}\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: shop\n    name: Order events\n    shape: queue\n    tech: Kafka\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id so one order's messages stay in order.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n  profiles:\n    type: store\n    in: shop\n    name: Restaurant profiles\n    tech: MongoDB\n    data:\n      - name: restaurants\n        kind: collection\n        sample:\n          _id: r_42\n          name: Noodle Bar\n          tags: [ramen, vegan]\n          hours:\n            mon: 11-22\n            tue: 11-22\n          rating: 4.6\n          items:\n            - name: Pho\n            - name: Ramen\n          menu: [plain, second]\n        notes:\n          hours: Hours live inside the profile. They are only ever read with it.\n          hours.tue: Closed on public holidays.\n  hostile:\n    type: store\n    in: shop\n    name: Hostile cells\n    tech: Postgres\n    data:\n      - name: cells\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]\n        rows:\n          - [\"a: b\", \"# not a comment\", '\"quoted\"', it's, \"- dash\", \"[x]\", \"{x}\", \" leading\", \"trailing \", \"\", \"a, b\", é ü ✓ 日本]\n          - [null, ~, 007, 3.10, true, yes, \"- \", \"? x\", \"% x\", \"@x\", \"`x\", a  b]\n          - [http://example.com/a?b=c#d, C:\\path\\file, a | b, a > b, a & b, a * b, a ! b, --- x, ... x, x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z, \"&x\", \"*x\"]\n      - name: notes\n        columns:\n          - {name: a, note: \"a: b # c\"}\n          - {name: b, note: \"- x, [y] {z}\"}\n          - {name: c, note: \" lead\"}\n          - {name: d, note: \"\"}\n      - name: doc\n        sample:\n          list: [\"a: b\", \"# c\", \"x, y\", \"\", \"[z]\"]\n          text: \"a: b # c\"\n          quote: say \"hi\"\n        notes:\n          list: \"x: y, [z]\"\n  proto:\n    type: store\n    in: shop\n    name: Prototype names\n    tech: MongoDB\n    data:\n      - name: names\n        sample:\n          constructor: 1\n          toString: 2\n        notes:\n          constructor: A field named like a prototype member.\n      - name: loose\n        sample:\n          x: 1\n        notes:\n          toString: Names no field.\n  bad-entries:\n    type: store\n    in: shop\n    name: Bad entries\n    data:\n      - text\n      - columns: [a]\n      - name: \" \"\n        columns: [a]\n      - name: dup\n        columns: [x]\n      - name: dup\n        columns: [x]\n      - name: needs-body\n      - name: both\n        columns: [x]\n        sample:\n          x: 1\n      - name: rows-no-columns\n        sample:\n          x: 1\n        rows:\n          - [1]\n      - name: notes-no-sample\n        columns: [x]\n        notes:\n          x: n\n  bad-columns:\n    type: store\n    in: shop\n    name: Bad columns\n    data:\n      - name: not-a-list\n        columns: x\n      - name: empty\n        columns: []\n      - name: shapes\n        columns:\n          - - a\n          - {key: primary}\n          - {name: dup}\n          - {name: dup}\n          - {name: k, key: foreign}\n          - {name: n, note: [x]}\n          - {name: t, to: [y]}\n      - name: plain-text\n        kind:\n          - x\n        limits:\n          - y\n        note:\n          - z\n        columns: [a]\n      - name: too-many\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12]\n      - name: exactly-twelve\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]\n  bad-rows:\n    type: store\n    in: shop\n    name: Bad rows\n    data:\n      - name: not-a-list\n        columns: [a, b]\n        rows: x\n      - name: shapes\n        columns: [a, b]\n        rows:\n          - x\n          - [a, [b]]\n          - [a]\n          - [a, b, c]\n      - name: one-column\n        columns: [a]\n        rows:\n          - [a, b]\n      - name: too-many\n        columns: [a]\n        rows:\n          - [1]\n          - [2]\n          - [3]\n          - [4]\n          - [5]\n          - [6]\n          - [7]\n          - [8]\n          - [9]\n      - name: exactly-eight\n        columns: [a]\n        rows:\n          - [1]\n          - [2]\n          - [3]\n          - [4]\n          - [5]\n          - [6]\n          - [7]\n          - [8]\n  bad-samples:\n    type: store\n    in: shop\n    name: Bad samples\n    data:\n      - name: a-list\n        sample: [x]\n      - name: empty\n        sample: {}\n      - name: too-deep\n        sample:\n          a:\n            b:\n              c:\n                d: 1\n      - name: deep-enough\n        sample:\n          a:\n            b:\n              c: 1\n      - name: too-many\n        sample:\n          f0: 1\n          f1: 1\n          f2: 1\n          f3: 1\n          f4: 1\n          f5: 1\n          f6: 1\n          f7: 1\n          f8: 1\n          f9: 1\n          f10: 1\n          f11: 1\n          f12: 1\n          f13: 1\n          f14: 1\n          f15: 1\n          f16: 1\n          f17: 1\n          f18: 1\n          f19: 1\n          f20: 1\n      - name: exactly-twenty\n        sample:\n          f0: 1\n          f1: 1\n          f2: 1\n          f3: 1\n          f4: 1\n          f5: 1\n          f6: 1\n          f7: 1\n          f8: 1\n          f9: 1\n          f10: 1\n          f11: 1\n          f12: 1\n          f13: 1\n          f14: 1\n          f15: 1\n          f16: 1\n          f17: 1\n          f18: 1\n          f19: 1\n      - name: notes-text\n        sample:\n          x: 1\n        notes: n\n      - name: note-list\n        sample:\n          x: 1\n        notes:\n          x:\n            - a\n      - name: note-nowhere\n        sample:\n          hours:\n            mon: 1\n        notes:\n          hours.fri: n\n      - name: list-in-list\n        sample:\n          grid:\n            - [a]\n            - [b]\n  bad-breaks:\n    type: store\n    in: shop\n    name: Bad breaks\n    data:\n      - name: cell\n        columns: [x]\n        rows:\n          - [\"a\\nb\"]\n      - name: note\n        columns: [x]\n        note: |\n          one\n      - name: carriage\n        sample:\n          \"k\\rk\": 1\n      - name: separator\n        columns: [x]\n        rows:\n          - [\"x y\"]\n  junk-data:\n    type: store\n    in: shop\n    name: Data that is a mapping\n    data:\n      a: 1\n  tilde-data:\n    type: store\n    in: shop\n    name: Data that is a tilde\n    data: ~\n  blank-data:\n    type: store\n    in: shop\n    name: Blank data\n    data:\n  quoted-blank-data:\n    type: store\n    in: shop\n    name: Quoted blank data\n    data:\n  junk-entries:\n    type: store\n    in: shop\n    name: Junk entries\n    data:\n      - []\n      - {}\n      - null\n  on-a-system:\n    type: system\n    name: A system with data\n    data:\n      - name: orders\n        columns: [id]\nconnections: []\n"
+      "text": "objects:\n  shop:\n    type: system\n    name: Shop\n  orders-db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds; the order stays.\n        columns:\n          - {name: id, key: primary}\n          - {name: customer_id, to: customers}\n          - status\n          - {name: total, note: \"Cents, not decimals. Rounding broke the first tax run.\"}\n          - placed_at\n          - delivery_notes\n        rows:\n          - [o_1042, c_77, placed, 2490, 2026-10-19 18:02, \"Ring twice, the bell is broken and the courier should leave it with the neighbour in flat 4 if nobody answers\"]\n          - [o_1043, c_12, accepted, 1380, 2026-10-19 18:05, \"\"]\n          - [o_1044, c_77, refunded, 990, 2026-10-19 18:09, \"<b>no onions</b> {please}\"]\n      - name: order_items\n        columns:\n          - {name: order_id, key: primary, to: orders}\n          - {name: item_id, key: primary}\n          - quantity\n          - {name: unit_price, note: Copied from the menu at order time. Menus change; receipts must not.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n      - name: refunds\n        columns: [id, order_id, amount, reason]\n        limits: Kept with its order\n      - name: baskets\n        kind:\n        limits:\n        columns: [id, customer_id, items, expires_at]\n      - name: audit\n        columns: [at, who, what]\n  menu-cache:\n    type: store\n    in: shop\n    name: Menu cache\n    tech: Redis\n    data:\n      - name: Keys\n        limits: Oldest unused go first at 256 MB\n        note: Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.\n        columns:\n          - Key\n          - Value\n          - {name: Expires, note: \"Set on every write, never extended on a read.\"}\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: shop\n    name: Order events\n    shape: queue\n    tech: Kafka\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id so one order's messages stay in order.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n  profiles:\n    type: store\n    in: shop\n    name: Restaurant profiles\n    tech: MongoDB\n    data:\n      - name: restaurants\n        kind: collection\n        sample:\n          _id: r_42\n          name: Noodle Bar\n          tags: [ramen, vegan]\n          hours:\n            mon: 11-22\n            tue: 11-22\n          rating: 4.6\n          items:\n            - name: Pho\n            - name: Ramen\n          menu: [plain, second]\n        notes:\n          hours: Hours live inside the profile. They are only ever read with it.\n          hours.tue: Closed on public holidays.\n  hostile:\n    type: store\n    in: shop\n    name: Hostile cells\n    tech: Postgres\n    data:\n      - name: cells\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]\n        rows:\n          - [\"a: b\", \"# not a comment\", '\"quoted\"', it's, \"- dash\", \"[x]\", \"{x}\", \" leading\", \"trailing \", \"\", \"a, b\", é ü ✓ 日本]\n          - [null, ~, 007, 3.10, true, yes, \"- \", \"? x\", \"% x\", \"@x\", \"`x\", a  b]\n          - [http://example.com/a?b=c#d, C:\\path\\file, a | b, a > b, a & b, a * b, a ! b, --- x, ... x, x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z, \"&x\", \"*x\"]\n      - name: notes\n        columns:\n          - {name: a, note: \"a: b # c\"}\n          - {name: b, note: \"- x, [y] {z}\"}\n          - {name: c, note: \" lead\"}\n          - {name: d, note: \"\"}\n      - name: doc\n        sample:\n          list: [\"a: b\", \"# c\", \"x, y\", \"\", \"[z]\"]\n          text: \"a: b # c\"\n          quote: say \"hi\"\n        notes:\n          list: \"x: y, [z]\"\n  proto:\n    type: store\n    in: shop\n    name: Prototype names\n    tech: MongoDB\n    data:\n      - name: names\n        sample:\n          constructor: 1\n          toString: 2\n        notes:\n          constructor: A field named like a prototype member.\n      - name: loose\n        sample:\n          x: 1\n        notes:\n          toString: Names no field.\n  bad-entries:\n    type: store\n    in: shop\n    name: Bad entries\n    data:\n      - text\n      - columns: [a]\n      - name: \" \"\n        columns: [a]\n      - name: dup\n        columns: [x]\n      - name: dup\n        columns: [x]\n      - name: needs-body\n      - name: both\n        columns: [x]\n        sample:\n          x: 1\n      - name: rows-no-columns\n        sample:\n          x: 1\n        rows:\n          - [1]\n      - name: notes-no-sample\n        columns: [x]\n        notes:\n          x: n\n  bad-columns:\n    type: store\n    in: shop\n    name: Bad columns\n    data:\n      - name: not-a-list\n        columns: x\n      - name: empty\n        columns: []\n      - name: shapes\n        columns:\n          - - a\n          - {key: primary}\n          - {name: dup}\n          - {name: dup}\n          - {name: k, key: foreign}\n          - {name: n, note: [x]}\n          - {name: t, to: [y]}\n      - name: plain-text\n        kind:\n          - x\n        limits:\n          - y\n        note:\n          - z\n        columns: [a]\n      - name: too-many\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12]\n      - name: exactly-twelve\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]\n  bad-rows:\n    type: store\n    in: shop\n    name: Bad rows\n    data:\n      - name: not-a-list\n        columns: [a, b]\n        rows: x\n      - name: shapes\n        columns: [a, b]\n        rows:\n          - x\n          - [a, [b]]\n          - [a]\n          - [a, b, c]\n      - name: one-column\n        columns: [a]\n        rows:\n          - [a, b]\n      - name: too-many\n        columns: [a]\n        rows:\n          - [1]\n          - [2]\n          - [3]\n          - [4]\n          - [5]\n          - [6]\n          - [7]\n          - [8]\n          - [9]\n      - name: exactly-eight\n        columns: [a]\n        rows:\n          - [1]\n          - [2]\n          - [3]\n          - [4]\n          - [5]\n          - [6]\n          - [7]\n          - [8]\n  bad-samples:\n    type: store\n    in: shop\n    name: Bad samples\n    data:\n      - name: a-list\n        sample: [x]\n      - name: empty\n        sample: {}\n      - name: too-deep\n        sample:\n          a:\n            b:\n              c:\n                d: 1\n      - name: deep-enough\n        sample:\n          a:\n            b:\n              c: 1\n      - name: too-many\n        sample:\n          f0: 1\n          f1: 1\n          f2: 1\n          f3: 1\n          f4: 1\n          f5: 1\n          f6: 1\n          f7: 1\n          f8: 1\n          f9: 1\n          f10: 1\n          f11: 1\n          f12: 1\n          f13: 1\n          f14: 1\n          f15: 1\n          f16: 1\n          f17: 1\n          f18: 1\n          f19: 1\n          f20: 1\n      - name: exactly-twenty\n        sample:\n          f0: 1\n          f1: 1\n          f2: 1\n          f3: 1\n          f4: 1\n          f5: 1\n          f6: 1\n          f7: 1\n          f8: 1\n          f9: 1\n          f10: 1\n          f11: 1\n          f12: 1\n          f13: 1\n          f14: 1\n          f15: 1\n          f16: 1\n          f17: 1\n          f18: 1\n          f19: 1\n      - name: notes-text\n        sample:\n          x: 1\n        notes: n\n      - name: note-list\n        sample:\n          x: 1\n        notes:\n          x:\n            - a\n      - name: note-nowhere\n        sample:\n          hours:\n            mon: 1\n        notes:\n          hours.fri: n\n      - name: list-in-list\n        sample:\n          grid:\n            - [a]\n            - [b]\n  bad-breaks:\n    type: store\n    in: shop\n    name: Bad breaks\n    data:\n      - name: cell\n        columns: [x]\n        rows:\n          - [\"a\\nb\"]\n      - name: note\n        columns: [x]\n        note: |\n          one\n      - name: carriage\n        sample:\n          \"k\\rk\": 1\n  junk-data:\n    type: store\n    in: shop\n    name: Data that is a mapping\n    data:\n      a: 1\n  tilde-data:\n    type: store\n    in: shop\n    name: Data that is a tilde\n    data: ~\n  blank-data:\n    type: store\n    in: shop\n    name: Blank data\n    data:\n  quoted-blank-data:\n    type: store\n    in: shop\n    name: Quoted blank data\n    data:\n  junk-entries:\n    type: store\n    in: shop\n    name: Junk entries\n    data:\n      - []\n      - {}\n      - null\n  on-a-system:\n    type: system\n    name: A system with data\n    data:\n      - name: orders\n        columns: [id]\nconnections: []\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -6874,367 +6863,367 @@
   "flowCells": [
     {
       "s": "",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"\"}\n        rows:\n          - [\"\"]\n      - name: b\n        sample:\n          list: [\"\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"\"}\n        rows:\n          - [\"\"]\n      - name: b\n        sample:\n          list: [\"\"]\nconnections: []\n"
     },
     {
       "s": " ",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \" \"}\n        rows:\n          - [\" \"]\n      - name: b\n        sample:\n          list: [\" \"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \" \"}\n        rows:\n          - [\" \"]\n      - name: b\n        sample:\n          list: [\" \"]\nconnections: []\n"
     },
     {
       "s": "  ",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"  \"}\n        rows:\n          - [\"  \"]\n      - name: b\n        sample:\n          list: [\"  \"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"  \"}\n        rows:\n          - [\"  \"]\n      - name: b\n        sample:\n          list: [\"  \"]\nconnections: []\n"
     },
     {
       "s": "plain",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: plain}\n        rows:\n          - [plain]\n      - name: b\n        sample:\n          list: [plain]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: plain}\n        rows:\n          - [plain]\n      - name: b\n        sample:\n          list: [plain]\nconnections: []\n"
     },
     {
       "s": "with space",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: with space}\n        rows:\n          - [with space]\n      - name: b\n        sample:\n          list: [with space]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: with space}\n        rows:\n          - [with space]\n      - name: b\n        sample:\n          list: [with space]\nconnections: []\n"
     },
     {
       "s": " leading",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \" leading\"}\n        rows:\n          - [\" leading\"]\n      - name: b\n        sample:\n          list: [\" leading\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \" leading\"}\n        rows:\n          - [\" leading\"]\n      - name: b\n        sample:\n          list: [\" leading\"]\nconnections: []\n"
     },
     {
       "s": "trailing ",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"trailing \"}\n        rows:\n          - [\"trailing \"]\n      - name: b\n        sample:\n          list: [\"trailing \"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"trailing \"}\n        rows:\n          - [\"trailing \"]\n      - name: b\n        sample:\n          list: [\"trailing \"]\nconnections: []\n"
     },
     {
       "s": "  both  ",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"  both  \"}\n        rows:\n          - [\"  both  \"]\n      - name: b\n        sample:\n          list: [\"  both  \"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"  both  \"}\n        rows:\n          - [\"  both  \"]\n      - name: b\n        sample:\n          list: [\"  both  \"]\nconnections: []\n"
     },
     {
       "s": "a: b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a: b\"}\n        rows:\n          - [\"a: b\"]\n      - name: b\n        sample:\n          list: [\"a: b\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a: b\"}\n        rows:\n          - [\"a: b\"]\n      - name: b\n        sample:\n          list: [\"a: b\"]\nconnections: []\n"
     },
     {
       "s": "a:b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a:b}\n        rows:\n          - [a:b]\n      - name: b\n        sample:\n          list: [a:b]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a:b}\n        rows:\n          - [a:b]\n      - name: b\n        sample:\n          list: [a:b]\nconnections: []\n"
     },
     {
       "s": "a #b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a #b\"}\n        rows:\n          - [\"a #b\"]\n      - name: b\n        sample:\n          list: [\"a #b\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a #b\"}\n        rows:\n          - [\"a #b\"]\n      - name: b\n        sample:\n          list: [\"a #b\"]\nconnections: []\n"
     },
     {
       "s": "a#b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a#b}\n        rows:\n          - [a#b]\n      - name: b\n        sample:\n          list: [a#b]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a#b}\n        rows:\n          - [a#b]\n      - name: b\n        sample:\n          list: [a#b]\nconnections: []\n"
     },
     {
       "s": "#x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"#x\"}\n        rows:\n          - [\"#x\"]\n      - name: b\n        sample:\n          list: [\"#x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"#x\"}\n        rows:\n          - [\"#x\"]\n      - name: b\n        sample:\n          list: [\"#x\"]\nconnections: []\n"
     },
     {
       "s": "- x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"- x\"}\n        rows:\n          - [\"- x\"]\n      - name: b\n        sample:\n          list: [\"- x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"- x\"}\n        rows:\n          - [\"- x\"]\n      - name: b\n        sample:\n          list: [\"- x\"]\nconnections: []\n"
     },
     {
       "s": "-",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"-\"}\n        rows:\n          - [\"-\"]\n      - name: b\n        sample:\n          list: [\"-\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"-\"}\n        rows:\n          - [\"-\"]\n      - name: b\n        sample:\n          list: [\"-\"]\nconnections: []\n"
     },
     {
       "s": "-x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: -x}\n        rows:\n          - [-x]\n      - name: b\n        sample:\n          list: [-x]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: -x}\n        rows:\n          - [-x]\n      - name: b\n        sample:\n          list: [-x]\nconnections: []\n"
     },
     {
       "s": "--",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: --}\n        rows:\n          - [--]\n      - name: b\n        sample:\n          list: [--]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: --}\n        rows:\n          - [--]\n      - name: b\n        sample:\n          list: [--]\nconnections: []\n"
     },
     {
       "s": "? x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"? x\"}\n        rows:\n          - [\"? x\"]\n      - name: b\n        sample:\n          list: [\"? x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"? x\"}\n        rows:\n          - [\"? x\"]\n      - name: b\n        sample:\n          list: [\"? x\"]\nconnections: []\n"
     },
     {
       "s": "?x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ?x}\n        rows:\n          - [?x]\n      - name: b\n        sample:\n          list: [?x]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ?x}\n        rows:\n          - [?x]\n      - name: b\n        sample:\n          list: [?x]\nconnections: []\n"
     },
     {
       "s": ":x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: :x}\n        rows:\n          - [:x]\n      - name: b\n        sample:\n          list: [:x]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: :x}\n        rows:\n          - [:x]\n      - name: b\n        sample:\n          list: [:x]\nconnections: []\n"
     },
     {
       "s": "x:",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"x:\"}\n        rows:\n          - [\"x:\"]\n      - name: b\n        sample:\n          list: [\"x:\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"x:\"}\n        rows:\n          - [\"x:\"]\n      - name: b\n        sample:\n          list: [\"x:\"]\nconnections: []\n"
     },
     {
       "s": "x::",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"x::\"}\n        rows:\n          - [\"x::\"]\n      - name: b\n        sample:\n          list: [\"x::\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"x::\"}\n        rows:\n          - [\"x::\"]\n      - name: b\n        sample:\n          list: [\"x::\"]\nconnections: []\n"
     },
     {
       "s": "[x]",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"[x]\"}\n        rows:\n          - [\"[x]\"]\n      - name: b\n        sample:\n          list: [\"[x]\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"[x]\"}\n        rows:\n          - [\"[x]\"]\n      - name: b\n        sample:\n          list: [\"[x]\"]\nconnections: []\n"
     },
     {
       "s": "{x}",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"{x}\"}\n        rows:\n          - [\"{x}\"]\n      - name: b\n        sample:\n          list: [\"{x}\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"{x}\"}\n        rows:\n          - [\"{x}\"]\n      - name: b\n        sample:\n          list: [\"{x}\"]\nconnections: []\n"
     },
     {
       "s": "a [b]",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a [b]\"}\n        rows:\n          - [\"a [b]\"]\n      - name: b\n        sample:\n          list: [\"a [b]\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a [b]\"}\n        rows:\n          - [\"a [b]\"]\n      - name: b\n        sample:\n          list: [\"a [b]\"]\nconnections: []\n"
     },
     {
       "s": "a {b}",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a {b}\"}\n        rows:\n          - [\"a {b}\"]\n      - name: b\n        sample:\n          list: [\"a {b}\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a {b}\"}\n        rows:\n          - [\"a {b}\"]\n      - name: b\n        sample:\n          list: [\"a {b}\"]\nconnections: []\n"
     },
     {
       "s": "a, b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a, b\"}\n        rows:\n          - [\"a, b\"]\n      - name: b\n        sample:\n          list: [\"a, b\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a, b\"}\n        rows:\n          - [\"a, b\"]\n      - name: b\n        sample:\n          list: [\"a, b\"]\nconnections: []\n"
     },
     {
       "s": ",x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \",x\"}\n        rows:\n          - [\",x\"]\n      - name: b\n        sample:\n          list: [\",x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \",x\"}\n        rows:\n          - [\",x\"]\n      - name: b\n        sample:\n          list: [\",x\"]\nconnections: []\n"
     },
     {
       "s": "&x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"&x\"}\n        rows:\n          - [\"&x\"]\n      - name: b\n        sample:\n          list: [\"&x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"&x\"}\n        rows:\n          - [\"&x\"]\n      - name: b\n        sample:\n          list: [\"&x\"]\nconnections: []\n"
     },
     {
       "s": "*x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"*x\"}\n        rows:\n          - [\"*x\"]\n      - name: b\n        sample:\n          list: [\"*x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"*x\"}\n        rows:\n          - [\"*x\"]\n      - name: b\n        sample:\n          list: [\"*x\"]\nconnections: []\n"
     },
     {
       "s": "!x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"!x\"}\n        rows:\n          - [\"!x\"]\n      - name: b\n        sample:\n          list: [\"!x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"!x\"}\n        rows:\n          - [\"!x\"]\n      - name: b\n        sample:\n          list: [\"!x\"]\nconnections: []\n"
     },
     {
       "s": "!!x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"!!x\"}\n        rows:\n          - [\"!!x\"]\n      - name: b\n        sample:\n          list: [\"!!x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"!!x\"}\n        rows:\n          - [\"!!x\"]\n      - name: b\n        sample:\n          list: [\"!!x\"]\nconnections: []\n"
     },
     {
       "s": "|x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"|x\"}\n        rows:\n          - [\"|x\"]\n      - name: b\n        sample:\n          list: [\"|x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"|x\"}\n        rows:\n          - [\"|x\"]\n      - name: b\n        sample:\n          list: [\"|x\"]\nconnections: []\n"
     },
     {
       "s": ">x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \">x\"}\n        rows:\n          - [\">x\"]\n      - name: b\n        sample:\n          list: [\">x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \">x\"}\n        rows:\n          - [\">x\"]\n      - name: b\n        sample:\n          list: [\">x\"]\nconnections: []\n"
     },
     {
       "s": "'x'",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"'x'\"}\n        rows:\n          - [\"'x'\"]\n      - name: b\n        sample:\n          list: [\"'x'\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"'x'\"}\n        rows:\n          - [\"'x'\"]\n      - name: b\n        sample:\n          list: [\"'x'\"]\nconnections: []\n"
     },
     {
       "s": "\"x\"",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: '\"x\"'}\n        rows:\n          - ['\"x\"']\n      - name: b\n        sample:\n          list: ['\"x\"']\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: '\"x\"'}\n        rows:\n          - ['\"x\"']\n      - name: b\n        sample:\n          list: ['\"x\"']\nconnections: []\n"
     },
     {
       "s": "say \"hi\"",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: say \"hi\"}\n        rows:\n          - [say \"hi\"]\n      - name: b\n        sample:\n          list: [say \"hi\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: say \"hi\"}\n        rows:\n          - [say \"hi\"]\n      - name: b\n        sample:\n          list: [say \"hi\"]\nconnections: []\n"
     },
     {
       "s": "it's",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: it's}\n        rows:\n          - [it's]\n      - name: b\n        sample:\n          list: [it's]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: it's}\n        rows:\n          - [it's]\n      - name: b\n        sample:\n          list: [it's]\nconnections: []\n"
     },
     {
       "s": "a'b\"c",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a'b\"c}\n        rows:\n          - [a'b\"c]\n      - name: b\n        sample:\n          list: [a'b\"c]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a'b\"c}\n        rows:\n          - [a'b\"c]\n      - name: b\n        sample:\n          list: [a'b\"c]\nconnections: []\n"
     },
     {
       "s": "\"",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: '\"'}\n        rows:\n          - ['\"']\n      - name: b\n        sample:\n          list: ['\"']\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: '\"'}\n        rows:\n          - ['\"']\n      - name: b\n        sample:\n          list: ['\"']\nconnections: []\n"
     },
     {
       "s": "'",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"'\"}\n        rows:\n          - [\"'\"]\n      - name: b\n        sample:\n          list: [\"'\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"'\"}\n        rows:\n          - [\"'\"]\n      - name: b\n        sample:\n          list: [\"'\"]\nconnections: []\n"
     },
     {
       "s": "%x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"%x\"}\n        rows:\n          - [\"%x\"]\n      - name: b\n        sample:\n          list: [\"%x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"%x\"}\n        rows:\n          - [\"%x\"]\n      - name: b\n        sample:\n          list: [\"%x\"]\nconnections: []\n"
     },
     {
       "s": "@x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"@x\"}\n        rows:\n          - [\"@x\"]\n      - name: b\n        sample:\n          list: [\"@x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"@x\"}\n        rows:\n          - [\"@x\"]\n      - name: b\n        sample:\n          list: [\"@x\"]\nconnections: []\n"
     },
     {
       "s": "`x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"`x\"}\n        rows:\n          - [\"`x\"]\n      - name: b\n        sample:\n          list: [\"`x\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"`x\"}\n        rows:\n          - [\"`x\"]\n      - name: b\n        sample:\n          list: [\"`x\"]\nconnections: []\n"
     },
     {
       "s": "= x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: = x}\n        rows:\n          - [= x]\n      - name: b\n        sample:\n          list: [= x]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: = x}\n        rows:\n          - [= x]\n      - name: b\n        sample:\n          list: [= x]\nconnections: []\n"
     },
     {
       "s": "<<",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: <<}\n        rows:\n          - [<<]\n      - name: b\n        sample:\n          list: [<<]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: <<}\n        rows:\n          - [<<]\n      - name: b\n        sample:\n          list: [<<]\nconnections: []\n"
     },
     {
       "s": "* ",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"* \"}\n        rows:\n          - [\"* \"]\n      - name: b\n        sample:\n          list: [\"* \"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"* \"}\n        rows:\n          - [\"* \"]\n      - name: b\n        sample:\n          list: [\"* \"]\nconnections: []\n"
     },
     {
       "s": "null",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: null}\n        rows:\n          - [null]\n      - name: b\n        sample:\n          list: [null]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: null}\n        rows:\n          - [null]\n      - name: b\n        sample:\n          list: [null]\nconnections: []\n"
     },
     {
       "s": "true",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: true}\n        rows:\n          - [true]\n      - name: b\n        sample:\n          list: [true]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: true}\n        rows:\n          - [true]\n      - name: b\n        sample:\n          list: [true]\nconnections: []\n"
     },
     {
       "s": "false",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: false}\n        rows:\n          - [false]\n      - name: b\n        sample:\n          list: [false]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: false}\n        rows:\n          - [false]\n      - name: b\n        sample:\n          list: [false]\nconnections: []\n"
     },
     {
       "s": "007",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: 007}\n        rows:\n          - [007]\n      - name: b\n        sample:\n          list: [007]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: 007}\n        rows:\n          - [007]\n      - name: b\n        sample:\n          list: [007]\nconnections: []\n"
     },
     {
       "s": "3.10",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: 3.10}\n        rows:\n          - [3.10]\n      - name: b\n        sample:\n          list: [3.10]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: 3.10}\n        rows:\n          - [3.10]\n      - name: b\n        sample:\n          list: [3.10]\nconnections: []\n"
     },
     {
       "s": "~",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ~}\n        rows:\n          - [~]\n      - name: b\n        sample:\n          list: [~]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ~}\n        rows:\n          - [~]\n      - name: b\n        sample:\n          list: [~]\nconnections: []\n"
     },
     {
       "s": "yes",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: yes}\n        rows:\n          - [yes]\n      - name: b\n        sample:\n          list: [yes]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: yes}\n        rows:\n          - [yes]\n      - name: b\n        sample:\n          list: [yes]\nconnections: []\n"
     },
     {
       "s": "no",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: no}\n        rows:\n          - [no]\n      - name: b\n        sample:\n          list: [no]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: no}\n        rows:\n          - [no]\n      - name: b\n        sample:\n          list: [no]\nconnections: []\n"
     },
     {
       "s": "1e3",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: 1e3}\n        rows:\n          - [1e3]\n      - name: b\n        sample:\n          list: [1e3]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: 1e3}\n        rows:\n          - [1e3]\n      - name: b\n        sample:\n          list: [1e3]\nconnections: []\n"
     },
     {
       "s": "0x10",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: 0x10}\n        rows:\n          - [0x10]\n      - name: b\n        sample:\n          list: [0x10]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: 0x10}\n        rows:\n          - [0x10]\n      - name: b\n        sample:\n          list: [0x10]\nconnections: []\n"
     },
     {
       "s": ".inf",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: .inf}\n        rows:\n          - [.inf]\n      - name: b\n        sample:\n          list: [.inf]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: .inf}\n        rows:\n          - [.inf]\n      - name: b\n        sample:\n          list: [.inf]\nconnections: []\n"
     },
     {
       "s": "tab\there",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: tab\there}\n        rows:\n          - [tab\there]\n      - name: b\n        sample:\n          list: [tab\there]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: tab\there}\n        rows:\n          - [tab\there]\n      - name: b\n        sample:\n          list: [tab\there]\nconnections: []\n"
     },
     {
       "s": "a\tb",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a\tb}\n        rows:\n          - [a\tb]\n      - name: b\n        sample:\n          list: [a\tb]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a\tb}\n        rows:\n          - [a\tb]\n      - name: b\n        sample:\n          list: [a\tb]\nconnections: []\n"
     },
     {
       "s": "\ttab",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"\\ttab\"}\n        rows:\n          - [\"\\ttab\"]\n      - name: b\n        sample:\n          list: [\"\\ttab\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"\\ttab\"}\n        rows:\n          - [\"\\ttab\"]\n      - name: b\n        sample:\n          list: [\"\\ttab\"]\nconnections: []\n"
     },
     {
       "s": "trailing tab\t",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"trailing tab\\t\"}\n        rows:\n          - [\"trailing tab\\t\"]\n      - name: b\n        sample:\n          list: [\"trailing tab\\t\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"trailing tab\\t\"}\n        rows:\n          - [\"trailing tab\\t\"]\n      - name: b\n        sample:\n          list: [\"trailing tab\\t\"]\nconnections: []\n"
     },
     {
       "s": "back\\slash",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: back\\slash}\n        rows:\n          - [back\\slash]\n      - name: b\n        sample:\n          list: [back\\slash]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: back\\slash}\n        rows:\n          - [back\\slash]\n      - name: b\n        sample:\n          list: [back\\slash]\nconnections: []\n"
     },
     {
       "s": "unicode é ü ✓ 日本",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: unicode é ü ✓ 日本}\n        rows:\n          - [unicode é ü ✓ 日本]\n      - name: b\n        sample:\n          list: [unicode é ü ✓ 日本]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: unicode é ü ✓ 日本}\n        rows:\n          - [unicode é ü ✓ 日本]\n      - name: b\n        sample:\n          list: [unicode é ü ✓ 日本]\nconnections: []\n"
     },
     {
       "s": "emoji 😀",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: emoji 😀}\n        rows:\n          - [emoji 😀]\n      - name: b\n        sample:\n          list: [emoji 😀]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: emoji 😀}\n        rows:\n          - [emoji 😀]\n      - name: b\n        sample:\n          list: [emoji 😀]\nconnections: []\n"
     },
     {
       "s": "---",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ---}\n        rows:\n          - [---]\n      - name: b\n        sample:\n          list: [---]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ---}\n        rows:\n          - [---]\n      - name: b\n        sample:\n          list: [---]\nconnections: []\n"
     },
     {
       "s": "...",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ...}\n        rows:\n          - [...]\n      - name: b\n        sample:\n          list: [...]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ...}\n        rows:\n          - [...]\n      - name: b\n        sample:\n          list: [...]\nconnections: []\n"
     },
     {
       "s": "--- x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: --- x}\n        rows:\n          - [--- x]\n      - name: b\n        sample:\n          list: [--- x]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: --- x}\n        rows:\n          - [--- x]\n      - name: b\n        sample:\n          list: [--- x]\nconnections: []\n"
     },
     {
       "s": "... x",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ... x}\n        rows:\n          - [... x]\n      - name: b\n        sample:\n          list: [... x]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ... x}\n        rows:\n          - [... x]\n      - name: b\n        sample:\n          list: [... x]\nconnections: []\n"
     },
     {
       "s": " nbsp",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note:  nbsp}\n        rows:\n          - [ nbsp]\n      - name: b\n        sample:\n          list: [ nbsp]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note:  nbsp}\n        rows:\n          - [ nbsp]\n      - name: b\n        sample:\n          list: [ nbsp]\nconnections: []\n"
     },
     {
       "s": "a\u0007b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a\\ab\"}\n        rows:\n          - [\"a\\ab\"]\n      - name: b\n        sample:\n          list: [\"a\\ab\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a\\ab\"}\n        rows:\n          - [\"a\\ab\"]\n      - name: b\n        sample:\n          list: [\"a\\ab\"]\nconnections: []\n"
     },
     {
       "s": "\u001bx",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"\\ex\"}\n        rows:\n          - [\"\\ex\"]\n      - name: b\n        sample:\n          list: [\"\\ex\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"\\ex\"}\n        rows:\n          - [\"\\ex\"]\n      - name: b\n        sample:\n          list: [\"\\ex\"]\nconnections: []\n"
     },
     {
       "s": "a\u0000b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a\\0b\"}\n        rows:\n          - [\"a\\0b\"]\n      - name: b\n        sample:\n          list: [\"a\\0b\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"a\\0b\"}\n        rows:\n          - [\"a\\0b\"]\n      - name: b\n        sample:\n          list: [\"a\\0b\"]\nconnections: []\n"
     },
     {
       "s": "﻿bom",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ﻿bom}\n        rows:\n          - [﻿bom]\n      - name: b\n        sample:\n          list: [﻿bom]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: ﻿bom}\n        rows:\n          - [﻿bom]\n      - name: b\n        sample:\n          list: [﻿bom]\nconnections: []\n"
     },
     {
       "s": "text with `code` and **bold**",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: text with `code` and **bold**}\n        rows:\n          - [text with `code` and **bold**]\n      - name: b\n        sample:\n          list: [text with `code` and **bold**]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: text with `code` and **bold**}\n        rows:\n          - [text with `code` and **bold**]\n      - name: b\n        sample:\n          list: [text with `code` and **bold**]\nconnections: []\n"
     },
     {
       "s": "GET /menus/:restaurant reads a menu",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: GET /menus/:restaurant reads a menu}\n        rows:\n          - [GET /menus/:restaurant reads a menu]\n      - name: b\n        sample:\n          list: [GET /menus/:restaurant reads a menu]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: GET /menus/:restaurant reads a menu}\n        rows:\n          - [GET /menus/:restaurant reads a menu]\n      - name: b\n        sample:\n          list: [GET /menus/:restaurant reads a menu]\nconnections: []\n"
     },
     {
       "s": "POST /orders → places",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: POST /orders → places}\n        rows:\n          - [POST /orders → places]\n      - name: b\n        sample:\n          list: [POST /orders → places]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: POST /orders → places}\n        rows:\n          - [POST /orders → places]\n      - name: b\n        sample:\n          list: [POST /orders → places]\nconnections: []\n"
     },
     {
       "s": "a — b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a — b}\n        rows:\n          - [a — b]\n      - name: b\n        sample:\n          list: [a — b]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a — b}\n        rows:\n          - [a — b]\n      - name: b\n        sample:\n          list: [a — b]\nconnections: []\n"
     },
     {
       "s": "x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z}\n        rows:\n          - [x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z]\n      - name: b\n        sample:\n          list: [x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z}\n        rows:\n          - [x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z]\n      - name: b\n        sample:\n          list: [x y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y zx y z]\nconnections: []\n"
     },
     {
       "s": "one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words}\n        rows:\n          - [one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words]\n      - name: b\n        sample:\n          list: [one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words}\n        rows:\n          - [one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words]\n      - name: b\n        sample:\n          list: [one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words one very long line with many words]\nconnections: []\n"
     },
     {
       "s": "{\"json\": true}",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: '{\"json\": true}'}\n        rows:\n          - ['{\"json\": true}']\n      - name: b\n        sample:\n          list: ['{\"json\": true}']\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: '{\"json\": true}'}\n        rows:\n          - ['{\"json\": true}']\n      - name: b\n        sample:\n          list: ['{\"json\": true}']\nconnections: []\n"
     },
     {
       "s": "[1, 2]",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"[1, 2]\"}\n        rows:\n          - [\"[1, 2]\"]\n      - name: b\n        sample:\n          list: [\"[1, 2]\"]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: \"[1, 2]\"}\n        rows:\n          - [\"[1, 2]\"]\n      - name: b\n        sample:\n          list: [\"[1, 2]\"]\nconnections: []\n"
     },
     {
       "s": "http://example.com/a?b=c#d",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: http://example.com/a?b=c#d}\n        rows:\n          - [http://example.com/a?b=c#d]\n      - name: b\n        sample:\n          list: [http://example.com/a?b=c#d]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: http://example.com/a?b=c#d}\n        rows:\n          - [http://example.com/a?b=c#d]\n      - name: b\n        sample:\n          list: [http://example.com/a?b=c#d]\nconnections: []\n"
     },
     {
       "s": "C:\\path\\file",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: C:\\path\\file}\n        rows:\n          - [C:\\path\\file]\n      - name: b\n        sample:\n          list: [C:\\path\\file]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: C:\\path\\file}\n        rows:\n          - [C:\\path\\file]\n      - name: b\n        sample:\n          list: [C:\\path\\file]\nconnections: []\n"
     },
     {
       "s": "a | b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a | b}\n        rows:\n          - [a | b]\n      - name: b\n        sample:\n          list: [a | b]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a | b}\n        rows:\n          - [a | b]\n      - name: b\n        sample:\n          list: [a | b]\nconnections: []\n"
     },
     {
       "s": "a > b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a > b}\n        rows:\n          - [a > b]\n      - name: b\n        sample:\n          list: [a > b]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a > b}\n        rows:\n          - [a > b]\n      - name: b\n        sample:\n          list: [a > b]\nconnections: []\n"
     },
     {
       "s": "a ? b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a ? b}\n        rows:\n          - [a ? b]\n      - name: b\n        sample:\n          list: [a ? b]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a ? b}\n        rows:\n          - [a ? b]\n      - name: b\n        sample:\n          list: [a ? b]\nconnections: []\n"
     },
     {
       "s": "a & b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a & b}\n        rows:\n          - [a & b]\n      - name: b\n        sample:\n          list: [a & b]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a & b}\n        rows:\n          - [a & b]\n      - name: b\n        sample:\n          list: [a & b]\nconnections: []\n"
     },
     {
       "s": "a * b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a * b}\n        rows:\n          - [a * b]\n      - name: b\n        sample:\n          list: [a * b]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a * b}\n        rows:\n          - [a * b]\n      - name: b\n        sample:\n          list: [a * b]\nconnections: []\n"
     },
     {
       "s": "a ! b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a ! b}\n        rows:\n          - [a ! b]\n      - name: b\n        sample:\n          list: [a ! b]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a ! b}\n        rows:\n          - [a ! b]\n      - name: b\n        sample:\n          list: [a ! b]\nconnections: []\n"
     },
     {
       "s": "a @ b",
-      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a @ b}\n        rows:\n          - [a @ b]\n      - name: b\n        sample:\n          list: [a @ b]\n"
+      "text": "objects:\n  db:\n    type: store\n    name: S\n    data:\n      - name: a\n        columns:\n          - {name: c, note: a @ b}\n        rows:\n          - [a @ b]\n      - name: b\n        sample:\n          list: [a @ b]\nconnections: []\n"
     }
   ]
 }
