@@ -275,3 +275,19 @@ test('animation rules', () => {
     'step 5: animation trigger only applies to callback',
   ])
 })
+
+test('outcome rules', () => {
+  const m = shop()
+  m.flows.checkout.steps = [
+    { from: 'customer', to: 'web', text: 'a', animation: { kind: 'call', outcome: 'timeout' } },
+    { from: 'web', to: 'api', text: 'b', animation: { kind: 'send', outcome: 'timeout' } },
+    { from: 'api', to: 'db', text: 'c', animation: { kind: 'event', outcome: 'fail' } },
+    { from: 'api', to: 'db', text: 'd', animation: { kind: 'call', outcome: 'maybe' } },
+    { from: 'api', to: 'db', text: 'e', animation: { kind: 'send', outcome: 'fail' } },
+  ]
+  assert.deepEqual(check(m).map(p => p.message), [
+    'step 2: animation outcome timeout only applies to call',
+    'step 3: animation outcome fail only applies to send and call',
+    'step 4: animation outcome must be fail or timeout',
+  ])
+})

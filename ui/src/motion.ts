@@ -51,6 +51,16 @@ export const bump = (p: number): number => Math.sin(Math.PI * p)
 /** The tube fades in over the first 150 ms of its beat and out over the last 250. */
 export const tubeOpacity = (b: Span, t: number): number => Math.min(1, Math.max(0, Math.min((t - b.at) / 150, (b.at + b.dur - t) / 250)))
 
+/** How much of its strength a lit line keeps once a step has timed out. */
+export const LIT_FLOOR = 0.25
+
+/**
+ * How strong the lit lines of a stop are at `t`: full until a `fade` beat starts, falling to LIT_FLOOR over it, and staying there after it
+ * (the line is dim until the step is left). The strongest fade of several wins; beats with no `fade` leave it at 1.
+ */
+export const litOpacity = (beats: readonly (Span & { do: string })[], t: number): number =>
+  1 - (1 - LIT_FLOOR) * Math.max(0, ...beats.filter(b => b.do === 'fade').map(b => progress(b, t)))
+
 /** How far along a line of length `len` a blob is at progress `p`, running forward or back. */
 export const distance = (dir: 'fwd' | 'back' | undefined, p: number, len: number): number => (dir === 'back' ? 1 - ease(p) : ease(p)) * len
 

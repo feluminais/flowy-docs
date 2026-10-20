@@ -268,7 +268,7 @@
     },
     {
       "file": "flows/tags.yaml",
-      "message": "step 8: unknown animation option \"speed\" (use kind, trigger, carries)",
+      "message": "step 8: unknown animation option \"speed\" (use kind, trigger, carries, outcome)",
       "step": 7
     },
     {

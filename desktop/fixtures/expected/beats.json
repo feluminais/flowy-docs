@@ -240,7 +240,7 @@
         "speed": "fast"
       },
       "to": true,
-      "problem": "unknown animation option \"speed\" (use kind, trigger, carries)"
+      "problem": "unknown animation option \"speed\" (use kind, trigger, carries, outcome)"
     },
     {
       "animation": {
@@ -248,7 +248,7 @@
         "speed": "fast"
       },
       "to": false,
-      "problem": "unknown animation option \"speed\" (use kind, trigger, carries)"
+      "problem": "unknown animation option \"speed\" (use kind, trigger, carries, outcome)"
     },
     {
       "animation": {
@@ -363,6 +363,172 @@
       },
       "to": false,
       "problem": "animation kind must be text"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "to": false,
+      "problem": "animation \"send\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "to": false,
+      "problem": "animation \"call\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "to": false,
+      "problem": "animation \"call\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "to": false,
+      "problem": "animation \"call\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "timeout"
+      },
+      "to": true,
+      "problem": "animation outcome timeout only applies to call"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "timeout"
+      },
+      "to": false,
+      "problem": "animation outcome timeout only applies to call"
+    },
+    {
+      "animation": {
+        "kind": "event",
+        "outcome": "fail"
+      },
+      "to": true,
+      "problem": "animation outcome fail only applies to send and call"
+    },
+    {
+      "animation": {
+        "kind": "event",
+        "outcome": "fail"
+      },
+      "to": false,
+      "problem": "animation outcome fail only applies to send and call"
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "outcome": "timeout"
+      },
+      "to": true,
+      "problem": "animation outcome timeout only applies to call"
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "outcome": "timeout"
+      },
+      "to": false,
+      "problem": "animation outcome timeout only applies to call"
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "maybe"
+      },
+      "to": true,
+      "problem": "animation outcome must be fail or timeout"
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "maybe"
+      },
+      "to": false,
+      "problem": "animation outcome must be fail or timeout"
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": ""
+      },
+      "to": true,
+      "problem": "animation outcome must be fail or timeout"
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": ""
+      },
+      "to": false,
+      "problem": "animation outcome must be fail or timeout"
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": [
+          "fail"
+        ]
+      },
+      "to": true,
+      "problem": "animation outcome must be fail or timeout"
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": [
+          "fail"
+        ]
+      },
+      "to": false,
+      "problem": "animation outcome must be fail or timeout"
     }
   ],
   "reads": [
@@ -539,6 +705,96 @@
         "kind": {
           "x": "y"
         }
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "read": {
+        "kind": "send",
+        "trigger": "inside",
+        "outcome": "fail"
+      }
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "read": {
+        "kind": "call",
+        "trigger": "inside",
+        "outcome": "fail"
+      }
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "read": {
+        "kind": "call",
+        "trigger": "inside",
+        "outcome": "timeout"
+      }
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "read": {
+        "kind": "call",
+        "trigger": "inside",
+        "carries": "declined",
+        "outcome": "fail"
+      }
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "timeout"
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "event",
+        "outcome": "fail"
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "outcome": "timeout"
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "maybe"
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": ""
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": [
+          "fail"
+        ]
       },
       "read": null
     }
@@ -6283,6 +6539,3198 @@
         }
       ],
       "total": 2100
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 1900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 1900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 1900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 1900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 1900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 1900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 1900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 1900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 2900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 2900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 2900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 2900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 2900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 1900
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1900
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        }
+      ],
+      "total": 1900
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 3050,
+          "dur": 2200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 5250,
+          "dur": 300
+        }
+      ],
+      "total": 5550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 3050,
+          "dur": 2200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 5250,
+          "dur": 300
+        }
+      ],
+      "total": 5550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 3050,
+          "dur": 2200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 5250,
+          "dur": 300
+        }
+      ],
+      "total": 5550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 3050,
+          "dur": 2200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 5250,
+          "dur": 300
+        }
+      ],
+      "total": 5550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 3250,
+          "dur": 600
+        }
+      ],
+      "total": 3850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 3250,
+          "dur": 600
+        }
+      ],
+      "total": 3850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 3250,
+          "dur": 600
+        }
+      ],
+      "total": 3850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 3250,
+          "dur": 600
+        }
+      ],
+      "total": 3850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 3250,
+          "dur": 600
+        }
+      ],
+      "total": 3850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 3250,
+          "dur": 600
+        }
+      ],
+      "total": 3850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 3250,
+          "dur": 600
+        }
+      ],
+      "total": 3850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 3250,
+          "dur": 600
+        }
+      ],
+      "total": 3850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 4850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 4250,
+          "dur": 600
+        }
+      ],
+      "total": 4850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 4850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 4250,
+          "dur": 600
+        }
+      ],
+      "total": 4850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 4850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 4250,
+          "dur": 600
+        }
+      ],
+      "total": 4850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 4850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 4250,
+          "dur": 600
+        }
+      ],
+      "total": 4850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 3250,
+          "dur": 600
+        }
+      ],
+      "total": 3850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3850
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 1800
+        },
+        {
+          "do": "fade",
+          "on": "line",
+          "at": 3250,
+          "dur": 600
+        }
+      ],
+      "total": 3850
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 3050,
+          "dur": 2200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 5250,
+          "dur": 300
+        }
+      ],
+      "total": 5550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 3050,
+          "dur": 2200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 5250,
+          "dur": 300
+        }
+      ],
+      "total": 5550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 3050,
+          "dur": 2200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 5250,
+          "dur": 300
+        }
+      ],
+      "total": 5550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 2450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 2450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 2450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 3050,
+          "dur": 2200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 5250,
+          "dur": 300
+        }
+      ],
+      "total": 5550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3550
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1200,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "tone": "fail",
+          "label": "declined"
+        },
+        {
+          "do": "gulp",
+          "on": "to",
+          "at": 1450,
+          "dur": 300
+        },
+        {
+          "do": "flash",
+          "on": "to",
+          "at": 1450,
+          "dur": 450,
+          "tone": "fail"
+        },
+        {
+          "do": "wait",
+          "on": "from",
+          "at": 1450,
+          "dur": 600
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2050,
+          "dur": 1200,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail"
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 3250,
+          "dur": 300
+        }
+      ],
+      "total": 3550
     }
   ],
   "follows": [
@@ -6646,6 +10094,32 @@
         "dir": "back",
         "p": 1,
         "distance": 0
+      }
+    ],
+    "lit": [
+      {
+        "t": 0,
+        "lit": 1
+      },
+      {
+        "t": 1000,
+        "lit": 1
+      },
+      {
+        "t": 3250,
+        "lit": 1
+      },
+      {
+        "t": 3550,
+        "lit": 0.625
+      },
+      {
+        "t": 3850,
+        "lit": 0.25
+      },
+      {
+        "t": 9000,
+        "lit": 0.25
       }
     ]
   }

@@ -1,8 +1,22 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { active, bump, cyclePeriod, distance, ease, labelOffset, progress, REST, tubeOpacity } from '../ui/src/motion.ts'
+import { active, bump, cyclePeriod, distance, ease, labelOffset, LIT_FLOOR, litOpacity, progress, REST, tubeOpacity } from '../ui/src/motion.ts'
+import { beatsFor } from '../src/core/animation.ts'
 
 const beat = { at: 100, dur: 400 }
+
+test('a timeout dims the lit line to a quarter over its fade and leaves it there', () => {
+  const { beats } = beatsFor({ kind: 'call', trigger: 'inside', outcome: 'timeout' }, { length: 250, afterLanding: false })
+  assert.equal(LIT_FLOOR, 0.25)
+  for (const t of [0, 1000, 3250]) assert.equal(litOpacity(beats, t), 1, String(t))
+  assert.equal(litOpacity(beats, 3550), 0.625)
+  for (const t of [3850, 9000]) assert.equal(litOpacity(beats, t), 0.25, String(t))
+})
+
+test('beats with no fade leave the lit line at full strength', () => {
+  const { beats } = beatsFor({ kind: 'call', trigger: 'inside', outcome: 'fail' }, { length: 250, afterLanding: false })
+  for (const t of [0, 1000, 9000]) assert.equal(litOpacity(beats, t), 1, String(t))
+})
 
 test('progress is how far through a beat a moment is, held at the ends', () => {
   assert.equal(progress(beat, 0), 0)
