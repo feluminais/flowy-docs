@@ -1,7 +1,7 @@
 import type { Problem } from './check.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Analysis, Mode, Model } from './model.ts'
-import { chain, isView, memberIds, nameOf } from './views.ts'
+import { chain, isView, memberIds, nameOf, parentOf, placeEnds, placeStep } from './views.ts'
 
 /**
  * Failure analyses. An analysis is a file of failure modes: for a part (a shape or a line), how it fails, what that does, three
@@ -151,6 +151,114 @@ export function analysisText(model: Model, id: string, a: Analysis, format: 'mar
 
 /** Text with something in it. A blank value in a file is as good as none. */
 const has = (v: unknown): v is string => typeof v === 'string' && v.trim() !== ''
+
+/** The text a drawn line is known by: the same as `lineId` in ui/src/graph.ts. */
+export const lineKey = (from: string, to: string): string => `${from} ${to}`
+
+/** What a shape or a line wears on the canvas: the worst band of the modes it carries, and how many. */
+export type Mark = { band: Band; count: number }
+export type Marks = { boxes: Record<string, Mark>; lines: Record<string, Mark> }
+/** A shape or a line as the canvas draws it in one view. */
+export type Part = { box: string } | { line: [string, string] }
+export type Reach = { fails: string[]; failsLine?: string; affects: string[] }
+
+/** Sets an own property, so an id like "__proto__" is data and never the prototype. */
+function put<T>(target: Record<string, T>, key: string, value: T) {
+  Object.defineProperty(target, key, { value, enumerable: true, writable: true, configurable: true })
+}
+
+/** The box in `view` that stands for a shape: itself, or the box it is inside. None when the view does not draw it (and none for the view's own frame). */
+const drawn = (model: Model, view: string, id: string): string | undefined => placeStep(model, view, { from: id })?.[0]
+
+/**
+ * The view that draws a mode's part: a shape's parent; for a line, the lowest view up from its start in which both ends are drawn (one may
+ * stand beside the view as an outsider). The overview when nothing resolves.
+ */
+export function homeView(model: Model, m: Mode): string {
+  if (has(m.on)) return getObject(model, m.on) ? parentOf(model, m.on) : ROOT
+  if (has(m.from) && has(m.to) && getObject(model, m.from)) {
+    for (const view of chain(model, m.from)) if (placeEnds(model, view, m.from, m.to)) return view
+  }
+  return ROOT
+}
+
+/** Whether a view is where a mode belongs: its shape is the view or inside it at any depth, or for a line one of its ends is. Every mode is in the overview. */
+export function inView(model: Model, view: string, m: Mode): boolean {
+  if (view === ROOT) return true
+  const inside = (id: unknown) => typeof id === 'string' && getObject(model, id) !== undefined && chain(model, id).includes(view)
+  return has(m.on) ? inside(m.on) : inside(m.from) || inside(m.to)
+}
+
+/** What carries a mode in a view: a box, or a drawn line (by its key). A line whose two ends sit in one drawn box is carried by that box. */
+type Carrier = { box: string } | { line: string }
+function carrierOf(model: Model, view: string, m: Mode): Carrier | undefined {
+  if (has(m.on)) {
+    const box = drawn(model, view, m.on)
+    return box === undefined ? undefined : { box }
+  }
+  if (has(m.from) && has(m.to)) {
+    const ends = placeEnds(model, view, m.from, m.to)
+    if (ends) return { line: lineKey(...ends) }
+    const a = drawn(model, view, m.from)
+    if (a !== undefined && a === drawn(model, view, m.to)) return { box: a }
+  }
+  return undefined
+}
+const carrierKey = (c: Carrier): string => ('box' in c ? `box ${c.box}` : `line ${c.line}`)
+
+/** The marks for one view, so the overview shows the red system and the reader zooms in to find it. A mode the view cannot draw marks nothing. */
+export function rollUp(model: Model, a: Analysis, view: string): Marks {
+  const marks: Marks = { boxes: {}, lines: {} }
+  for (const m of Object.values(a.modes)) {
+    const carrier = carrierOf(model, view, m)
+    if (carrier === undefined) continue
+    const table = 'box' in carrier ? marks.boxes : marks.lines
+    const key = 'box' in carrier ? carrier.box : carrier.line
+    const band = bandOf(m)
+    const old = Object.hasOwn(table, key) ? table[key] : undefined
+    put(table, key, { band: old !== undefined && BANDS.indexOf(old.band) <= BANDS.indexOf(band) ? old.band : band, count: (old?.count ?? 0) + 1 })
+  }
+  return marks
+}
+
+/** Whether a view draws a mode anywhere: as a box, as a line, or as the box that holds both ends of its line. Not the frame the reader is inside, nor a line that touches it. */
+export const drawnIn = (model: Model, view: string, m: Mode): boolean => carrierOf(model, view, m) !== undefined
+
+/** The ids of the modes a drawn shape or line carries in a view, worst first. */
+export function carried(model: Model, a: Analysis, view: string, part: Part): string[] {
+  const wanted = carrierKey('box' in part ? { box: part.box } : { line: lineKey(...part.line) })
+  return rank(a).filter(r => {
+    const carrier = carrierOf(model, view, r.mode)
+    return carrier !== undefined && carrierKey(carrier) === wanted
+  }).map(r => r.id)
+}
+
+/** What to light for a selected mode in a view: the drawn boxes (and line) of its part, and the drawn boxes of the shapes it hurts that are not already failing. */
+export function reach(model: Model, view: string, m: Mode): Reach {
+  const fails: string[] = []
+  let failsLine: string | undefined
+  if (has(m.on)) {
+    const box = drawn(model, view, m.on)
+    if (box !== undefined) fails.push(box)
+  } else if (has(m.from) && has(m.to)) {
+    const ends = placeEnds(model, view, m.from, m.to)
+    if (ends) {
+      fails.push(...new Set(ends))
+      failsLine = lineKey(...ends)
+    } else {
+      const a = drawn(model, view, m.from)
+      if (a !== undefined && a === drawn(model, view, m.to)) fails.push(a)
+    }
+  }
+  const affects = [...new Set((m.affects ?? []).flatMap(id => drawn(model, view, id) ?? []))].filter(box => !fails.includes(box))
+  return { fails, ...(failsLine === undefined ? {} : { failsLine }), affects }
+}
+
+/** What to light for a picked mode: `reach`, but only when the view draws a part of it that fails. Otherwise lighting would fade everything and outline nothing. */
+export function lightFor(model: Model, view: string, m: Mode): Reach | undefined {
+  const r = reach(model, view, m)
+  return r.fails.length > 0 || r.failsLine !== undefined ? r : undefined
+}
 
 /**
  * What is wrong with one analysis, given the model it points into: a part that isn't there, a rating that isn't one, a flow or step that

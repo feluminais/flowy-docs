@@ -32,11 +32,11 @@ export type PerfProps = {
 }
 
 /** A row of marks, each drawn as it looks on the chart or the canvas with its name beside it: the way to say what a colour or a shape means. */
-function KeyRow({ children }: { children: ReactNode }) {
+export function KeyRow({ children }: { children: ReactNode }) {
   return <ul className="keyrow">{children}</ul>
 }
 
-function KeyItem({ swatch, children }: { swatch: ReactNode; children: ReactNode }) {
+export function KeyItem({ swatch, children }: { swatch: ReactNode; children: ReactNode }) {
   return <li><span className="swatch" aria-hidden="true">{swatch}</span>{children}</li>
 }
 
