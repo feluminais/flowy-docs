@@ -1,11 +1,11 @@
 namespace Flowy.Core;
 
-/// <summary>A step's animation, read: the kind, who sets a callback off (inside unless the file says outside), and the word the blob carries.</summary>
-public sealed record StepAnimation(string Kind, string Trigger, string? Carries);
+/// <summary>A step's animation, read: the kind, who sets a callback off (inside unless the file says outside), the word the blob carries, and how it ends (fail or timeout, or null).</summary>
+public sealed record StepAnimation(string Kind, string Trigger, string? Carries, string? Outcome = null);
 
 /// <summary>
-/// One thing to draw, in the order beats start. <c>Do</c> is pipe, blob, ring, flash, gulp, wait or drop; <c>On</c> is from, to or line;
-/// times are milliseconds from the start of the step. Dir, Glyph, Tone and Label are set only where they mean something.
+/// One thing to draw, in the order beats start. <c>Do</c> is pipe, blob, ring, flash, gulp, wait, drop or fade (the lit line dims and stays dim); <c>On</c> is from, to or line;
+/// times are milliseconds from the start of the step. Dir, Glyph, Tone (reply, or fail for a blob or flash in the danger colour) and Label are set only where they mean something.
 /// </summary>
 public sealed record Beat(string Do, string On, int At, int Dur, string? Dir = null, string? Glyph = null, string? Tone = null, string? Label = null);
 
@@ -16,7 +16,14 @@ public static class Animations
 
     public static readonly string[] Triggers = ["inside", "outside"];
 
-    private static readonly string[] Options = ["kind", "trigger", "carries"];
+    /// <summary>How the exchange a step draws ends: refused, or never answered.</summary>
+    public static readonly string[] Outcomes = ["fail", "timeout"];
+
+    private static readonly string[] Options = ["kind", "trigger", "carries", "outcome"];
+
+    /// <summary>After the request lands, how long the sender's waiting dots run when nobody answers, and then how long the line takes to fade.</summary>
+    private const int TimeoutWait = 1800;
+    private const int TimeoutFade = 600;
 
     private static readonly string KindsHint = "use " + string.Join(", ", Kinds);
 
@@ -37,9 +44,13 @@ public static class Animations
             if (extra is not null) return $"unknown animation option \"{extra}\" (use {string.Join(", ", Options)})";
             map.TryGetValue("trigger", out var trigger);
             map.TryGetValue("carries", out var carries);
+            map.TryGetValue("outcome", out var outcome);
             if (trigger is not null && !(trigger is string t && Triggers.Contains(t))) return $"animation trigger must be {string.Join(" or ", Triggers)}";
             if (trigger is not null && name != "callback") return "animation trigger only applies to callback";
             if (carries is not null && (carries is not string word || string.IsNullOrWhiteSpace(word))) return "animation carries must be a word";
+            if (outcome is not null && !(outcome is string given && Outcomes.Contains(given))) return $"animation outcome must be {string.Join(" or ", Outcomes)}";
+            if (outcome is "timeout" && name != "call") return "animation outcome timeout only applies to call";
+            if (outcome is "fail" && name is not ("send" or "call")) return "animation outcome fail only applies to send and call";
         }
         return hasTo ? null : $"animation \"{name}\" needs a \"to\"";
     }
@@ -51,13 +62,15 @@ public static class Animations
         var map = step.Animation as OrderedDictionary<string, object?>;
         var kind = map is null ? (string)step.Animation : (string)map["kind"]!;
         string? carries = null;
+        string? outcome = null;
         var trigger = "inside";
         if (map is not null)
         {
             if (map.TryGetValue("carries", out var word) && word is string text) carries = text;
             if (map.TryGetValue("trigger", out var t) && t is "outside") trigger = "outside";
+            if (map.TryGetValue("outcome", out var o) && o is "fail" or "timeout") outcome = (string)o!;
         }
-        return new StepAnimation(kind, trigger, carries);
+        return new StepAnimation(kind, trigger, carries, outcome);
     }
 
     /// <summary>How long something takes to run the length of a line: at least 1.2 seconds, so the eye can follow it, and at most 2.2.</summary>
@@ -73,21 +86,34 @@ public static class Animations
     {
         var t = Travel(length);
         Beat Effect(string kind, string on, int at, int dur) => new(kind, on, at, dur);
-        Beat Blob(int at, string glyph) => new("blob", "line", at, t, "fwd", glyph, Label: a.Carries);
+        var failed = a.Outcome == "fail";
+        // A refusal is the news, so everything that runs is the danger tone and the receiver flashes in it when it lands.
+        Beat Blob(int at, string glyph) => new("blob", "line", at, t, "fwd", glyph, failed ? "fail" : null, a.Carries);
+        Beat[] Refused(int at) => failed ? [new Beat("flash", "to", at, 450, Tone: "fail")] : [];
         List<Beat> body;
         switch (a.Kind)
         {
             case "send":
-                body = [Effect("gulp", "from", 0, 250), Blob(250, "envelope"), Effect("gulp", "to", 250 + t, 300)];
+                body = [Effect("gulp", "from", 0, 250), Blob(250, "envelope"), Effect("gulp", "to", 250 + t, 300), .. Refused(250 + t)];
                 break;
             case "call":
             {
                 var landed = 250 + t;
+                if (a.Outcome == "timeout")
+                {
+                    // Nobody answers: the sender keeps waiting, nothing comes back, and the line dims.
+                    body =
+                    [
+                        Effect("gulp", "from", 0, 250), Blob(250, "envelope"), Effect("gulp", "to", landed, 300), Effect("wait", "from", landed, TimeoutWait),
+                        new Beat("fade", "line", landed + TimeoutWait, TimeoutFade),
+                    ];
+                    break;
+                }
                 var back = landed + 600;
                 body =
                 [
-                    Effect("gulp", "from", 0, 250), Blob(250, "envelope"), Effect("gulp", "to", landed, 300), Effect("wait", "from", landed, 600),
-                    new Beat("blob", "line", back, t, "back", "envelope", "reply"),
+                    Effect("gulp", "from", 0, 250), Blob(250, "envelope"), Effect("gulp", "to", landed, 300), .. Refused(landed), Effect("wait", "from", landed, 600),
+                    new Beat("blob", "line", back, t, "back", "envelope", failed ? "fail" : "reply"),
                     Effect("gulp", "from", back + t, 300),
                 ];
                 break;

@@ -30,6 +30,16 @@ public static class MotionMath
     /// <summary>How far along a line of length <paramref name="length"/> a blob is at progress <paramref name="p"/>, running forward or back.</summary>
     public static double Distance(string? dir, double p, double length) => (dir == "back" ? 1 - Ease(p) : Ease(p)) * length;
 
+    /// <summary>How much of its strength a lit line keeps once a step has timed out.</summary>
+    public const double LitFloor = 0.25;
+
+    /// <summary>
+    /// How strong the lit lines of a stop are at <paramref name="t"/>: full until a <c>fade</c> beat starts, falling to <see cref="LitFloor"/> over it, and
+    /// staying there after it (the line is dim until the step is left). The strongest fade of several wins; beats with no <c>fade</c> leave it at 1.
+    /// </summary>
+    public static double LitOpacity(IEnumerable<Beat> beats, double t) =>
+        1 - (1 - LitFloor) * beats.Where(b => b.Do == "fade").Aggregate(0.0, (most, b) => Math.Max(most, Progress(b, t)));
+
     /// <summary>The biggest of some squashes, 0 for none: a box that several steps squash takes the largest.</summary>
     public static double Largest(IEnumerable<double> amounts) => amounts.Aggregate(0.0, Math.Max);
 
