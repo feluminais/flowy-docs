@@ -134,6 +134,18 @@ test('a missing or empty flowy folder is refused, so a wrong --dir cannot replac
   assert.equal(await exists(out), false)
 })
 
+test('an export carries the failure analyses and what is wrong with the files that could not be read', async t => {
+  const { dir, ui, out } = await setup(t)
+  await mkdir(join(dir, 'failures'))
+  await writeFile(join(dir, 'failures', 'ordering.yaml'), 'name: Ordering\nmodes:\n  down:\n    mode: The shop is down\n    on: shop\n    severity: 10\n')
+  await writeFile(join(dir, 'failures', 'bad.yaml'), 'name: [unclosed\n')
+  await exportSite({ dir, ui, out })
+  const state = stateIn(await readFile(join(out, 'index.html'), 'utf8')) as { failures: { ordering: { name: string } }; failureProblems: { file: string }[] }
+  assert.equal(state.failures.ordering.name, 'Ordering')
+  assert.deepEqual(state.failureProblems.map(p => p.file), ['failures/bad.yaml'])
+  assert.deepEqual(state, await loadState(dir) as unknown)
+})
+
 test('a file, or a folder overlapping the built canvas, cannot take an export', async t => {
   const { root, dir, ui } = await setup(t)
   await writeFile(join(root, 'file.txt'), 'x')
