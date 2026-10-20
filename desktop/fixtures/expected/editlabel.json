@@ -1,0 +1,550 @@
+{
+  "cases": [
+    {
+      "name": "an added system",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\n  stripe:\n    type: system\n    name: Stripe\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Added the Stripe system"
+    },
+    {
+      "name": "an added actor",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\n  admin:\n    type: actor\n    name: Admin\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Added the Admin actor"
+    },
+    {
+      "name": "two added shapes",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\n  stripe:\n    type: system\n    name: Stripe\n  admin:\n    type: actor\n    name: Admin\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Added 2 shapes"
+    },
+    {
+      "name": "a deleted shape, with its lines and its place on the view",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: auth\n    to: db\n    label: checks users\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n"
+      },
+      "label": "Deleted Orders"
+    },
+    {
+      "name": "two deleted shapes",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi: {}\n"
+      },
+      "label": "Deleted 2 shapes"
+    },
+    {
+      "name": "a renamed shape",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Storefront\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Renamed Web app to Storefront"
+    },
+    {
+      "name": "two renamed shapes",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Storefront\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: Backend\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Renamed 2 shapes"
+    },
+    {
+      "name": "a long name is cut",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Renamed Web app to xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx…"
+    },
+    {
+      "name": "a shape moved to the top level",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Moved Web app to the top level"
+    },
+    {
+      "name": "a shape moved into another",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: mail\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Moved Web app into Mail service"
+    },
+    {
+      "name": "two shapes moved into another",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: mail\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: mail\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Moved 2 shapes"
+    },
+    {
+      "name": "one field",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Express\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Changed API's tech"
+    },
+    {
+      "name": "two fields of one shape",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Express\n    description: Takes the orders.\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Changed API"
+    },
+    {
+      "name": "one field on two shapes",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: Vue\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Express\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Changed 2 shapes"
+    },
+    {
+      "name": "the look of a shape",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    color: amber\n    shape: hexagon\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Changed API's look"
+    },
+    {
+      "name": "the outside flag",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Changed Mail service's external"
+    },
+    {
+      "name": "a key Flowy does not know",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n    owner: payments\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Changed API's details"
+    },
+    {
+      "name": "a line added",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n  - from: web\n    to: db\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Connected Web app to Orders DB"
+    },
+    {
+      "name": "a line removed",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Disconnected Web app from API"
+    },
+    {
+      "name": "a line relabelled",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: HTTP\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Relabelled Web app to API"
+    },
+    {
+      "name": "two lines added",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n  - from: web\n    to: db\n  - from: api\n    to: mail\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Added 2 lines"
+    },
+    {
+      "name": "two lines removed",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: auth\n    to: db\n    label: checks users\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Removed 2 lines"
+    },
+    {
+      "name": "a flow added",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "flows/refund.yaml": "name: Refund\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Refunds\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Added the Refund flow"
+    },
+    {
+      "name": "a flow deleted",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Deleted the Customer checks out flow"
+    },
+    {
+      "name": "a flow renamed",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Pay\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Renamed the flow Customer checks out to Pay"
+    },
+    {
+      "name": "a flow changed",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Presses Buy\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Changed the Customer checks out flow"
+    },
+    {
+      "name": "two flows",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/refund.yaml": "name: Refund\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Refunds\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Changed 2 flows"
+    },
+    {
+      "name": "one shape moved",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [15, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Moved Web app"
+    },
+    {
+      "name": "a shape placed for the first time",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Moved Orders DB"
+    },
+    {
+      "name": "three shapes moved",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [15, 20]\n  api: [210, 20]\n  db: [100, 210]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Moved 3 shapes"
+    },
+    {
+      "name": "a view tidied",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Tidied Shop"
+    },
+    {
+      "name": "the top level tidied",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "shop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Tidied the top level"
+    },
+    {
+      "name": "the line style",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "lines: curved\nobjects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Changed the line style"
+    },
+    {
+      "name": "an icon added",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "icons:\n  stripe: M4 4h16v16h-16z\nobjects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Added the stripe icon"
+    },
+    {
+      "name": "an icon deleted",
+      "before": {
+        "model.yaml": "icons:\n  stripe: M4 4h16v16h-16z\nobjects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Deleted the stripe icon"
+    },
+    {
+      "name": "another setting",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "owner: platform\nobjects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Changed the settings"
+    },
+    {
+      "name": "two kinds of change",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Storefront\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n  - from: web\n    to: db\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Renamed Web app to Storefront and 1 other change"
+    },
+    {
+      "name": "three kinds of change",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Storefront\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n  - from: web\n    to: db\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [210, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": "Renamed Web app to Storefront and 2 other changes"
+    },
+    {
+      "name": "nothing changed",
+      "before": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "after": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: orders\n    to: db\n    label: reads/writes\n  - from: auth\n    to: db\n    label: checks users\n  - from: orders\n    to: mail\n    label: sends receipts\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n",
+        "layout.yaml": "root:\n  customer: [0, 0]\n  shop: [100, 0]\n  mail: [300, 0]\nshop:\n  web: [10, 20]\n  api: [200, 20]\n  db: [100, 200]\napi:\n  auth: [0, 0]\n  orders: [120, 0]\n"
+      },
+      "label": null
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path'
 import { dumpBeats } from '../desktop/fixtures/beats.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from '../desktop/fixtures/dump.ts'
 import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
+import { dumpEditLabels } from '../desktop/fixtures/editlabel.ts'
 import { buildTrail, dumpHistory } from '../desktop/fixtures/history.ts'
 import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
@@ -92,6 +93,11 @@ test('desktop captions and progress bars still match what the TypeScript core sa
 test('desktop history rules still match the TypeScript ones: diff, list, retention, labels, keys', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('history'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(await dumpHistory())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop edit labels still match the TypeScript ones', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('editlabel'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(dumpEditLabels())), expected, 'run: node desktop/fixtures/generate.ts')
 })
 
 test('the sample history trail is what openHistory writes, byte for byte', async () => {
