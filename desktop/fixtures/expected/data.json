@@ -2162,17 +2162,6 @@
           "sample": {
             "k\rk": "1"
           }
-        },
-        {
-          "name": "separator",
-          "columns": [
-            "x"
-          ],
-          "rows": [
-            [
-              "x y"
-            ]
-          ]
         }
       ],
       "shown": [
@@ -2219,22 +2208,6 @@
               "noted": false
             }
           ],
-          "notes": []
-        },
-        {
-          "name": "separator",
-          "summary": "1 column",
-          "columns": [
-            {
-              "name": "x"
-            }
-          ],
-          "rows": [
-            [
-              "x y"
-            ]
-          ],
-          "lines": [],
           "notes": []
         }
       ]
