@@ -118,6 +118,51 @@ public static class StoreData
         return shown;
     }
 
+    // ---- editing --------------------------------------------------------------------------------------------------
+
+    private static bool Blank(object? v) => v is string s && string.IsNullOrWhiteSpace(s);
+
+    private static OrderedDictionary<string, object?> Rest(OrderedDictionary<string, object?> map, params string[] taken)
+    {
+        var rest = new OrderedDictionary<string, object?>();
+        foreach (var (key, value) in map)
+            if (!taken.Contains(key)) rest[key] = value;
+        return rest;
+    }
+
+    private static object? TidyColumn(object? c)
+    {
+        if (c is not OrderedDictionary<string, object?> map) return c;
+        var tidy = new OrderedDictionary<string, object?>();
+        if (map.TryGetValue("name", out var name)) tidy["name"] = name;
+        foreach (var field in new[] { "key", "to", "note" })
+            if (map.TryGetValue(field, out var value) && !Blank(value)) tidy[field] = value;
+        foreach (var (key, value) in Rest(map, "name", "key", "to", "note")) tidy[key] = value;
+        return tidy.Count == 1 && name is string ? name : tidy;
+    }
+
+    private static object? TidyEntry(object? e)
+    {
+        if (e is not OrderedDictionary<string, object?> entry) return e;
+        var tidy = new OrderedDictionary<string, object?>();
+        if (entry.TryGetValue("name", out var name)) tidy["name"] = name;
+        foreach (var field in new[] { "kind", "limits", "note" })
+            if (entry.TryGetValue(field, out var value) && !Blank(value)) tidy[field] = value;
+        if (entry.TryGetValue("columns", out var columns)) tidy["columns"] = columns is List<object?> list ? list.Select(TidyColumn).ToList() : columns;
+        if (entry.TryGetValue("rows", out var rows)) tidy["rows"] = rows;
+        if (entry.TryGetValue("sample", out var sample)) tidy["sample"] = sample;
+        if (entry.TryGetValue("notes", out var notes) && notes is not OrderedDictionary<string, object?> { Count: 0 }) tidy["notes"] = notes;
+        foreach (var (key, value) in Rest(entry, "name", "kind", "limits", "note", "columns", "rows", "sample", "notes")) tidy[key] = value;
+        return tidy;
+    }
+
+    /// <summary>
+    /// The entries of a data as they go to disk: keys in the order name, kind, limits, note, columns, rows, sample, notes (others after); a blank kind,
+    /// limits, note, key or <c>to</c> left out; a column with only a name written as the bare name. A value of the wrong shape, a data that is not a
+    /// list included, is carried through unchanged for the checks to report. The twin of <c>tidyData</c> (numbers are already text in a tree).
+    /// </summary>
+    public static object? Tidy(object? input) => input is List<object?> entries ? entries.Select(TidyEntry).ToList() : input;
+
     // ---- writing --------------------------------------------------------------------------------------------------
 
     /// <summary>

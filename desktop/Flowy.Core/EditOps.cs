@@ -3,9 +3,9 @@ namespace Flowy.Core;
 /// <summary>A refused edit. The message is written for whoever asked for it.</summary>
 public sealed class OpError(string message) : Exception(message);
 
-/// <summary>An object to create or change. null leaves a field as it is; "" removes <c>in</c>, <c>shape</c>, <c>color</c>, <c>opacity</c>, <c>icon</c>, <c>tech</c> or <c>description</c>; an empty list removes <c>code</c> or <c>links</c>; <c>External: false</c> removes <c>external</c>. A link is a mapping that keeps its extra keys.</summary>
+/// <summary>An object to create or change. null leaves a field as it is; "" removes <c>in</c>, <c>shape</c>, <c>color</c>, <c>opacity</c>, <c>icon</c>, <c>tech</c> or <c>description</c>; an empty list removes <c>code</c>, <c>links</c> or <c>data</c>; <c>External: false</c> removes <c>external</c>. A link is a mapping that keeps its extra keys. <c>Data</c> is a store's data as the YAML tree it is written as: a list replaces the whole list (see <see cref="StoreData.Tidy"/>), anything else is carried through for the checks to report.</summary>
 public sealed record ObjectInput(string Id, string? Type = null, string? Name = null, string? In = null, bool? External = null, string? Tech = null, string? Description = null, IReadOnlyList<string>? Code = null, IReadOnlyList<OrderedDictionary<string, object?>>? Links = null,
-    string? Shape = null, string? Color = null, string? Opacity = null, string? Icon = null);
+    string? Shape = null, string? Color = null, string? Opacity = null, string? Icon = null, object? Data = null);
 
 public sealed record ConnectionInput(string From, string To, string? Label = null);
 
@@ -15,7 +15,7 @@ public sealed record ConnectionInput(string From, string To, string? Label = nul
 /// </summary>
 public static class EditOps
 {
-    private static readonly string[] CopiedFields = ["type", "name", "in", "external", "shape", "color", "opacity", "icon", "tech", "description", "code", "links"];
+    private static readonly string[] CopiedFields = ["type", "name", "in", "external", "shape", "color", "opacity", "icon", "tech", "description", "code", "links", "data"];
     private static readonly string[] Clearable = ["in", "shape", "color", "opacity", "icon", "tech", "description"];
 
     private static OrderedDictionary<string, object?>? ObjectOf(EditDoc doc, string? id) =>
@@ -29,7 +29,7 @@ public static class EditOps
 
     /// <summary>
     /// Create or update an object. Omitted fields stay as they are. Only the known fields are copied, so a new object's keys come out in the order
-    /// type, name, in, external, shape, color, opacity, icon, tech, description, code, links, and a hand-written key on an existing object stays where it is.
+    /// type, name, in, external, shape, color, opacity, icon, tech, description, code, links, data, and a hand-written key on an existing object stays where it is.
     /// </summary>
     public static EditDoc PutObject(EditDoc doc, ObjectInput input)
     {
@@ -54,7 +54,8 @@ public static class EditOps
                 "tech" => input.Tech,
                 "description" => input.Description,
                 "code" => input.Code?.Select(c => (object?)c).ToList(),
-                _ => input.Links?.Select(l => (object?)NormalizeLink(l)).ToList(),
+                "links" => input.Links?.Select(l => (object?)NormalizeLink(l)).ToList(),
+                _ => StoreData.Tidy(input.Data),
             };
             if (value is not null) next[key] = value;
         }
@@ -62,6 +63,7 @@ public static class EditOps
             if (Text(next, key) == "") next.Remove(key);
         if (next.TryGetValue("code", out var code) && code is List<object?> { Count: 0 }) next.Remove("code");
         if (next.TryGetValue("links", out var links) && links is List<object?> { Count: 0 }) next.Remove("links");
+        if (next.TryGetValue("data", out var data) && data is List<object?> { Count: 0 }) next.Remove("data");
         // On disk it's `external: true`, which reads back as the text "true". external: false is no key at all.
         if (Text(next, "external") == "false" && input.External == false) next.Remove("external");
         d.Objects[input.Id] = next;
