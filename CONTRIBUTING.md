@@ -192,6 +192,10 @@ Before merging a change to the app, look at what it could affect, in a real wind
       elsewhere; add a box with N; drag a box and a second one; draw a connection from the dot under one box onto another and type a label;
       record a flow with two clicks and a line of text per step. Ctrl+Z walks it all back, Ctrl+Y forward. Open the same folder in the
       browser (`node src/cli.ts --dir <copy>`): it shows the same, and `git diff` shows only the lines you changed.
+- [ ] On a copy of `docs/demo`, open Pricing: its panel has a Code section with the Delivery fee snippet in TypeScript, the keywords, the
+      comment and the numbers in their own colours, and a Copy button that puts the lines on the clipboard. In edit mode press Add code, type
+      a title and some SQL, pick nothing: the card reads "Auto: SQL" once there is code. Pick Go: the colours change and `language: go` is in
+      the file. Pick Auto: the line goes. Remove the snippet: `snippets:` is gone.
 - [ ] While the app has a model open, change it in the browser (or save from an editor): the app shows it without a reload, and an edit
       made in the app after that starts from what is on disk.
 - [ ] Light and dark: change the system's theme while the app is open.
@@ -331,6 +335,11 @@ Editing (press E):
       then press Tab: the row sits on one line in `example/model.yaml`, and with edit mode off Orders DB's panel has a Data section with
       a table of two columns and one row. Type `- [a` in the Data box and press Tab: a notice says why and the text stays. Clear the box:
       the data is gone from the file. Ctrl+Z brings it back. API's form has no Data box.
+- [ ] In edit mode click API. Under Code press Add code: an empty card appears and Add code greys out. Type a title and, in the code box,
+      `SELECT id FROM orders WHERE status = 'placed'`, then press Tab: the card reads "Auto: SQL" and `snippets` is in
+      `example/model.yaml` as a block of lines. With edit mode off API's panel has a Code section with the SQL in colour and a Copy button.
+      Click Language, pick Go: `language: go` is in the file. Pick Auto: it goes. A fenced block under Description that starts with `` ```ts ``
+      is coloured, and one with no language stays plain.
 
 `git checkout example` puts the tracked files back. Delete `example/layout.yaml` and the new
 flow's file by hand.

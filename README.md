@@ -95,8 +95,9 @@ Hover a shape for its short description. Click it for the full text, the files i
 in. Inside a shape, click the blue frame round what is in it to see that shape the same way. A line that stands for several connections opens to list them, and pointing at a row lights its line on the canvas.
 Lines show their labels when you point at one, or when you select a shape.
 
-A shape can list the files and folders it lives in. When the repo's `origin` is on GitHub or GitLab they link there, and a
-path that doesn't exist shows up as a problem, so the model can't quietly point at code that's gone.
+A shape can hold a few lines of code, such as a formula or a query, and its panel draws them in colour. Flowy works out the
+language, and you can pick another. A shape can also list the files and folders it lives in. When the repo's `origin` is on GitHub or
+GitLab they link there, and a path that doesn't exist shows up as a problem, so the model can't quietly point at code that's gone.
 
 A shape can also link to its long documents, such as a runbook or a decision record, so Flowy stays the map and the
 documents stay documents.
@@ -199,7 +200,7 @@ the same way, so git sees no difference between a change made in one and a chang
 - Drag from the dot under a shape onto another shape to connect them, then type a label.
 - **Add** offers only the types that fit where you are: actors and systems at the top, apps and stores inside a system, components
   inside an app or store.
-- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and source, and a store's data. A field saves when you leave it.
+- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description, code and source, and a store's data. A field saves when you leave it.
 - **Tidy** forgets where shapes were dragged and lays the view out again with as few crossing lines as it finds.
 - **New flow** records a walkthrough: click the shape where a step starts and the shape it goes to, type what happens, press
   Enter, repeat.

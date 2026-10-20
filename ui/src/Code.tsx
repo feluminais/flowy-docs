@@ -160,7 +160,7 @@ export function CodeFields({ object, onSave }: { object: FlowyObject; onSave: (s
   }
   return (
     <>
-      {list.map((s, i) => <SnippetFields key={`${i}:${s.text}`} snippet={s} onChange={next => change(i, next)} onRemove={() => remove(i)} />)}
+      {list.map((s, i) => <SnippetFields key={i} snippet={s} onChange={next => change(i, next)} onRemove={() => remove(i)} />)}
       <button type="button" className="add-code" disabled={draft !== undefined || full}
         title={full ? `At most ${SNIPPET_MAX.snippets}` : undefined}
         onClick={() => setDraft({ text: '' })}><Plus size={16} />Add code</button>

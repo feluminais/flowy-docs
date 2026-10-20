@@ -24,7 +24,9 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
 - Faded, dashed shapes live elsewhere in the model. They show up because something here connects to
   them, and they wait around the edges (people above, the rest beside, below or above, wherever
   fewer lines cross) while what's inside sits in the middle.
-- A shape can list the files and folders it lives in, under its description. When the repo's
+- A shape can hold a few lines of code, such as a formula, a query or the request it takes, in a Code section under its description.
+  The code is coloured, and Flowy works out the language unless you pick one ([below](#code)).
+- A shape can list the files and folders it lives in, in a Source section. When the repo's
   `origin` is on GitHub or GitLab, they link there.
 - A store can show what it holds: its panel has a Data section with its tables as tables, a few sample rows, how long things are kept
   and short notes ([below](#data)).
@@ -76,9 +78,11 @@ checks, and write the same text, so a change made in one looks the same in git a
 - Add (or N) puts a shape in the current view. It offers only the types that fit there: actors and
   systems at the top, apps and stores inside a system, components inside an app or store.
   Double-click an empty system, app or store to open it and add what goes inside.
-- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and source. A field saves when you leave
+- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description, code and source. A field saves when you leave
   it. Source takes one file or folder per line, relative to the folder that holds `flowy/`. A path that
   doesn't exist shows up as a problem.
+- Code has a card for each snippet: a title, a language and the code. Add code starts a card, which is only saved once it has code.
+  The language is Auto until you pick one, and Auto names what it worked out. A shape holds at most six snippets of 40 lines.
 - A store's **Data** box holds its data as the lines the file holds ([Data](#data)).
 - Links takes one per line, as `title | address`, or an address alone. An address is a web address
   (http or https) or a path in the repo, relative to the folder that holds `flowy/`. Anything else
@@ -488,6 +492,44 @@ In edit mode a store's form has a **Data** box that holds the same lines as the 
 other: a refusal says why and keeps what you typed, and clearing the box removes the data. Saving writes each row on one line, so a table of
 eight rows stays eight lines in git, and an empty cell is written `""`.
 
+## Code
+
+A shape can hold a few lines of code: the formula a component applies, the query a store answers, the request an app takes. Its panel has a
+**Code** section that draws each snippet with its title, the language it is shown in and a Copy button, with the code in colour. The code
+is only text, and nothing in it is run.
+
+![Pricing's panel: a Delivery fee snippet in TypeScript with its keywords, strings and comment in colour, and an Accepting an order snippet in SQL](images/desktop-code.png)
+
+```yaml
+objects:
+  pricing:
+    type: component
+    in: order-api
+    name: Pricing
+    snippets:
+      - title: Delivery fee
+        text: |-
+          // Mapbox answers in metres. Round up to the next 500 m.
+          const km = Math.ceil(meters / 500) / 2
+          const fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)
+```
+
+`title` and `language` are optional. Without a `language`, Flowy works out the language from the code, and the panel names what it found.
+A short snippet can be too little to tell. The form's Language choice (Auto, TypeScript, SQL and the rest) sets one when the guess is wrong.
+A language is written as its id: `typescript`, `javascript`, `json`, `yaml`, `csharp`, `java`, `kotlin`, `python`, `go`, `rust`, `sql`,
+`bash`, `powershell`, `html`, `xml`, `css`, `dockerfile`, `markdown`, `c`, `cpp`, `php`, `ruby`, `swift` or `text` (no colours). The short
+names people write (`ts`, `py`, `sh`, `c#`) are read too, and saving writes the id.
+
+A fenced block in a description is coloured the same way when it names one of those languages (`` ```ts ``) and stays plain when it names none.
+
+The checks keep the section small. They refuse:
+
+- A snippet with no text, and one with a language Flowy doesn't know.
+- A snippet of more than 40 lines, and more than six snippets on one shape. Long code belongs in a file, listed under Source.
+
+Saving writes the code as a block of lines (`text: |-`), so a change to one line is one line in git. What to put in a snippet is in
+[Writing good Flowy docs](writing.md#show-a-few-lines-of-code).
+
 ## Let Claude build it
 
 From the root of the repo you want to document, once the clone is built as the
@@ -507,6 +549,10 @@ the shape gets a "!" until someone fixes the path.
 
 Claude can also link a shape to its long documents (`links: [{ title: Runbook, url: docs/runbook.md }]`).
 A repo path must exist, and a web address is taken as given.
+
+Claude can also add a few lines of code that explain a shape (`snippets:`, see [Code](#code)). It copies them from the repo as they are,
+leaves out secrets and real data, and keeps to the limits. `put_object` replaces the whole list, so Claude reads the shape first and
+sends the snippets to keep.
 
 Claude can write what a store holds (`data:`, see [Data](#data)) from a migration, a schema file or the code that builds the keys. It
 is told to show only the few tables a reader needs to follow the flows, to invent the sample rows and never copy them from a real
@@ -568,7 +614,7 @@ what it saves, the browser and Claude see, and the other way round. A file that 
 with the reason in a banner, and while it is there editing is off.
 
 Editing in the app: **E** (or the Edit button) turns it on, and the bar gains New flow, Add, Undo, Redo and Tidy. A shape's panel becomes
-a form (name, type, outside service, tech, look, description, links, code), and a line's panel has a label field and a delete for each connection it
+a form (name, type, outside service, tech, look, description, code, links, source), and a line's panel has a label field and a delete for each connection it
 stands for. Drag a shape to move it; the dot under a shape starts a connection, which you drop on another shape. Each edit is checked first:
 one that would add a problem is refused and a notice says why. A file changed elsewhere since the app read it is never overwritten: the
 edit is dropped, and the view reloads. **Ctrl+Z** and **Ctrl+Y** undo and redo, but only where the files are still as that edit left
@@ -576,7 +622,7 @@ them. The sample model that ships with the app can't be edited.
 
 What it has, as the canvas does: zoom into a shape (double-click it, or select it and press Enter; Esc and Backspace go back up, and
 the breadcrumb works too), a frame around the shape you're inside, shapes that belong to another level faded and dashed, wheel to
-zoom and drag to pan, **F** to fit, the side panel with the description, its links, the files a shape lives in (as links when the repo's
+zoom and drag to pan, **F** to fit, the side panel with the description, its code, its links, the files a shape lives in (as links when the repo's
 origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one) and the one on the right (**T** for load-test runs), flows that play with ← and → (Home and End go to the first and last
 step) with a step's animation, **R** to play it again and **P** to let the flow run on its own, **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a shape that sits
