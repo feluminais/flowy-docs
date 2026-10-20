@@ -21,6 +21,7 @@ internal sealed class SidePanel : Border
     private readonly StackPanel _holder = new() { Margin = new Thickness(22, 22, 22, 28) };
     private readonly ScrollViewer _scroll = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
     private string? _shown; // what the holder has in it, by name, so a redraw of the same thing keeps its scroll
+    private readonly Dictionary<(string Id, string Entry), bool> _openEntries = []; // which entries of a store's Data the reader opened or closed, kept when the panel is drawn again
     private ObjectEditor? _objectEditor;
     private LineEditor? _lineEditor;
     private AddForm? _addForm;
@@ -179,7 +180,7 @@ internal sealed class SidePanel : Border
         if (mine.Count > 0) column.Children.Add(Problems(mine.Select(p => p.Message)));
         column.Children.Add(Chrome.Section(Icons.Text, "Description"));
         column.Children.Add(string.IsNullOrEmpty(o.Description) ? Muted("No description yet.") : new MarkdownView(o.Description, 14.5));
-        if (DataView.Build(o, Resource) is { } data) column.Children.Add(data);
+        if (DataView.Build(id, o, Resource, _openEntries) is { } data) column.Children.Add(data);
 
         var boxLinks = Links.Of(o);
         if (boxLinks.Count > 0)

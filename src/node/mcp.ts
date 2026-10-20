@@ -76,7 +76,7 @@ const ok = (value: unknown): Result => ({
 })
 const fail = (e: unknown): Result => ({ ...ok(e instanceof Error ? e.message : String(e)), isError: true })
 
-const dataText =z.union([z.string(), z.number(), z.boolean()])
+const dataText = z.union([z.string(), z.number(), z.boolean()])
 const sampleValue: z.ZodType<unknown> = z.lazy(() => z.union([dataText, z.array(sampleValue), z.record(z.string(), sampleValue)]))
 const dataEntry = z.object({
   name: z.string().describe('The table, key set, topic or collection, as a developer names it, e.g. "orders" or "Keys".'),

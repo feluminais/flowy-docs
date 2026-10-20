@@ -19,15 +19,22 @@ internal static class DataView
 {
     private static readonly FontFamily Mono = new("Cascadia Mono, Consolas, Menlo, monospace");
 
-    /// <summary>The section for a store with data; null for any other kind of shape and for a store that shows nothing.</summary>
-    public static Control? Build(FlowyObject o, Func<string, IBrush> resource)
+    /// <summary>
+    /// The section for a store with data; null for any other kind of shape and for a store that shows nothing. <paramref name="opened"/> is what the
+    /// reader has opened or closed, by box and entry, so a panel drawn again (a changed file, a new theme) keeps it; an entry not in it is open if it is the first.
+    /// </summary>
+    public static Control? Build(string id, FlowyObject o, Func<string, IBrush> resource, Dictionary<(string Id, string Entry), bool> opened)
     {
         if (o.Type != "store") return null;
         var entries = StoreData.Shown(o);
         if (entries.Count == 0) return null;
         var section = new StackPanel { Spacing = 12 };
         section.Children.Add(Chrome.Section(Icons.Table, "Data", entries.Count));
-        for (var i = 0; i < entries.Count; i++) section.Children.Add(Entry(entries[i], i == 0, resource));
+        foreach (var (entry, first) in entries.Select((entry, i) => (entry, i == 0)))
+        {
+            var key = (id, entry.Name);
+            section.Children.Add(Entry(entry, opened.TryGetValue(key, out var was) ? was : first, resource, on => opened[key] = on));
+        }
         AutomationProperties.SetName(section, "Data");
         return section;
     }
@@ -38,29 +45,36 @@ internal static class DataView
     private static Control Dot() => new Ellipse { Width = 7, Height = 7, VerticalAlignment = VerticalAlignment.Center, Classes = { "datadot" } };
 
     /// <summary>One entry. Open, it shows its name, limits, note, the data and the notes; closed, one line with how much there is. A toggle, so a screen reader hears whether it is open.</summary>
-    private static Control Entry(DataShown entry, bool open, Func<string, IBrush> resource)
+    private static Control Entry(DataShown entry, bool open, Func<string, IBrush> resource, Action<bool> remember)
     {
         var muted = resource("MutedBrush");
         var chevron = Icons.Make(Icons.ChevronRight, "rowicon", 12);
         chevron.VerticalAlignment = VerticalAlignment.Center;
         var count = Small(entry.Summary, muted);
-        var left = new StackPanel
+        // The name, its kind and the count wrap among themselves in the middle column, so a long name never runs under the limits at the right.
+        var title = new WrapPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        title.Children.Add(new TextBlock { Text = entry.Name, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 8, 0) });
+        if (entry.Kind is { } kind)
         {
-            Orientation = Orientation.Horizontal,
-            Spacing = 8,
-            VerticalAlignment = VerticalAlignment.Center,
-            Children = { chevron, new TextBlock { Text = entry.Name, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap } },
-        };
-        if (entry.Kind is { } kind) left.Children.Add(Small(kind, muted));
-        left.Children.Add(count);
-        var header = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8 };
-        header.Children.Add(left);
+            var small = Small(kind, muted);
+            small.Margin = new Thickness(0, 0, 8, 0);
+            title.Children.Add(small);
+        }
+        title.Children.Add(count);
+        var header = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8 };
+        Grid.SetColumn(title, 1);
+        header.Children.Add(chevron);
+        header.Children.Add(title);
         if (entry.Limits is { } limits)
         {
             var clock = Icons.Make(Icons.Clock, "rowicon", 12);
-            clock.VerticalAlignment = VerticalAlignment.Center;
-            var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Center, Children = { clock, Small(limits, muted) } };
-            Grid.SetColumn(right, 1);
+            clock.VerticalAlignment = VerticalAlignment.Top;
+            clock.Margin = new Thickness(0, 3, 0, 0);
+            var text = Small(limits, muted);
+            text.MaxWidth = 190;
+            text.TextAlignment = TextAlignment.Right;
+            var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Center, Children = { clock, text } };
+            Grid.SetColumn(right, 2);
             header.Children.Add(right);
         }
         var head = new ToggleButton { Content = header, IsChecked = open };
@@ -79,7 +93,11 @@ internal static class DataView
             count.IsVisible = !on;
             chevron.RenderTransform = new RotateTransform(on ? 90 : 0);
         }
-        head.IsCheckedChanged += (_, _) => Sync();
+        head.IsCheckedChanged += (_, _) =>
+        {
+            Sync();
+            remember(head.IsChecked == true);
+        };
         Sync();
         return new StackPanel { Children = { head, body } };
     }
@@ -170,7 +188,7 @@ internal static class DataView
             if (line.Noted) row.Children.Add(Dot());
             doc.Children.Add(row);
         }
-        return Framed(doc, $"{entry.Name} sample", resource, new Thickness(10, 8));
+        return Framed(doc, $"{entry.Name} sample", resource, new Thickness(10, 8, 10, 12)); // room under the lines for the scrollbar, which lies over the content
     }
 
     private static Control Framed(Control content, string name, Func<string, IBrush> resource, Thickness padding)

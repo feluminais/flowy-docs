@@ -95,7 +95,7 @@ internal sealed class FieldBox : StackPanel
     }
 }
 
-/// <summary>An object's form: name, type, outside service, tech, its look (shape, colour, opacity, icon), description, links and code, then its problems and connections, its id, and delete.</summary>
+/// <summary>An object's form: name, type, outside service, tech, its look (shape, colour, opacity, icon), description, a store's data, links and code, then its problems and connections, its id, and delete.</summary>
 internal sealed class ObjectEditor : StackPanel
 {
     private readonly SidePanel _owner;

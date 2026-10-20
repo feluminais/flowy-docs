@@ -329,7 +329,7 @@ Editing (press E):
 
 - [ ] In edit mode click Orders DB. Under Data type `- name: orders`, `  columns: [id, total]`, `  rows:` and `    - [o_1, 2490]` on four lines,
       then press Tab: the row sits on one line in `example/model.yaml`, and with edit mode off Orders DB's panel has a Data section with
-      a table of two columns and one row. Type `- [a` in the box and press Tab: a notice says why and the text stays. Clear the box:
+      a table of two columns and one row. Type `- [a` in the Data box and press Tab: a notice says why and the text stays. Clear the box:
       the data is gone from the file. Ctrl+Z brings it back. API's form has no Data box.
 
 `git checkout example` puts the tracked files back. Delete `example/layout.yaml` and the new

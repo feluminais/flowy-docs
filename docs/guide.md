@@ -472,15 +472,17 @@ objects:
           hours: Hours live inside the profile. They are only ever read with it.
 ```
 
-Every value is text, like the rest of the files, so a cell that holds braces, a comma inside braces or a colon followed by a space is
-quoted, as above. What to put in it, and how to word a note, is in [Writing good Flowy docs](writing.md#data).
+Every value is text, like the rest of the files. In a row a comma ends a cell, so a cell with a comma in it is quoted
+(`["Noodle Bar, Inc.", c_77, 2490]`), and so is text that starts with a bracket, a brace, a quote or one of `- # & * ! | > % @`, or that
+holds a colon followed by a space. Saving writes the quotes where they are needed. A field under a list item and a key that itself holds
+a dot cannot carry a note. What to put in it, and how to word a note, is in [Writing good Flowy docs](writing.md#data).
 
 The checks keep the section small. They refuse:
 
 - `data` on anything but a store, an entry with no name or the name of another, and an entry with both `columns` and `sample` or with neither.
 - A row with a different number of cells than there are columns, more than 12 columns or 8 rows, and a `key` other than `primary`.
 - A sample nested more than 3 levels deep or showing more than 20 fields, a list directly inside a list, and a note on a field that is not there.
-- Text with a line break, anywhere in `data`, so that a row stays on one line.
+- Text with a line break, anywhere in `data` (the separator characters U+0085, U+2028 and U+2029 count), so that a row stays on one line.
 
 In edit mode a store's form has a **Data** box that holds the same lines as the file. Leave the box and the change is checked like any
 other: a refusal says why and keeps what you typed, and clearing the box removes the data. Saving writes each row on one line, so a table of

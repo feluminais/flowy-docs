@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -67,6 +68,14 @@ public class DataPanelTests
                 rows:
                   - [k_1, Dana, north]
                   - [k_2, Ola]
+          wide:
+            type: store
+            in: shop
+            name: Long names
+            data:
+              - name: snapshot_of_every_archived_line_2024_q3_with_a_very_long_name
+                limits: Kept 7 years, then archived
+                columns: [id]
           loose:
             type: system
             name: A system with data
@@ -212,6 +221,32 @@ public class DataPanelTests
     }
 
     [AvaloniaFact]
+    public void A_long_entry_name_wraps_and_never_runs_under_the_limits()
+    {
+        var (temp, reader) = Open("wide");
+        using var _ = temp;
+        var texts = reader.Panel.GetVisualDescendants().OfType<TextBlock>().ToList();
+        var name = texts.Single(t => t.Text == "snapshot_of_every_archived_line_2024_q3_with_a_very_long_name");
+        var limits = texts.Single(t => t.Text == "Kept 7 years, then archived");
+        var nameRight = name.TranslatePoint(new Avalonia.Point(name.Bounds.Width, 0), reader.Panel)!.Value.X;
+        var limitsLeft = limits.TranslatePoint(new Avalonia.Point(0, 0), reader.Panel)!.Value.X;
+        Assert.True(nameRight <= limitsLeft + 0.5, $"the name ends at {nameRight}, the limits start at {limitsLeft}");
+    }
+
+    [AvaloniaFact]
+    public void An_entry_the_reader_opened_stays_open_when_the_panel_is_drawn_again()
+    {
+        var (temp, reader) = Open("orders-db");
+        using var _ = temp;
+        Heads(reader)[2].IsChecked = true;
+        Heads(reader)[0].IsChecked = false;
+        Settle(reader);
+        reader.OpenObject("orders-db"); // what a changed file or a new theme does: the panel is built again
+        Settle(reader);
+        Assert.Equal([false, false, true], Heads(reader).Select(h => h.IsChecked == true));
+    }
+
+    [AvaloniaFact]
     public void Only_a_store_has_the_section()
     {
         var (temp, reader) = Open("loose");
@@ -252,6 +287,20 @@ public class DataPanelTests
         await form.DataField.Commit();
         Assert.Contains("row 1 has 1 cell but there are 2 columns", reader.NoticeText);
         Assert.StartsWith("- name: x", form.DataField.Text);
+        Assert.Equal(before, FileText(dir));
+    }
+
+    [AvaloniaFact]
+    public async Task Text_with_only_comments_is_refused_like_any_data_that_is_not_a_list_and_stays()
+    {
+        var (temp, dir, _, reader) = OpenEditing("orders-db");
+        using var _ = temp;
+        var form = reader.Panel.CurrentObjectEditor!;
+        var before = FileText(dir);
+        form.DataField.Text = "# nothing here";
+        await form.DataField.Commit();
+        Assert.Contains("data must be a list of entries", reader.NoticeText);
+        Assert.Equal("# nothing here", form.DataField.Text);
         Assert.Equal(before, FileText(dir));
     }
 
