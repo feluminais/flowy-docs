@@ -1,5 +1,5 @@
 import { Document, isMap as isYamlMap, isScalar, isSeq, parse, stringify, visit, YAMLParseError } from 'yaml'
-import type { YAMLMap, YAMLSeq } from 'yaml'
+import type { Scalar, YAMLMap, YAMLSeq } from 'yaml'
 
 export const ROOT = 'root'
 export const OBJECT_TYPES = ['actor', 'system', 'app', 'store', 'component'] as const
@@ -277,15 +277,20 @@ export function fileData(m: Model, rel: string): unknown {
 /** Whether a file may be absent and so can be created and deleted: a flow or a failure analysis. model.yaml and layout.yaml stay. */
 export const isRemovableFile = (rel: string): boolean => rel.startsWith('flows/') || rel.startsWith('failures/')
 
-/** An empty string in a flow collection must be quoted: `[a, , b]` does not parse. */
+/**
+ * Text that must be quoted in a flow collection: an empty string (`[a, , b]` does not parse) and anything with a line break, which
+ * would otherwise be folded over several lines and can read back as something else (`Error:` then a line break is a mapping).
+ */
+const needsQuotes = (node: unknown) => isScalar(node) && typeof node.value === 'string' && (node.value === '' || /[\r\n\u2028\u2029]/.test(node.value))
+
 function flowSeq(seq: YAMLSeq) {
   seq.flow = true
-  for (const item of seq.items) if (isScalar(item) && item.value === '') item.type = 'QUOTE_DOUBLE'
+  for (const item of seq.items) if (needsQuotes(item)) (item as Scalar).type = 'QUOTE_DOUBLE'
 }
 
 function flowMap(map: YAMLMap) {
   map.flow = true
-  for (const pair of map.items) if (isScalar(pair.value) && pair.value.value === '') pair.value.type = 'QUOTE_DOUBLE'
+  for (const pair of map.items) if (needsQuotes(pair.value)) (pair.value as Scalar).type = 'QUOTE_DOUBLE'
 }
 
 /** In a sample document, a list of only text is written on one line. */

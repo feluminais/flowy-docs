@@ -67,3 +67,20 @@ test('data of the wrong shape is carried through for check to report, never thro
 test('an edit that only changes a store\'s data is named for it', () => {
   assert.equal(describeEdit(shop(), putObject(shop(), { id: 'db', data: [orders] })), 'Changed Orders DB\'s data')
 })
+
+test('a data that is not a list is carried through for check to report, not thrown at', () => {
+  for (const data of ['x', '', {}]) assert.equal(JSON.stringify(tidyData(data as never)), JSON.stringify(data))
+  const m = putObject(shop(), { id: 'db', data: 'oops' as never })
+  assert.equal(m.objects.db.data, 'oops')
+  assert.ok(check(m).some(p => p.message === 'db: data must be a list of entries'))
+})
+
+test('a hand-written __proto__ key stays an own key and changes no prototype', () => {
+  const entry = JSON.parse('{"name":"x","__proto__":{"columns":["a"]},"columns":["b"]}')
+  const column = JSON.parse('{"name":"c","__proto__":{"to":"t"}}')
+  const [tidyEntry] = tidyData([entry, { name: 'y', columns: [column] }]) as Record<string, unknown>[]
+  assert.equal(Object.getPrototypeOf(tidyEntry), Object.prototype)
+  assert.equal(Object.hasOwn(tidyEntry, '__proto__'), true)
+  const [, tidyColumn] = tidyData([entry, { name: 'y', columns: [column] }]) as { columns: object[] }[]
+  assert.equal(Object.getPrototypeOf(tidyColumn.columns[0]), Object.prototype)
+})

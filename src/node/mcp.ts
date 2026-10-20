@@ -76,8 +76,7 @@ const ok = (value: unknown): Result => ({
 })
 const fail = (e: unknown): Result => ({ ...ok(e instanceof Error ? e.message : String(e)), isError: true })
 
-/** `history`: when given, every write is also a step in the folder's history. A history that can't be written never fails a tool call. */
-const dataText = z.union([z.string(), z.number(), z.boolean()])
+const dataText =z.union([z.string(), z.number(), z.boolean()])
 const sampleValue: z.ZodType<unknown> = z.lazy(() => z.union([dataText, z.array(sampleValue), z.record(z.string(), sampleValue)]))
 const dataEntry = z.object({
   name: z.string().describe('The table, key set, topic or collection, as a developer names it, e.g. "orders" or "Keys".'),
@@ -95,6 +94,7 @@ const dataEntry = z.object({
   notes: z.record(z.string(), z.string()).optional().describe('For a sample: a field (a dotted path like "hours.mon" for a nested one) mapped to a one-line note.'),
 })
 
+/** `history`: when given, every write is also a step in the folder's history. A history that can't be written never fails a tool call. */
 export function createMcpServer(dir: string, history?: History): McpServer {
   const server = new McpServer({ name: 'flowy-docs', version: '0.1.0' }, { instructions: INSTRUCTIONS })
 

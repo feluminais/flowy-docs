@@ -54,6 +54,7 @@ const cases: [string, unknown, string][] = [
   ['notes that are text', [{ name: 'a', sample: { x: '1' }, notes: 'n' }], 'data "a": notes must map a field to its note'],
   ['a note that is a list', [{ name: 'a', sample: { x: '1' }, notes: { x: ['n'] } }], 'data "a": notes must map a field to its note'],
   ['a note on no field', [{ name: 'a', sample: { hours: { mon: '1' } }, notes: { 'hours.fri': 'n' } }], 'data "a": the note on "hours.fri" names no field of the sample'],
+  ['a list inside a list', [{ name: 'a', sample: { grid: [['a'], ['b']] } }], 'data "a": sample has a list inside a list, which isn\'t shown'],
   ['data that is a mapping', {}, 'data must be a list of entries'],
   ['data that is the text ~', '~', 'data must be a list of entries'],
 ]
