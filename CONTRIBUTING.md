@@ -145,6 +145,14 @@ the named colours, the rules) and `src/core/icons.ts` (the built-in icons, from 
 case and `appearance.json` check that the two sides resolve every shape, colour, opacity and icon alike, and `geometry.json` that a
 straight line meets each shape on its outline. `docs/shapes-sheet` is the model behind `docs/images/shapes.png`.
 
+Code snippets have two generated pieces. `src/core/detect.ts` is the table of cues that names a snippet's language, and
+`node desktop/tools/make-detect-data.ts` writes it to `desktop/Flowy.Core/DetectData.cs`. The canvas colours code with highlight.js
+and the desktop app runs the same highlight.js in-process (Jint): `ui/src/hljs.ts` lists the languages, and
+`node desktop/tools/make-hljs-bundle.ts` builds them into `desktop/Flowy.App/Assets/hljs.js`. Run each after changing its source, then
+`node desktop/fixtures/generate.ts`. `test/detect.test.ts` fails when either file is stale, and scores the cues on `test/detect-*.json`: four
+sets of labelled snippets, the last written blind (a fresh agent that never saw the cues, scored once before the set joined the tests: 58 of
+62 code snippets named, every one of 18 non-code snippets left plain). Add a cue for an idiom people really write, not for one snippet.
+
 Packaging is Velopack: `dotnet tool restore` (from `desktop/`), then
 
 ```bash
