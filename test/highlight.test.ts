@@ -38,7 +38,6 @@ test('every language of ours that is coloured draws some keyword or string, and 
 
 test('code that highlight.js cannot make sense of, an unknown language and plain text are drawn plain, never thrown at', () => {
   assert.deepEqual(highlight('whatever', 'klingon'), [{ text: 'whatever' }])
-  assert.deepEqual(highlight('<<<>>> ??', 'json'), highlight('<<<>>> ??', 'json'))
   assert.equal(text(highlight('<<<>>> ??', 'json')), '<<<>>> ??')
 })
 
@@ -46,8 +45,9 @@ test('the kinds are the ones the stylesheet and the desktop theme colour', () =>
   assert.deepEqual([...TOKEN_KINDS], ['comment', 'keyword', 'string', 'number', 'type', 'function', 'property', 'tag', 'meta'])
 })
 
-test('a long enough snippet of a common language is worked out, and a bare word is left plain', () => {
+test('the language is worked out from the cues, and a bare word is left plain', () => {
   assert.equal(detectLanguage('export async function price(order: Order): Promise<number> {\n  const fee = base + km * rate\n  return fee\n}')?.id, 'typescript')
   assert.equal(detectLanguage('FROM node:22-alpine\nWORKDIR /app\nCOPY . .\nRUN npm ci\nCMD ["node", "server.js"]')?.id, 'dockerfile')
   assert.equal(detectLanguage('hello'), undefined)
 })
+

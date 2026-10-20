@@ -200,10 +200,20 @@ What changed: the sender is the subject in every step, the endpoint moved into M
 
 - **Two or three paths per shape,** never every file. Folders survive a rename better than files.
 - **Give every app, store and component a path.** Actors and outside services are the exceptions. If you can't point at anything, ask whether the shape is real.
-- **`code:` is for where a shape lives, `links:` is for what to read about it.** A runbook or a decision record goes in `links:`.
+- **`code:` is for where a shape lives (the panel calls it Source), `links:` is for what to read about it.** A runbook or a decision record goes in `links:`.
 - **Link the interface, don't copy it.** Link the OpenAPI file in `links:` instead of listing the endpoints in the panel.
 - **Fix a broken path by pointing it at the new place,** or delete the shape if the code is gone. Removing `code:` to clear the "!" hides the problem.
 - **A path that exists proves little.** It doesn't show the description is still right. When code changes what a shape does, update its text even though no "!" appears.
+
+## Show a few lines of code
+
+`snippets:` holds the few lines that say what a sentence can't: the formula a component applies, the query a store answers, the request or event an app takes. They show in a Code section, in colour.
+
+- **Copy the lines from the repo, never rewrite them.** A snippet you typed from memory is a second source of truth. Take the formula as the code has it.
+- **Three to ten lines, and six snippets at most.** A snippet is a picture of the idea. Anything longer is a file: list it under `code:` and let the code stay the source.
+- **Give it a title that says what the lines are:** "Delivery fee", "Accepting an order". The language is worked out for you, and a person who knows better picks one.
+- **Leave out what stays secret or goes stale.** No keys, tokens, real addresses or customer data, and no code that changes with every commit.
+- **A snippet doesn't replace the sentence.** The teaser still says what the shape does. The lines show how, for the one rule that is worth seeing.
 
 ## What stays outside Flowy
 

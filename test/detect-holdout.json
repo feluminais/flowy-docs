@@ -1,0 +1,392 @@
+[
+ {
+  "language": "typescript",
+  "lines": 1,
+  "size": "short",
+  "text": "const unread: Map<string, number> = new Map();"
+ },
+ {
+  "language": "typescript",
+  "lines": 9,
+  "size": "medium",
+  "text": "interface TokenClaims {\n  sub: string;\n  scope: string[];\n  exp: number;\n}\n\nexport function isExpired(claims: TokenClaims, now: number = Date.now() / 1000): boolean {\n  return claims.exp <= now;\n}"
+ },
+ {
+  "language": "typescript",
+  "lines": 29,
+  "size": "long",
+  "text": "import { Router, Request, Response, NextFunction } from 'express';\nimport multer from 'multer';\nimport { randomUUID } from 'crypto';\nimport { storage } from './storage';\n\nconst upload = multer({ limits: { fileSize: 10 * 1024 * 1024 } });\nexport const uploadsRouter = Router();\ninterface UploadResult {\n  id: string;\n  size: number;\n  url: string;\n}\n\nuploadsRouter.post(\n  '/uploads',\n  upload.single('file'),\n  async (req: Request, res: Response<UploadResult | { error: string }>, next: NextFunction) => {\n    try {\n      if (!req.file) {\n        return res.status(400).json({ error: 'No file provided' });\n      }\n      const id = randomUUID();\n      const url = await storage.put(`uploads/${id}`, req.file.buffer, req.file.mimetype);\n      res.status(201).json({ id, size: req.file.size, url });\n    } catch (err) {\n      next(err);\n    }\n  }\n);"
+ },
+ {
+  "language": "javascript",
+  "lines": 1,
+  "size": "short",
+  "text": "const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);"
+ },
+ {
+  "language": "javascript",
+  "lines": 10,
+  "size": "medium",
+  "text": "async function withRetry(fn, attempts = 3, delayMs = 200) {\n  for (let i = 0; i < attempts; i++) {\n    try {\n      return await fn();\n    } catch (err) {\n      if (i === attempts - 1) throw err;\n      await new Promise((resolve) => setTimeout(resolve, delayMs * 2 ** i));\n    }\n  }\n}"
+ },
+ {
+  "language": "javascript",
+  "lines": 28,
+  "size": "long",
+  "text": "const express = require('express');\nconst Redis = require('ioredis');\n\nconst redis = new Redis(process.env.REDIS_URL);\nconst app = express();\napp.use(express.json());\n\napp.post('/scores', async (req, res) => {\n  const { player, score } = req.body;\n  if (!player || typeof score !== 'number') {\n    return res.status(400).json({ error: 'player and numeric score are required' });\n  }\n  await redis.zadd('leaderboard:weekly', 'GT', score, player);\n  const rank = await redis.zrevrank('leaderboard:weekly', player);\n  res.status(201).json({ player, score, rank: rank + 1 });\n});\n\napp.get('/scores/top', async (req, res) => {\n  const limit = Math.min(parseInt(req.query.limit, 10) || 10, 100);\n  const rows = await redis.zrevrange('leaderboard:weekly', 0, limit - 1, 'WITHSCORES');\n  const top = [];\n  for (let i = 0; i < rows.length; i += 2) {\n    top.push({ player: rows[i], score: Number(rows[i + 1]) });\n  }\n  res.json(top);\n});\n\napp.listen(3000, () => console.log('leaderboard listening on :3000'));"
+ },
+ {
+  "language": "json",
+  "lines": 1,
+  "size": "short",
+  "text": "{ \"deviceId\": \"sensor-42\", \"celsius\": 21.5, \"battery\": 0.87 }"
+ },
+ {
+  "language": "json",
+  "lines": 8,
+  "size": "medium",
+  "text": "{\n  \"id\": \"msg_01HZX3\",\n  \"channel\": \"#release-planning\",\n  \"author\": { \"id\": 8841, \"name\": \"mira\" },\n  \"text\": \"Staging is green, cutting the build now.\",\n  \"attachments\": [],\n  \"sentAt\": \"2025-03-14T09:26:53Z\"\n}"
+ },
+ {
+  "language": "json",
+  "lines": 29,
+  "size": "long",
+  "text": "{\n  \"invoice\": {\n    \"number\": \"INV-2025-0412\",\n    \"customerId\": \"cus_9f3a1c\",\n    \"currency\": \"EUR\",\n    \"issuedAt\": \"2025-04-01\",\n    \"dueAt\": \"2025-04-30\",\n    \"lines\": [\n      {\n        \"description\": \"Pro plan (25 seats)\",\n        \"quantity\": 25,\n        \"unitAmount\": 1200,\n        \"taxRate\": 0.2\n      },\n      {\n        \"description\": \"Extra storage, 500 GB\",\n        \"quantity\": 1,\n        \"unitAmount\": 4500,\n        \"taxRate\": 0.2\n      }\n    ],\n    \"totals\": {\n      \"subtotal\": 34500,\n      \"tax\": 6900,\n      \"total\": 41400\n    },\n    \"paid\": false\n  }\n}"
+ },
+ {
+  "language": "yaml",
+  "lines": 2,
+  "size": "short",
+  "text": "image: ghcr.io/acme/indexer:1.8.2\nimagePullPolicy: IfNotPresent"
+ },
+ {
+  "language": "yaml",
+  "lines": 10,
+  "size": "medium",
+  "text": "services:\n  search:\n    image: opensearchproject/opensearch:2.13.0\n    environment:\n      - discovery.type=single-node\n      - DISABLE_SECURITY_PLUGIN=true\n    ports:\n      - \"9200:9200\"\n    volumes:\n      - search-data:/usr/share/opensearch/data"
+ },
+ {
+  "language": "yaml",
+  "lines": 28,
+  "size": "long",
+  "text": "name: ci\n\non:\n  push:\n    branches: [main]\n  pull_request:\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    strategy:\n      matrix:\n        node: [18, 20, 22]\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: ${{ matrix.node }}\n          cache: npm\n      - run: npm ci\n      - run: npm run lint\n      - run: npm test -- --coverage\n      - name: Upload coverage\n        if: matrix.node == 20\n        uses: actions/upload-artifact@v4\n        with:\n          name: coverage\n          path: coverage/"
+ },
+ {
+  "language": "csharp",
+  "lines": 1,
+  "size": "short",
+  "text": "var devices = await db.Sensors.Where(s => s.LastSeen > cutoff).ToListAsync();"
+ },
+ {
+  "language": "csharp",
+  "lines": 8,
+  "size": "medium",
+  "text": "public record ScoreSubmission(Guid PlayerId, int Points, DateTime AchievedAt);\n\napp.MapPost(\"/scores\", async (ScoreSubmission submission, GameDb db) =>\n{\n    db.Scores.Add(submission.ToEntity());\n    await db.SaveChangesAsync();\n    return Results.Created($\"/scores/{submission.PlayerId}\", submission);\n});"
+ },
+ {
+  "language": "csharp",
+  "lines": 21,
+  "size": "long",
+  "text": "using Microsoft.Extensions.Hosting;\nusing Microsoft.Extensions.Logging;\n\nnamespace Scheduling.Workers;\n\npublic sealed class ReminderWorker(IReminderStore store, ILogger<ReminderWorker> logger) : BackgroundService\n{\n    protected override async Task ExecuteAsync(CancellationToken stoppingToken)\n    {\n        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));\n        while (await timer.WaitForNextTickAsync(stoppingToken))\n        {\n            var due = await store.GetDueAsync(DateTimeOffset.UtcNow, stoppingToken);\n            foreach (var reminder in due)\n            {\n                logger.LogInformation(\"Sending reminder {Id} to {User}\", reminder.Id, reminder.UserId);\n                await store.MarkSentAsync(reminder.Id, stoppingToken);\n            }\n        }\n    }\n}"
+ },
+ {
+  "language": "java",
+  "lines": 1,
+  "size": "short",
+  "text": "private static final Logger log = LoggerFactory.getLogger(InventoryService.class);"
+ },
+ {
+  "language": "java",
+  "lines": 6,
+  "size": "medium",
+  "text": "@GetMapping(\"/stock/{sku}\")\npublic ResponseEntity<StockLevel> getStock(@PathVariable String sku) {\n    return stockService.find(sku)\n            .map(ResponseEntity::ok)\n            .orElseGet(() -> ResponseEntity.notFound().build());\n}"
+ },
+ {
+  "language": "java",
+  "lines": 29,
+  "size": "long",
+  "text": "package com.example.auth;\n\nimport io.jsonwebtoken.Jwts;\nimport io.jsonwebtoken.security.Keys;\nimport java.time.Duration;\nimport java.time.Instant;\nimport java.util.Date;\nimport javax.crypto.SecretKey;\n\npublic class TokenService {\n    private final SecretKey key;\n    private final Duration ttl;\n\n    public TokenService(String secret, Duration ttl) {\n        this.key = Keys.hmacShaKeyFor(secret.getBytes());\n        this.ttl = ttl;\n    }\n\n    public String issue(String userId, String role) {\n        Instant now = Instant.now();\n        return Jwts.builder()\n                .subject(userId)\n                .claim(\"role\", role)\n                .issuedAt(Date.from(now))\n                .expiration(Date.from(now.plus(ttl)))\n                .signWith(key)\n                .compact();\n    }\n}"
+ },
+ {
+  "language": "kotlin",
+  "lines": 1,
+  "size": "short",
+  "text": "val retryable = setOf(408, 429, 502, 503, 504)"
+ },
+ {
+  "language": "kotlin",
+  "lines": 7,
+  "size": "medium",
+  "text": "class SensorRepository(private val dao: SensorDao) {\n\n    fun observeLatest(deviceId: String): Flow<Reading?> =\n        dao.latest(deviceId).map { it?.toDomain() }\n\n    suspend fun save(reading: Reading) = dao.insert(reading.toEntity())\n}"
+ },
+ {
+  "language": "kotlin",
+  "lines": 26,
+  "size": "long",
+  "text": "class UploadViewModel(private val uploader: FileUploader) : ViewModel() {\n\n    private val _state = MutableStateFlow<UploadState>(UploadState.Pending)\n    val state: StateFlow<UploadState> = _state.asStateFlow()\n\n    fun upload(file: File) {\n        viewModelScope.launch {\n            _state.value = UploadState.Uploading(0)\n            try {\n                val url = uploader.send(file) { sent, total ->\n                    _state.value = UploadState.Uploading((sent * 100 / total).toInt())\n                }\n                _state.value = UploadState.Done(url)\n            } catch (e: IOException) {\n                _state.value = UploadState.Failed(e)\n            }\n        }\n    }\n}\n\nsealed interface UploadState {\n    data object Pending : UploadState\n    data class Uploading(val percent: Int) : UploadState\n    data class Done(val url: String) : UploadState\n    data class Failed(val reason: Throwable) : UploadState\n}"
+ },
+ {
+  "language": "python",
+  "lines": 1,
+  "size": "short",
+  "text": "scores = sorted(players, key=lambda p: p.score, reverse=True)[:10]"
+ },
+ {
+  "language": "python",
+  "lines": 6,
+  "size": "medium",
+  "text": "@app.get(\"/metrics/{service}\")\nasync def service_metrics(service: str, window: int = 300):\n    points = await store.query(service, since=time.time() - window)\n    if not points:\n        raise HTTPException(status_code=404, detail=\"no data\")\n    return {\"service\": service, \"count\": len(points), \"mean\": statistics.fmean(p.value for p in points)}"
+ },
+ {
+  "language": "python",
+  "lines": 28,
+  "size": "long",
+  "text": "import json\nfrom dataclasses import dataclass, field\nfrom pathlib import Path\n\n\n@dataclass\nclass Document:\n    doc_id: str\n    title: str\n    body: str\n    tags: list[str] = field(default_factory=list)\n\n\nclass InvertedIndex:\n    def __init__(self) -> None:\n        self._postings: dict[str, set[str]] = {}\n\n    def add(self, doc: Document) -> None:\n        for token in set(f\"{doc.title} {doc.body}\".lower().split()):\n            self._postings.setdefault(token, set()).add(doc.doc_id)\n\n    def search(self, query: str) -> set[str]:\n        sets = [self._postings.get(t, set()) for t in query.lower().split()]\n        return set.intersection(*sets) if sets else set()\n\n    def dump(self, path: Path) -> None:\n        payload = {k: sorted(v) for k, v in self._postings.items()}\n        path.write_text(json.dumps(payload))"
+ },
+ {
+  "language": "go",
+  "lines": 1,
+  "size": "short",
+  "text": "ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)"
+ },
+ {
+  "language": "go",
+  "lines": 8,
+  "size": "medium",
+  "text": "func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {\n\tif err := s.db.PingContext(r.Context()); err != nil {\n\t\thttp.Error(w, \"database unavailable\", http.StatusServiceUnavailable)\n\t\treturn\n\t}\n\tw.Header().Set(\"Content-Type\", \"application/json\")\n\tjson.NewEncoder(w).Encode(map[string]string{\"status\": \"ok\"})\n}"
+ },
+ {
+  "language": "go",
+  "lines": 29,
+  "size": "long",
+  "text": "package client\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\t\"net/http\"\n\t\"time\"\n)\n\nfunc GetWithRetry(ctx context.Context, url string, attempts int) (*http.Response, error) {\n\tvar lastErr error\n\tfor i := 0; i < attempts; i++ {\n\t\treq, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)\n\t\tif err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t\tresp, err := http.DefaultClient.Do(req)\n\t\tif err == nil && resp.StatusCode < 500 {\n\t\t\treturn resp, nil\n\t\t}\n\t\tif err == nil {\n\t\t\tresp.Body.Close()\n\t\t\terr = fmt.Errorf(\"server returned %s\", resp.Status)\n\t\t}\n\t\tlastErr = err\n\t\ttime.Sleep(time.Duration(1<<i) * 100 * time.Millisecond)\n\t}\n\treturn nil, fmt.Errorf(\"giving up after %d attempts: %w\", attempts, lastErr)\n}"
+ },
+ {
+  "language": "rust",
+  "lines": 1,
+  "size": "short",
+  "text": "let readings: Vec<f64> = samples.iter().map(|s| s.celsius).collect();"
+ },
+ {
+  "language": "rust",
+  "lines": 7,
+  "size": "medium",
+  "text": "pub fn parse_level(raw: &str) -> Result<u8, ParseError> {\n    let value: u8 = raw.trim().parse().map_err(|_| ParseError::NotANumber)?;\n    if value > 100 {\n        return Err(ParseError::OutOfRange(value));\n    }\n    Ok(value)\n}"
+ },
+ {
+  "language": "rust",
+  "lines": 29,
+  "size": "long",
+  "text": "use std::collections::HashMap;\nuse tokio::sync::{broadcast, RwLock};\n\n#[derive(Clone, Debug)]\npub struct ChatMessage {\n    pub room: String,\n    pub author: String,\n    pub body: String,\n}\n\n#[derive(Default)]\npub struct Hub {\n    rooms: RwLock<HashMap<String, broadcast::Sender<ChatMessage>>>,\n}\n\nimpl Hub {\n    pub async fn subscribe(&self, room: &str) -> broadcast::Receiver<ChatMessage> {\n        let mut rooms = self.rooms.write().await;\n        rooms\n            .entry(room.to_owned())\n            .or_insert_with(|| broadcast::channel(256).0)\n            .subscribe()\n    }\n\n    pub async fn publish(&self, msg: ChatMessage) -> usize {\n        let rooms = self.rooms.read().await;\n        rooms.get(&msg.room).map_or(0, |tx| tx.send(msg).unwrap_or(0))\n    }\n}"
+ },
+ {
+  "language": "sql",
+  "lines": 1,
+  "size": "short",
+  "text": "SELECT sku, quantity FROM stock WHERE quantity < reorder_level ORDER BY quantity;"
+ },
+ {
+  "language": "sql",
+  "lines": 9,
+  "size": "medium",
+  "text": "SELECT d.name,\n       AVG(r.celsius) AS avg_temp,\n       MAX(r.celsius) AS max_temp\nFROM readings r\nJOIN devices d ON d.id = r.device_id\nWHERE r.recorded_at >= NOW() - INTERVAL '1 hour'\nGROUP BY d.name\nHAVING AVG(r.celsius) > 30\nORDER BY avg_temp DESC;"
+ },
+ {
+  "language": "sql",
+  "lines": 26,
+  "size": "long",
+  "text": "CREATE TABLE subscriptions (\n    id            BIGSERIAL PRIMARY KEY,\n    customer_id   BIGINT NOT NULL REFERENCES customers (id),\n    plan_code     TEXT NOT NULL,\n    status        TEXT NOT NULL DEFAULT 'active',\n    started_at    TIMESTAMPTZ NOT NULL DEFAULT now(),\n    cancelled_at  TIMESTAMPTZ,\n    CONSTRAINT status_valid CHECK (status IN ('active', 'past_due', 'cancelled'))\n);\n\nCREATE INDEX idx_subscriptions_customer ON subscriptions (customer_id);\n\nWITH monthly AS (\n    SELECT s.plan_code,\n           date_trunc('month', i.issued_at) AS month,\n           SUM(i.amount_cents) AS revenue_cents\n    FROM invoices i\n    JOIN subscriptions s ON s.id = i.subscription_id\n    GROUP BY s.plan_code, date_trunc('month', i.issued_at)\n)\nSELECT plan_code,\n       month,\n       revenue_cents,\n       revenue_cents - LAG(revenue_cents) OVER (PARTITION BY plan_code ORDER BY month) AS change\nFROM monthly\nORDER BY plan_code, month;"
+ },
+ {
+  "language": "bash",
+  "lines": 1,
+  "size": "short",
+  "text": "curl -sS -X POST https://api.example.com/v1/devices/42/reset -H \"Authorization: Bearer $TOKEN\""
+ },
+ {
+  "language": "bash",
+  "lines": 8,
+  "size": "medium",
+  "text": "#!/usr/bin/env bash\nset -euo pipefail\n\nBACKUP_DIR=\"/var/backups/uploads\"\nSTAMP=$(date +%Y%m%d-%H%M)\n\ntar -czf \"$BACKUP_DIR/uploads-$STAMP.tar.gz\" /srv/uploads\nfind \"$BACKUP_DIR\" -name 'uploads-*.tar.gz' -mtime +14 -delete"
+ },
+ {
+  "language": "bash",
+  "lines": 26,
+  "size": "long",
+  "text": "#!/usr/bin/env bash\nset -euo pipefail\n\nSERVICE=\"${1:?usage: deploy.sh <service> <version>}\"\nVERSION=\"${2:?usage: deploy.sh <service> <version>}\"\nIMAGE=\"registry.internal:5000/$SERVICE:$VERSION\"\n\necho \"pulling $IMAGE\"\ndocker pull \"$IMAGE\"\n\nif docker ps --format '{{.Names}}' | grep -qx \"$SERVICE\"; then\n  docker stop \"$SERVICE\" && docker rm \"$SERVICE\"\nfi\n\ndocker run -d --name \"$SERVICE\" --restart unless-stopped -p 8080:8080 \"$IMAGE\"\n\nfor i in {1..10}; do\n  if curl -fsS http://localhost:8080/healthz > /dev/null; then\n    echo \"healthy after ${i}s\"\n    exit 0\n  fi\n  sleep 1\ndone\n\necho \"service did not become healthy\" >&2\nexit 1"
+ },
+ {
+  "language": "powershell",
+  "lines": 1,
+  "size": "short",
+  "text": "Get-ChildItem -Path C:\\Uploads -Recurse -File | Where-Object { $_.Length -gt 100MB }"
+ },
+ {
+  "language": "powershell",
+  "lines": 8,
+  "size": "medium",
+  "text": "param(\n    [Parameter(Mandatory)][string]$LogPath,\n    [int]$KeepDays = 30\n)\n\nGet-ChildItem -Path $LogPath -Filter *.log |\n    Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-$KeepDays) } |\n    Remove-Item -WhatIf"
+ },
+ {
+  "language": "powershell",
+  "lines": 25,
+  "size": "long",
+  "text": "function Restart-StalledService {\n    [CmdletBinding(SupportsShouldProcess)]\n    param(\n        [Parameter(Mandatory, ValueFromPipeline)]\n        [string[]]$Name,\n\n        [int]$TimeoutSeconds = 30\n    )\n\n    process {\n        foreach ($serviceName in $Name) {\n            $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue\n            if (-not $service) {\n                Write-Warning \"Service '$serviceName' was not found.\"\n                continue\n            }\n\n            if ($service.Status -ne 'Running' -and $PSCmdlet.ShouldProcess($serviceName, 'Restart')) {\n                Restart-Service -Name $serviceName -Force\n                $service.WaitForStatus('Running', [TimeSpan]::FromSeconds($TimeoutSeconds))\n                Write-Verbose \"Restarted $serviceName\"\n            }\n        }\n    }\n}"
+ },
+ {
+  "language": "html",
+  "lines": 1,
+  "size": "short",
+  "text": "<button type=\"submit\" class=\"btn btn-primary\" disabled>Upload file</button>"
+ },
+ {
+  "language": "html",
+  "lines": 5,
+  "size": "medium",
+  "text": "<form action=\"/uploads\" method=\"post\" enctype=\"multipart/form-data\">\n  <label for=\"avatar\">Choose a profile picture</label>\n  <input type=\"file\" id=\"avatar\" name=\"avatar\" accept=\"image/png, image/jpeg\">\n  <button type=\"submit\">Upload</button>\n</form>"
+ },
+ {
+  "language": "html",
+  "lines": 29,
+  "size": "long",
+  "text": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Sensor dashboard</title>\n  <link rel=\"stylesheet\" href=\"/static/dashboard.css\">\n</head>\n<body>\n  <header class=\"topbar\">\n    <h1>Greenhouse sensors</h1>\n    <nav>\n      <a href=\"/devices\">Devices</a>\n      <a href=\"/alerts\">Alerts</a>\n    </nav>\n  </header>\n  <main>\n    <section id=\"readings\" aria-live=\"polite\">\n      <table>\n        <thead>\n          <tr><th>Device</th><th>Temp (&deg;C)</th><th>Humidity</th></tr>\n        </thead>\n        <tbody></tbody>\n      </table>\n    </section>\n  </main>\n  <script src=\"/static/dashboard.js\" defer></script>\n</body>\n</html>"
+ },
+ {
+  "language": "xml",
+  "lines": 9,
+  "size": "medium",
+  "text": "<Project Sdk=\"Microsoft.NET.Sdk.Web\">\n  <PropertyGroup>\n    <TargetFramework>net8.0</TargetFramework>\n    <Nullable>enable</Nullable>\n  </PropertyGroup>\n  <ItemGroup>\n    <PackageReference Include=\"Npgsql.EntityFrameworkCore.PostgreSQL\" Version=\"8.0.4\" />\n  </ItemGroup>\n</Project>"
+ },
+ {
+  "language": "css",
+  "lines": 1,
+  "size": "short",
+  "text": ".badge { padding: 0.25rem 0.5rem; border-radius: 9999px; background: #e0f2fe; }"
+ },
+ {
+  "language": "css",
+  "lines": 7,
+  "size": "medium",
+  "text": ".chat-bubble {\n  max-width: 70%;\n  padding: 0.5rem 0.75rem;\n  border-radius: 12px;\n  background: var(--bubble-bg, #f1f5f9);\n  overflow-wrap: anywhere;\n}"
+ },
+ {
+  "language": "css",
+  "lines": 28,
+  "size": "long",
+  "text": ".inventory-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));\n  gap: 1rem;\n}\n\n.inventory-card {\n  background: #fff;\n  border: 1px solid #e5e7eb;\n  border-radius: 8px;\n  padding: 1rem;\n  transition: box-shadow 0.15s ease;\n}\n\n.inventory-card:hover {\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);\n}\n\n.inventory-card .qty--low {\n  color: #b91c1c;\n  font-weight: 600;\n}\n\n@media (max-width: 600px) {\n  .inventory-grid {\n    grid-template-columns: 1fr;\n  }\n}"
+ },
+ {
+  "language": "dockerfile",
+  "lines": 2,
+  "size": "short",
+  "text": "FROM golang:1.22-alpine AS builder\nWORKDIR /src"
+ },
+ {
+  "language": "dockerfile",
+  "lines": 7,
+  "size": "medium",
+  "text": "FROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nEXPOSE 8000\nCMD [\"uvicorn\", \"app.main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]"
+ },
+ {
+  "language": "dockerfile",
+  "lines": 21,
+  "size": "long",
+  "text": "FROM maven:3.9-eclipse-temurin-21 AS build\nWORKDIR /workspace\nCOPY pom.xml .\nRUN mvn -q dependency:go-offline\nCOPY src ./src\nRUN mvn -q package -DskipTests\n\nFROM eclipse-temurin:21-jre-alpine\nRUN addgroup -S app && adduser -S app -G app\nRUN mkdir -p /var/lib/indexer && chown app:app /var/lib/indexer\nWORKDIR /opt/indexer\nCOPY --from=build /workspace/target/indexer-*.jar app.jar\nCOPY config/ ./config/\nENV JAVA_OPTS=\"-Xms256m -Xmx512m\" \\\n    INDEX_DIR=/var/lib/indexer\nVOLUME /var/lib/indexer\nUSER app\nEXPOSE 9300\nHEALTHCHECK --interval=30s --timeout=3s --retries=3 \\\n  CMD wget -qO- http://localhost:9300/health || exit 1\nENTRYPOINT [\"sh\", \"-c\", \"exec java $JAVA_OPTS -jar app.jar\"]"
+ },
+ {
+  "language": "markdown",
+  "lines": 2,
+  "size": "short",
+  "text": "> **Warning**\n> Rotating the signing key invalidates every active session."
+ },
+ {
+  "language": "markdown",
+  "lines": 8,
+  "size": "medium",
+  "text": "## Rate limits\n\n| Endpoint | Limit | Window |\n| --- | --- | --- |\n| `POST /messages` | 60 | 1 minute |\n| `GET /channels` | 600 | 1 minute |\n\nRequests over the limit receive `429 Too Many Requests` with a `Retry-After` header."
+ },
+ {
+  "language": "markdown",
+  "lines": 26,
+  "size": "long",
+  "text": "# Leaderboard Service\n\nA small HTTP service that stores game scores and serves weekly rankings.\n\n## Features\n\n- Submit scores per player\n- Weekly and all-time leaderboards\n- Redis-backed, no schema migrations\n\n## Getting started\n\n1. Clone the repo and run `npm install`.\n2. Set `REDIS_URL` in your environment.\n3. Start the server with `npm start`.\n\n#### Configuration\n\n| Variable | Default | Description |\n| --- | --- | --- |\n| `PORT` | `3000` | HTTP port |\n| `REDIS_URL` | none | Connection string |\n\n## Contributing\n\nOpen an issue first for larger changes. See [CONTRIBUTING.md](CONTRIBUTING.md) for the test workflow."
+ },
+ {
+  "language": "cpp",
+  "lines": 1,
+  "size": "short",
+  "text": "const auto& [id, level] = *stock.begin();"
+ },
+ {
+  "language": "cpp",
+  "lines": 9,
+  "size": "medium",
+  "text": "class RingBuffer {\npublic:\n    explicit RingBuffer(std::size_t capacity) : data_(capacity) {}\n    void push(double sample) { data_[head_++ % data_.size()] = sample; }\n\nprivate:\n    std::vector<double> data_;\n    std::size_t head_ = 0;\n};"
+ },
+ {
+  "language": "cpp",
+  "lines": 29,
+  "size": "long",
+  "text": "#include <condition_variable>\n#include <functional>\n#include <mutex>\n#include <queue>\n\nclass TaskQueue {\npublic:\n    using Task = std::function<void()>;\n    void push(Task task) {\n        {\n            std::lock_guard<std::mutex> lock(mutex_);\n            tasks_.push(std::move(task));\n        }\n        cv_.notify_one();\n    }\n\n    Task pop() {\n        std::unique_lock<std::mutex> lock(mutex_);\n        cv_.wait(lock, [this] { return !tasks_.empty(); });\n        Task task = std::move(tasks_.front());\n        tasks_.pop();\n        return task;\n    }\n\nprivate:\n    std::queue<Task> tasks_;\n    std::mutex mutex_;\n    std::condition_variable cv_;\n};"
+ },
+ {
+  "language": "c",
+  "lines": 10,
+  "size": "medium",
+  "text": "#include <stddef.h>\n#include <stdint.h>\n\nuint8_t checksum(const uint8_t *buf, size_t len)\n{\n    uint8_t sum = 0;\n    for (size_t i = 0; i < len; i++)\n        sum ^= buf[i];\n    return sum;\n}"
+ },
+ {
+  "language": "php",
+  "lines": 1,
+  "size": "short",
+  "text": "$user = User::where('email', $request->input('email'))->firstOrFail();"
+ },
+ {
+  "language": "php",
+  "lines": 6,
+  "size": "medium",
+  "text": "public function store(StoreInvoiceRequest $request): JsonResponse\n{\n    $invoice = Invoice::create($request->validated());\n\n    return response()->json($invoice, 201);\n}"
+ },
+ {
+  "language": "php",
+  "lines": 28,
+  "size": "long",
+  "text": "<?php\n\ndeclare(strict_types=1);\n\nnamespace App\\Services;\n\nuse Illuminate\\Support\\Facades\\Cache;\nuse Illuminate\\Support\\Str;\n\nfinal class ApiTokenService\n{\n    public function __construct(private readonly int $ttlMinutes = 60)\n    {\n    }\n\n    public function issue(int $userId): string\n    {\n        $token = Str::random(40);\n        Cache::put(\"api_token:{$token}\", $userId, now()->addMinutes($this->ttlMinutes));\n\n        return $token;\n    }\n\n    public function resolve(string $token): ?int\n    {\n        return Cache::get(\"api_token:{$token}\");\n    }\n}"
+ },
+ {
+  "language": "ruby",
+  "lines": 1,
+  "size": "short",
+  "text": "scores = players.sort_by { |p| -p.score }.first(10)"
+ },
+ {
+  "language": "ruby",
+  "lines": 8,
+  "size": "medium",
+  "text": "class ChannelsController < ApplicationController\n  before_action :authenticate_user!\n\n  def index\n    @channels = current_user.channels.order(:name)\n    render json: @channels\n  end\nend"
+ },
+ {
+  "language": "ruby",
+  "lines": 24,
+  "size": "long",
+  "text": "require \"net/http\"\nrequire \"json\"\n\nclass WebhookDispatcher\n  MAX_ATTEMPTS = 4\n\n  def initialize(url)\n    @uri = URI(url)\n  end\n\n  def deliver(payload)\n    attempts = 0\n    begin\n      attempts += 1\n      response = Net::HTTP.post(@uri, payload.to_json, \"Content-Type\" => \"application/json\")\n      raise \"unexpected status #{response.code}\" unless response.is_a?(Net::HTTPSuccess)\n      response\n    rescue StandardError\n      raise if attempts >= MAX_ATTEMPTS\n      sleep(2**attempts)\n      retry\n    end\n  end\nend"
+ },
+ {
+  "language": "swift",
+  "lines": 1,
+  "size": "short",
+  "text": "guard let url = URL(string: endpoint) else { return }"
+ },
+ {
+  "language": "swift",
+  "lines": 8,
+  "size": "medium",
+  "text": "struct ChatMessage: Codable, Identifiable {\n    let id: UUID\n    let author: String\n    let text: String\n    let sentAt: Date\n\n    var isRecent: Bool { sentAt.timeIntervalSinceNow > -60 }\n}"
+ },
+ {
+  "language": "swift",
+  "lines": 28,
+  "size": "long",
+  "text": "import Foundation\n\nenum APIError: Error {\n    case invalidResponse\n    case server(status: Int)\n}\n\nstruct ScoreClient {\n    let baseURL: URL\n    var session: URLSession = .shared\n\n    func topScores(limit: Int = 10) async throws -> [Score] {\n        var components = URLComponents(url: baseURL.appendingPathComponent(\"scores\"), resolvingAgainstBaseURL: false)!\n        components.queryItems = [URLQueryItem(name: \"limit\", value: String(limit))]\n\n        let (data, response) = try await session.data(from: components.url!)\n        guard let http = response as? HTTPURLResponse else {\n            throw APIError.invalidResponse\n        }\n        guard (200..<300).contains(http.statusCode) else {\n            throw APIError.server(status: http.statusCode)\n        }\n\n        let decoder = JSONDecoder()\n        decoder.dateDecodingStrategy = .iso8601\n        return try decoder.decode([Score].self, from: data)\n    }\n}"
+ }
+]
