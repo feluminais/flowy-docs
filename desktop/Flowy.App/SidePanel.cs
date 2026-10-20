@@ -25,10 +25,8 @@ internal sealed class SidePanel : Border
     private LineEditor? _lineEditor;
     private AddForm? _addForm;
     private Recorder? _recorder;
-    private IReadOnlyList<string>? _pickedIds;
 
     // What a test can look at.
-    internal IReadOnlyList<string>? CurrentPickedIds => _pickedIds;
 
     internal ObjectEditor? CurrentObjectEditor => _objectEditor;
 
@@ -67,7 +65,6 @@ internal sealed class SidePanel : Border
         _lineEditor = null;
         _addForm = null;
         _recorder = null;
-        _pickedIds = null;
     }
 
     /// <summary>Puts <paramref name="content"/> in the panel. Showing the same thing again (by <paramref name="key"/>) keeps where the reader had scrolled to.</summary>
@@ -80,7 +77,6 @@ internal sealed class SidePanel : Border
         _lineEditor = null;
         _addForm = null;
         _recorder = null;
-        _pickedIds = null;
         _shown = key;
         IsVisible = true;
         if (!same) _scroll.Offset = default;
@@ -405,32 +401,6 @@ internal sealed class SidePanel : Border
         fresh.Update(model, problems);
         Show(fresh, $"edit-object:{id}");
         _objectEditor = fresh;
-    }
-
-    /// <summary>What Details shows while several boxes are picked in edit mode: who they are, how to move them, and one button to delete them all.</summary>
-    public void ShowObjects(Model model, IReadOnlyList<string> ids, Action<string> pick, Func<Task> delete)
-    {
-        var count = ids.Count;
-        var list = new StackPanel { Spacing = 2 };
-        foreach (var id in ids)
-        {
-            var name = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { Chrome.ObjectTile(model, model.GetObject(id), 22), Link(Views.NameOf(model, id), () => pick(id)) } };
-            var row = new Border { Child = name };
-            row.Classes.Add("row");
-            list.Children.Add(row);
-        }
-        var button = new Button { HorizontalAlignment = HorizontalAlignment.Left };
-        button.Classes.Add("tool");
-        button.Classes.Add("danger");
-        Chrome.Fill(button, Icons.Trash, $"Delete all {count}");
-        button.Click += async (_, _) => await delete();
-        var content = new StackPanel
-        {
-            Spacing = 14,
-            Children = { Heading($"{count} shapes selected"), Muted("Drag any of them to move them all. Ctrl+click adds or removes one."), list, button },
-        };
-        Show(content, $"objects:{string.Join(',', ids)}");
-        _pickedIds = ids;
     }
 
     /// <summary>The forms for the connections one line stands for: a label each, and delete.</summary>

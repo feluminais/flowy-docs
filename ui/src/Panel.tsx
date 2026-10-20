@@ -42,29 +42,6 @@ export function OverviewPanel({ totals, onClose }: { totals: { shapes: number; f
   )
 }
 
-/** What Details shows while several shapes are picked in edit mode: who they are, how to move them, and one button to delete them all. */
-export function ManyPanel({ model, ids, onPick, onDelete, onClose }: { model: Model; ids: string[]; onPick: (id: string) => void; onDelete: () => void; onClose: () => void }) {
-  return (
-    <Panel onClose={onClose}>
-      <h2>{ids.length} shape{ids.length === 1 ? '' : 's'} selected</h2>
-      <p className="muted">Drag any of them to move them all. Ctrl+click adds or removes one.</p>
-      <div className="lines-of">
-        <ul>
-          {ids.map(id => (
-            <li key={id} className="row">
-              <div className="other">
-                <ObjectTile model={model} object={getObject(model, id)} size={22} />
-                <button type="button" className="link" onClick={() => onPick(id)}>{nameOf(model, id)}</button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <button className="danger" onClick={onDelete}><Trash size={16} />Delete {ids.length === 1 ? 'the shape' : `all ${ids.length}`}</button>
-    </Panel>
-  )
-}
-
 function ProblemList({ problems }: { problems: Problem[] }) {
   return problems.length === 0 ? null : (
     <div className="problem-box">

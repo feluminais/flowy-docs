@@ -39,6 +39,7 @@ internal sealed partial class ReaderView : Grid
     private readonly SidePanel _panel = new();
     private readonly PerfPanel _perfPanel = new();
     private readonly PlayerCard _player = new();
+    private readonly PickedBar _pickedBar = new();
     private readonly Grid _overlay = new();
     private readonly Border _banner = new();
     private readonly TextBlock _bannerText = new() { TextWrapping = TextWrapping.Wrap };
@@ -115,7 +116,7 @@ internal sealed partial class ReaderView : Grid
             Children = { _emptyTitle, _emptyBody },
         };
         _zoomButtons = ZoomButtons();
-        var stage = new Grid { Children = { _motionHost, _empty, _zoomButtons, _panel, _nav, _navSash, _detailsSash, _player, _overlay } };
+        var stage = new Grid { Children = { _motionHost, _empty, _zoomButtons, _panel, _nav, _navSash, _detailsSash, _player, _pickedBar, _overlay } };
         var beside = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { _rail, stage, _detailsRail } };
         SetColumn(stage, 1);
         SetColumn(_detailsRail, 2);
@@ -125,6 +126,8 @@ internal sealed partial class ReaderView : Grid
         _canvas.BoxClicked += BoxClicked;
         _canvas.BoxToggled += ToggleBox;
         _canvas.BoxesPicked += PickBoxes;
+        _pickedBar.DeleteRequested += () => _ = DeleteSelectedAsync();
+        _pickedBar.ClearRequested += ClearPicked;
         _canvas.BoxesMoved += moved => _ = MoveBoxesAsync(moved);
         _canvas.ConnectRequested += (from, to) => _ = ConnectAsync(from, to);
         _canvas.BoxDoubleClicked += id =>
@@ -562,9 +565,6 @@ internal sealed partial class ReaderView : Grid
             case { Kind: SideKind.Object, Id: { } id }:
                 _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover);
                 break;
-            case { Kind: SideKind.Objects, Ids: { } picked } when Editing:
-                _panel.ShowObjects(model, picked, OpenObject, DeleteSelectedAsync);
-                break;
             case { Kind: SideKind.Line, From: { } from, To: { } to } when Editing:
                 _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide);
                 break;
@@ -975,6 +975,7 @@ internal sealed partial class ReaderView : Grid
         else if (e.Key == Key.Escape && _canvas.CancelGesture()) { }
         else if (UndoMoveKey(e)) { }
         else if (e.Key == Key.Escape && ResetPick()) { }
+        else if (e.Key == Key.Escape && _shortcuts is null && _side is { Kind: SideKind.Objects }) ClearPicked();
         else if (e.Key == Key.Escape)
         {
             var navigator = ShownTab is not null && (_navUsed || inNavigator);

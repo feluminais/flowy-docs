@@ -27,7 +27,7 @@ internal sealed partial class ReaderView
     private PanelTab? ShownTab => _tab == PanelTab.Flows && !ShowFlows ? null : _tab;
 
     /// <summary>Whether the Details panel on the right is open: from its rail, or because something is picked.</summary>
-    private bool DetailsOpen => (_details || _side is not null) && !PerfOpen; // the Performance panel is in its place while it is open
+    private bool DetailsOpen => (_details || _side is { Kind: not SideKind.Objects }) && !PerfOpen; // the Performance panel is in its place while it is open
 
     private void SetTab(PanelTab tab)
     {

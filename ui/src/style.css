@@ -104,30 +104,30 @@ svg { flex: none; }
 .crumbs button:disabled { cursor: default; color: var(--fg); font-weight: 600; }
 
 /* The flat button, on the bar, in a panel and in the player. The one filled button is .primary: what a form is for. */
-:where(.bar > button, .crumbs button, .problems summary, .panel button:not(.close, .link), .player-buttons button) {
+:where(.bar > button, .crumbs button, .problems summary, .panel button:not(.close, .link), .player-buttons button, .picked-bar button) {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px; box-sizing: border-box; min-height: 30px; padding: 0 10px;
   border: 0; border-radius: 6px; background: none; color: var(--fg); line-height: 1; cursor: pointer;
 }
-:where(.bar > button, .panel button:not(.close, .link), .player-buttons button) svg { color: var(--muted); }
-.bar > button.icon, .panel .step-buttons button { width: 30px; padding: 0; }
+:where(.bar > button, .panel button:not(.close, .link), .player-buttons button, .picked-bar button) svg { color: var(--muted); }
+.bar > button.icon, .panel .step-buttons button, .picked-bar button.icon { width: 30px; padding: 0; }
 /* The words sit a little below the middle of their line, so every icon goes down with them (icon-only buttons too, so a row lines up). */
 .bar svg, .panel button:not(.close) svg, .player-buttons svg { position: relative; top: 1px; }
-.bar > button:hover:not(:disabled, [aria-pressed='true']), .panel button:hover:not(:disabled, .close, .link, .primary, .danger), .player-buttons button:hover:not(:disabled, .primary) {
+.bar > button:hover:not(:disabled, [aria-pressed='true']), .panel button:hover:not(:disabled, .close, .link, .primary, .danger), .player-buttons button:hover:not(:disabled, .primary), .picked-bar button:hover:not(:disabled, .danger) {
   background: var(--hover);
 }
-.bar > button:hover:not(:disabled) svg, .panel button:hover:not(:disabled, .close, .link) svg, .player-buttons button:hover:not(:disabled) svg { color: var(--fg); }
+.bar > button:hover:not(:disabled) svg, .panel button:hover:not(:disabled, .close, .link) svg, .player-buttons button:hover:not(:disabled) svg, .picked-bar button:hover:not(:disabled, .danger) svg { color: var(--fg); }
 .bar > button[aria-pressed='true'] { background: var(--tint); color: var(--accent); font-weight: 600; }
 .bar > button[aria-pressed='true'] svg { color: inherit; }
 .player-buttons button[aria-pressed='true'] { background: var(--tint); color: var(--accent); }
 .player-buttons button[aria-pressed='true'] svg { color: inherit; }
 .bar > button:disabled, .panel button:disabled, .player-buttons button:disabled { cursor: default; opacity: 0.4; }
-.bar > button:focus-visible, .crumbs button:focus-visible, .panel button:focus-visible, .player-buttons button:focus-visible, .problems summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.bar > button:focus-visible, .crumbs button:focus-visible, .panel button:focus-visible, .player-buttons button:focus-visible, .picked-bar button:focus-visible, .problems summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
 .panel button.primary, .player-buttons button.primary { background: var(--accent); color: var(--bg); font-weight: 600; }
 .panel button.primary svg, .player-buttons button.primary svg { color: inherit; }
 .panel button.primary:hover:not(:disabled), .player-buttons button.primary:hover:not(:disabled) { opacity: 0.88; }
-.panel button.danger { color: var(--danger); }
-.panel button.danger svg { color: inherit; }
-.panel button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 12%, transparent); }
+.panel button.danger, .picked-bar button.danger { color: var(--danger); }
+.panel button.danger svg, .picked-bar button.danger svg { color: inherit; }
+.panel button.danger:hover:not(:disabled), .picked-bar button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 12%, transparent); }
 /* The pickers are flat too: just the words and a chevron. */
 .bar > select {
   box-sizing: border-box; height: 30px; padding: 0 26px 0 10px; border: 0; border-radius: 6px; color: var(--fg); cursor: pointer; appearance: none;
@@ -418,6 +418,13 @@ svg { flex: none; }
 .link-list ul { font-size: 14px; }
 .link-list .muted { margin-left: 2px; font-size: 12px; overflow-wrap: anywhere; }
 
+/* Several shapes picked in edit mode: a bar at the foot of the canvas, so the shapes stay in sight and in reach for dragging. */
+.picked-bar {
+  position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 5;
+  display: flex; align-items: center; gap: 4px; padding: 4px 6px 4px 14px; white-space: nowrap;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--box); box-shadow: 0 6px 20px #0003;
+}
+.picked-bar span { margin-right: 8px; font-weight: 600; }
 /* The frame React Flow draws round shapes picked with Shift and drag would sit over them and take their clicks. The shapes show they are picked themselves. */
 .react-flow__nodesselection-rect { pointer-events: none !important; }
 /* A box's connections in its panel: one row per line, out then in. */

@@ -68,6 +68,7 @@ internal sealed partial class ReaderView
     private void RefreshEdit()
     {
         _editTools.IsVisible = Editing;
+        _pickedBar.Show(Editing && _side is { Kind: SideKind.Objects, Ids: { } picked } ? picked.Count : 0);
         _canvas.Editable = Editing && _side is not { Kind: SideKind.Flow };
         _editButton.IsEnabled = Editing || !ReadOnly;
         if (Editing) _editButton.Classes.Add("pressed");
@@ -296,6 +297,13 @@ internal sealed partial class ReaderView
         Refresh();
     }
 
+    /// <summary>Lets the boxes picked go: Esc, or the bar's clear button.</summary>
+    private void ClearPicked()
+    {
+        _side = null;
+        Refresh();
+    }
+
     /// <summary>A box drawn round boxes (Shift and drag): they are the boxes picked.</summary>
     private void PickBoxes(IReadOnlyList<string> ids) => SetPicked(ids);
 
@@ -397,6 +405,9 @@ internal sealed partial class ReaderView
 
     /// <summary>The boxes picked now, for tests: the open box, or the several in the panel.</summary>
     internal IReadOnlyList<string> PickedNow => PickedBoxes();
+
+    /// <summary>The bar that says how many boxes are picked, and has Delete.</summary>
+    internal PickedBar Picked => _pickedBar;
 
     internal bool CanRedo => _session?.CanRedo == true;
 

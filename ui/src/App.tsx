@@ -35,7 +35,8 @@ import { store } from './store.ts'
 import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, Sash } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
 import { activeRun, clampPos, loadAt, rampFrom, rampPos, RAMP_STEP_MS, snap, top } from './perfview.ts'
-import { AddPanel, LinePanel, ManyPanel, ObjectPanel, OverviewPanel, Recorder } from './Panel.tsx'
+import { AddPanel, LinePanel, ObjectPanel, OverviewPanel, Recorder } from './Panel.tsx'
+import { PickedBar } from './PickedBar.tsx'
 import { addsToSelection, banded, keepsSelection, toggled } from './selection.ts'
 import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
@@ -233,7 +234,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   const yamlGone = useSyncExternalStore(subscribeYaml, () => yamlStore?.get().unavailable === true)
   const showYaml = yamlStore !== undefined && !yamlGone
   const nav = openTab(tab, { flows: showFlows, yaml: showYaml })
-  const detailsOpen = (details || side !== undefined) && !perfOpen // the Performance panel is in its place while it is open
+  const manyPicked = side?.kind === 'objects' // several shapes picked: a bar at the foot of the canvas, no panel over them
+  const detailsOpen = (details || (side !== undefined && !manyPicked)) && !perfOpen // the Performance panel is in its place while it is open
   const rightOpen = detailsOpen || perfOpen // a panel on the right, whichever it is
 
   // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
@@ -661,7 +663,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
       }
       else if (e.key === 'Escape') {
         const navigator = nav !== undefined && (navUsed.current || inNavigator)
-        const layer = escapeStep({ shortcuts, navigator, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: rightOpen, inside: view !== ROOT })
+        const layer = escapeStep({ shortcuts, navigator, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: rightOpen || manyPicked, inside: view !== ROOT })
         if (layer === 'shortcuts') setShortcuts(false)
         else if (layer === 'navigator') setTab(undefined)
         else if (layer === 'flow') setPlaying(undefined)
@@ -884,9 +886,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
           {detailsOpen && side?.kind === 'line' && (
             <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closeDetails} />
           )}
-          {detailsOpen && editing && side?.kind === 'objects' && (
-            <ManyPanel model={model} ids={side.ids} onPick={id => show({ kind: 'object', id })} onDelete={remove} onClose={closeDetails} />
-          )}
+          {editing && side?.kind === 'objects' && <PickedBar count={side.ids.length} onDelete={remove} onClear={closeDetails} />}
           {detailsOpen && editing && side?.kind === 'add' && (
             <AddPanel model={model} view={view} run={run} onAdded={id => setSide({ kind: 'object', id })} onClose={closeDetails} />
           )}

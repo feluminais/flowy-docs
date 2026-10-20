@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
 using Xunit;
@@ -52,7 +53,9 @@ public class MultiSelectTests
         Click(window, Where(window, canvas, "api", 100, 25)); // api opens, so its panel waits out the double-click…
         Click(window, Where(window, canvas, "web", 100, 25), RawInputModifiers.Control); // …and a Ctrl+click in the meantime still counts it
         Assert.Equal(["api", "web"], reader.PickedNow);
-        Assert.Equal(["api", "web"], reader.Panel.CurrentPickedIds);
+        Assert.Equal("2 selected", reader.Picked.Text);
+        Assert.True(reader.Picked.IsVisible);
+        Assert.False(reader.DetailsOpenNow); // no panel over the boxes: they are where they are to be dragged
         Assert.Null(reader.Panel.CurrentObjectEditor);
 
         Click(window, Where(window, canvas, "db", 100, 25), RawInputModifiers.Shift); // Shift works the same
@@ -215,7 +218,7 @@ public class MultiSelectTests
         var canvas = reader.Canvas;
         Click(window, Where(window, canvas, "pay", 60, 25), RawInputModifiers.Control);
         Click(window, Where(window, canvas, "2", 60, 25), RawInputModifiers.Control);
-        Assert.Equal(2, reader.Panel.CurrentPickedIds!.Count);
+        Assert.Equal("2 selected", reader.Picked.Text);
         reader.OpenObject("pay"); // what a name in the panel does
         Assert.Equal(["pay"], reader.PickedNow);
 
@@ -223,6 +226,37 @@ public class MultiSelectTests
         await reader.DeleteSelectedAsync();
         await Until(() => reader.Folder!.Model.GetObject("2") is null);
         Assert.Null(reader.Folder!.Model.GetObject("pay"));
+    }
+
+    [AvaloniaFact]
+    public async Task The_bars_Delete_button_deletes_all_the_boxes_picked_and_its_clear_button_and_Esc_let_them_go()
+    {
+        var (temp, _, window, reader) = OpenView("root");
+        using var _ = temp;
+        var canvas = reader.Canvas;
+        Click(window, Where(window, canvas, "pay", 60, 25), RawInputModifiers.Control);
+        Click(window, Where(window, canvas, "2", 60, 25), RawInputModifiers.Control);
+        Click(window, Where(window, canvas, "10", 60, 25), RawInputModifiers.Control);
+        Assert.Equal("3 selected", reader.Picked.Text);
+
+        Button Named(string name) => reader.Picked.GetVisualDescendants().OfType<Button>().Single(b => Avalonia.Automation.AutomationProperties.GetName(b) == name);
+        Named("Clear selection").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Assert.Empty(reader.PickedNow);
+        Assert.False(reader.Picked.IsVisible);
+
+        Click(window, Where(window, canvas, "pay", 60, 25), RawInputModifiers.Control);
+        Click(window, Where(window, canvas, "2", 60, 25), RawInputModifiers.Control);
+        Press(window, Key.Escape, PhysicalKey.Escape); // Esc lets them go, and does not go up a level
+        Assert.Empty(reader.PickedNow);
+        Assert.Equal("root", reader.View);
+
+        Click(window, Where(window, canvas, "pay", 60, 25), RawInputModifiers.Control);
+        Click(window, Where(window, canvas, "2", 60, 25), RawInputModifiers.Control);
+        Named("Delete").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        await Until(() => reader.Folder!.Model.GetObject("pay") is null);
+        Assert.Null(reader.Folder!.Model.GetObject("2"));
+        Assert.NotNull(reader.Folder.Model.GetObject("10"));
+        Assert.False(reader.Picked.IsVisible);
     }
 
     [AvaloniaFact]
@@ -234,7 +268,7 @@ public class MultiSelectTests
         Assert.NotEmpty(reader.PickedNow);
         reader.SetEditing(false);
         Assert.Empty(reader.PickedNow);
-        Assert.Null(reader.Panel.CurrentPickedIds);
+        Assert.False(reader.Picked.IsVisible);
     }
 
     [AvaloniaFact]
@@ -245,6 +279,6 @@ public class MultiSelectTests
         Settle(window);
         Click(window, Where(window, reader.Canvas, "customer", 60, 25), RawInputModifiers.Control);
         await Until(() => reader.SelectedBoxId == "customer");
-        Assert.Null(reader.Panel.CurrentPickedIds);
+        Assert.False(reader.Picked.IsVisible);
     }
 }
