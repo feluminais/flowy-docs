@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import { Controls, ReactFlow } from '@xyflow/react'
 import type { FitViewOptions, NodeChange, XYPosition } from '@xyflow/react'
@@ -212,7 +212,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, edit, undo, redo
   // The YAML tab needs a server that keeps the history: not an exported page, not the VS Code webview.
   const yamlStore = useMemo(() => (live && historyApi ? createHistoryStore(historyApi) : undefined), [live, historyApi])
   useEffect(() => { void yamlStore?.refresh() }, [yamlStore, changes]) // after every load, whether it worked or not: a change may have left a file broken
-  const showYaml = yamlStore !== undefined
+  // A server that answers 404 keeps no history (an older flowy), and then there is nothing for the tab to show.
+  const subscribeYaml = useMemo(() => (listener: () => void) => (yamlStore ? yamlStore.subscribe(listener) : () => undefined), [yamlStore])
+  const yamlGone = useSyncExternalStore(subscribeYaml, () => yamlStore?.get().unavailable === true)
+  const showYaml = yamlStore !== undefined && !yamlGone
   const nav = openTab(tab, { flows: showFlows, yaml: showYaml })
   const detailsOpen = (details || side !== undefined) && !perfOpen // the Performance panel is in its place while it is open
   const rightOpen = detailsOpen || perfOpen // a panel on the right, whichever it is

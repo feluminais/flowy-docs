@@ -22,11 +22,16 @@ export type HistoryClient = {
 
 type Body = { error?: string; recorded?: boolean; versions?: Record<string, string | null>; before?: string }
 
+/** The HTTP status an error from this client carries, if it came from an answer: 404 means the server keeps no history. */
+export const statusOf = (e: unknown): number | undefined => (e instanceof Error && typeof (e as Error & { status?: unknown }).status === 'number' ? (e as Error & { status: number }).status : undefined)
+
+const refused = (status: number) => Object.assign(new Error(`the server answered ${status}`), { status })
+
 /** The history client for the local server at `base`: '' for the page's own origin, or an address, for tests. */
 export function httpHistory(base = ''): HistoryClient {
   const read = async <T>(path: string): Promise<T> => {
     const res = await fetch(`${base}${path}`)
-    if (!res.ok) throw new Error(`the server answered ${res.status}`)
+    if (!res.ok) throw refused(res.status)
     return (await res.json()) as T
   }
   const post = (path: string, body: unknown) =>
@@ -36,7 +41,7 @@ export function httpHistory(base = ''): HistoryClient {
     async step(id) {
       const res = await fetch(`${base}/api/history/steps/${encodeURIComponent(id)}`)
       if (res.status === 404) return undefined
-      if (!res.ok) throw new Error(`the server answered ${res.status}`)
+      if (!res.ok) throw refused(res.status)
       return (await res.json()) as StepView
     },
     yaml: () => read<YamlNow>('/api/yaml'),

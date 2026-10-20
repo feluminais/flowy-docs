@@ -124,16 +124,24 @@ export async function undoEdit(undo: Undo, via: Via = '', onDone?: (back: Undo) 
 const MAX_LABEL = 200
 
 /**
- * Puts an earlier version of the folder's files back (see the YAML tab), as one step of the history. `seen` is the version of each file the
- * caller last read; left out, the files are read now. Answers the step that holds what the files were just before, which putting back again
- * undoes the restore with, or what to tell the user when it could not be done.
+ * What a restore came to: the step that holds what the files were just before and the version each file has now (null: gone), or what to tell
+ * the user and the HTTP status that refused it (404: the step is gone, 409: a file changed since it was read).
  */
-export async function restoreVersion(id: string, label: string, via: Via = '', seen?: Record<string, string | null>): Promise<{ message?: string; before?: string }> {
+export type RestoreDone = { message?: string; status?: number; before?: string; versions?: Record<string, string | null> }
+
+/** Whether a refused restore will never succeed as it stands: its step is gone, or the files moved on. Anything else may pass on a second try. */
+export const restoreIsStale = (status: number | undefined): boolean => status === 404 || status === 409
+
+/**
+ * Puts an earlier version of the folder's files back (see the YAML tab), as one step of the history. `seen` is the version of each file the
+ * caller last read; left out, the files are read now. Putting back `before` undoes the restore.
+ */
+export async function restoreVersion(id: string, label: string, via: Via = '', seen?: Record<string, string | null>): Promise<RestoreDone> {
   try {
     const history = transportOf(via).history
     if (!history) return { message: "History isn't available here." }
     const answer = await history.restore(id, seen ?? (await history.yaml()).versions, label)
-    return answer.ok ? (answer.before ? { before: answer.before } : {}) : { message: answer.message }
+    return answer.ok ? { versions: answer.versions, ...(answer.before ? { before: answer.before } : {}) } : { message: answer.message, status: answer.status }
   } catch (e) {
     return { message: text(e) }
   }

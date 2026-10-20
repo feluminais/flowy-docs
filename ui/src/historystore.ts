@@ -1,4 +1,5 @@
 import type { StepInfo, StepView, YamlNow } from '../../src/core/history.ts'
+import { statusOf } from './historyclient.ts'
 import type { HistoryClient } from './historyclient.ts'
 
 /** What the YAML tab knows: the steps, the one it shows, and the files as they are. */
@@ -21,6 +22,8 @@ export type HistoryView = {
   compare: boolean
   /** Why the last read failed. What was there before is kept. */
   error?: string
+  /** The server answered 404: it keeps no history, so there is nothing for the tab to show. */
+  unavailable?: boolean
 }
 
 export type HistoryStore = {
@@ -63,10 +66,11 @@ export function createHistoryStore(client: HistoryClient): HistoryStore {
       }
       set({
         ready: true, saving: list.saving, ...(list.reason === undefined ? {} : { reason: list.reason }), steps: list.steps,
-        ...(picked === undefined ? {} : { picked }), ...(shownId === undefined ? {} : { shownId }), ...(shown === undefined ? {} : { shown }), now, compare: view.compare,
+        ...(picked === undefined ? {} : { picked }), ...(shownId === undefined ? {} : { shownId }), ...(shown === undefined ? {} : { shown }), now,
+        compare: picked === undefined ? false : view.compare, // with no step picked there is nothing to compare, and a stuck switch would hide every later mark
       })
     } catch (e) {
-      if (call === latest) set({ ...view, ready: true, error: e instanceof Error ? e.message : String(e) })
+      if (call === latest) set({ ...view, ready: true, error: e instanceof Error ? e.message : String(e), ...(statusOf(e) === 404 ? { unavailable: true } : {}) })
     }
   }
 
@@ -78,9 +82,14 @@ export function createHistoryStore(client: HistoryClient): HistoryStore {
     },
     refresh,
     async pick(id) {
-      const { picked: _was, ...rest } = view
-      // Following the newest again also stops comparing: marked against the files now, the latest change would show nothing.
-      set(id === undefined ? { ...rest, compare: false } : { ...rest, picked: id })
+      if (id !== undefined) {
+        // Picked and shown change together, once the step is read, so the banner and Restore never name a step the text is not showing.
+        const read = await client.step(id)
+        if (read !== undefined) set({ ...view, picked: id, shownId: id, shown: read })
+      } else {
+        const { picked: _was, ...rest } = view
+        set({ ...rest, compare: false }) // following the newest again also stops comparing
+      }
       await refresh()
     },
     setCompare(on) {

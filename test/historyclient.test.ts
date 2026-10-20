@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { openHistory } from '../src/node/history.ts'
 import { startServer } from '../src/node/server.ts'
-import { httpHistory } from '../ui/src/historyclient.ts'
+import { httpHistory, statusOf } from '../ui/src/historyclient.ts'
 import { hostTransport, httpTransport } from '../ui/src/transport.ts'
 
 /** A server with history over a temp folder, and the page's client for it. */
@@ -80,6 +80,17 @@ test('clear empties the list', async t => {
   await client.record('One')
   await client.clear()
   assert.deepEqual((await client.list()).steps, [])
+})
+
+test('a server without history answers 404, and the error says so', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'flowy-client-bare-'))
+  const server = await startServer({ dir: join(root, 'flowy'), ui: join(root, 'ui'), port: 0 })
+  t.after(async () => {
+    await server.close()
+    await rm(root, { recursive: true, force: true })
+  })
+  await assert.rejects(httpHistory(`http://127.0.0.1:${server.port}`).list(), (e: unknown) => statusOf(e) === 404)
+  assert.equal(statusOf(new Error('no status')), undefined)
 })
 
 test('recording never rejects, even with no server to answer', async () => {

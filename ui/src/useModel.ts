@@ -6,19 +6,17 @@ import { STATE_ELEMENT } from '../../src/core/state.ts'
 import type { State } from '../../src/core/state.ts'
 import { vscode } from './host.ts'
 import type { HistoryClient } from './historyclient.ts'
-import { fetchModel, fromState, REDO_STALE, restoreVersion, saveEdit, UNDO_STALE, undoEdit } from './save.ts'
-import type { Undo } from './save.ts'
+import { fetchModel, fromState, restoreVersion, saveEdit } from './save.ts'
 import { hostTransport, httpTransport } from './transport.ts'
 import type { Transport } from './transport.ts'
+import { entryAfterRestore, replay } from './undo.ts'
+import type { Entry } from './undo.ts'
 
 /** Saves one edit and resolves to what to tell the user, or undefined once it's saved. */
 export type Edit = (op: (model: Model) => Model) => Promise<string | undefined>
 
 /** Puts an earlier version of the files back (see the YAML tab). `seen` is what the files were when the caller last read them. */
 export type Restore = (id: string, seen: Record<string, string | null>, label: string) => Promise<string | undefined>
-
-/** One thing to take back or put back: a saved edit, or a restore, which is put back by restoring the step that holds what it replaced. Both carry the label they are named by. */
-type Entry = { kind: 'edit'; undo: Undo; label: string } | { kind: 'restore'; to: string; label: string }
 
 /** What the canvas shows: the model, its problems, and where code links go. */
 export type Loaded = Omit<ReturnType<typeof fromState>, 'versions'>
@@ -118,8 +116,9 @@ export function useModel(): {
   const restore = useCallback<Restore>((id, seen, label) => {
     const run = queue.current.then(async () => {
       const done = await restoreVersion(id, label, transport, seen)
-      if (done.message === undefined && done.before) {
-        undos.current.push({ kind: 'restore', to: done.before, label })
+      const entry = entryAfterRestore(done, seen, label)
+      if (entry) {
+        undos.current.push(entry)
         redos.current = []
       }
       await load()
@@ -134,18 +133,10 @@ export function useModel(): {
     const run = queue.current.then(async () => {
       const last = from.current.pop()
       if (!last) return `Nothing to ${word}.`
-      let message: string | undefined
-      let reverse: Entry | undefined
-      if (last.kind === 'edit') {
-        message = await undoEdit(last.undo, transport, back => { reverse = { kind: 'edit', undo: back, label: last.label } }, word, last.label)
-      } else {
-        const done = await restoreVersion(last.to, `${word === 'undo' ? 'Undid' : 'Redid'}: ${last.label}`, transport)
-        message = done.message
-        if (message === undefined && done.before) reverse = { kind: 'restore', to: done.before, label: last.label }
-      }
+      const { message, reverse, stale } = await replay(last, word, transport)
       if (reverse) to.current.push(reverse)
-      // Once a file moved on, older entries would go back past it. Anything else (a broken file, no server) can be tried again.
-      if (message === (word === 'undo' ? UNDO_STALE : REDO_STALE)) from.current = []
+      // Once a file moved on (or the step a restore goes back to is gone), older entries would go back past it. Anything else (a broken file, no server) can be tried again.
+      if (stale) from.current = []
       else if (message) from.current.push(last)
       await load()
       return message

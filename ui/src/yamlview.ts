@@ -53,7 +53,19 @@ export function firstMark(rows: Row[]): number | undefined {
   return index < 0 ? undefined : index
 }
 
-const isBlankOrComment = (line: string) => line.trim() === '' || line.trim().startsWith('#')
+/**
+ * The row to bring into view. After a new version, file or comparison: the first mark, else the shape's block, else the top. After a new
+ * selection only the shape's block, and where it has none, nothing: the scroll stays where the reader left it.
+ */
+export function scrollTarget(rows: Row[], block: { start: number; end: number } | undefined, why: 'version' | 'selection'): number | undefined {
+  const mark = why === 'version' ? firstMark(rows) : undefined
+  if (mark !== undefined) return mark
+  const at = block ? rows.findIndex(r => r.line === block.start) : -1
+  if (at >= 0) return at
+  return why === 'version' ? 0 : undefined
+}
+
+const isBlankOrComment =(line: string) => line.trim() === '' || line.trim().startsWith('#')
 const indentOf = (line: string) => line.length - line.trimStart().length
 
 /** The key a mapping line starts with: plain, or in single or double quotes. */
@@ -92,10 +104,22 @@ export function blockOf(text: string, id: string): { start: number; end: number 
 /** The clock for a time on the same day as `now`, else the short date and the clock. `locale` and `timeZone` are the reader's unless given. */
 export function timeLabel(iso: string, now: Date, locale?: string, timeZone?: string): string {
   const at = new Date(iso)
-  const clock = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone }).format(at)
-  const day = (date: Date) => new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone }).format(date)
+  const clock = formatter('clock', locale, timeZone, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(at)
+  const day = (date: Date) => formatter('day', 'en-CA', timeZone, { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)
   if (day(at) === day(now)) return clock
-  return `${new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric', timeZone }).format(at)}, ${clock}`
+  return `${formatter('date', locale, timeZone, { month: 'short', day: 'numeric' }).format(at)}, ${clock}`
+}
+
+/** Building a formatter costs far more than using one, and a list of steps asks for hundreds of times at every render. */
+const formatters = new Map<string, Intl.DateTimeFormat>()
+function formatter(kind: string, locale: string | undefined, timeZone: string | undefined, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const key = `${kind}|${locale ?? ''}|${timeZone ?? ''}`
+  let found = formatters.get(key)
+  if (!found) {
+    found = new Intl.DateTimeFormat(locale, { ...options, timeZone })
+    formatters.set(key, found)
+  }
+  return found
 }
 
 /** The label of a restore: "Restored the version from 10:15". */

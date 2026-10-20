@@ -41,9 +41,11 @@ test('an edit leaves a step named for what it did', async t => {
   assert.deepEqual([top.source, top.app, top.changed], ['you', 'browser', ['model.yaml']])
 })
 
-test('an edit that only moves a shape is named for the move', async t => {
+test('a drag is named for the move, and the first one in a view for the arranging of the view', async t => {
   const { base, labels } = await setup(t)
   assert.equal(await saveEdit(m => placeBoxes(m, 'root', { shop: [10, 20] }), base), undefined)
+  assert.equal((await labels())[0], 'Arranged the top level') // the page saves every box of a view the first time one is dragged
+  assert.equal(await saveEdit(m => placeBoxes(m, 'root', { shop: [15, 20] }), base), undefined)
   assert.equal((await labels())[0], 'Moved Shop')
 })
 
@@ -103,7 +105,7 @@ test('a restore that finds a file changed says so, and one with no history says 
   await saveEdit(addCart, base)
   const firstSeen = (await client.list()).steps.at(-1)!
   const stale = await restoreVersion(firstSeen.id, 'x', base, { 'model.yaml': 'badbadbadbadbadb' })
-  assert.deepEqual(stale, { message: 'This file changed outside Flowy. Reloaded.' })
+  assert.deepEqual(stale, { message: 'This file changed outside Flowy. Reloaded.', status: 409 })
   assert.notEqual(await read(), original)
   assert.deepEqual(await restoreVersion(firstSeen.id, 'x', { ...httpTransport(base), history: undefined }), { message: "History isn't available here." })
 })
