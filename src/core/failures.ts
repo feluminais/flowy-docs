@@ -164,7 +164,8 @@ export function analysisProblems(model: Model, aid: string, a: Analysis): Proble
   if (!has(a.name)) problems.push({ file, message: 'name is missing' })
   if (has(a.scope) && !isView(model, a.scope)) problems.push({ file, message: `scope "${a.scope}" must be "root" or an object with children` })
   for (const [mid, m] of Object.entries(a.modes)) {
-    const p = (message: string) => problems.push({ file, id: mid, message: `${mid}: ${message}` })
+    // No `id`: on a problem that means "this object" to the problem list and the canvas, and a mode id is not an object id.
+    const p = (message: string) => problems.push({ file, message: `${mid}: ${message}` })
     if (!isValidId(mid)) p(`the id must ${ID_RULE}`)
     if (!has(m.mode)) p('"mode" is missing')
 
@@ -222,5 +223,5 @@ export const analysesText = (ids: string[]): string => `${ids.length === 1 ? 'fa
 export function runLinkProblems(aid: string, a: Analysis, runs: Record<string, unknown>): Problem[] {
   return Object.entries(a.modes)
     .filter(([, m]) => has(m.run) && !Object.hasOwn(runs, m.run))
-    .map(([mid, m]) => ({ file: `failures/${aid}.yaml`, id: mid, message: `${mid}: run "${m.run}" doesn't exist` }))
+    .map(([mid, m]) => ({ file: `failures/${aid}.yaml`, message: `${mid}: run "${m.run}" doesn't exist` }))
 }
