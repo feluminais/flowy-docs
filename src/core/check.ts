@@ -2,6 +2,7 @@ import { COLOR_NAMES, iconProblem, isColor, isKnownIcon, isOpacity, isShape, SHA
 import { getObject, ID_RULE, isValidId, LINE_STYLES, OBJECT_TYPES, ROOT } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
 import { animationProblem } from './animation.ts'
+import { dataProblems } from './data.ts'
 import { analysisProblems } from './failures.ts'
 import { structureProblems } from './structure.ts'
 import { isView, placeStep } from './views.ts'
@@ -105,6 +106,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
         }
       }
     }
+    for (const message of dataProblems(o)) p(message)
     if (missing(o.type)) {
       p('type is missing')
       continue
