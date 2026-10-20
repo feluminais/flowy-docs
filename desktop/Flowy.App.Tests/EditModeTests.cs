@@ -190,7 +190,7 @@ public class EditModeTests
         reader.GoTo("shop");
         Press(window, Key.N, PhysicalKey.N);
         var form = reader.Panel.CurrentAddForm!;
-        Assert.Equal(["app", "store"], form.TypeBox.ItemsSource!.Cast<string>());
+        Assert.Equal(["app", "store"], form.TypeChoices.Ids);
         await form.SubmitAsync("store", "Orders DB");
         await Until(() => reader.Folder!.Model.GetObject("orders-db") is not null);
         Assert.Equal("orders-db", reader.SelectedBoxId);
