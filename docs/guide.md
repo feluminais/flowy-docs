@@ -26,6 +26,8 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   fewer lines cross) while what's inside sits in the middle.
 - A shape can list the files and folders it lives in, under its description. When the repo's
   `origin` is on GitHub or GitLab, they link there.
+- A store can show what it holds: its panel has a Data section with its tables as tables, a few sample rows, how long things are kept
+  and short notes ([below](#data)).
 - A shape can list links to its long documents (a runbook, a decision record, a wiki page) in a Links
   section under its description. A web address opens in a new tab. A path in the repo links to the
   file when the repo's `origin` is on GitHub or GitLab, and a path that doesn't exist shows up as a
@@ -77,6 +79,7 @@ checks, and write the same text, so a change made in one looks the same in git a
 - Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and code. A field saves when you leave
   it. Code takes one path per line, relative to the folder that holds `flowy/`. A path that
   doesn't exist shows up as a problem.
+- A store's **Data** box holds its data as the lines the file holds ([Data](#data)).
 - Links takes one per line, as `title | address`, or an address alone. An address is a web address
   (http or https) or a path in the repo, relative to the folder that holds `flowy/`. Anything else
   is refused.
@@ -387,6 +390,101 @@ carries the runs, so its Performance tab works too. The desktop app reads runs t
 load generator that measures it and writes runs of this shape: `npm run lab:run` makes one, and
 `node src/cli.ts --dir perf-lab/flowy` opens it.
 
+## Data
+
+A store can say what it holds. Click it and its panel has a **Data** section that draws the data the way a developer pictures it: a
+table is column headings over a few sample rows, and a document is its fields, indented. The first entry is open. The others are one
+line each, with how many columns they have and how long they are kept, and a click opens or closes one.
+
+![Orders DB's panel: the orders table with a key mark on id and customer_id, a dot on total and its note under the table, and three more tables closed to a line each](images/desktop-data.png)
+
+Flowy never connects to a database. You write the entries, or Claude writes them from the code, and the sample rows are made up. A
+store's `data:` is a list, and each entry is one table, one set of keys, one topic or one collection:
+
+```yaml
+objects:
+  orders-db:
+    type: store
+    in: ordering
+    name: Orders DB
+    tech: Postgres
+    data:
+      - name: orders
+        kind: table
+        limits: Kept 7 years, then archived
+        note: One row per order. A refund adds a row to refunds; the order stays.
+        columns:
+          - {name: id, key: primary}
+          - {name: customer_id, to: customers}
+          - status
+          - {name: total, note: "Cents, not decimals. Rounding broke the first tax run."}
+        rows:
+          - [o_1042, c_77, placed, 2490]
+          - [o_1043, c_12, accepted, 1380]
+```
+
+| Key | Takes | Shown as |
+| --- | --- | --- |
+| `name` | The table, key set, topic or collection, as a developer names it | The heading of the entry |
+| `kind` | A word for what it is: `table`, `collection`, `topic` | Small, beside the name |
+| `limits` | One line on how long it is kept or how much fits | A clock and the line, on the right |
+| `note` | One line on why it is this way | Under the heading |
+| `columns` | The column headings. A bare name, or a mapping with `name` and any of `key: primary`, `to` and `note` | The headings of the grid |
+| `rows` | Sample rows, with one cell for each column | The rows of the grid |
+| `sample` | One sample document, in place of `columns` | Its fields, one to a line, nesting shown by indent |
+| `notes` | With a `sample`: a field to its note. A nested field is its keys joined with dots (`hours.mon`) | Under the data |
+
+In a grid, a column with `key: primary` shows a small **PK**, a column with `to: customers` shows **FK customers**, and a column with a
+`note` shows a dot. The note is under the data, headed by the column's name. Notes are always shown. Point at a mark for its full name.
+
+A key set is a grid with `Key`, `Value` and `Expires` columns, and a topic is a grid with `Key` and `Value` whose rows are messages. A
+document store has a `sample` in place of `columns`, and its notes name fields:
+
+```yaml
+objects:
+  menu-cache:
+    type: store
+    in: ordering
+    name: Menu cache
+    tech: Redis
+    data:
+      - name: Keys
+        limits: Oldest unused go first at 256 MB
+        columns: [Key, Value, Expires]
+        rows:
+          - ["menu:{restaurantId}", "{ items, prices, hours }", 5 min]
+  profiles:
+    type: store
+    in: ordering
+    name: Restaurant profiles
+    tech: MongoDB
+    data:
+      - name: restaurants
+        kind: collection
+        sample:
+          _id: r_42
+          name: Noodle Bar
+          tags: [ramen, vegan]
+          hours:
+            mon: 11-22
+        notes:
+          hours: Hours live inside the profile. They are only ever read with it.
+```
+
+Every value is text, like the rest of the files, so a cell that holds braces, a comma inside braces or a colon followed by a space is
+quoted, as above. What to put in it, and how to word a note, is in [Writing good Flowy docs](writing.md#data).
+
+The checks keep the section small. They refuse:
+
+- `data` on anything but a store, an entry with no name or the name of another, and an entry with both `columns` and `sample` or with neither.
+- A row with a different number of cells than there are columns, more than 12 columns or 8 rows, and a `key` other than `primary`.
+- A sample nested more than 3 levels deep or showing more than 20 fields, a list directly inside a list, and a note on a field that is not there.
+- Text with a line break, anywhere in `data`, so that a row stays on one line.
+
+In edit mode a store's form has a **Data** box that holds the same lines as the file. Leave the box and the change is checked like any
+other: a refusal says why and keeps what you typed, and clearing the box removes the data. Saving writes each row on one line, so a table of
+eight rows stays eight lines in git, and an empty cell is written `""`.
+
 ## Let Claude build it
 
 From the root of the repo you want to document, once the clone is built as the
@@ -406,6 +504,11 @@ the shape gets a "!" until someone fixes the path.
 
 Claude can also link a shape to its long documents (`links: [{ title: Runbook, url: docs/runbook.md }]`).
 A repo path must exist, and a web address is taken as given.
+
+Claude can write what a store holds (`data:`, see [Data](#data)) from a migration, a schema file or the code that builds the keys. It
+is told to show only the few tables a reader needs to follow the flows, to invent the sample rows and never copy them from a real
+database or a log, and to keep a note to one line that says why. `put_object` replaces a store's whole list of entries, so Claude reads
+the store first and sends the ones to keep.
 
 Claude marks outside services (a payment provider, a third-party API) with `external: true`, so
 they show grey. It is told to leave `shape`, `color`, `opacity` and `icon` alone unless one says something the type
