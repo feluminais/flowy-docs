@@ -1,0 +1,5 @@
+name: Flow link, the other flow
+view: structure
+steps:
+  - { from: link-to, text: Carries on from where Flow link stopped }
+  - { from: link-to, to: link-from, text: Answers, animation: call }

@@ -39,6 +39,21 @@ density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size
 `--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
 and `--search re` for the search. Retake them when the app changes how it looks.
 
+## The animation showcase
+
+`docs/showcase/` plays every animation Flowy has, so you can open it and see that each one works and looks right, in the browser and
+in the desktop app. `node src/cli.ts --dir docs/showcase/flowy` opens it, and so does
+`dotnet run --project desktop/Flowy.App -- docs/showcase`. Each shape is named for the animation it plays (Send · from, Flash · to), and its second line holds the tag that sets it off.
+It has three views:
+
+- Step animations: the flow Every step animation plays each way a step can travel. Press **P** to watch them one after the other, or step to one and press **R**.
+- Flow structure: a flow each for Repeat, Branch, Parallel and Flow link.
+- Performance: the run Every load effect (**T**) gives each shape one effect of load, and **Ramp** sweeps all of them.
+
+`test/showcase.test.ts` fails when an animation kind, a kind of group or a load effect has no place there. When you add one, add a
+pair of shapes named for it, a step or a flow, and (for a load effect) numbers in `docs/showcase/flowy/perf/every-load-effect.yaml`, then add the check to that test.
+The folder is also one of the parity fixtures in `desktop/fixtures/fixtures.json`, so the desktop app has to read it the same way.
+
 ## The VS Code extension
 
 `vscode/` is an extension that opens a repo's `flowy/` folder in a panel inside VS Code (command `Flowy: Open Docs`). It has its own
@@ -244,6 +259,17 @@ Reading:
 - [ ] Add `    code: [src/cli.ts, nope/]` under `api:`. "1 problem" names `nope/`. API's panel lists
       both paths, as links to your clone's GitHub origin, on the current branch. Undo it.
 - [ ] Stop flowy: a banner says the connection is lost. Start it again: the banner goes.
+
+Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flowy`, then the same folder in the desktop app):
+
+- [ ] Open *Every step animation* (`#steps/every-step-animation`) and press P: eight steps play in turn. Send runs an envelope one way, Call goes and
+      comes back while dots wait over the caller, Event runs a bolt and flashes the receiver, Callback sends a ring, then a bell, then a ring, a callback
+      after a step flashes its publisher first, one from outside drops a bolt on it, and the last Send carries the words "order 42". Every shape
+      squashes or flashes where the animation says it does, on the queue, the cylinder and the hexagon too. With the system's animation effects off, nothing moves.
+- [ ] Open Repeat, Branch, Parallel and Flow link in Flow structure. Repeat says it repeats up to 3 times, Branch says One of 2 and dashes the
+      lane you are not in, Parallel lights three lanes together with a bolt each, and Flow link has an Open flow that lands on the other flow and a bar to come back.
+- [ ] In Performance, press T and then Home: the lines are thin and no outline is red. Press Ramp: Traffic's line thickens, Latency's dots slow down,
+      Failing calls sends red dots, Strain and Failing shape run from green to red, Queue and Rolled up grow a number, and Not measured stays plain at every load.
 
 Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
 

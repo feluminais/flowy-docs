@@ -1,0 +1,12 @@
+name: Repeat
+view: structure
+groups:
+  tries:
+    kind: repeat
+    times: "3"
+    until: the service answers
+    text: Waits a little longer before each new try.
+steps:
+  - { from: repeat-from, to: repeat-to, text: Asks the service, group: tries }
+  - { from: repeat-to, to: repeat-from, text: Answers that it is busy, group: tries }
+  - { from: repeat-to, to: repeat-from, text: Answers with the result }

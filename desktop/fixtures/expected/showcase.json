@@ -1,0 +1,1144 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "steps",
+      "type": "system",
+      "name": "Step animations",
+      "description": "One pair of shapes for each way a step can travel, named for the animation they play.\n\nOpen the flow **Every step animation** and press **P** to watch them one after the other,\nor step to one and press **R** to play it again.\n"
+    },
+    {
+      "id": "structure",
+      "type": "system",
+      "name": "Flow structure",
+      "description": "One set of shapes for each way steps can be grouped: **Repeat**, **Branch**, **Parallel** and **Flow link**.\n\nEach has a flow of the same name, with the chip, lane tabs and progress bar that go with it.\n"
+    },
+    {
+      "id": "performance",
+      "type": "system",
+      "name": "Performance",
+      "description": "One shape for each thing a load test can show, named for what it shows.\n\nOpen the Performance tab (**T**), pick **Every load effect**, then press **Ramp** or step the levels with the arrow keys.\n"
+    },
+    {
+      "id": "send-from",
+      "type": "app",
+      "name": "Send · from",
+      "in": "steps",
+      "tech": "send",
+      "description": "`animation: send`. Something runs one way along the line. The sender does not wait."
+    },
+    {
+      "id": "send-to",
+      "type": "store",
+      "name": "Send · to",
+      "in": "steps",
+      "shape": "queue",
+      "tech": "send",
+      "description": "Takes the envelope in with a squash."
+    },
+    {
+      "id": "call-from",
+      "type": "app",
+      "name": "Call · from",
+      "in": "steps",
+      "tech": "call",
+      "description": "`animation: call`. The envelope goes, the sender waits, and the reply comes back."
+    },
+    {
+      "id": "call-to",
+      "type": "store",
+      "name": "Call · to",
+      "in": "steps",
+      "tech": "call",
+      "description": "Takes the envelope in, then answers."
+    },
+    {
+      "id": "event-from",
+      "type": "app",
+      "name": "Event · from",
+      "in": "steps",
+      "tech": "event",
+      "description": "`animation: event`. A bolt runs along the line, and the receiver flashes."
+    },
+    {
+      "id": "event-to",
+      "type": "app",
+      "name": "Event · to",
+      "in": "steps",
+      "shape": "hexagon",
+      "tech": "event",
+      "description": "Flashes when the bolt arrives."
+    },
+    {
+      "id": "callback-from",
+      "type": "app",
+      "name": "Callback · from",
+      "in": "steps",
+      "tech": "callback",
+      "description": "`animation: callback`. A ring leaves this shape and a bell runs to the subscriber."
+    },
+    {
+      "id": "callback-to",
+      "type": "app",
+      "name": "Callback · to",
+      "in": "steps",
+      "tech": "callback",
+      "description": "The subscriber. A ring goes out when the bell arrives."
+    },
+    {
+      "id": "after-source",
+      "type": "app",
+      "name": "Flash · source",
+      "in": "steps",
+      "tech": "send, then callback",
+      "description": "Hands something to the publisher, which is what sets the callback off."
+    },
+    {
+      "id": "after-from",
+      "type": "app",
+      "name": "Flash · from",
+      "in": "steps",
+      "tech": "callback, trigger outside",
+      "description": "`animation: {kind: callback, trigger: outside}`, right after a step that landed here. This shape flashes, then the bell runs."
+    },
+    {
+      "id": "after-to",
+      "type": "app",
+      "name": "Flash · to",
+      "in": "steps",
+      "tech": "callback, trigger outside",
+      "description": "The subscriber."
+    },
+    {
+      "id": "cold-from",
+      "type": "app",
+      "name": "Bolt drop · from",
+      "in": "steps",
+      "tech": "callback, trigger outside",
+      "description": "`animation: {kind: callback, trigger: outside}`, with no step before it that landed here. A bolt drops onto this shape, then the bell runs."
+    },
+    {
+      "id": "cold-to",
+      "type": "app",
+      "name": "Bolt drop · to",
+      "in": "steps",
+      "tech": "callback, trigger outside",
+      "description": "The subscriber."
+    },
+    {
+      "id": "repeat-from",
+      "type": "app",
+      "name": "Repeat · from",
+      "in": "structure",
+      "description": "The caller. It asks again until the service answers."
+    },
+    {
+      "id": "repeat-to",
+      "type": "app",
+      "name": "Repeat · to",
+      "in": "structure",
+      "description": "The service. It is busy on the first two tries."
+    },
+    {
+      "id": "branch-from",
+      "type": "app",
+      "name": "Branch · from",
+      "in": "structure",
+      "description": "Decides which lane happens."
+    },
+    {
+      "id": "branch-a",
+      "type": "app",
+      "name": "Branch · lane A",
+      "in": "structure",
+      "description": "Takes the first lane."
+    },
+    {
+      "id": "branch-b",
+      "type": "app",
+      "name": "Branch · lane B",
+      "in": "structure",
+      "description": "Takes the second lane."
+    },
+    {
+      "id": "parallel-from",
+      "type": "app",
+      "name": "Parallel · from",
+      "in": "structure",
+      "description": "Starts all three lanes together."
+    },
+    {
+      "id": "parallel-a",
+      "type": "app",
+      "name": "Parallel · lane A",
+      "in": "structure",
+      "description": "Has two steps, so lane A keeps going after the others have finished."
+    },
+    {
+      "id": "parallel-b",
+      "type": "app",
+      "name": "Parallel · lane B",
+      "in": "structure",
+      "description": "One step."
+    },
+    {
+      "id": "parallel-c",
+      "type": "app",
+      "name": "Parallel · lane C",
+      "in": "structure",
+      "description": "One step."
+    },
+    {
+      "id": "link-from",
+      "type": "app",
+      "name": "Flow link · from",
+      "in": "structure",
+      "description": "Hands the story to another flow."
+    },
+    {
+      "id": "link-to",
+      "type": "app",
+      "name": "Flow link · to",
+      "in": "structure",
+      "description": "Where the other flow carries on."
+    },
+    {
+      "id": "load",
+      "type": "app",
+      "name": "Load",
+      "in": "performance",
+      "description": "Where the load comes in. Every shape below is reached from here."
+    },
+    {
+      "id": "traffic",
+      "type": "app",
+      "name": "Traffic",
+      "in": "performance",
+      "description": "The line from Load gets thicker and busier as the load goes up. The shape itself stays plain."
+    },
+    {
+      "id": "latency",
+      "type": "app",
+      "name": "Latency",
+      "in": "performance",
+      "description": "The dots on the line from Load slow down as calls take longer. The shape itself stays plain."
+    },
+    {
+      "id": "failing-calls",
+      "type": "app",
+      "name": "Failing calls",
+      "in": "performance",
+      "description": "More and more of the dots on the line from Load turn red. The shape itself stays plain."
+    },
+    {
+      "id": "strain",
+      "type": "app",
+      "name": "Strain",
+      "in": "performance",
+      "description": "The outline runs from green to red as the shape fills up."
+    },
+    {
+      "id": "failing-shape",
+      "type": "app",
+      "name": "Failing shape",
+      "in": "performance",
+      "description": "The shape fails more of its calls. Failing 5% is as strained as full, so the outline runs to red early."
+    },
+    {
+      "id": "queue",
+      "type": "store",
+      "name": "Queue",
+      "in": "performance",
+      "shape": "queue",
+      "description": "A number appears on the shape when calls wait. It has no outline strain because only the waiting was measured."
+    },
+    {
+      "id": "not-measured",
+      "type": "app",
+      "name": "Not measured",
+      "in": "performance",
+      "description": "Nothing was measured here, so it stays plain at every load. Missing is never drawn as zero."
+    },
+    {
+      "id": "rolled-up",
+      "type": "app",
+      "name": "Rolled up",
+      "in": "performance",
+      "description": "A shape that holds others shows the worst strain inside it and the waiting added up.\n\nDouble-click it to see each part.\n"
+    },
+    {
+      "id": "rolled-a",
+      "type": "component",
+      "name": "Rolled up · A",
+      "in": "rolled-up",
+      "description": "Fills up as the load goes up."
+    },
+    {
+      "id": "rolled-b",
+      "type": "component",
+      "name": "Rolled up · B",
+      "in": "rolled-up",
+      "description": "Keeps a steady queue."
+    }
+  ],
+  "connections": [
+    {
+      "from": "send-from",
+      "to": "send-to",
+      "label": "send"
+    },
+    {
+      "from": "call-from",
+      "to": "call-to",
+      "label": "call"
+    },
+    {
+      "from": "event-from",
+      "to": "event-to",
+      "label": "event"
+    },
+    {
+      "from": "callback-from",
+      "to": "callback-to",
+      "label": "callback"
+    },
+    {
+      "from": "after-source",
+      "to": "after-from",
+      "label": "hands over"
+    },
+    {
+      "from": "after-from",
+      "to": "after-to",
+      "label": "callback"
+    },
+    {
+      "from": "cold-from",
+      "to": "cold-to",
+      "label": "callback"
+    },
+    {
+      "from": "repeat-from",
+      "to": "repeat-to",
+      "label": "asks"
+    },
+    {
+      "from": "repeat-to",
+      "to": "repeat-from",
+      "label": "answers"
+    },
+    {
+      "from": "branch-from",
+      "to": "branch-a",
+      "label": "lane A"
+    },
+    {
+      "from": "branch-from",
+      "to": "branch-b",
+      "label": "lane B"
+    },
+    {
+      "from": "parallel-from",
+      "to": "parallel-a",
+      "label": "lane A"
+    },
+    {
+      "from": "parallel-a",
+      "to": "parallel-from",
+      "label": "lane A answers"
+    },
+    {
+      "from": "parallel-from",
+      "to": "parallel-b",
+      "label": "lane B"
+    },
+    {
+      "from": "parallel-from",
+      "to": "parallel-c",
+      "label": "lane C"
+    },
+    {
+      "from": "link-from",
+      "to": "link-to",
+      "label": "hands over"
+    },
+    {
+      "from": "link-to",
+      "to": "link-from",
+      "label": "answers"
+    },
+    {
+      "from": "load",
+      "to": "traffic",
+      "label": "calls"
+    },
+    {
+      "from": "load",
+      "to": "latency",
+      "label": "calls"
+    },
+    {
+      "from": "load",
+      "to": "failing-calls",
+      "label": "calls"
+    },
+    {
+      "from": "load",
+      "to": "strain",
+      "label": "calls"
+    },
+    {
+      "from": "load",
+      "to": "failing-shape",
+      "label": "calls"
+    },
+    {
+      "from": "load",
+      "to": "queue",
+      "label": "calls"
+    },
+    {
+      "from": "load",
+      "to": "not-measured",
+      "label": "calls"
+    },
+    {
+      "from": "load",
+      "to": "rolled-a",
+      "label": "calls"
+    },
+    {
+      "from": "load",
+      "to": "rolled-b",
+      "label": "calls"
+    }
+  ],
+  "layout": {
+    "steps": {
+      "send-from": [
+        0,
+        0
+      ],
+      "send-to": [
+        360,
+        0
+      ],
+      "call-from": [
+        1000,
+        0
+      ],
+      "call-to": [
+        1360,
+        0
+      ],
+      "event-from": [
+        0,
+        200
+      ],
+      "event-to": [
+        360,
+        200
+      ],
+      "callback-from": [
+        1000,
+        200
+      ],
+      "callback-to": [
+        1360,
+        200
+      ],
+      "after-source": [
+        0,
+        400
+      ],
+      "after-from": [
+        360,
+        400
+      ],
+      "after-to": [
+        720,
+        400
+      ],
+      "cold-from": [
+        1000,
+        400
+      ],
+      "cold-to": [
+        1360,
+        400
+      ]
+    },
+    "structure": {
+      "repeat-from": [
+        0,
+        0
+      ],
+      "repeat-to": [
+        360,
+        0
+      ],
+      "link-from": [
+        1000,
+        0
+      ],
+      "link-to": [
+        1360,
+        0
+      ],
+      "branch-from": [
+        0,
+        260
+      ],
+      "branch-a": [
+        360,
+        200
+      ],
+      "branch-b": [
+        360,
+        320
+      ],
+      "parallel-from": [
+        1000,
+        260
+      ],
+      "parallel-a": [
+        1360,
+        200
+      ],
+      "parallel-b": [
+        1360,
+        320
+      ],
+      "parallel-c": [
+        1360,
+        440
+      ]
+    },
+    "performance": {
+      "traffic": [
+        0,
+        0
+      ],
+      "latency": [
+        0,
+        150
+      ],
+      "failing-calls": [
+        0,
+        300
+      ],
+      "strain": [
+        0,
+        450
+      ],
+      "load": [
+        520,
+        225
+      ],
+      "failing-shape": [
+        1040,
+        0
+      ],
+      "queue": [
+        1040,
+        150
+      ],
+      "not-measured": [
+        1040,
+        300
+      ],
+      "rolled-up": [
+        1040,
+        450
+      ]
+    }
+  },
+  "flows": [
+    {
+      "id": "branch",
+      "name": "Branch",
+      "view": "structure",
+      "steps": [
+        {
+          "from": "branch-from",
+          "to": "branch-a",
+          "text": "Hands the order to lane A",
+          "group": "outcome",
+          "lane": "The card is accepted",
+          "placed": [
+            "branch-from",
+            "branch-a"
+          ],
+          "ends": "Branch · from → Branch · lane A"
+        },
+        {
+          "from": "branch-a",
+          "to": "branch-from",
+          "text": "Confirms it",
+          "group": "outcome",
+          "placed": [
+            "branch-a",
+            "branch-from"
+          ],
+          "ends": "Branch · lane A → Branch · from"
+        },
+        {
+          "from": "branch-from",
+          "to": "branch-b",
+          "text": "Hands the order to lane B",
+          "group": "outcome",
+          "lane": "The card is declined",
+          "placed": [
+            "branch-from",
+            "branch-b"
+          ],
+          "ends": "Branch · from → Branch · lane B"
+        },
+        {
+          "from": "branch-from",
+          "text": "Carries on after the branch",
+          "placed": [
+            "branch-from",
+            "branch-from"
+          ],
+          "ends": "Branch · from"
+        }
+      ],
+      "groups": {
+        "outcome": {
+          "kind": "branch",
+          "text": "Only one lane happens."
+        }
+      }
+    },
+    {
+      "id": "every-step-animation",
+      "name": "Every step animation",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "send-from",
+          "to": "send-to",
+          "text": "Sends one way and carries on without waiting",
+          "description": "A tube along the line, an envelope running through it, and a squash at each end.",
+          "animation": "send",
+          "placed": [
+            "send-from",
+            "send-to"
+          ],
+          "ends": "Send · from → Send · to"
+        },
+        {
+          "from": "call-from",
+          "to": "call-to",
+          "text": "Calls and waits for the answer",
+          "description": "The envelope goes, dots wait over the caller, and the reply comes back in the answer's colour.",
+          "animation": "call",
+          "placed": [
+            "call-from",
+            "call-to"
+          ],
+          "ends": "Call · from → Call · to"
+        },
+        {
+          "from": "event-from",
+          "to": "event-to",
+          "text": "Raises an event",
+          "description": "A bolt runs along the line and the receiver flashes when it arrives.",
+          "animation": "event",
+          "placed": [
+            "event-from",
+            "event-to"
+          ],
+          "ends": "Event · from → Event · to"
+        },
+        {
+          "from": "callback-from",
+          "to": "callback-to",
+          "text": "Runs a callback on its subscriber",
+          "description": "A ring leaves the publisher, a bell runs to the subscriber, and a ring goes out there.",
+          "animation": "callback",
+          "placed": [
+            "callback-from",
+            "callback-to"
+          ],
+          "ends": "Callback · from → Callback · to"
+        },
+        {
+          "from": "after-source",
+          "to": "after-from",
+          "text": "Hands the publisher something",
+          "animation": "send",
+          "placed": [
+            "after-source",
+            "after-from"
+          ],
+          "ends": "Flash · source → Flash · from"
+        },
+        {
+          "from": "after-from",
+          "to": "after-to",
+          "text": "Runs a callback that the step before set off",
+          "description": "The publisher flashes, because the step before landed on it, and then the bell runs.",
+          "animation": {
+            "kind": "callback",
+            "trigger": "outside"
+          },
+          "placed": [
+            "after-from",
+            "after-to"
+          ],
+          "ends": "Flash · from → Flash · to"
+        },
+        {
+          "from": "cold-from",
+          "to": "cold-to",
+          "text": "Runs a callback that something outside set off",
+          "description": "No step before landed on the publisher, so a bolt drops onto it first and then the bell runs.",
+          "animation": {
+            "kind": "callback",
+            "trigger": "outside"
+          },
+          "placed": [
+            "cold-from",
+            "cold-to"
+          ],
+          "ends": "Bolt drop · from → Bolt drop · to"
+        },
+        {
+          "from": "send-from",
+          "to": "send-to",
+          "text": "Sends again",
+          "animation": {
+            "kind": "send",
+            "carries": "order 42"
+          },
+          "placed": [
+            "send-from",
+            "send-to"
+          ],
+          "ends": "Send · from → Send · to"
+        }
+      ]
+    },
+    {
+      "id": "flow-link-next",
+      "name": "Flow link, the other flow",
+      "view": "structure",
+      "steps": [
+        {
+          "from": "link-to",
+          "text": "Carries on from where Flow link stopped",
+          "placed": [
+            "link-to",
+            "link-to"
+          ],
+          "ends": "Flow link · to"
+        },
+        {
+          "from": "link-to",
+          "to": "link-from",
+          "text": "Answers",
+          "animation": "call",
+          "placed": [
+            "link-to",
+            "link-from"
+          ],
+          "ends": "Flow link · to → Flow link · from"
+        }
+      ]
+    },
+    {
+      "id": "flow-link",
+      "name": "Flow link",
+      "view": "structure",
+      "steps": [
+        {
+          "from": "link-from",
+          "to": "link-to",
+          "text": "Asks for the work",
+          "placed": [
+            "link-from",
+            "link-to"
+          ],
+          "ends": "Flow link · from → Flow link · to"
+        },
+        {
+          "from": "link-to",
+          "to": "link-from",
+          "text": "Hands the rest of the story to another flow",
+          "flow": "flow-link-next",
+          "placed": [
+            "link-to",
+            "link-from"
+          ],
+          "ends": "Flow link · to → Flow link · from"
+        }
+      ]
+    },
+    {
+      "id": "parallel",
+      "name": "Parallel",
+      "view": "structure",
+      "steps": [
+        {
+          "from": "parallel-from",
+          "to": "parallel-a",
+          "text": "Starts lane A",
+          "animation": "event",
+          "group": "fan",
+          "lane": "Lane A",
+          "placed": [
+            "parallel-from",
+            "parallel-a"
+          ],
+          "ends": "Parallel · from → Parallel · lane A"
+        },
+        {
+          "from": "parallel-a",
+          "to": "parallel-from",
+          "text": "Lane A answers",
+          "animation": "send",
+          "group": "fan",
+          "placed": [
+            "parallel-a",
+            "parallel-from"
+          ],
+          "ends": "Parallel · lane A → Parallel · from"
+        },
+        {
+          "from": "parallel-from",
+          "to": "parallel-b",
+          "text": "Starts lane B",
+          "animation": "event",
+          "group": "fan",
+          "lane": "Lane B",
+          "placed": [
+            "parallel-from",
+            "parallel-b"
+          ],
+          "ends": "Parallel · from → Parallel · lane B"
+        },
+        {
+          "from": "parallel-from",
+          "to": "parallel-c",
+          "text": "Starts lane C",
+          "animation": "event",
+          "group": "fan",
+          "lane": "Lane C",
+          "placed": [
+            "parallel-from",
+            "parallel-c"
+          ],
+          "ends": "Parallel · from → Parallel · lane C"
+        },
+        {
+          "from": "parallel-from",
+          "text": "Carries on once all three are done",
+          "placed": [
+            "parallel-from",
+            "parallel-from"
+          ],
+          "ends": "Parallel · from"
+        }
+      ],
+      "groups": {
+        "fan": {
+          "kind": "parallel",
+          "text": "Lane A has two steps, so it carries on after B and C have finished."
+        }
+      }
+    },
+    {
+      "id": "repeat",
+      "name": "Repeat",
+      "view": "structure",
+      "steps": [
+        {
+          "from": "repeat-from",
+          "to": "repeat-to",
+          "text": "Asks the service",
+          "group": "tries",
+          "placed": [
+            "repeat-from",
+            "repeat-to"
+          ],
+          "ends": "Repeat · from → Repeat · to"
+        },
+        {
+          "from": "repeat-to",
+          "to": "repeat-from",
+          "text": "Answers that it is busy",
+          "group": "tries",
+          "placed": [
+            "repeat-to",
+            "repeat-from"
+          ],
+          "ends": "Repeat · to → Repeat · from"
+        },
+        {
+          "from": "repeat-to",
+          "to": "repeat-from",
+          "text": "Answers with the result",
+          "placed": [
+            "repeat-to",
+            "repeat-from"
+          ],
+          "ends": "Repeat · to → Repeat · from"
+        }
+      ],
+      "groups": {
+        "tries": {
+          "kind": "repeat",
+          "times": "3",
+          "until": "the service answers",
+          "text": "Waits a little longer before each new try."
+        }
+      }
+    }
+  ],
+  "problems": [],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "steps",
+        "structure",
+        "performance"
+      ],
+      "outsiders": [],
+      "edges": []
+    },
+    "steps": {
+      "id": "steps",
+      "members": [
+        "send-from",
+        "send-to",
+        "call-from",
+        "call-to",
+        "event-from",
+        "event-to",
+        "callback-from",
+        "callback-to",
+        "after-source",
+        "after-from",
+        "after-to",
+        "cold-from",
+        "cold-to"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "send-from",
+          "to": "send-to",
+          "label": "send",
+          "count": 1
+        },
+        {
+          "from": "call-from",
+          "to": "call-to",
+          "label": "call",
+          "count": 1
+        },
+        {
+          "from": "event-from",
+          "to": "event-to",
+          "label": "event",
+          "count": 1
+        },
+        {
+          "from": "callback-from",
+          "to": "callback-to",
+          "label": "callback",
+          "count": 1
+        },
+        {
+          "from": "after-source",
+          "to": "after-from",
+          "label": "hands over",
+          "count": 1
+        },
+        {
+          "from": "after-from",
+          "to": "after-to",
+          "label": "callback",
+          "count": 1
+        },
+        {
+          "from": "cold-from",
+          "to": "cold-to",
+          "label": "callback",
+          "count": 1
+        }
+      ]
+    },
+    "structure": {
+      "id": "structure",
+      "members": [
+        "repeat-from",
+        "repeat-to",
+        "branch-from",
+        "branch-a",
+        "branch-b",
+        "parallel-from",
+        "parallel-a",
+        "parallel-b",
+        "parallel-c",
+        "link-from",
+        "link-to"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "repeat-from",
+          "to": "repeat-to",
+          "label": "asks",
+          "count": 1
+        },
+        {
+          "from": "repeat-to",
+          "to": "repeat-from",
+          "label": "answers",
+          "count": 1
+        },
+        {
+          "from": "branch-from",
+          "to": "branch-a",
+          "label": "lane A",
+          "count": 1
+        },
+        {
+          "from": "branch-from",
+          "to": "branch-b",
+          "label": "lane B",
+          "count": 1
+        },
+        {
+          "from": "parallel-from",
+          "to": "parallel-a",
+          "label": "lane A",
+          "count": 1
+        },
+        {
+          "from": "parallel-a",
+          "to": "parallel-from",
+          "label": "lane A answers",
+          "count": 1
+        },
+        {
+          "from": "parallel-from",
+          "to": "parallel-b",
+          "label": "lane B",
+          "count": 1
+        },
+        {
+          "from": "parallel-from",
+          "to": "parallel-c",
+          "label": "lane C",
+          "count": 1
+        },
+        {
+          "from": "link-from",
+          "to": "link-to",
+          "label": "hands over",
+          "count": 1
+        },
+        {
+          "from": "link-to",
+          "to": "link-from",
+          "label": "answers",
+          "count": 1
+        }
+      ]
+    },
+    "performance": {
+      "id": "performance",
+      "members": [
+        "load",
+        "traffic",
+        "latency",
+        "failing-calls",
+        "strain",
+        "failing-shape",
+        "queue",
+        "not-measured",
+        "rolled-up"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "load",
+          "to": "traffic",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "load",
+          "to": "latency",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "load",
+          "to": "failing-calls",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "load",
+          "to": "strain",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "load",
+          "to": "failing-shape",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "load",
+          "to": "queue",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "load",
+          "to": "not-measured",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "load",
+          "to": "rolled-up",
+          "label": "2 connections",
+          "count": 2
+        }
+      ]
+    },
+    "rolled-up": {
+      "id": "rolled-up",
+      "members": [
+        "rolled-a",
+        "rolled-b"
+      ],
+      "outsiders": [
+        "load"
+      ],
+      "edges": [
+        {
+          "from": "load",
+          "to": "rolled-a",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "load",
+          "to": "rolled-b",
+          "label": "calls",
+          "count": 1
+        }
+      ]
+    }
+  }
+}
