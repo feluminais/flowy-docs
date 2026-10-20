@@ -36,7 +36,7 @@ two load-test runs with made-up numbers (a dinner rush where Delivery's ETA runs
 the same test after a fix); they name shapes and connections of the model, so a rename there is a run problem. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
-`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
+`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
 and `--search re` for the search. Retake them when the app changes how it looks.
 
 ## The animation showcase
@@ -326,6 +326,11 @@ Editing (press E):
       under Icon: each shows on the canvas as you pick it, and `shape`, `color`, `opacity` and `icon` appear for `api`
       in `example/model.yaml`. Click Default in each (the dashed swatch for Color): the keys go. Ctrl+Z walks them back.
       Type `bank` in the icon filter: only `building-bank` is left.
+
+- [ ] In edit mode click Orders DB. Under Data type `- name: orders`, `  columns: [id, total]`, `  rows:` and `    - [o_1, 2490]` on four lines,
+      then press Tab: the row sits on one line in `example/model.yaml`, and with edit mode off Orders DB's panel has a Data section with
+      a table of two columns and one row. Type `- [a` in the box and press Tab: a notice says why and the text stays. Clear the box:
+      the data is gone from the file. Ctrl+Z brings it back. API's form has no Data box.
 
 `git checkout example` puts the tracked files back. Delete `example/layout.yaml` and the new
 flow's file by hand.

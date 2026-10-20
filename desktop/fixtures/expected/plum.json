@@ -130,34 +130,26 @@
               "name": "customer_id",
               "to": "customers"
             },
-            "status",
             {
               "name": "total",
               "note": "Cents, not decimals. Rounding broke the first tax run."
-            },
-            "placed_at"
+            }
           ],
           "rows": [
             [
               "o_1042",
               "c_77",
-              "placed",
-              "2490",
-              "2026-10-19 18:02"
+              "2490"
             ],
             [
               "o_1043",
               "c_12",
-              "accepted",
-              "1380",
-              "2026-10-19 18:05"
+              "1380"
             ],
             [
               "o_1044",
               "c_77",
-              "delivered",
-              "990",
-              "2026-10-19 18:09"
+              "990"
             ]
           ]
         },
@@ -241,7 +233,7 @@
           "kind": "table",
           "limits": "Kept 7 years, then archived",
           "note": "One row per order. A refund adds a row to refunds; the order stays.",
-          "summary": "5 columns",
+          "summary": "3 columns",
           "columns": [
             {
               "name": "id",
@@ -252,37 +244,25 @@
               "to": "customers"
             },
             {
-              "name": "status"
-            },
-            {
               "name": "total",
               "note": "Cents, not decimals. Rounding broke the first tax run."
-            },
-            {
-              "name": "placed_at"
             }
           ],
           "rows": [
             [
               "o_1042",
               "c_77",
-              "placed",
-              "2490",
-              "2026-10-19 18:02"
+              "2490"
             ],
             [
               "o_1043",
               "c_12",
-              "accepted",
-              "1380",
-              "2026-10-19 18:05"
+              "1380"
             ],
             [
               "o_1044",
               "c_77",
-              "delivered",
-              "990",
-              "2026-10-19 18:09"
+              "990"
             ]
           ],
           "lines": [],

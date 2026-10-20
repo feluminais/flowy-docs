@@ -101,6 +101,13 @@ path that doesn't exist shows up as a problem, so the model can't quietly point 
 A shape can also link to its long documents, such as a runbook or a decision record, so Flowy stays the map and the
 documents stay documents.
 
+![Orders DB's panel: the orders table with a key mark on id and customer_id, a dot on total and its note under the table, and three more tables closed to a line each](docs/images/desktop-data.png)
+
+A store can show what it holds. Its panel draws a table as a table, with column headings, a few sample rows and a short note
+where a choice needs explaining ("Cents, not decimals"), and a line for how long the data is kept. A key set, a topic and a
+document use the same frame. You write it under `data:` on the store; Flowy never connects to a database. [The guide](docs/guide.md#data)
+has the format.
+
 ## Flows
 
 ![A flow playing: Customer app to Order API is lit, and a card says what happens, with a More for the detail and Back, Next, Autoplay and Stop](docs/images/desktop-flow.png)
@@ -192,7 +199,7 @@ the same way, so git sees no difference between a change made in one and a chang
 - Drag from the dot under a shape onto another shape to connect them, then type a label.
 - **Add** offers only the types that fit where you are: actors and systems at the top, apps and stores inside a system, components
   inside an app or store.
-- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and code. A field saves when you leave it.
+- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and code, and a store's data. A field saves when you leave it.
 - **Tidy** forgets where shapes were dragged and lays the view out again with as few crossing lines as it finds.
 - **New flow** records a walkthrough: click the shape where a step starts and the shape it goes to, type what happens, press
   Enter, repeat.

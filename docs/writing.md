@@ -16,6 +16,7 @@ A reader meets your words in four layers, and each should work without the next:
 | Look | On the shape: its outline, colour and icon | What kind of thing it is, at a glance |
 | Teaser | On hover: the first paragraph of the description, up to the first blank line | One sentence on what it does |
 | Panel | On click: the rest of the description | Why it's like this, its limits, its risks |
+| Data | On click, on a store: the Data section | What it holds: the few tables that matter, invented sample rows, how long they are kept, and a note where a choice needs explaining |
 | Step and More | In the flow player | One handover, then why it matters |
 
 Someone who stops at the teaser must not leave with a wrong idea. Anything that prevents one ("Deprecated", "planned") goes in the teaser, not the panel.
@@ -103,6 +104,25 @@ The rest of the description shows when someone clicks. Spend the words where the
 - **Describe, don't instruct.** "Run `make deploy`" belongs in a README.
 - **Write more for what's surprising or risky** and less for what's plain. The teaser is enough for a plain shape.
 - **Name an owner only on top-level systems,** if at all, and name a team, not a person. Owners change.
+
+## Data
+
+A store's Data section is a picture of what it holds, for a developer who wants to know which data a flow touches. The format is in
+[the guide](guide.md#data).
+
+- **Show the few tables a flow touches,** not all of them. A store with forty tables gets the four a reader meets in the flows. The
+  rest stay in the migrations, which a `links:` entry can point at.
+- **Draw a table as a table.** Columns that tell the reader something (the key, what it points to, the money) and two or three sample
+  rows. Leave out the audit columns. Types, defaults and indexes are left out on purpose: a sample row says more than a type does.
+- **Invent the rows.** Never paste rows from a real database, a dump or a log, and never use a real name, email or id. `o_1042`,
+  `c_77` and `Noodle Bar` are enough to show what a row looks like.
+- **A note says why, in one line.** "Cents, not decimals. Rounding broke the first tax run." explains a choice a reader would
+  question. "The order's total" repeats the column's name, so leave it out. Longer reasoning goes in a design document, linked from the shape.
+- **A limits line says how long or how much,** in the words people use: "Kept 7 years, then archived", "Swept after 24 hours",
+  "Kept 7 days, 6 partitions", "Oldest unused go first at 256 MB". It states a fact the team set, so check it against the config.
+- **Pick the form that matches the store.** A table for a relational database, `Key`, `Value` and `Expires` for a cache, `Key` and `Value`
+  with a message on each row for a topic, a sample document for a document store.
+- **Keep it true.** The section can't notice that a column was renamed. Change it with the code, and put a `code:` path or a link to the schema file on the store.
 
 ## Label connections
 
@@ -257,6 +277,7 @@ Claude's usual mistakes are shapes at the wrong level (every class a shape), pla
 - Does each level hold a handful of shapes?
 - Does every shape you built have a `code:` path that exists?
 - Does anything long (a procedure, a table, a decision) live in a document the shape links to, rather than in its panel?
+- Does each store show only the tables a flow touches, with invented rows and notes that say why?
 - Is anything planned or deprecated marked in its teaser?
 - Does every shape, colour and icon that isn't the type's default say something, and does each colour mean one thing?
 - Is anything that was guessed marked as an open question?

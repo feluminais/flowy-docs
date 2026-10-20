@@ -104,13 +104,11 @@ objects:
         columns:
           - {name: id, key: primary}
           - {name: customer_id, to: customers}
-          - status
           - {name: total, note: "Cents, not decimals. Rounding broke the first tax run."}
-          - placed_at
         rows:
-          - [o_1042, c_77, placed, 2490, 2026-10-19 18:02]
-          - [o_1043, c_12, accepted, 1380, 2026-10-19 18:05]
-          - [o_1044, c_77, delivered, 990, 2026-10-19 18:09]
+          - [o_1042, c_77, 2490]
+          - [o_1043, c_12, 1380]
+          - [o_1044, c_77, 990]
       - name: order_items
         columns:
           - {name: order_id, key: primary, to: orders}
