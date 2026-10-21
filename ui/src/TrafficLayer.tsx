@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useStore, useStoreApi } from '@xyflow/react'
-import type { LineTraffic } from '../../src/core/perf.ts'
+import type { LineTraffic } from '../../src/core/perf/types.ts'
 import { colorPair } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { depthIn } from './graph.ts'
