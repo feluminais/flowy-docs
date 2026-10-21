@@ -166,7 +166,7 @@ small shop that really runs, with a load generator that writes these files (`npm
 
 Flowy can hold how a system breaks, too. A failure analysis lives in `flowy/failures/<name>.yaml`. For a shape, or a line between two,
 it says how the part fails, what that causes, what exists to deal with it and what to do next, and rates it from 1 to 10 on
-Severity, Likelihood and Hard to spot (10 means nobody would notice). A Failures tab joins the icons on the right edge, or press **M**.
+Severity, Likelihood and Hard to spot (10 means nobody would notice). In the browser a Failures tab joins the icons on the right edge, and in the desktop app it sits on the left beside Explorer and Flows; press **M** in either.
 
 - The list runs from High to Low, then Not rated for a mode with no ratings. A severity of 9 or 10 is High whatever else is missing.
 - **Analysed 15 of 26** counts the shapes that have a mode, and **Not analysed** lists the rest.
@@ -204,7 +204,7 @@ an error when a file has a problem, so a CI job can use it. The format, the rank
 
 A second analysis reads parts of the workflow engine [Conductor OSS](https://github.com/conductor-oss/conductor) from its code: seventeen modes, each with the files it came from. It is kept in the maintainer's clone of Conductor and is not published. [CONTRIBUTING](CONTRIBUTING.md#the-conductor-analysis) says how to build a clone like it. Flowy's own folder has an analysis too, [Flowy fail scenario](flowy/failures/flowy.yaml).
 
-![The Failures panel in the desktop app on the Ordering view: the same ranked list, Order API and the line to Stripe outlined red with a badge, and the rest faded](docs/images/desktop-failures.png)
+![The Failures tab in the desktop app on the Ordering view: the ranked list on the left beside Explorer and Flows, Order API and the line to Stripe outlined red with a badge, and the rest faded](docs/images/desktop-failures.png)
 
 Failure modes show in the browser version, in the desktop app and in an exported page. The desktop app only reads them: writing an analysis is the browser's.
 

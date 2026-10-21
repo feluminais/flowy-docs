@@ -832,7 +832,7 @@ counts by its `after` ratings, and the panel shows both ("96 to 32").
 part or as an end of a line. Actors are left out, because nothing of ours fails there. Outside services count, since a failing Stripe is
 a failure you design for. Lines don't count. **Not analysed** lists the shapes left.
 
-**Reading it.** Open the Failures tab on the right edge, or press **M**. Pick an analysis if there are several. A shape or a line that
+**Reading it.** Open the Failures tab on the right edge, or press **M**. (In the desktop app it is on the left, beside Explorer and Flows, so Details stays free on the right.) Pick an analysis if there are several. A shape or a line that
 has modes carries a badge: the colour of its worst band and how many. A shape that holds others adds up what is inside it, so at the
 overview you see which system holds the risk and zoom in to find where, as in Performance. Four items count the modes by band, and a
 click on one filters the list. The list has two groups: **This view**, the modes whose part is inside the level on screen, and **Other

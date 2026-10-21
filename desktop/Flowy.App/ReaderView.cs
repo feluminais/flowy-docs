@@ -160,7 +160,6 @@ internal sealed partial class ReaderView : Grid
         _panel.Closed += () =>
         {
             if (PerfOpen) ClosePerf();
-            else if (FailuresOpen) CloseFailures();
             else CloseDetails();
         };
         WirePerformance();
@@ -311,7 +310,7 @@ internal sealed partial class ReaderView : Grid
         _details = false;
         _perf = false;
         _ramping = false;
-        _failures = false;
+        if (_tab == PanelTab.Failures) _tab = null; // another folder's analyses start from the top
         _analysisId = "";
         _modeId = null;
         _band = null;
@@ -573,11 +572,6 @@ internal sealed partial class ReaderView : Grid
         if (PerfOpen)
         {
             ShowPerfPanel(model, view);
-            return;
-        }
-        if (FailuresOpen)
-        {
-            ShowFailuresPanel(model, view);
             return;
         }
         switch (_side)
@@ -1032,7 +1026,6 @@ internal sealed partial class ReaderView : Grid
                 case EscapeStep.Flow: Stop(); break;
                 case EscapeStep.Panel:
                     if (PerfOpen) ClosePerf();
-                    else if (FailuresOpen) CloseFailures();
                     else CloseDetails();
                     break;
                 case EscapeStep.Up: Up(); break;

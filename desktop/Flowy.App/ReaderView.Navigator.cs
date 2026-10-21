@@ -24,13 +24,19 @@ internal sealed partial class ReaderView
     private bool ShowFlows => _folder is not null && (Totals().Flows > 0 || Editing);
 
     /// <summary>The navigator's tab showing (Flows or Explorer): the one chosen on its rail or its strip, else none.</summary>
-    private PanelTab? ShownTab => _tab == PanelTab.Flows && !ShowFlows ? null : _tab;
+    private PanelTab? ShownTab => (_tab == PanelTab.Flows && !ShowFlows) || (_tab == PanelTab.Failures && !CanFailures) ? null : _tab;
 
     /// <summary>Whether the Details panel on the right is open: from its rail, or because something is picked.</summary>
-    private bool DetailsOpen => (_details || _side is { Kind: not SideKind.Objects }) && !PerfOpen && !FailuresOpen; // the Performance and Failures panels are in its place while they are open
+    private bool DetailsOpen => (_details || _side is { Kind: not SideKind.Objects }) && !PerfOpen; // the Performance panel is in its place while it is open
 
     private void SetTab(PanelTab tab)
     {
+        if (tab == PanelTab.Failures)
+        {
+            if (!CanFailures) return;
+            _perf = false; // its traffic and the failure marks would draw over each other
+            _ramping = false;
+        }
         _tab = tab;
         _navUsed = true; // opened or switched on purpose: Escape takes it back until the reader clicks in the diagram
         Refresh();
@@ -41,14 +47,12 @@ internal sealed partial class ReaderView
     private void ToggleTab(PanelTab tab)
     {
         if (tab == PanelTab.Performance) TogglePerf();
-        else if (tab == PanelTab.Failures) ToggleFailures();
         else if (tab == PanelTab.Details)
         {
             if (DetailsOpen) CloseDetails();
             else
             {
-                _perf = false; // Details takes the place of Performance and Failures
-                _failures = false;
+                _perf = false; // Details takes the place of Performance
                 _ramping = false;
                 _details = true;
                 Refresh();
@@ -181,14 +185,15 @@ internal sealed partial class ReaderView
         var tab = ShownTab;
         var showFlows = ShowFlows;
         _rail.Update(tab, totals.Flows, totals.Shapes, showFlows);
-        _detailsRail.Update(DetailsOpen ? PanelTab.Details : PerfOpen ? PanelTab.Performance : FailuresOpen ? PanelTab.Failures : null, 0, 0, false);
+        _rail.UpdateFailures(ShowFailures, FailuresView.ModeCount(model), FailuresOpen, Editing);
+        _detailsRail.Update(DetailsOpen ? PanelTab.Details : PerfOpen ? PanelTab.Performance : null, 0, 0, false);
         _detailsRail.UpdatePerformance(ShowPerf, _folder?.Runs?.Count ?? 0, PerfOpen, Editing);
-        _detailsRail.UpdateFailures(ShowFailures, _folder is null ? 0 : FailuresView.ModeCount(_folder.Model), FailuresOpen, Editing);
-        if (tab is { } open) _nav.Show(open, showFlows);
+        if (tab is { } open) _nav.Show(open, showFlows, ShowFailures && CanFailures);
         else _nav.Hide();
         ApplyWidths();
         if (tab == PanelTab.Flows) _nav.Flows.Update(model, view, Editing, Recording?.Id ?? flow?.Id);
         else if (tab == PanelTab.Explorer) _nav.Explorer.Update(model, _folder!.Problems, Editing, _expanded, view, SelectedBox, flow?.Id);
+        else if (tab == PanelTab.Failures) ShowFailuresPanel(model, view);
     }
 
     private void Remember() => NavigatorChanged?.Invoke(new NavigatorState(
@@ -227,7 +232,7 @@ internal sealed partial class ReaderView
 
     internal (double Nav, double Details) PanelWidthsOnScreen => (_nav.Width, _panel.Width);
 
-    internal void ClickRail(PanelTab tab) => (tab is PanelTab.Details or PanelTab.Performance or PanelTab.Failures ? _detailsRail : _rail).Press(tab);
+    internal void ClickRail(PanelTab tab) => (tab is PanelTab.Details or PanelTab.Performance ? _detailsRail : _rail).Press(tab);
 
     /// <summary>Opens a panel by name ("details", "flows", "explorer", "performance" or "failures"), for a picture (--tab). Anything else is ignored.</summary>
     public void OpenTab(string name)

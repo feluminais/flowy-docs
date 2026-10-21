@@ -520,6 +520,16 @@ internal sealed class CanvasView : Border
         if (Camera.PanIntoView(r, _viewport, base.Bounds.Width, base.Bounds.Height, panel, 24, Math.Min(nav, base.Bounds.Width)) is { } to) MoveTo(to, milliseconds);
     }
 
+    /// <summary>Like <see cref="Reveal"/> for several boxes at once: the box that holds them all, so a line's two ends come into sight together where they fit (else the left edge does).</summary>
+    public void RevealAll(IEnumerable<string> ids, double panel = Camera.Panel, double nav = 0, double milliseconds = 200)
+    {
+        var rects = ids.Select(RectOf).OfType<Flowy.Core.Rect>().ToList();
+        if (rects.Count == 0) return;
+        var (x, y) = (rects.Min(r => r.X), rects.Min(r => r.Y));
+        var all = new Flowy.Core.Rect(x, y, rects.Max(r => r.Right) - x, rects.Max(r => r.Bottom) - y);
+        if (Camera.PanIntoView(all, _viewport, base.Bounds.Width, base.Bounds.Height, panel, 24, Math.Min(nav, base.Bounds.Width)) is { } to) MoveTo(to, milliseconds);
+    }
+
     public void ZoomBy(double factor)
     {
         _fitOnResize = false;

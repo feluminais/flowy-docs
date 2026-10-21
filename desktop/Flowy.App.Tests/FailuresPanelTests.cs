@@ -12,8 +12,8 @@ using Xunit;
 namespace Flowy.App.Tests;
 
 /// <summary>
-/// The Failures panel on the fixtures' small shop (desktop/fixtures/cases/failures) and on the demo Plum: the rail button, M and Esc, the list and what narrows
-/// it, the detail of a mode, what the canvas wears, Show it, Seen in a run and the copy buttons.
+/// The Failures tab on the left, with Explorer and Flows, on the fixtures' small shop (desktop/fixtures/cases/failures) and on the demo Plum: the rail button, M and
+/// Esc, the list and what narrows it, the detail of a mode, what the canvas wears, Show it, Seen in a run and the copy buttons.
 /// </summary>
 public class FailuresPanelTests
 {
@@ -53,11 +53,12 @@ public class FailuresPanelTests
     }
 
     [AvaloniaFact]
-    public void The_right_rail_has_a_Failures_button_where_there_is_an_analysis_and_the_number_on_it_is_how_many_modes()
+    public void The_left_rail_has_a_Failures_button_where_there_is_an_analysis_and_the_number_on_it_is_how_many_modes()
     {
         var (_, reader) = Open();
         var count = FailuresView.ModeCount(reader.Folder!.Model);
-        var item = reader.DetailsRail.Shown.First(i => i.Name.StartsWith("Failures"));
+        Assert.DoesNotContain(reader.DetailsRail.Shown, i => i.Name.StartsWith("Failures")); // Details' rail on the right has Details and Performance only
+        var item = reader.Rail.Shown.First(i => i.Name.StartsWith("Failures"));
         Assert.Equal($"Failures, {count}", item.Name);
         Assert.True(item.Visible);
         Assert.True(item.Enabled);
@@ -71,20 +72,21 @@ public class FailuresPanelTests
         using var temp = new TempFolder();
         File.WriteAllText(Path.Combine(temp.Path, "model.yaml"), "objects:\n  web:\n    type: app\n    name: Web\n");
         var (window, reader) = Open(temp.Path);
-        Assert.False(reader.DetailsRail.Shown.First(i => i.Name.StartsWith("Failures")).Visible);
+        Assert.False(reader.Rail.Shown.First(i => i.Name.StartsWith("Failures")).Visible);
         Press(window, Key.M, PhysicalKey.M);
         Assert.False(reader.FailuresOpenNow);
         Assert.False(reader.HasPanel);
     }
 
     [AvaloniaFact]
-    public void M_and_the_button_open_the_panel_and_Esc_closes_it_without_leaving_Details_open_in_its_place()
+    public void M_and_the_button_open_the_tab_beside_Explorer_and_Flows_and_Esc_closes_it()
     {
         var (window, reader) = Open();
         Press(window, Key.M, PhysicalKey.M);
         Assert.True(reader.FailuresOpenNow);
+        Assert.Equal(PanelTab.Failures, reader.ShownTabNow);
         Assert.True(reader.HasPanel);
-        Assert.False(reader.DetailsOpenNow);
+        Assert.False(reader.DetailsOpenNow); // Details is a panel of its own, on the right
         Press(window, Key.Escape, PhysicalKey.Escape);
         Assert.False(reader.FailuresOpenNow);
         Assert.False(reader.HasPanel);
@@ -98,23 +100,24 @@ public class FailuresPanelTests
     }
 
     [AvaloniaFact]
-    public void Failures_Details_and_Performance_take_each_others_place()
+    public void The_Failures_tab_and_Details_are_open_together_and_Performance_and_Failures_never_are()
     {
         var (window, reader) = Open();
         reader.Select("web");
         Assert.True(reader.DetailsOpenNow);
         Press(window, Key.M, PhysicalKey.M);
         Assert.True(reader.FailuresOpenNow);
-        Assert.False(reader.DetailsOpenNow);
+        Assert.True(reader.DetailsOpenNow); // the tab is on the left and Details on the right: a shape reads out there while the list stays
         Press(window, Key.T, PhysicalKey.T);
         Assert.True(reader.PerfOpenNow);
-        Assert.False(reader.FailuresOpenNow);
+        Assert.False(reader.FailuresOpenNow); // load and risk would draw over each other
         Press(window, Key.M, PhysicalKey.M);
         Assert.False(reader.PerfOpenNow);
         Assert.True(reader.FailuresOpenNow);
-        reader.ClickRail(PanelTab.Details);
+        reader.ClickRail(PanelTab.Explorer); // another tab of the navigator takes its place
         Assert.False(reader.FailuresOpenNow);
-        Assert.True(reader.DetailsOpenNow);
+        Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
+        Assert.Equal((null, FailLight.None), reader.Canvas.FailureOnBox("db"));
     }
 
     [AvaloniaFact]
@@ -161,6 +164,18 @@ public class FailuresPanelTests
         Assert.Null(reader.FailuresState.Mode);
         Assert.Equal(FailLight.None, reader.Canvas.FailureOnBox("db").Light);
         Assert.DoesNotContain("Orders can't be saved.", reader.FailuresPanelNow.Texts);
+    }
+
+    [AvaloniaFact]
+    public void A_picked_mode_is_brought_out_from_under_the_tab_that_lists_it()
+    {
+        var (window, reader) = Open(Plum);
+        reader.GoTo("ordering");
+        Press(window, Key.M, PhysicalKey.M);
+        var stripe = reader.Canvas.RectOf("stripe")!.Value; // Stripe sits at the left of the view, where the tab opens over the canvas
+        reader.PickModeById("stripe-timeout"); // its line runs from Order API to Stripe
+        var left = reader.Canvas.Viewport.ToScreen(new Pt(stripe.X, stripe.Y)).X;
+        Assert.True(left >= reader.Widths.Nav, $"Stripe starts at {left}, under the tab that is {reader.Widths.Nav} wide");
     }
 
     [AvaloniaFact]
@@ -238,7 +253,8 @@ public class FailuresPanelTests
         OpenOn(window, reader, "ordering");
         reader.GoTo("shop");
         reader.Select("db");
-        Assert.True(reader.FailuresOpenNow); // the panel stays; the pick only narrows its list
+        Assert.True(reader.FailuresOpenNow); // the tab stays; the pick narrows its list
+        Assert.True(reader.DetailsOpenNow); // and Details reads the shape out beside it
         Assert.Equal(2, reader.FailuresPanelNow.Rows.Count); // The database is unreachable, and the one named like something on every object
         Assert.Contains("Shop > Orders DB", reader.FailuresPanelNow.Texts);
         Click(Named(reader, "Clear"));
@@ -329,7 +345,7 @@ public class FailuresPanelTests
         Press(window, Key.M, PhysicalKey.M);
         reader.SetEditing(true);
         Assert.False(reader.FailuresOpenNow);
-        var item = reader.DetailsRail.Shown.First(i => i.Name.StartsWith("Failures"));
+        var item = reader.Rail.Shown.First(i => i.Name.StartsWith("Failures"));
         Assert.True(item.Visible);
         Assert.False(item.Enabled);
         Press(window, Key.M, PhysicalKey.M);
@@ -345,7 +361,7 @@ public class FailuresPanelTests
         Directory.CreateDirectory(Path.Combine(temp.Path, "failures"));
         File.WriteAllText(Path.Combine(temp.Path, "failures", "broken.yaml"), "name: [oops\n");
         var (window, reader) = Open(temp.Path);
-        Assert.True(reader.DetailsRail.Shown.First(i => i.Name.StartsWith("Failures")).Visible);
+        Assert.True(reader.Rail.Shown.First(i => i.Name.StartsWith("Failures")).Visible);
         Press(window, Key.M, PhysicalKey.M);
         Assert.True(reader.FailuresOpenNow);
         var texts = reader.FailuresPanelNow.Texts;

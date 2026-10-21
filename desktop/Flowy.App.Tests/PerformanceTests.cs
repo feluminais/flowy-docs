@@ -56,9 +56,8 @@ public class PerformanceTests
     {
         var (_, reader) = Open();
         var runs = FolderLoader.Load(Shop).Runs!.Count;
-        Assert.Equal(["Details", $"Performance, {runs}", "Failures, 0"], reader.DetailsRail.Shown.Select(i => i.Name));
-        Assert.All(reader.DetailsRail.Shown.Where(i => !i.Name.StartsWith("Failures")), i => Assert.True(i.Visible));
-        Assert.False(reader.DetailsRail.Shown.First(i => i.Name.StartsWith("Failures")).Visible); // this folder has no analysis
+        Assert.Equal(["Details", $"Performance, {runs}"], reader.DetailsRail.Shown.Select(i => i.Name));
+        Assert.All(reader.DetailsRail.Shown, i => Assert.True(i.Visible));
         Assert.False(reader.PerfOpenNow); // nothing is open until the button is pressed
     }
 
@@ -77,7 +76,7 @@ public class PerformanceTests
         Assert.Empty(folder.RunProblems!);
         Assert.Equal(["dinner-rush", "eta-batched", "pings-climbing", "stripe-outage"], folder.Runs!.Keys); // the file names sort so that the demo opens on the dinner rush
         var (window, reader) = Open(Plum);
-        Assert.Equal(["Details", "Performance, 4", "Failures, 14"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name));
+        Assert.Equal(["Details", "Performance, 4"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name));
         Press(window, Key.T, PhysicalKey.T);
         Assert.Equal(("dinner-rush", 3.0, false), reader.PerfState); // the load where ETA reaches 90%
         Assert.Contains("First struggles at 900 orders/min: ETA at 90% of capacity", string.Join("|", AllText(reader.PerfPanelNow)));
