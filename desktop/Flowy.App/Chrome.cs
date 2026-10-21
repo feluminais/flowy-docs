@@ -15,8 +15,6 @@ namespace Flowy.App;
 /// </summary>
 internal static class Chrome
 {
-    private static readonly string[] Types = ["actor", "system", "app", "store", "component"];
-
     /// <summary>A button's content: an icon, then its text unless it has none (an icon-only button). It gets the text as its name for screen readers and tests.</summary>
     public static void Fill(Button button, string icon, string? text, string? name = null)
     {
@@ -45,7 +43,7 @@ internal static class Chrome
         icon.VerticalAlignment = VerticalAlignment.Center;
         var tile = new Border { Width = size, Height = size, CornerRadius = new CornerRadius(Math.Round(size * 0.3)), Child = icon, VerticalAlignment = VerticalAlignment.Center };
         tile.Classes.Add("ttile");
-        tile.Classes.Add(Types.Contains(type ?? "") ? type! : "system");
+        tile.Classes.Add(Names.ObjectTypes.Contains(type ?? "") ? type! : "system");
         if (external) tile.Classes.Add("external");
         return tile;
     }

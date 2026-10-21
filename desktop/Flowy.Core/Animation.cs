@@ -88,7 +88,7 @@ public static class Animations
 
     /// <summary>A line of plain text for a label: not blank, with no line break and no control character in it.</summary>
     private static bool PlainLine(object? v) =>
-        v is string s && !Structure.Blank(s)
+        v is string s && !JsCompat.Blank(s)
         && !s.Any(c => char.IsControl(c) || CharUnicodeInfo.GetUnicodeCategory(c) is UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator);
 
     /// <summary>The share of requests, 1 to 100 whole percent, or null. A file holds every value as text.</summary>
@@ -116,7 +116,7 @@ public static class Animations
         if (by is not OrderedDictionary<string, object?> map || map.Keys.Any(k => k != "name")) return ByHint;
         map.TryGetValue("name", out var name);
         if (!PlainLine(name)) return "animation by name must be plain text on one line";
-        return Structure.JsTrim((string)name!).Length > NameMax ? $"animation by name can be at most {NameMax} characters" : null;
+        return JsCompat.JsTrim((string)name!).Length > NameMax ? $"animation by name can be at most {NameMax} characters" : null;
     }
 
     /// <summary>What is wrong with a step's <c>animation</c>, worded to follow "step N: ", or null. A blank tag is no tag; <paramref name="hasTo"/> is whether the step has a "to".</summary>
@@ -139,7 +139,7 @@ public static class Animations
             map.TryGetValue("outcome", out var outcome);
             if (trigger is not null && !(trigger is string t && Triggers.Contains(t))) return $"animation trigger must be {string.Join(" or ", Triggers)}";
             if (trigger is not null && name != "callback") return "animation trigger only applies to callback";
-            if (carries is not null && (carries is not string word || Structure.Blank(word))) return "animation carries must be a word";
+            if (carries is not null && (carries is not string word || JsCompat.Blank(word))) return "animation carries must be a word";
             if (outcome is not null && !(outcome is string given && Outcomes.Contains(given))) return $"animation outcome must be {OrList(Outcomes)}";
             if (outcome is "timeout" && name != "call") return "animation outcome timeout only applies to call";
             if (outcome is "fail" && name is not ("send" or "call")) return "animation outcome fail only applies to send and call";
@@ -152,7 +152,7 @@ public static class Animations
             if (map.TryGetValue("reason", out var reason))
             {
                 if (!PlainLine(reason)) return "animation reason must be plain text on one line";
-                if (Structure.JsTrim((string)reason!).Length > ReasonMax) return $"animation reason can be at most {ReasonMax} characters";
+                if (JsCompat.JsTrim((string)reason!).Length > ReasonMax) return $"animation reason can be at most {ReasonMax} characters";
                 if (outcome is null) return "animation reason needs an outcome";
             }
             if (outcome is "intercepted")
@@ -177,8 +177,8 @@ public static class Animations
     public static string? InterceptorProblem(object? raw, string? from, string? to, Func<string, bool> exists)
     {
         if (raw is not OrderedDictionary<string, object?> map || !map.TryGetValue("outcome", out var outcome) || outcome is not "intercepted") return null;
-        if (!map.TryGetValue("by", out var by) || by is not string shape || Structure.Blank(shape)) return null;
-        var id = Structure.JsTrim(shape);
+        if (!map.TryGetValue("by", out var by) || by is not string shape || JsCompat.Blank(shape)) return null;
+        var id = JsCompat.JsTrim(shape);
         if (!exists(id)) return $"animation by: unknown object \"{id}\"";
         if (id == from || id == to) return $"animation by \"{id}\" is an end of the step (name another shape, or use {{ name: ... }})";
         return null;
@@ -203,11 +203,11 @@ public static class Animations
             if (map.TryGetValue("trigger", out var t) && t is "outside") trigger = "outside";
             if (map.TryGetValue("outcome", out var o) && o is string given && Outcomes.Contains(given)) outcome = given;
             if (map.TryGetValue("share", out var s)) share = ShareOf(s);
-            if (map.TryGetValue("reason", out var r) && r is string why) reason = Structure.JsTrim(why);
+            if (map.TryGetValue("reason", out var r) && r is string why) reason = JsCompat.JsTrim(why);
             if (map.TryGetValue("by", out var b))
             {
-                if (b is string shape) by = new Interceptor(Shape: Structure.JsTrim(shape));
-                else if (b is OrderedDictionary<string, object?> named && named.TryGetValue("name", out var n) && n is string name) by = new Interceptor(Name: Structure.JsTrim(name));
+                if (b is string shape) by = new Interceptor(Shape: JsCompat.JsTrim(shape));
+                else if (b is OrderedDictionary<string, object?> named && named.TryGetValue("name", out var n) && n is string name) by = new Interceptor(Name: JsCompat.JsTrim(name));
             }
             if (map.TryGetValue("at", out var a)) at = LostAtOf(a);
         }
@@ -294,7 +294,7 @@ public static class Animations
         {
             foreach (var k in keys) map.Remove(k);
         }
-        var text = Structure.JsTrim(value);
+        var text = JsCompat.JsTrim(value);
         switch (key)
         {
             case "kind":

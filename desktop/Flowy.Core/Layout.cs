@@ -23,11 +23,6 @@ public sealed record Arranged(OrderedDictionary<string, Pt> At, List<List<string
 /// </summary>
 public static class Layout
 {
-    /// <summary>Every box has the same size, so boxes can be placed before they are drawn. Keep in step with the box control.</summary>
-    public const double BoxWidth = 200;
-
-    public const double BoxHeight = 72;
-
     private const double Near = 80; // between the members and the outsiders around them
     private const double Stack = 30; // between boxes stacked in a column or row
     private const int PerRow = 4; // outsiders that only start lines wait above the members, this many to a row
@@ -47,7 +42,7 @@ public static class Layout
     /// <summary>Whether segment s runs through the box at p. The box is shrunk by 4px so a line grazing a corner doesn't count.</summary>
     private static bool RunsThrough(Segment s, Pt p)
     {
-        double l = p.X + 4, t = p.Y + 4, r = p.X + BoxWidth - 4, b = p.Y + BoxHeight - 4;
+        double l = p.X + 4, t = p.Y + 4, r = p.X + BoxGeometry.BoxWidth - 4, b = p.Y + BoxGeometry.BoxHeight - 4;
         return Crosses(s, l, t, r, b) || Crosses(s, r, t, l, b);
     }
 
@@ -57,7 +52,7 @@ public static class Layout
     /// </summary>
     private sealed class Board
     {
-        private const double Hx = BoxWidth / 2, Hy = BoxHeight / 2;
+        private const double Hx = BoxGeometry.BoxWidth / 2, Hy = BoxGeometry.BoxHeight / 2;
         private readonly Dictionary<string, int> _index = [];
         private readonly Pt[] _at;
         private readonly (int From, int To)[] _lines;
@@ -220,9 +215,9 @@ public static class Layout
     {
         var spots = inner.Values.ToList();
         var left = spots.Count == 0 ? double.PositiveInfinity : spots.Min(p => p.X);
-        var right = spots.Count == 0 ? double.NegativeInfinity : spots.Max(p => p.X) + BoxWidth;
+        var right = spots.Count == 0 ? double.NegativeInfinity : spots.Max(p => p.X) + BoxGeometry.BoxWidth;
         var top = spots.Count == 0 ? double.PositiveInfinity : spots.Min(p => p.Y);
-        var bottom = spots.Count == 0 ? double.NegativeInfinity : spots.Max(p => p.Y) + BoxHeight;
+        var bottom = spots.Count == 0 ? double.NegativeInfinity : spots.Max(p => p.Y) + BoxGeometry.BoxHeight;
         var middle = new Pt((left + right) / 2, (top + bottom) / 2);
         var mean = new OrderedDictionary<string, Pt>();
         foreach (var id in outsiders)
@@ -250,27 +245,27 @@ public static class Layout
             for (var row = 0; row * PerRow < ids.Count; row++)
             {
                 var r = ids.Skip(row * PerRow).Take(PerRow).ToList();
-                var width = r.Count * BoxWidth + (r.Count - 1) * Stack;
-                for (var j = 0; j < r.Count; j++) at[r[j]] = new Pt(m.Middle.X - width / 2 + j * (BoxWidth + Stack), y(row));
+                var width = r.Count * BoxGeometry.BoxWidth + (r.Count - 1) * Stack;
+                for (var j = 0; j < r.Count; j++) at[r[j]] = new Pt(m.Middle.X - width / 2 + j * (BoxGeometry.BoxWidth + Stack), y(row));
             }
         }
-        static double Height(int n) => n * BoxHeight + Math.Max(0, n - 1) * Stack;
+        static double Height(int n) => n * BoxGeometry.BoxHeight + Math.Max(0, n - 1) * Stack;
 
         List<List<string>> columns = [ByMean(m.Rest.Where(id => region(id) == Region.Left), true), ByMean(m.Rest.Where(id => region(id) == Region.Right), true)];
         var tallest = Math.Max(0, columns.Max(c => Height(c.Count)));
         for (var i = 0; i < columns.Count; i++)
         {
             var ids = columns[i];
-            var x = i == 0 ? m.Left - Near - BoxWidth : m.Right + Near;
-            for (var j = 0; j < ids.Count; j++) at[ids[j]] = new Pt(x, m.Middle.Y - Height(ids.Count) / 2 + j * (BoxHeight + Stack));
+            var x = i == 0 ? m.Left - Near - BoxGeometry.BoxWidth : m.Right + Near;
+            for (var j = 0; j < ids.Count; j++) at[ids[j]] = new Pt(x, m.Middle.Y - Height(ids.Count) / 2 + j * (BoxGeometry.BoxHeight + Stack));
         }
         // Rows above and below are wider than the members, so they clear the side columns too.
         var below = ByMean(m.Rest.Where(id => region(id) == Region.Below), false);
         var belowTop = Math.Max(m.Bottom, m.Middle.Y + tallest / 2) + Near;
-        PutRows(below, row => belowTop + row * (BoxHeight + Stack));
+        PutRows(below, row => belowTop + row * (BoxGeometry.BoxHeight + Stack));
         var above = ByMean([.. m.People, .. m.Rest.Where(id => region(id) == Region.Above)], false);
-        var aboveBottom = Math.Min(m.Top, m.Middle.Y - tallest / 2) - Near - BoxHeight;
-        PutRows(above, row => aboveBottom - row * (BoxHeight + Stack));
+        var aboveBottom = Math.Min(m.Top, m.Middle.Y - tallest / 2) - Near - BoxGeometry.BoxHeight;
+        PutRows(above, row => aboveBottom - row * (BoxGeometry.BoxHeight + Stack));
         return new Arranged(at, [m.At.Keys.ToList(), above, below], columns);
     }
 

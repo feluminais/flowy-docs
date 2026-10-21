@@ -52,7 +52,7 @@ public static class SceneBuilder
 
     public static string LineId(string from, string to) => $"{from} {to}";
 
-    private static bool Overlaps(Pt a, Pt b) => Math.Abs(a.X - b.X) < Layout.BoxWidth && Math.Abs(a.Y - b.Y) < Layout.BoxHeight;
+    private static bool Overlaps(Pt a, Pt b) => Math.Abs(a.X - b.X) < BoxGeometry.BoxWidth && Math.Abs(a.Y - b.Y) < BoxGeometry.BoxHeight;
 
     // toGraph runs again on every flow step and selection change, so placements are kept by what they're made from.
     private static readonly Dictionary<string, OrderedDictionary<string, Pt>> Placements = [];
@@ -73,6 +73,12 @@ public static class SceneBuilder
         }
         return placed;
     }
+
+    /// <summary>
+    /// Lays out a view ahead of time and throws the scene away. What is kept is the placement cache, so the next <see cref="Build"/> of this view
+    /// (with no flow playing) doesn't wait for the layout. Safe to call from another thread.
+    /// </summary>
+    public static void Prewarm(Model model, string view) => Build(model, view);
 
     /// <summary>
     /// The boxes and lines of one view. A box keeps its layout.yaml place; the rest are placed by <see cref="Layout.Place"/>, moved down past
@@ -106,7 +112,7 @@ public static class SceneBuilder
         {
             if (at.ContainsKey(id)) continue;
             var p = placed[id];
-            while (at.Values.Any(q => Overlaps(p, q))) p = p with { Y = p.Y + Layout.BoxHeight + Gap };
+            while (at.Values.Any(q => Overlaps(p, q))) p = p with { Y = p.Y + BoxGeometry.BoxHeight + Gap };
             at[id] = p;
         }
 
@@ -121,7 +127,7 @@ public static class SceneBuilder
         bool IsLit(string from, string to) => litEnds.Any(e => e.From == from && e.To == to);
         bool IsFaint(string from, string to) => faintSteps.Any(f => f.E.From == from && f.E.To == to);
         var sceneBoxes = boxes.Select(id => new SceneBox(
-            id, model.Objects[id], new Rect(at[id].X, at[id].Y, Layout.BoxWidth, Layout.BoxHeight), inside.GetValueOrDefault(id),
+            id, model.Objects[id], new Rect(at[id].X, at[id].Y, BoxGeometry.BoxWidth, BoxGeometry.BoxHeight), inside.GetValueOrDefault(id),
             !isMember.Contains(id),
             !dimming ? BoxMode.Normal : litBoxes.Contains(id) ? BoxMode.Lit : BoxMode.Dim,
             badBoxes.Contains(id)) { Icon = Look.IconData(model, model.Objects[id]) }).ToList();

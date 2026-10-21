@@ -9,7 +9,7 @@ public static partial class Mermaid
     private static readonly Dictionary<char, string> Entities = new() { ['#'] = "35", [';'] = "59", ['"'] = "quot", ['<'] = "lt", ['>'] = "gt", ['`'] = "96" };
 
     // JavaScript's \s, which differs from .NET's (it takes U+FEFF and not U+0085).
-    [GeneratedRegex(@"[\t\n\v\f\r \u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]*\n[\t\n\v\f\r \u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]*")]
+    [GeneratedRegex(JsCompat.SpaceClass + @"*\n" + JsCompat.SpaceClass + "*")]
     private static partial Regex LineBreaks();
 
     [GeneratedRegex("[#;\"<>`]")]
@@ -109,7 +109,7 @@ public static partial class Mermaid
             var (a, b, text, ended) = steps[i];
             var step = new List<string> { a == b ? $"{indent}Note over {n[a]}: {text}" : $"{indent}{n[a]}->>{n[b]}: {text}" };
             if (ended is not null) step.Add($"{indent}Note over {(a == b ? n[a] : $"{n[a]},{n[b]}")}: {ended}");
-            var link = Structure.Blank(flow.Steps[i].FlowId) ? null : Structure.JsTrim(flow.Steps[i].FlowId!);
+            var link = JsCompat.Blank(flow.Steps[i].FlowId) ? null : JsCompat.JsTrim(flow.Steps[i].FlowId!);
             if (link is not null && model.Flows.TryGetValue(link, out var target))
                 step.Add($"{indent}Note over {n[b]}: {Text($"Continues in \"{(string.IsNullOrEmpty(target.Name) ? link : target.Name)}\"")}");
             step.AddRange(StateNotes(flow.Steps[i].States, indent));
@@ -129,7 +129,7 @@ public static partial class Mermaid
                 {
                     object? v = null;
                     g?.TryGetValue(key, out v);
-                    return Structure.Blank(v) ? "" : Structure.JsTrim((string)v!);
+                    return JsCompat.Blank(v) ? "" : JsCompat.JsTrim((string)v!);
                 }
                 var times = Part("times");
                 var until = Part("until");

@@ -181,7 +181,7 @@ internal sealed class Recorder : StackPanel
     {
         var next = new OrderedDictionary<string, string>();
         if (step.TryGetValue("states", out var own) && own is OrderedDictionary<string, object?> map)
-            foreach (var id in JsKeys.Order(map.Keys))
+            foreach (var id in JsCompat.OrderKeys(map.Keys))
                 if (id != shape && map[id] is string text) next[id] = text;
         if (word != "") next[shape] = word;
         return next;
@@ -229,8 +229,8 @@ internal sealed class Recorder : StackPanel
         var others = model.Flows.Where(kv => kv.Key != rec.Id).Select(kv => (Id: kv.Key, Name: kv.Value.Name ?? "")).ToList();
         var strange = steps.Select(s =>
         {
-            var g = Structure.JsTrim(s.Group ?? "");
-            var t = Structure.JsTrim(s.FlowId ?? "");
+            var g = JsCompat.JsTrim(s.Group ?? "");
+            var t = JsCompat.JsTrim(s.FlowId ?? "");
             return $"{(g != "" && !declared.ContainsKey(g) ? g : "")}\u0001{(t != "" && !others.Any(o => o.Id == t) ? t : "")}";
         });
         var signature = string.Join('\u0002', steps.Select(s => $"{s.From}\u0001{s.To}")) + '\u0003' + string.Join('\u0002', strange)
@@ -248,9 +248,9 @@ internal sealed class Recorder : StackPanel
         {
             _rows[i].Text.Sync(steps[i].Text ?? "");
             _rows[i].Detail.Sync(steps[i].Description ?? "");
-            var group = Structure.JsTrim(steps[i].Group ?? "");
+            var group = JsCompat.JsTrim(steps[i].Group ?? "");
             _rows[i].Group.Sync(group);
-            _rows[i].Flow.Sync(Structure.JsTrim(steps[i].FlowId ?? ""));
+            _rows[i].Flow.Sync(JsCompat.JsTrim(steps[i].FlowId ?? ""));
             _rows[i].Lane.Sync(steps[i].Lane ?? "");
             _rows[i].Lane.IsVisible = group != "" && HasLanes(KindOf(declared, group));
             _rows[i].Animation.Sync(steps[i]);
@@ -516,8 +516,8 @@ internal sealed class Recorder : StackPanel
         };
 
         // The group the step is in, the lane it starts, and the flow it opens: each choice is one edit, which keeps the files valid or says why not.
-        var group = Structure.JsTrim(shown[i].Group ?? "");
-        var target = Structure.JsTrim(shown[i].FlowId ?? "");
+        var group = JsCompat.JsTrim(shown[i].Group ?? "");
+        var target = JsCompat.JsTrim(shown[i].FlowId ?? "");
         var groupChoices = new List<string> { "" };
         groupChoices.AddRange(groups.Keys);
         if (group != "" && !groups.ContainsKey(group)) groupChoices.Add(group);
@@ -526,8 +526,8 @@ internal sealed class Recorder : StackPanel
             g => Edit(flowId, d => EditOps.SetStepGroup(d, flowId, i, g)));
         var lane = new FieldBox("Lane (a new lane starts here)", "", false, v => Change(steps =>
         {
-            if (Structure.JsTrim(v) == "") steps[i].Remove("lane");
-            else steps[i]["lane"] = Structure.JsTrim(v);
+            if (JsCompat.JsTrim(v) == "") steps[i].Remove("lane");
+            else steps[i]["lane"] = JsCompat.JsTrim(v);
         }));
         lane.IsVisible = group != "" && HasLanes(KindOf(groups, group));
         var flowNames = others.ToDictionary(o => o.Id, o => o.Name);
@@ -720,7 +720,7 @@ internal sealed class Recorder : StackPanel
         var body = new StackPanel { Spacing = 8, Children = { head, kindChoice } };
         if (kind == "repeat")
         {
-            card.Times = new FieldBox("Times (2 to 99)", "", false, v => Option("times", Structure.JsTrim(v)));
+            card.Times = new FieldBox("Times (2 to 99)", "", false, v => Option("times", JsCompat.JsTrim(v)));
             card.Until = new FieldBox("Until (instead of a count)", "", false, v => Option("until", v));
             body.Children.Add(card.Times);
             body.Children.Add(card.Until);

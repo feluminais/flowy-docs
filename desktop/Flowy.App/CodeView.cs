@@ -20,8 +20,6 @@ namespace Flowy.App;
 /// </summary>
 internal static class CodeView
 {
-    private static readonly FontFamily Mono = new("Cascadia Mono, Consolas, Menlo, monospace");
-
     /// <summary>The section for a shape with snippets; null for one without.</summary>
     public static Control? Build(FlowyObject o, Func<string, IBrush> resource)
     {
@@ -81,7 +79,7 @@ internal static class CodeView
     /// <summary>Code as a box of coloured text, with a bar to scroll along when a line is long. <paramref name="language"/> is one of our ids, or null for plain text.</summary>
     public static Control Block(string text, string? language, Func<string, IBrush> resource, double size = 12.5)
     {
-        var block = new SelectableTextBlock { FontFamily = Mono, FontSize = size, TextWrapping = TextWrapping.NoWrap };
+        var block = new SelectableTextBlock { FontFamily = Fonts.Mono, FontSize = size, TextWrapping = TextWrapping.NoWrap };
         foreach (var run in CodeInk.Runs(text, language))
         {
             var piece = new Run(Tabs(run.Text));

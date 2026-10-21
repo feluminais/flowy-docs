@@ -43,5 +43,5 @@ public sealed class IdMap<T> : IEnumerable<KeyValuePair<string, T>>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private static List<string> Order(List<string> added) => JsKeys.Order(added);
+    private static List<string> Order(List<string> added) => JsCompat.OrderKeys(added);
 }

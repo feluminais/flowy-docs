@@ -10,7 +10,7 @@ public class LayeredLayoutTests
 
     private static OrderedDictionary<string, Pt> Place(string[] ids, params Ends[] edges) => LayeredLayout.Place(ids, edges, 40, 70);
 
-    private static bool Overlap(Pt a, Pt b) => Math.Abs(a.X - b.X) < Layout.BoxWidth && Math.Abs(a.Y - b.Y) < Layout.BoxHeight;
+    private static bool Overlap(Pt a, Pt b) => Math.Abs(a.X - b.X) < BoxGeometry.BoxWidth && Math.Abs(a.Y - b.Y) < BoxGeometry.BoxHeight;
 
     [Fact]
     public void Nothing_in_gives_nothing_out() => Assert.Empty(Place([]));
@@ -32,7 +32,7 @@ public class LayeredLayoutTests
     {
         var at = Place(["root", "x", "y"], E("root", "x"), E("root", "y"));
         Assert.Equal(at["x"].Y, at["y"].Y);
-        Assert.Equal(Layout.BoxWidth + 40, Math.Abs(at["x"].X - at["y"].X));
+        Assert.Equal(BoxGeometry.BoxWidth + 40, Math.Abs(at["x"].X - at["y"].X));
         // the parent is centred over its two children
         Assert.Equal((at["x"].X + at["y"].X) / 2, at["root"].X, 9);
     }
@@ -110,7 +110,7 @@ public class LayoutTests
 {
     private static Edge Line(string from, string to) => new(from, to, "", 1);
 
-    private static bool Overlap(Pt a, Pt b) => Math.Abs(a.X - b.X) < Layout.BoxWidth && Math.Abs(a.Y - b.Y) < Layout.BoxHeight;
+    private static bool Overlap(Pt a, Pt b) => Math.Abs(a.X - b.X) < BoxGeometry.BoxWidth && Math.Abs(a.Y - b.Y) < BoxGeometry.BoxHeight;
 
     [Fact]
     public void A_view_with_members_and_outsiders_gets_every_box_a_place_of_its_own()

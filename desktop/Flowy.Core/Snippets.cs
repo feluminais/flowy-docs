@@ -49,7 +49,7 @@ public static partial class Snippets
     public static Language? LanguageOf(object? tag)
     {
         if (tag is not string s) return null;
-        var key = Structure.JsTrim(s).ToLowerInvariant();
+        var key = JsCompat.JsTrim(s).ToLowerInvariant();
         if (key == "") return null;
         return Languages.FirstOrDefault(l => l.Id == key || l.Name.ToLowerInvariant() == key || l.Aliases.Contains(key));
     }
@@ -132,8 +132,8 @@ public static partial class Snippets
         var result = new OrderedDictionary<string, object?>();
         entry.TryGetValue("title", out var title);
         entry.TryGetValue("language", out var language);
-        if (title is string t && Structure.JsTrim(t) != "") result["title"] = Structure.JsTrim(t);
-        if (language is string l && Structure.JsTrim(l) != "") result["language"] = LanguageOf(l)?.Id ?? Structure.JsTrim(l);
+        if (title is string t && JsCompat.JsTrim(t) != "") result["title"] = JsCompat.JsTrim(t);
+        if (language is string l && JsCompat.JsTrim(l) != "") result["language"] = LanguageOf(l)?.Id ?? JsCompat.JsTrim(l);
         else if (language is not null and not string) result["language"] = language;
         if (entry.TryGetValue("text", out var text)) result["text"] = text is string code ? string.Join('\n', CodeLines(code)) : text;
         foreach (var (key, value) in entry)

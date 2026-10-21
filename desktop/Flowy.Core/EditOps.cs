@@ -88,11 +88,11 @@ public static class EditOps
         if (id == Names.Root && doc.Objects.ContainsKey(Names.Root))
             throw new OpError("\"root\" is reserved, so this object can't be changed here. Rename or delete it in model.yaml by hand.");
         if (ObjectOf(doc, id) is null) throw new OpError($"unknown object \"{id}\"");
-        var children = JsKeys.Order(doc.Objects.Keys).Where(other => other != id && Text(Entry(doc.Objects[other]), "in") == id).ToList();
+        var children = JsCompat.OrderKeys(doc.Objects.Keys).Where(other => other != id && Text(Entry(doc.Objects[other]), "in") == id).ToList();
         if (children.Count > 0) throw new OpError($"\"{id}\" still contains {string.Join(", ", children)}. Delete or move those first.");
         // A shape that only a `states` names (the flow's or a step's) is used too: its state would be left pointing at nothing.
         bool Staged(object? states) => states is OrderedDictionary<string, object?> map && map.ContainsKey(id);
-        var flows = JsKeys.Order(doc.Flows.Keys).Where(fid =>
+        var flows = JsCompat.OrderKeys(doc.Flows.Keys).Where(fid =>
         {
             var flow = Entry(doc.Flows[fid]);
             return Text(flow, "view") == id
@@ -270,7 +270,7 @@ public static class EditOps
         var steps = StepsOf(flow);
         if (index < 0 || index >= steps.Count) throw NoStep(id, index);
         var tree = new OrderedDictionary<string, object?>();
-        foreach (var shape in JsKeys.Order(states.Keys)) tree[shape] = states[shape];
+        foreach (var shape in JsCompat.OrderKeys(states.Keys)) tree[shape] = states[shape];
         var probe = new Flow("", "", [new Step("", null, "", null, States: tree)]);
         if (States.Problems(probe, [], shape => ObjectOf(doc, shape) is not null) is [var (_, why), ..]) throw new OpError(why);
         var entries = Entry(steps[index]).ToList();
@@ -297,9 +297,9 @@ public static class EditOps
         return d;
     }
 
-    private static string GroupOf(object? step) => Text(Entry(step), "group") is { } g ? Structure.JsTrim(g) : "";
+    private static string GroupOf(object? step) => Text(Entry(step), "group") is { } g ? JsCompat.JsTrim(g) : "";
 
-    private static string LaneOf(object? step) => Text(Entry(step), "lane") is { } l ? Structure.JsTrim(l) : "";
+    private static string LaneOf(object? step) => Text(Entry(step), "lane") is { } l ? JsCompat.JsTrim(l) : "";
 
     private static OrderedDictionary<string, object?>? GroupsOf(OrderedDictionary<string, object?> flow) =>
         flow.TryGetValue("groups", out var g) ? g as OrderedDictionary<string, object?> : null;
@@ -384,7 +384,7 @@ public static class EditOps
         var flow = Entry(d.Flows[id]);
         var steps = StepsOf(flow);
         if (index < 0 || index >= steps.Count) throw NoStep(id, index);
-        var to = Structure.JsTrim(group);
+        var to = JsCompat.JsTrim(group);
         var declared = GroupsOf(flow);
         if (to != "" && !(declared is not null && declared.ContainsKey(to))) throw new OpError($"unknown group \"{group}\"");
         if (GroupOf(steps[index]) == to) return doc;
@@ -436,7 +436,7 @@ public static class EditOps
             old.TryGetValue("until", out var until);
             if (old.ContainsKey("times")) next["times"] = times;
             if (old.ContainsKey("until")) next["until"] = until;
-            if (Structure.Blank(times) && Structure.Blank(until)) next["times"] = "3";
+            if (JsCompat.Blank(times) && JsCompat.Blank(until)) next["times"] = "3";
         }
         var steps = StepsOf(flow);
         var members = Enumerable.Range(0, steps.Count).Where(i => GroupOf(steps[i]) == group).ToList();
@@ -512,7 +512,7 @@ public static class EditOps
         foreach (var (key, value) in group)
         {
             if (value is null) continue;
-            if (key is "times" or "until" or "text" && Structure.Blank(value)) continue;
+            if (key is "times" or "until" or "text" && JsCompat.Blank(value)) continue;
             next[key] = value;
         }
         // The checks only refuse a problem that is new, so a bad `times` over an old bad `times` would pass them: this says no first.
@@ -566,7 +566,7 @@ public static class EditOps
         var merged = new OrderedDictionary<string, object?>();
         foreach (var (v, saved) in d.Layout) merged[v] = saved;
         var here = merged.TryGetValue(view, out var existing) ? Entry(existing) : [];
-        foreach (var (id, x, y) in boxes) here[id] = new List<object?> { EditDoc.Number(x), EditDoc.Number(y) };
+        foreach (var (id, x, y) in boxes) here[id] = new List<object?> { JsCompat.Number(x), JsCompat.Number(y) };
         merged[view] = here;
 
         var layout = new OrderedDictionary<string, object?>();

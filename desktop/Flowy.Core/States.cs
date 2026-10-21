@@ -35,7 +35,7 @@ public static class States
     {
         var output = new OrderedDictionary<string, string>();
         if (raw is OrderedDictionary<string, object?> map)
-            foreach (var id in JsKeys.Order(map.Keys))
+            foreach (var id in JsCompat.OrderKeys(map.Keys))
                 if (map[id] is string state && Names.Contains(state)) output[id] = state;
         return output;
     }
@@ -56,7 +56,7 @@ public static class States
                 Add(ShapeMap);
                 return;
             }
-            foreach (var id in JsKeys.Order(map.Keys))
+            foreach (var id in JsCompat.OrderKeys(map.Keys))
             {
                 var state = map[id];
                 if (!exists(id)) Add($"states: unknown shape \"{id}\"");
@@ -116,7 +116,7 @@ public static class States
     public static OrderedDictionary<string, StateMark> Marks(Model model, IReadOnlyDictionary<string, string> states)
     {
         var marks = new OrderedDictionary<string, StateMark>();
-        var entries = JsKeys.Order(states.Keys).Where(id => states[id] != "running" && model.GetObject(id) is not null).Select(id => (Id: id, State: states[id])).ToList();
+        var entries = JsCompat.OrderKeys(states.Keys).Where(id => states[id] != "running" && model.GetObject(id) is not null).Select(id => (Id: id, State: states[id])).ToList();
         foreach (var (id, state) in entries) marks[id] = new StateMark(state, false);
         foreach (var (id, state) in entries)
         {
