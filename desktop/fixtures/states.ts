@@ -1,9 +1,8 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getObject } from '../../src/core/model.ts'
-import type { Flow } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
-import { marksOf, STATE_LABELS, STATE_NAMES, stateProblems, statesAt } from '../../src/core/states.ts'
+import { marksOf, STATE_LABELS, STATE_NAMES, stateProblems, statesAt, usesStates } from '../../src/core/states.ts'
 import { stopBefore, stopsOf } from '../../src/core/structure.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -11,8 +10,6 @@ const root = fileURLToPath(new URL('../../', import.meta.url))
 
 /** The case with a flow for every rule (and every hostile id), then the demo and the showcase. Only flows that use states are dumped. */
 const FOLDERS = ['desktop/fixtures/cases/states/flowy', 'docs/demo/flowy', 'docs/showcase/flowy']
-
-const usesStates = (flow: Flow) => flow.states !== undefined || flow.steps.some(s => s.states !== undefined)
 
 /**
  * The words of the six states, and for every flow that uses states: its problems, where every shape stands at every stop, what is drawn for each

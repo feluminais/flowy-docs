@@ -3,6 +3,7 @@ import type { Edge, FitViewOptions, Node, Viewport, XYPosition } from '@xyflow/r
 import type { Problem } from '../../src/core/check.ts'
 import type { Mark } from '../../src/core/failures.ts'
 import type { BoxTraffic } from '../../src/core/perf.ts'
+import type { StateMark } from '../../src/core/states.ts'
 import { iconData } from '../../src/core/look.ts'
 import type { FlowyObject, Model } from '../../src/core/model.ts'
 import { computeView, memberIds, placeEnds } from '../../src/core/views.ts'
@@ -22,8 +23,11 @@ const NEAR = 80 // between the members and the outsiders around them
 const STACK = 30 // between boxes stacked in a column or row
 const PER_ROW = 4 // outsiders that only start lines wait above the members, this many to a row
 
-/** `inside`: how many boxes sit right inside this one (0: it doesn't open). `perf`: how strained it is at a load. `fail`: the worst failure mode it carries, and how many. */
-export type BoxData = { object: FlowyObject; inside: number; icon: string; perf?: BoxTraffic; fail?: Mark }
+/**
+ * `inside`: how many boxes sit right inside this one (0: it doesn't open). `perf`: how strained it is at a load. `fail`: the worst failure mode it carries, and how many.
+ * `state`: the state it is in (or holds, when `inside`), at the stop on show; a shape that is Running has none.
+ */
+export type BoxData = { object: FlowyObject; inside: number; icon: string; perf?: BoxTraffic; fail?: Mark; state?: StateMark }
 export type BoxNode = Node<BoxData, 'box'>
 
 /**
@@ -330,9 +334,9 @@ function placeCached(members: string[], around: string[], edges: ViewEdge[]): Sp
  * cover. While a flow plays, the current step's two boxes and its line stay lit and everything else
  * is dimmed. A step with no line of its own gets a dashed one. Boxes only the flow uses join for the
  * whole flow, as outsiders, so nothing moves between steps. Boxes and lines with problems get the
- * class "problem". Lines keep their labels here; focusEdges decides which to show.
+ * class "problem". Boxes in `states` (the marks of the stop on show, see marksOf) carry their state. Lines keep their labels here; focusEdges decides which to show.
  */
-export function toGraph(model: Model, view: string, playing?: Playing, problems: Problem[] = []): { nodes: BoxNode[]; edges: Edge[]; members: string[] } {
+export function toGraph(model: Model, view: string, playing?: Playing, problems: Problem[] = [], states: Record<string, StateMark> = {}): { nodes: BoxNode[]; edges: Edge[]; members: string[] } {
   const { members, outsiders, edges } = computeView(model, view)
   const flowBoxes = (playing?.ends ?? []).flatMap(e => e ?? [])
   const boxes = [...new Set([...members, ...outsiders, ...flowBoxes])]
@@ -374,7 +378,7 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     id,
     type: 'box',
     position: at.get(id)!,
-    data: { object: model.objects[id], inside: memberIds(model, id).length, icon: iconData(model, model.objects[id]) },
+    data: { object: model.objects[id], inside: memberIds(model, id).length, icon: iconData(model, model.objects[id]), ...(Object.hasOwn(states, id) ? { state: states[id] } : {}) },
     className: classes(!members.includes(id) && 'outsider', dimming && (litBoxes.has(id) ? 'lit' : 'dim'), badBoxes.has(id) && 'problem'),
   }))
   // A lit line draws over the faded boxes (zIndex), with an arrowhead in its own colour.

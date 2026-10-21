@@ -870,3 +870,66 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .pick-grid.langs { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
 .pick-grid.langs button.pick { padding: 6px 4px; font-size: 12px; }
 .panel button.add-code { align-self: flex-start; }
+
+/*
+ * Shape states. A box in a state other than Running dims, draws a second outline over its own in the state's dash (the overlay Box.tsx adds, whose
+ * path has pathLength 100, so a dash of 2 is two hundredths of the way round), and carries a glyph on a ring at its corner. A shape that only holds
+ * one in a state gets the glyph on a dashed ring and nothing else. Each state sets its colour (--sc), the dash of the outline (--sd), the dash of the
+ * small outline in the key (--sk, in pixels), how far the content dims (--sdim) and how grey it goes (--sg). The key under the player draws the same
+ * marks (.state-key). The movement is at the foot of this section, under no-preference: reduced motion keeps the still look and drops the rest.
+ * A state beats the strain colour of the Performance tab on the same shape.
+ */
+.state-starting { --sc: var(--accent); --sd: 0.01 1.6; --sk: 0.01 3.6; --scap: round; --sw: 2.6; --sdim: 0.72; --sg: 0.3; }
+.state-stopping { --sc: var(--warn); --sd: 46 54; --sk: 36 36; --scap: round; --sw: 2.4; --sdim: 0.6; --sg: 0.5; }
+.state-stopped { --sc: var(--muted); --sd: 2.2 1.6; --sk: 4 3; --scap: butt; --sw: 2; --sdim: 0.55; --sg: 1; }
+.state-restarting { --sc: var(--accent); --sd: 20 80; --sk: 16 56; --scap: round; --sw: 3; --sdim: 0.55; --sg: 0.8; }
+.state-degraded { --sc: var(--warn); --sd: 100 0; --sk: 100 0; --scap: butt; --sw: 2.6; --sdim: 1; --sg: 0; }
+.box.stated .shape, .box.stated .tile, .box.stated .box-text { opacity: var(--sdim); filter: grayscale(var(--sg)); }
+.box.stated.state-leaving { --sdim: 1; --sg: 0; }
+.canvas.states .box .shape, .canvas.states .box .tile, .canvas.states .box .box-text { transition: opacity 0.6s ease, filter 0.6s ease; }
+.box.stated.strained .shape path { stroke: var(--line); stroke-width: 1; }
+.box.stated.strained.colored .shape path { stroke: var(--c); stroke-width: 1.5; }
+.box.stated.strained .shape { filter: grayscale(var(--sg)); }
+.react-flow__node.lit .box.stated .shape { filter: grayscale(var(--sg)) drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 70%, transparent)); }
+.state-outline { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.state-outline path { fill: none; stroke: var(--sc); stroke-width: var(--sw); stroke-dasharray: var(--sd); stroke-linecap: var(--scap); stroke-linejoin: round; }
+.state-glyph {
+  position: absolute; top: -9px; left: -7px; z-index: 2; display: grid; place-items: center; width: 20px; height: 20px; box-sizing: border-box;
+  border: 1.5px solid var(--sc); border-radius: 50%; background: var(--box); color: var(--sc);
+}
+.state-glyph svg { display: block; }
+.box.state-inside .state-glyph { top: auto; bottom: -9px; border-style: dashed; }
+.stateline { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; }
+.stateline .state-glyph { position: static; flex: none; }
+.keyrow .swatch .state-key { position: relative; display: inline-block; width: 26px; height: 16px; margin-left: 6px; }
+.state-key svg { display: block; width: 26px; height: 16px; overflow: visible; }
+.state-key rect { fill: none; stroke: var(--sc); stroke-width: 1.8; stroke-dasharray: var(--sk); stroke-linecap: var(--scap); }
+.state-key .state-glyph { top: -6px; left: -6px; width: 14px; height: 14px; border-width: 1.2px; }
+.state-key.state-inside { width: 14px; margin-left: 0; }
+.state-key.state-inside .state-glyph { position: static; }
+.player .keyrow { margin: 8px 0 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes state-in { from { opacity: 0; } }
+  @keyframes state-out { to { opacity: 0; } }
+  @keyframes state-march { to { stroke-dashoffset: -32.2; } } /* twenty dots of the 1.61 they are spaced by: the loop does not jump */
+  @keyframes state-circle { to { stroke-dashoffset: -100; } }
+  @keyframes state-drain { from { stroke-dasharray: 100 0; } }
+  @keyframes state-settle { 55% { stroke-dasharray: 100 0; opacity: 1; } to { stroke-dasharray: 100 0; opacity: 0; } }
+  @keyframes state-pulse { 50% { opacity: 0.35; } }
+  @keyframes state-beat { 50% { opacity: 0.55; } }
+  @keyframes state-spin { to { transform: rotate(360deg); } }
+  .state-outline { animation: state-in 0.6s ease both; }
+  .state-starting .state-outline path { animation: state-march 3s linear infinite; }
+  .state-stopping .state-outline path { animation: state-drain 0.9s ease-out both; }
+  .state-restarting .state-outline path { animation: state-circle 1.4s linear infinite; }
+  .state-degraded .state-outline path { animation: state-pulse 2.4s ease-in-out infinite; }
+  .box.state-starting .state-glyph svg, .box.state-restarting .state-glyph svg { animation: state-spin 1.2s linear infinite; }
+  .box.state-degraded .state-glyph { animation: state-beat 2.4s ease-in-out infinite; }
+  .box.state-leaving .state-outline, .box.state-leaving .state-glyph { animation: state-out 0.6s ease both; }
+  .box.state-leaving.state-starting .state-outline { animation: none; }
+  .box.state-leaving.state-starting .state-outline path { animation: state-settle 0.7s ease-out both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .canvas.states .box .shape, .canvas.states .box .tile, .canvas.states .box .box-text { transition: none; }
+  .box.state-leaving .state-outline, .box.state-leaving .state-glyph { display: none; }
+}
