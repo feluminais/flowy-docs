@@ -123,7 +123,7 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
         const p = progress(beat, t)
         if (node) node.style.display = on ? '' : 'none'
         if (beat.do === 'pipe') return
-        else if (beat.do === 'gulp' && on && beat.on !== 'line') squash[beat.on] = Math.max(squash[beat.on], bump(p))
+        else if (beat.do === 'gulp' && on && (beat.on === 'from' || beat.on === 'to')) squash[beat.on] = Math.max(squash[beat.on], bump(p))
         else if (!node || !on) return
         else if (beat.do === 'blob') {
           const pos = distance(beat.dir, p, length)
