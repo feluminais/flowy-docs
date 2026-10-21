@@ -162,11 +162,11 @@ small shop that really runs, with a load generator that writes these files (`npm
 
 ## Failure modes
 
-![The Failures tab on the Ordering view: modes ranked from High to Not rated, the Stripe timeout picked, Order API outlined in red with a 2 on it, and the shapes it affects outlined lighter](docs/images/failures.png)
+![The Failures tab on the left of the Ordering view beside Explorer and Flows: modes ranked from High to Not rated, the Stripe timeout picked, Order API and the line to Stripe outlined in red with a 2 on each, and the shapes it affects outlined lighter](docs/images/failures.png)
 
 Flowy can hold how a system breaks, too. A failure analysis lives in `flowy/failures/<name>.yaml`. For a shape, or a line between two,
 it says how the part fails, what that causes, what exists to deal with it and what to do next, and rates it from 1 to 10 on
-Severity, Likelihood and Hard to spot (10 means nobody would notice). In the browser a Failures tab joins the icons on the right edge, and in the desktop app it sits on the left beside Explorer and Flows; press **M** in either.
+Severity, Likelihood and Hard to spot (10 means nobody would notice). A Failures tab sits on the left beside Explorer and Flows, or press **M**.
 
 - The list runs from High to Low, then Not rated for a mode with no ratings. A severity of 9 or 10 is High whatever else is missing.
 - **Analysed 15 of 26** counts the shapes that have a mode, and **Not analysed** lists the rest.
@@ -332,7 +332,7 @@ sequenceDiagram
 | P | Autoplay: step through the flow on its own, or pause. In Performance, ramp the load or play the time on its own |
 | R | Replay the step's animation |
 | T | The Performance tab, where a folder has load-test runs |
-| M | The Failures tab, where a folder has failure analyses (browser) |
+| M | The Failures tab, where a folder has failure analyses |
 | Y | The YAML tab: the files as text, and every change to them (browser) |
 | Ctrl+O, F5 | Open a folder, reload it (app) |
 | E | Edit mode on and off |

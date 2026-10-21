@@ -646,7 +646,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 @keyframes dial-turn { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes orbit-turn { from { transform: rotate(-60deg); } to { transform: rotate(300deg); } }
 
-/* The navigator: a rail of icons on the left edge with a panel of Flows and Explorer beside it, and on the right a rail with Details (Navigator.tsx). */
+/* The navigator: a rail of icons on the left edge with a panel of Explorer, Flows, Failures and YAML beside it, and on the right a rail with Details (Navigator.tsx). */
 .stage { flex: 1; display: flex; min-height: 0; }
 .stage > .canvas { min-width: 0; }
 .rail { flex: none; box-sizing: border-box; width: 44px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0; border-left: 1px solid var(--line); background: var(--bg); }
@@ -674,6 +674,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .sash:active { transition-delay: 0s; }
 .navpanel > .navtabs { margin: 0; padding: 10px 52px 0 16px; flex: none; }
 .navbody { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 12px 12px; }
+.navbody > .perf { margin: 0 -4px; padding: 4px 6px 26px; } /* the Failures tab: the navigator's own padding is already round it */
 .navfind { display: flex; align-items: center; gap: 7px; height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--box); color: var(--muted); }
 .navfind:focus-within { border-color: var(--accent); }
 .navfind input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--fg); }
