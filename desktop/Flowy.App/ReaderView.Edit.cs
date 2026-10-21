@@ -97,22 +97,22 @@ internal sealed partial class ReaderView
         if (_session is not { } session || _folder is null) return false;
         DismissNotice();
         _undoMove = false;
-        string? message;
+        EditResult result;
         try
         {
-            message = await Task.Run(() => session.Apply(op));
+            result = await Task.Run(() => session.Apply(op));
         }
         catch (Exception e) when (e is not OutOfMemoryException)
         {
-            message = $"Couldn't save: {e.Message}";
+            result = EditResult.Refused($"Couldn't save: {e.Message}");
         }
-        if (message is null)
+        if (result.IsOk)
         {
             await ReloadFromDiskAsync(session.Dir);
             return true;
         }
-        ShowNotice(message);
-        if (message == EditSession.ChangedOutside) await ReloadFromDiskAsync(session.Dir);
+        ShowNotice(result.Message!);
+        if (result.ChangedOutside) await ReloadFromDiskAsync(session.Dir);
         return false;
     }
 
@@ -140,14 +140,14 @@ internal sealed partial class ReaderView
 
     internal Task RedoAsync() => BackAsync(s => s.Redo(), "Redone.");
 
-    private async Task BackAsync(Func<EditSession, string?> step, string done)
+    private async Task BackAsync(Func<EditSession, EditResult> step, string done)
     {
         if (_session is not { } session) return;
         DismissNotice();
         _undoMove = false;
-        var message = await Task.Run(() => step(session));
-        if (message is null) ShowNotice(done, 3);
-        else ShowNotice(message);
+        var result = await Task.Run(() => step(session));
+        if (result.IsOk) ShowNotice(done, 3);
+        else ShowNotice(result.Message!);
         await ReloadFromDiskAsync(session.Dir);
     }
 

@@ -20,7 +20,7 @@ public class StatesTests
     private static JsonObject MarkNode(IEnumerable<KeyValuePair<string, StateMark>> marks) =>
         new(marks.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)new JsonObject { ["state"] = kv.Value.State, ["inside"] = kv.Value.Inside })));
 
-    private static JsonNode ProblemNode((int? Step, string Message) p)
+    private static JsonNode ProblemNode(Finding p)
     {
         var o = new JsonObject();
         if (p.Step is { } step) o["step"] = step;
