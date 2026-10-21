@@ -495,7 +495,7 @@ objects:
     type: component
     in: core
     name: Performance runs
-    code: [src/core/perf.ts, desktop/Flowy.Core/Perf.cs, desktop/Flowy.Core/PerfSources.cs]
+    code: [src/core/perf/, desktop/Flowy.Core/Perf.cs, desktop/Flowy.Core/PerfSources.cs]
     description: |
       A load test as numbers: for each load level that was tested, what each shape and each
       connection measured. It reads a run file, checks it against the model, and works out what the

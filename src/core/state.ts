@@ -1,6 +1,6 @@
 import type { Problem } from './problem.ts'
 import type { Analysis, Flow, Layout, Model } from './model.ts'
-import type { Run } from './perf.ts'
+import type { Run } from './perf/types.ts'
 
 /** What GET /api/state returns: everything the canvas shows, or the file that stops it from loading. */
 export type State =

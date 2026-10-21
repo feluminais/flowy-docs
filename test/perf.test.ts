@@ -1,7 +1,13 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ParseError } from '../src/core/model.ts'
-import { AT_ONCE, capCounts, checkRun, eventsPassed, eventText, interpolate, knee, kneeText, parseRun, RADIUS_MAX, RADIUS_MIN, rollUp, runStates, scaleText, sourceKey, strain, traffic } from '../src/core/perf.ts'
+import { eventsPassed, knee, runStates, strain } from '../src/core/perf/analyse.ts'
+import { checkRun } from '../src/core/perf/check.ts'
+import { interpolate } from '../src/core/perf/levels.ts'
+import { parseRun } from '../src/core/perf/parse.ts'
+import { rollUpLoad } from '../src/core/perf/rollup.ts'
+import { eventText, kneeText, scaleText, sourceKey } from '../src/core/perf/text.ts'
+import { AT_ONCE, capCounts, RADIUS_MAX, RADIUS_MIN, traffic } from '../src/core/perf/traffic.ts'
 import { shop } from './fixtures.ts'
 
 /** Three levels of a run against the shop fixture (test/fixtures.ts): api and db are measured, and orders inside api. */
@@ -202,27 +208,27 @@ test('strain is the busier of utilisation and errors, with errors counting twent
   assert.deepEqual(strain({ errors: 0 }), { value: 0, by: 'errors', share: 0 }) // only errors were measured, so it is not "by util"
 })
 
-test('rollUp gives a shape the worst of what it holds, with queues added up', () => {
-  const { objects } = rollUp(shop(), ramp().levels[1], 'root')
+test('rollUpLoad gives a shape the worst of what it holds, with queues added up', () => {
+  const { objects } = rollUpLoad(shop(), ramp().levels[1], 'root')
   assert.deepEqual(objects.orders, { util: 0.3 })
   assert.deepEqual(objects.api, { util: 0.7, queue: 2 }) // its own, with orders inside it no busier
   assert.deepEqual(objects.shop, { util: 0.8, queue: 2 }) // db is the busiest thing inside it
   assert.equal(Object.hasOwn(objects, 'web'), false) // nothing measured it, nothing inside it
 })
 
-test('rollUp merges the connections that land on one line in a view', () => {
+test('rollUpLoad merges the connections that land on one line in a view', () => {
   const run = ramp()
-  assert.deepEqual(rollUp(shop(), run.levels[2], 'shop').lines, [
+  assert.deepEqual(rollUpLoad(shop(), run.levels[2], 'shop').lines, [
     { from: 'web', to: 'api', rate: 300, p50: 60, p95: 200, errors: 0.08 },
     { from: 'api', to: 'db', rate: 270, p50: 50, p95: 120 }, // orders → db and auth → db: rates added, worst latency
   ])
 })
 
-test('rollUp leaves out a connection the view folds into one box, and one the model does not have', () => {
+test('rollUpLoad leaves out a connection the view folds into one box, and one the model does not have', () => {
   const run = ramp()
-  assert.deepEqual(rollUp(shop(), run.levels[2], 'root').lines, [])
+  assert.deepEqual(rollUpLoad(shop(), run.levels[2], 'root').lines, [])
   const { run: odd } = parseRun('r', 'name: R\nlevels:\n  - { load: 1, connections: [{ from: web, to: db, rate: 5 }] }\n  - load: 2\n')
-  assert.deepEqual(rollUp(shop(), odd.levels[0], 'shop').lines, [])
+  assert.deepEqual(rollUpLoad(shop(), odd.levels[0], 'shop').lines, [])
 })
 
 const nameIn = (id: string) => shop().objects[id].name
@@ -449,32 +455,32 @@ test('a failure style named only at a higher level still counts below it', () =>
   assert.equal(interpolate(run, 1).connections[0].failure, 'rejected')
 })
 
-test('rollUp takes the mean bytes of the connections on a line, weighted by rate', () => {
-  const lines = rollUp(shop(), sized().levels[0], 'shop').lines
+test('rollUpLoad takes the mean bytes of the connections on a line, weighted by rate', () => {
+  const lines = rollUpLoad(shop(), sized().levels[0], 'shop').lines
   assert.equal(lines.find(l => l.from === 'api' && l.to === 'db')?.bytes, 250) // (100 * 50 + 300 * 150) / 200
   assert.equal(lines.find(l => l.from === 'web' && l.to === 'api')?.bytes, 200)
 })
 
 test('with no rates to weigh by, bytes is the plain mean; a connection with no bytes does not count', () => {
   const { run } = parseRun('r', 'name: R\nlevels:\n  - { load: 1, connections: [{ from: orders, to: db, bytes: 100 }, { from: auth, to: db, bytes: 300 }] }\n  - load: 2\n')
-  assert.equal(rollUp(shop(), run.levels[0], 'shop').lines[0].bytes, 200)
+  assert.equal(rollUpLoad(shop(), run.levels[0], 'shop').lines[0].bytes, 200)
   const { run: one } = parseRun('r', 'name: R\nlevels:\n  - { load: 1, connections: [{ from: orders, to: db, bytes: 100, rate: 5 }, { from: auth, to: db, rate: 5 }] }\n  - load: 2\n')
-  assert.equal(rollUp(shop(), one.levels[0], 'shop').lines[0].bytes, 100)
+  assert.equal(rollUpLoad(shop(), one.levels[0], 'shop').lines[0].bytes, 100)
   const { run: none } = parseRun('r', 'name: R\nlevels:\n  - { load: 1, connections: [{ from: orders, to: db, rate: 5 }] }\n  - load: 2\n')
-  assert.equal(Object.hasOwn(rollUp(shop(), none.levels[0], 'shop').lines[0], 'bytes'), false)
+  assert.equal(Object.hasOwn(rollUpLoad(shop(), none.levels[0], 'shop').lines[0], 'bytes'), false)
 })
 
-test('rollUp keeps a failure style the connections on a line agree on, and drops it when they disagree', () => {
-  assert.equal(rollUp(shop(), sized().levels[0], 'shop').lines.find(l => l.to === 'db')?.failure, 'lost')
+test('rollUpLoad keeps a failure style the connections on a line agree on, and drops it when they disagree', () => {
+  assert.equal(rollUpLoad(shop(), sized().levels[0], 'shop').lines.find(l => l.to === 'db')?.failure, 'lost')
   const mixed = structuredClone(sized())
   mixed.levels[0].connections[2].failure = 'rejected'
-  assert.equal(Object.hasOwn(rollUp(shop(), mixed.levels[0], 'shop').lines.find(l => l.to === 'db')!, 'failure'), false)
+  assert.equal(Object.hasOwn(rollUpLoad(shop(), mixed.levels[0], 'shop').lines.find(l => l.to === 'db')!, 'failure'), false)
   delete mixed.levels[0].connections[2].failure
-  assert.equal(rollUp(shop(), mixed.levels[0], 'shop').lines.find(l => l.to === 'db')?.failure, 'lost') // one that names none does not veto
+  assert.equal(rollUpLoad(shop(), mixed.levels[0], 'shop').lines.find(l => l.to === 'db')?.failure, 'lost') // one that names none does not veto
 })
 
-test('rollUp of an old run adds nothing to a line', () => {
-  assert.deepEqual(Object.keys(rollUp(shop(), ramp().levels[2], 'shop').lines[0]), ['from', 'to', 'rate', 'p50', 'p95', 'errors'])
+test('rollUpLoad of an old run adds nothing to a line', () => {
+  assert.deepEqual(Object.keys(rollUpLoad(shop(), ramp().levels[2], 'shop').lines[0]), ['from', 'to', 'rate', 'p50', 'p95', 'errors'])
 })
 
 // ---- Traffic from a source: how many dots a line shows, how big each is, what colour, and when the screen says it is scaled down
@@ -874,7 +880,7 @@ test('a size that overflows when weighted by the rate is no number, not Infinity
   const m = shop()
   const { from, to } = m.connections[0]
   const level = { load: 1, overall: {}, objects: {}, connections: [{ from, to, rate: 1e308, bytes: 1e308 }, { from, to, rate: 1e308, bytes: 1e308 }] }
-  const lines = rollUp(m, level, 'root').lines
+  const lines = rollUpLoad(m, level, 'root').lines
   assert.ok(lines.length > 0)
   assert.equal(lines[0].bytes, undefined)
 })
