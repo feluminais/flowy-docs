@@ -4,7 +4,7 @@ namespace Flowy.Core;
 
 /// <summary>
 /// Everything a run can measure. On an object: util, queue, errors. On a connection or overall: rate, bytes (a call's size), p50, p95, errors. A missing number
-/// means "not measured", never zero. A port of <c>Metrics</c> in src/core/perf.ts.
+/// means "not measured", never zero. A port of <c>Metrics</c> in src/core/perf/types.ts.
 /// </summary>
 public record Metrics
 {
