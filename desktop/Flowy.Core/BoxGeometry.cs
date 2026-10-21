@@ -61,14 +61,14 @@ public static class BoxGeometry
     }
 
     /// <summary>
-    /// Whether (<paramref name="x"/>, <paramref name="y"/>) is on the shape drawn in <paramref name="r"/>, or within <paramref name="margin"/> of it: inside its outline,
-    /// or the box itself when <paramref name="edge"/> is empty. A line that runs behind a shape is hidden by it, so traffic on that line hides there too, a
-    /// dot's width before it touches.
+    /// How far inside the shape drawn in <paramref name="r"/> the point (<paramref name="x"/>, <paramref name="y"/>) is: positive inside, 0 on the outline, negative
+    /// outside (close to the distance from it). The shape is its outline, or the box itself when <paramref name="edge"/> is empty. A line that runs behind a
+    /// shape is covered by it, and traffic on that line goes dim as its depth grows (<see cref="Particles.HowBehind"/>).
     /// </summary>
-    public static bool Covers(Rect r, double[]? edge, double x, double y, double margin = 0)
+    public static double DepthIn(Rect r, double[]? edge, double x, double y)
     {
-        if (edge is null || edge.Length == 0) return x >= r.X - margin && x <= r.Right + margin && y >= r.Y - margin && y <= r.Bottom + margin;
-        // The outline is convex, so the point is on the shape when it is on the inner side of every side, whichever way the outline winds.
+        if (edge is null || edge.Length == 0) return Math.Min(Math.Min(x - r.X, r.Right - x), Math.Min(y - r.Y, r.Bottom - y));
+        // The outline is convex, so the depth is the point's distance from the nearest side, on the inner side, whichever way the outline winds.
         var n = edge.Length / 2;
         var area = 0.0;
         for (var i = 0; i < n; i++)
@@ -77,14 +77,15 @@ public static class BoxGeometry
             area += edge[2 * i] * edge[2 * j + 1] - edge[2 * j] * edge[2 * i + 1];
         }
         var inward = area < 0 ? -1 : 1;
+        var depth = double.PositiveInfinity;
         for (var i = 0; i < n; i++)
         {
             double px = edge[2 * i], py = edge[2 * i + 1];
             double qx = edge[2 * ((i + 1) % n)], qy = edge[2 * ((i + 1) % n) + 1];
             var cross = (qx - px) * (y - r.Y - py) - (qy - py) * (x - r.X - px);
-            if (inward * cross < -margin * Math.Sqrt((qx - px) * (qx - px) + (qy - py) * (qy - py))) return false;
+            depth = Math.Min(depth, inward * cross / Math.Sqrt((qx - px) * (qx - px) + (qy - py) * (qy - py)));
         }
-        return true;
+        return depth;
     }
 
     /// <summary>The side of <paramref name="from"/> that faces <paramref name="to"/>: the one a line between their centres leaves through.</summary>
