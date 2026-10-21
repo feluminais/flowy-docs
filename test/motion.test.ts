@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { active, bump, cyclePeriod, distance, ease, entryPoint, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, progress, REST, tintColor, tubeOpacity } from '../ui/src/motion.ts'
+import { active, bump, cyclePeriod, distance, ease, entryPoint, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, progress, REST, squish, tintColor, tubeOpacity } from '../ui/src/motion.ts'
 import { beatsFor, TINTS } from '../src/core/animation.ts'
 import { COLORS } from '../src/core/look.ts'
 
@@ -152,4 +152,22 @@ test('a label moves off the pipe, to the upper side of the line and further for 
   assert.ok(labelOffset(0, 300, 20).x > steep.x)
   assert.ok(labelOffset(100, 100, 10).y < 0) // up, on any slope
   assert.deepEqual(labelOffset(0, 0, 4), { x: 0, y: -31 })
+})
+
+test('a dot is stretched along its way, and a label pill is never sheared', () => {
+  assert.equal(squish(false, 30, 0), 'rotate(30) scale(1 1) rotate(-30)')
+  assert.equal(squish(false, 30, 1), 'rotate(30) scale(1.3 0.85) rotate(-30)')
+  // Level, a label gets the whole stretch; running straight up or down, the whole thinning along its way is across its width.
+  assert.equal(squish(true, 0, 1), 'scale(1.3 0.85)')
+  assert.equal(squish(true, 90, 1), 'scale(0.85 1.3)')
+  assert.equal(squish(true, 0, 0), 'scale(1 1)')
+  // Slanted, it is only ever a scale along its own axes: no rotation or skew in what comes out, so its sides stay level and upright.
+  for (const angle of [20, 45, 63, 135, -70]) {
+    const t = squish(true, angle, 1)
+    assert.match(t, /^scale\([\d.]+ [\d.]+\)$/, t)
+    const [x, y] = t.match(/[\d.]+/g)!.map(Number)
+    assert.ok(x >= 0.85 && x <= 1.3 && y >= 0.85 && y <= 1.3, t)
+  }
+  // The same stretch from either way along a line.
+  assert.equal(squish(true, 30, 1), squish(true, 210, 1))
 })

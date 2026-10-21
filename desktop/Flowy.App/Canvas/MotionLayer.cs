@@ -16,6 +16,9 @@ namespace Flowy.App.Canvas;
 /// </summary>
 internal sealed class MotionLayer : Control
 {
+    /// <summary>Whether a moving blob squishes as it runs. Off: the reader has no switch for it here yet.</summary>
+    public static bool Squish { get; set; }
+
     /// <summary>Whoever takes an intercepted request: the box that stands for it on the canvas (with its outline), or a name for a party that is not on it.</summary>
     public sealed record Taker(CoreRect? Box = null, string? Shape = null, string? Name = null);
 
@@ -210,11 +213,16 @@ internal sealed class MotionLayer : Control
             if (!run.Line.TryGetPointAndTangentAtDistance(at, out point, out var tangent)) return;
             angle = Math.Atan2(tangent.Y, tangent.X);
         }
-        // A blob that waits where it is does not stretch.
-        var s = beat.Start is not null && beat.Start == beat.End ? 0 : MotionMath.Bump(p);
-        // The shape is stretched along the way it runs and no more rotated than that. The glyph or the words in it are not stretched at all.
+        // A blob squishes only when asked to (off until then), and one that waits where it is never does.
+        var s = !Squish || (beat.Start is not null && beat.Start == beat.End) ? 0 : MotionMath.Bump(p);
+        // A dot is stretched along the way it runs. A label's pill gets the same stretch along its own edges, since along a slanted way it would shear.
+        // The glyph or the words in it are not squished at all. Twin of squish() in ui/src/motion.ts.
         var place = Matrix.CreateTranslation(point.X, point.Y);
-        var stretch = Matrix.CreateRotation(-angle) * Matrix.CreateScale(1 + 0.3 * s, 1 - 0.15 * s) * Matrix.CreateRotation(angle) * place;
+        var (along, across) = (0.3 * s, -0.15 * s);
+        var (cos, sin) = (Math.Cos(angle) * Math.Cos(angle), Math.Sin(angle) * Math.Sin(angle));
+        var stretch = beat.Label is null
+            ? Matrix.CreateRotation(-angle) * Matrix.CreateScale(1 + along, 1 + across) * Matrix.CreateRotation(angle) * place
+            : Matrix.CreateScale(1 + along * cos + across * sin, 1 + along * sin + across * cos) * place;
         // A refusal is the danger colour, then a colour of its own for a request in a burst, then the answer's colour.
         var tint = beat.Tint is { } slot ? Tint(slot) : null;
         var fill = Brush(beat.Tone switch { "reply" => "AppBrush", "fail" => "DangerBrush", _ => "AccentBrush" });

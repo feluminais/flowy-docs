@@ -51,6 +51,21 @@ export const ease = (p: number): number => (p < 0.5 ? 4 * p * p * p : 1 - (-2 * 
 /** 0 at the ends of a beat and 1 in the middle: a squash, or a blob stretched at full speed. */
 export const bump = (p: number): number => Math.sin(Math.PI * p)
 
+/** How much longer a squishing blob gets along the way it runs, and how much thinner across it, at full strength. */
+export const SQUISH = { along: 0.3, across: -0.15 } as const
+
+/**
+ * The SVG transform that squishes a blob at `s` (0 to 1, see bump) while it runs at `angle` degrees. A dot is stretched along its way. A label's
+ * pill is stretched by the same amount but along its own edges: stretching it along a slanted way would shear it, one end up and one down.
+ * `s` of 0, or a blob that does not squish, is no transform at all.
+ */
+export function squish(label: boolean, angle: number, s: number): string {
+  const [along, across] = [1 + SQUISH.along * s, 1 + SQUISH.across * s]
+  if (!label) return `rotate(${angle}) scale(${along} ${across}) rotate(${-angle})`
+  const [cos, sin] = [Math.cos((angle * Math.PI) / 180) ** 2, Math.sin((angle * Math.PI) / 180) ** 2]
+  return `scale(${1 + (along - 1) * cos + (across - 1) * sin} ${1 + (along - 1) * sin + (across - 1) * cos})`
+}
+
 /** The tube fades in over the first 150 ms of its beat and out over the last 250. */
 export const tubeOpacity = (b: Span, t: number): number => Math.min(1, Math.max(0, Math.min((t - b.at) / 150, (b.at + b.dur - t) / 250)))
 
