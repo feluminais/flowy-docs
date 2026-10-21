@@ -592,7 +592,8 @@ load generator that measures it and writes runs of this shape: `npm run lab:run`
 
 A store can say what it holds. Click it and its panel has a **Data** section that draws the data the way a developer pictures it: a
 table is column headings over a few sample rows, and a document is its fields, indented. The first entry is open. The others are one
-line each, with how many columns they have and how long they are kept, and a click opens or closes one.
+line each, with how many columns (or, for a document, fields) they have and how long they are kept, and a click opens or closes one.
+The browser and the desktop app draw it the same way.
 
 ![Orders DB's panel: the orders table with a key mark on id and customer_id, a dot on total and its note under the table, and three more tables closed to a line each](images/desktop-data.png)
 
@@ -677,11 +678,12 @@ a dot cannot carry a note. What to put in it, and how to word a note, is in [Wri
 The checks keep the section small. They refuse:
 
 - `data` on anything but a store, an entry with no name or the name of another, and an entry with both `columns` and `sample` or with neither.
+- `rows` with no `columns`, `notes` with no `sample`, and a column with no name or the name of another column.
 - A row with a different number of cells than there are columns, more than 12 columns or 8 rows, and a `key` other than `primary`.
 - A sample nested more than 3 levels deep or showing more than 20 fields, a list directly inside a list, and a note on a field that is not there.
 - Text with a line break, anywhere in `data` (the separator characters U+0085, U+2028 and U+2029 count), so that a row stays on one line.
 
-In edit mode a store's form has a **Data** box that holds the same lines as the file. Leave the box and the change is checked like any
+In edit mode, in the browser and in the desktop app, a store's form has a **Data** box that holds the same lines as the file. Leave the box and the change is checked like any
 other: a refusal says why and keeps what you typed, and clearing the box removes the data. Saving writes each row on one line, so a table of
 eight rows stays eight lines in git, and an empty cell is written `""`.
 
@@ -919,7 +921,7 @@ what it saves, the browser and Claude see, and the other way round. A file that 
 with the reason in a banner, and while it is there editing is off.
 
 Editing in the app: **E** (or the Edit button) turns it on, and the bar gains New flow, Add, Undo, Redo and Tidy. A shape's panel becomes
-a form (name, type, outside service, tech, look, description, code, links, source), and a line's panel has a label field and a delete for each connection it
+a form (name, type, outside service, tech, look, description, code, links, source, and a store's data), and a line's panel has a label field and a delete for each connection it
 stands for. Drag a shape to move it; the dot under a shape starts a connection, which you drop on another shape. Each edit is checked first:
 one that would add a problem is refused and a notice says why. A file changed elsewhere since the app read it is never overwritten: the
 edit is dropped, and the view reloads. **Ctrl+Z** and **Ctrl+Y** undo and redo, but only where the files are still as that edit left
@@ -927,7 +929,7 @@ them. The sample model that ships with the app can't be edited.
 
 What it has, as the canvas does: zoom into a shape (double-click it, or select it and press Enter; Esc and Backspace go back up, and
 the breadcrumb works too), a frame around the shape you're inside, shapes that belong to another level faded and dashed, wheel to
-zoom and drag to pan, **F** to fit, the side panel with the description, its code, its links, the files a shape lives in (as links when the repo's
+zoom and drag to pan, **F** to fit, the side panel with the description, its code, what a store holds (its [Data](#data) section), its links, the files a shape lives in (as links when the repo's
 origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one) and the one on the right (**T** for load-test runs), flows that play with ← and → (Home and End go to the first and last
 step) with a step's animation, **R** to play it again and **P** to let the flow run on its own, **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a shape that sits
