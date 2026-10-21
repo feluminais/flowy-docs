@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { ParseError, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
-import { interpolate, knee, kneeText, parseRun, rollUp, scaleText, sourceKey, strain, traffic } from '../../src/core/perf.ts'
+import { checkRun, eventsPassed, eventText, interpolate, knee, kneeText, parseRun, rollUp, runStates, scaleText, sourceKey, strain, traffic } from '../../src/core/perf.ts'
 import type { Metrics } from '../../src/core/perf.ts'
 import { nameOf } from '../../src/core/views.ts'
 import {
@@ -84,6 +84,50 @@ const RAW: [id: string, text: string][] = [
   ['failure-good', 'name: F\nlevels:\n  - load: 1\n    connections:\n      - { from: web, to: api, failure: lost }\n      - { from: auth, to: db, failure: rejected }\n      - { from: orders, to: db, failure: "" }\n      - { from: queue, to: worker, failure: ~ }\n  - load: 2\n'],
   ['failure-bad', 'name: F\nlevels:\n  - load: 1\n    connections:\n      - { from: web, to: api, failure: weird }\n      - { from: auth, to: db, failure: [lost] }\n      - { from: orders, to: db, failure: Lost }\n  - load: 2\n'],
   ['numeric-ids', 'name: A\nlevels:\n  - load: 1\n    objects:\n      b: { util: 0.1 }\n      "10": { util: 0.2 }\n      "2": { util: 0.3 }\n  - load: 2\n    objects:\n      "2": { util: 0.4 }\n'],
+  // Runs over time: the axis, the key a level carries its number under, and every way an event can be wrong.
+  ['time-good', 'name: Payments killed at 40 s\nabout: Made up\naxis: time\nunit: s\nentry: web\nevents:\n  - { at: 85, on: gateway, state: running, text: Answers again }\n  - { at: 40, on: gateway, state: stopped, text: Payments killed }\n  - { at: 70, on: gateway, state: starting, text: Restart begins }\nlevels:\n  - at: 0\n    overall: { rate: 98, p50: 60, p95: 140, errors: 0 }\n    objects:\n      gateway: { util: 0.4 }\n  - at: 45\n    objects:\n      gateway: { util: 0 }\n      web: { util: 0.9, errors: 0.6 }\n  - at: 120\n'],
+  ['time-bare', 'name: T\naxis: time\nlevels:\n  - at: 0\n  - at: 5\n'],
+  ['time-no-events', 'name: T\naxis: time\nunit: min\nlevels:\n  - at: 0.5\n  - at: " 1e1 "\n'],
+  ['time-load-key', 'name: T\naxis: time\nlevels:\n  - at: 0\n  - load: 5\n'],
+  ['time-both-keys', 'name: T\naxis: time\nlevels:\n  - at: 0\n  - at: 5\n    load: 9\n'],
+  ['time-all-load-keys', 'name: T\naxis: time\nlevels:\n  - load: 0\n  - load: 5\n'],
+  ['time-missing-at', 'name: T\naxis: time\nlevels:\n  - at: 0\n  - objects: {}\n'],
+  ['time-word-at', 'name: T\naxis: time\nlevels:\n  - at: soon\n  - at: 5\n'],
+  ['time-negative-at', 'name: T\naxis: time\nlevels:\n  - at: -1\n  - at: 5\n'],
+  ['time-backwards', 'name: T\naxis: time\nlevels:\n  - at: 5\n  - at: 5\n'],
+  ['time-bad-numbers', 'name: T\naxis: time\nlevels:\n  - at: 3\n    objects:\n      a: { util: 2 }\n  - at: 4\n'],
+  ['load-at-key', 'name: T\nlevels:\n  - load: 1\n  - at: 5\n'],
+  ['load-empty-at', 'name: T\nlevels:\n  - load: 1\n  - at:\n    load: 5\n'],
+  ['axis-load', 'name: T\naxis: load\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['axis-weird', 'name: T\naxis: weird\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['axis-number', 'name: T\naxis: 5\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['axis-list', 'name: T\naxis: [time]\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['axis-capital', 'name: T\naxis: Time\nlevels:\n  - at: 1\n  - at: 2\n'],
+  ['axis-blank', 'name: T\naxis:\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['axis-tilde', 'name: T\naxis: ~\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['axis-long', `name: T\naxis: ${'x'.repeat(300)}\nlevels:\n  - load: 1\n  - load: 2\n`],
+  ['events-on-load', 'name: T\nevents:\n  - { at: 1, on: web, state: stopped }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['events-on-load-empty', 'name: T\nevents: []\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['events-on-load-null', 'name: T\nevents: ~\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['events-empty', 'name: T\naxis: time\nevents: []\nlevels:\n  - at: 1\n  - at: 2\n'],
+  ['events-null', 'name: T\naxis: time\nevents:\nlevels:\n  - at: 1\n  - at: 2\n'],
+  ['events-map', 'name: T\naxis: time\nevents: { at: 1 }\nlevels:\n  - at: 1\n  - at: 2\n'],
+  ['events-text', 'name: T\naxis: time\nevents: soon\nlevels:\n  - at: 1\n  - at: 2\n'],
+  ['event-not-map', 'name: T\naxis: time\nevents: [soon, [1], { at: 1, on: web, state: stopped }]\nlevels:\n  - at: 0\n  - at: 2\n'],
+  ['event-no-at', 'name: T\naxis: time\nevents:\n  - { on: web, state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n'],
+  ['event-word-at', 'name: T\naxis: time\nevents:\n  - { at: soon, on: web, state: stopped }\n  - { at: "", on: web, state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n'],
+  ['event-no-on', 'name: T\naxis: time\nevents:\n  - { at: 1, state: stopped }\n  - { at: 1, on: "", state: stopped }\n  - { at: 1, on: [web], state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n'],
+  ['event-bad-state', 'name: T\naxis: time\nevents:\n  - { at: 1, on: web, state: asleep }\n  - { at: 1, on: web, state: Stopped }\n  - { at: 1, on: web, state: [stopped] }\n  - { at: 1, on: web }\n  - { at: 1, on: web, state: "" }\nlevels:\n  - at: 0\n  - at: 2\n'],
+  ['event-long-state', `name: T\naxis: time\nevents:\n  - { at: 1, on: web, state: ${'s'.repeat(300)} }\nlevels:\n  - at: 0\n  - at: 2\n`],
+  ['event-everything-wrong', 'name: T\naxis: time\nunit: s\nevents:\n  - { at: 9, state: asleep, text: [x] }\nlevels:\n  - at: 0\n  - at: 2\n'],
+  ['event-text', 'name: T\naxis: time\nevents:\n  - { at: 1, on: web, state: stopped, text: [x] }\n  - { at: 1.5, on: web, state: running, text: "  " }\n  - { at: 2, on: web, state: degraded, text: "  Slow  " }\n  - { at: 2, on: db, state: degraded, text: ~ }\nlevels:\n  - at: 0\n  - at: 2\n'],
+  ['event-edges', 'name: T\naxis: time\nunit: s\nevents:\n  - { at: 0, on: web, state: stopped }\n  - { at: 150, on: web, state: running }\nlevels:\n  - at: 0\n  - at: 150\n'],
+  ['event-outside', 'name: T\naxis: time\nunit: s\nevents:\n  - { at: -0.001, on: web, state: stopped }\n  - { at: 150.001, on: web, state: running }\n  - { at: 1e9, on: web, state: running }\nlevels:\n  - at: 0\n  - at: 150\n'],
+  ['event-ties', 'name: T\naxis: time\nevents:\n  - { at: 5, on: web, state: stopped }\n  - { at: 5, on: web, state: degraded }\n  - { at: 5, on: db, state: starting }\n  - { at: 9, on: web, state: running }\n  - { at: 9, on: web, state: stopping }\n  - { at: 1, on: db, state: stopped }\nlevels:\n  - at: 0\n  - at: 10\n'],
+  ['event-proto', 'name: T\naxis: time\nevents:\n  - { at: 1, on: __proto__, state: stopped }\n  - { at: 2, on: constructor, state: degraded }\n  - { at: 3, on: toString, state: running }\nlevels:\n  - at: 0\n  - at: 4\n    objects:\n      __proto__: { util: 0.5 }\n'],
+  ['event-numeric-ids', 'name: T\naxis: time\nevents:\n  - { at: 1, on: b, state: stopped }\n  - { at: 2, on: "10", state: stopped }\n  - { at: 3, on: "2", state: degraded }\n  - { at: 4, on: "007", state: starting }\nlevels:\n  - at: 0\n  - at: 5\n'],
+  ['event-resorted', 'name: T\naxis: time\nevents:\n  - { at: 3, on: a, state: stopped }\n  - { at: 1, on: a, state: starting }\n  - { at: 3, on: b, state: stopped }\n  - { at: 2, on: a, state: running }\nlevels:\n  - at: 0\n  - at: 4\n'],
+  ['event-unit-default', 'name: T\naxis: time\nevents:\n  - { at: 9, on: web, state: stopped }\nlevels:\n  - at: 0\n  - at: 4\n'],
 ]
 
 const METRICS_CASES: Metrics[] = [
@@ -177,6 +221,41 @@ levels:
 `],
 ]
 
+/**
+ * Runs over time, read and played against the same shop as the folder's, kept out of the folder so the panel's tests see the runs they always did. For each: what
+ * checkRun says of it, how its events read in words, and at each time that matters (every level and event, a hair either side, and past both ends) the events
+ * that have passed and the states they leave.
+ */
+const TIMED: [id: string, text: string][] = [
+  ['outage', RAW.find(([id]) => id === 'time-good')![1]],
+  ['ghosts', `name: Ghosts
+axis: time
+events:
+  - { at: 1, on: ghost, state: stopped }
+  - { at: 2, on: ghost, state: running }
+  - { at: 3, on: gateway, state: degraded }
+  - { at: 4, on: phantom, state: starting }
+levels:
+  - at: 0
+    objects: { ghost: { util: 0.1 } }
+  - at: 5
+`],
+  ['ties', RAW.find(([id]) => id === 'event-ties')![1]],
+  ['numeric', RAW.find(([id]) => id === 'event-numeric-ids')![1]],
+  ['proto', RAW.find(([id]) => id === 'event-proto')![1]],
+  ['text', RAW.find(([id]) => id === 'event-text')![1]],
+  ['inside', `name: Inside
+axis: time
+events:
+  - { at: 10, on: web, state: degraded }
+  - { at: 20, on: orders, state: stopped }
+  - { at: 30, on: web, state: running }
+levels:
+  - at: 0
+  - at: 40
+`],
+]
+
 const failure = (e: unknown) => {
   if (e instanceof ParseError) return { error: { file: e.file, line: e.line ?? null, message: e.reason } }
   throw e
@@ -240,12 +319,27 @@ export async function dumpPerf(): Promise<unknown> {
     }
   })
 
+  const timed = TIMED.map(([id, text]) => {
+    const read = parseRun(id, text)
+    const times = new Set<number>([-1, read.run.levels[0].load - 1, read.run.levels[read.run.levels.length - 1].load + 1])
+    for (const t of [...read.run.levels.map(l => l.load), ...(read.run.events ?? []).map(e => e.at)]) for (const d of [-0.001, 0, 0.001]) times.add(t + d)
+    return {
+      id,
+      text,
+      ...read,
+      check: checkRun(id, read.run, model),
+      words: (read.run.events ?? []).map(e => eventText(e, oid => nameOf(model, oid))),
+      times: [...times].sort((a, b) => a - b).map(t => ({ t, passed: eventsPassed(read.run, t), states: runStates(read.run, t) })),
+    }
+  })
+
   return {
     parsed,
     strain: METRICS_CASES.map(metrics => ({ metrics, strain: strain(metrics) ?? null })),
     folder: { runs, problems: state.runProblems ?? [] },
     computed,
     scaled,
+    timed,
   }
 }
 

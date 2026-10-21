@@ -54,8 +54,20 @@ public sealed record SourceFormula(string Text);
 /// <summary>Where a run's requests come from, and how to draw them: the dots' colour, and formulas for how many dots a line shows at once and for the area of a dot. Every part is optional.</summary>
 public sealed record Source(string? Color = null, SourceFormula? Dot = null, SourceFormula? Size = null);
 
-/// <summary>A load test, summarised (<c>Run</c> in perf.ts; renamed because the app already has things called Run).</summary>
-public sealed record LoadRun(string Name, string? About, string Unit, string? Entry, IReadOnlyList<Level> Levels, Source? Source = null);
+/// <summary>Something that happens at a time in a time run: a shape goes into a state. <c>Text</c> is empty when the run doesn't say; <see cref="Perf.EventText"/> then words it.</summary>
+public sealed record RunEvent(double At, string On, string State, string Text);
+
+/// <summary>
+/// A load test, summarised, or a run measured over time (<c>Run</c> in perf.ts; renamed because the app already has things called Run). A time run says so
+/// (<c>IsTime</c>) and may have events; its levels keep their time in <c>Load</c>, as in perf.ts. A load run has neither, as before time runs existed.
+/// </summary>
+public sealed record LoadRun(string Name, string? About, string Unit, string? Entry, IReadOnlyList<Level> Levels, Source? Source = null)
+{
+    public bool IsTime { get; init; }
+
+    /// <summary>The events in time order (later in the file last among those at one time). None for a load run.</summary>
+    public IReadOnlyList<RunEvent> Events { get; init; } = [];
+}
 
 /// <summary>How strained an object is: 0 to 1, whether its utilisation or its failures decided it, and the raw share that did.</summary>
 public sealed record Strain(double Value, string By, double Share);
@@ -114,6 +126,8 @@ public static class Perf
     private static readonly string[] EdgeKeys = ["rate", "bytes", "p50", "p95", "errors"];
     private static readonly string[] SourceKeys = ["color", "dot", "size"];
     private static readonly string[] Failures = ["lost", "rejected"];
+    private static readonly string[] Axes = ["load", "time"];
+    private static readonly string UseState = $"use {string.Join(", ", States.Names)}";
 
     /// <summary>How much of a name a problem quotes, so a hostile key doesn't fill the problem list.</summary>
     private const int Quoted = 40;
@@ -224,6 +238,64 @@ public static class Perf
     }
 
     /// <summary>
+    /// The <c>events:</c> of a time run, in time order (a stable sort, so of two at one time the later in the file stays later). A problem is reported through <paramref name="add"/>
+    /// and the event it is about is left out: one with no time inside the run (<paramref name="lo"/> to <paramref name="hi"/>), no shape or no state word. A text that is not
+    /// plain text only loses the text. The shape is not looked up here (<see cref="CheckRun"/> does, once the model is known).
+    /// </summary>
+    private static List<RunEvent> ReadEvents(object? raw, double lo, double hi, string unit, Action<string> add)
+    {
+        var output = new List<RunEvent>();
+        if (ModelFiles.OrEmpty(raw, new List<object?>()) is not List<object?> list)
+        {
+            add("events must be a list");
+            return output;
+        }
+        for (var i = 0; i < list.Count; i++)
+        {
+            var where = $"event {i + 1}";
+            if (list[i] is not OrderedDictionary<string, object?> e)
+            {
+                add($"{where} must be a mapping of at, on, state and text");
+                continue;
+            }
+            var ok = true;
+            e.TryGetValue("at", out var atValue);
+            var at = Num(atValue);
+            if (at is null)
+            {
+                add($"{where}: at must be a number");
+                ok = false;
+            }
+            else if (at < lo || at > hi)
+            {
+                add($"{where}: at {Js(at.Value)} is outside the run ({Js(lo)} to {Js(hi)} {unit})");
+                ok = false;
+            }
+            e.TryGetValue("on", out var on);
+            if (on is not string { Length: > 0 })
+            {
+                add($"{where}: on must name a shape");
+                ok = false;
+            }
+            e.TryGetValue("state", out var state);
+            if (state is not string stateWord)
+            {
+                add($"{where}: state needs a state word ({UseState})");
+                ok = false;
+            }
+            else if (!States.Names.Contains(stateWord))
+            {
+                add($"{where}: unknown state \"{Brief(stateWord)}\" ({UseState})");
+                ok = false;
+            }
+            var said = ModelFiles.OrEmpty(e.TryGetValue("text", out var textValue) ? textValue : null, null);
+            if (said is not null and not string) add($"{where}: text must be plain text");
+            if (ok && at is { } time && on is string shape && state is string word) output.Add(new RunEvent(time, shape, word, said is string text ? text.Trim() : ""));
+        }
+        return [.. output.OrderBy(e => e.At)];
+    }
+
+    /// <summary>
     /// Reads one run file (<c>perf/&lt;id&gt;.yaml</c>). Throws a <see cref="ParseError"/> for a file that can't be played: bad YAML, the wrong shape,
     /// fewer than two levels, loads that don't go up. A number that is wrong is a problem instead, and is left out of the run.
     /// </summary>
@@ -248,6 +320,12 @@ public static class Perf
         var entry = Word("entry");
         doc.TryGetValue("source", out var sourceValue);
         var source = ReadSource(sourceValue, Add);
+        var axisValue = ModelFiles.OrEmpty(doc.TryGetValue("axis", out var a) ? a : null, null);
+        var axis = Axes.FirstOrDefault(x => x.Equals(axisValue)) ?? "load"; // a run says what it is measured over, or is a load run
+        if (axisValue is not null && !Axes.Any(x => x.Equals(axisValue))) Add($"axis must be {string.Join(" or ", Axes)}");
+        // The key a level carries its number under, and the other one, which is the commonest slip: a time run written with load, or a load run with at.
+        var key = axis == "time" ? "at" : "load";
+        var other = axis == "time" ? "load" : "at";
 
         doc.TryGetValue("levels", out var levelsValue);
         if (ModelFiles.OrEmpty(levelsValue, new List<object?>()) is not List<object?> rawLevels) throw new ParseError(file, "\"levels\" must be a list");
@@ -257,9 +335,11 @@ public static class Perf
         {
             var at = $"level {i + 1}";
             if (raw is not OrderedDictionary<string, object?> map) throw new ParseError(file, $"{at} must be a mapping");
-            map.TryGetValue("load", out var loadValue);
-            if (Num(loadValue) is not { } load || load < 0) throw new ParseError(file, $"{at}: load must be a number, 0 or more");
-            string Where(string what) => $"load {Js(load)}, {what}";
+            if (map.ContainsKey(other)) Add($"{at}: a {axis} run uses {key}, not {other}");
+            // The wrong key is told off above and still gives the number, so the run plays.
+            var loadValue = map.TryGetValue(key, out var own) && own is not null ? own : map.TryGetValue(other, out var wrong) ? wrong : null;
+            if (Num(loadValue) is not { } load || load < 0) throw new ParseError(file, $"{at}: {key} must be a number, 0 or more");
+            string Where(string what) => $"{key} {Js(load)}, {what}";
 
             map.TryGetValue("overall", out var overallValue);
             if (ModelFiles.OrEmpty(overallValue, new OrderedDictionary<string, object?>()) is not OrderedDictionary<string, object?> rawOverall)
@@ -304,8 +384,13 @@ public static class Perf
         var levels = rawLevels.Select(ReadLevel).ToList();
         for (var i = 1; i < levels.Count; i++)
             if (levels[i].Load <= levels[i - 1].Load)
-                throw new ParseError(file, $"level {i + 1}: load {Js(levels[i].Load)} must be above {Js(levels[i - 1].Load)} (levels go up in load)");
-        return (new LoadRun(name ?? id, about, unit ?? "load", entry, levels, source), problems);
+                throw new ParseError(file, $"level {i + 1}: {key} {Js(levels[i].Load)} must be above {Js(levels[i - 1].Load)} (levels go up in {axis})");
+        // Events belong to a time run. On a load run they are a problem and are not read.
+        var rawEvents = ModelFiles.OrEmpty(doc.TryGetValue("events", out var ev) ? ev : null, null);
+        if (axis == "load" && rawEvents is not null) Add("events are only for a time run (set axis: time)");
+        var runUnit = unit ?? (axis == "time" ? "s" : "load");
+        var events = axis == "time" ? ReadEvents(rawEvents, levels[0].Load, levels[^1].Load, runUnit, Add) : [];
+        return (new LoadRun(name ?? id, about, runUnit, entry, levels, source) { IsTime = axis == "time", Events = events }, problems);
     }
 
     /// <summary>
@@ -333,8 +418,30 @@ public static class Perf
                 if (unknown.Count == 0 && !model.Connections.Any(m => m.From == c.From && m.To == c.To)) Once($"{c.From} → {c.To} is not a connection in the model");
             }
         }
+        // A shape deleted after the run was written shows up here at the next load, never as a crash: runs are outside the edit pipeline.
+        foreach (var e in run.Events)
+            if (model.GetObject(e.On) is null) Once($"unknown object \"{e.On}\"");
         return problems;
     }
+
+    /// <summary>The events at or before time <paramref name="x"/>, in time order. None for a load run, and for a time that is not a number.</summary>
+    public static List<RunEvent> EventsPassed(LoadRun run, double x) => [.. run.Events.Where(e => e.At <= x)];
+
+    /// <summary>
+    /// Where each shape a time run has an event for stands at time <paramref name="x"/>: the latest event at or before it, and of two at one time the later in the file. Running is an
+    /// entry like the others, so the shape shows itself and not what is inside it (see <see cref="States.Marks"/>). A shape with no event yet is not in it. Keys come in JavaScript's order.
+    /// </summary>
+    public static OrderedDictionary<string, string> RunStates(LoadRun run, double x)
+    {
+        var latest = new OrderedDictionary<string, string>();
+        foreach (var e in EventsPassed(run, x)) latest[e.On] = e.State;
+        var output = new OrderedDictionary<string, string>();
+        foreach (var id in JsKeys.Order(latest.Keys)) output[id] = latest[id];
+        return output;
+    }
+
+    /// <summary>What an event says: its own text, else the shape and the state the way a person reads them ("Stripe: Stopped"). <paramref name="nameOf"/> turns a shape id into the name a reader sees.</summary>
+    public static string EventText(RunEvent e, Func<string, string> nameOf) => e.Text != "" ? e.Text : $"{nameOf(e.On)}: {States.Labels[e.State]}";
 
     /// <summary>A series' value at <paramref name="load"/>: exact at a point, a straight line between two, nothing outside the series.</summary>
     private static double? ValueAt(List<(double Load, double Value)> series, double load)
