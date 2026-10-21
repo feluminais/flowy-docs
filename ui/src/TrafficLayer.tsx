@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useStore, useStoreApi } from '@xyflow/react'
 import type { LineTraffic } from '../../src/core/perf.ts'
+import { colorPair } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { depthIn } from './graph.ts'
 import type { Outline, Rect } from './graph.ts'
 import { outline, pathBetween, rect } from './Line.tsx'
 import { flatten, pointAt } from './pathpoints.ts'
-import { advance, ghost, howBehind, newStream, visibility } from './traffic.ts'
+import { advance, ghost, howBehind, moteLook, newStream } from './traffic.ts'
 import type { Stream } from './traffic.ts'
 
 /** A shape a line runs behind: where it is and its outline. */
@@ -43,7 +44,9 @@ const labelsIn = (el: HTMLElement, [tx, ty, zoom]: [number, number, number]): Re
  * the same camera as the shapes. Each line's path is flattened once, because asking the browser for a point on a path takes
  * about 28 µs and a busy view has thousands of particles a frame. Where its line runs behind a shape that is not one of its ends,
  * or under a label, a particle is still drawn, going faint and a little smaller as it goes behind and back as it comes out, so the
- * flow reads through what covers it. Reduced motion draws none: the caller leaves this out.
+ * flow reads through what covers it. A run's source sets the particles' colour and size (a line's `color` and `radius`), and a line that
+ * says how its failing share fails draws a lost call as a ring where it pops and a rejected one as a call that stops at a bar at the end
+ * of the line and comes back in the danger tone. Reduced motion draws none: the caller leaves this out.
  */
 export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: LineStyle }) {
   const store = useStoreApi()
@@ -73,13 +76,30 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
     let frame = 0
     let last = performance.now()
     let colours = { ok: '#2563eb', bad: '#b91c1c' }
+    let dark = false
+    const tints = new Map<string, string>() // a source's colour for the theme the page is in now, by the name or hex it was written with
     let colourAt = 0
+    // A colour that is dark in the light theme and light in the dark one, to tell which the page is in: light-dark() follows the page's colour scheme.
+    el.style.color = 'light-dark(#000000, #ffffff)'
+    /** The colour of a line's particles: its source's when it has one (a named colour for the theme, a hex as it is), else the accent. */
+    const tint = (color: string | undefined): string => {
+      if (color === undefined) return colours.ok
+      let found = tints.get(color)
+      if (found === undefined) {
+        const pair = colorPair(color)
+        found = pair ? pair[dark ? 1 : 0] : colours.ok
+        tints.set(color, found)
+      }
+      return found
+    }
     const draw = (t: number) => {
       const ms = Math.min(100, t - last) // a tab that was asleep doesn't pour out everything it missed
       last = t
       if (t - colourAt > 500) {
         const css = getComputedStyle(el)
         colours = { ok: css.getPropertyValue('--accent').trim() || colours.ok, bad: css.getPropertyValue('--danger').trim() || colours.bad }
+        dark = Number(/\d+/.exec(css.color)?.[0] ?? 0) > 127
+        tints.clear()
         colourAt = t
       }
       const dpr = window.devicePixelRatio || 1
@@ -104,15 +124,23 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
         let stream = streams.current.get(key)
         if (!stream) streams.current.set(key, (stream = newStream()))
         advance(stream, line, ms, Math.random)
-        const radius = (2.2 + line.width / 2) / zoom // a few pixels on screen, whatever the zoom
+        const radius = ((2.2 + line.width / 2) * (line.radius ?? 1)) / zoom // a few pixels on screen, whatever the zoom, and bigger or smaller where the run's size says
         const ramp = radius * 2 // how far either side of an outline a particle takes to go from clear to well behind
-        ctx.fillStyle = colours.ok
+        const colour = tint(line.color)
+        ctx.fillStyle = colour
         ctx.beginPath()
         const faint: [number, number, number][] = [] // the ones behind something, drawn after the rest one at a time
+        const other: { x: number; y: number; bad: boolean; alpha: number; pop?: number; behind: number }[] = [] // the ones failing, drawn one at a time
+        let bar = 0 // how strongly the bar at the end of a rejected line shows: the strongest of its particles
         for (const m of stream.motes) {
-          if (m.fails) continue
-          const [x, y] = pointAt(path, m.s)
+          const look = moteLook(m, line.failure)
+          const [x, y] = pointAt(path, look.at)
+          if (look.bar !== undefined && look.bar > bar) bar = look.bar
           const b = behindOf(shapes, labels, x, y, ramp)
+          if (look.bad || look.alpha < 1 || look.pop !== undefined) {
+            other.push({ x, y, bad: look.bad, alpha: look.alpha, pop: look.pop, behind: b })
+            continue
+          }
           if (b > 0) {
             faint.push([x, y, b])
             continue
@@ -128,15 +156,38 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
           ctx.arc(x, y, radius * g.scale, 0, Math.PI * 2)
           ctx.fill()
         }
-        ctx.fillStyle = colours.bad
-        for (const m of stream.motes) {
-          if (!m.fails) continue
-          const [x, y] = pointAt(path, m.s)
-          const g = ghost(behindOf(shapes, labels, x, y, ramp))
-          ctx.globalAlpha = visibility(m) * g.alpha
+        for (const o of other) {
+          const g = ghost(o.behind)
+          if (o.pop !== undefined) {
+            // A lost call: a ring where it died, growing and fading.
+            ctx.globalAlpha = (1 - o.pop) * g.alpha
+            ctx.strokeStyle = colours.bad
+            ctx.lineWidth = 1.6 / zoom
+            ctx.beginPath()
+            ctx.arc(o.x, o.y, radius * g.scale * (0.9 + 1.8 * o.pop), 0, Math.PI * 2)
+            ctx.stroke()
+            continue
+          }
+          ctx.fillStyle = o.bad ? colours.bad : colour
+          ctx.globalAlpha = o.alpha * g.alpha
           ctx.beginPath()
-          ctx.arc(x, y, radius * g.scale, 0, Math.PI * 2)
+          ctx.arc(o.x, o.y, radius * g.scale, 0, Math.PI * 2)
           ctx.fill()
+        }
+        if (bar > 0) {
+          // A rejected call meets a bar across the end of the line, strongest while one is at it.
+          const [ex, ey] = pointAt(path, 1)
+          const [px, py] = pointAt(path, 0.96)
+          const length = Math.hypot(ex - px, ey - py) || 1
+          const [nx, ny] = [-(ey - py) / length, (ex - px) / length]
+          ctx.globalAlpha = bar
+          ctx.strokeStyle = colours.bad
+          ctx.lineWidth = 2.4 / zoom
+          ctx.lineCap = 'round'
+          ctx.beginPath()
+          ctx.moveTo(ex + nx * radius * 2.4, ey + ny * radius * 2.4)
+          ctx.lineTo(ex - nx * radius * 2.4, ey - ny * radius * 2.4)
+          ctx.stroke()
         }
         ctx.globalAlpha = 1
       })

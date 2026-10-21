@@ -155,6 +155,7 @@ A flow is a walkthrough of one thing happening. It has a name, the view it plays
 - **Play the flow on the view where its ends are separate shapes.** A step written "X in Y" is drawn as Y. For detail inside a shape, write a second flow on that shape.
 - **A step with no matching line means the model is missing one.** Fix the model, then the step.
 - **Ask how much to animate, then follow the answer.** An `animation:` makes a step play as something travelling between its two shapes. There are three levels: **None** (plain steps), **Key steps** (only a step whose way of travelling adds something, such as a call that waits or a callback) and **Every step** that hands something from one shape to another. With no answer, animate every step. Pick the kind by who waits: `call` when the sender waits for the answer, `send` or `event` when it doesn't, `callback` when something sets off a reply to whoever subscribed, with `trigger: outside` when what set it off came in at the step before. A step with no `to` can't travel. Give a step an `outcome` only where it really ends that way: `fail` on a `send` or `call` that is refused (a declined card), `timeout` on a `call` nobody answers, `lost` on a request that never arrives, `rejected` where something at the door turns it away (a rate limit, a firewall), `intercepted` with `by` where a third party takes it, `duplicated` where it is delivered twice and `delayed` where the story is a wait (a cold start, a queue). A step that is a little slow gets none. Add a `reason` of a few words ("Rate limit", "Packet dropped") when the picture raises the question of why, and a `share` when only some of the requests end that way ("a third of the pings are lost" is `share: 30`). The text still says everything: it has to read the same in Mermaid, in a screenshot and with motion off.
+- **Give a shape a state only where the story takes it somewhere.** A step's `states` can say that a service is starting, stopping, stopped, restarting or degraded, and it holds until a later step changes it. Use it for an outage and its recovery, a deploy, or a node that drops out. Set the shape back to `running` when it recovers, because nothing else clears it. Leave out a state that is only the default, and one you cannot point to in the code or the incident. The text must say the same thing with the drawing off.
 - **Mark structure only where it is true.** A *repeat* is the same steps run again, with a limit the code really has: say it in `times`, or what stops it in `until`, and put the backoff or the wait in the group's `text`. A *branch* is alternatives that each get a few steps. A lane starts at the step that says `lane`, named for its condition in plain words, and the player walks every lane in turn. A failure that is one step is a lane, and a failure that is a story is still a flow of its own. A *parallel* group is work that starts together: a fan-out to five subscribers is five one-step lanes, so each step keeps its one `to`. A group's steps sit next to each other, and a group can't hold another group yet. `flow:` on a step says the story continues in another flow, which earns its place when that story needs a page of its own. The step texts still say everything: a group only shapes how the steps are drawn, and a reader may meet them as a plain list.
 
 An example. This is a flow Plum doesn't have, with Plum's shapes.
@@ -199,6 +200,8 @@ What changed: the sender is the subject in every step, the endpoint moved into M
 A failure analysis ranks how the system breaks, for someone deciding what to fix first. The format is in
 [the guide](guide.md#failure-modes).
 
+- **Name the analysis for what it covers, in plain words.** "Plum fail scenario" and "Conductor fail scenario" say what is in them. A title
+  such as "How Conductor can fail" does not.
 - **State a mode as a fact, one way of failing to a row.** "Stripe doesn't answer within five seconds" is a mode. "Payment problems" is a
   heading. A part that fails three ways gets three rows.
 - **The effect is what a person or another part sees.** "The order waits on a hold that may or may not exist." says what happens next.
@@ -215,6 +218,18 @@ A failure analysis ranks how the system breaks, for someone deciding what to fix
 - **Keep a row to a line each.** More (`description`) is for the why, and a long analysis of one part belongs in a document the shape
   links to.
 - **Give a severity of 9 or 10 on purpose.** It makes the mode High whatever the other ratings say.
+
+## Draw a load test
+
+A run is written by a tool, and a few of its keys are choices you make about how it reads.
+
+- **Set a `source` when the ratio is the point.** Without one the dots follow a curve that makes a hundred times the calls look about twice as busy. A `dot` formula
+  makes them a count: `rate / 50` is one dot for every 50 calls a second. Pick the divisor so the busiest line you want to show stays under 24 dots, because past
+  that the line is scaled down and the ratio stops being true.
+- **Leave red to failing calls.** A failing dot draws in the danger colour, so a source that is red can't be told from its own failures.
+- **Give `bytes` where sizes differ.** A `size` formula needs it, and the size of a call shows in the numbers of a line.
+- **Say how a failure fails only where you know.** `failure: lost` is for calls that die on the way, `failure: rejected` for calls a gateway turns away (a rate limit,
+  a 429). When the run only says that some calls failed, leave it out and they fade.
 
 ## Point at code
 

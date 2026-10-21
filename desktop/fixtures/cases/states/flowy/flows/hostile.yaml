@@ -1,0 +1,6 @@
+name: Ids that Object has
+view: shop
+states: { __proto__: stopped, constructor: stopped, toString: degraded }
+steps:
+  - { from: web, to: api, text: Asks, states: { __proto__: degraded, hasOwnProperty: starting, api: stopped } }
+  - { from: web, to: api, text: Then }

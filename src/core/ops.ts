@@ -4,10 +4,11 @@ import type { DataInput } from './data.ts'
 import { analysesText, usersOfConnection, usersOfObject } from './failures.ts'
 import { iconProblem } from './look.ts'
 import type { Shape } from './look.ts'
-import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
+import { getObject, ID_RULE, isMap, isValidId, ROOT } from './model.ts'
 import type { Analysis, Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Mode, Model, ObjectType, Step } from './model.ts'
 import { tidySnippets } from './snippets.ts'
 import type { SnippetInput } from './snippets.ts'
+import { stateProblems } from './states.ts'
 import { GROUP_KINDS, isGroupKind, TIMES_MAX, TIMES_MIN, timesOk } from './structure.ts'
 import { chain, memberIds } from './views.ts'
 
@@ -29,7 +30,8 @@ export type ObjectInput = {
 export type ConnectionInput = { from: string; to: string; label?: string }
 /** A group as put_flow gives it: `times` may be a number, which is written as text. */
 export type GroupInput = { kind?: string; text?: string; times?: string | number; until?: string; [extra: string]: unknown }
-export type FlowInput = { id: string; name: string; view: string; steps: Step[]; groups?: Record<string, GroupInput> }
+/** `states` is where shapes stand before step 1 (shape id to state word); a step's `states` are the shapes it changes. Left out or empty writes no `states:`. */
+export type FlowInput = { id: string; name: string; view: string; steps: Step[]; groups?: Record<string, GroupInput>; states?: Record<string, string> }
 /** A failure mode as put_failure gives it: ratings and `step` are numbers, which are written as text. */
 export type ModeInput = {
   mode: string; on?: string; from?: string; to?: string; effect?: string; cause?: string
@@ -98,8 +100,10 @@ export function deleteObject(model: Model, id: string): Model {
   if (!getObject(model, id)) throw new OpError(`unknown object "${id}"`)
   const children = memberIds(model, id)
   if (children.length) throw new OpError(`"${id}" still contains ${children.join(', ')}. Delete or move those first.`)
+  // A shape that only a `states` names (the flow's or a step's) is used too: its state would be left pointing at nothing.
+  const names = (states: unknown) => isMap(states) && Object.hasOwn(states, id)
   const flows = Object.entries(model.flows)
-    .filter(([, f]) => f.view === id || f.steps.some(s => s.from === id || s.to === id))
+    .filter(([, f]) => f.view === id || f.steps.some(s => s.from === id || s.to === id || names(s.states)) || names(f.states))
     .map(([fid]) => fid)
   if (flows.length)
     throw new OpError(`"${id}" is used by flow${flows.length > 1 ? 's' : ''} ${flows.join(', ')}. Change or delete those first.`)
@@ -175,21 +179,26 @@ function animationAsText(animation: unknown): unknown {
 }
 
 /** Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. */
-export function putFlow(model: Model, { id, name, view, steps, groups }: FlowInput): Model {
+export function putFlow(model: Model, { id, name, view, steps, groups, states }: FlowInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid flow id: ${ID_RULE}`)
   // Flow ids are file names, and Windows and macOS don't tell Visit.yaml from visit.yaml.
   const clash = Object.keys(model.flows).find(other => other !== id && other.toLowerCase() === id.toLowerCase())
   if (clash) throw new OpError(`flows/${clash}.yaml already exists and differs only in case. Rename or delete that file by hand.`)
-  // A blank detail is no detail, as on the canvas, so the file stays as short as it can be.
+  // A blank detail is no detail, as on the canvas, so the file stays as short as it can be. An empty `states` is none, too.
   const copy = (s: Step): Step => {
-    const { description, ...rest } = s
-    const step = typeof description === 'string' && !description.trim() ? rest as Step : { ...s }
-    return 'animation' in step ? { ...step, animation: animationAsText(step.animation) } : step
+    const out: Record<string, unknown> = { ...s }
+    if (typeof s.description === 'string' && !s.description.trim()) delete out.description
+    if (isMap(s.states) && Object.keys(s.states).length === 0) delete out.states
+    // A number in an animation (share, at) is written as text, as a file holds it.
+    if ('animation' in out) out.animation = animationAsText(out.animation)
+    return out as Step
   }
   // On disk a number is text, like every value: `times: 3` reads back as "3". No groups, or an empty set, writes no `groups:`.
   const text = (g: GroupInput): Group => (typeof g.times === 'number' ? { ...g, times: String(g.times) } : g) as Group
   const written = groups && Object.keys(groups).length > 0 ? { groups: Object.fromEntries(Object.entries(groups).map(([gid, g]) => [gid, text(g)])) } : {}
-  return { ...model, flows: { ...model.flows, [id]: { name, view, ...written, steps: steps.map(copy) } } }
+  // Where shapes stand before step 1 goes right after the view, as the guide shows it.
+  const start = states && Object.keys(states).length > 0 ? { states } : {}
+  return { ...model, flows: { ...model.flows, [id]: { name, view, ...start, ...written, steps: steps.map(copy) } } }
 }
 
 function existingFlow(model: Model, id: string): Flow {
@@ -221,6 +230,22 @@ export function updateFlow(model: Model, id: string, changes: Partial<Pick<Flow,
   const { groups, ...rest } = changes
   const flow = { ...existingFlow(model, id), ...rest }
   return { ...model, flows: { ...model.flows, [id]: 'groups' in changes ? withGroups(flow, groups) : flow } }
+}
+
+/** The keys of a step in the order the guide shows them; a key set later goes after the nearest earlier one that is there. */
+const STEP_ORDER = ['from', 'to', 'text', 'description', 'animation', 'states', 'group', 'lane', 'flow']
+
+/**
+ * Set which shapes step `index` changes, as a whole: `states` replaces what the step had, so pass the entries to keep too, and an empty map takes
+ * `states` out. Refused for a shape that does not exist or a word that is not a state, in the checker's words. Every other key of the step is kept.
+ */
+export function setStepStates(model: Model, flowId: string, index: number, states: Record<string, string>): Model {
+  const flow = existingFlow(model, flowId)
+  const step = existingStep(flow, flowId, index)
+  const [why] = stateProblems({ name: '', view: '', steps: [{ from: '', text: '', states }] }, [], id => getObject(model, id) !== undefined)
+  if (why !== undefined) throw new OpError(why.message)
+  const next = withChanges(step, { states: Object.keys(states).length === 0 ? undefined : { ...states } }, STEP_ORDER) as Step
+  return { ...model, flows: { ...model.flows, [flowId]: { ...flow, steps: flow.steps.with(index, next) } } }
 }
 
 const groupOf = (s: Step | undefined): string => (s !== undefined && typeof s.group === 'string' ? s.group.trim() : '')

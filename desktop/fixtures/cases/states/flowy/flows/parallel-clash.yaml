@@ -1,0 +1,9 @@
+name: Two lanes that disagree
+view: shop
+groups:
+  both: { kind: parallel }
+steps:
+  - { from: api, text: One lane, group: both, lane: A, states: { db: stopped, web: degraded } }
+  - { from: db, text: The other, group: both, lane: B, states: { db: degraded, web: degraded } }
+  - { from: api, text: A third, group: both, lane: C, states: { db: starting } }
+  - { from: web, to: api, text: After }

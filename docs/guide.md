@@ -444,6 +444,70 @@ stay. A flow with none of these keys reads, plays and exports exactly as it did.
 Claude's `put_flow` takes `groups` and a step's `group`, `lane` and `flow` (a `times` may be a number there), and its instructions say when
 to reach for each. Edit mode has fields for all of them (see above).
 
+## Shape states
+
+A shape is Running unless a flow says otherwise. A step can say that a shape is coming up, shutting down, off, restarting or not well, and the shape shows it from that step until another step changes it.
+
+![Stripe restarting beside Order API, with a key under the progress bar naming Restarting and Degraded inside](images/desktop-states.png)
+
+| State | Means | On the canvas |
+| --- | --- | --- |
+| Running | Up and serving | Nothing is drawn |
+| Starting | Coming up, not ready | Dimmed, with a dotted outline that circles |
+| Stopping | Draining or shutting down | The outline drains and the shape dims |
+| Stopped | Off | Dimmed and grey, with a dashed outline and a power symbol |
+| Restarting | Down and coming back | Dimmed, with a short arc circling the outline |
+| Degraded | Up but not well | A slow pulse in the warning colour, with a warning triangle |
+
+The file holds the lowercase word. A step's `states` maps shape ids to states. Plum's
+[stripe-outage](demo/flowy/flows/stripe-outage.yaml) uses all six:
+
+```yaml
+name: Stripe goes down and comes back
+view: ordering
+steps:
+  - { from: order-api, to: stripe, text: The hold is slow while Stripe shuts down, animation: call, states: { stripe: stopping } }
+  - { from: checkout, to: stripe, text: The hold times out, animation: { kind: call, outcome: timeout }, states: { stripe: stopped } }
+  - { from: checkout, to: customer-app, text: Offers pay at the door, states: { checkout: degraded } }
+  - { from: order-api, to: stripe, text: The status page says Stripe is restarting, animation: call, states: { stripe: restarting } }
+  - { from: order-api, to: stripe, text: The next check finds it coming back up, animation: call, states: { stripe: starting } }
+  - { from: checkout, to: stripe, text: The hold goes through, animation: call, states: { stripe: running, checkout: running } }
+```
+
+- A flow's own `states` say where shapes stand before step 1: `states: { stripe: starting }`. Left out, every shape starts Running.
+- A step's change holds from that stop until another step changes it, so set a shape back to `running` when it recovers. The state at any stop is worked out from the start and the steps before it, which means stepping back needs no undo and no timer.
+- In a parallel stop every lane's change applies, and two lanes that set one shape to different states are a problem. In a branch each lane starts from the state before the branch, and the last lane's changes carry on after it. If a shape's state after a branch matters, set it again in the next step.
+- A flow that another flow opens starts from its own `states`, not from where the first one left off.
+- At the overview, a shape with no state of its own shows the worst state of what is inside it (Stopped, then Restarting, Degraded, Stopping, Starting) on a dashed ring that reads "Stopped inside". A state of its own shows instead.
+- The player card has a key for the states on the canvas now, and Details names the state of the shape it shows. A change takes about 0.6 seconds. Starting and Restarting keep moving, and Degraded pulses, for as long as they are on screen. Nothing moves when the system asks for less motion; the dimming, outline and symbol stay.
+
+Flowy checks it as it checks everything else: an id that isn't a shape, a word that isn't one of the six, `states` that isn't a mapping of ids to words, and two lanes of one parallel stop that disagree. A change that deletes a shape that only a `states` names is refused, as it is for a step's shape.
+
+**Elsewhere in Flowy.** In edit mode a step's form has a **State** section with a row of drawn tiles (None, then the six) for each end of the step, and a pick is one edit; a flow's starting states are written in the file or by Claude. Claude's `put_flow` takes `states` on the flow and on each step, and its instructions say to use them where the story really takes a shape down, brings it up or hurts it. Mermaid writes a note over the shape with the state's name:
+
+```mermaid
+sequenceDiagram
+  participant n0 as Order API
+  participant n1 as Stripe
+  participant n2 as Customer app
+  participant n3 as Checkout
+  n0->>n1: The hold is slow while Stripe shuts down
+  Note over n1: Stopping
+  n0->>n1: The hold times out
+  Note over n1: Stopped
+  n0->>n2: Offers pay at the door
+  Note over n3: Degraded
+  n0->>n1: The status page says Stripe is restarting
+  Note over n1: Restarting
+  n0->>n1: The next check finds it coming back up
+  Note over n1: Starting
+  n0->>n1: The hold goes through
+  Note over n1: Running
+  Note over n3: Running
+```
+
+A flow with no `states` reads, plays and exports exactly as it did.
+
 ## Performance
 
 A run is a load test, summarised: for each load that was tested, what each shape and each connection measured. It lives in
@@ -471,7 +535,7 @@ levels:
 
 Every number is optional except a level's `load`. On a shape, `util` is how much of what it can do is in use (0 to 1), `queue` how many are waiting, and
 `errors` the share that fail (0 to 1). On a connection, and in `overall` (what the entry point measured), `rate` is calls a
-second, `p50` and `p95` are milliseconds (the tab calls them the expected call and the slowest 5%) and `errors` is the share that fail.
+second, `bytes` is how many bytes a call carries (the tab calls it the size of a call), `p50` and `p95` are milliseconds (the tab calls them the expected call and the slowest 5%) and `errors` is the share that fail.
 Levels go up in load, and a run needs at least two. A number that isn't there isn't drawn as zero: that shape or line stays
 plain. `unit` says what a load counts, and `entry` can name the shape the load comes in at.
 
@@ -485,6 +549,33 @@ tested loads the numbers are blended from the two, and the tab says so. Click a 
 with a small curve of each across all of them. A shape that holds others takes the worst of what is inside it, so at the overview
 you see which system is struggling and zoom in to find where. The tab opens on the load where things first struggle, if anything
 does, and **Go there** gets back to it.
+
+**Colour and scale.** A run can say what its dots look like and how many there are, so the picture reads as a ratio. Add a `source` at the top
+of the file:
+
+```yaml
+source:
+  color: blue          # a colour name or a hex, like a shape's colour
+  dot: rate / 50       # how many dots are on a line at once
+  size: bytes / 400    # how big each dot is
+```
+
+Every key is optional. `color` takes the names a shape's colour does (a named colour is a lighter one in the dark theme) or a hex such as `"#1d9e75"`, which is the
+same in both themes. `dot` and `size` are small formulas: numbers, the names `rate` (calls a second), `bytes` (the size of a call) and `p50` (the
+expected call, in milliseconds), the signs `+ - * /`, brackets and a minus in front, at most 80 characters. There are no functions, and nothing is run: Flowy reads
+the text itself. A formula it can't read is a problem, and the source then keeps the usual dots, with its colour still applied.
+
+`dot` is the number of dots on a line at once. `rate / 50` is 2 dots at 100 calls a second and 20 at 1,000, so ten times the calls is ten times the dots.
+How fast they cross still follows `p50`, so two lines with the same calls and a different `p50` have the same number of dots, moving at different speeds.
+`size` is the area of a dot: a call with twice the bytes draws a dot with twice the area, 1 is the usual dot, and the radius stays between half and two and a half
+times the usual one. A line the formula gives no value for (it needs a `bytes` the line doesn't have, say) keeps the usual dots.
+
+The screen holds at most 24 dots on a line. Past that the line is scaled down to 24 and says so: **Scaled down** in the key, and under the numbers of the line when you click it.
+The key also says what one dot stands for ("1 dot = 50 calls/s") when `dot` is the rate times a number and nothing else, and draws **Bigger call** when `size` is set.
+
+`bytes` on a line that several connections land on is their mean, weighted by their `rate`. A connection can also say how its failing share fails, with
+`failure: lost` (a failing call pops where it dies) or `failure: rejected` (it runs to the end of the line, stops at a bar and comes back red). Without
+`failure` a failing call fades away, as before.
 
 **What to remember.** This is a replay. Flowy never predicts a load nobody tested, so the slider stops at the highest one. How
 strained a shape looks is its `util`, or its failure rate counted twenty times (5% failing is as bad as full), whichever is
@@ -640,7 +731,7 @@ as a flow's file name), one file for each scope you would review in one meeting,
 several.
 
 ```yaml
-name: Order to door
+name: Plum fail scenario
 about: Made-up ratings for the demo, not a review of anything real.
 scale:
   severity: { low: Nobody notices, high: A customer loses money or the kitchen stops }
@@ -694,7 +785,7 @@ group. Otherwise Not rated when a rating is missing, then High from a risk of 15
 High, Medium, Low, then Not rated, and inside a band by risk, highest first, with ties in the order of the file. A mode that is `done`
 counts by its `after` ratings, and the panel shows both ("96 to 32").
 
-**Coverage.** "Analysed 8 of 26" counts the shapes that hold nothing, inside the analysis's scope, that have at least one mode, as the
+**Coverage.** "Analysed 15 of 26" counts the shapes that hold nothing, inside the analysis's scope, that have at least one mode, as the
 part or as an end of a line. Actors are left out, because nothing of ours fails there. Outside services count, since a failing Stripe is
 a failure you design for. Lines don't count. **Not analysed** lists the shapes left.
 
@@ -853,7 +944,7 @@ What it adds is a way to choose the model:
 - Each model gets its own window. Opening one that is already open brings its window forward. A window opens at the size, and
   maximized or not, that the last one was closed at.
 - **Help › Open the Demo (Plum)**, or the welcome window's button, opens the sample model that ships with the app, so there is
-  something to look at before you point it at a repo. It has two made-up load-test runs, so its Performance tab (**T**) works too.
+  something to look at before you point it at a repo. It has three made-up load-test runs, so its Performance tab (**T**) works too.
 
 For sharing, **View › Copy as Mermaid** puts the view on screen, or the flow playing, on the clipboard as a fenced Mermaid
 diagram, the same text the browser's Mermaid button copies. **View › Save Picture…** saves the diagram, without the top bar and

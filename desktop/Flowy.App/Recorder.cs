@@ -29,6 +29,7 @@ internal sealed class Recorder : StackPanel
         public required Choice<string> Group;
         public required FieldBox Lane;
         public required Choice<string> Flow;
+        public required List<(string Shape, Chooser Tiles)> States;
         public required AnimationRow Animation;
     }
 
@@ -120,6 +121,9 @@ internal sealed class Recorder : StackPanel
 
     internal IReadOnlyList<ComboBox> StepFlowBoxes => _rows.Select(r => r.Flow.Box).ToList();
 
+    /// <summary>The state tiles of step <paramref name="step"/>: one picker for each end of it that is a shape (the same shape once when it starts and ends there).</summary>
+    internal IReadOnlyList<(string Shape, Chooser Tiles)> StepStatePickers(int step) => _rows[step].States;
+
     internal IReadOnlyList<string> GroupIds => _cards.Select(c => c.Id).ToList();
 
     internal Chooser GroupKind(string id) => _cards.First(c => c.Id == id).Kind;
@@ -164,6 +168,24 @@ internal sealed class Recorder : StackPanel
         string.Join('\u0001', Field(s, "from"), Field(s, "to"), Field(s, "text"), Field(s, "description"));
 
     private static string? Field(OrderedDictionary<string, object?> s, string key) => s.TryGetValue(key, out var v) ? v as string : null;
+
+    /// <summary>The state a step sets a shape to, or "" when it does not say (or says something that is not a state).</summary>
+    private static string StateWord(object? states, string shape) =>
+        states is OrderedDictionary<string, object?> map && map.TryGetValue(shape, out var v) && v is string word && States.Names.Contains(word) ? word : "";
+
+    /// <summary>
+    /// A step's <c>states</c> with <paramref name="shape"/> set to <paramref name="word"/> ("" takes it out). Every other entry is kept as it is, so a pick changes
+    /// only what it was asked to; an entry that is not text can't be kept in a map of text, and is left out. Twin of <c>pickStepState</c> in ui/src/edit.ts.
+    /// </summary>
+    internal static OrderedDictionary<string, string> StatesWith(OrderedDictionary<string, object?> step, string shape, string word)
+    {
+        var next = new OrderedDictionary<string, string>();
+        if (step.TryGetValue("states", out var own) && own is OrderedDictionary<string, object?> map)
+            foreach (var id in JsKeys.Order(map.Keys))
+                if (id != shape && map[id] is string text) next[id] = text;
+        if (word != "") next[shape] = word;
+        return next;
+    }
 
     /// <summary>The steps of a flow in a copy of the document, for an edit to change without touching the one it started from.</summary>
     private static List<OrderedDictionary<string, object?>> StepsOf(EditDoc copy, string id) =>
@@ -232,6 +254,7 @@ internal sealed class Recorder : StackPanel
             _rows[i].Lane.Sync(steps[i].Lane ?? "");
             _rows[i].Lane.IsVisible = group != "" && HasLanes(KindOf(declared, group));
             _rows[i].Animation.Sync(steps[i]);
+            foreach (var (shape, tiles) in _rows[i].States) tiles.Show(StateWord(steps[i].States, shape));
         }
         if (flow is not null) ShowGroups(rec.Id, steps.Count, declared);
         else
@@ -534,13 +557,26 @@ internal sealed class Recorder : StackPanel
             animation.Panel.IsVisible = !animation.Panel.IsVisible;
             animationToggle.Content = animation.Panel.IsVisible ? "▾ Animation" : "▸ Animation";
         };
-        _rows.Add(new Row { Text = text, Detail = detail, Group = groupChoice, Lane = lane, Flow = flowChoice, Animation = animation });
+        // A state for each end of the step, as tiles: one edit for a pick, and None takes the state out. A shape the model no longer has is left out; the checks report it.
+        var ends = new[] { shown[i].From, shown[i].To ?? shown[i].From }.Where(e => e is not null && model.GetObject(e) is not null).Distinct().Cast<string>().ToList();
+        var tiles = ends.Select(shape => (Shape: shape, Tiles: Pick.StateTiles(Views.NameOf(model, shape), StateWord(shown[i].States, shape),
+            word => Edit(flowId, d => EditOps.SetStepStates(d, flowId, i, StatesWith(StepsOf(d, flowId)[i], shape, word)))))).ToList();
+        var states = new StackPanel { Spacing = 10, IsVisible = tiles.Any(t => t.Tiles.Chosen != ""), Children = { } };
+        foreach (var (_, picker) in tiles) states.Children.Add(picker);
+        var statesToggle = new Button { Content = states.IsVisible ? "▾ State" : "▸ State", HorizontalAlignment = HorizontalAlignment.Left, IsVisible = tiles.Count > 0 };
+        statesToggle.Classes.Add("disclosure");
+        statesToggle.Click += (_, _) =>
+        {
+            states.IsVisible = !states.IsVisible;
+            statesToggle.Content = states.IsVisible ? "▾ State" : "▸ State";
+        };
+        _rows.Add(new Row { Text = text, Detail = detail, Group = groupChoice, Lane = lane, Flow = flowChoice, States = tiles, Animation = animation });
         // A number before each step, so the order reads at a glance.
         var number = new Border { Child = new TextBlock { Text = (i + 1).ToString() }, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 22, 0, 0) };
         number.Classes.Add("badge");
         var top = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { number, text } };
         Grid.SetColumn(text, 1);
-        return Chrome.Card(new StackPanel { Spacing = 8, Children = { top, more, detail, animationToggle, animation.Panel, structureToggle, structure, buttons } });
+        return Chrome.Card(new StackPanel { Spacing = 8, Children = { top, more, detail, animationToggle, animation.Panel, structureToggle, structure, statesToggle, states, buttons } });
     }
 
     private static string Title(string word) => word == "" ? word : char.ToUpperInvariant(word[0]) + word[1..];

@@ -6,8 +6,10 @@ import type { Flow, Model } from '../../src/core/model.ts'
 import type { GroupKind, Stop } from '../../src/core/structure.ts'
 import { isView, nameOf, stepEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
+import type { StateMark } from '../../src/core/states.ts'
 import { Chip } from './Chrome.tsx'
 import { ArrowLeft, ArrowRight, ArrowsSplit, Close, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
+import { StateKey } from './states.tsx'
 import { store } from './store.ts'
 
 /** The icon of a kind of group, in the chip, the bracket and the mark on the canvas. */
@@ -35,6 +37,8 @@ type Props = {
   ends: Place[]
   caption: Caption
   progress: Progress
+  /** The shapes on the canvas that are in a state at this stop (see marksOf), for the key. */
+  marks: Record<string, StateMark>
   auto: boolean
   moving: boolean
   /** Whether a step that moves plays again after a rest. */
@@ -71,7 +75,7 @@ function Bar({ progress, now }: { progress: Progress; now: number }) {
 }
 
 /** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
-export function Player({ model, flow, stops, stop, ends, caption, progress, auto, moving, repeat, trail, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
+export function Player({ model, flow, stops, stop, ends, caption, progress, marks, auto, moving, repeat, trail, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
   const [legend, setLegend] = useState(legendWasOpen)
   const grouped = progress.brackets.length > 0 // the legend explains groups, so a flow with none has no button
@@ -115,6 +119,7 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, auto
       )}
       {caption.text !== '' && <p className="group-text">{caption.text}</p>}
       <Bar progress={progress} now={stop} />
+      <StateKey marks={marks} />
       {here.steps.map((i, n) => {
         const step = flow.steps[i]
         const link = typeof step.flow === 'string' && step.flow.trim() !== '' ? step.flow.trim() : undefined

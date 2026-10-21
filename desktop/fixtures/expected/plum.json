@@ -1164,6 +1164,78 @@
       ]
     },
     {
+      "id": "no-courier-answers",
+      "name": "An offer goes unanswered",
+      "view": "delivery",
+      "steps": [
+        {
+          "from": "offers",
+          "to": "notifier",
+          "text": "Offers the job, and the nearest courier doesn't answer within 30 seconds",
+          "group": "offer",
+          "placed": [
+            "dispatch",
+            "notifications"
+          ],
+          "ends": "Offers in Dispatch → Notifier in Notifications"
+        },
+        {
+          "from": "offers",
+          "text": "Moves on to the next courier on the list",
+          "group": "offer",
+          "placed": [
+            "dispatch",
+            "dispatch"
+          ],
+          "ends": "Offers in Dispatch"
+        },
+        {
+          "from": "courier-app",
+          "to": "dispatch",
+          "text": "Accepts, and the offers stop",
+          "group": "result",
+          "lane": "A courier accepts",
+          "placed": [
+            "courier-app",
+            "dispatch"
+          ],
+          "ends": "Courier app → Dispatch"
+        },
+        {
+          "from": "offers",
+          "to": "notifier",
+          "text": "Tells the customer that no courier is free yet",
+          "group": "result",
+          "lane": "The list runs out",
+          "placed": [
+            "dispatch",
+            "notifications"
+          ],
+          "ends": "Offers in Dispatch → Notifier in Notifications"
+        },
+        {
+          "from": "dispatch",
+          "text": "Searches again in a minute",
+          "group": "result",
+          "placed": [
+            "dispatch",
+            "dispatch"
+          ],
+          "ends": "Dispatch"
+        }
+      ],
+      "groups": {
+        "offer": {
+          "kind": "repeat",
+          "until": "a courier accepts, or the list runs out",
+          "text": "One courier at a time, nearest first. Each has 30 seconds."
+        },
+        "result": {
+          "kind": "branch"
+        }
+      }
+    },
+    {
       "id": "place-order",
       "name": "Customer places an order",
       "view": "ordering",
@@ -1244,6 +1316,58 @@
       ]
     },
     {
+      "id": "refund-not-recorded",
+      "name": "The refund is not recorded",
+      "view": "ordering",
+      "steps": [
+        {
+          "from": "refunds",
+          "to": "stripe",
+          "text": "Stripe has refunded the charge",
+          "description": "The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.\n",
+          "animation": "call",
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Refunds in Order API → Stripe"
+        },
+        {
+          "from": "refunds",
+          "to": "orders-db",
+          "text": "Can't mark the order refunded, because Orders DB doesn't answer",
+          "animation": {
+            "kind": "call",
+            "outcome": "timeout"
+          },
+          "placed": [
+            "order-api",
+            "orders-db"
+          ],
+          "ends": "Refunds in Order API → Orders DB"
+        },
+        {
+          "from": "refunds",
+          "text": "Leaves the order marked paid, though the money is back",
+          "placed": [
+            "order-api",
+            "order-api"
+          ],
+          "ends": "Refunds in Order API"
+        },
+        {
+          "from": "refunds",
+          "to": "notifier",
+          "text": "Still sends the customer a refund confirmation",
+          "placed": [
+            "order-api",
+            "notifications"
+          ],
+          "ends": "Refunds in Order API → Notifier in Notifications"
+        }
+      ]
+    },
+    {
       "id": "refund",
       "name": "Support refunds an order",
       "view": "root",
@@ -1298,6 +1422,101 @@
             "twilio"
           ],
           "ends": "Notifications → Twilio"
+        }
+      ]
+    },
+    {
+      "id": "stripe-outage",
+      "name": "Stripe goes down and comes back",
+      "view": "ordering",
+      "steps": [
+        {
+          "from": "order-api",
+          "to": "stripe",
+          "text": "The hold is slow while Stripe shuts down",
+          "animation": "call",
+          "states": {
+            "stripe": "stopping"
+          },
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Order API → Stripe"
+        },
+        {
+          "from": "checkout",
+          "to": "stripe",
+          "text": "The hold times out",
+          "description": "Checkout waits five seconds for the hold and gets no answer. It does not retry while Stripe is down.\n",
+          "animation": {
+            "kind": "call",
+            "outcome": "timeout"
+          },
+          "states": {
+            "stripe": "stopped"
+          },
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Checkout in Order API → Stripe"
+        },
+        {
+          "from": "checkout",
+          "to": "customer-app",
+          "text": "Offers pay at the door",
+          "states": {
+            "checkout": "degraded"
+          },
+          "placed": [
+            "order-api",
+            "customer-app"
+          ],
+          "ends": "Checkout in Order API → Customer app"
+        },
+        {
+          "from": "order-api",
+          "to": "stripe",
+          "text": "The status page says Stripe is restarting",
+          "animation": "call",
+          "states": {
+            "stripe": "restarting"
+          },
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Order API → Stripe"
+        },
+        {
+          "from": "order-api",
+          "to": "stripe",
+          "text": "The next check finds it coming back up",
+          "animation": "call",
+          "states": {
+            "stripe": "starting"
+          },
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Order API → Stripe"
+        },
+        {
+          "from": "checkout",
+          "to": "stripe",
+          "text": "The hold goes through",
+          "animation": "call",
+          "states": {
+            "stripe": "running",
+            "checkout": "running"
+          },
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Checkout in Order API → Stripe"
         }
       ]
     }

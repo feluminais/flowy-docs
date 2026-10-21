@@ -9,16 +9,18 @@ import { ANIMATION_KINDS, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCH
 import type { AnimationKey } from '../../src/core/animation.ts'
 import { deleteFlow, deleteObject, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
+import type { StateMark, StateName } from '../../src/core/states.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { CodeFields, CodeSection } from './Code.tsx'
 import { DataField, DataSection } from './Data.tsx'
-import { connectionsOf, linesOf, newId, problemsOf, withKey } from './edit.ts'
+import { connectionsOf, linesOf, newId, pickStepState, problemsOf, stateOf, stepStateShapes, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
 import { lineId } from './graph.ts'
+import { StateGlyph, stateClasses, stateWord } from './states.tsx'
 import { openInEditor, vscode } from './host.ts'
 import { Chip, kindClass, lookVars, ObjectTile, Section, TypeTile } from './Chrome.tsx'
-import { ColorPicker, ExternalToggle, IconPicker, KindPicker, OpacityPicker, ShapePicker, SketchPicker, TypePicker } from './Pickers.tsx'
+import { ColorPicker, ExternalToggle, IconPicker, KindPicker, OpacityPicker, ShapePicker, SketchPicker, StatePicker, TypePicker } from './Pickers.tsx'
 import type { Sketch } from './Pickers.tsx'
 import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Table, Text, Trash, Close } from './icons.tsx'
 
@@ -56,7 +58,7 @@ function ProblemList({ problems }: { problems: Problem[] }) {
 }
 
 /** The top of a shape's panel: its tile, its name, and chips for its type, its tech, whether it is outside, and what is wrong with it. Tinted in the shape's colour. */
-function ObjectHeader({ model, id, object, problems }: { model: Model; id: string; object: FlowyObject; problems: number }) {
+function ObjectHeader({ model, id, object, problems, state }: { model: Model; id: string; object: FlowyObject; problems: number; state?: StateMark }) {
   const external = isExternal(object)
   return (
     <header className={`hero ${kindClass(object.type, external)}`} style={lookVars({ color: object.color })}>
@@ -69,6 +71,7 @@ function ObjectHeader({ model, id, object, problems }: { model: Model; id: strin
           {external && <Chip kind="t-external" icon={Cloud}>external</Chip>}
           {problems > 0 && <Chip kind="warn" icon={Alert}>{problems} problem{problems === 1 ? '' : 's'}</Chip>}
         </div>
+        {state && <p className={`stateline ${stateClasses(state)}`}><span className="muted">State</span><StateGlyph mark={state} />{stateWord(state)}</p>}
       </div>
     </header>
   )
@@ -226,13 +229,13 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
 type Lines = { onPick: (id: string) => void; onHover: (line?: string) => void }
 
 /** An object's description, code, links, source and connections, or in edit mode a form for its name, type, tech, description, code, source and links. */
-export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClose, onPick, onHover }: Common & Lines & { id: string; editing: boolean; problems: Problem[]; codeBase?: string }) {
+export function ObjectPanel({ model, id, editing, problems, codeBase, state, run, onClose, onPick, onHover }: Common & Lines & { id: string; editing: boolean; problems: Problem[]; codeBase?: string; state?: StateMark }) {
   const object = getObject(model, id)
   if (!object) return null
   const save = (fields: Omit<ObjectInput, 'id'>) => run(m => putObject(m, { id, ...fields }))
   const ours = problemsOf(model, problems, id)
   const mine = <ProblemList problems={ours} />
-  const header = <ObjectHeader model={model} id={id} object={object} problems={ours.length} />
+  const header = <ObjectHeader model={model} id={id} object={object} problems={ours.length} state={state} />
   if (!editing) return (
     <Panel onClose={onClose}>
       {header}
@@ -458,6 +461,20 @@ function StepStructure({ step, self, groups, others, onGroup, onLane, onFlow }: 
   )
 }
 
+/** A state for each end of a step, as drawn tiles. A pick is one edit, and None takes the state out. A shape the model no longer has is left out; the checks report it. */
+function StepStates({ model, step, onPick }: { model: Model; step: Step; onPick: (shape: string, state: StateName | '') => Promise<boolean> }) {
+  const shapes = stepStateShapes(step).filter(id => getObject(model, id) !== undefined)
+  if (shapes.length === 0) return null
+  return (
+    <details className="more" open={shapes.some(id => stateOf(step, id) !== undefined) || undefined}>
+      <summary>State</summary>
+      <div className="form">
+        {shapes.map(id => <StatePicker key={id} label={nameOf(model, id)} value={stateOf(step, id)} onPick={state => void onPick(id, state)} />)}
+      </div>
+    </details>
+  )
+}
+
 /** The groups of the flow being recorded: how each one behaves, and a form that puts a stretch of its steps in a new one. */
 function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps: Step[]; groups: Record<string, Group>; edit: Run }) {
   const ids = Object.keys(groups)
@@ -592,6 +609,7 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
               onLane={lane => change(all => all.with(i, withKey(all[i], 'lane', lane)))}
               onFlow={target => change(all => all.with(i, withKey(all[i], 'flow', target)))}
             />
+            <StepStates model={model} step={s} onPick={(shape, state) => edit(m => pickStepState(m, rec.id, i, shape, state))} />
             <div className="step-buttons">
               <button aria-label="Move up" disabled={i === 0} onClick={() => void change(all => all.with(i - 1, all[i]).with(i, all[i - 1]))}><ArrowUp size={16} /></button>
               <button aria-label="Move down" disabled={i === steps.length - 1} onClick={() => void change(all => all.with(i + 1, all[i]).with(i, all[i + 1]))}><ArrowDown size={16} /></button>

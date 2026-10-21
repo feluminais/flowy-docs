@@ -1,0 +1,9 @@
+name: A change holds until another step changes it
+view: shop
+states: { stripe: starting }
+steps:
+  - { from: web, to: api, text: Asks }
+  - { from: orders, text: Stops answering, states: { orders: stopped } }
+  - { from: web, to: api, text: Waits }
+  - { from: api, to: db, text: Restarts, states: { api: restarting, orders: running, web: degraded } }
+  - { from: api, text: Is back, states: { api: running, stripe: running } }

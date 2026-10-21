@@ -82,6 +82,8 @@ export const CASES: EditLabelCase[] = [
   make('a flow deleted', 'Deleted the Customer checks out flow', m => { delete m.flows.checkout }),
   make('a flow renamed', 'Renamed the flow Customer checks out to Pay', m => { m.flows.checkout.name = 'Pay' }),
   make('a flow changed', 'Changed the Customer checks out flow', m => { m.flows.checkout.steps[0].text = 'Presses Buy' }),
+  make('a state set on a step', 'Set API to Stopped', m => { m.flows.checkout.steps[1].states = { api: 'stopped' } }),
+  make('a state taken off a step', "Cleared API's state", m => { delete m.flows.checkout.steps[1].states }, m => { m.flows.checkout.steps[1].states = { api: 'stopped' } }),
   make('two flows', 'Changed 2 flows', m => {
     m.flows.refund = { name: 'Refund', view: 'shop', steps: [{ from: 'web', to: 'api', text: 'Refunds' }] }
     delete m.flows.checkout

@@ -1,0 +1,830 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "2",
+      "type": "system",
+      "name": "Two"
+    },
+    {
+      "id": "10",
+      "type": "system",
+      "name": "Ten"
+    },
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web app",
+      "in": "shop"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop"
+    },
+    {
+      "id": "orders",
+      "type": "component",
+      "name": "Orders",
+      "in": "api"
+    },
+    {
+      "id": "auth",
+      "type": "component",
+      "name": "Auth",
+      "in": "api"
+    },
+    {
+      "id": "db",
+      "type": "store",
+      "name": "Orders DB",
+      "in": "shop"
+    },
+    {
+      "id": "stripe",
+      "type": "system",
+      "name": "Stripe",
+      "external": "true"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "web",
+      "to": "api",
+      "label": "REST"
+    },
+    {
+      "from": "orders",
+      "to": "db",
+      "label": "reads/writes"
+    },
+    {
+      "from": "auth",
+      "to": "db",
+      "label": "checks users"
+    },
+    {
+      "from": "api",
+      "to": "stripe",
+      "label": "charges with"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "bad",
+      "name": "Words the checks refuse",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Unknown shape and state",
+          "states": {
+            "nope": "stopped",
+            "api": "asleep"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Wrong case",
+          "states": {
+            "web": "Stopped"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Not words",
+          "states": {
+            "api": [
+              "stopped"
+            ],
+            "web": {
+              "a": "b"
+            }
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Fine",
+          "states": {
+            "root": "stopped",
+            "auth": "degraded"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ],
+      "states": {
+        "ghost": "running",
+        "db": "sleepy"
+      }
+    },
+    {
+      "id": "branching",
+      "name": "Each lane starts from the state before the branch",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Asks",
+          "states": {
+            "api": "degraded"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "text": "Restarts it",
+          "group": "outcome",
+          "lane": "Retry",
+          "states": {
+            "api": "restarting"
+          },
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "api",
+          "text": "Writes it down",
+          "group": "outcome",
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "db",
+          "text": "Gives up",
+          "group": "outcome",
+          "lane": "Give up",
+          "states": {
+            "db": "stopped",
+            "orders": "stopping"
+          },
+          "placed": [
+            "db",
+            "db"
+          ],
+          "ends": "Orders DB"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Carries on",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ],
+      "groups": {
+        "outcome": {
+          "kind": "branch"
+        }
+      },
+      "states": {
+        "db": "degraded"
+      }
+    },
+    {
+      "id": "hold",
+      "name": "A change holds until another step changes it",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Asks",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "orders",
+          "text": "Stops answering",
+          "states": {
+            "orders": "stopped"
+          },
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "Orders in API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Waits",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Restarts",
+          "states": {
+            "api": "restarting",
+            "orders": "running",
+            "web": "degraded"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "text": "Is back",
+          "states": {
+            "api": "running",
+            "stripe": "running"
+          },
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        }
+      ],
+      "states": {
+        "stripe": "starting"
+      }
+    },
+    {
+      "id": "hostile",
+      "name": "Ids that Object has",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Asks",
+          "states": {
+            "__proto__": "degraded",
+            "hasOwnProperty": "starting",
+            "api": "stopped"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Then",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ],
+      "states": {
+        "__proto__": "stopped",
+        "constructor": "stopped",
+        "toString": "degraded"
+      }
+    },
+    {
+      "id": "numbered",
+      "name": "Numeric ids list first",
+      "view": "root",
+      "steps": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "text": "Visits",
+          "placed": [
+            "customer",
+            "shop"
+          ],
+          "ends": "Customer → Shop"
+        },
+        {
+          "from": "shop",
+          "to": "2",
+          "text": "Calls",
+          "states": {
+            "10": "stopping",
+            "shop": "running"
+          },
+          "placed": [
+            "shop",
+            "2"
+          ],
+          "ends": "Shop → Two"
+        },
+        {
+          "from": "2",
+          "to": "10",
+          "text": "Then",
+          "states": {
+            "2": "running"
+          },
+          "placed": [
+            "2",
+            "10"
+          ],
+          "ends": "Two → Ten"
+        }
+      ],
+      "states": {
+        "2": "starting",
+        "10": "degraded",
+        "stripe": "stopped"
+      }
+    },
+    {
+      "id": "parallel-clash",
+      "name": "Two lanes that disagree",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "api",
+          "text": "One lane",
+          "group": "both",
+          "lane": "A",
+          "states": {
+            "db": "stopped",
+            "web": "degraded"
+          },
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "db",
+          "text": "The other",
+          "group": "both",
+          "lane": "B",
+          "states": {
+            "db": "degraded",
+            "web": "degraded"
+          },
+          "placed": [
+            "db",
+            "db"
+          ],
+          "ends": "Orders DB"
+        },
+        {
+          "from": "api",
+          "text": "A third",
+          "group": "both",
+          "lane": "C",
+          "states": {
+            "db": "starting"
+          },
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "After",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ],
+      "groups": {
+        "both": {
+          "kind": "parallel"
+        }
+      }
+    },
+    {
+      "id": "parallel-ok",
+      "name": "Every lane of a parallel stop applies",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Asks",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "text": "Takes the order",
+          "group": "both",
+          "lane": "Order",
+          "states": {
+            "api": "degraded",
+            "db": "stopped"
+          },
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "db",
+          "text": "Takes the stock",
+          "group": "both",
+          "lane": "Stock",
+          "states": {
+            "db": "stopped",
+            "auth": "starting"
+          },
+          "placed": [
+            "db",
+            "db"
+          ],
+          "ends": "Orders DB"
+        },
+        {
+          "from": "api",
+          "text": "Then",
+          "group": "both",
+          "states": {
+            "api": "running"
+          },
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Done",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ],
+      "groups": {
+        "both": {
+          "kind": "parallel"
+        }
+      }
+    },
+    {
+      "id": "repeat",
+      "name": "A repeat plays its steps in turn",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Tries",
+          "group": "again",
+          "states": {
+            "api": "starting"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "text": "Is slow",
+          "group": "again",
+          "states": {
+            "api": "degraded"
+          },
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Gives up",
+          "states": {
+            "api": "running"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ],
+      "groups": {
+        "again": {
+          "kind": "repeat",
+          "times": "3"
+        }
+      }
+    },
+    {
+      "id": "shapes",
+      "name": "A states that is not a mapping",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A list",
+          "states": [
+            "api"
+          ],
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A blank key",
+          "states": "",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A tilde",
+          "states": "~",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Empty",
+          "states": {},
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Fine",
+          "states": {
+            "api": "stopped"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ],
+      "states": "stopped"
+    }
+  ],
+  "problems": [
+    {
+      "file": "flows/bad.yaml",
+      "message": "states: unknown shape \"ghost\""
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "states: unknown state \"sleepy\" for \"db\" (use running, starting, stopping, stopped, restarting, degraded)"
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 1: states: unknown shape \"nope\"",
+      "step": 0
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 1: states: unknown state \"asleep\" for \"api\" (use running, starting, stopping, stopped, restarting, degraded)",
+      "step": 0
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 2: states: unknown state \"Stopped\" for \"web\" (use running, starting, stopping, stopped, restarting, degraded)",
+      "step": 1
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 3: states: \"api\" needs a state word (use running, starting, stopping, stopped, restarting, degraded)",
+      "step": 2
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 3: states: \"web\" needs a state word (use running, starting, stopping, stopped, restarting, degraded)",
+      "step": 2
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 4: states: unknown shape \"root\"",
+      "step": 3
+    },
+    {
+      "file": "flows/hostile.yaml",
+      "message": "states: unknown shape \"__proto__\""
+    },
+    {
+      "file": "flows/hostile.yaml",
+      "message": "states: unknown shape \"constructor\""
+    },
+    {
+      "file": "flows/hostile.yaml",
+      "message": "states: unknown shape \"toString\""
+    },
+    {
+      "file": "flows/hostile.yaml",
+      "message": "step 1: states: unknown shape \"__proto__\"",
+      "step": 0
+    },
+    {
+      "file": "flows/hostile.yaml",
+      "message": "step 1: states: unknown shape \"hasOwnProperty\"",
+      "step": 0
+    },
+    {
+      "file": "flows/parallel-clash.yaml",
+      "message": "step 2: shape \"db\" is set to both stopped and degraded in one stop",
+      "step": 1
+    },
+    {
+      "file": "flows/shapes.yaml",
+      "message": "states must map shape ids to states"
+    },
+    {
+      "file": "flows/shapes.yaml",
+      "message": "step 1: states must map shape ids to states",
+      "step": 0
+    },
+    {
+      "file": "flows/shapes.yaml",
+      "message": "step 2: states must map shape ids to states",
+      "step": 1
+    },
+    {
+      "file": "flows/shapes.yaml",
+      "message": "step 3: states must map shape ids to states",
+      "step": 2
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "2",
+        "10",
+        "customer",
+        "shop",
+        "stripe"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "shop",
+          "to": "stripe",
+          "label": "charges with",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "api",
+        "db"
+      ],
+      "outsiders": [
+        "customer",
+        "stripe"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "count": 1
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "api",
+          "to": "stripe",
+          "label": "charges with",
+          "count": 1
+        }
+      ]
+    },
+    "api": {
+      "id": "api",
+      "members": [
+        "orders",
+        "auth"
+      ],
+      "outsiders": [
+        "db"
+      ],
+      "edges": [
+        {
+          "from": "orders",
+          "to": "db",
+          "label": "reads/writes",
+          "count": 1
+        },
+        {
+          "from": "auth",
+          "to": "db",
+          "label": "checks users",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

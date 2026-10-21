@@ -65,7 +65,8 @@ test('the colours of an outcome are the app tokens, never a colour written again
 test('only the clock moves by itself, and only with no preference for less motion', () => {
   const outside = plain.filter(b => /\banimation\s*:/.test(b.body) && /\.motion/.test(b.head))
   assert.deepEqual(outside.map(b => b.head), [], 'a motion rule animates outside the no-preference block')
-  const inside = calm.filter(b => /\banimation\s*:/.test(b.body))
+  // Of what moves over the canvas as a step plays, only the clock does. (The states of shapes move in this block too, and are the states' to test.)
+  const inside = calm.filter(b => /\banimation\s*:/.test(b.body) && /\.motion/.test(b.head))
   assert.deepEqual(selectors(inside).sort(), ['.motion .clock .dial', '.motion .clock .orbit'])
   for (const name of ['dial-turn', 'orbit-turn']) {
     assert.ok(top.some(b => b.head === `@keyframes ${name}`), `${name} is missing`)

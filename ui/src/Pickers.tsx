@@ -5,9 +5,12 @@ import { COLORS, COLOR_NAMES, colorPair, customIcons, fillOpacity, iconData, isC
 import type { Shape } from '../../src/core/look.ts'
 import type { FlowyObject, Model, ObjectType } from '../../src/core/model.ts'
 import { isExternal } from '../../src/core/model.ts'
+import { STATE_LABELS, STATE_NAMES } from '../../src/core/states.ts'
+import type { StateName } from '../../src/core/states.ts'
 import { lookVars, TypeTile } from './Chrome.tsx'
 import { ChevronRight, PathIcon } from './icons.tsx'
 import type { IconProps } from './icons.tsx'
+import { PlainSwatch, Swatch } from './states.tsx'
 
 /**
  * The pickers of an object's form. Each one draws what it offers, the type's tile, the shape's outline, the colour, the icon, so
@@ -207,6 +210,22 @@ export function SketchPicker({ label, choices, value, onPick }: { label: string;
           </button>
         ))}
       </div>
+    </div>
+  )
+}
+
+/** The six states as tiles drawn the way the canvas draws them, with None first for a step that leaves the shape as it is. `label` is the shape's name. */
+export function StatePicker({ label, value, onPick }: { label: string; value?: StateName; onPick: (state: StateName | '') => void }) {
+  const cell = (id: StateName | '') => (
+    <button key={id} type="button" role="radio" aria-checked={id === (value ?? '')} className="pick" onClick={() => id !== (value ?? '') && onPick(id)}>
+      {id === '' ? <PlainSwatch none /> : id === 'running' ? <PlainSwatch /> : <Swatch mark={{ state: id, inside: false }} />}
+      <span>{id === '' ? 'None' : STATE_LABELS[id]}</span>
+    </button>
+  )
+  return (
+    <div className="pick-field">
+      <Head label={label} value={value === undefined ? 'None' : STATE_LABELS[value]} />
+      <div className="pick-grid states" role="radiogroup" aria-label={`State of ${label}`}>{['', ...STATE_NAMES].map(id => cell(id as StateName | ''))}</div>
     </div>
   )
 }

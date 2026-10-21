@@ -1,0 +1,8 @@
+name: Words the checks refuse
+view: shop
+states: { ghost: running, db: sleepy }
+steps:
+  - { from: web, to: api, text: Unknown shape and state, states: { nope: stopped, api: asleep } }
+  - { from: web, to: api, text: Wrong case, states: { web: Stopped } }
+  - { from: web, to: api, text: Not words, states: { api: [stopped], web: { a: b } } }
+  - { from: web, to: api, text: Fine, states: { root: stopped, auth: degraded } }

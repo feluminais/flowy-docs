@@ -7,11 +7,13 @@ import { dumpDetect, dumpHighlight } from '../desktop/fixtures/detect.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from '../desktop/fixtures/dump.ts'
 import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
 import { dumpEditLabels } from '../desktop/fixtures/editlabel.ts'
+import { dumpFormula } from '../desktop/fixtures/formula.ts'
 import { buildTrail, dumpHistory } from '../desktop/fixtures/history.ts'
 import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
 import { dumpOutline } from '../desktop/fixtures/outline.ts'
 import { dumpPerf, dumpPerfView } from '../desktop/fixtures/perf.ts'
+import { dumpStates } from '../desktop/fixtures/states.ts'
 import { dumpCaptions, dumpStops } from '../desktop/fixtures/structure.ts'
 import { dumpOps } from '../desktop/fixtures/ops.ts'
 import { dumpYamlWrite } from '../desktop/fixtures/yaml-write.ts'
@@ -86,6 +88,11 @@ test('desktop load-test runs still read, roll up, struggle and draw as the TypeS
   assert.deepEqual(JSON.parse(JSON.stringify(await dumpPerf())), expected, 'run: node desktop/fixtures/generate.ts')
 })
 
+test('desktop traffic formulas still read, print and evaluate as the TypeScript core says', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('formula'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(dumpFormula())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
 test('desktop panel maths and words still match ui/src/perfview.ts', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('perf-view'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(await dumpPerfView())), expected, 'run: node desktop/fixtures/generate.ts')
@@ -99,6 +106,11 @@ test('desktop runs and stops of a flow\'s groups still match what the TypeScript
 test('desktop captions and progress bars still match what the TypeScript core says', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('captions'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(await dumpCaptions())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop shape states, their problems and their marks still match what the TypeScript core says', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('state-folds'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpStates())), expected, 'run: node desktop/fixtures/generate.ts')
 })
 
 test('desktop history rules still match the TypeScript ones: diff, list, retention, labels, keys', async () => {

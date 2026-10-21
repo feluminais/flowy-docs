@@ -22,5 +22,6 @@
   "shape-groups": "desktop/fixtures/cases/shape-groups/flowy",
   "shape-group": "desktop/fixtures/cases/shape-group/flowy",
   "data": "desktop/fixtures/cases/data/flowy",
-  "snippets": "desktop/fixtures/cases/snippets/flowy"
+  "snippets": "desktop/fixtures/cases/snippets/flowy",
+  "states": "desktop/fixtures/cases/states/flowy"
 }

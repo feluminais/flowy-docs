@@ -38,11 +38,14 @@ export type Step = {
   group?: string
   lane?: string
   flow?: string
+  /** The shapes this step changes, shape id to state word (see states.ts). Read it with readStates; check() reports a wrong one. */
+  states?: unknown
   [extra: string]: unknown
 }
 /** A stretch of neighbouring steps that repeat, branch or run in parallel (see structure.ts). Every known option is text when present; check() reports what is wrong. */
 export type Group = { kind?: string; text?: string; times?: string; until?: string; [extra: string]: unknown }
-export type Flow = { name: string; view: string; steps: Step[]; groups?: Record<string, Group>; [extra: string]: unknown }
+/** `states` is where shapes stand before step 1, shape id to state word (see states.ts); left out, every shape is Running. Read it with readStates. */
+export type Flow = { name: string; view: string; steps: Step[]; groups?: Record<string, Group>; states?: unknown; [extra: string]: unknown }
 export type Layout = Record<string, Record<string, [number, number]>>
 
 /** The three ratings of a failure mode, as the text of a whole number from 1 to 10 (every file value is text). failures.ts reads them as numbers. */

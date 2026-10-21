@@ -1,7 +1,10 @@
 import type { Problem } from '../../src/core/check.ts'
 import { homeView } from '../../src/core/failures.ts'
-import { changedFiles, fileData, getObject, isValidId, ROOT, serializeLayout } from '../../src/core/model.ts'
+import { changedFiles, fileData, getObject, isMap, isValidId, ROOT, serializeLayout } from '../../src/core/model.ts'
 import type { Connection, Model, Step } from '../../src/core/model.ts'
+import { setStepStates } from '../../src/core/ops.ts'
+import { isStateName } from '../../src/core/states.ts'
+import type { StateName } from '../../src/core/states.ts'
 import { chain, isView, parentOf, placeEnds } from '../../src/core/views.ts'
 
 /** One write: a file's new content as PUT /api/file takes it, or null to delete the file. */
@@ -29,6 +32,27 @@ export function newId(name: string, taken: string[], fallback: string): string {
 export function withKey(step: Step, key: 'lane' | 'flow', value: string): Step {
   const { [key]: _, ...rest } = step
   return value.trim() === '' ? rest as Step : { ...step, [key]: value.trim() }
+}
+
+/** The shapes a step's form offers a state change for: where it starts and where it goes, once each. A step with no `to` is its `from` alone. */
+export const stepStateShapes = (step: Step): string[] => [...new Set([step.from, step.to ?? step.from])]
+
+/** The state a step sets a shape to, or undefined when it does not say (or says something that is not a state). */
+export function stateOf(step: Step, shape: string): StateName | undefined {
+  const state = isMap(step.states) && Object.hasOwn(step.states, shape) ? step.states[shape] : undefined
+  return isStateName(state) ? state : undefined
+}
+
+/**
+ * The model with `shape` set to `state` ("" takes it out) on step `index` of a flow, as one edit. Every other entry of the step's `states` is kept as it is,
+ * so a pick changes only what it was asked to. Refused, in the checker's words, for a shape or a word the checker would refuse.
+ */
+export function pickStepState(model: Model, flow: string, index: number, shape: string, state: StateName | ''): Model {
+  const own = Object.hasOwn(model.flows, flow) ? model.flows[flow].steps[index]?.states : undefined
+  const next: Record<string, string> = {}
+  if (isMap(own)) for (const [id, word] of Object.entries(own)) if (id !== shape && typeof word === 'string') Object.defineProperty(next, id, { value: word, enumerable: true, writable: true, configurable: true })
+  if (state !== '') next[shape] = state
+  return setStepStates(model, flow, index, next)
 }
 
 /** The connections one line of a view stands for, with their place in model.connections. */
