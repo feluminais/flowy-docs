@@ -2,8 +2,8 @@ namespace Flowy.Core;
 
 /// <summary>
 /// Edits to one model folder. Each edit is done the way MCP does it: read the files fresh, apply the change to their YAML, refuse it if it
-/// would add a problem, then write each file that changed, only if it still has the version just read. What happened is a message for the
-/// reader, or null once it is saved. Undo and Redo put back what was written, but only where nothing has changed since. One edit runs at a
+/// would add a problem, then write each file that changed, only if it still has the version just read. What happened is an <see cref="EditResult"/>: a message
+/// for the reader, or none once it is saved. Undo and Redo put back what was written, but only where nothing has changed since. One edit runs at a
 /// time. Desktop twin of saveEdit and undoEdit in ui/src/save.ts.
 /// </summary>
 public sealed class EditSession(string dir)
@@ -35,7 +35,7 @@ public sealed class EditSession(string dir)
         }
     }
 
-    /// <summary>Raised on the thread that did it, after files were written.</summary>
+    /// <summary>Raised on the thread that did it, after files were written and the session is free for the next edit.</summary>
     public event Action? Saved;
 
     private sealed record Disk(EditDoc Doc, Dictionary<string, string?> Versions);
@@ -60,9 +60,11 @@ public sealed class EditSession(string dir)
         return new Disk(EditDoc.Parse(model, layout, flows), versions);
     }
 
-    /// <summary>Does one edit. Returns what to tell the reader (a refusal, or that a file changed under it), or null once it is saved.</summary>
-    public string? Apply(Func<EditDoc, EditDoc> op)
+    /// <summary>Does one edit. Says what to tell the reader (a refusal, or that a file changed under it), or that it is saved.</summary>
+    public EditResult Apply(Func<EditDoc, EditDoc> op)
     {
+        var saved = false;
+        EditResult result;
         lock (_gate)
         {
             try
@@ -82,67 +84,75 @@ public sealed class EditSession(string dir)
                     // A file the edit created goes away again; one that was there goes back to its text before.
                     written.Add(new Written(rel, existed ? before.GetValueOrDefault(rel) : null, text, version));
                 }
-                if (written.Count == 0) return null;
-                _undo.Add(written);
-                _redo.Clear();
-                Saved?.Invoke();
-                return null;
+                if (written.Count > 0)
+                {
+                    _undo.Add(written);
+                    _redo.Clear();
+                    saved = true;
+                }
+                result = EditResult.Ok;
             }
             catch (ParseError e)
             {
-                return Unreadable(e);
+                result = EditResult.Refused(Unreadable(e));
             }
             catch (OpError e)
             {
-                return e.Message;
+                result = EditResult.Refused(e.Message);
             }
             catch (VersionConflict)
             {
-                return ChangedOutside;
+                result = EditResult.FileChanged;
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                return $"Couldn't save: {e.Message}";
+                result = EditResult.Refused($"Couldn't save: {e.Message}");
             }
         }
+        if (saved) Saved?.Invoke();
+        return result;
     }
 
-    public string? Undo() => Back(_undo, _redo, "undo");
+    public EditResult Undo() => Back(_undo, _redo, "undo");
 
-    public string? Redo() => Back(_redo, _undo, "redo");
+    public EditResult Redo() => Back(_redo, _undo, "redo");
 
-    private string? Back(List<List<Written>> from, List<List<Written>> to, string word)
+    private EditResult Back(List<List<Written>> from, List<List<Written>> to, string word)
     {
+        var saved = false;
+        EditResult result;
         lock (_gate)
         {
-            if (from.Count == 0) return $"Nothing to {word}.";
+            if (from.Count == 0) return EditResult.Refused($"Nothing to {word}.");
             var entry = from[^1];
             var stale = $"Can't {word}: this changed since, outside Flowy. Nothing was {(word == "undo" ? "undone" : "redone")}.";
             try
             {
                 ReadDisk(); // nothing is written while a file can't be read
                 // Every file must still be as that edit left it, before any is touched.
-                if (entry.Any(w => FileStore.Read(dir, w.Rel).Version != w.Version)) return stale;
+                if (entry.Any(w => FileStore.Read(dir, w.Rel).Version != w.Version)) return EditResult.Refused(stale);
                 var back = new List<Written>();
                 foreach (var w in Enumerable.Reverse(entry))
                     back.Add(new Written(w.Rel, w.After, w.Before, FileStore.Save(dir, w.Rel, w.Before, w.Version)));
                 from.RemoveAt(from.Count - 1);
                 to.Add(back);
-                Saved?.Invoke();
-                return null;
+                saved = true;
+                result = EditResult.Ok;
             }
             catch (ParseError e)
             {
-                return $"Can't {word} while a file can't be read: {Unreadable(e)}";
+                result = EditResult.Refused($"Can't {word} while a file can't be read: {Unreadable(e)}");
             }
             catch (VersionConflict)
             {
-                return stale;
+                result = EditResult.Refused(stale);
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                return $"Couldn't {word}: {e.Message}";
+                result = EditResult.Refused($"Couldn't {word}: {e.Message}");
             }
         }
+        if (saved) Saved?.Invoke();
+        return result;
     }
 }

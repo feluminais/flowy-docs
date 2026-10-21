@@ -22,12 +22,6 @@ public static partial class Structure
     public const int TimesMin = 2;
     public const int TimesMax = 99;
 
-    // forwards to JsCompat; remove when the other branches land
-    public static string JsTrim(string s) => JsCompat.JsTrim(s);
-
-    // forwards to JsCompat; remove when the other branches land
-    public static bool Blank(object? v) => JsCompat.Blank(v);
-
     [GeneratedRegex(@"^[0-9]+\z")]
     private static partial Regex Digits();
 
@@ -157,16 +151,16 @@ public static partial class Structure
     /// then each step's, then each declared group that no step uses (or that has too few lanes). A step's problem has its 0-based step number
     /// and is worded to follow "step N: "; the others stand alone. <paramref name="hasFlow"/> says whether a flow id exists.
     /// </summary>
-    public static List<(int? Step, string Message)> Problems(Flow flow, Func<string, bool> hasFlow)
+    public static List<Finding> Problems(Flow flow, Func<string, bool> hasFlow)
     {
-        var output = new List<(int? Step, string Message)>();
+        var output = new List<Finding>();
         var groups = flow.Groups;
         List<string> ids = groups is null ? [] : JsCompat.OrderKeys(groups.Keys);
         var kinds = string.Join(", ", Kinds);
 
         foreach (var id in ids)
         {
-            void Add(string message) => output.Add((null, $"group \"{id}\": {message}"));
+            void Add(string message) => output.Add(new Finding(null, $"group \"{id}\": {message}"));
             var body = groups![id] as OrderedDictionary<string, object?> ?? [];
             body.TryGetValue("kind", out var kind);
             if (!Names.IsValidId(id)) Add($"ids {Names.IdRule}");
@@ -201,7 +195,7 @@ public static partial class Structure
         for (var i = 0; i < flow.Steps.Count; i++)
         {
             var index = i;
-            void At(string message) => output.Add((index, message));
+            void At(string message) => output.Add(new Finding(index, message));
             var gid = StepGroup(flow, i);
             var declared = gid != "" && groups is not null && groups.ContainsKey(gid);
             var kind = declared ? KindOf(flow, gid) : null;
@@ -230,8 +224,8 @@ public static partial class Structure
         foreach (var id in ids)
         {
             var m = members.GetValueOrDefault(id) ?? [];
-            if (m.Count == 0) output.Add((null, $"group \"{id}\": no step belongs to it"));
-            else if (KindOf(flow, id) == "parallel" && m.Count(j => LaneOf(flow, j) != "") < 2) output.Add((null, $"group \"{id}\": a parallel group needs at least two lanes"));
+            if (m.Count == 0) output.Add(new Finding(null, $"group \"{id}\": no step belongs to it"));
+            else if (KindOf(flow, id) == "parallel" && m.Count(j => LaneOf(flow, j) != "") < 2) output.Add(new Finding(null, $"group \"{id}\": a parallel group needs at least two lanes"));
         }
         return output;
     }

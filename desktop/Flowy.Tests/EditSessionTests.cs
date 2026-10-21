@@ -34,7 +34,7 @@ public class EditSessionTests
         var dir = Path.Combine(temp.Dir, "flowy");
         Directory.CreateDirectory(dir);
         var session = new EditSession(dir);
-        Assert.Null(session.Apply(d => EditOps.PutObject(d, new ObjectInput("shop", "system", "Shop"))));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, new ObjectInput("shop", "system", "Shop"))));
         Assert.Equal("objects:\n  shop:\n    type: system\n    name: Shop\nconnections: []\n", Read(dir, "model.yaml"));
         Assert.Equal(["model.yaml"], Directory.GetFiles(dir, "*", SearchOption.AllDirectories).Select(f => Path.GetRelativePath(dir, f)).ToArray());
         Assert.Equal(0, TempFiles(dir));
@@ -48,7 +48,7 @@ public class EditSessionTests
         var flowBefore = Read(dir, "flows/order.yaml");
         var layoutBefore = Read(dir, "layout.yaml");
         var session = new EditSession(dir);
-        Assert.Null(session.Apply(d => EditOps.PutObject(d, new ObjectInput("api", Tech: "Fastify"))));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, new ObjectInput("api", Tech: "Fastify"))));
         Assert.Equal(flowBefore, Read(dir, "flows/order.yaml")); // its own style, comments and all
         Assert.Equal(layoutBefore, Read(dir, "layout.yaml"));
         var model = Read(dir, "model.yaml");
@@ -66,7 +66,7 @@ public class EditSessionTests
         using var _ = temp;
         var before = Read(dir, "model.yaml");
         var session = new EditSession(dir);
-        var message = session.Apply(d => EditOps.PutObject(d, new ObjectInput("loose", "app", "Loose")));
+        var message = session.Apply(d => EditOps.PutObject(d, new ObjectInput("loose", "app", "Loose"))).Message;
         Assert.StartsWith("Refused, nothing saved. This would add:", message);
         Assert.Contains("app must be inside system", message);
         Assert.Equal(before, Read(dir, "model.yaml"));
@@ -79,12 +79,12 @@ public class EditSessionTests
         var (temp, dir) = Copy();
         using var _ = temp;
         var session = new EditSession(dir);
-        var message = session.Apply(d =>
+        var result = session.Apply(d =>
         {
             File.AppendAllText(Path.Combine(dir, "model.yaml"), "\n# someone else was here\n"); // between the read and the write
             return EditOps.PutObject(d, Fresh);
         });
-        Assert.Equal(EditSession.ChangedOutside, message);
+        Assert.Equal(EditResult.FileChanged, result);
         Assert.Contains("someone else was here", Read(dir, "model.yaml"));
         Assert.DoesNotContain("fresh", Read(dir, "model.yaml"));
         Assert.False(session.CanUndo);
@@ -98,7 +98,7 @@ public class EditSessionTests
         File.WriteAllText(Path.Combine(dir, "flows", "browse.yaml"), "name: Broken\nview: root\nsteps: [\n");
         var broken = Read(dir, "model.yaml");
         var session = new EditSession(dir);
-        var message = session.Apply(d => EditOps.PutObject(d, Fresh));
+        var message = session.Apply(d => EditOps.PutObject(d, Fresh)).Message;
         Assert.StartsWith("Can't read flows/browse.yaml", message);
         Assert.EndsWith("Fix the file and the view updates.", message);
         Assert.Equal(broken, Read(dir, "model.yaml"));
@@ -110,25 +110,25 @@ public class EditSessionTests
         var (temp, dir) = Copy();
         using var _ = temp;
         var session = new EditSession(dir);
-        Assert.Null(session.Apply(d => EditOps.PutObject(d, new ObjectInput("api", Tech: "Fastify"))));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, new ObjectInput("api", Tech: "Fastify"))));
         var edited = Read(dir, "model.yaml");
-        Assert.Null(session.Apply(d => EditOps.PlaceBoxes(d, "root", [("customer", 5, 6)])));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PlaceBoxes(d, "root", [("customer", 5, 6)])));
         Assert.True(session.CanUndo);
         Assert.False(session.CanRedo);
 
-        Assert.Null(session.Undo());
+        Assert.Equal(EditResult.Ok, session.Undo());
         Assert.DoesNotContain("customer: [5, 6]", Read(dir, "layout.yaml"));
         Assert.Equal(edited, Read(dir, "model.yaml"));
         Assert.True(session.CanRedo);
-        Assert.Null(session.Undo());
+        Assert.Equal(EditResult.Ok, session.Undo());
         Assert.DoesNotContain("tech: Fastify", Read(dir, "model.yaml"));
-        Assert.Equal("Nothing to undo.", session.Undo());
+        Assert.Equal("Nothing to undo.", session.Undo().Message);
 
-        Assert.Null(session.Redo());
+        Assert.Equal(EditResult.Ok, session.Redo());
         Assert.Equal(edited, Read(dir, "model.yaml"));
-        Assert.Null(session.Redo());
+        Assert.Equal(EditResult.Ok, session.Redo());
         Assert.Contains("customer: [5, 6]", Read(dir, "layout.yaml"));
-        Assert.Equal("Nothing to redo.", session.Redo());
+        Assert.Equal("Nothing to redo.", session.Redo().Message);
         Assert.Equal(0, TempFiles(dir));
     }
 
@@ -138,10 +138,10 @@ public class EditSessionTests
         var (temp, dir) = Copy();
         using var _ = temp;
         var session = new EditSession(dir);
-        Assert.Null(session.Apply(d => EditOps.PutObject(d, Fresh)));
-        Assert.Null(session.Undo());
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, Fresh)));
+        Assert.Equal(EditResult.Ok, session.Undo());
         Assert.True(session.CanRedo);
-        Assert.Null(session.Apply(d => EditOps.PutObject(d, new ObjectInput("other", "actor", "Other"))));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, new ObjectInput("other", "actor", "Other"))));
         Assert.False(session.CanRedo);
     }
 
@@ -151,10 +151,10 @@ public class EditSessionTests
         var (temp, dir) = Copy();
         using var _ = temp;
         var session = new EditSession(dir);
-        Assert.Null(session.Apply(d => EditOps.PutObject(d, Fresh)));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, Fresh)));
         File.AppendAllText(Path.Combine(dir, "model.yaml"), "# edited elsewhere\n");
         var changed = Read(dir, "model.yaml");
-        Assert.StartsWith("Can't undo: this changed since", session.Undo());
+        Assert.StartsWith("Can't undo: this changed since", session.Undo().Message);
         Assert.Equal(changed, Read(dir, "model.yaml"));
         Assert.True(session.CanUndo); // still there to try again
     }
@@ -165,11 +165,11 @@ public class EditSessionTests
         var (temp, dir) = Copy();
         using var _ = temp;
         var session = new EditSession(dir);
-        Assert.Null(session.Apply(d => EditOps.PutFlow(d, "pay", "Customer pays", "root", [EditOps.NewStep("customer", "pay", "Pays")])));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutFlow(d, "pay", "Customer pays", "root", [EditOps.NewStep("customer", "pay", "Pays")])));
         var created = Read(dir, "flows/pay.yaml");
-        Assert.Null(session.Undo());
+        Assert.Equal(EditResult.Ok, session.Undo());
         Assert.False(File.Exists(Path.Combine(dir, "flows", "pay.yaml")));
-        Assert.Null(session.Redo());
+        Assert.Equal(EditResult.Ok, session.Redo());
         Assert.Equal(created, Read(dir, "flows/pay.yaml"));
     }
 
@@ -179,9 +179,9 @@ public class EditSessionTests
         var (temp, dir) = Copy();
         using var _ = temp;
         var session = new EditSession(dir);
-        Assert.Null(session.Apply(d => EditOps.DeleteFlow(d, "browse")));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.DeleteFlow(d, "browse")));
         Assert.False(File.Exists(Path.Combine(dir, "flows", "browse.yaml")));
-        Assert.Null(session.Undo());
+        Assert.Equal(EditResult.Ok, session.Undo());
         Assert.Contains("name: Customer browses", Read(dir, "flows/browse.yaml"));
     }
 
@@ -192,7 +192,7 @@ public class EditSessionTests
         using var _ = temp;
         var before = Read(dir, "model.yaml");
         var session = new EditSession(dir);
-        Assert.Null(session.Apply(d => EditOps.PutObject(d, new ObjectInput("api", Name: "API")))); // same name
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, new ObjectInput("api", Name: "API")))); // same name
         Assert.Equal(before, Read(dir, "model.yaml")); // not even rewritten in the canonical style
         Assert.False(session.CanUndo);
     }
@@ -208,7 +208,7 @@ public class EditSessionTests
         using var watcher = new FolderWatcher(dir, TimeSpan.FromMilliseconds(30));
         var heard = 0;
         watcher.Changed += () => Interlocked.Increment(ref heard);
-        Assert.Null(session.Apply(d => EditOps.PutObject(d, Fresh)));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, Fresh)));
         Thread.Sleep(600);
         Assert.Equal(1, saves);
         Assert.Equal(1, heard);
