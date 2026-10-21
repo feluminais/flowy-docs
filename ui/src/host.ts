@@ -1,4 +1,4 @@
-import { openMessage } from '../../src/core/host.ts'
+import { openMessage, openUrlMessage } from '../../src/core/host.ts'
 
 /** The API VS Code gives a webview's page, which can be asked for once. */
 type VsCodeApi = { postMessage: (message: unknown) => void; getState: () => unknown; setState: (state: unknown) => void }
@@ -43,5 +43,12 @@ export function startFromSavedState(): void {
 export function openInEditor(path: string): boolean {
   if (!vscode) return false
   vscode.postMessage(openMessage(path))
+  return true
+}
+
+/** Open a web address in the reader's browser by way of the extension, if this page is in VS Code. Resolves to whether there is an extension to ask. */
+export function openInBrowser(url: string): boolean {
+  if (!vscode) return false
+  vscode.postMessage(openUrlMessage(url))
   return true
 }

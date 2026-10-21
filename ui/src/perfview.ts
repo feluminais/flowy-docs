@@ -1,5 +1,6 @@
 import { colorPair } from '../../src/core/look.ts'
 import type { Model } from '../../src/core/model.ts'
+import { memberIds } from '../../src/core/views.ts'
 import { loadOfPosition, lockstepPositions, settingAt } from '../../src/core/perf/dials.ts'
 import { interpolate, levelAt } from '../../src/core/perf/levels.ts'
 import { rollUpLoad } from '../../src/core/perf/rollup.ts'
@@ -389,3 +390,19 @@ export const modeLabel = (mode: Mode): string | undefined => (mode === 'added' ?
 
 /** What a shape's readout says when runs that were added made it pass its capacity, which one run never does: nothing for a share that is 1 or under, or for runs tested together. */
 export const overText = (mode: Mode, util: number | undefined): string | undefined => (mode === 'added' && util !== undefined && util > 1 ? 'Added use is over 100%' : undefined)
+
+/**
+ * A run to start from: two levels with made-up numbers for the first shapes of the view and the connections between them, as a file to save in
+ * perf/ and fill in. Flowy only reads runs, so this is the nearest it comes to making one.
+ */
+export function starterRun(model: Model, view: string): string {
+  const ids = memberIds(model, view).slice(0, 4)
+  const lines = model.connections.filter(c => ids.includes(c.from) && ids.includes(c.to)).slice(0, 3)
+  const level = (load: number, scale: number) => [
+    `  - load: ${load}`,
+    `    overall: { rate: ${load}, p50: ${60 * scale}, p95: ${140 * scale}, errors: 0 }`,
+    ...(ids.length > 0 ? ['    objects:', ...ids.map(id => `      ${id}: { util: ${0.3 * scale}, queue: 0, errors: 0 }`)] : []),
+    ...(lines.length > 0 ? ['    connections:', ...lines.map(c => `      - { from: ${c.from}, to: ${c.to}, rate: ${load / 2}, p50: ${90 * scale}, p95: ${180 * scale}, errors: 0 }`)] : []),
+  ]
+  return ['# Replace these numbers with what your load test measured, and save the file in flowy/perf/ (see the guide, Performance).', 'name: My load test', 'about: What was tested, and on what', 'unit: req/s', 'levels:', ...level(100, 1), ...level(200, 2)].join('\n') + '\n'
+}

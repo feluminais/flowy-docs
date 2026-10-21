@@ -1,0 +1,227 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web app",
+      "in": "shop",
+      "tech": "React"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API, public",
+      "in": "shop"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "web",
+      "to": "api",
+      "label": "calls, quickly"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "blank",
+      "name": "Blank on purpose",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API, public"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "",
+          "description": "",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API, public → Web app"
+        }
+      ]
+    },
+    {
+      "id": "checkout",
+      "name": "Customer checks out",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Clicks Buy",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API, public"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Sets the time zone",
+          "group": "retry",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API, public → Web app"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Answers",
+          "animation": {
+            "kind": "call",
+            "reason": "Rate limit",
+            "packet dropped": null
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API, public"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Shows the receipt, with the total",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API, public → Web app"
+        }
+      ],
+      "groups": {
+        "retry": {
+          "kind": "repeat",
+          "until": "it stops",
+          "or gives up": null
+        }
+      }
+    }
+  ],
+  "problems": [
+    {
+      "file": "model.yaml",
+      "message": "\"notes → on call\" has no value (a comma ends unquoted text: put text that has a comma in double quotes)"
+    },
+    {
+      "file": "model.yaml",
+      "id": "web",
+      "message": "web: \"Vite\" has no value (a comma ends unquoted text: put text that has a comma in double quotes)"
+    },
+    {
+      "file": "model.yaml",
+      "message": "connection customer → web: \"then buys\" has no value (a comma ends unquoted text: put text that has a comma in double quotes)",
+      "connection": 0
+    },
+    {
+      "file": "flows/blank.yaml",
+      "message": "step 1: text is missing",
+      "step": 0
+    },
+    {
+      "file": "flows/blank.yaml",
+      "message": "step 2: text is missing",
+      "step": 1
+    },
+    {
+      "file": "flows/checkout.yaml",
+      "message": "\"groups → retry → or gives up\" has no value (a comma ends unquoted text: put text that has a comma in double quotes)"
+    },
+    {
+      "file": "flows/checkout.yaml",
+      "message": "step 1: \"then waits\" has no value (a comma ends unquoted text: put text that has a comma in double quotes)",
+      "step": 0
+    },
+    {
+      "file": "flows/checkout.yaml",
+      "message": "step 2: \"if the request has one\" has no value (a comma ends unquoted text: put text that has a comma in double quotes)",
+      "step": 1
+    },
+    {
+      "file": "flows/checkout.yaml",
+      "message": "step 3: \"animation → packet dropped\" has no value (a comma ends unquoted text: put text that has a comma in double quotes)",
+      "step": 2
+    },
+    {
+      "file": "flows/checkout.yaml",
+      "message": "step 3: unknown animation option \"packet dropped\" (use kind, trigger, carries, outcome, share, reason, by, at)",
+      "step": 2
+    },
+    {
+      "file": "flows/checkout.yaml",
+      "message": "group \"retry\": unknown option \"or gives up\" (use kind, text, times, until)"
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "shop"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "api"
+      ],
+      "outsiders": [
+        "customer"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "calls, quickly",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { check, newProblems, typesIn } from '../src/core/check.ts'
+import { parseFlowFile, parseModelFile, serializeFile } from '../src/core/modelfiles.ts'
 import { isRepoPath, isWebAddress } from '../src/core/paths.ts'
 import type { Model } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
@@ -327,4 +328,56 @@ test('a problem on a step keeps its identity when the step moves, and two differ
   assert.deepEqual(newProblems([at(1, 'text is missing')], [at(2, 'text is missing')]), [])
   assert.equal(newProblems([at(1, 'text is missing')], [at(1, 'text is missing'), at(1, 'unknown object "x"')]).length, 1)
   assert.equal(newProblems([at(1, 'text is missing')], [at(1, 'text is missing'), at(2, 'text is missing')]).length, 1)
+})
+
+test('a comma in unquoted flow text leaves a key with no value, which is reported before a save throws', () => {
+  const m = shop()
+  const text = 'name: Bad\nview: shop\nsteps:\n  - { from: customer, to: web, text: Sets the time zone, if the request has one }\n'
+  m.flows.bad = parseFlowFile('bad', text)
+  // The file loads and the text is cut short, so nothing else notices.
+  assert.equal(m.flows.bad.steps[0].text, 'Sets the time zone')
+  assert.deepEqual(check(m).map(p => `${p.file} ${p.message}`), [
+    'flows/bad.yaml step 1: "if the request has one" has no value (a comma ends unquoted text: put text that has a comma in double quotes)',
+  ])
+  assert.equal(check(m)[0].step, 0)
+  // Writing it back is what throws, and that is what the problem warns about.
+  assert.throws(() => serializeFile('flows/bad.yaml', m.flows.bad), /Tag not resolved for null value/)
+})
+
+test('quoting the text keeps the comma, and no key is left empty', () => {
+  const m = shop()
+  const text = 'name: Good\nview: shop\nsteps:\n  - { from: customer, to: web, text: "Sets the time zone, if the request has one" }\n'
+  m.flows.good = parseFlowFile('good', text)
+  assert.equal(m.flows.good.steps[0].text, 'Sets the time zone, if the request has one')
+  assert.deepEqual(check(m), [])
+  assert.doesNotThrow(() => serializeFile('flows/good.yaml', m.flows.good))
+})
+
+test('a key with no value is reported wherever it sits: objects, connections, flows, nested keys, failures and model.yaml', () => {
+  const m = shop()
+  const model = parseModelFile(
+    'extra: { note: Hello, world }\nobjects:\n  a: { type: actor, name: A, tech: Go, for the team }\nconnections:\n  - { from: a, to: a, label: sends, then waits }\n')
+  Object.assign(m.objects, model.objects)
+  m.connections.push(...model.connections)
+  Object.assign(m.meta, model.meta)
+  m.flows.nested = parseFlowFile('nested', [
+    'name: Nested, the long way', // the comma is harmless in block style
+    'view: shop',
+    'groups:',
+    '  g: { kind: repeat, until: it stops, or gives up }',
+    'steps:',
+    '  - { from: customer, to: web, text: Fine }',
+    '  - { from: web, to: api, text: Slow, animation: { kind: call, reason: Rate limit, packet dropped } }',
+  ].join('\n'))
+  m.failures.f = { name: 'F', modes: { m: { mode: 'It breaks', on: 'db', cause: 'Heat', 'and cold': null } } } as never
+  const messages = check(m).map(p => `${p.file} ${p.message}`).filter(msg => msg.includes('has no value'))
+  const rest = '(a comma ends unquoted text: put text that has a comma in double quotes)'
+  assert.deepEqual(messages, [
+    `model.yaml "extra → world" has no value ${rest}`,
+    `model.yaml a: "for the team" has no value ${rest}`,
+    `model.yaml connection a → a: "then waits" has no value ${rest}`,
+    `flows/nested.yaml "groups → g → or gives up" has no value ${rest}`,
+    `flows/nested.yaml step 2: "animation → packet dropped" has no value ${rest}`,
+    `failures/f.yaml "modes → m → and cold" has no value ${rest}`,
+  ])
 })
