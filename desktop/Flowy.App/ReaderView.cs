@@ -491,7 +491,9 @@ internal sealed partial class ReaderView : Grid
         if (flow is { } f)
         {
             var stops = StopsOf(f.Flow);
-            shown = new Playing(f.Flow.Steps.Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList(), null, stops[index].Steps, Structure.OtherLaneSteps(stops, index));
+            // A shape that takes a request off the line (`by`) is lit with the step, so it does not sit at the faint level while it flashes.
+            var also = stops[index].Steps.SelectMany(i => Animations.Read(f.Flow.Steps[i])?.By is { Shape: { } taker } && Views.PlaceStep(model, view, taker, null) is { } at ? new[] { at.From } : []).ToList();
+            shown = new Playing(f.Flow.Steps.Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList(), null, stops[index].Steps, Structure.OtherLaneSteps(stops, index), also.Count > 0 ? also : null);
         }
         else if (Recording is { } rec) shown = RecordingShown(model, view, rec);
         var line = _side is { Kind: SideKind.Line } l ? SceneBuilder.LineId(l.From!, l.To!) : null;

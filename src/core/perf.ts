@@ -796,7 +796,10 @@ function takeBytes(mean: Mean, c: { bytes?: number; rate?: number }) {
   }
 }
 /** The mean size of a call: weighted by rate (a connection with no rate has no weight); with no rates at all it is the plain mean; none given is none. */
-const meanBytes = (mean: Mean): number | undefined => (mean.weight > 0 ? mean.weighted / mean.weight : mean.n > 0 ? mean.sum / mean.n : undefined)
+const meanBytes = (mean: Mean): number | undefined => {
+  const v = mean.weight > 0 ? mean.weighted / mean.weight : mean.n > 0 ? mean.sum / mean.n : undefined
+  return v !== undefined && Number.isFinite(v) ? v : undefined // an overflowing weighted sum is no number, not Infinity
+}
 
 /** What one source carries on a line, as rollUp collects it from the connections that land there. */
 type Share = Mean & { rate?: number; p50?: number; errors?: number }
@@ -910,7 +913,8 @@ const round2 = (n: number) => Math.round(n * 100) / 100
 export function capCounts(counts: number[]): { counts: number[]; capped: boolean } {
   const most = Math.max(0, ...counts)
   if (most <= AT_ONCE) return { counts, capped: false }
-  return { counts: counts.map(c => (c * AT_ONCE) / most), capped: true }
+  // Multiply first so a count keeps the exact value it always had; a huge count would overflow to Infinity, and then dividing first is the way.
+  return { counts: counts.map(c => { const v = (c * AT_ONCE) / most; return Number.isFinite(v) ? v : (c / most) * AT_ONCE }), capped: true }
 }
 
 /** The crossing time of a line in ms: what its expected call says, in steps from half a second to four. A line with no p50 is a middling trip. */

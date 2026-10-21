@@ -27,6 +27,7 @@ internal sealed class BoxControl : Grid
     private readonly TextBlock _name = new();
     private readonly TextBlock _meta = new();
     private readonly StackPanel _content;
+    private readonly StackPanel _text;
     private readonly StackPanel _inside = new();
     private readonly TextBlock _insideText = new();
     private readonly Path _zoom;
@@ -44,6 +45,7 @@ internal sealed class BoxControl : Grid
     private readonly Ellipse _handle = new() { Width = 10, Height = 10, IsHitTestVisible = false, IsVisible = false, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 3) };
     private Path? _icon;
     private string? _teaser;
+    private string _tipKey = "";
     private bool _external;
     private string _type = "";
     private string _iconData = "";
@@ -85,16 +87,15 @@ internal sealed class BoxControl : Grid
         _tile.Classes.Add("tile");
         _name.Classes.Add("name");
         _meta.Classes.Add("meta");
-        var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Children = { _name, _meta } };
+        _text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Children = { _name, _meta } };
         _content = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             Spacing = 10,
             VerticalAlignment = VerticalAlignment.Center,
             IsHitTestVisible = false,
-            Children = { _tile, text },
+            Children = { _tile, _text },
         };
-        text.MaxWidth = 130;
 
         _insideText.Classes.Add("inside");
         _inside.Orientation = Orientation.Horizontal;
@@ -170,8 +171,13 @@ internal sealed class BoxControl : Grid
         }
         // Where content may sit inside the shape, and where "3 inside" goes.
         _content.Margin = new Thickness(def.Pad[3], def.Pad[0], def.Pad[1], def.Pad[2]);
+        // The words end where the shape says they may, so a long name is trimmed there and not at the edge; a diamond holds its content in the middle.
+        var tile = Look.ShowsTile(o);
+        _text.MaxWidth = Math.Max(20, 200 - def.Pad[3] - def.Pad[1] - (tile ? 34 + _content.Spacing : 0));
+        _content.HorizontalAlignment = shape == "diamond" ? HorizontalAlignment.Center : HorizontalAlignment.Left;
+        _name.TextAlignment = _meta.TextAlignment = shape == "diamond" ? TextAlignment.Center : TextAlignment.Left;
         _inside.Margin = new Thickness(0, 0, def.Badge[0], def.Badge[1]);
-        _tile.IsVisible = Look.ShowsTile(o);
+        _tile.IsVisible = tile;
 
         _tintAlpha = opacity / 100.0;
         _tint.Opacity = _tintAlpha * _dim;
@@ -221,17 +227,53 @@ internal sealed class BoxControl : Grid
         _meta.Text = string.Join(" · ", new[] { external ? "external" : null, string.IsNullOrEmpty(o.Tech) ? o.Type : o.Tech }.Where(s => !string.IsNullOrEmpty(s)));
         _inside.IsVisible = box.Inside > 0;
         _insideText.Text = $"{box.Inside} inside";
-        // Pointing at a box for a moment shows the first paragraph of its description.
+        // Pointing at a box for a moment shows the first paragraph of its description, and the whole name when it doesn't fit.
         var teaser = Navigation.Teaser(o.Description);
         if (teaser is { Length: > 400 }) teaser = teaser[..400] + "…"; // a tooltip is built for every box, so it stays small
-        if (teaser != _teaser)
-        {
-            _teaser = teaser;
-            ToolTip.SetTip(this, string.IsNullOrWhiteSpace(teaser) ? null : new Border { MaxWidth = 260, Child = new MarkdownView(teaser, 13) });
-            ToolTip.SetPlacement(this, PlacementMode.Bottom);
-            ToolTip.SetShowDelay(this, 400);
-        }
+        _teaser = teaser;
+        RefreshTip();
         AutomationProperties.SetName(this, $"{_name.Text}, {(external ? "external " : "")}{o.Type}");
+    }
+
+    protected override void OnPointerEntered(Avalonia.Input.PointerEventArgs e)
+    {
+        base.OnPointerEntered(e);
+        RefreshTip();
+    }
+
+    /// <summary>Whether the text, at the font it is drawn in, is wider than the room it has, so that it shows an ellipsis.</summary>
+    private bool Trimmed(TextBlock block)
+    {
+        if (string.IsNullOrEmpty(block.Text)) return false;
+        var face = new Typeface(block.FontFamily, block.FontStyle, block.FontWeight, block.FontStretch);
+        var width = new FormattedText(block.Text, System.Globalization.CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, face, block.FontSize, Brushes.Black).Width;
+        return width > _text.MaxWidth + 0.5;
+    }
+
+    /// <summary>The tooltip: the whole name, and what it says under it, when either is cut short; then the first paragraph of the description. None when there is nothing to add.</summary>
+    private void RefreshTip()
+    {
+        var cut = Trimmed(_name) || Trimmed(_meta);
+        var key = string.Join((char)10, _teaser, cut, cut ? _name.Text : "", cut ? _meta.Text : "");
+        if (key == _tipKey) return;
+        _tipKey = key;
+        if (!cut && string.IsNullOrWhiteSpace(_teaser))
+        {
+            ToolTip.SetTip(this, null);
+            return;
+        }
+        var tip = new StackPanel { MaxWidth = 260, Spacing = 6 };
+        if (cut)
+        {
+            var title = new StackPanel { Spacing = 1 };
+            title.Children.Add(new TextBlock { Text = _name.Text, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
+            if (!string.IsNullOrEmpty(_meta.Text)) title.Children.Add(new TextBlock { Text = _meta.Text, FontSize = 12, Classes = { "muted" }, TextWrapping = TextWrapping.Wrap });
+            tip.Children.Add(title);
+        }
+        if (!string.IsNullOrWhiteSpace(_teaser)) tip.Children.Add(new MarkdownView(_teaser, 13));
+        ToolTip.SetTip(this, tip);
+        ToolTip.SetPlacement(this, PlacementMode.Bottom);
+        ToolTip.SetShowDelay(this, 400);
     }
 
     /// <summary>Edit mode: a dot at the bottom edge to draw a connection from, and a cursor that says the shape can be moved.</summary>
@@ -476,6 +518,7 @@ internal sealed class BoxControl : Grid
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
+        RefreshTip();
         if (_state is not null && _loop is null) StartMotion();
     }
 

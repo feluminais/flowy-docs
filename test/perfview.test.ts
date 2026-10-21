@@ -80,6 +80,11 @@ test('numbers are written the way a reader says them', () => {
   assert.equal(fmtBytes(1000), '1 KB')
   assert.equal(fmtBytes(1536), '1.5 KB')
   assert.equal(fmtBytes(48_000), '48 KB')
+  assert.equal(fmtBytes(999.4), '999 B') // the unit changes where the value rounds up to the next one
+  assert.equal(fmtBytes(999.5), '1 KB')
+  assert.equal(fmtBytes(999_499), '999 KB')
+  assert.equal(fmtBytes(999_500), '1 MB')
+  assert.equal(fmtBytes(999_999), '1 MB')
   assert.equal(fmtBytes(2_400_000), '2.4 MB')
   assert.equal(METRICS.bytes.label, 'Size of a call')
   assert.equal(METRICS.bytes.show(1600), '1.6 KB')

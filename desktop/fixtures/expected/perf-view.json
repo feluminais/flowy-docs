@@ -11980,6 +11980,22 @@
       "load": "999 req/s"
     },
     {
+      "n": 999.4,
+      "ms": "999 ms",
+      "pct": "99940%",
+      "rate": "999 calls a second",
+      "bytes": "999 B",
+      "load": "999 req/s"
+    },
+    {
+      "n": 999.5,
+      "ms": "1000 ms",
+      "pct": "99950%",
+      "rate": "1000 calls a second",
+      "bytes": "1 KB",
+      "load": "1000 req/s"
+    },
+    {
       "n": 1000,
       "ms": "1 s",
       "pct": "100000%",
@@ -12012,11 +12028,35 @@
       "load": "12346 req/s"
     },
     {
+      "n": 99949,
+      "ms": "99.9 s",
+      "pct": "9994900%",
+      "rate": "99949 calls a second",
+      "bytes": "100 KB",
+      "load": "99949 req/s"
+    },
+    {
+      "n": 999499,
+      "ms": "999.5 s",
+      "pct": "99949900%",
+      "rate": "999499 calls a second",
+      "bytes": "999 KB",
+      "load": "999499 req/s"
+    },
+    {
+      "n": 999500,
+      "ms": "999.5 s",
+      "pct": "99950000%",
+      "rate": "999500 calls a second",
+      "bytes": "1 MB",
+      "load": "999500 req/s"
+    },
+    {
       "n": 999999,
       "ms": "1000 s",
       "pct": "99999900%",
       "rate": "999999 calls a second",
-      "bytes": "1000 KB",
+      "bytes": "1 MB",
       "load": "999999 req/s"
     },
     {

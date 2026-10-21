@@ -221,8 +221,10 @@ public partial class MainWindow : Window
 
     private Control Demo()
     {
-        var demo = new Button { HorizontalAlignment = HorizontalAlignment.Center, IsVisible = Shell.DemoDir is not null };
+        var there = Shell.DemoDir is not null;
+        var demo = new Button { HorizontalAlignment = HorizontalAlignment.Center, IsEnabled = there };
         demo.Classes.Add("tool");
+        if (!there) ToolTip.SetTip(demo, "The demo is missing from this install");
         Chrome.Fill(demo, Flowy.App.Canvas.Icons.Play, "Open the demo");
         demo.Click += (_, _) => _shell.OpenDemo();
         return demo;

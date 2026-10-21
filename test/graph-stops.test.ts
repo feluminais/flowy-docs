@@ -5,6 +5,13 @@ import { shop } from './fixtures.ts'
 
 const byId = <T extends { id: string }>(items: T[]) => Object.fromEntries(items.map(i => [i.id, i]))
 
+test('a shape that takes a request off the line is lit with the step', () => {
+  const { nodes } = toGraph(shop(), 'shop', { ends: [['web', 'api']], steps: [0], also: ['db'] })
+  const box = byId(nodes)
+  assert.equal(box.db.className, 'lit')
+  assert.equal(box.mail.className, 'outsider dim')
+})
+
 test('a stop of several steps lights every step\'s boxes and lines, and dims the rest', () => {
   const { nodes, edges } = toGraph(shop(), 'shop', { ends: [['web', 'api'], ['api', 'db'], ['api', 'mail']], steps: [0, 1] })
   const box = byId(nodes)
