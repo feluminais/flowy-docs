@@ -1,0 +1,17 @@
+name: The refund is not recorded
+view: ordering
+steps:
+  - from: refunds
+    to: stripe
+    text: Stripe has refunded the charge
+    animation: call
+    description: |
+      The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.
+  - from: refunds
+    to: orders-db
+    text: Can't mark the order refunded, because Orders DB doesn't answer
+    animation: { kind: call, outcome: timeout }
+    description: |
+      The refund and the write are two steps, so one can happen without the other.
+  - { from: refunds, text: Leaves the order marked paid, though the money is back }
+  - { from: refunds, to: notifier, text: Still sends the customer a refund confirmation }
