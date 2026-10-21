@@ -5959,7 +5959,7 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 55,
+              "shapes": 60,
               "flows": 17,
               "problem": false,
               "expandable": true,
@@ -5968,7 +5968,7 @@
             }
           ],
           "totals": {
-            "shapes": 55,
+            "shapes": 60,
             "flows": 17,
             "problems": 0
           }
@@ -5988,7 +5988,7 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 55,
+              "shapes": 60,
               "flows": 17,
               "problem": false,
               "expandable": true,
@@ -6044,6 +6044,22 @@
               "match": true
             },
             {
+              "key": "shape:time",
+              "kind": "shape",
+              "id": "time",
+              "parent": "root",
+              "depth": 1,
+              "name": "Runs over time",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:states",
               "kind": "shape",
               "id": "states",
@@ -6077,7 +6093,7 @@
             }
           ],
           "totals": {
-            "shapes": 55,
+            "shapes": 60,
             "flows": 17,
             "problems": 0
           }
@@ -6098,7 +6114,7 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 55,
+              "shapes": 60,
               "flows": 17,
               "problem": false,
               "expandable": true,
@@ -6147,6 +6163,22 @@
               "type": "system",
               "external": false,
               "shapes": 11,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:time",
+              "kind": "shape",
+              "id": "time",
+              "parent": "root",
+              "depth": 1,
+              "name": "Runs over time",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
               "flows": 0,
               "problem": false,
               "expandable": true,
@@ -6619,7 +6651,7 @@
             }
           ],
           "totals": {
-            "shapes": 55,
+            "shapes": 60,
             "flows": 17,
             "problems": 0
           }
@@ -6632,6 +6664,7 @@
             "structure",
             "performance",
             "states",
+            "time",
             "send-from",
             "send-to",
             "call-from",
@@ -6675,6 +6708,10 @@
             "states-service",
             "states-holder",
             "states-part",
+            "time-caller",
+            "time-service",
+            "time-holder",
+            "time-part",
             "scale",
             "source",
             "dots-few",
@@ -6694,7 +6731,7 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 55,
+              "shapes": 60,
               "flows": 17,
               "problem": false,
               "expandable": true,
@@ -7294,6 +7331,86 @@
               "match": true
             },
             {
+              "key": "shape:time",
+              "kind": "shape",
+              "id": "time",
+              "parent": "root",
+              "depth": 1,
+              "name": "Runs over time",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:time-holder",
+              "kind": "shape",
+              "id": "time-holder",
+              "parent": "time",
+              "depth": 2,
+              "name": "Time · holder",
+              "type": "app",
+              "external": false,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:time-part",
+              "kind": "shape",
+              "id": "time-part",
+              "parent": "time-holder",
+              "depth": 3,
+              "name": "Time · part",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:time-caller",
+              "kind": "shape",
+              "id": "time-caller",
+              "parent": "time",
+              "depth": 2,
+              "name": "Time · caller",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:time-service",
+              "kind": "shape",
+              "id": "time-service",
+              "parent": "time",
+              "depth": 2,
+              "name": "Time · service",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:states",
               "kind": "shape",
               "id": "states",
@@ -7855,7 +7972,7 @@
             }
           ],
           "totals": {
-            "shapes": 55,
+            "shapes": 60,
             "flows": 17,
             "problems": 0
           }
@@ -7868,6 +7985,7 @@
             "structure",
             "performance",
             "states",
+            "time",
             "send-from",
             "send-to",
             "call-from",
@@ -7911,6 +8029,10 @@
             "states-service",
             "states-holder",
             "states-part",
+            "time-caller",
+            "time-service",
+            "time-holder",
+            "time-part",
             "scale",
             "source",
             "dots-few",
@@ -7930,7 +8052,7 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 55,
+              "shapes": 60,
               "flows": 17,
               "problem": false,
               "expandable": true,
@@ -8530,6 +8652,86 @@
               "match": true
             },
             {
+              "key": "shape:time",
+              "kind": "shape",
+              "id": "time",
+              "parent": "root",
+              "depth": 1,
+              "name": "Runs over time",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:time-holder",
+              "kind": "shape",
+              "id": "time-holder",
+              "parent": "time",
+              "depth": 2,
+              "name": "Time · holder",
+              "type": "app",
+              "external": false,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:time-part",
+              "kind": "shape",
+              "id": "time-part",
+              "parent": "time-holder",
+              "depth": 3,
+              "name": "Time · part",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:time-caller",
+              "kind": "shape",
+              "id": "time-caller",
+              "parent": "time",
+              "depth": 2,
+              "name": "Time · caller",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:time-service",
+              "kind": "shape",
+              "id": "time-service",
+              "parent": "time",
+              "depth": 2,
+              "name": "Time · service",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:states",
               "kind": "shape",
               "id": "states",
@@ -9091,7 +9293,7 @@
             }
           ],
           "totals": {
-            "shapes": 55,
+            "shapes": 60,
             "flows": 17,
             "problems": 0
           }
@@ -9109,7 +9311,7 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 55,
+              "shapes": 60,
               "flows": 17,
               "problem": false,
               "expandable": true,
@@ -9597,6 +9799,70 @@
               "match": true
             },
             {
+              "key": "shape:time",
+              "kind": "shape",
+              "id": "time",
+              "parent": "root",
+              "depth": 1,
+              "name": "Runs over time",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:time-holder",
+              "kind": "shape",
+              "id": "time-holder",
+              "parent": "time",
+              "depth": 2,
+              "name": "Time · holder",
+              "type": "app",
+              "external": false,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:time-part",
+              "kind": "shape",
+              "id": "time-part",
+              "parent": "time-holder",
+              "depth": 3,
+              "name": "Time · part",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:time-caller",
+              "kind": "shape",
+              "id": "time-caller",
+              "parent": "time",
+              "depth": 2,
+              "name": "Time · caller",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:states",
               "kind": "shape",
               "id": "states",
@@ -9966,7 +10232,7 @@
             }
           ],
           "totals": {
-            "shapes": 55,
+            "shapes": 60,
             "flows": 17,
             "problems": 0
           }
@@ -9980,7 +10246,7 @@
           "editing": false,
           "rows": [],
           "totals": {
-            "shapes": 55,
+            "shapes": 60,
             "flows": 17,
             "problems": 0
           }
@@ -10000,7 +10266,7 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 55,
+              "shapes": 60,
               "flows": 17,
               "problem": false,
               "expandable": true,
@@ -10056,6 +10322,22 @@
               "match": true
             },
             {
+              "key": "shape:time",
+              "kind": "shape",
+              "id": "time",
+              "parent": "root",
+              "depth": 1,
+              "name": "Runs over time",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:states",
               "kind": "shape",
               "id": "states",
@@ -10089,7 +10371,7 @@
             }
           ],
           "totals": {
-            "shapes": 55,
+            "shapes": 60,
             "flows": 17,
             "problems": 0
           }
@@ -11419,6 +11701,280 @@
           "total": 17
         },
         {
+          "view": "time",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 17
+        },
+        {
+          "view": "time",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 17
+        },
+        {
           "view": "rolled-up",
           "editing": false,
           "here": [],
@@ -11831,6 +12387,280 @@
         },
         {
           "view": "states-holder",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 17
+        },
+        {
+          "view": "time-holder",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 17
+        },
+        {
+          "view": "time-holder",
           "editing": true,
           "here": [],
           "elsewhere": [
@@ -12312,6 +13142,21 @@
           "opened": [
             "root",
             "states"
+          ]
+        },
+        {
+          "id": "time",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "time",
+          "self": true,
+          "opened": [
+            "root",
+            "time"
           ]
         },
         {
@@ -13049,6 +13894,76 @@
             "states",
             "states-holder",
             "states-part"
+          ]
+        },
+        {
+          "id": "time-caller",
+          "self": false,
+          "opened": [
+            "root",
+            "time"
+          ]
+        },
+        {
+          "id": "time-caller",
+          "self": true,
+          "opened": [
+            "root",
+            "time",
+            "time-caller"
+          ]
+        },
+        {
+          "id": "time-service",
+          "self": false,
+          "opened": [
+            "root",
+            "time"
+          ]
+        },
+        {
+          "id": "time-service",
+          "self": true,
+          "opened": [
+            "root",
+            "time",
+            "time-service"
+          ]
+        },
+        {
+          "id": "time-holder",
+          "self": false,
+          "opened": [
+            "root",
+            "time"
+          ]
+        },
+        {
+          "id": "time-holder",
+          "self": true,
+          "opened": [
+            "root",
+            "time",
+            "time-holder"
+          ]
+        },
+        {
+          "id": "time-part",
+          "self": false,
+          "opened": [
+            "root",
+            "time",
+            "time-holder"
+          ]
+        },
+        {
+          "id": "time-part",
+          "self": true,
+          "opened": [
+            "root",
+            "time",
+            "time-holder",
+            "time-part"
           ]
         },
         {

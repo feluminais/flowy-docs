@@ -1,0 +1,61 @@
+name: Every state over time
+about: Made-up numbers for the showcase. Over 100 seconds the service under Runs over time goes through every state, one event after another, and its part stops and runs again, so the holder shows that something inside is not running. Most events fall between two levels, so the slider stands on places no level is.
+axis: time
+unit: s
+entry: time-caller
+events:
+  - { at: 10, on: time-service, state: starting, text: The service starts coming up }
+  - { at: 20, on: time-service, state: running, text: It is ready }
+  - { at: 30, on: time-service, state: degraded, text: It slows down }
+  - { at: 40, on: time-service, state: stopping, text: It begins to shut down }
+  - { at: 45, on: time-part, state: stopped, text: The part stops }
+  - { at: 50, on: time-service, state: stopped }
+  - { at: 60, on: time-service, state: restarting, text: It starts again }
+  - { at: 70, on: time-service, state: running, text: It is running again }
+  - { at: 72, on: time-part, state: running, text: The part runs again }
+levels:
+  - at: 0
+    overall: { rate: 15, p50: 40, p95: 90, errors: 0 }
+    objects:
+      time-caller: { util: 0.1 }
+      time-service: { util: 0.1 }
+      time-part: { util: 0.2 }
+    connections:
+      - { from: time-caller, to: time-service, rate: 10, p50: 30, p95: 60, errors: 0 }
+      - { from: time-caller, to: time-holder, rate: 5, p50: 20, p95: 50, errors: 0 }
+  - at: 25
+    overall: { rate: 15, p50: 45, p95: 100, errors: 0 }
+    objects:
+      time-caller: { util: 0.2 }
+      time-service: { util: 0.35 }
+      time-part: { util: 0.2 }
+    connections:
+      - { from: time-caller, to: time-service, rate: 10, p50: 60, p95: 110, errors: 0 }
+      - { from: time-caller, to: time-holder, rate: 5, p50: 20, p95: 50, errors: 0 }
+  - at: 50
+    overall: { rate: 8, p50: 600, p95: 5000, errors: 0.3 }
+    objects:
+      time-caller: { util: 0.9 }
+      time-service: { util: 0 }
+      time-part: { util: 0 }
+    connections:
+      - { from: time-caller, to: time-service, rate: 10, p50: 5000, p95: 5000, errors: 1 }
+      - { from: time-caller, to: time-holder, rate: 5, p50: 20, p95: 50, errors: 0 }
+  - at: 75
+    overall: { rate: 14, p50: 80, p95: 400, errors: 0.05 }
+    objects:
+      time-caller: { util: 0.5 }
+      time-service: { util: 0.6 }
+      time-part: { util: 0.3 }
+    connections:
+      - { from: time-caller, to: time-service, rate: 12, p50: 150, p95: 600, errors: 0.05 }
+      - { from: time-caller, to: time-holder, rate: 5, p50: 20, p95: 50, errors: 0 }
+  - at: 100
+    overall: { rate: 15, p50: 42, p95: 95, errors: 0 }
+    objects:
+      time-caller: { util: 0.1 }
+      time-service: { util: 0.2 }
+      time-part: { util: 0.2 }
+    connections:
+      - { from: time-caller, to: time-service, rate: 10, p50: 30, p95: 60, errors: 0 }
+      - { from: time-caller, to: time-holder, rate: 5, p50: 20, p95: 50, errors: 0 }

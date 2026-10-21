@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
 import { ANIMATION_KINDS, animationOf, OUTCOMES } from '../src/core/animation.ts'
-import { AT_ONCE, knee, scaleText, sourceKey, traffic } from '../src/core/perf.ts'
+import { AT_ONCE, eventsOf, isTime, knee, runStates, scaleText, sourceKey, traffic } from '../src/core/perf.ts'
 import type { Metrics } from '../src/core/perf.ts'
 import { marksOf, readStates, STATE_NAMES, statesAt } from '../src/core/states.ts'
 import { GROUP_KINDS, runsOf, stopsOf } from '../src/core/structure.ts'
@@ -99,6 +99,30 @@ test('every state is shown by a flow, and a shape that holds one in a state show
   }
   for (const name of STATE_NAMES) assert.ok(shown.has(name), `no flow puts a shape in "${name}": add a step to docs/showcase`)
   assert.ok(inside > 0, 'no stop shows a shape that only holds a shape in a state')
+})
+
+test('a run over time puts a shape in every state through its events, and a shape that holds one shows that at the overview', () => {
+  const whole = modelOf(state)
+  const timed = Object.entries(state.runs ?? {}).filter(([, r]) => isTime(r))
+  assert.ok(timed.length > 0, 'no run over time: add one to docs/showcase/flowy/perf')
+  const shown = new Set<string>()
+  let inside = 0
+  for (const [, r] of timed) {
+    for (const e of eventsOf(r)) {
+      shown.add(e.state)
+      for (const mark of Object.values(marksOf(whole, runStates(r, e.at)))) if (mark.inside) inside++
+    }
+  }
+  for (const name of STATE_NAMES) assert.ok(shown.has(name), `no event of a run over time puts a shape in "${name}": add one to docs/showcase/flowy/perf`)
+  assert.ok(inside > 0, 'no event leaves a shape that only holds a shape in a state')
+})
+
+test('the run over time has events that fall between its levels, so the slider has somewhere to stand that no level is', () => {
+  const [, r] = Object.entries(state.runs ?? {}).find(([, found]) => isTime(found)) ?? []
+  assert.ok(r, 'no run over time')
+  const times = new Set(r.levels.map(l => l.load))
+  assert.ok(eventsOf(r).some(e => !times.has(e.at)), 'every event is on a level: put one between two')
+  assert.ok(eventsOf(r).length >= 7, 'one event for each state, and more')
 })
 
 test('the run has every load effect, and the strongest level shows each one', () => {

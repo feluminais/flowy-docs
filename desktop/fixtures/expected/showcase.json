@@ -26,6 +26,12 @@
       "description": "One shape that goes through every state, and one that holds another shape in a state.\n\nPlay **Every state** to watch a shape start, run, degrade, stop, restart and run again, and **State inside a shape** to see a shape show that something inside it is not running.\n"
     },
     {
+      "id": "time",
+      "type": "system",
+      "name": "Runs over time",
+      "description": "A run measured over time instead of over load, with events on its timeline that set the state of a shape.\n\nOpen the Performance tab (**T**), pick **Every state over time**, then press **Play**, drag the slider or click an event.\n"
+    },
+    {
       "id": "send-from",
       "type": "app",
       "name": "Send · from",
@@ -347,6 +353,34 @@
       "description": "The part. Its state shows on the holder at the overview."
     },
     {
+      "id": "time-caller",
+      "type": "app",
+      "name": "Time · caller",
+      "in": "time",
+      "description": "Calls the other shapes. It is always running, and gets busy while the service is off."
+    },
+    {
+      "id": "time-service",
+      "type": "app",
+      "name": "Time · service",
+      "in": "time",
+      "description": "Goes through every state as the run plays, one event at a time."
+    },
+    {
+      "id": "time-holder",
+      "type": "app",
+      "name": "Time · holder",
+      "in": "time",
+      "description": "Holds a part. Shows a ring with a dashed edge while the part is in a state and it has none of its own."
+    },
+    {
+      "id": "time-part",
+      "type": "component",
+      "name": "Time · part",
+      "in": "time-holder",
+      "description": "The part. It stops at 45 s and runs again at 72 s, and its state shows on the holder at the overview."
+    },
+    {
       "id": "scale",
       "type": "system",
       "name": "Colour and scale",
@@ -548,6 +582,16 @@
     {
       "from": "states-caller",
       "to": "states-holder",
+      "label": "calls"
+    },
+    {
+      "from": "time-caller",
+      "to": "time-service",
+      "label": "calls"
+    },
+    {
+      "from": "time-caller",
+      "to": "time-holder",
       "label": "calls"
     },
     {
@@ -1489,6 +1533,7 @@
         "structure",
         "performance",
         "states",
+        "time",
         "scale"
       ],
       "outsiders": [],
@@ -1740,6 +1785,29 @@
         }
       ]
     },
+    "time": {
+      "id": "time",
+      "members": [
+        "time-caller",
+        "time-service",
+        "time-holder"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "time-caller",
+          "to": "time-service",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "time-caller",
+          "to": "time-holder",
+          "label": "calls",
+          "count": 1
+        }
+      ]
+    },
     "rolled-up": {
       "id": "rolled-up",
       "members": [
@@ -1768,6 +1836,14 @@
       "id": "states-holder",
       "members": [
         "states-part"
+      ],
+      "outsiders": [],
+      "edges": []
+    },
+    "time-holder": {
+      "id": "time-holder",
+      "members": [
+        "time-part"
       ],
       "outsiders": [],
       "edges": []
