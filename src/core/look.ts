@@ -31,7 +31,7 @@ const stadium = (): [number, number][] => [
 
 export const SHAPE_DEFS: Record<Shape, ShapeDef> = {
   rectangle: { path: 'M9 1H191A8 8 0 0 1 199 9V63A8 8 0 0 1 191 71H9A8 8 0 0 1 1 63V9A8 8 0 0 1 9 1Z', pad: [0, 14, 0, 12], badge: [9, 5], tile: true, edge: [] },
-  pill: { path: 'M36 1H164A35 35 0 0 1 164 71H36A35 35 0 0 1 36 1Z', pad: [0, 22, 0, 16], badge: [20, 5], tile: true, edge: stadium() },
+  pill: { path: 'M36 1H164A35 35 0 0 1 164 71H36A35 35 0 0 1 36 1Z', pad: [0, 30, 0, 28], badge: [24, 5], tile: true, edge: stadium() },
   ellipse: { path: 'M1 36A99 35 0 0 1 199 36A99 35 0 0 1 1 36Z', pad: [0, 26, 0, 24], badge: [34, 7], tile: true, edge: ellipse(100, 36, 99, 35) },
   diamond: { path: 'M100 1L199 36L100 71L1 36Z', pad: [0, 50, 0, 50], badge: [66, 9], tile: false, edge: [[100, 1], [199, 36], [100, 71], [1, 36]] },
   hexagon: { path: 'M26 1H174L199 36L174 71H26L1 36Z', pad: [0, 28, 0, 28], badge: [28, 6], tile: true, edge: [[26, 1], [174, 1], [199, 36], [174, 71], [26, 71], [1, 36]] },
@@ -41,7 +41,7 @@ export const SHAPE_DEFS: Record<Shape, ShapeDef> = {
   document: { path: 'M1 1H199V63C166 72 133 54 100 63C67 72 34 54 1 63Z', pad: [0, 14, 8, 12], badge: [9, 12], tile: true, edge: [] },
   folder: { path: 'M1 9A8 8 0 0 1 9 1H66L80 15H191A8 8 0 0 1 199 23V63A8 8 0 0 1 191 71H9A8 8 0 0 1 1 63Z', pad: [14, 14, 0, 12], badge: [9, 5], tile: true, edge: [] },
   note: { path: 'M1 9A8 8 0 0 1 9 1H171L199 29V63A8 8 0 0 1 191 71H9A8 8 0 0 1 1 63ZM171 1V21A8 8 0 0 0 179 29H199', pad: [8, 14, 0, 12], badge: [9, 5], tile: true, edge: [] },
-  cloud: { path: 'M34 70A20 20 0 1 1 49 36.7A24 24 0 1 1 99.9 29A22 22 0 1 1 147.1 34.2A24 24 0 1 1 168 70Z', pad: [28, 34, 0, 40], badge: [26, 6], tile: true, edge: ellipse(103, 40, 86, 31, 24) },
+  cloud: { path: 'M30 70H172A21 21 0 1 0 164.67 29.32A21 21 0 0 0 130.1 17.25A26 26 0 0 0 81.41 18.55A22 22 0 0 0 42 31.77A21 21 0 1 0 30 70Z', pad: [30, 26, 2, 34], badge: [30, 6], tile: true, edge: ellipse(100, 38, 92, 33, 24) },
   arrow: { path: 'M1 1H165L199 36L165 71H1Z', pad: [0, 36, 0, 12], badge: [34, 5], tile: true, edge: [[1, 1], [165, 1], [199, 36], [165, 71], [1, 71]] },
 }
 

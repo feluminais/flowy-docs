@@ -1,0 +1,572 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop",
+      "description": "Sells things online."
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web app",
+      "in": "shop",
+      "tech": "React"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop",
+      "tech": "Node"
+    },
+    {
+      "id": "db",
+      "type": "store",
+      "name": "Orders DB",
+      "in": "shop",
+      "tech": "Postgres"
+    },
+    {
+      "id": "auth",
+      "type": "component",
+      "name": "Auth",
+      "in": "api"
+    },
+    {
+      "id": "orders",
+      "type": "component",
+      "name": "Orders",
+      "in": "api"
+    },
+    {
+      "id": "mail",
+      "type": "system",
+      "name": "Mail service",
+      "external": "true"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "web",
+      "to": "api",
+      "label": "REST"
+    },
+    {
+      "from": "orders",
+      "to": "db",
+      "label": "reads and writes"
+    },
+    {
+      "from": "auth",
+      "to": "db",
+      "label": "checks users"
+    },
+    {
+      "from": "orders",
+      "to": "mail",
+      "label": "sends receipts"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "checkout",
+      "name": "Customer checks out",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "customer",
+          "to": "web",
+          "text": "Clicks Buy",
+          "placed": [
+            "customer",
+            "web"
+          ],
+          "ends": "Customer → Web app"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Posts the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Saves the order",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        }
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "file": "failures/empty.yaml",
+      "message": "name is missing"
+    },
+    {
+      "file": "failures/ordering.yaml",
+      "message": "constructor: status \"constructor\" must be open, planned, done or accepted"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "name is missing"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "scope \"web\" must be \"root\" or an object with children"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "no-part: needs \"on\" (a shape) or \"from\" and \"to\" (a line)"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "both: has \"on\" and also \"from\" or \"to\"; use one or the other"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "unknown-shape: unknown object \"gone\""
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "half-line: \"from\" and \"to\" go together"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "no-connection: web → db is not a connection in the model"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "unknown-end: unknown object \"gone\""
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "bad-affects: affects: unknown object \"nope\""
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "bad-rating: severity must be a whole number from 1 to 10"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "bad-rating: occurrence must be a whole number from 1 to 10"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "bad-rating: detection must be a whole number from 1 to 10"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "bad-after: after severity must be a whole number from 1 to 10"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "bad-status: status \"finished\" must be open, planned, done or accepted"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "bad-flow: flow \"nope\" doesn't exist"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "step-without-flow: step needs a flow"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "step-zero: step must be a whole number from 1"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "step-beyond: step 9 is outside flow \"checkout\", which has 3 steps"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "blank-mode: \"mode\" is missing"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "Bad-Id: the id must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "nel-status: status \"\" must be open, planned, done or accepted"
+    }
+  ],
+  "failures": [
+    {
+      "id": "empty",
+      "name": "",
+      "modes": []
+    },
+    {
+      "id": "ordering",
+      "name": "Ordering",
+      "about": "Made-up ratings for a test.",
+      "scope": "shop",
+      "scale": {
+        "severity": {
+          "low": "Nobody notices",
+          "high": "Someone loses money"
+        },
+        "occurrence": {
+          "low": "Never seen",
+          "high": "Every day"
+        }
+      },
+      "modes": [
+        {
+          "id": "db-down",
+          "mode": "The database is unreachable",
+          "on": "db",
+          "effect": "Orders can't be saved.",
+          "cause": "The primary fails.",
+          "severity": "10",
+          "occurrence": "2",
+          "detection": "2",
+          "controls": "A standby takes over.",
+          "action": "Rehearse the failover.",
+          "owner": "Platform",
+          "status": "planned",
+          "flow": "checkout",
+          "step": "3",
+          "description": "A **severe** one.\n",
+          "after": {
+            "occurrence": "1"
+          },
+          "affects": [
+            "web",
+            "api"
+          ]
+        },
+        {
+          "id": "mail-timeout",
+          "mode": "The mail service doesn't answer",
+          "from": "orders",
+          "to": "mail",
+          "effect": "Receipts arrive late.",
+          "severity": "3",
+          "occurrence": "6",
+          "detection": "7",
+          "run": "spike",
+          "affects": [
+            "web"
+          ]
+        },
+        {
+          "id": "api-slow",
+          "mode": "The API answers slowly",
+          "on": "api",
+          "effect": "Pages hang.",
+          "severity": "4",
+          "occurrence": "5",
+          "detection": "3",
+          "status": "done",
+          "after": {
+            "severity": "2",
+            "occurrence": "2",
+            "detection": "2"
+          }
+        },
+        {
+          "id": "auth-lock",
+          "mode": "The login lock is never released",
+          "on": "auth",
+          "effect": "Nobody can sign in.",
+          "severity": "6",
+          "occurrence": "5",
+          "detection": "5",
+          "status": "accepted"
+        },
+        {
+          "id": "web-glitch",
+          "mode": "The page flickers",
+          "on": "web",
+          "effect": "A customer is annoyed.",
+          "severity": "2",
+          "occurrence": "3",
+          "detection": "2"
+        },
+        {
+          "id": "orders-unrated",
+          "mode": "An order is counted twice",
+          "on": "orders",
+          "effect": "A customer is billed twice.",
+          "severity": "5"
+        },
+        {
+          "id": "mail-severe",
+          "mode": "Receipts go to the wrong person",
+          "on": "mail",
+          "severity": "9"
+        },
+        {
+          "id": "constructor",
+          "mode": "A mode named like something on every object",
+          "on": "db",
+          "severity": "1",
+          "occurrence": "1",
+          "detection": "1",
+          "status": "constructor"
+        }
+      ]
+    },
+    {
+      "id": "problems",
+      "name": "",
+      "scope": "web",
+      "modes": [
+        {
+          "id": "no-part",
+          "mode": "Has no part"
+        },
+        {
+          "id": "both",
+          "mode": "Has two kinds of part",
+          "on": "db",
+          "from": "api",
+          "to": "db"
+        },
+        {
+          "id": "unknown-shape",
+          "mode": "Names a shape that is not there",
+          "on": "gone"
+        },
+        {
+          "id": "half-line",
+          "mode": "Names half a line",
+          "from": "web"
+        },
+        {
+          "id": "no-connection",
+          "mode": "Names a line the model does not have",
+          "from": "web",
+          "to": "db"
+        },
+        {
+          "id": "unknown-end",
+          "mode": "Names a line with an unknown end",
+          "from": "web",
+          "to": "gone"
+        },
+        {
+          "id": "bad-affects",
+          "mode": "Hurts something that is not there",
+          "on": "db",
+          "affects": [
+            "nope"
+          ]
+        },
+        {
+          "id": "bad-rating",
+          "mode": "Rated out of range",
+          "on": "db",
+          "severity": "11",
+          "occurrence": "07",
+          "detection": "5.5"
+        },
+        {
+          "id": "bad-after",
+          "mode": "After rating out of range",
+          "on": "db",
+          "after": {
+            "severity": "0"
+          }
+        },
+        {
+          "id": "bad-status",
+          "mode": "A status nobody knows",
+          "on": "db",
+          "status": "finished"
+        },
+        {
+          "id": "bad-flow",
+          "mode": "Names a flow that is not there",
+          "on": "db",
+          "flow": "nope"
+        },
+        {
+          "id": "step-without-flow",
+          "mode": "A step with no flow",
+          "on": "db",
+          "step": "2"
+        },
+        {
+          "id": "step-zero",
+          "mode": "A step that is not from 1",
+          "on": "db",
+          "flow": "checkout",
+          "step": "0"
+        },
+        {
+          "id": "step-beyond",
+          "mode": "A step past the end",
+          "on": "db",
+          "flow": "checkout",
+          "step": "9"
+        },
+        {
+          "id": "blank-mode",
+          "mode": "",
+          "on": "db"
+        },
+        {
+          "id": "Bad-Id",
+          "mode": "An id that is not an id",
+          "on": "db"
+        },
+        {
+          "id": "bad-run",
+          "mode": "Names a run that is not there",
+          "on": "db",
+          "run": "nope"
+        },
+        {
+          "id": "bom-step",
+          "mode": "A step that is only a byte order mark",
+          "on": "db",
+          "flow": "checkout",
+          "step": "﻿"
+        },
+        {
+          "id": "nel-status",
+          "mode": "A status that is only a next line character",
+          "on": "db",
+          "status": ""
+        }
+      ]
+    }
+  ],
+  "failureProblems": [
+    {
+      "file": "failures/Bad Id.yaml",
+      "message": "\"Bad Id\" is not a valid analysis id: the file name must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+    },
+    {
+      "file": "failures/broken.yaml",
+      "message": "\"modes\" must map ids to mappings"
+    },
+    {
+      "file": "failures/old.yml",
+      "message": "Flowy reads analysis files that end in .yaml, so this one is ignored. Rename it to old.yaml."
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "bad-run: run \"nope\" doesn't exist"
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "shop",
+        "mail"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "shop",
+          "to": "mail",
+          "label": "sends receipts",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "api",
+        "db"
+      ],
+      "outsiders": [
+        "customer",
+        "mail"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "count": 1
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "api",
+          "to": "mail",
+          "label": "sends receipts",
+          "count": 1
+        }
+      ]
+    },
+    "api": {
+      "id": "api",
+      "members": [
+        "auth",
+        "orders"
+      ],
+      "outsiders": [
+        "db",
+        "mail"
+      ],
+      "edges": [
+        {
+          "from": "orders",
+          "to": "db",
+          "label": "reads and writes",
+          "count": 1
+        },
+        {
+          "from": "auth",
+          "to": "db",
+          "label": "checks users",
+          "count": 1
+        },
+        {
+          "from": "orders",
+          "to": "mail",
+          "label": "sends receipts",
+          "count": 1
+        }
+      ]
+    }
+  }
+}
