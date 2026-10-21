@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { ANIMATION_KINDS } from '../core/animation.ts'
 import { check } from '../core/check.ts'
 import { analysisText, BAND_NAMES, bandOf, riskOf, STATUSES } from '../core/failures.ts'
+import { FILE_KINDS, kindOfPath, pathOf } from '../core/filekinds.ts'
 import { mcpLabel } from '../core/history.ts'
 import { ICON_GROUPS } from '../core/icons.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
@@ -344,8 +345,8 @@ export function createMcpServer(dir: string, history?: History): McpServer {
       const { model } = loaded
       if (analysis !== undefined && !Object.hasOwn(model.failures, analysis)) throw new Error(`unknown analysis "${analysis}"`)
       const ids = analysis === undefined ? Object.keys(model.failures) : [analysis]
-      const problems = [...check(model, missingPaths(dir, model)).filter(p => p.file.startsWith('failures/')), ...loaded.failureProblems]
-        .filter(p => analysis === undefined || p.file === `failures/${analysis}.yaml`)
+      const problems = [...check(model, missingPaths(dir, model)).filter(p => kindOfPath(p.file) === FILE_KINDS.failure), ...loaded.failureProblems]
+        .filter(p => analysis === undefined || p.file === pathOf(FILE_KINDS.failure, analysis))
       const parts = ids.map(aid => analysisText(model, aid, model.failures[aid], format ?? 'markdown'))
       if (problems.length > 0) parts.push(`Problems:\n${problems.map(p => `- ${p.file}: ${p.message}`).join('\n')}`)
       return ok(parts.length > 0 ? parts.join('\n\n') : 'No failure analyses yet. Add one with put_failures.')
