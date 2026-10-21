@@ -336,7 +336,7 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
 
 Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
 
-- [ ] The right rail has a Performance button under Details with a 2 on it, and T opens its panel (in Details' place) on the load where the Fulfilment worker first struggles (200
+- [ ] The left rail has a Performance button under Flows with a 2 on it, and T opens its panel (on the left, with Details free on the right) on the load where the Fulfilment worker first struggles (200
       req/s on the ramp), with `#shop/perf/ramp/4` in the address. In Shop lab, shapes that carry numbers are outlined from green to red
       along their own outline (SQLite's cylinder, Upload folder's folder, the boxes of Web API and the worker), Order queue carries a
       number but no colour, busy lines are thicker and carry more dots, and Catalog cache (a hexagon with no numbers) and Payment gateway
@@ -358,13 +358,13 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
       worst outline inside is the same colour. Pick each style in the Lines picker: the dots follow every line. To check a moved shape
       without writing into `perf-lab/`, copy it (`node -e "require('node:fs').cpSync('perf-lab', require('node:os').tmpdir() + '/lab-copy', { recursive: true })"`),
       serve its `flowy` folder (`--dir "$TEMP/lab-copy/flowy"`), press E, drag Web API, press E again and T: the dots follow the moved lines.
-- [ ] Press E with the Performance panel open: it closes and the button leaves the rail; E again brings the button back. Open
+- [ ] Press E with the Performance panel open: it closes and the button is greyed out; E again brings it back. On a folder with no runs the button is there too, and its panel says so and offers Create, which copies a starter run. Open
       `#shop/perf/ramp/2` in a new tab: it opens on that load. With the system's reduce-motion setting on there are no dots, no Ramp
       button and no easing between loads, and the outlines, thickness, badges and numbers still show. Light and dark both read.
 
 Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
 
-- [ ] The right rail has a Failures button under Performance with a 14 on it, and M opens its panel in Details' place with `#root/failures/ordering` in the
+- [ ] The left rail has a Failures button under Performance with a 14 on it, and M opens its panel on the left with `#root/failures/ordering` in the
       address. The key reads High 2, Medium 5, Low 6 and Not rated 1, then "Analysed 15 of 26" and "Not analysed (11)". At the overview Ordering
       carries a red 6 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), Notifier to Twilio (144),
       ETA to Mapbox (108) and on down to Fleet DB, which is Not rated.

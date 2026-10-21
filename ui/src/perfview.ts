@@ -1,5 +1,6 @@
 import { colorPair } from '../../src/core/look.ts'
 import type { Model } from '../../src/core/model.ts'
+import { memberIds } from '../../src/core/views.ts'
 import { interpolate, rollUp } from '../../src/core/perf.ts'
 import type { LineTraffic, Metrics, Run } from '../../src/core/perf.ts'
 
@@ -179,4 +180,20 @@ export function failureMarks(lines: readonly Pick<LineTraffic, 'failed' | 'failu
     lost: failing.some(l => l.failure === 'lost'),
     rejected: failing.some(l => l.failure === 'rejected'),
   }
+}
+
+/**
+ * A run to start from: two levels with made-up numbers for the first shapes of the view and the connections between them, as a file to save in
+ * perf/ and fill in. Flowy only reads runs, so this is the nearest it comes to making one.
+ */
+export function starterRun(model: Model, view: string): string {
+  const ids = memberIds(model, view).slice(0, 4)
+  const lines = model.connections.filter(c => ids.includes(c.from) && ids.includes(c.to)).slice(0, 3)
+  const level = (load: number, scale: number) => [
+    `  - load: ${load}`,
+    `    overall: { rate: ${load}, p50: ${60 * scale}, p95: ${140 * scale}, errors: 0 }`,
+    ...(ids.length > 0 ? ['    objects:', ...ids.map(id => `      ${id}: { util: ${0.3 * scale}, queue: 0, errors: 0 }`)] : []),
+    ...(lines.length > 0 ? ['    connections:', ...lines.map(c => `      - { from: ${c.from}, to: ${c.to}, rate: ${load / 2}, p50: ${90 * scale}, p95: ${180 * scale}, errors: 0 }`)] : []),
+  ]
+  return ['# Replace these numbers with what your load test measured, and save the file in flowy/perf/ (see the guide, Performance).', 'name: My load test', 'about: What was tested, and on what', 'unit: req/s', 'levels:', ...level(100, 1), ...level(200, 2)].join('\n') + '\n'
 }
