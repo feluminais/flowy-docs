@@ -87,11 +87,19 @@
     "FAILURES",
     "KNEE_LATENCY",
     "KNEE_STRAIN",
+    "MOST_ADDED",
+    "MOST_TESTED",
+    "OTHER_COLOR",
     "RADIUS_MAX",
     "RADIUS_MIN",
+    "SOURCE_PALETTE",
     "capCounts",
     "eventsOf",
     "isTime"
+  ],
+  "problem": [
+    "stepPrefix",
+    "withoutStep"
   ],
   "snippets": [
     "SNIPPET_MAX",
