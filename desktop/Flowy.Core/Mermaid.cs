@@ -123,18 +123,8 @@ public static partial class Mermaid
             List<string> Inside(IEnumerable<int> from) => from.SelectMany(i => Line(i, "    ")).ToList();
             if (run.Kind == "repeat")
             {
-                OrderedDictionary<string, object?>? g = null;
-                if (flow.Groups is not null && flow.Groups.TryGetValue(run.Group, out var declared)) g = declared as OrderedDictionary<string, object?>;
-                string Part(string key)
-                {
-                    object? v = null;
-                    g?.TryGetValue(key, out v);
-                    return JsCompat.Blank(v) ? "" : JsCompat.JsTrim((string)v!);
-                }
-                var times = Part("times");
-                var until = Part("until");
-                var head = string.Join(", ", new[] { times == "" ? "" : $"Up to {times} times", until == "" ? "" : $"{(times == "" ? "Until" : "until")} {until}" }.Where(w => w != ""));
-                var label = string.Join(": ", new[] { head, Part("text") }.Where(w => w != ""));
+                var g = Structure.GroupOf(flow, run.Group);
+                var label = string.Join(": ", new[] { Captions.RepeatWords(g, true), g?.Text ?? "" }.Where(w => w != ""));
                 return [Keyword("loop", Text(label)), .. Inside(Enumerable.Range(run.Start, run.End - run.Start + 1)), "  end"];
             }
             var (first, next) = run.Kind == "branch" ? (run.Lanes.Count > 1 ? "alt" : "opt", "else") : ("par", "and");
