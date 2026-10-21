@@ -142,11 +142,11 @@ internal sealed class FailuresPanel : StackPanel
     {
         var ids = s.Model.Failures.Keys.ToList();
         if (ids.Count < 2)
-            return new TextBlock { Text = Structure.JsTrim(analysis.Name) == "" ? s.AnalysisId : analysis.Name, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) };
+            return new TextBlock { Text = JsCompat.JsTrim(analysis.Name) == "" ? s.AnalysisId : analysis.Name, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) };
         var picker = new ComboBox
         {
             HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 32, 0), Focusable = false,
-            ItemsSource = ids.Select(id => Structure.JsTrim(s.Model.Failures[id].Name) == "" ? id : s.Model.Failures[id].Name).ToList(), SelectedIndex = ids.IndexOf(s.AnalysisId!),
+            ItemsSource = ids.Select(id => JsCompat.JsTrim(s.Model.Failures[id].Name) == "" ? id : s.Model.Failures[id].Name).ToList(), SelectedIndex = ids.IndexOf(s.AnalysisId!),
         };
         AutomationProperties.SetName(picker, "Analysis");
         picker.SelectionChanged += (_, _) =>

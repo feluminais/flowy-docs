@@ -63,7 +63,7 @@ public static class FailuresView
     /// them, but the button still goes to the step they say). Null when it is not a number, and a fraction is cut off.
     /// </summary>
     public static int? StepOf(string? step) =>
-        step is not null && double.TryParse(Structure.JsTrim(step), NumberStyles.Float, CultureInfo.InvariantCulture, out var n) && double.IsFinite(n) && Math.Abs(n) < int.MaxValue ? (int)Math.Truncate(n) : null;
+        step is not null && double.TryParse(JsCompat.JsTrim(step), NumberStyles.Float, CultureInfo.InvariantCulture, out var n) && double.IsFinite(n) && Math.Abs(n) < int.MaxValue ? (int)Math.Truncate(n) : null;
 
     /// <summary>What a reader calls the shape or line picked on the canvas: as <see cref="Failures.PartName"/> names a mode's part.</summary>
     public static string PartText(Model model, FailurePart part) => part switch

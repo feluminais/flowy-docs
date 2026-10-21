@@ -2,12 +2,6 @@ using System.Text.RegularExpressions;
 
 namespace Flowy.Core;
 
-/// <summary>
-/// One thing wrong with the model. <c>Connection</c> and <c>Step</c> say where in the file to point (a place in
-/// model.yaml's connections, a place in the flow's steps); they aren't part of what the problem is.
-/// </summary>
-public sealed record Problem(string File, string? Id, string Message, int? Connection = null, int? Step = null);
-
 /// <summary>Every problem in a model, never throwing. A port of check() in src/core/check.ts, with the same wording.</summary>
 public static class Checks
 {
@@ -74,7 +68,7 @@ public static class Checks
         {
             if (icons is not OrderedDictionary<string, object?> iconMap) Add("model.yaml", null, "icons must map names to SVG path data");
             else
-                foreach (var name in JsKeys.Order(iconMap.Keys))
+                foreach (var name in JsCompat.OrderKeys(iconMap.Keys))
                     if (Look.IconProblem(name, iconMap[name]) is { } why) Add("model.yaml", null, $"icon {name}: {why}");
         }
 
@@ -162,7 +156,7 @@ public static class Checks
             {
                 var s = f.Steps[i];
                 var index = i;
-                void Sp(string message) => P($"step {index + 1}: {message}", index);
+                void Sp(string message) => P($"{Problem.StepPrefix(index)}{message}", index);
                 var alone = s.To is null; // one box doing something on its own; a blank "to:" is still a missing end
                 if (!alone) CheckEnds(Sp, s.From, s.To);
                 else if (Missing(s.From)) Sp("\"from\" is missing");
@@ -179,15 +173,10 @@ public static class Checks
                 else if (viewOk && model.GetObject(s.From) is not null && model.GetObject(s.To) is not null && Views.PlaceStep(model, f.View, s.From, s.To) is null)
                     Sp($"{s.From} → {s.To} can't be shown in view \"{f.View}\"");
             }
-            foreach (var (step, message) in Structure.Problems(f, id => model.Flows.Contains(id)))
+            foreach (var finding in Structure.Problems(f, id => model.Flows.Contains(id)).Concat(States.Problems(f, Structure.Stops(f), id => model.GetObject(id) is not null)))
             {
-                if (step is { } n) P($"step {n + 1}: {message}", n);
-                else P(message);
-            }
-            foreach (var (step, message) in States.Problems(f, Structure.Stops(f), id => model.GetObject(id) is not null))
-            {
-                if (step is { } n) P($"step {n + 1}: {message}", n);
-                else P(message);
+                if (finding.Step is { } n) P($"{Problem.StepPrefix(n)}{finding.Message}", n);
+                else P(finding.Message);
             }
         }
         foreach (var (aid, a) in model.Failures) problems.AddRange(Failures.AnalysisProblems(model, aid, a));

@@ -645,8 +645,8 @@ internal sealed partial class ReaderView : Grid
     /// <summary>A step's link to another flow, for the card: null when it has none or the flow isn't there.</summary>
     private static LinkedFlow? LinkOf(Model model, Step step)
     {
-        if (Structure.Blank(step.FlowId)) return null;
-        var id = Structure.JsTrim(step.FlowId!);
+        if (JsCompat.Blank(step.FlowId)) return null;
+        var id = JsCompat.JsTrim(step.FlowId!);
         return model.Flows.TryGetValue(id, out var target) ? new LinkedFlow(id, string.IsNullOrEmpty(target.Name) ? id : target.Name, target.Steps.Count > 0 && Views.IsView(model, target.View)) : null;
     }
 
