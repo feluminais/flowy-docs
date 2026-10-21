@@ -133,9 +133,10 @@ The player steps through what is on screen at once, so the lanes of a parallel g
 A chip names the group, a branch shows its lanes as tabs while the other lanes are dashed on the canvas, the progress bar has a
 bracket under each group, a label on the line says how often it repeats or which lane it is, and **Open flow** plays the other
 flow with a bar to come back. A **?** on the card says what each of these means. Flowy checks all of it, and the Mermaid copy draws
-it as `loop`, `alt` and `par` blocks. The format is in [the guide](docs/guide.md#repeats-branches-and-parallel-steps), and Plum has two:
-[capture-payment](docs/demo/flowy/flows/capture-payment.yaml) retries a charge and branches on the outcome, and
-[announce-order](docs/demo/flowy/flows/announce-order.yaml) tells two readers at once and opens Delivery's flow.
+it as `loop`, `alt` and `par` blocks. The format is in [the guide](docs/guide.md#repeats-branches-and-parallel-steps), and Plum has three:
+[capture-payment](docs/demo/flowy/flows/capture-payment.yaml) retries a charge and branches on the outcome,
+[announce-order](docs/demo/flowy/flows/announce-order.yaml) tells two readers at once and opens Delivery's flow, and
+[no-courier-answers](docs/demo/flowy/flows/no-courier-answers.yaml) offers a job to one courier after another and branches when the list runs out.
 
 ## Performance
 
@@ -157,14 +158,14 @@ small shop that really runs, with a load generator that writes these files (`npm
 
 ## Failure modes
 
-![The Failures tab on the Ordering view: eight modes ranked from High to Not rated, the Stripe timeout picked, Order API outlined in red with a 2 on it, and the shapes it affects outlined lighter](docs/images/failures.png)
+![The Failures tab on the Ordering view: modes ranked from High to Not rated, the Stripe timeout picked, Order API outlined in red with a 2 on it, and the shapes it affects outlined lighter](docs/images/failures.png)
 
 Flowy can hold how a system breaks, too. A failure analysis lives in `flowy/failures/<name>.yaml`. For a shape, or a line between two,
 it says how the part fails, what that causes, what exists to deal with it and what to do next, and rates it from 1 to 10 on
 Severity, Likelihood and Hard to spot (10 means nobody would notice). A Failures tab joins the icons on the right edge, or press **M**.
 
 - The list runs from High to Low, then Not rated for a mode with no ratings. A severity of 9 or 10 is High whatever else is missing.
-- **Analysed 8 of 26** counts the shapes that have a mode, and **Not analysed** lists the rest.
+- **Analysed 15 of 26** counts the shapes that have a mode, and **Not analysed** lists the rest.
 - A shape or a line with modes carries a badge in the colour of its worst one, and a shape that holds others adds up what is inside it.
 - Pick a mode to outline its part in red and what it affects in a lighter outline. The rest fades.
 - **Show it** plays the flow that tells the failure. **Seen in a run** opens the Performance tab at the load where that part first fails.
@@ -173,7 +174,7 @@ Severity, Likelihood and Hard to spot (10 means nobody would notice). A Failures
 A mode looks like this:
 
 ```yaml
-name: Order to door
+name: Plum fail scenario
 modes:
   stripe-timeout:
     from: checkout
@@ -191,11 +192,13 @@ modes:
 ```
 
 What a mode affects is written by hand. Flowy doesn't work it out from the lines, because a line's direction means different things.
-Plum has an analysis with made-up ratings, [Order to door](docs/demo/flowy/failures/ordering.yaml). From a clone, run
+Plum has an analysis with made-up ratings, [Plum fail scenario](docs/demo/flowy/failures/ordering.yaml). From a clone, run
 `node dist/cli.js --dir docs/demo/flowy` and press **M**. Claude reads and writes analyses through the MCP server (`get_failures`,
 `put_failure`), and `node /path/to/flowy-docs/dist/cli.js failures` prints the ranked table, or a CSV with `--format csv`. It exits with
 an error when a file has a problem, so a CI job can use it. The format, the ranking and the names are in
 [the guide](docs/guide.md#failure-modes).
+
+A second analysis reads parts of the workflow engine [Conductor OSS](https://github.com/conductor-oss/conductor) from its code: seventeen modes, each with the files it came from. It is kept in the maintainer's clone of Conductor and is not published. [CONTRIBUTING](CONTRIBUTING.md#the-conductor-analysis) says how to build a clone like it. Flowy's own folder has an analysis too, [Flowy fail scenario](flowy/failures/flowy.yaml).
 
 Failure modes show in the browser version and in an exported page. The desktop app doesn't draw them yet.
 

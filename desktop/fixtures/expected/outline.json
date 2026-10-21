@@ -1270,7 +1270,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 7,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1279,7 +1279,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 7,
             "problems": 0
           }
         },
@@ -1299,7 +1299,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 7,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1331,7 +1331,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1363,7 +1363,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1500,7 +1500,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 7,
             "problems": 0
           }
         },
@@ -1521,7 +1521,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 7,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1553,7 +1553,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1585,7 +1585,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1752,6 +1752,22 @@
               "match": true
             },
             {
+              "key": "flow:refund-not-recorded",
+              "kind": "flow",
+              "id": "refund-not-recorded",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The refund is not recorded",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:courier",
               "kind": "shape",
               "id": "courier",
@@ -1882,7 +1898,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 7,
             "problems": 0
           }
         },
@@ -1938,7 +1954,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 7,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2018,7 +2034,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2153,6 +2169,22 @@
               "match": true
             },
             {
+              "key": "flow:no-courier-answers",
+              "kind": "flow",
+              "id": "no-courier-answers",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "An offer goes unanswered",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:notifications",
               "kind": "shape",
               "id": "notifications",
@@ -2210,7 +2242,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2473,6 +2505,22 @@
               "match": true
             },
             {
+              "key": "flow:refund-not-recorded",
+              "kind": "flow",
+              "id": "refund-not-recorded",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The refund is not recorded",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:courier",
               "kind": "shape",
               "id": "courier",
@@ -2603,7 +2651,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 7,
             "problems": 0
           }
         },
@@ -2659,7 +2707,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 7,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2739,7 +2787,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2874,6 +2922,22 @@
               "match": true
             },
             {
+              "key": "flow:no-courier-answers",
+              "kind": "flow",
+              "id": "no-courier-answers",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "An offer goes unanswered",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:notifications",
               "kind": "shape",
               "id": "notifications",
@@ -2931,7 +2995,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3194,6 +3258,22 @@
               "match": true
             },
             {
+              "key": "flow:refund-not-recorded",
+              "kind": "flow",
+              "id": "refund-not-recorded",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The refund is not recorded",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:courier",
               "kind": "shape",
               "id": "courier",
@@ -3324,7 +3404,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 7,
             "problems": 0
           }
         },
@@ -3342,7 +3422,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 7,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3406,7 +3486,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3509,6 +3589,22 @@
               "match": true
             },
             {
+              "key": "flow:no-courier-answers",
+              "kind": "flow",
+              "id": "no-courier-answers",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "An offer goes unanswered",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:notifications",
               "kind": "shape",
               "id": "notifications",
@@ -3550,7 +3646,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3767,7 +3863,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 7,
             "problems": 0
           }
         },
@@ -3787,7 +3883,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 7,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3803,7 +3899,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3828,7 +3924,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 7,
             "problems": 0
           }
         },
@@ -3848,7 +3944,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 7,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3880,7 +3976,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -3912,7 +4008,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -4049,7 +4145,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 7,
             "problems": 0
           }
         }
@@ -4079,6 +4175,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4106,11 +4208,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "root",
@@ -4136,6 +4244,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4163,11 +4277,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "ordering",
@@ -4189,6 +4309,12 @@
               "id": "capture-payment",
               "name": "The payment is captured",
               "steps": 6,
+              "view": "ordering"
+            },
+            {
+              "id": "refund-not-recorded",
+              "name": "The refund is not recorded",
+              "steps": 4,
               "view": "ordering"
             }
           ],
@@ -4218,11 +4344,17 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "ordering",
@@ -4245,6 +4377,12 @@
               "name": "The payment is captured",
               "steps": 6,
               "view": "ordering"
+            },
+            {
+              "id": "refund-not-recorded",
+              "name": "The refund is not recorded",
+              "steps": 4,
+              "view": "ordering"
             }
           ],
           "elsewhere": [
@@ -4273,11 +4411,17 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "delivery",
@@ -4287,6 +4431,12 @@
               "id": "deliver-order",
               "name": "A courier delivers it",
               "steps": 8,
+              "view": "delivery"
+            },
+            {
+              "id": "no-courier-answers",
+              "name": "An offer goes unanswered",
+              "steps": 5,
               "view": "delivery"
             }
           ],
@@ -4328,11 +4478,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "delivery",
@@ -4342,6 +4498,12 @@
               "id": "deliver-order",
               "name": "A courier delivers it",
               "steps": 8,
+              "view": "delivery"
+            },
+            {
+              "id": "no-courier-answers",
+              "name": "An offer goes unanswered",
+              "steps": 5,
               "view": "delivery"
             }
           ],
@@ -4383,11 +4545,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "notifications",
@@ -4419,6 +4587,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4446,11 +4620,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "notifications",
@@ -4482,6 +4662,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4509,11 +4695,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "backoffice",
@@ -4545,6 +4737,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4572,11 +4770,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "backoffice",
@@ -4608,6 +4812,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4635,11 +4845,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "order-api",
@@ -4671,6 +4887,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4698,11 +4920,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "order-api",
@@ -4734,6 +4962,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4761,11 +4995,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "dispatch",
@@ -4797,6 +5037,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4824,11 +5070,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         },
         {
           "view": "dispatch",
@@ -4860,6 +5112,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4887,11 +5145,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 7
         }
       ],
       "expandTo": [
