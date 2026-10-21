@@ -10,8 +10,9 @@ public sealed record Interceptor(string? Shape = null, string? Name = null);
 /// A step's animation, read: the kind, who sets a callback off (inside unless the file says outside), the word the blob carries, and how it ends
 /// (an entry of <see cref="Animations.Outcomes"/>, or null). <c>Share</c> is the whole percent of the requests that meet the outcome (a burst plays when it is
 /// set), <c>Reason</c> says why in a few words, <c>By</c> is who takes an intercepted request and <c>At</c> how far along its line a lost one vanishes.
+/// <c>Effect</c> is what the blob does on its way besides travelling (an entry of <see cref="Animations.Effects"/>, or null for nothing).
 /// </summary>
-public sealed record StepAnimation(string Kind, string Trigger, string? Carries, string? Outcome = null, int? Share = null, string? Reason = null, Interceptor? By = null, double? At = null);
+public sealed record StepAnimation(string Kind, string Trigger, string? Carries, string? Outcome = null, int? Share = null, string? Reason = null, Interceptor? By = null, double? At = null, string? Effect = null);
 
 /// <summary>
 /// One thing to draw, in the order beats are listed. <c>Do</c> is pipe, blob, ring, flash, gulp, wait, drop or fade (the lit line dims and stays dim), or one of
@@ -28,6 +29,9 @@ public sealed record Beat(
 /// <summary>A port of src/core/animation.ts, with the same wording and the same numbers. desktop/fixtures/beats.ts keeps the two equal.</summary>
 public static class Animations
 {
+    /// <summary>What a blob can do on its way, for the fun of it, each keeping its shape whole. An extra key, so messages that list the options list only <c>Options</c>.</summary>
+    public static readonly string[] Effects = ["squish", "bounce", "pulse", "wiggle"];
+
     public static readonly string[] Kinds = ["send", "call", "callback", "event"];
 
     public static readonly string[] Triggers = ["inside", "outside"];
@@ -132,7 +136,7 @@ public static class Animations
         if (!Kinds.Contains(name)) return $"unknown animation \"{name}\" ({KindsHint})";
         if (map is not null)
         {
-            var extra = map.Keys.FirstOrDefault(k => !Options.Contains(k));
+            var extra = map.Keys.FirstOrDefault(k => k != "effect" && !Options.Contains(k));
             if (extra is not null) return $"unknown animation option \"{extra}\" (use {string.Join(", ", Options)})";
             map.TryGetValue("trigger", out var trigger);
             map.TryGetValue("carries", out var carries);
@@ -140,6 +144,7 @@ public static class Animations
             if (trigger is not null && !(trigger is string t && Triggers.Contains(t))) return $"animation trigger must be {string.Join(" or ", Triggers)}";
             if (trigger is not null && name != "callback") return "animation trigger only applies to callback";
             if (carries is not null && (carries is not string word || JsCompat.Blank(word))) return "animation carries must be a word";
+            if (map.TryGetValue("effect", out var effect) && !(effect is string named && Effects.Contains(named))) return $"animation effect must be {OrList(Effects)}";
             if (outcome is not null && !(outcome is string given && Outcomes.Contains(given))) return $"animation outcome must be {OrList(Outcomes)}";
             if (outcome is "timeout" && name != "call") return "animation outcome timeout only applies to call";
             if (outcome is "fail" && name is not ("send" or "call")) return "animation outcome fail only applies to send and call";
@@ -196,6 +201,7 @@ public static class Animations
         Interceptor? by = null;
         int? share = null;
         double? at = null;
+        string? effect = null;
         var trigger = "inside";
         if (map is not null)
         {
@@ -210,8 +216,9 @@ public static class Animations
                 else if (b is OrderedDictionary<string, object?> named && named.TryGetValue("name", out var n) && n is string name) by = new Interceptor(Name: JsCompat.JsTrim(name));
             }
             if (map.TryGetValue("at", out var a)) at = LostAtOf(a);
+            if (map.TryGetValue("effect", out var e) && e is string chosen && Effects.Contains(chosen)) effect = chosen;
         }
-        return new StepAnimation(kind, trigger, carries, outcome, share, reason, by, at);
+        return new StepAnimation(kind, trigger, carries, outcome, share, reason, by, at, effect);
     }
 
     /// <summary>How long something takes to run the length of a line: at least 1.2 seconds, so the eye can follow it, and at most 2.2.</summary>

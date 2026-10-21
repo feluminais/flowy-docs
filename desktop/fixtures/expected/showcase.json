@@ -49,6 +49,23 @@
       "description": "Takes the envelope in with a squash."
     },
     {
+      "id": "effects-from",
+      "type": "app",
+      "name": "Effects · from",
+      "in": "steps",
+      "tech": "effect",
+      "description": "`animation: { kind: send, effect: bounce }`. What the moving label does on its way, besides travelling. None of them bends its shape."
+    },
+    {
+      "id": "effects-to",
+      "type": "store",
+      "name": "Effects · to",
+      "in": "steps",
+      "shape": "queue",
+      "tech": "effect",
+      "description": "Sits down the slope from its sender, so the label runs along a slanted line and shows it stays level."
+    },
+    {
       "id": "call-from",
       "type": "app",
       "name": "Call · from",
@@ -604,6 +621,11 @@
       "label": "send"
     },
     {
+      "from": "effects-from",
+      "to": "effects-to",
+      "label": "effects"
+    },
+    {
       "from": "call-from",
       "to": "call-to",
       "label": "call"
@@ -846,6 +868,14 @@
       "send-from": [
         0,
         0
+      ],
+      "effects-from": [
+        1000,
+        1450
+      ],
+      "effects-to": [
+        1360,
+        1700
       ],
       "send-to": [
         360,
@@ -1265,6 +1295,73 @@
             "duplicated-to"
           ],
           "ends": "Duplicated · from → Duplicated · to"
+        }
+      ]
+    },
+    {
+      "id": "effects",
+      "name": "Effects",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "effects-from",
+          "to": "effects-to",
+          "text": "The label stretches along its way",
+          "animation": {
+            "kind": "send",
+            "carries": "squish",
+            "effect": "squish"
+          },
+          "placed": [
+            "effects-from",
+            "effects-to"
+          ],
+          "ends": "Effects · from → Effects · to"
+        },
+        {
+          "from": "effects-from",
+          "to": "effects-to",
+          "text": "The label hops as it goes",
+          "animation": {
+            "kind": "send",
+            "carries": "bounce",
+            "effect": "bounce"
+          },
+          "placed": [
+            "effects-from",
+            "effects-to"
+          ],
+          "ends": "Effects · from → Effects · to"
+        },
+        {
+          "from": "effects-from",
+          "to": "effects-to",
+          "text": "The label swells and settles",
+          "animation": {
+            "kind": "send",
+            "carries": "pulse",
+            "effect": "pulse"
+          },
+          "placed": [
+            "effects-from",
+            "effects-to"
+          ],
+          "ends": "Effects · from → Effects · to"
+        },
+        {
+          "from": "effects-from",
+          "to": "effects-to",
+          "text": "The label rocks from side to side",
+          "animation": {
+            "kind": "send",
+            "carries": "wiggle",
+            "effect": "wiggle"
+          },
+          "placed": [
+            "effects-from",
+            "effects-to"
+          ],
+          "ends": "Effects · from → Effects · to"
         }
       ]
     },
@@ -2117,6 +2214,8 @@
       "members": [
         "send-from",
         "send-to",
+        "effects-from",
+        "effects-to",
         "call-from",
         "call-to",
         "event-from",
@@ -2154,6 +2253,12 @@
           "from": "send-from",
           "to": "send-to",
           "label": "send",
+          "count": 1
+        },
+        {
+          "from": "effects-from",
+          "to": "effects-to",
+          "label": "effects",
           "count": 1
         },
         {

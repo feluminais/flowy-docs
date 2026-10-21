@@ -60,7 +60,7 @@ objects:
     code: [src/cli.ts, flowy.sh, flowy.cmd]
     description: |
       `node dist/cli.js` and what follows it: no argument serves the canvas, `mcp` speaks MCP over
-      stdio, `export` writes a static copy, `mermaid` prints a diagram, `failures` prints the ranked failure table. `flowy.sh` and
+      stdio, `check` lists every problem and exits 1 if there is one, `export` writes a static copy, `mermaid` prints a diagram, `failures` prints the ranked failure table. `flowy.sh` and
       `flowy.cmd` build once and then run the same thing.
 
       `--dir` picks the model folder, `--port` the port (or the next free one), `--no-open` leaves
@@ -211,10 +211,11 @@ objects:
       steps through a flow on its own. A step's `states` dim a shape and draw a second outline and a glyph on it until another step
       changes them. A Performance tab plays a load-test run back over the diagram.
 
-      A rail of icons on the left edge opens a panel with tabs: the whole documentation as a
-      tree, every flow in it, how things fail, and the files as YAML. Details opens on the right, from its own rail or by
-      picking a shape, and where the folder has load-test runs the right rail has a Performance
-      button that puts its panel in Details' place. Both panels are dragged wider or narrower by
+      A rail of icons on the left edge opens a panel: the whole documentation as a tree, every
+      flow in it, the Performance panel of a load-test run, how things fail, or the files as YAML.
+      Performance and Failures are there whether or not the folder has a run or an analysis (their
+      panels offer to make one). Details opens on the right, from its own rail or by picking a
+      shape, and holds nothing else. Both panels are dragged wider or narrower by
       their inner edge, as in VS Code, and a double-click puts the width back.
 
       The same bundle is served by the local server, shipped in an export, and shown in the VS Code
@@ -224,16 +225,16 @@ objects:
     in: flowy
     name: MCP server
     tech: stdio
-    code: [src/node/mcp.ts]
+    code: [src/node/mcp.ts, src/node/guidance.ts]
     description: |
-      Sixteen tools over stdio: read the model, a view or a Mermaid diagram, and write objects,
-      connections, flows and failure analyses.
+      Seventeen tools over stdio: read the model (all of it, a summary, or one thing), its problems, a view or a Mermaid diagram, and write objects,
+      connections, flows and failure analyses. It also offers prompts for the usual jobs and the guides as resources.
 
       Calls arrive in bursts and run one at a time, in order, so each one sees what the one before
       it wrote. A write that loses a race on the file is retried once.
 
       Its instructions hand Claude the writing rules: survey the repo and check the list first, what
-      earns a shape, and how to word a description, a label and a flow step. Before the first flow
+      earns a shape, how to name one, and how to word a description, a label and a flow step. Before the first flow
       Claude asks how much to animate: None, Key steps or Every step.
   exporter:
     type: app

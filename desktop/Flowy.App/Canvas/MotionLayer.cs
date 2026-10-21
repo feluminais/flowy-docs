@@ -19,7 +19,7 @@ internal sealed class MotionLayer : Control
     /// <summary>Whoever takes an intercepted request: the box that stands for it on the canvas (with its outline), or a name for a party that is not on it.</summary>
     public sealed record Taker(CoreRect? Box = null, string? Shape = null, string? Name = null);
 
-    private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To, Geometry? ShapeFrom, Geometry? ShapeTo, CoreRect? TakerBox, Geometry? TakerShape, string? TakerName);
+    private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To, Geometry? ShapeFrom, Geometry? ShapeTo, CoreRect? TakerBox, Geometry? TakerShape, string? TakerName, string? Effect = null);
 
     /// <summary>How strongly a shape lights up when it flashes, at the start.</summary>
     private const double Flash = 0.55;
@@ -73,7 +73,7 @@ internal sealed class MotionLayer : Control
                 takerBox = new CoreRect(spot.X + offset.X - size.Width / 2, spot.Y + offset.Y - size.Height / 2, size.Width, size.Height);
             }
             runs.Add(new Run(beats, line, line.ContourLength, s.From, s.To, s.ShapeFrom is null ? null : Geometry.Parse(s.ShapeFrom), s.ShapeTo is null ? null : Geometry.Parse(s.ShapeTo),
-                takerBox, by?.Shape is { } shape ? Geometry.Parse(shape) : null, by?.Box is null ? by?.Name : null));
+                takerBox, by?.Shape is { } shape ? Geometry.Parse(shape) : null, by?.Box is null ? by?.Name : null, s.Animation.Effect));
             started.Add((beats, total));
         }
         _runs = runs;
@@ -209,11 +209,12 @@ internal sealed class MotionLayer : Control
             if (!run.Line.TryGetPointAndTangentAtDistance(at, out point, out var tangent)) return;
             angle = Math.Atan2(tangent.Y, tangent.X);
         }
-        // A blob that waits where it is does not stretch.
-        var s = beat.Start is not null && beat.Start == beat.End ? 0 : MotionMath.Bump(p);
-        // The shape is stretched along the way it runs and no more rotated than that. The glyph or the words in it are not stretched at all.
-        var place = Matrix.CreateTranslation(point.X, point.Y);
-        var stretch = Matrix.CreateRotation(-angle) * Matrix.CreateScale(1 + 0.3 * s, 1 - 0.15 * s) * Matrix.CreateRotation(angle) * place;
+        // A blob keeps its shape unless the step asks for an effect (Animations.Effects), and one that waits where it is never moves for it.
+        // The glyph or the words in it are never stretched, only its shape: see MotionMath.PoseOf.
+        var waiting = beat.Start is not null && beat.Start == beat.End;
+        var pose = run.Effect is null || waiting ? MotionMath.Still : MotionMath.PoseOf(run.Effect, beat.Label is not null, angle, p);
+        var place = Matrix.CreateRotation(pose.Turn) * Matrix.CreateTranslation(point.X, point.Y + pose.Dy);
+        var stretch = Matrix.CreateRotation(-pose.Rotation) * Matrix.CreateScale(pose.Sx * pose.Grow, pose.Sy * pose.Grow) * Matrix.CreateRotation(pose.Rotation) * place;
         // A refusal is the danger colour, then a colour of its own for a request in a burst, then the answer's colour.
         var tint = beat.Tint is { } slot ? Tint(slot) : null;
         var fill = Brush(beat.Tone switch { "reply" => "AppBrush", "fail" => "DangerBrush", _ => "AccentBrush" });

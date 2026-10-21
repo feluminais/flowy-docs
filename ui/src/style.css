@@ -223,12 +223,12 @@ svg { flex: none; }
 .react-flow__node.selected .shape path { stroke: var(--accent); stroke-width: 1.5; }
 .react-flow__node.dim, .react-flow__edge.dim { opacity: 0.15; }
 .react-flow__edge.faint { opacity: 0.25; }
-/* A playing flow: the step's boxes at full strength, outsiders too, and its line bold, glowing, over everything. */
+/* A playing flow: the step's boxes at full strength, outsiders too, and its line a little bolder than the rest, over everything. No halo on the line: it ran past the arrowhead. */
 .react-flow__node.lit { opacity: 1; }
 .react-flow__node.lit .shape { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 70%, transparent)); }
 .react-flow__node.lit .shape path { stroke: var(--accent); stroke-width: 2; stroke-dasharray: none; }
 .react-flow__edge.active .react-flow__edge-path, .react-flow__edge.step .react-flow__edge-path {
-  stroke: var(--accent); stroke-width: 3; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 70%, transparent));
+  stroke: var(--accent); stroke-width: 2.5;
 }
 .react-flow__edge.step .react-flow__edge-path { stroke-dasharray: 8 5; }
 /* The other lanes of a branch: where it might have gone, faint and dashed, and not lit. */
@@ -723,8 +723,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 
 .perf { flex: 1; min-height: 0; overflow: auto; padding: 14px 18px 26px; display: flex; flex-direction: column; gap: 12px; }
 .perf > * { flex: none; margin-top: 0; margin-bottom: 0; }
-.perfpanel { padding: 0; gap: 0; overflow: hidden; }
-.perfpanel .perf { padding-top: 52px; } /* room for the close button */
+.navbody > .perf { margin: -12px; padding: 14px 16px 26px; } /* the Performance and Failures panels fill the navigator's body */
 .perf h2 { margin: 0; font-size: 18px; }
 .perf select { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--box); color: var(--fg); }
 .perf .about summary { cursor: pointer; color: var(--muted); }

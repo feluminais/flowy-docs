@@ -1,3 +1,4 @@
+import type { Effect } from '../../src/core/animation.ts'
 import { TINTS } from '../../src/core/animation.ts'
 import { colorPair } from '../../src/core/look.ts'
 
@@ -50,6 +51,49 @@ export const ease = (p: number): number => (p < 0.5 ? 4 * p * p * p : 1 - (-2 * 
 
 /** 0 at the ends of a beat and 1 in the middle: a squash, or a blob stretched at full speed. */
 export const bump = (p: number): number => Math.sin(Math.PI * p)
+
+/** How much longer a squishing blob gets along the way it runs, and how much thinner across it, at full strength. */
+export const SQUISH = { along: 0.3, across: -0.15 } as const
+
+/**
+ * How a blob squishes at `s` (0 to 1, see bump) while it runs at `angle` degrees: a scale of `x` by `y` along the axes turned by `rotate`
+ * degrees. A dot is stretched along its way. A label's pill is stretched by the same amount but along its own edges (no turn): stretching it
+ * along a slanted way would shear it, one end up and one end down. The desktop app ports this (MotionMath.Squish).
+ */
+export function squishParts(label: boolean, angle: number, s: number): { rotate: number; x: number; y: number } {
+  const [along, across] = [1 + SQUISH.along * s, 1 + SQUISH.across * s]
+  if (!label) return { rotate: angle, x: along, y: across }
+  const [cos, sin] = [Math.cos((angle * Math.PI) / 180) ** 2, Math.sin((angle * Math.PI) / 180) ** 2]
+  return { rotate: 0, x: 1 + (along - 1) * cos + (across - 1) * sin, y: 1 + (along - 1) * sin + (across - 1) * cos }
+}
+
+/** The SVG transform of squishParts. An `s` of 0 is the shape as it is. */
+export function squish(label: boolean, angle: number, s: number): string {
+  const { rotate, x, y } = squishParts(label, angle, s)
+  return label ? `scale(${x} ${y})` : `rotate(${rotate}) scale(${x} ${y}) rotate(${-rotate})`
+}
+
+/** How high a bouncing blob hops, in pixels, how much a pulsing one swells, and how far a wiggling one rocks, in degrees. Each runs three times along the line. */
+export const EFFECT = { hop: 10, swell: 0.2, rock: 12, beats: 3 } as const
+
+/** Where a blob is, and how it is drawn, at a moment of its run: lifted by `dy`, the whole of it turned by `turn` degrees, its shape grown by `grow` and scaled `x` by `y` along axes turned by `rotate`. */
+export type Pose = { dy: number; turn: number; grow: number; rotate: number; x: number; y: number }
+export const STILL: Pose = { dy: 0, turn: 0, grow: 1, rotate: 0, x: 1, y: 1 }
+
+/**
+ * The pose of a blob `p` of the way (0 to 1) through its run along a line that runs at `angle` degrees, for the step's `effect`. A step with none is STILL.
+ * Every effect is zero at both ends of the run, so the blob leaves and lands as it is, and none of them bends the shape: a hop moves it, a pulse
+ * grows it evenly, a wiggle turns it as a whole, and a squish is squishParts. The desktop app ports this (MotionMath.Pose).
+ */
+export function effectPose(effect: Effect | undefined, label: boolean, angle: number, p: number): Pose {
+  switch (effect) {
+    case 'squish': return { ...STILL, ...squishParts(label, angle, bump(p)) }
+    case 'bounce': return { ...STILL, dy: -EFFECT.hop * Math.abs(Math.sin(EFFECT.beats * Math.PI * p)) }
+    case 'pulse': return { ...STILL, grow: 1 + EFFECT.swell * (1 - Math.cos(2 * EFFECT.beats * Math.PI * p)) / 2 }
+    case 'wiggle': return { ...STILL, turn: EFFECT.rock * Math.sin(2 * EFFECT.beats * Math.PI * p) }
+    default: return STILL
+  }
+}
 
 /** The tube fades in over the first 150 ms of its beat and out over the last 250. */
 export const tubeOpacity = (b: Span, t: number): number => Math.min(1, Math.max(0, Math.min((t - b.at) / 150, (b.at + b.dur - t) / 250)))

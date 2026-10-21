@@ -1,25 +1,26 @@
 import type { ReactNode } from 'react'
 import { linksOf } from '../../src/core/model.ts'
 import type { FlowyObject, Link } from '../../src/core/model.ts'
-import { encodePath, isRepoPath, isWebAddress } from '../../src/core/paths.ts'
-import { openInEditor, vscode } from './host.ts'
+import { isRepoPath, isWebAddress } from '../../src/core/paths.ts'
+import { openInBrowser, openInEditor, vscode } from './host.ts'
+import { opensEditor, repoLink } from './repolink.ts'
 import { Section } from './Chrome.tsx'
 import { Code, File, Folder, Link as LinkIcon } from './icons.tsx'
 
 /**
  * A path in the repo, as the link its text is. In VS Code it opens in the editor (with Ctrl or Cmd held, the repo host's page
- * instead, when there is one). Anywhere else it is the repo host's page when the repo is on GitHub or GitLab, and plain text otherwise.
+ * instead, when there is one, as its tooltip says). Anywhere else it is the repo host's page when the repo is on GitHub or GitLab, and plain text otherwise.
  */
 export function RepoPath({ path, codeBase, children }: { path: string; codeBase?: string; children: ReactNode }) {
-  const href = codeBase ? codeBase + encodePath(path) : undefined
-  if (!vscode) return href ? <a href={href} target="_blank" rel="noreferrer">{children}</a> : <span>{children}</span>
+  const link = repoLink(path, codeBase, vscode !== undefined)
+  if (!link) return <span>{children}</span>
   return (
-    <a href={href ?? '#'} target="_blank" rel="noreferrer" title="Open in the editor"
-      onClick={e => {
-        if (href && (e.ctrlKey || e.metaKey)) return
+    <a href={link.anchor} target={link.editor ? undefined : '_blank'} rel="noreferrer" title={link.title}
+      onClick={link.editor ? e => {
         e.preventDefault()
-        openInEditor(path)
-      }}>
+        if (opensEditor(link, e)) openInEditor(path)
+        else if (link.href) openInBrowser(link.href)
+      } : undefined}>
       {children}
     </a>
   )
