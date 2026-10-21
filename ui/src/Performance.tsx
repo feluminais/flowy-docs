@@ -6,7 +6,7 @@ import { knee, kneeText, sourceKey, traffic as trafficOf } from '../../src/core/
 import type { Metrics, Run } from '../../src/core/perf.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { Section } from './Chrome.tsx'
-import { Activity, Alert, Info, Pause, Play } from './icons.tsx'
+import { Activity, Alert, Info, Pause, Play, Plus } from './icons.tsx'
 import {
   boxAt, boxSeries, BOX_KEYS, failureMarks, fmtLoad, gridOf, isTested, levelLabels, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, scaleOf, snap, sourceCss, top, xAt,
 } from './perfview.ts'
@@ -29,6 +29,8 @@ export type PerfProps = {
   onRun: (id: string) => void
   onPos: (pos: number) => void
   onRamp: () => void
+  /** Where there is a folder to put a run in: makes the start of one. */
+  onCreate?: () => void
 }
 
 /** A row of marks, each drawn as it looks on the chart or the canvas with its name beside it: the way to say what a colour or a shape means. */
@@ -95,7 +97,7 @@ function Reading({ metric, at, series, pos }: { metric: keyof Metrics; at?: numb
 }
 
 /** The Performance tab's body: which run and where in it, what it says about where things first struggle, and the numbers of what is selected. */
-export function PerfBody({ model, view, runs, runProblems, runId, pos, ramping, still, selection, onRun, onPos, onRamp }: PerfProps) {
+export function PerfBody({ model, view, runs, runProblems, runId, pos, ramping, still, selection, onRun, onPos, onRamp, onCreate }: PerfProps) {
   const run: Run | undefined = Object.hasOwn(runs, runId) ? runs[runId] : undefined
   const struggle = useMemo(() => (run ? knee(run) : undefined), [run])
   // The lines the canvas draws traffic on at this position, which the key and the selected line's readout are told by. Reduced motion draws none.
@@ -109,6 +111,15 @@ export function PerfBody({ model, view, runs, runProblems, runId, pos, ramping, 
       </>
     )
   )
+  if (ids.length === 0 && runProblems.length === 0) {
+    return (
+      <div className="perf">
+        <p className="muted">No load-test runs yet. A run holds what each shape and connection measured at each tested load, and this panel replays it on the diagram.</p>
+        {onCreate && <div className="perf-buttons"><button className="primary" onClick={onCreate}><Plus size={16} />Create</button></div>}
+        {onCreate && <p className="muted">Copies a starter run for this view to fill in and save in <code>flowy/perf/</code>.</p>}
+      </div>
+    )
+  }
   if (!run) return <div className="perf"><p className="muted">No run could be read.</p>{problems}</div>
 
   const load = loadAt(run, pos)

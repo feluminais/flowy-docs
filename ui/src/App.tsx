@@ -39,9 +39,9 @@ import { clampWidth, openTab } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { keepNav, loadNav } from './navstore.ts'
 import { store } from './store.ts'
-import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, Sash } from './Navigator.tsx'
+import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, NavTitle, Sash } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
-import { activeRun, clampPos, loadAt, rampFrom, rampPos, RAMP_STEP_MS, snap, top } from './perfview.ts'
+import { activeRun, clampPos, loadAt, rampFrom, rampPos, RAMP_STEP_MS, snap, starterRun, top } from './perfview.ts'
 import { AddPanel, LinePanel, ObjectPanel, OverviewPanel, Recorder } from './Panel.tsx'
 import { PickedBar } from './PickedBar.tsx'
 import { addsToSelection, banded, keepsSelection, toggled } from './selection.ts'
@@ -142,7 +142,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // The left-hand panel's tab (the navigator: Flows or Explorer), and whether the right-hand Details panel was opened from its rail. Details shows
   // `side`, or the level you are in, so a `side` opens it too.
   const [remembered] = useState(loadNav)
-  const [tab, setNavTab] = useState<NavTab | undefined>(remembered.tab)
+  // The Performance and Failures panels are tabs of it too, and an address that names one opens on it.
+  const [tab, setNavTab] = useState<NavTab | undefined>(() => {
+    const named = readHash(location.hash)
+    return named.perf !== undefined ? 'performance' : named.failures !== undefined ? 'failures' : remembered.tab
+  })
   // Whether the navigator is where the reader last clicked or opened something: Escape closes it then, and leaves it alone once they work in
   // the diagram. A navigator that came back with the page has not been used.
   const navUsed = useRef(false)
@@ -153,16 +157,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const [details, setDetails] = useState(false)
   const [navWidth, setNavWidth] = useState(remembered.navWidth ?? NAV) // dragged by the sashes on the panels' edges
   const [detailsWidth, setDetailsWidth] = useState(remembered.detailsWidth ?? PANEL)
-  // The Performance panel, which takes Details' place on the right: which run, and where along its tested levels. A whole number is a tested level; a ramp goes between them.
-  const [perf, setPerf] = useState(() => readHash(location.hash).perf !== undefined)
+  // The Performance panel, a tab on the left: which run, and where along its tested levels. A whole number is a tested level; a ramp goes between them.
   const startPos = (id: string, level?: number) => (Object.hasOwn(runs, id) ? clampPos(runs[id], level ?? knee(runs[id])?.index ?? top(runs[id])) : 0)
   const [runId, setRunId] = useState(() => {
     const named = readHash(location.hash).perf?.run
     return named !== undefined && Object.hasOwn(runs, named) ? named : Object.keys(runs)[0] ?? ''
   })
   const [pos, setPos] = useState(() => startPos(runId, readHash(location.hash).perf?.level))
-  // The Failures panel takes Details' place too: which analysis, which mode is picked in it, and what the list is narrowed to.
-  const [failures, setFailures] = useState(() => readHash(location.hash).failures !== undefined)
+  // The Failures panel, a tab on the left too: which analysis, which mode is picked in it, and what the list is narrowed to.
   const [analysisId, setAnalysisId] = useState(() => readHash(location.hash).failures?.analysis ?? '')
   const [modeId, setModeId] = useState<string | undefined>(() => readHash(location.hash).failures?.mode)
   const [filter, setFilter] = useState<Filter>({})
@@ -234,15 +236,13 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const loadTest = runKey ? runs[runKey] : undefined
   const here = loadTest ? clampPos(loadTest, pos) : 0
   if (!ramping) posNow.current = here // while it ramps, the ramp is ahead of what the screen shows
-  const showPerf = Object.keys(runs).length > 0 || runProblems.length > 0 // the tab is there whenever there is a run, or a run file to complain about
-  const canPerf = showPerf && !editing // while editing the tab is greyed out: the numbers would sit on a model that is changing
-  const perfOpen = perf && canPerf && loadTest !== undefined
-  // The Failures tab is there whenever there is an analysis or a file of one to complain about, and always in edit mode, so the first analysis can be made.
+  // The Performance and Failures tabs are always there: with nothing to show, their panels say how to make a run or an analysis.
+  const canPerf = !editing // while editing the tab is greyed out: the numbers would sit on a model that is changing
+  const perfOpen = tab === 'performance' && canPerf && loadTest !== undefined // a run is drawn on the canvas
   const analysisKey = activeAnalysis(model.failures, analysisId)
   const analysis = analysisKey === undefined ? undefined : model.failures[analysisKey]
   const mode = modeIn(model, analysisKey, modeId)
-  const showFailures = Object.keys(model.failures).length > 0 || failureProblems.length > 0 || editing
-  const failuresOpen = failures && showFailures
+  const failuresOpen = tab === 'failures'
   // A flow that was playing waits behind the Performance and Failures tabs, so a step's motion, the traffic and the risk marks never draw at once.
   const flow = editing || perfOpen || failuresOpen ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
   // The player moves through stops, not steps: a stop is what is on screen at once (see structure.ts). `playing.step` is a stop.
@@ -260,10 +260,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const subscribeYaml = useMemo(() => (listener: () => void) => (yamlStore ? yamlStore.subscribe(listener) : () => undefined), [yamlStore])
   const yamlGone = useSyncExternalStore(subscribeYaml, () => yamlStore?.get().unavailable === true)
   const showYaml = yamlStore !== undefined && !yamlGone
-  const nav = openTab(tab, { flows: showFlows, yaml: showYaml })
+  const nav = openTab(tab, { flows: showFlows, yaml: showYaml, performance: canPerf })
   const manyPicked = side?.kind === 'objects' // several shapes picked: a bar at the foot of the canvas, no panel over them
-  const detailsOpen = (details || (side !== undefined && !manyPicked)) && !perfOpen && !failuresOpen // the Performance and Failures panels are in its place while they are open
-  const rightOpen = detailsOpen || perfOpen || failuresOpen // a panel on the right, whichever it is
+  const detailsOpen = details || (side !== undefined && !manyPicked) // the right-hand side holds Details and nothing else
 
   // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
   // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
@@ -375,31 +374,26 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     setSide(undefined)
     setDetails(false)
   }
-  /** Shows what a click on the canvas, a problem or a button points at, in the Details panel on the right (or, while Performance is open, in its readings). */
+  /** Closes a tab of the navigator, if it is the one showing. */
+  const leave = (t: NavTab) => setNavTab(now => (now === t ? undefined : now))
+  /** Shows what a click on the canvas, a problem or a button points at, in the Details panel on the right (and, while Performance is open, in its readings too). */
   const show = (s: Side | undefined) => {
-    if (s?.kind === 'add' || s?.kind === 'flow') setFailures(false) // their panels are Details' own, which the Failures tab holds the place of
+    if (s?.kind === 'add' || s?.kind === 'flow') leave('failures') // their panels are Details' own, and a shape picked for the Failures list would take the canvas's clicks
     setSide(s)
   }
-  const toggleTab = (t: NavTab) => setTab(nav === t ? undefined : t)
-  const openPerf = () => {
-    setDetails(false) // so that closing it again doesn't leave Details open in its place
-    setFailures(false)
-    setPerf(true)
-  }
+  const openPerf = () => setTab('performance')
   const openFailures = () => {
-    setDetails(false)
-    setPerf(false)
     setSide(sideForTab) // Add and a flow being recorded are Details' own: left behind the tab they would still take the canvas's clicks
-    setFailures(true)
+    setTab('failures')
   }
-  const closeFailures = () => {
-    setFailures(false)
-    setSide(undefined) // what was picked to narrow its list is no reason for Details to open in its place
+  const toggleTab = (t: NavTab) => {
+    if (nav === t) setTab(undefined)
+    else if (t === 'performance') openPerf()
+    else if (t === 'failures') openFailures()
+    else setTab(t)
   }
-  const closePerf = () => {
-    setPerf(false)
-    setSide(undefined) // what was picked for its readings is no reason for Details to open in its place
-  }
+  const closeFailures = () => leave('failures')
+  const closePerf = () => leave('performance')
   const takeBack = async () => {
     justMoved.current = false
     setNotice(undefined)
@@ -427,6 +421,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     const diagram = flow && playing ? flowToMermaid(model, playing.flow) : viewToMermaid(model, view)
     return copyText('```mermaid\n' + diagram + '```\n', `Copied ${flow ? 'this flow' : 'this view'} as Mermaid. Paste it into a README or a PR: GitHub draws it.`)
   }
+  // Flowy only reads runs, so making one is a file: a starter for this view to fill with what a load test measured.
+  const createRun = () => copyText(starterRun(model, view), 'Copied a starter run for this view. Fill in your numbers and save it as flowy/perf/<name>.yaml.')
   const copyFailures = (format: 'markdown' | 'csv') => {
     if (analysis) void copyText(table(model, analysis, format), format === 'csv' ? 'Copied this analysis as CSV.' : 'Copied this analysis as a table.')
   }
@@ -633,7 +629,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     justMoved.current = false
     quiet.current = true // E isn't a step to go back to
     setEditMode(!editing)
-    setPerf(false) // editing and the Performance panel don't mix: the numbers would sit on a model that is changing
+    leave('performance') // editing and the Performance panel don't mix: the numbers would sit on a model that is changing
     setNotice(undefined) // "Press E to fix this flow" is stale the moment E is pressed
     setPlaying(undefined)
     setSide(s => (s?.kind === 'object' || s?.kind === 'line' ? s : undefined))
@@ -734,7 +730,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         setRunId(named.perf.run)
         setPos(startPos(named.perf.run, named.perf.level))
         openPerf()
-      } else setPerf(false)
+      } else leave('performance')
       if (named.failures !== undefined && Object.hasOwn(model.failures, named.failures.analysis)) {
         const m = modeIn(model, named.failures.analysis, named.failures.mode)
         setAnalysisId(named.failures.analysis)
@@ -742,7 +738,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         if (m) setSide(undefined) // a picked shape would narrow the list to what it carries, and the mode named here may not be in it
         openFailures()
         if (m && !drawnIn(model, named.view, m)) go(homeView(model, m)) // the mode's part is outside the view the address names
-      } else setFailures(false)
+      } else leave('failures')
     }
     window.addEventListener('popstate', follow)
     window.addEventListener('hashchange', follow)
@@ -781,15 +777,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       }
       else if (e.key === 'Escape') {
         const navigator = nav !== undefined && (navUsed.current || inNavigator)
-        const layer = escapeStep({ shortcuts, navigator, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: rightOpen || manyPicked, inside: view !== ROOT })
+        const layer = escapeStep({ shortcuts, navigator, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: detailsOpen || manyPicked || perfOpen || failuresOpen, inside: view !== ROOT })
         if (layer === 'shortcuts') setShortcuts(false)
         else if (layer === 'navigator') setTab(undefined)
         else if (layer === 'flow') setPlaying(undefined)
         else if (layer === 'step' && recording) setSide({ ...recording, from: undefined, to: undefined })
         else if (layer === 'panel') {
-          if (perfOpen) closePerf()
-          else if (failuresOpen) closeFailures()
-          else closeDetails()
+          if (detailsOpen || manyPicked) closeDetails()
+          else if (perfOpen) closePerf()
+          else closeFailures()
         }
         else if (layer === 'up') up()
         else return
@@ -823,8 +819,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       else if (key === 'l' && plain && !e.repeat && showFlows) toggleTab('flows')
       else if (key === 'o' && plain && !e.repeat) toggleTab('explorer')
       else if (key === 'y' && plain && !e.repeat && showYaml) toggleTab('yaml')
-      else if (key === 't' && plain && !e.repeat && canPerf) (perfOpen ? closePerf() : openPerf())
-      else if (key === 'm' && plain && !e.repeat && showFailures) (failuresOpen ? closeFailures() : openFailures())
+      else if (key === 't' && plain && !e.repeat && canPerf) toggleTab('performance')
+      else if (key === 'm' && plain && !e.repeat) toggleTab('failures')
       else if (key === 'e' && plain && !e.repeat && !readOnly) toggleEdit()
       else if (editing && key === 'n' && plain && !recording) show({ kind: 'add' })
       else if (editing && e.key === 'Delete') remove()
@@ -897,7 +893,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}><Pencil size={16} />Edit</button>}
       </header>
       <div className="stage">
-        <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} showYaml={showYaml} onPick={toggleTab} />
+        <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} showYaml={showYaml}
+          perf={{ runs: Object.keys(runs).length, off: editing ? 'not while editing' : undefined }} failures={{ count: modeCount(model) }} onPick={toggleTab} />
         <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', flow && usesStates(flow) && 'states', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           <LineStyleContext value={lines}>
@@ -972,7 +969,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             >
               <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} panel={detailsWidth} nav={nav ? navWidth : 0} />
               {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
-              <Controls showInteractive={false} fitViewOptions={fitOptions(rightOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
+              <Controls showInteractive={false} fitViewOptions={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
               {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
               {flow && stop && animated.map(m => (
                 <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
@@ -996,7 +993,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               show({ kind: 'object', id })
             }} />
           )}
-          {shortcuts && <Shortcuts editable={live && !readOnly} performance={canPerf} failures={showFailures} onClose={() => setShortcuts(false)} />}
+          {shortcuts && <Shortcuts editable={live && !readOnly} performance={canPerf} failures onClose={() => setShortcuts(false)} />}
           {notice && (
             <div className="notice" role="status">
               <span>{notice}</span>
@@ -1018,9 +1015,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {detailsOpen && recording && (
             <Recorder model={model} view={view} rec={recording} onChange={rec => setSide({ kind: 'flow', ...rec })} run={run} onClose={closeDetails} />
           )}
-          {perfOpen && (
-            <aside className="panel perfpanel">
-              <button className="close" aria-label="Close" onClick={closePerf}><Close size={16} /></button>
+          {nav === 'performance' && (
+            <NavPanel tabs={<NavTitle title="Performance" />} onClose={() => setTab(undefined)}>
               <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runKey} pos={here} ramping={ramping} still={still}
                 selection={side?.kind === 'object' || side?.kind === 'line' ? side : undefined}
                 onRun={id => {
@@ -1028,12 +1024,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                   setRunId(id)
                   setPos(startPos(id))
                 }}
-                onPos={stepLevel} onRamp={toggleRamp} />
-            </aside>
+                onPos={stepLevel} onRamp={toggleRamp} onCreate={live ? createRun : undefined} />
+            </NavPanel>
           )}
-          {failuresOpen && (
-            <aside className="panel perfpanel failpanel">
-              <button className="close" aria-label="Close" onClick={closeFailures}><Close size={16} /></button>
+          {nav === 'failures' && (
+            <NavPanel tabs={<NavTitle title="Failures" />} onClose={() => setTab(undefined)}>
               <FailuresBody model={model} view={view} runs={runs} problems={problems} failureProblems={failureProblems} analysisId={analysisKey} modeId={mode ? modeId : undefined}
                 rows={rows} filter={filter} part={part}
                 onAnalysis={id => {
@@ -1042,8 +1037,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                   setFilter({})
                 }}
                 onMode={selectMode} onFilter={setFilter} onClearPart={() => setSide(undefined)} onPickShape={pickShape}
-                onShowFlow={showFlow} onSeenInRun={seenInRun} onCopy={copyFailures} editing={editing} run={run} />
-            </aside>
+                onShowFlow={showFlow} onSeenInRun={seenInRun} onCopy={copyFailures} editing={editing} run={run} onCreate={live && !readOnly ? toggleEdit : undefined} />
+            </NavPanel>
           )}
           {nav === 'flows' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
@@ -1062,16 +1057,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 onRestore={restoreVersion} onClear={clearHistory} />
             </NavPanel>
           )}
-          {nav && <Sash side="nav" width={navWidth} onResize={w => setNavWidth(clampWidth(w, spare(rightOpen ? detailsWidth : 0)))} onReset={() => setNavWidth(NAV)} />}
-          {rightOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
+          {nav && <Sash side="nav" width={navWidth} onResize={w => setNavWidth(clampWidth(w, spare(detailsOpen ? detailsWidth : 0)))} onReset={() => setNavWidth(NAV)} />}
+          {detailsOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && stop && caption && progress && (
             <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
               trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={() => setReplays(n => n + 1)} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
           )}
         </main>
-        <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else { setPerf(false); setFailures(false); setDetails(true) } }}
-          perf={showPerf ? { open: perfOpen, runs: Object.keys(runs).length, off: editing ? 'not while editing' : undefined, onToggle: () => (perfOpen ? closePerf() : openPerf()) } : undefined}
-          failures={showFailures ? { open: failuresOpen, count: modeCount(model), onToggle: () => (failuresOpen ? closeFailures() : openFailures()) } : undefined} />
+        <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else setDetails(true) }} />
       </div>
     </>
   )
