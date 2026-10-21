@@ -10,7 +10,10 @@ canvas is in `ui/` (React and React Flow). Tests are in `test/` and use Node's o
 npm install
 npm test
 npm run typecheck
+node src/cli.ts check
 ```
+
+`check` lists every problem in `flowy/`, this repo's own model, and exits 1 if there is any. Run it after changing the model, a `code:` path or the checks.
 
 Commit messages follow the existing style: `feat(ui): ...`, `fix: ...`, `docs: ...`.
 
@@ -232,6 +235,12 @@ Before merging a change to the app, look at what it could affect, in a real wind
       comment and the numbers in their own colours, and a Copy button that puts the lines on the clipboard. In edit mode press Add code, type
       a title and some SQL, pick nothing: the card reads "Auto: SQL" once there is code. Pick Go: the colours change and `language: go` is in
       the file. Pick Auto: the line goes. Remove the snippet: `snippets:` is gone.
+- [ ] On a copy of `docs/demo`, open Orders DB: its panel has a Data section, the orders table open with PK on id, FK customers on customer_id and a dot on
+      total whose note is under the table, and the other three tables closed to a line each ("4 columns", and how long they are kept). Click a closed line: it
+      opens. Open Menu cache (a key set with Key, Value and Expires) and Order events (a topic with Key and Value). For a document, paste the Restaurant profiles
+      example from the guide's Data section under another store's `data:`: it shows its fields one to a line, indented, with the note under them. In edit mode the
+      form has a Data box holding the same lines as the file: delete a column from `columns` but not from the rows and click elsewhere, and a notice says a row has
+      too many cells and the box keeps what you typed. Clear the box: `data:` is gone.
 - [ ] While the app has a model open, change it in the browser (or save from an editor): the app shows it without a reload, and an edit
       made in the app after that starts from what is on disk.
 - [ ] Light and dark: change the system's theme while the app is open.
@@ -307,6 +316,9 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       comes back while dots wait over the caller, Event runs a bolt and flashes the receiver, Callback sends a ring, then a bell, then a ring, a callback
       after a step flashes its publisher first, one from outside drops a bolt on it, and the next Send carries the words "order 42". Fail runs an envelope in the danger colour and flashes its receiver in it. Timeout sends the envelope, keeps the dots waiting over the caller with no reply, and then dims the line, which stays dim until you move on. Lost pops the envelope partway and leaves a red cross with the reason under it, and the receiver never squashes. Rejected stops it at a red bar by the receiver, which flashes, and sends it back red. Intercepted leaves the line for a dashed outline round a third shape (or a dashed marker named Café wifi proxy) that lights. Duplicated runs a second copy that trails the first, and the receiver squashes twice. Delayed waits beside a turning dashed clock with the reason beside it, then goes on and is answered. Share of requests sends ten, and the three that are lost are named r1, r2 and r3, each with its own colour and a ring, and leave their crosses where they vanished. Every shape
       squashes or flashes where the animation says it does, on the queue, the cylinder and the hexagon too. With the system's animation effects off, nothing moves.
+- [ ] Open *Send with a word* (`#steps/send-with-a-word`) in the browser: the label "order 42" runs along its line at its own shape and does not stretch. Press the Squish
+      button on the card (it is remembered, and applies at once): the label stretches a little along its way, and on a slanted line it stays level and upright,
+      never leaning. The desktop app never squishes.
 - [ ] Open Repeat, Branch, Parallel and Flow link in Flow structure. Repeat says it repeats up to 3 times, Branch says One of 2 and dashes the
       lane you are not in, Parallel lights three lanes together with a bolt each, and Flow link has an Open flow that lands on the other flow and a bar to come back.
 - [ ] Open Every state in Shape states (`#states/states`) and press P: Service starts out dotted and circling (Starting), settles with nothing drawn (Running), pulses amber with a
