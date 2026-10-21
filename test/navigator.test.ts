@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { clampWidth, MAX_WIDTH, MIN_WIDTH, openTab, parseNav } from '../ui/src/navstate.ts'
+import { clampWidth, MAX_WIDTH, MIN_WIDTH, openTab, parseNav, rememberedTab } from '../ui/src/navstate.ts'
 import { scrollToRow, visibleRows } from '../ui/src/window.ts'
 
 test('a window shows the rows in view and a few more each side, and never more than there are', () => {
@@ -23,12 +23,23 @@ test('scrolling to a row moves as little as it can, and not at all when the row 
 })
 
 test('Review Focus: a remembered tab opens only where it exists (not YAML on an exported page or in VS Code)', () => {
-  assert.equal(openTab('yaml', { flows: true, yaml: false }), undefined)
-  assert.equal(openTab('yaml', { flows: false, yaml: true }), 'yaml')
-  assert.equal(openTab('flows', { flows: false, yaml: true }), undefined)
-  assert.equal(openTab('flows', { flows: true, yaml: false }), 'flows')
-  assert.equal(openTab('explorer', { flows: false, yaml: false }), 'explorer')
-  assert.equal(openTab(undefined, { flows: true, yaml: true }), undefined)
+  assert.equal(openTab('yaml', { flows: true, yaml: false, failures: true }), undefined)
+  assert.equal(openTab('yaml', { flows: false, yaml: true, failures: false }), 'yaml')
+  assert.equal(openTab('flows', { flows: false, yaml: true, failures: true }), undefined)
+  assert.equal(openTab('flows', { flows: true, yaml: false, failures: false }), 'flows')
+  assert.equal(openTab('explorer', { flows: false, yaml: false, failures: false }), 'explorer')
+  assert.equal(openTab(undefined, { flows: true, yaml: true, failures: true }), undefined)
+})
+
+test('the Failures tab is there only where there is an analysis (or a file of one to complain about), and is never remembered: the address brings it back', () => {
+  assert.equal(openTab('failures', { flows: true, yaml: true, failures: true }), 'failures')
+  assert.equal(openTab('failures', { flows: true, yaml: true, failures: false }), undefined)
+  assert.equal(rememberedTab('failures'), undefined)
+  assert.equal(rememberedTab('flows'), 'flows')
+  assert.equal(rememberedTab('explorer'), 'explorer')
+  assert.equal(rememberedTab('yaml'), 'yaml')
+  assert.equal(rememberedTab(undefined), undefined)
+  assert.deepEqual(parseNav('{"tab":"failures"}'), { expanded: [] }) // a stored one is ignored too
 })
 
 test('stored navigator state is read as far as it can be trusted', () => {

@@ -211,8 +211,8 @@ objects:
       steps through a flow on its own. A step's `states` dim a shape and draw a second outline and a glyph on it until another step
       changes them. A Performance tab plays a load-test run back over the diagram.
 
-      A rail of icons on the left edge opens a panel with two tabs: the whole documentation as a
-      tree, and every flow in it. Details opens on the right, from its own rail or by
+      A rail of icons on the left edge opens a panel with tabs: the whole documentation as a
+      tree, every flow in it, how things fail, and the files as YAML. Details opens on the right, from its own rail or by
       picking a shape, and where the folder has load-test runs the right rail has a Performance
       button that puts its panel in Details' place. Both panels are dragged wider or narrower by
       their inner edge, as in VS Code, and a double-click puts the width back.
@@ -373,7 +373,7 @@ objects:
     description: |
       Lists the rows of an analysis worst first, puts a risk mark on each shape and line, and lights what a picked row hurts. In edit mode it holds the forms that write a row.
 
-      The desktop app has it too, as a tab on the left beside Explorer and Flows and read only: a C# port of the same lists, badges and words, held equal by fixtures. It has no forms for an analysis yet.
+      It is a tab on the left, beside Explorer and Flows. The desktop app has it too, read only: a C# port of the same lists, badges and words, held equal by fixtures. It has no forms for an analysis yet.
   navigator:
     type: component
     in: canvas
@@ -381,7 +381,7 @@ objects:
     code: [ui/src/Navigator.tsx, ui/src/navstate.ts, ui/src/navstore.ts, ui/src/window.ts]
     description: |
       The rail of icons on the left edge and the tabs it opens: the whole documentation as a tree
-      drawn a window of rows at a time, and every flow, grouped by where it plays. It asks core for the rows,
+      drawn a window of rows at a time, every flow, grouped by where it plays, how things fail (the Failures tab) and the YAML. It asks core for the rows,
       which come in VS Code's order: shapes that hold others first, then the rest, each by name.
 
       The edges of this panel and of the Details panel are sashes you drag to resize them.
@@ -495,7 +495,7 @@ objects:
     type: component
     in: core
     name: Performance runs
-    code: [src/core/perf.ts, desktop/Flowy.Core/Perf.cs, desktop/Flowy.Core/PerfSources.cs]
+    code: [src/core/perf/, desktop/Flowy.Core/PerfParse.cs, desktop/Flowy.Core/PerfRollUp.cs, desktop/Flowy.Core/PerfSources.cs]
     description: |
       A load test as numbers: for each load level that was tested, what each shape and each
       connection measured. It reads a run file, checks it against the model, and works out what the

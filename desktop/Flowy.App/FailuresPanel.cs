@@ -116,7 +116,7 @@ internal sealed class FailuresPanel : StackPanel
 
         if (mode is not null) Children.Add(Detail(s, analysis, mode));
 
-        Children.Add(KeyHint.Of(("← →", "Step"), ("Esc", "Close")));
+        Children.Add(KeyHint.Of(("← →", "Step")));
         var lit = mode is null ? null : Failures.LightFor(model, s.View, mode);
         Children.Add(Chrome.Section(Icons.Info, "Key"));
         var key = new List<(Control, string)?>();

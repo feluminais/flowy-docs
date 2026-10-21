@@ -1,9 +1,15 @@
-/** Which tab of the left-hand panel is showing: the flows list, the Explorer tree, or the files as YAML with their history. Details, on the right, has no tabs. */
-export type NavTab = 'flows' | 'explorer' | 'yaml'
+/** Which tab of the left-hand panel is showing: the Explorer tree, the flows list, the files as YAML with their history, or how things fail. Details, on the right, has no tabs. */
+export type NavTab = 'flows' | 'explorer' | 'yaml' | 'failures'
 
-/** The tab that opens: the one remembered, unless it is not there to show (no flows to list, or no server that keeps the history for the YAML tab). */
-export const openTab = (tab: NavTab | undefined, shows: { flows: boolean; yaml: boolean }): NavTab | undefined =>
-  (tab === 'flows' && !shows.flows) || (tab === 'yaml' && !shows.yaml) ? undefined : tab
+/**
+ * The tab that opens: the one asked for, unless it is not there to show (no flows to list, no server that keeps the history for the YAML tab, or no failure
+ * analysis, nor a file of one to complain about, for the Failures tab).
+ */
+export const openTab = (tab: NavTab | undefined, shows: { flows: boolean; yaml: boolean; failures: boolean }): NavTab | undefined =>
+  (tab === 'flows' && !shows.flows) || (tab === 'yaml' && !shows.yaml) || (tab === 'failures' && !shows.failures) ? undefined : tab
+
+/** The tab that comes back with the page. Failures does not: the address says which analysis and mode were open, and brings the tab back with them. */
+export const rememberedTab = (tab: NavTab | undefined): NavTab | undefined => (tab === 'failures' ? undefined : tab)
 
 /** What the navigator remembers for this project: the list or tree that was open, which shapes were open in the tree, and how wide the two side panels are. */
 export type NavSaved = { tab?: NavTab; expanded: string[]; navWidth?: number; detailsWidth?: number }

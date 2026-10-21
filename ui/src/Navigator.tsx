@@ -8,6 +8,7 @@ import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
 import { Activity, Bolt, ChevronRight, Close, FileCode, Home, Info, Pencil, Play, Route, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
+import { keyOf } from './keymap.ts'
 import { MAX_WIDTH, MIN_WIDTH } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { scrollToRow, visibleRows } from './window.ts'
@@ -17,8 +18,13 @@ const ROW = 30 // px: every row of the tree is this tall, which is what lets it 
 const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-export function NavTabs({ tab, showFlows, showYaml, onPick }: { tab: NavTab; showFlows: boolean; showYaml: boolean; onPick: (tab: NavTab) => void }) {
-  const tabs: [NavTab, string][] = [['explorer', 'Explorer'], ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []), ...(showYaml ? [['yaml', 'YAML'] as [NavTab, string]] : [])]
+export function NavTabs({ tab, showFlows, showYaml, showFailures, onPick }: { tab: NavTab; showFlows: boolean; showYaml: boolean; showFailures: boolean; onPick: (tab: NavTab) => void }) {
+  const tabs: [NavTab, string][] = [
+    ['explorer', 'Explorer'],
+    ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []),
+    ...(showFailures ? [['failures', 'Failures'] as [NavTab, string]] : []),
+    ...(showYaml ? [['yaml', 'YAML'] as [NavTab, string]] : []),
+  ]
   return (
     <div className="navtabs" role="tablist" aria-label="Panel">
       {tabs.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => onPick(id)}>{label}</button>)}
@@ -35,13 +41,19 @@ function RailButton({ label, hint, Icon, pressed, count, off, onClick }: { label
   )
 }
 
-/** The slim column of icons on the left edge for the Flows list, the Explorer tree and the YAML. It is always there, and the counts on it say how much the documentation holds. */
-export function NavRail({ tab, flows, shapes, showFlows, showYaml, onPick }: { tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean; showYaml: boolean; onPick: (tab: NavTab) => void }) {
+/**
+ * The slim column of icons on the left edge for the Explorer tree, the Flows list, how things fail and the YAML. It is always there, and the counts on it say how much the
+ * documentation holds: the shapes, the flows and the failure modes.
+ */
+export function NavRail({ tab, flows, shapes, modes, showFlows, showYaml, showFailures, onPick }: {
+  tab: NavTab | undefined; flows: number; shapes: number; modes: number; showFlows: boolean; showYaml: boolean; showFailures: boolean; onPick: (tab: NavTab) => void
+}) {
   return (
     <nav className="rail left" aria-label="Navigator">
-      <RailButton label="Explorer" hint="O" Icon={ExplorerIcon} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
-      {showFlows && <RailButton label="Flows" hint="L" Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
-      {showYaml && <RailButton label="YAML" hint="Y" Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />}
+      <RailButton label="Explorer" hint={keyOf('explorer')} Icon={ExplorerIcon} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
+      {showFlows && <RailButton label="Flows" hint={keyOf('flows')} Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
+      {showFailures && <RailButton label="Failures" hint={keyOf('failures')} Icon={Bolt} count={modes} pressed={tab === 'failures'} onClick={() => onPick('failures')} />}
+      {showYaml && <RailButton label="YAML" hint={keyOf('yaml')} Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />}
     </nav>
   )
 }
@@ -50,15 +62,11 @@ export function NavRail({ tab, flows, shapes, showFlows, showYaml, onPick }: { t
  * The slim column on the right edge: a button for the Details panel, and below it one for Performance where there is a load-test run to show (it takes Details' place).
  * `perf.off` greys that button out and says why in its tooltip: the tab stays where it is while the panel can't be used.
  */
-export function DetailsRail({ open, onToggle, perf, failures }: {
-  open: boolean; onToggle: () => void; perf?: { open: boolean; runs: number; off?: string; onToggle: () => void }; failures?: { open: boolean; count: number; onToggle: () => void }
-}) {
-  const label = ['Details', perf && 'performance', failures && 'failures'].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' and $1')
+export function DetailsRail({ open, onToggle, perf }: { open: boolean; onToggle: () => void; perf?: { open: boolean; runs: number; off?: string; onToggle: () => void } }) {
   return (
-    <nav className="rail" aria-label={label}>
+    <nav className="rail" aria-label={perf ? 'Details and performance' : 'Details'}>
       <RailButton label="Details" Icon={Info} pressed={open} onClick={onToggle} />
-      {perf && <RailButton label="Performance" hint="T" Icon={Activity} count={perf.runs} pressed={perf.open} off={perf.off} onClick={perf.onToggle} />}
-      {failures && <RailButton label="Failures" hint="M" Icon={Bolt} count={failures.count} pressed={failures.open} onClick={failures.onToggle} />}
+      {perf && <RailButton label="Performance" hint={keyOf('perf')} Icon={Activity} count={perf.runs} pressed={perf.open} off={perf.off} onClick={perf.onToggle} />}
     </nav>
   )
 }
@@ -92,7 +100,7 @@ export function Sash({ side, width, onResize, onReset }: { side: 'nav' | 'detail
   )
 }
 
-/** The panel of the Flows and Explorer tabs, on the left. It has no scrolling of its own: each tab scrolls what it holds. */
+/** The panel of the Explorer, Flows, Failures and YAML tabs, on the left. It has no scrolling of its own: each tab scrolls what it holds. */
 export function NavPanel({ tabs, onClose, children }: { tabs: ReactNode; onClose: () => void; children: ReactNode }) {
   return (
     <aside className="panel navpanel">
