@@ -254,9 +254,13 @@ const REJECT_STOP = 0.92
 const BAR_AT = 0.97
 const WAIT_AT = 0.4
 const LANDING_NOTE_AT = 0.88
-/** A burst starts a request every BURST_STAGGER ms at most, and spreads its starts over at most BURST_SPREAD ms, so 100 requests still take only a few seconds. */
+/**
+ * A burst starts a request every BURST_STAGGER ms, or further apart on a short line so the blobs stay about BLOB_SPACING px from each other,
+ * and never spreads its starts over more than BURST_SPREAD ms, so 100 requests still take only a few seconds.
+ */
 const BURST_STAGGER = 300
-const BURST_SPREAD = 3000
+const BLOB_SPACING = 36
+const BURST_SPREAD = 4000
 
 /**
  * One request of the step: whether it meets the outcome (`hit`), the word it carries, and, in a burst, the colour and ring of a request that
@@ -419,7 +423,8 @@ export function beatsFor(a: Animation, { length, afterLanding }: { length: numbe
   const burst = a.share !== undefined && a.outcome !== undefined && a.kind !== 'callback' ? burstOf(a.share) : undefined
   const body = ((): Beat[] => {
     if (burst === undefined) return request(0, { hit: true, ...(a.carries === undefined ? {} : { label: a.carries }) })
-    const stagger = Math.min(BURST_STAGGER, Math.floor(BURST_SPREAD / (burst.count - 1)))
+    const spacing = Number.isFinite(length) && length > 0 ? Math.ceil((BLOB_SPACING * T) / length) : 0
+    const stagger = Math.min(Math.floor(BURST_SPREAD / (burst.count - 1)), Math.max(BURST_STAGGER, spacing))
     const last = burst.hit.lastIndexOf(true)
     let nth = 0
     return burst.hit.flatMap((hit, i) => {
