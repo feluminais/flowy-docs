@@ -55,6 +55,55 @@ test('a one-box step is a note over that box', () => {
   assert.match(flowToMermaid(m, 'checkout'), /\n {2}Note over n2: Checks stock\n$/)
 })
 
+test('a step that ends in an outcome says so in a note over its ends, in the words of the step card', () => {
+  const m = shop()
+  m.flows.checkout.steps = [
+    { from: 'customer', to: 'web', text: 'Clicks', animation: { kind: 'send', outcome: 'lost', share: '30' } },
+    { from: 'web', to: 'api', text: 'Posts', animation: { kind: 'call', outcome: 'rejected', reason: 'Rate limit' } },
+    { from: 'web', to: 'api', text: 'Posts again', animation: { kind: 'call', outcome: 'intercepted', by: { name: 'Café wifi proxy' } } },
+    { from: 'web', to: 'api', text: 'Posts a third time', animation: { kind: 'call', outcome: 'intercepted', by: 'mail' } },
+    { from: 'api', to: 'db', text: 'Saves', animation: { kind: 'send', outcome: 'duplicated' } },
+    { from: 'api', to: 'db', text: 'Saves slowly', animation: { kind: 'call', outcome: 'delayed', reason: 'Cold start' } },
+    { from: 'api', to: 'db', text: 'Saves badly', animation: { kind: 'call', outcome: 'timeout' } },
+    { from: 'api', to: 'db', text: 'Saves wrongly', animation: { kind: 'send', outcome: 'fail', share: '10' } },
+  ]
+  assert.equal(flowToMermaid(m, 'checkout'), [
+    'sequenceDiagram',
+    '  actor n0 as Customer',
+    '  participant n1 as Web app',
+    '  participant n2 as API',
+    '  participant n3 as Orders DB',
+    '  n0->>n1: Clicks',
+    '  Note over n0,n1: 30% lost',
+    '  n1->>n2: Posts',
+    '  Note over n1,n2: Rejected: Rate limit',
+    '  n1->>n2: Posts again',
+    '  Note over n1,n2: Taken by Café wifi proxy',
+    '  n1->>n2: Posts a third time',
+    '  Note over n1,n2: Taken by Mail service',
+    '  n2->>n3: Saves',
+    '  Note over n2,n3: Sent twice',
+    '  n2->>n3: Saves slowly',
+    '  Note over n2,n3: Delayed: Cold start',
+    '  n2->>n3: Saves badly',
+    '  Note over n2,n3: Times out',
+    '  n2->>n3: Saves wrongly',
+    '  Note over n2,n3: 10% fail',
+    '',
+  ].join('\n'))
+})
+
+test('a reason can never be read as Mermaid syntax, and a step without an outcome gets no note', () => {
+  const m = shop()
+  m.flows.checkout.steps = [
+    { from: 'customer', to: 'web', text: 'Clicks', animation: { kind: 'send', outcome: 'lost', reason: 'Gone; "far" <away>' } },
+    { from: 'web', to: 'api', text: 'Posts', animation: 'call' },
+  ]
+  const out = flowToMermaid(m, 'checkout')
+  assert.match(out, /\n {2}Note over n0,n1: Lost: Gone#59; #quot;far#quot; #lt;away#gt;\n/)
+  assert.equal(out.split('\n').filter(l => l.includes('Note over')).length, 1)
+})
+
 test('a backtick is escaped too, since one right after a quote starts Mermaid markdown', () => {
   assert.equal(mermaidText('`flowy` CLI'), '#96;flowy#96; CLI')
 })

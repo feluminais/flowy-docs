@@ -248,6 +248,45 @@ test('put_flow takes a step animation, and refuses one that is not a kind', asyn
   assert.equal(misspelled.error, true)
 })
 
+test('put_flow takes the new outcomes with share, reason, by and at, and refuses a bad one in the checker words', async t => {
+  const { dir, call } = await setup(t)
+  await call('put_object', { id: 'customer', type: 'actor', name: 'Customer' })
+  await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
+  await call('put_object', { id: 'proxy', type: 'system', name: 'Edge proxy' })
+  const saved = await call('put_flow', { id: 'visit', name: 'Visit', view: 'root', steps: [
+    { from: 'customer', to: 'shop', text: 'Pings', animation: { kind: 'send', outcome: 'lost', share: 30, reason: 'Packet dropped', at: 0.4 } },
+    { from: 'customer', to: 'shop', text: 'Is read', animation: { kind: 'call', outcome: 'intercepted', by: 'proxy' } },
+    { from: 'customer', to: 'shop', text: 'Is read again', animation: { kind: 'call', outcome: 'intercepted', by: { name: 'Café wifi proxy' }, share: '50' } },
+    { from: 'customer', to: 'shop', text: 'Is turned away', animation: { kind: 'call', outcome: 'rejected', reason: 'Rate limit' } },
+  ] })
+  assert.equal(saved.error, false, saved.text)
+  const flow = JSON.parse((await call('get_model')).text).flows.visit
+  // A file holds every value as text, so the numbers are written as text.
+  assert.deepEqual(flow.steps[0].animation, { kind: 'send', outcome: 'lost', share: '30', reason: 'Packet dropped', at: '0.4' })
+  assert.deepEqual(flow.steps[1].animation, { kind: 'call', outcome: 'intercepted', by: 'proxy' })
+  assert.deepEqual(flow.steps[2].animation, { kind: 'call', outcome: 'intercepted', by: { name: 'Café wifi proxy' }, share: '50' })
+  assert.match(await readFile(join(dir, 'flows', 'visit.yaml'), 'utf8'), /share: "?30"?/)
+
+  const step = (animation: unknown) => [{ from: 'customer', to: 'shop', text: 'x', animation }]
+  for (const [animation, words] of [
+    [{ kind: 'send', outcome: 'lost', share: 0 }, /animation share must be a whole number from 1 to 100/],
+    [{ kind: 'send', outcome: 'lost', share: 101 }, /animation share must be a whole number from 1 to 100/],
+    [{ kind: 'send', outcome: 'lost', share: 30.5 }, /animation share must be a whole number from 1 to 100/],
+    [{ kind: 'send', outcome: 'lost', share: 'a third' }, /animation share must be a whole number from 1 to 100/],
+    [{ kind: 'send', outcome: 'lost', at: 0.95 }, /animation at must be a number from 0.1 to 0.9/],
+    [{ kind: 'send', outcome: 'intercepted' }, /animation outcome intercepted needs a "by"/],
+    [{ kind: 'send', outcome: 'intercepted', by: 'customer' }, /animation by "customer" is an end of the step/],
+    [{ kind: 'send', outcome: 'intercepted', by: 'ghost' }, /animation by: unknown object "ghost"/],
+    [{ kind: 'send', outcome: 'lost', by: 'proxy' }, /animation by only applies to outcome intercepted/],
+    [{ kind: 'send', outcome: 'rejected', reason: 'x'.repeat(41) }, /animation reason can be at most 40 characters/],
+    [{ kind: 'callback', outcome: 'delayed' }, /animation outcome delayed only applies to send, call and event/],
+  ] as const) {
+    const refused = await call('put_flow', { id: 'bad', name: 'Bad', view: 'root', steps: step(animation) })
+    assert.equal(refused.error, true, JSON.stringify(animation))
+    assert.match(refused.text, words)
+  }
+})
+
 test('put_flow takes a step outcome, and refuses one the kind cannot have', async t => {
   const { dir, call } = await setup(t)
   await call('put_object', { id: 'customer', type: 'actor', name: 'Customer' })
