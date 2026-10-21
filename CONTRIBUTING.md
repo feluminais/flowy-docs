@@ -53,6 +53,19 @@ copy's history stays out of your own and the demo is not written to). For the fi
 second, press E and change a few things (a shape's Tech, a line of a flow's file in an editor, a `put_object` through `node src/cli.ts mcp`) so
 the list has You, Claude and Outside steps, press Y, and pick the step Claude wrote.
 
+## Line labels
+
+A line's label shows only for the lines of a selected shape, the line pointed at and the line a flow has lit (`focusEdges` in `ui/src/graph.ts`). The lines of one shape meet at it, so
+their middles are close and long labels land on top of each other. `ui/src/labels.ts` keeps them apart. The rules, for the next overlap that turns up:
+
+- Move the labels, never the lines or boxes: the layout stays as the reader left it. A label stays at the middle of its line unless something is there.
+- A label slides along its line, nearest the middle first, to the first place clear of every box and of the labels placed before it. Only when no place along it is
+  clear does it stack above or below the middle. It never leaves its line to hide a collision.
+- A lit line's label is pinned: step marks and the pipe are placed by it, and the other labels go round it.
+- No place can hold a label wider than the gap, so a label is cut short past `MAX_LABEL` characters with an ellipsis. Its whole text is in the line's panel.
+- `placeLabels` has no DOM in it and `test/labels.test.ts` runs it: a new case of overlap is a new test there, with the boxes and lines as numbers.
+- The desktop app draws its own labels (`desktop/Flowy.Core/LinePaths.cs`) and does not use this yet.
+
 ## The Conductor analysis
 
 A second, real analysis reads parts of [Conductor OSS](https://github.com/conductor-oss/conductor), the workflow engine, from its code. It models the server (its executor, decider, sweeper, lock and HTTP task) and the four stores beside it, two flows, and `failures/conductor.yaml`: seventeen rows, each written from the code, with the files and lines in its More. Its `about` pins the commit it was read at and says the ratings are an outsider's guesses. It is a demonstration of Flowy, and no assessment of Conductor. A row that could not be confirmed in the code was left out, and two ratings are left empty on purpose.
