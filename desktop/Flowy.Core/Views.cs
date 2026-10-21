@@ -10,46 +10,17 @@ public sealed record View(string Id, IReadOnlyList<string> Members, IReadOnlyLis
 public static class Views
 {
     /// <summary>The view an object sits in: its parent, or root when it has none or a broken one (missing, or itself).</summary>
-    public static string ParentOf(Model model, string id)
-    {
-        var parent = model.GetObject(id)?.In;
-        return parent is not null && parent != id && model.GetObject(parent) is not null ? parent : Names.Root;
-    }
+    public static string ParentOf(Model model, string id) => ModelIndex.Of(model).ParentOf(id);
 
     /// <summary>[id, parent, grandparent, ..., root]. Stops at cycles, which the checks report.</summary>
-    public static List<string> Chain(Model model, string id)
-    {
-        var chain = new List<string> { id };
-        var seen = new HashSet<string> { id };
-        var current = id;
-        while (current != Names.Root)
-        {
-            current = ParentOf(model, current);
-            if (!seen.Add(current)) break;
-            chain.Add(current);
-        }
-        if (chain[^1] != Names.Root) chain.Add(Names.Root);
-        return chain;
-    }
+    public static List<string> Chain(Model model, string id) => [.. ModelIndex.Of(model).ChainOf(id)];
 
-    public static List<string> MemberIds(Model model, string view) =>
-        model.Objects.Keys.Where(id => model.GetObject(id) is not null && ParentOf(model, id) == view).ToList();
+    public static List<string> MemberIds(Model model, string view) => ModelIndex.Of(model).MemberIds(view);
 
     /// <summary>How many objects each object holds directly, for every object that holds any: <see cref="MemberIds"/> counted for all at once.</summary>
-    public static Dictionary<string, int> ChildCounts(Model model)
-    {
-        var counts = new Dictionary<string, int>();
-        foreach (var id in model.Objects.Keys)
-        {
-            if (model.GetObject(id) is null) continue;
-            var parent = ParentOf(model, id);
-            counts[parent] = counts.GetValueOrDefault(parent) + 1;
-        }
-        return counts;
-    }
+    public static Dictionary<string, int> ChildCounts(Model model) => ModelIndex.Of(model).ChildCounts();
 
-    // Known limit: scans every object per call; fine for hundreds of objects, index children by parent if views get slow.
-    public static bool HasChildren(Model model, string id) => MemberIds(model, id).Count > 0;
+    public static bool HasChildren(Model model, string id) => ModelIndex.Of(model).HasChildren(id);
 
     /// <summary>Whether <paramref name="id"/> can be the view of a flow: the top level, or an object with children.</summary>
     public static bool IsView(Model model, string? id) =>
@@ -58,18 +29,26 @@ public static class Views
     /// <summary>The box standing for x inside view v (x or one of its ancestors), if x is inside v.</summary>
     private static string? Rep(Model model, string x, string v)
     {
-        var chain = Chain(model, x);
-        var i = chain.IndexOf(v);
+        var chain = ModelIndex.Of(model).ChainOf(x);
+        var i = IndexOf(chain, v);
         return i > 0 ? chain[i - 1] : null;
     }
 
     /// <summary>For x outside v: x's ancestor just below the point where x's branch meets v's. A line to the box you're inside lands on x.</summary>
     private static string Outsider(Model model, string x, string v)
     {
-        var cx = Chain(model, x);
-        var cv = Chain(model, v);
-        var i = cx.FindIndex(cv.Contains);
-        return i <= 0 ? x : cx[i - 1];
+        var index = ModelIndex.Of(model);
+        var cx = index.ChainOf(x);
+        var cv = index.ChainOf(v);
+        for (var i = 0; i < cx.Count; i++)
+            if (cv.Contains(cx[i])) return i <= 0 ? x : cx[i - 1];
+        return x;
+    }
+
+    private static int IndexOf(IReadOnlyList<string> chain, string id)
+    {
+        for (var i = 0; i < chain.Count; i++) if (chain[i] == id) return i;
+        return -1;
     }
 
     /// <summary>Where a from → to line lands in view v, or null when v can't show it (or an end doesn't exist).</summary>
