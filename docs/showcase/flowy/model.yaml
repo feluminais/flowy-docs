@@ -6,7 +6,8 @@ objects:
       One pair of shapes for each way a step can travel, named for the animation they play.
 
       Each animation has a flow of its own with a single step to click through: Send, Call, Event, Callback, Flash, Bolt drop,
-      Send with a word, Fail and Timeout (Flash has two, because the step before sets it off).
+      Send with a word, Fail, Timeout, Lost, Rejected, Intercepted (twice: by a shape and by a name), Duplicated, Delayed and Share
+      (Flash has two, because the step before sets it off).
 
       **Every step animation** plays them all: press **P** to watch them one after the other.
   structure:
@@ -141,6 +142,96 @@ objects:
     name: Timeout · to
     tech: call, timeout
     description: Takes the envelope in and never answers.
+  lost-from:
+    type: app
+    in: steps
+    name: Lost · from
+    tech: send, lost
+    description: "`animation: {kind: send, outcome: lost, reason: Packet dropped}`. The envelope runs part of the way, pops, and leaves a cross where it went."
+  lost-to:
+    type: app
+    in: steps
+    name: Lost · to
+    tech: send, lost
+    description: Never hears of it, so it never squashes or flashes.
+  rejected-from:
+    type: app
+    in: steps
+    name: Rejected · from
+    tech: call, rejected
+    description: "`animation: {kind: call, outcome: rejected, reason: Rate limit}`. The envelope stops at the bar by the receiver and comes back red."
+  rejected-to:
+    type: app
+    in: steps
+    name: Rejected · to
+    tech: call, rejected
+    description: Turns the call away at the door. The bar flashes.
+  intercepted-from:
+    type: app
+    in: steps
+    name: Intercepted · from
+    tech: call, intercepted by a shape
+    description: "`animation: {kind: call, outcome: intercepted, by: intercepted-by}`. The envelope leaves the line for a third shape, which takes it and lights."
+  intercepted-to:
+    type: app
+    in: steps
+    name: Intercepted · to
+    tech: call, intercepted by a shape
+    description: Never gets the call.
+  intercepted-by:
+    type: app
+    in: steps
+    name: Intercepted · taken by
+    tech: not an end of the step
+    description: The third shape. It gets a dashed outline for the whole step and lights when the envelope arrives.
+  named-from:
+    type: app
+    in: steps
+    name: Intercepted by a name · from
+    tech: call, intercepted by a name
+    description: "`animation: {kind: call, outcome: intercepted, by: {name: Café wifi proxy}}`. The party is not in the model, so a dashed marker with its name hangs below the line."
+  named-to:
+    type: app
+    in: steps
+    name: Intercepted by a name · to
+    tech: call, intercepted by a name
+    description: Never gets the call.
+  duplicated-from:
+    type: app
+    in: steps
+    name: Duplicated · from
+    tech: send, duplicated
+    description: "`animation: {kind: send, outcome: duplicated, reason: Retried}`. A second copy leaves the first part of the way along and arrives later."
+  duplicated-to:
+    type: app
+    in: steps
+    name: Duplicated · to
+    tech: send, duplicated
+    description: Takes the envelope in twice, with a squash each time.
+  delayed-from:
+    type: app
+    in: steps
+    name: Delayed · from
+    tech: call, delayed
+    description: "`animation: {kind: call, outcome: delayed, reason: Cold start}`. The envelope waits partway beside a turning dashed clock, then goes on."
+  delayed-to:
+    type: app
+    in: steps
+    name: Delayed · to
+    tech: call, delayed
+    description: Takes the envelope in late, then answers.
+  share-from:
+    type: app
+    in: steps
+    name: Share of requests · from
+    tech: send, lost, share 30
+    description: "`animation: {kind: send, outcome: lost, share: 30, at: 0.7}`. Ten requests go one after another and three of them are lost 70 percent of the way along: r1, r2 and r3, each with its own colour and a ring."
+  share-to:
+    type: app
+    in: steps
+    name: Share of requests · to
+    tech: send, lost, share 30
+    description: Takes in the seven that arrive.
   repeat-from:
     type: app
     in: structure
@@ -365,6 +456,27 @@ connections:
   - from: timeout-from
     to: timeout-to
     label: timeout
+  - from: lost-from
+    to: lost-to
+    label: lost
+  - from: rejected-from
+    to: rejected-to
+    label: rejected
+  - from: intercepted-from
+    to: intercepted-to
+    label: intercepted
+  - from: named-from
+    to: named-to
+    label: intercepted by a name
+  - from: duplicated-from
+    to: duplicated-to
+    label: duplicated
+  - from: delayed-from
+    to: delayed-to
+    label: delayed
+  - from: share-from
+    to: share-to
+    label: share
   - from: repeat-from
     to: repeat-to
     label: asks and answers

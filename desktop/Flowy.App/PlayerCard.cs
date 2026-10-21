@@ -10,8 +10,8 @@ namespace Flowy.App;
 /// <summary>The flow a step says its story continues in: its id and name, and whether it can play (it has steps, and its view opens).</summary>
 internal sealed record LinkedFlow(string Id, string Name, bool Playable);
 
-/// <summary>One step of the stop on show, as the card tells it. <c>Lane</c> is "" unless the stop is in a parallel group.</summary>
-internal sealed record PlayerStep(string Ends, string Text, string? Description, string Lane, LinkedFlow? Link);
+/// <summary>One step of the stop on show, as the card tells it. <c>Lane</c> is "" unless the stop is in a parallel group; <c>Outcome</c> is how its request ended, in the words of <see cref="Animations.OutcomeLine"/>.</summary>
+internal sealed record PlayerStep(string Ends, string Text, string? Description, string Lane, LinkedFlow? Link, string? Outcome = null);
 
 /// <summary>Everything the card shows: where the flow is (a stop of <c>Count</c>), the group the stop is in, the progress bar, the steps, the trail back, and the states on the canvas now (for the key).</summary>
 internal sealed record PlayerView(
@@ -135,6 +135,15 @@ internal sealed class PlayerCard : Border
         }
         block.Children.Add(new TextBlock { Text = step.Ends, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
         block.Children.Add(new TextBlock { Text = step.Text, TextWrapping = TextWrapping.Wrap });
+        if (step.Outcome is { } outcome)
+        {
+            // How the request ended: a fact the picture can't give, so it is text, with a mark beside it.
+            var dot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), VerticalAlignment = VerticalAlignment.Center };
+            dot.Classes.Add("outcomedot");
+            var words = new TextBlock { Text = outcome, TextWrapping = TextWrapping.Wrap };
+            words.Classes.Add("outcome");
+            block.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { dot, words } });
+        }
         if (!string.IsNullOrEmpty(step.Description))
         {
             var more = new MarkdownView(step.Description) { IsVisible = false, Margin = new Thickness(0, 4, 0, 0) };

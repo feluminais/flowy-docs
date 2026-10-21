@@ -124,6 +124,15 @@ internal sealed class CanvasView : Border
     /// <summary>Whether a step's animation is running.</summary>
     public bool StepMoving { get; private set; }
 
+    /// <summary>Every beat of the steps now playing, for the tests.</summary>
+    internal IReadOnlyList<Beat> PlayingBeats => _motion.AllBeats;
+
+    /// <summary>The beats of the playing steps that are drawn at the moment shown, for the tests.</summary>
+    internal IReadOnlyList<Beat> DrawnBeats => _motion.DrawnBeats;
+
+    /// <summary>Draws the playing steps as they are <paramref name="t"/> ms in, for the tests: a step plays on frames, which a test can't hold still.</summary>
+    internal void ShowMotionAt(double t) => _motion.Show(t);
+
     /// <summary>
     /// Plays a step's animation over the canvas: a pipe along the line from one box to the other, something running through it, and the
     /// boxes reacting. <paramref name="done"/> is called once when it has finished, and not if <see cref="StopStep"/> or another call cuts
@@ -132,24 +141,41 @@ internal sealed class CanvasView : Border
     public bool PlayStep(StepAnimation animation, string from, string to, bool afterLanding, Action? done) =>
         PlaySteps([new StepRun(animation, from, to, afterLanding)], done);
 
-    /// <summary>One step of a stop to play: its animation, its two boxes, and whether the stop before it ended at its source.</summary>
-    public sealed record StepRun(StepAnimation Animation, string From, string To, bool AfterLanding);
+    /// <summary>
+    /// Who takes an intercepted request, as this view can draw it: the id of the box that stands for the shape on the canvas, or a name for a party that is not on it
+    /// (drawn as a dashed marker).
+    /// </summary>
+    public sealed record TakenBy(string? Node = null, string? Name = null);
+
+    /// <summary>One step of a stop to play: its animation, its two boxes, whether the stop before it ended at its source, and who takes it if it is intercepted.</summary>
+    public sealed record StepRun(StepAnimation Animation, string From, string To, bool AfterLanding, TakenBy? By = null);
 
     /// <summary>
     /// Plays the steps of a stop together on one clock, each as a pipe between its boxes with something running through it and the boxes
     /// reacting. A box several steps squash takes the largest squash. <paramref name="done"/> is called once when the longest has finished,
-    /// and not if <see cref="StopStep"/> or another call cuts it off. Returns false, and draws nothing, when motion is reduced or no step has
-    /// both its ends on screen; a step with an end off screen is left out.
+    /// and not if <see cref="StopStep"/> or another call cuts it off. Returns false, and moves nothing, when motion is reduced or no step has
+    /// both its ends on screen; a step with an end off screen is left out. When motion is reduced the marks an outcome leaves (a cross, a bar,
+    /// a clock, a marker, the reason) are still drawn, and when a step has finished they stay until it is left.
     /// </summary>
     public bool PlaySteps(IReadOnlyList<StepRun> runs, Action? done)
     {
         StopStep();
-        if (MotionSettings.Reduced) return false;
         var outline = (string id) => _scene!.Boxes.First(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Edge : null; // the pipe meets each shape on its outline, as the line does
         var shape = (string id) => _scene!.Boxes.First(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Path : null; // and a ring or a flash follows it
         var playing = runs.Where(r => RectOf(r.From) is not null && RectOf(r.To) is not null).ToList();
         if (playing.Count == 0) return false;
-        var started = _motion.Start(playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To), shape(r.From), shape(r.To))).ToList());
+        MotionLayer.Taker? Taker(TakenBy? by) =>
+            by is null ? null
+            : by.Node is { } id && _scene!.Boxes.FirstOrDefault(x => x.Id == id) is { } box ? new MotionLayer.Taker(box.Rect, Look.DefOf(box.Object).Path)
+            : by.Name is { } name ? new MotionLayer.Taker(Name: name) : null;
+        _back.LiftLabels(playing.Where(r => Animations.LeavesMarks(r.Animation)).Select(r => (r.From, r.To)));
+        var specs = playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To), shape(r.From), shape(r.To), Taker(r.By))).ToList();
+        if (MotionSettings.Reduced)
+        {
+            _motion.StartStill(specs);
+            return false;
+        }
+        var started = _motion.Start(specs);
         var total = started.Max(s => s.Total);
         StepMoving = true;
         _step = Anim.Run(this, total, t => t, t =>
@@ -204,9 +230,15 @@ internal sealed class CanvasView : Border
         _step?.Dispose();
         _step = null;
         StepMoving = false;
-        _motion.Clear();
+        // A step that has finished leaves its marks (the cross, the bar, the marker) until it is left; leaving it, or another step, clears them.
+        if (keepFade) _motion.Settle();
+        else _motion.Clear();
         foreach (var box in _boxes.Values) box.SetSquash(0);
-        if (!keepFade) _back.LitFade = 1;
+        if (!keepFade)
+        {
+            _back.LitFade = 1;
+            _back.LiftLabels([]);
+        }
     }
 
     private void Squash(string id, double amount)

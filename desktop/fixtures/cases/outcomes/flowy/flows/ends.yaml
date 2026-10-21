@@ -1,0 +1,11 @@
+name: Every way a request can end
+view: shop
+steps:
+  - { from: web, to: api, text: A third of the pings are lost, animation: { kind: send, outcome: lost, share: 30, reason: Packet dropped } }
+  - { from: web, to: api, text: The call is turned away, animation: { kind: call, outcome: rejected, reason: Rate limit } }
+  - { from: web, to: api, text: A proxy takes the call, animation: { kind: call, outcome: intercepted, by: { name: Café wifi proxy } } }
+  - { from: web, to: api, text: The cache takes the call, animation: { kind: call, outcome: intercepted, by: cache, reason: Serves a stale copy } }
+  - { from: api, to: db, text: Saves the order twice, animation: { kind: send, outcome: duplicated, carries: order } }
+  - { from: api, to: db, text: The first write is slow, animation: { kind: call, outcome: delayed, reason: Cold start } }
+  - { from: api, to: db, text: Half of the writes fail, animation: { kind: send, outcome: fail, share: 50 } }
+  - { from: api, to: db, text: The event is lost halfway, animation: { kind: event, outcome: lost, at: "0.4" } }

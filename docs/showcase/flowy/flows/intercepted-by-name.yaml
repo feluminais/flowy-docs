@@ -1,0 +1,4 @@
+name: Intercepted by a name
+view: steps
+steps:
+  - { from: named-from, to: named-to, text: Calls and a proxy outside the model reads the call, animation: { kind: call, outcome: intercepted, by: { name: Café wifi proxy } } }

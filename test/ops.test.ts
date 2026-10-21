@@ -1,11 +1,16 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { animationWith } from '../src/core/animation.ts'
+import type { AnimationKey } from '../src/core/animation.ts'
+import { check } from '../src/core/check.ts'
 import {
   connect, deleteFlow, deleteObject, deleteObjects, disconnect, forgetLayout, OpError, placeBoxes, putFlow, putObject, refuseNewProblems,
-  relabel, removeConnection, setLines, updateFlow,
+  relabel, removeConnection, setLines, setStepAnimation, updateFlow,
 } from '../src/core/ops.ts'
 import type { ObjectInput } from '../src/core/ops.ts'
+import { changesBetween } from '../ui/src/edit.ts'
 import { lineStyle } from '../src/core/model.ts'
+import type { Model, Step } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 
 test('putObject creates with fields in a stable order, whatever order they come in', () => {
@@ -268,6 +273,75 @@ test('a step keeps its animation through putFlow and updateFlow', () => {
   assert.deepEqual(renamed.flows.tagged.steps, steps)
   const edited = updateFlow(put, 'tagged', { steps: put.flows.tagged.steps.map((s, i) => (i === 0 ? { ...s, text: 'Taps' } : s)) })
   assert.deepEqual(edited.flows.tagged.steps[0], { from: 'customer', to: 'web', text: 'Taps', animation: 'call' })
+})
+
+test('putFlow writes the numbers of an animation as text, and keeps the other keys of the new outcomes as they are', () => {
+  const steps = [
+    { from: 'customer', to: 'web', text: 'Pings', animation: { kind: 'send', outcome: 'lost', share: 30, at: 0.4, reason: 'Packet dropped' } },
+    { from: 'web', to: 'api', text: 'Is read', animation: { kind: 'call', outcome: 'intercepted', by: { name: 'Café wifi proxy' } } },
+  ]
+  const put = putFlow(shop(), { id: 'losing', name: 'Losing', view: 'shop', steps })
+  assert.deepEqual(put.flows.losing.steps[0].animation, { kind: 'send', outcome: 'lost', share: '30', at: '0.4', reason: 'Packet dropped' })
+  assert.deepEqual(put.flows.losing.steps[1], steps[1])
+  const plain = putFlow(shop(), { id: 'plain', name: 'Plain', view: 'shop', steps: [{ from: 'customer', to: 'web', text: 'Clicks', animation: 'call' }, { from: 'web', to: 'api', text: 'Posts' }] })
+  assert.deepEqual(plain.flows.plain.steps, [{ from: 'customer', to: 'web', text: 'Clicks', animation: 'call' }, { from: 'web', to: 'api', text: 'Posts' }])
+  assert.equal('animation' in plain.flows.plain.steps[1], false)
+})
+
+test('setStepAnimation sets, replaces and takes away one step animation, and keeps every other key', () => {
+  const put = putFlow(shop(), { id: 'plain', name: 'Plain', view: 'shop', steps: [
+    { from: 'customer', to: 'web', text: 'Clicks', description: 'More', note: 'x' } as Step,
+    { from: 'web', to: 'api', text: 'Posts', animation: { kind: 'call', outcome: 'timeout' } },
+    { from: 'api', text: 'Thinks' },
+  ] })
+  const set = setStepAnimation(put, 'plain', 0, { kind: 'send', outcome: 'lost', share: 30, reason: 'Packet dropped' })
+  // The step keeps its other keys, in their place, and the number is written as text.
+  assert.deepEqual(set.flows.plain.steps[0], { from: 'customer', to: 'web', text: 'Clicks', description: 'More', note: 'x', animation: { kind: 'send', outcome: 'lost', share: '30', reason: 'Packet dropped' } })
+  assert.deepEqual(set.flows.plain.steps[1], put.flows.plain.steps[1])
+  assert.equal(check(set).length, 0)
+  // An animation that is there keeps its place among the keys.
+  const placed = setStepAnimation(put, 'plain', 1, 'send')
+  assert.deepEqual(Object.keys(placed.flows.plain.steps[1]), ['from', 'to', 'text', 'animation'])
+  assert.equal(placed.flows.plain.steps[1].animation, 'send')
+  // undefined takes it away, and nothing else changes.
+  const gone = setStepAnimation(put, 'plain', 1, undefined)
+  assert.deepEqual(gone.flows.plain.steps[1], { from: 'web', to: 'api', text: 'Posts' })
+  assert.deepEqual(setStepAnimation(gone, 'plain', 1, undefined), gone)
+  // The model it was given is untouched.
+  assert.equal('animation' in put.flows.plain.steps[0], false)
+  // A step that is not there, and a flow that is not there, are refused with words.
+  assert.throws(() => setStepAnimation(put, 'plain', 9, 'call'), (e: unknown) => e instanceof OpError && /has no step 10/.test(e.message))
+  assert.throws(() => setStepAnimation(put, 'nope', 0, 'call'), (e: unknown) => e instanceof OpError && /unknown flow "nope"/.test(e.message))
+})
+
+test('a bad animation is refused when it is saved, in the words put_flow is refused with', () => {
+  const put = putFlow(shop(), { id: 'plain', name: 'Plain', view: 'shop', steps: [{ from: 'customer', to: 'web', text: 'Clicks' }, { from: 'api', text: 'Thinks' }] })
+  const refuses = (next: Model, words: RegExp) => assert.throws(() => refuseNewProblems(put, next), (e: unknown) => e instanceof OpError && words.test(e.message))
+  refuses(setStepAnimation(put, 'plain', 0, { kind: 'callback', outcome: 'lost' }), /step 1: animation outcome lost only applies to send, call and event/)
+  refuses(setStepAnimation(put, 'plain', 0, { kind: 'send', outcome: 'lost', share: 150 }), /animation share must be a whole number from 1 to 100/)
+  refuses(setStepAnimation(put, 'plain', 0, { kind: 'send', outcome: 'intercepted', by: 'customer' }), /animation by "customer" is an end of the step/)
+  refuses(setStepAnimation(put, 'plain', 0, { kind: 'send', outcome: 'intercepted', by: 'ghost' }), /animation by: unknown object "ghost"/)
+  refuses(setStepAnimation(put, 'plain', 1, 'call'), /step 2: animation "call" needs a "to"/)
+  assert.doesNotThrow(() => refuseNewProblems(put, setStepAnimation(put, 'plain', 0, { kind: 'send', outcome: 'intercepted', by: 'mail', share: '40' })))
+})
+
+test('picking in the step form is one edit that changes only the step animation', () => {
+  const put = putFlow(shop(), { id: 'plain', name: 'Plain', view: 'shop', steps: [{ from: 'customer', to: 'web', text: 'Clicks', description: 'More' }, { from: 'web', to: 'api', text: 'Posts' }] })
+  let model = put
+  const pick = (key: AnimationKey, value: string) => {
+    const next = setStepAnimation(model, 'plain', 0, animationWith(model.flows.plain.steps[0].animation, key, value))
+    refuseNewProblems(model, next)
+    model = next
+  }
+  pick('kind', 'call')
+  pick('outcome', 'rejected')
+  pick('reason', 'Rate limit')
+  assert.deepEqual(model.flows.plain.steps[0], { from: 'customer', to: 'web', text: 'Clicks', description: 'More', animation: { kind: 'call', outcome: 'rejected', reason: 'Rate limit' } })
+  assert.deepEqual(model.flows.plain.steps[1], put.flows.plain.steps[1])
+  assert.deepEqual(changesBetween(put, model).map(c => c.file), ['flows/plain.yaml'])
+  pick('outcome', '')
+  pick('kind', '')
+  assert.deepEqual(model.flows.plain, put.flows.plain)
 })
 
 test('a step keeps its outcome, key for key, through putFlow and updateFlow', () => {

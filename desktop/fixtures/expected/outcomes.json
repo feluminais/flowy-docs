@@ -1,0 +1,444 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web app",
+      "in": "shop"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop"
+    },
+    {
+      "id": "db",
+      "type": "store",
+      "name": "Orders DB",
+      "in": "shop"
+    },
+    {
+      "id": "cache",
+      "type": "app",
+      "name": "Edge cache",
+      "in": "shop"
+    },
+    {
+      "id": "stripe",
+      "type": "system",
+      "name": "Stripe",
+      "external": "true"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "web",
+      "to": "api",
+      "label": "REST"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "label": "reads and writes"
+    },
+    {
+      "from": "web",
+      "to": "cache",
+      "label": "asks first"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "ends",
+      "name": "Every way a request can end",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A third of the pings are lost",
+          "animation": {
+            "kind": "send",
+            "outcome": "lost",
+            "share": "30",
+            "reason": "Packet dropped"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "The call is turned away",
+          "animation": {
+            "kind": "call",
+            "outcome": "rejected",
+            "reason": "Rate limit"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A proxy takes the call",
+          "animation": {
+            "kind": "call",
+            "outcome": "intercepted",
+            "by": {
+              "name": "Café wifi proxy"
+            }
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "The cache takes the call",
+          "animation": {
+            "kind": "call",
+            "outcome": "intercepted",
+            "by": "cache",
+            "reason": "Serves a stale copy"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Saves the order twice",
+          "animation": {
+            "kind": "send",
+            "outcome": "duplicated",
+            "carries": "order"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "The first write is slow",
+          "animation": {
+            "kind": "call",
+            "outcome": "delayed",
+            "reason": "Cold start"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Half of the writes fail",
+          "animation": {
+            "kind": "send",
+            "outcome": "fail",
+            "share": "50"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "The event is lost halfway",
+          "animation": {
+            "kind": "event",
+            "outcome": "lost",
+            "at": "0.4"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        }
+      ]
+    },
+    {
+      "id": "wrong",
+      "name": "Outcomes that are written wrong",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Taken by one of its own ends",
+          "animation": {
+            "kind": "send",
+            "outcome": "intercepted",
+            "by": "web"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Taken by a shape that is not there",
+          "animation": {
+            "kind": "send",
+            "outcome": "intercepted",
+            "by": "ghost"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Taken by nobody",
+          "animation": {
+            "kind": "send",
+            "outcome": "intercepted"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A share out of range",
+          "animation": {
+            "kind": "send",
+            "outcome": "lost",
+            "share": "101"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A share with no outcome",
+          "animation": {
+            "kind": "send",
+            "share": "30"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A reason that is far too long",
+          "animation": {
+            "kind": "send",
+            "outcome": "lost",
+            "reason": "A reason far too long to read beside a puff"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A place that is off the line",
+          "animation": {
+            "kind": "send",
+            "outcome": "lost",
+            "at": "0.95"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A callback cannot be lost",
+          "animation": {
+            "kind": "callback",
+            "outcome": "lost"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A name for a shape",
+          "animation": {
+            "kind": "send",
+            "outcome": "lost",
+            "by": "cache"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "file": "flows/wrong.yaml",
+      "message": "step 1: animation by \"web\" is an end of the step (name another shape, or use { name: ... })",
+      "step": 0
+    },
+    {
+      "file": "flows/wrong.yaml",
+      "message": "step 2: animation by: unknown object \"ghost\"",
+      "step": 1
+    },
+    {
+      "file": "flows/wrong.yaml",
+      "message": "step 3: animation outcome intercepted needs a \"by\" (a shape id, or { name: ... })",
+      "step": 2
+    },
+    {
+      "file": "flows/wrong.yaml",
+      "message": "step 4: animation share must be a whole number from 1 to 100",
+      "step": 3
+    },
+    {
+      "file": "flows/wrong.yaml",
+      "message": "step 5: animation share needs an outcome",
+      "step": 4
+    },
+    {
+      "file": "flows/wrong.yaml",
+      "message": "step 6: animation reason can be at most 40 characters",
+      "step": 5
+    },
+    {
+      "file": "flows/wrong.yaml",
+      "message": "step 7: animation at must be a number from 0.1 to 0.9",
+      "step": 6
+    },
+    {
+      "file": "flows/wrong.yaml",
+      "message": "step 8: animation outcome lost only applies to send, call and event",
+      "step": 7
+    },
+    {
+      "file": "flows/wrong.yaml",
+      "message": "step 9: animation by only applies to outcome intercepted",
+      "step": 8
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "shop",
+        "stripe"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "api",
+        "db",
+        "cache"
+      ],
+      "outsiders": [
+        "customer"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "count": 1
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "label": "reads and writes",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "cache",
+          "label": "asks first",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

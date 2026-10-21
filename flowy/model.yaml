@@ -340,7 +340,11 @@ objects:
       Draws an animated step over the canvas: the line as a pipe, a blob running through it, and rings,
       flashes and squashes on the shapes. It asks core for the beats and knows nothing about kinds.
 
-      Nothing moves when the system asks for less motion; Autoplay then waits a few seconds on each step.
+      The ways a request can end add a puff and a cross, a bar, a dashed clock, a note and a dashed
+      marker. The cross, the bar and the marker stay once they have appeared.
+
+      Nothing moves when the system asks for less motion; those marks are then drawn still, and
+      Autoplay waits a few seconds on each step.
   perf-tab:
     type: component
     in: canvas
@@ -432,6 +436,11 @@ objects:
     description: |
       What a flow step's `animation:` may say, and what each kind does, written as a timed list of
       beats: a tube along the line, a blob running through it, a ring or flash or gulp on a shape.
+
+      A step's request can end in seven ways (fail, timeout, lost, rejected, intercepted, duplicated,
+      delayed), with a reason, a share of the requests and, for an interception, who takes it. A share
+      plays a burst of 10, 20 or 100 requests, the ones that meet the outcome picked evenly and named.
+      The same code words what a step card and the Mermaid export say about the outcome.
 
       Nothing here draws. The canvas and the desktop app each draw the beats, so a new kind is a
       recipe here and not new drawing code in both.

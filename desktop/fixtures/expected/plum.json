@@ -1032,6 +1032,50 @@
       }
     },
     {
+      "id": "courier-pings-lost",
+      "name": "Courier pings are lost",
+      "view": "delivery",
+      "steps": [
+        {
+          "from": "courier-app",
+          "to": "tracking",
+          "text": "About a third of the pings are lost on the way",
+          "description": "On a weak signal the app's position pings never reach **Live tracking**. The app does not\nretry them: a newer ping is coming in five seconds.\n",
+          "animation": {
+            "kind": "send",
+            "outcome": "lost",
+            "share": "30",
+            "reason": "Packet dropped"
+          },
+          "placed": [
+            "courier-app",
+            "tracking"
+          ],
+          "ends": "Courier app → Live tracking"
+        },
+        {
+          "from": "tracking",
+          "to": "customer-app",
+          "text": "The customer's map moves in jumps",
+          "placed": [
+            "tracking",
+            "ordering"
+          ],
+          "ends": "Live tracking → Customer app in Ordering"
+        },
+        {
+          "from": "fleet-db",
+          "text": "Keeps the last position it got",
+          "description": "Nothing was written for the lost pings, so the courier can look parked for ten seconds or more\nto anything that reads **Fleet DB**, such as the matcher ranking couriers for the next offer.\n",
+          "placed": [
+            "fleet-db",
+            "fleet-db"
+          ],
+          "ends": "Fleet DB"
+        }
+      ]
+    },
+    {
       "id": "deliver-order",
       "name": "A courier delivers it",
       "view": "delivery",
