@@ -100,8 +100,16 @@
           "text": "sequenceDiagram\n  participant n0 as Ordering\n  participant n1 as Dispatch\n  participant n2 as Fleet DB\n  participant n3 as Notifications\n  actor n4 as Courier\n  participant n5 as Courier app\n  participant n6 as Live tracking\n  n0->>n1: Hears that an order was placed\n  n1->>n2: Finds idle couriers near the restaurant\n  Note over n1: Ranks them by how soon each could arrive\n  n1->>n3: Sends the offer as a push\n  n4->>n5: Accepts within 30 seconds\n  n5->>n6: Streams its position every 5 seconds\n  n6->>n0: The customer watches the courier come\n  n5->>n0: Marks the order delivered\n"
         },
         {
+          "flow": "no-courier-answers",
+          "text": "sequenceDiagram\n  participant n0 as Dispatch\n  participant n1 as Notifications\n  participant n2 as Courier app\n  loop Until a courier accepts, or the list runs out: One courier at a time, nearest first. Each has 30 seconds.\n    n0->>n1: Offers the job, and the nearest courier doesn't answer within 30 seconds\n    Note over n0: Moves on to the next courier on the list\n  end\n  alt A courier accepts\n    n2->>n0: Accepts, and the offers stop\n  else The list runs out\n    n0->>n1: Tells the customer that no courier is free yet\n    Note over n0: Searches again in a minute\n  end\n"
+        },
+        {
           "flow": "place-order",
           "text": "sequenceDiagram\n  actor n0 as Customer\n  participant n1 as Customer app\n  participant n2 as Order API\n  participant n3 as Stripe\n  participant n4 as Orders DB\n  participant n5 as Order events\n  participant n6 as Delivery\n  participant n7 as Kitchen tablet\n  n0->>n1: Fills a basket and taps Place order\n  n1->>n2: POST /orders with the basket\n  n2->>n3: Holds the amount on the card\n  n2->>n4: Saves the order as placed\n  n2->>n5: Announces the order\n  n5->>n6: Dispatch starts looking for a courier\n  n2->>n7: The restaurant's tablet rings\n"
+        },
+        {
+          "flow": "refund-not-recorded",
+          "text": "sequenceDiagram\n  participant n0 as Order API\n  participant n1 as Stripe\n  participant n2 as Orders DB\n  participant n3 as Notifications\n  n0->>n1: Stripe has refunded the charge\n  n0->>n2: Can't mark the order refunded, because Orders DB doesn't answer\n  Note over n0: Leaves the order marked paid, though the money is back\n  n0->>n3: Still sends the customer a refund confirmation\n"
         },
         {
           "flow": "refund",

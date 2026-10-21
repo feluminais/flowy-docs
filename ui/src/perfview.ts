@@ -1,6 +1,7 @@
+import { colorPair } from '../../src/core/look.ts'
 import type { Model } from '../../src/core/model.ts'
 import { interpolate, rollUp } from '../../src/core/perf.ts'
-import type { Metrics, Run } from '../../src/core/perf.ts'
+import type { LineTraffic, Metrics, Run } from '../../src/core/perf.ts'
 
 /** The maths and the words of the Performance tab, kept apart from the drawing so the node tests can run them. No DOM in here. */
 
@@ -52,6 +53,12 @@ export function fmtMs(ms: number): string {
 }
 export const fmtPct = (share: number): string => `${trim(share * 100, share < 0.1 ? 1 : 0)}%`
 export const fmtRate = (rate: number): string => `${trim(rate, rate < 10 ? 1 : 0)} calls a second`
+/** The size of a call: "400 B", "1.5 KB", "2.4 MB" (a thousand to the step, like the numbers a formula is written in). */
+export function fmtBytes(bytes: number): string {
+  if (bytes >= 1_000_000) return `${trim(bytes / 1_000_000, bytes < 10_000_000 ? 1 : 0)} MB`
+  if (bytes >= 1000) return `${trim(bytes / 1000, bytes < 10_000 ? 1 : 0)} KB`
+  return `${trim(bytes, bytes < 10 ? 1 : 0)} B`
+}
 /** A load with its unit: "200 req/s". */
 export const fmtLoad = (load: number, unit: string): string => `${trim(load, load < 10 ? 1 : 0)} ${unit}`
 
@@ -61,12 +68,13 @@ export const METRICS: Record<keyof Metrics, { label: string; show: (v: number) =
   queue: { label: 'Waiting', show: v => String(Math.round(v)) },
   errors: { label: 'Failing', show: fmtPct },
   rate: { label: 'Calls', show: fmtRate },
+  bytes: { label: 'Size of a call', show: fmtBytes },
   p50: { label: 'Expected call', show: fmtMs, log: true },
   p95: { label: 'Slowest 5%', show: fmtMs, log: true },
 }
 /** The numbers a shape can have, and a line, in the order the panel lists them. */
 export const BOX_KEYS = ['util', 'queue', 'errors'] as const
-export const LINE_KEYS = ['rate', 'p50', 'p95', 'errors'] as const
+export const LINE_KEYS = ['rate', 'bytes', 'p50', 'p95', 'errors'] as const
 
 // ---- Curves
 
@@ -150,4 +158,25 @@ export function boxAt(model: Model, run: Run, view: string, id: string, load: nu
 /** A line's numbers at a load. */
 export function lineAt(model: Model, run: Run, view: string, from: string, to: string, load: number): Metrics | undefined {
   return rollUp(model, interpolate(run, load), view).lines.find(p => p.from === from && p.to === to)
+}
+
+// ---- Colour and key
+
+/** A source's colour as CSS: a named colour in both themes through light-dark(), a hex as it is. Undefined for text that is neither. */
+export function sourceCss(color: string | undefined): string | undefined {
+  const pair = colorPair(color)
+  return pair === undefined ? undefined : pair[0] === pair[1] ? pair[0] : `light-dark(${pair[0]}, ${pair[1]})`
+}
+
+/**
+ * Which kinds of failing call are on the lines now, for the key to draw: the usual fade (for a line that fails without saying how, and also while
+ * no line fails, so the key of a run that sets nothing is as it was), a lost call, a rejected one.
+ */
+export function failureMarks(lines: readonly Pick<LineTraffic, 'failed' | 'failure'>[]): { fade: boolean; lost: boolean; rejected: boolean } {
+  const failing = lines.filter(l => l.failed > 0)
+  return {
+    fade: failing.length === 0 || failing.some(l => l.failure === undefined),
+    lost: failing.some(l => l.failure === 'lost'),
+    rejected: failing.some(l => l.failure === 'rejected'),
+  }
 }

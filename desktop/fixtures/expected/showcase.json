@@ -345,6 +345,61 @@
       "name": "State · part",
       "in": "states-holder",
       "description": "The part. Its state shows on the holder at the overview."
+    },
+    {
+      "id": "scale",
+      "type": "system",
+      "name": "Colour and scale",
+      "description": "One shape for each thing a run's **source** sets: the colour of the dots, how many dots stand for the calls, and how big each is.\n\nOpen the Performance tab (**T**), pick **Colour and scale**, then press **Ramp** or step the levels with the arrow keys.\n"
+    },
+    {
+      "id": "source",
+      "type": "app",
+      "name": "Source",
+      "in": "scale",
+      "description": "Where the calls come in. Every dot on the lines from here is blue, because the run sets a colour."
+    },
+    {
+      "id": "dots-few",
+      "type": "app",
+      "name": "Few calls",
+      "in": "scale",
+      "description": "One dot for every 50 calls a second. The line goes from 50 calls a second to 800, so from 1 dot to 16."
+    },
+    {
+      "id": "dots-many",
+      "type": "app",
+      "name": "Ten times the calls",
+      "in": "scale",
+      "description": "Ten times the calls of Few calls, so ten times the dots, until the screen limit. Past 24 dots at once the line is scaled down, and the key and its numbers say so."
+    },
+    {
+      "id": "dots-slow",
+      "type": "app",
+      "name": "Same calls, slower",
+      "in": "scale",
+      "description": "The same calls as Few calls, so the same number of dots, but each call takes longer, so the dots move slower."
+    },
+    {
+      "id": "dots-big",
+      "type": "app",
+      "name": "Bigger calls",
+      "in": "scale",
+      "description": "The more bytes a call carries, the bigger its dot. The area of a dot follows the size of a call, so 1,600 bytes is a dot twice as wide as 400 bytes."
+    },
+    {
+      "id": "calls-lost",
+      "type": "app",
+      "name": "Lost calls",
+      "in": "scale",
+      "description": "A share of the calls dies on the way. Each ends in a small pop where it is lost."
+    },
+    {
+      "id": "calls-rejected",
+      "type": "app",
+      "name": "Rejected calls",
+      "in": "scale",
+      "description": "A share of the calls is turned away at the end of the line. Each stops at a bar and comes back red."
     }
   ],
   "connections": [
@@ -493,6 +548,36 @@
     {
       "from": "states-caller",
       "to": "states-holder",
+      "label": "calls"
+    },
+    {
+      "from": "source",
+      "to": "dots-few",
+      "label": "calls"
+    },
+    {
+      "from": "source",
+      "to": "dots-many",
+      "label": "calls"
+    },
+    {
+      "from": "source",
+      "to": "dots-slow",
+      "label": "calls"
+    },
+    {
+      "from": "source",
+      "to": "dots-big",
+      "label": "calls"
+    },
+    {
+      "from": "source",
+      "to": "calls-lost",
+      "label": "calls"
+    },
+    {
+      "from": "source",
+      "to": "calls-rejected",
       "label": "calls"
     }
   ],
@@ -649,6 +734,36 @@
       "rolled-up": [
         1040,
         450
+      ]
+    },
+    "scale": {
+      "source": [
+        0,
+        375
+      ],
+      "dots-few": [
+        440,
+        0
+      ],
+      "dots-many": [
+        440,
+        150
+      ],
+      "dots-slow": [
+        440,
+        300
+      ],
+      "dots-big": [
+        440,
+        450
+      ],
+      "calls-lost": [
+        440,
+        600
+      ],
+      "calls-rejected": [
+        440,
+        750
       ]
     }
   },
@@ -1373,7 +1488,8 @@
         "steps",
         "structure",
         "performance",
-        "states"
+        "states",
+        "scale"
       ],
       "outsiders": [],
       "edges": []
@@ -1655,6 +1771,57 @@
       ],
       "outsiders": [],
       "edges": []
+    },
+    "scale": {
+      "id": "scale",
+      "members": [
+        "source",
+        "dots-few",
+        "dots-many",
+        "dots-slow",
+        "dots-big",
+        "calls-lost",
+        "calls-rejected"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "source",
+          "to": "dots-few",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "source",
+          "to": "dots-many",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "source",
+          "to": "dots-slow",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "source",
+          "to": "dots-big",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "source",
+          "to": "calls-lost",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "source",
+          "to": "calls-rejected",
+          "label": "calls",
+          "count": 1
+        }
+      ]
     }
   }
 }

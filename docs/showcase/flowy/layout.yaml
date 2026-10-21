@@ -38,3 +38,11 @@ performance:
   queue: [1040, 150]
   not-measured: [1040, 300]
   rolled-up: [1040, 450]
+scale:
+  source: [0, 375]
+  dots-few: [440, 0]
+  dots-many: [440, 150]
+  dots-slow: [440, 300]
+  dots-big: [440, 450]
+  calls-lost: [440, 600]
+  calls-rejected: [440, 750]

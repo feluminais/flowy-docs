@@ -200,4 +200,107 @@ public class PerfPanelTests
         Assert.Contains("perf/merge.yaml", text);
         Assert.Equal("", panel.LoadText);
     }
+
+    // ---- a run's source: colour, scale and the marks of how calls fail ---------------------------------------------
+
+    /// <summary>The fixtures' shop with one run that sets a source: a colour, one dot for 50 calls a second, and a dot area from the size of a call.</summary>
+    private static (PerfPanel Panel, Folder Folder, TempFolder Temp) OpenScaled(string source = "source: { color: blue, dot: rate / 50, size: bytes / 400 }")
+    {
+        var temp = new TempFolder();
+        File.Copy(Path.Combine(Shop, "model.yaml"), Path.Combine(temp.Path, "model.yaml"));
+        Directory.CreateDirectory(Path.Combine(temp.Path, "perf"));
+        File.WriteAllText(Path.Combine(temp.Path, "perf", "scaled.yaml"), $$"""
+            name: Scaled
+            unit: req/s
+            {{source}}
+            levels:
+              - load: 1
+                connections:
+                  - { from: customer, to: web, rate: 100, p50: 10, bytes: 800 }
+                  - { from: orders, to: db, rate: 100, p50: 10, errors: 0.2, failure: lost }
+                  - { from: orders, to: gateway, rate: 100, p50: 10, errors: 0.2, failure: rejected }
+              - load: 2
+                connections:
+                  - { from: customer, to: web, rate: 100000, p50: 10, bytes: 800 }
+                  - { from: orders, to: db, rate: 100, p50: 10 }
+                  - { from: orders, to: gateway, rate: 100, p50: 10 }
+            """);
+        var folder = FolderLoader.Load(temp.Path);
+        var panel = new PerfPanel();
+        new Window { Width = 400, Height = 900, Content = new ScrollViewer { Content = panel } }.Show();
+        Dispatcher.UIThread.RunJobs();
+        return (panel, folder, temp);
+    }
+
+    private static string KeyOf(PerfPanel panel)
+    {
+        (TopLevel.GetTopLevel(panel) as Window)?.UpdateLayout();
+        return string.Join("|", panel.KeyLabels);
+    }
+
+    [AvaloniaFact]
+    public void A_run_with_no_source_has_the_key_it_always_had()
+    {
+        var (panel, folder) = Open();
+        Show(panel, folder, "ramp", 1);
+        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|A call that fails|More calls", KeyOf(panel));
+        Show(panel, folder, "ramp", 3);
+        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|A call that fails|More calls", KeyOf(panel));
+    }
+
+    [AvaloniaFact]
+    public void The_key_draws_the_scale_a_bigger_call_and_the_kinds_of_failing_call_that_are_on_screen()
+    {
+        var (panel, folder, temp) = OpenScaled();
+        using var _ = temp;
+        panel.Show(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null);
+        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|Lost call|Rejected call|More calls|1 dot = 50 calls/s|Bigger call", KeyOf(panel));
+    }
+
+    [AvaloniaFact]
+    public void The_key_says_scaled_down_when_a_line_is_past_the_cap_and_the_marks_follow_the_position_in_place()
+    {
+        var (panel, folder, temp) = OpenScaled();
+        using var _ = temp;
+        panel.Show(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null);
+        var slider = panel.Slider;
+        panel.SetPos(1, false);
+        Assert.Equal(1, panel.SliderValue);
+        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|A call that fails|More calls|1 dot = 50 calls/s|Bigger call|Scaled down", KeyOf(panel));
+        Assert.Same(slider, panel.Slider);
+    }
+
+    [AvaloniaFact]
+    public void A_selected_line_says_it_is_scaled_down_while_it_is()
+    {
+        var (panel, folder, temp) = OpenScaled();
+        using var _ = temp;
+        var selection = new PerfSelection(null, "customer", "web");
+        panel.Show(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, selection);
+        Assert.False(panel.ScaledDownShown);
+        Assert.Contains(panel.Readings, r => r.Label == "Size of a call" && r.Value == "800 B");
+        panel.SetPos(1, false);
+        Assert.True(panel.ScaledDownShown);
+        panel.SetPos(0, false);
+        Assert.False(panel.ScaledDownShown);
+    }
+
+    [AvaloniaFact]
+    public void With_reduced_motion_no_traffic_is_drawn_so_the_key_says_nothing_of_a_source()
+    {
+        var (panel, folder, temp) = OpenScaled();
+        using var _ = temp;
+        panel.Show(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 1, false, true, new PerfSelection(null, "customer", "web"));
+        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|A call that fails|More calls", KeyOf(panel));
+        Assert.False(panel.ScaledDownShown);
+    }
+
+    [AvaloniaFact]
+    public void A_source_with_only_a_colour_adds_nothing_to_the_words_of_the_key()
+    {
+        var (panel, folder, temp) = OpenScaled("source: { color: teal }");
+        using var _ = temp;
+        panel.Show(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null);
+        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|Lost call|Rejected call|More calls", KeyOf(panel));
+    }
 }

@@ -1270,7 +1270,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1279,7 +1279,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 8,
             "problems": 0
           }
         },
@@ -1299,7 +1299,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1331,7 +1331,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1363,7 +1363,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 4,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1500,7 +1500,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 8,
             "problems": 0
           }
         },
@@ -1521,7 +1521,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1553,7 +1553,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1585,7 +1585,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 4,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1768,6 +1768,22 @@
               "match": true
             },
             {
+              "key": "flow:refund-not-recorded",
+              "kind": "flow",
+              "id": "refund-not-recorded",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The refund is not recorded",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:courier",
               "kind": "shape",
               "id": "courier",
@@ -1898,7 +1914,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 8,
             "problems": 0
           }
         },
@@ -1954,7 +1970,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2034,7 +2050,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2169,6 +2185,22 @@
               "match": true
             },
             {
+              "key": "flow:no-courier-answers",
+              "kind": "flow",
+              "id": "no-courier-answers",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "An offer goes unanswered",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:notifications",
               "kind": "shape",
               "id": "notifications",
@@ -2226,7 +2258,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 4,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2505,6 +2537,22 @@
               "match": true
             },
             {
+              "key": "flow:refund-not-recorded",
+              "kind": "flow",
+              "id": "refund-not-recorded",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The refund is not recorded",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:courier",
               "kind": "shape",
               "id": "courier",
@@ -2635,7 +2683,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 8,
             "problems": 0
           }
         },
@@ -2691,7 +2739,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2771,7 +2819,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2906,6 +2954,22 @@
               "match": true
             },
             {
+              "key": "flow:no-courier-answers",
+              "kind": "flow",
+              "id": "no-courier-answers",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "An offer goes unanswered",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:notifications",
               "kind": "shape",
               "id": "notifications",
@@ -2963,7 +3027,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 4,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3242,6 +3306,22 @@
               "match": true
             },
             {
+              "key": "flow:refund-not-recorded",
+              "kind": "flow",
+              "id": "refund-not-recorded",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The refund is not recorded",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:courier",
               "kind": "shape",
               "id": "courier",
@@ -3372,7 +3452,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 8,
             "problems": 0
           }
         },
@@ -3390,7 +3470,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3454,7 +3534,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3557,6 +3637,22 @@
               "match": true
             },
             {
+              "key": "flow:no-courier-answers",
+              "kind": "flow",
+              "id": "no-courier-answers",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "An offer goes unanswered",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:notifications",
               "kind": "shape",
               "id": "notifications",
@@ -3598,7 +3694,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 4,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3831,7 +3927,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 8,
             "problems": 0
           }
         },
@@ -3851,7 +3947,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3867,7 +3963,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 4,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3892,7 +3988,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 8,
             "problems": 0
           }
         },
@@ -3912,7 +4008,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 8,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3944,7 +4040,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -3976,7 +4072,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 4,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -4113,7 +4209,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 8,
             "problems": 0
           }
         }
@@ -4143,6 +4239,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4176,11 +4278,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "root",
@@ -4206,6 +4314,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4239,11 +4353,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "ordering",
@@ -4271,6 +4391,12 @@
               "id": "capture-payment",
               "name": "The payment is captured",
               "steps": 6,
+              "view": "ordering"
+            },
+            {
+              "id": "refund-not-recorded",
+              "name": "The refund is not recorded",
+              "steps": 4,
               "view": "ordering"
             }
           ],
@@ -4300,11 +4426,17 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "ordering",
@@ -4333,6 +4465,12 @@
               "name": "The payment is captured",
               "steps": 6,
               "view": "ordering"
+            },
+            {
+              "id": "refund-not-recorded",
+              "name": "The refund is not recorded",
+              "steps": 4,
+              "view": "ordering"
             }
           ],
           "elsewhere": [
@@ -4361,11 +4499,17 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "delivery",
@@ -4375,6 +4519,12 @@
               "id": "deliver-order",
               "name": "A courier delivers it",
               "steps": 8,
+              "view": "delivery"
+            },
+            {
+              "id": "no-courier-answers",
+              "name": "An offer goes unanswered",
+              "steps": 5,
               "view": "delivery"
             }
           ],
@@ -4422,11 +4572,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "delivery",
@@ -4436,6 +4592,12 @@
               "id": "deliver-order",
               "name": "A courier delivers it",
               "steps": 8,
+              "view": "delivery"
+            },
+            {
+              "id": "no-courier-answers",
+              "name": "An offer goes unanswered",
+              "steps": 5,
               "view": "delivery"
             }
           ],
@@ -4483,11 +4645,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "notifications",
@@ -4519,6 +4687,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4552,11 +4726,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "notifications",
@@ -4588,6 +4768,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4621,11 +4807,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "backoffice",
@@ -4657,6 +4849,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4690,11 +4888,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "backoffice",
@@ -4726,6 +4930,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4759,11 +4969,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "order-api",
@@ -4795,6 +5011,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4828,11 +5050,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "order-api",
@@ -4864,6 +5092,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4897,11 +5131,17 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
         },
         {
           "view": "dispatch",
@@ -4933,74 +5173,11 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
-                }
-              ]
-            },
-            {
-              "view": "ordering",
-              "name": "Ordering",
-              "path": [
-                "Ordering"
-              ],
-              "flows": [
-                {
-                  "id": "announce-order",
-                  "name": "A paid order is announced",
-                  "steps": 3,
-                  "view": "ordering"
                 },
                 {
-                  "id": "place-order",
-                  "name": "Customer places an order",
-                  "steps": 7,
-                  "view": "ordering"
-                },
-                {
-                  "id": "stripe-outage",
-                  "name": "Stripe goes down and comes back",
-                  "steps": 6,
-                  "view": "ordering"
-                },
-                {
-                  "id": "capture-payment",
-                  "name": "The payment is captured",
-                  "steps": 6,
-                  "view": "ordering"
-                }
-              ]
-            }
-          ],
-          "total": 6
-        },
-        {
-          "view": "dispatch",
-          "editing": true,
-          "here": [],
-          "elsewhere": [
-            {
-              "view": "root",
-              "name": "Overview",
-              "path": [],
-              "flows": [
-                {
-                  "id": "refund",
-                  "name": "Support refunds an order",
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
                   "steps": 5,
-                  "view": "root"
-                }
-              ]
-            },
-            {
-              "view": "delivery",
-              "name": "Delivery",
-              "path": [
-                "Delivery"
-              ],
-              "flows": [
-                {
-                  "id": "deliver-order",
-                  "name": "A courier delivers it",
-                  "steps": 8,
                   "view": "delivery"
                 }
               ]
@@ -5035,11 +5212,98 @@
                   "name": "The payment is captured",
                   "steps": 6,
                   "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 8
+        },
+        {
+          "view": "dispatch",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "root",
+              "name": "Overview",
+              "path": [],
+              "flows": [
+                {
+                  "id": "refund",
+                  "name": "Support refunds an order",
+                  "steps": 5,
+                  "view": "root"
+                }
+              ]
+            },
+            {
+              "view": "delivery",
+              "name": "Delivery",
+              "path": [
+                "Delivery"
+              ],
+              "flows": [
+                {
+                  "id": "deliver-order",
+                  "name": "A courier delivers it",
+                  "steps": 8,
+                  "view": "delivery"
+                },
+                {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                }
+              ]
+            },
+            {
+              "view": "ordering",
+              "name": "Ordering",
+              "path": [
+                "Ordering"
+              ],
+              "flows": [
+                {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
+                  "id": "place-order",
+                  "name": "Customer places an order",
+                  "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
+                  "view": "ordering"
+                }
+              ]
+            }
+          ],
+          "total": 8
         }
       ],
       "expandTo": [
@@ -5695,7 +5959,7 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 47,
+              "shapes": 55,
               "flows": 17,
               "problem": false,
               "expandable": true,
@@ -5704,7 +5968,7 @@
             }
           ],
           "totals": {
-            "shapes": 47,
+            "shapes": 55,
             "flows": 17,
             "problems": 0
           }
@@ -5724,11 +5988,27 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 47,
+              "shapes": 55,
               "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
               "match": true
             },
             {
@@ -5797,7 +6077,7 @@
             }
           ],
           "totals": {
-            "shapes": 47,
+            "shapes": 55,
             "flows": 17,
             "problems": 0
           }
@@ -5818,11 +6098,27 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 47,
+              "shapes": 55,
               "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
               "match": true
             },
             {
@@ -6323,7 +6619,7 @@
             }
           ],
           "totals": {
-            "shapes": 47,
+            "shapes": 55,
             "flows": 17,
             "problems": 0
           }
@@ -6378,7 +6674,15 @@
             "states-caller",
             "states-service",
             "states-holder",
-            "states-part"
+            "states-part",
+            "scale",
+            "source",
+            "dots-few",
+            "dots-many",
+            "dots-slow",
+            "dots-big",
+            "calls-lost",
+            "calls-rejected"
           ],
           "filter": "",
           "editing": false,
@@ -6390,11 +6694,139 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 47,
+              "shapes": 55,
               "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:dots-big",
+              "kind": "shape",
+              "id": "dots-big",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Bigger calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-few",
+              "kind": "shape",
+              "id": "dots-few",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Few calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-lost",
+              "kind": "shape",
+              "id": "calls-lost",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Lost calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-rejected",
+              "kind": "shape",
+              "id": "calls-rejected",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Rejected calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-slow",
+              "kind": "shape",
+              "id": "dots-slow",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Same calls, slower",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:source",
+              "kind": "shape",
+              "id": "source",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Source",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-many",
+              "kind": "shape",
+              "id": "dots-many",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Ten times the calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
               "match": true
             },
             {
@@ -7423,7 +7855,7 @@
             }
           ],
           "totals": {
-            "shapes": 47,
+            "shapes": 55,
             "flows": 17,
             "problems": 0
           }
@@ -7478,7 +7910,15 @@
             "states-caller",
             "states-service",
             "states-holder",
-            "states-part"
+            "states-part",
+            "scale",
+            "source",
+            "dots-few",
+            "dots-many",
+            "dots-slow",
+            "dots-big",
+            "calls-lost",
+            "calls-rejected"
           ],
           "filter": "",
           "editing": true,
@@ -7490,11 +7930,139 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 47,
+              "shapes": 55,
               "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:dots-big",
+              "kind": "shape",
+              "id": "dots-big",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Bigger calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-few",
+              "kind": "shape",
+              "id": "dots-few",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Few calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-lost",
+              "kind": "shape",
+              "id": "calls-lost",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Lost calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-rejected",
+              "kind": "shape",
+              "id": "calls-rejected",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Rejected calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-slow",
+              "kind": "shape",
+              "id": "dots-slow",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Same calls, slower",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:source",
+              "kind": "shape",
+              "id": "source",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Source",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-many",
+              "kind": "shape",
+              "id": "dots-many",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Ten times the calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
               "match": true
             },
             {
@@ -8523,7 +9091,7 @@
             }
           ],
           "totals": {
-            "shapes": 47,
+            "shapes": 55,
             "flows": 17,
             "problems": 0
           }
@@ -8541,12 +9109,124 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 47,
+              "shapes": 55,
               "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
               "match": false
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:dots-big",
+              "kind": "shape",
+              "id": "dots-big",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Bigger calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-few",
+              "kind": "shape",
+              "id": "dots-few",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Few calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-lost",
+              "kind": "shape",
+              "id": "calls-lost",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Lost calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-rejected",
+              "kind": "shape",
+              "id": "calls-rejected",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Rejected calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-slow",
+              "kind": "shape",
+              "id": "dots-slow",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Same calls, slower",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-many",
+              "kind": "shape",
+              "id": "dots-many",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Ten times the calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             },
             {
               "key": "shape:structure",
@@ -9286,7 +9966,7 @@
             }
           ],
           "totals": {
-            "shapes": 47,
+            "shapes": 55,
             "flows": 17,
             "problems": 0
           }
@@ -9300,7 +9980,7 @@
           "editing": false,
           "rows": [],
           "totals": {
-            "shapes": 47,
+            "shapes": 55,
             "flows": 17,
             "problems": 0
           }
@@ -9320,11 +10000,27 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 47,
+              "shapes": 55,
               "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
               "match": true
             },
             {
@@ -9393,7 +10089,7 @@
             }
           ],
           "totals": {
-            "shapes": 47,
+            "shapes": 55,
             "flows": 17,
             "problems": 0
           }
@@ -11135,6 +11831,280 @@
         },
         {
           "view": "states-holder",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 17
+        },
+        {
+          "view": "scale",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 17
+        },
+        {
+          "view": "scale",
           "editing": true,
           "here": [],
           "elsewhere": [
@@ -12079,6 +13049,140 @@
             "states",
             "states-holder",
             "states-part"
+          ]
+        },
+        {
+          "id": "scale",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "scale",
+          "self": true,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "source",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "source",
+          "self": true,
+          "opened": [
+            "root",
+            "scale",
+            "source"
+          ]
+        },
+        {
+          "id": "dots-few",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-few",
+          "self": true,
+          "opened": [
+            "dots-few",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-many",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-many",
+          "self": true,
+          "opened": [
+            "dots-many",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-slow",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-slow",
+          "self": true,
+          "opened": [
+            "dots-slow",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-big",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-big",
+          "self": true,
+          "opened": [
+            "dots-big",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-lost",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-lost",
+          "self": true,
+          "opened": [
+            "calls-lost",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-rejected",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-rejected",
+          "self": true,
+          "opened": [
+            "calls-rejected",
+            "root",
+            "scale"
           ]
         },
         {

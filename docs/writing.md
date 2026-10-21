@@ -200,6 +200,8 @@ What changed: the sender is the subject in every step, the endpoint moved into M
 A failure analysis ranks how the system breaks, for someone deciding what to fix first. The format is in
 [the guide](guide.md#failure-modes).
 
+- **Name the analysis for what it covers, in plain words.** "Plum fail scenario" and "Conductor fail scenario" say what is in them. A title
+  such as "How Conductor can fail" does not.
 - **State a mode as a fact, one way of failing to a row.** "Stripe doesn't answer within five seconds" is a mode. "Payment problems" is a
   heading. A part that fails three ways gets three rows.
 - **The effect is what a person or another part sees.** "The order waits on a hold that may or may not exist." says what happens next.
@@ -216,6 +218,18 @@ A failure analysis ranks how the system breaks, for someone deciding what to fix
 - **Keep a row to a line each.** More (`description`) is for the why, and a long analysis of one part belongs in a document the shape
   links to.
 - **Give a severity of 9 or 10 on purpose.** It makes the mode High whatever the other ratings say.
+
+## Draw a load test
+
+A run is written by a tool, and a few of its keys are choices you make about how it reads.
+
+- **Set a `source` when the ratio is the point.** Without one the dots follow a curve that makes a hundred times the calls look about twice as busy. A `dot` formula
+  makes them a count: `rate / 50` is one dot for every 50 calls a second. Pick the divisor so the busiest line you want to show stays under 24 dots, because past
+  that the line is scaled down and the ratio stops being true.
+- **Leave red to failing calls.** A failing dot draws in the danger colour, so a source that is red can't be told from its own failures.
+- **Give `bytes` where sizes differ.** A `size` formula needs it, and the size of a call shows in the numbers of a line.
+- **Say how a failure fails only where you know.** `failure: lost` is for calls that die on the way, `failure: rejected` for calls a gateway turns away (a rate limit,
+  a 429). When the run only says that some calls failed, leave it out and they fade.
 
 ## Point at code
 

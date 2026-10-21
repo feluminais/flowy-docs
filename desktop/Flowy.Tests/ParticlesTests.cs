@@ -116,6 +116,131 @@ public class ParticlesTests
         Assert.True(alpha < 1 && alpha > Particles.GhostAlpha && scale < 1 && scale > 0.75);
     }
 
+    // ---- a source's numbers drawn: dots at once, the cap, and how a failing share fails -----------------------------------
+
+    [Fact]
+    public void A_line_holds_the_number_of_dots_its_numbers_promise_and_ten_times_the_dots_reads_ten_to_one()
+    {
+        int Held(double dots, int travelMs)
+        {
+            var stream = new ParticleStream();
+            Run(stream, Line(dots / (travelMs / 1000.0), travelMs), 12_000);
+            return stream.Motes.Count;
+        }
+        Assert.InRange(Held(2, 800), 1, 3);
+        Assert.InRange(Held(20, 800), 19, 21);
+        Assert.InRange(Held(20, 3000), 19, 21); // the same count at a slower speed: equal dots, different speed
+        Assert.InRange(Held(24, 500), 23, 25);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("lost")]
+    [InlineData("rejected")]
+    public void A_line_whose_count_is_far_past_the_cap_still_holds_no_more_than_the_most(string? failure)
+    {
+        var stream = new ParticleStream();
+        var line = new LineTraffic("a", "b", 2, 1e9, 4000, 0.5) { Failure = failure };
+        Run(stream, line, 3000, () => 0.4);
+        Assert.True(stream.Motes.Count <= Particles.Most, $"{failure}: {stream.Motes.Count}");
+    }
+
+    [Fact]
+    public void A_lost_call_is_an_ordinary_particle_until_it_pops_a_ring_that_grows_and_is_gone()
+    {
+        double[] rolls = [0.1, 0.5]; // fails, and gives out at 0.3 + 0.5 * 0.5 = 0.55
+        var i = 0;
+        var stream = new ParticleStream();
+        var lost = new LineTraffic("a", "b", 2, 1, 1000, 1) { Failure = "lost" };
+        Particles.Advance(stream, lost, 1000, () => rolls[i++ % 2]);
+        var m = Assert.Single(stream.Motes);
+        Assert.Equal(0.55 + Particles.Pop, m.Fails, 9);
+        Assert.Equal(new MoteLook(0.2, false, 1), Particles.Look(new Mote { S = 0.2, Fails = m.Fails }, "lost"));
+        var pop = Particles.Look(new Mote { S = 0.55 + Particles.Pop / 2, Fails = m.Fails }, "lost");
+        Assert.Equal(0.55, pop.At, 9);
+        Assert.True(pop.Bad);
+        Assert.Equal(0, pop.Alpha);
+        Assert.Equal(0.5, pop.Pop!.Value, 9);
+        Assert.Equal(0, Particles.Look(new Mote { S = 0.55, Fails = m.Fails }, "lost").Pop!.Value, 9);
+        Assert.Equal(1, Particles.Look(new Mote { S = 0.55 + Particles.Pop, Fails = m.Fails }, "lost").Pop!.Value, 9);
+        stream.Motes[0].S = 0.55 + Particles.Pop + 0.001;
+        Particles.Advance(stream, new LineTraffic("a", "b", 2, 0, 1000, 0) { Failure = "lost" }, 16, () => 0.5);
+        Assert.Empty(stream.Motes); // once the pop is over it is gone
+    }
+
+    [Fact]
+    public void A_rejected_call_runs_to_the_end_of_the_line_stops_at_a_bar_and_comes_back_in_the_danger_tone()
+    {
+        var stream = new ParticleStream();
+        Particles.Advance(stream, new LineTraffic("a", "b", 2, 1, 1000, 1) { Failure = "rejected" }, 1000, () => 0.2);
+        Assert.Equal(Particles.RejectedEnd, stream.Motes[0].Fails);
+        MoteLook At(double s) => Particles.Look(new Mote { S = s, Fails = Particles.RejectedEnd }, "rejected");
+        Assert.Equal(new MoteLook(0.4, false, 1, null, 0), At(0.4));
+        var near = At(0.95);
+        Assert.True(near.Bar > 0 && near.Bar < 1 && !near.Bad); // the bar starts to show as it nears
+        Assert.Equal(new MoteLook(1, false, 1, null, 1), At(1));
+        Assert.Equal(new MoteLook(1, true, 1, null, 1), At(1 + Particles.Hold / 2)); // stopped at the bar, now red
+        var back = At(1 + Particles.Hold + Particles.Back / 2);
+        Assert.Equal(1 - Particles.Back / 2, back.At, 9);
+        Assert.True(back.Bad);
+        Assert.Equal(0.5, back.Alpha, 9); // half way back, half faded
+        Assert.Equal(1 - Particles.Back, At(Particles.RejectedEnd).At, 9);
+        Assert.Equal(0, At(Particles.RejectedEnd).Alpha, 9);
+        stream.Motes[0].S = Particles.RejectedEnd - 0.001;
+        Particles.Advance(stream, new LineTraffic("a", "b", 2, 0, 1000, 0) { Failure = "rejected" }, 16, () => 0.5);
+        Assert.Empty(stream.Motes);
+    }
+
+    [Fact]
+    public void A_rejected_call_that_gets_to_the_end_is_not_gone_at_the_end_as_one_that_arrives_is()
+    {
+        var stream = new ParticleStream { Motes = [new Mote { S = 0.99, Fails = Particles.RejectedEnd }, new Mote { S = 0.99, Fails = 0 }] };
+        Particles.Advance(stream, new LineTraffic("a", "b", 2, 0, 1000, 0) { Failure = "rejected" }, 50, () => 0.5);
+        Assert.Equal([Particles.RejectedEnd], stream.Motes.Select(m => m.Fails));
+    }
+
+    [Fact]
+    public void Without_a_style_a_failing_particle_is_danger_toned_from_the_start_and_fades_and_one_that_arrives_is_ordinary()
+    {
+        Assert.Equal(new MoteLook(0.3, false, 1), Particles.Look(new Mote { S = 0.3 }, null));
+        Assert.Equal(new MoteLook(0.3, true, 1), Particles.Look(new Mote { S = 0.3, Fails = 0.6 }, null));
+        var fading = Particles.Look(new Mote { S = 0.45, Fails = 0.5 }, null);
+        Assert.Equal(1.0 / 3, fading.Alpha, 9);
+        Assert.True(fading.Bad);
+        Assert.Null(fading.Pop);
+        Assert.Null(fading.Bar);
+        foreach (var failure in new[] { "lost", "rejected" })
+            Assert.Equal(new MoteLook(0.7, false, 1), Particles.Look(new Mote { S = 0.7, Fails = 0 }, failure)); // arriving particles look alike in every style
+    }
+
+    [Fact]
+    public void The_number_of_random_draws_does_not_change_with_the_style_so_a_test_that_fixes_them_draws_the_same_dots()
+    {
+        int Draws(string? failure)
+        {
+            var n = 0;
+            Particles.Advance(new ParticleStream(), new LineTraffic("a", "b", 2, 10, 1000, 1) { Failure = failure }, 1000, () =>
+            {
+                n++;
+                return 0.4;
+            });
+            return n;
+        }
+        Assert.Equal(Draws(null), Draws("lost"));
+        Assert.True(Draws("rejected") < Draws("lost")); // a rejected call goes the whole way, so there is no place to draw
+    }
+
+    [Fact]
+    public void A_number_that_is_not_a_number_starts_nothing_and_does_not_stick()
+    {
+        var stream = new ParticleStream();
+        Particles.Advance(stream, Line(double.NaN, 1000), 16, () => 0.5);
+        Particles.Advance(stream, Line(double.PositiveInfinity, 1000), 16, () => 0.5);
+        Assert.Empty(stream.Motes);
+        Particles.Advance(stream, Line(100, 1000), 100, () => 0.5);
+        Assert.NotEmpty(stream.Motes);
+    }
+
     // ---- path points ------------------------------------------------------------------------------------------------
 
     [Fact]

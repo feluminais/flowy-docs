@@ -1,4 +1,7 @@
 import type { Problem } from './check.ts'
+import { evalFormula, linearInRate, parseFormula } from './formula.ts'
+import type { Formula } from './formula.ts'
+import { isColor } from './look.ts'
 import { getObject, isMap, orEmpty, ParseError, readYaml, ROOT } from './model.ts'
 import type { Model } from './model.ts'
 import { chain, placeEnds } from './views.ts'
@@ -10,19 +13,36 @@ import { chain, placeEnds } from './views.ts'
  * (desktop/Flowy.Core/Perf.cs is to be a port of it, kept equal by fixtures).
  */
 
-/** Everything a run can measure. On an object: util, queue, errors. On a connection or overall: rate, p50, p95, errors. A missing number means "not measured", never zero. */
-export type Metrics = { util?: number; queue?: number; errors?: number; rate?: number; p50?: number; p95?: number }
+/** Everything a run can measure. On an object: util, queue, errors. On a connection or overall: rate, bytes (a call's size), p50, p95, errors. A missing number means "not measured", never zero. */
+export type Metrics = { util?: number; queue?: number; errors?: number; rate?: number; bytes?: number; p50?: number; p95?: number }
+/** How the failing share of a line fails, when it is said: a request that is lost on the way, or one that is turned away at the end. Without one, the generic fade. */
+export type Failure = 'lost' | 'rejected'
+export const FAILURES: readonly Failure[] = ['lost', 'rejected']
 /** What one connection measured, or one line in a view once connections are rolled up. */
-export type Pair = Metrics & { from: string; to: string }
+export type Pair = Metrics & { from: string; to: string; failure?: Failure }
 export type Level = { load: number; overall: Metrics; objects: Record<string, Metrics>; connections: Pair[] }
-export type Run = { name: string; about?: string; unit: string; entry?: string; levels: Level[] }
+/**
+ * A formula as the run wrote it. Only the text is kept: a run travels to the browser as JSON, which drops anything but data, so the formula is read
+ * from the text where it is used (see formulaOf). parseRun has already checked that the text reads.
+ */
+export type SourceFormula = { text: string }
+/**
+ * Where a run's requests come from, and how to draw them: the dots' colour (a colour name or hex, like a shape's), a formula for how many dots a
+ * line shows at once and one for the area of a dot. Every key is optional. Part 3b will make a run hold a list of these; keep it a value of its own.
+ */
+export type Source = { color?: string; dot?: SourceFormula; size?: SourceFormula }
+export type Run = { name: string; about?: string; unit: string; entry?: string; source?: Source; levels: Level[] }
 
 const OBJECT_KEYS = ['util', 'queue', 'errors'] as const
-const EDGE_KEYS = ['rate', 'p50', 'p95', 'errors'] as const
+const EDGE_KEYS = ['rate', 'bytes', 'p50', 'p95', 'errors'] as const
 /** The lowest and highest a metric may be. */
 const RANGE: Record<keyof Metrics, readonly [number, number]> = {
-  util: [0, 1], errors: [0, 1], queue: [0, Infinity], rate: [0, Infinity], p50: [0, Infinity], p95: [0, Infinity],
+  util: [0, 1], errors: [0, 1], queue: [0, Infinity], rate: [0, Infinity], bytes: [0, Infinity], p50: [0, Infinity], p95: [0, Infinity],
 }
+const SOURCE_KEYS = ['color', 'dot', 'size'] as const
+/** How much of a name a problem quotes, so a hostile key doesn't fill the problem list. */
+const QUOTED = 40
+const brief = (text: string): string => (text.length > QUOTED ? `${text.slice(0, QUOTED)}…` : text)
 
 /** Sets an own property, so an id like "__proto__" is data and never the prototype. */
 function put<T>(target: Record<string, T>, key: string, value: T) {
@@ -52,6 +72,64 @@ function readMetrics(keys: readonly (keyof Metrics)[], raw: Record<string, unkno
   return out
 }
 
+/** The `source:` block of a run. A problem is reported through `add` and what is wrong is left out; a block with nothing usable in it is no source. */
+function readSource(raw: unknown, add: (message: string) => void): Source | undefined {
+  const block = orEmpty(raw, undefined)
+  if (block === undefined) return undefined
+  if (!isMap(block)) {
+    add('source must be a mapping of color, dot and size')
+    return undefined
+  }
+  for (const key of Object.keys(block)) if (!SOURCE_KEYS.some(k => k === key)) add(`source: unknown key "${brief(key)}" (use ${SOURCE_KEYS.join(', ')})`)
+  const out: Source = {}
+  const color = orEmpty(Object.hasOwn(block, 'color') ? block.color : undefined, undefined)
+  if (color !== undefined) {
+    if (typeof color === 'string' && isColor(color)) out.color = color
+    else add('source: color must be a colour name or a hex such as #1d9e75')
+  }
+  const formula = (key: 'dot' | 'size', example: string): SourceFormula | undefined => {
+    const text = orEmpty(Object.hasOwn(block, key) ? block[key] : undefined, undefined)
+    if (text === undefined) return undefined
+    if (typeof text !== 'string') {
+      add(`source: ${key} must be a formula such as ${example}`)
+      return undefined
+    }
+    const read = parseFormula(text)
+    if ('problem' in read) {
+      add(`source: ${key} ${read.problem}`) // a formula that can't be read leaves the default curve in its place
+      return undefined
+    }
+    return { text }
+  }
+  const dot = formula('dot', 'rate / 50')
+  if (dot) out.dot = dot
+  const size = formula('size', 'bytes / 400')
+  if (size) out.size = size
+  return Object.keys(out).length === 0 ? undefined : out
+}
+
+/** Formulas already read, by their text, so a line that is drawn twenty times a second doesn't read its formula each time. Kept small: a run has two. */
+const READ = new Map<string, Formula | undefined>()
+
+/** The formula a source's text says, or undefined for a text that doesn't read (a run that was not through parseRun). */
+function formulaOf(f: SourceFormula): Formula | undefined {
+  if (!READ.has(f.text)) {
+    if (READ.size >= 64) READ.clear()
+    const read = parseFormula(f.text)
+    READ.set(f.text, 'formula' in read ? read.formula : undefined)
+  }
+  return READ.get(f.text)
+}
+
+/** The `failure:` of a connection: lost or rejected, or nothing. Anything else is a problem. */
+function readFailure(raw: unknown, where: string, add: (message: string) => void): Failure | undefined {
+  const v = orEmpty(raw, undefined)
+  if (v === undefined) return undefined
+  const found = FAILURES.find(f => f === v)
+  if (found === undefined) add(`${where}: failure must be ${FAILURES.join(' or ')}`)
+  return found
+}
+
 /**
  * Read one run file (`perf/<id>.yaml`). Throws a ParseError for a file that can't be played: bad YAML, the wrong shape,
  * fewer than two levels, loads that don't go up. A number that is wrong is a problem instead, and is left out of the run.
@@ -74,6 +152,7 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
   const about = word('about')
   const unit = word('unit')
   const entry = word('entry')
+  const source = readSource(doc.source, add)
 
   const rawLevels = orEmpty(doc.levels, [])
   if (!Array.isArray(rawLevels)) throw new ParseError(file, '"levels" must be a list')
@@ -114,7 +193,9 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
         return
       }
       seen.add(key)
-      connections.push({ from, to, ...readMetrics(EDGE_KEYS, c, where(`${from} → ${to}`), add) })
+      const label = where(`${from} → ${to}`)
+      const failure = readFailure(c.failure, label, add)
+      connections.push({ from, to, ...readMetrics(EDGE_KEYS, c, label, add), ...(failure === undefined ? {} : { failure }) })
     })
     return { load, overall, objects, connections }
   }
@@ -124,7 +205,7 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
     if (i > 0 && l.load <= levels[i - 1].load)
       throw new ParseError(file, `level ${i + 1}: load ${l.load} must be above ${levels[i - 1].load} (levels go up in load)`)
   })
-  return { run: { name: name ?? id, ...(about === undefined ? {} : { about }), unit: unit ?? 'load', ...(entry === undefined ? {} : { entry }), levels }, problems }
+  return { run: { name: name ?? id, ...(about === undefined ? {} : { about }), unit: unit ?? 'load', ...(entry === undefined ? {} : { entry }), ...(source === undefined ? {} : { source }), levels }, problems }
 }
 
 /**
@@ -183,6 +264,19 @@ function metricsAt(levels: Level[], pick: (level: Level) => Metrics | undefined,
   return out
 }
 
+/** How a connection's failing share fails at `load`: what the nearest level at or below it says, else the lowest level above that says one. Not interpolated: it is a kind, not a number. */
+function failureAt(levels: Level[], pick: (level: Level) => Pair | undefined, load: number): Failure | undefined {
+  let below: Failure | undefined
+  let above: Failure | undefined
+  for (const l of levels) {
+    const f = pick(l)?.failure
+    if (f === undefined) continue
+    if (l.load <= load) below = f
+    else if (above === undefined) above = f
+  }
+  return below ?? above
+}
+
 /**
  * The run at any load inside the tested range, as a Level. A load outside it is clamped to the nearest end, so
  * nothing is ever extrapolated. Each metric is interpolated on the levels that carry it; one that has no value at
@@ -204,8 +298,10 @@ export function interpolate(run: Run, load: number): Level {
   for (const l of levels) for (const c of l.connections) pairs.set(JSON.stringify([c.from, c.to]), [c.from, c.to])
   const connections: Pair[] = []
   for (const [from, to] of pairs.values()) {
-    const m = metricsAt(levels, l => l.connections.find(c => c.from === from && c.to === to), EDGE_KEYS, at)
-    if (Object.keys(m).length > 0) connections.push({ from, to, ...m })
+    const pick = (l: Level) => l.connections.find(c => c.from === from && c.to === to)
+    const m = metricsAt(levels, pick, EDGE_KEYS, at)
+    const failure = failureAt(levels, pick, at)
+    if (Object.keys(m).length > 0) connections.push({ from, to, ...m, ...(failure === undefined ? {} : { failure }) })
   }
 
   return { load: at, overall: metricsAt(levels, l => l.overall, EDGE_KEYS, at), objects, connections }
@@ -249,18 +345,44 @@ export function rollUp(model: Model, level: Level, view: string): { objects: Rec
   }
 
   const lines = new Map<string, Pair>()
+  const sizes = new Map<string, Sizes>()
   for (const c of level.connections) {
     if (!model.connections.some(m => m.from === c.from && m.to === c.to)) continue
     const ends = placeEnds(model, view, c.from, c.to)
     if (!ends) continue
     const key = JSON.stringify(ends)
     const so = lines.get(key)
+    const size = sizes.get(key) ?? { weighted: 0, weight: 0, sum: 0, n: 0, failures: [] }
+    sizes.set(key, size)
+    if (c.bytes !== undefined) {
+      size.sum += c.bytes
+      size.n++
+      if (c.rate !== undefined) {
+        size.weighted += c.bytes * c.rate
+        size.weight += c.rate
+      }
+    }
+    if (c.failure !== undefined && !size.failures.includes(c.failure)) size.failures.push(c.failure)
     lines.set(key, {
       from: ends[0], to: ends[1],
       ...defined({ rate: either(so?.rate, c.rate, add), p50: either(so?.p50, c.p50, Math.max), p95: either(so?.p95, c.p95, Math.max), errors: either(so?.errors, c.errors, Math.max) }),
     })
   }
-  return { objects, lines: [...lines.values()] }
+  return { objects, lines: [...lines].map(([key, line]) => withSizes(line, sizes.get(key)!)) }
+}
+
+/** What the connections that land on one line say about the size of a call and how its failing share fails, as rollUp collects them. */
+type Sizes = { weighted: number; weight: number; sum: number; n: number; failures: Failure[] }
+
+/**
+ * A rolled-up line with its size of a call and how it fails. Bytes is the mean of the connections that give one, weighted by their rates
+ * (a connection with no rate has no weight; with no rates at all it is the plain mean). The failure style is the one the connections that name one
+ * agree on; if they differ there is none, and a connection that names none doesn't veto.
+ */
+function withSizes(line: Pair, size: Sizes): Pair {
+  const bytes = size.weight > 0 ? size.weighted / size.weight : size.n > 0 ? size.sum / size.n : undefined
+  const { from, to, rate, p50, p95, errors } = line
+  return { from, to, ...defined({ rate, bytes, p50, p95, errors }), ...(size.failures.length === 1 ? { failure: size.failures[0] } : {}) }
 }
 
 /** A shape this strained is "struggling" (see knee). */
@@ -303,24 +425,71 @@ export function kneeText(run: Run, k: Knee, nameOf: (id: string) => string): str
 }
 
 export type BoxTraffic = { strain?: number; queue: number }
-/** How a line looks: how thick, how many particles a second, how long one takes to cross (ms), and the share of them that fail. */
-export type LineTraffic = { from: string; to: string; width: number; perSecond: number; travelMs: number; failed: number }
+/**
+ * How a line looks: how thick, how many particles a second, how long one takes to cross (ms), and the share of them that fail.
+ * What a run's source adds is left out when it adds nothing, so a run without one is described as it always was: `color` (as written),
+ * `radius` (times the usual dot's radius), `capped` (the count was scaled down to fit the screen), `failure` (how the failing share fails)
+ * and `dots` (how many are on the line at once, once the `dot` formula has decided and the cap has had its say).
+ */
+export type LineTraffic = {
+  from: string; to: string; width: number; perSecond: number; travelMs: number; failed: number
+  color?: string; radius?: number; capped?: true; failure?: Failure; dots?: number
+}
 export type Traffic = { boxes: Record<string, BoxTraffic>; lines: LineTraffic[] }
+
+/**
+ * Most dots a source puts on a line at once. A screen line is a hundred to three hundred pixels long and a dot is a few pixels across, so
+ * past about this many they run together and stop being countable. Past it a line is scaled down and says so (see capCounts).
+ */
+export const AT_ONCE = 24
+/** The radius of a dot, as a multiple of the usual one, is the square root of the `size` formula's area, kept between these: small enough to see, big enough not to cover a line. */
+export const RADIUS_MIN = 0.5
+export const RADIUS_MAX = 2.5
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
 const round2 = (n: number) => Math.round(n * 100) / 100
 
+/**
+ * The dot counts of the sources on one line, scaled down by one common factor when the busiest passes AT_ONCE, so their ratio stays true.
+ * Part 3a has one source on a line; the list is here for the several of Part 3b.
+ */
+export function capCounts(counts: number[]): { counts: number[]; capped: boolean } {
+  const most = Math.max(0, ...counts)
+  if (most <= AT_ONCE) return { counts, capped: false }
+  return { counts: counts.map(c => (c * AT_ONCE) / most), capped: true }
+}
+
+/** The crossing time of a line in ms: what its expected call says, in steps from half a second to four. A line with no p50 is a middling trip. */
+const travelOf = (p50: number | undefined): number => (p50 === undefined ? 1000 : Math.round(clamp(500 + 1000 * Math.log10(1 + p50 / 10), 500, 4000)))
+
 /** A line that carried `rate` calls a second. Starting values, tuned on the lab's run in phase 3; a screen can't draw 1000 particles a second, so these are logarithmic and capped. */
-function lineTraffic(l: Pair, rate: number): LineTraffic {
+function lineTraffic(l: Pair, rate: number, source: Source | undefined): LineTraffic {
   const errors = round2(l.errors ?? 0)
-  return {
+  const base: LineTraffic = {
     from: l.from,
     to: l.to,
     width: round2(clamp(1.5 + 1.5 * Math.log10(1 + rate), 1.5, 6)),
     perSecond: rate > 0 ? round2(clamp(1.5 + 4 * Math.log10(1 + rate), 1.5, 14)) : 0,
-    travelMs: l.p50 === undefined ? 1000 : Math.round(clamp(500 + 1000 * Math.log10(1 + l.p50 / 10), 500, 4000)),
+    travelMs: travelOf(l.p50),
     failed: errors >= 0.01 ? Math.max(errors, 0.05) : errors,
   }
+  if (source?.color !== undefined) base.color = source.color
+  if (l.failure !== undefined) base.failure = l.failure
+  const vars = { rate, bytes: l.bytes, p50: l.p50 }
+  // How many dots: the formula's count when it has a value (a missing number or a negative result leaves today's curve for this line).
+  const dot = source?.dot ? formulaOf(source.dot) : undefined
+  const count = dot ? evalFormula(dot, vars) : undefined
+  if (count !== undefined && count >= 0) {
+    const { counts, capped } = capCounts([count])
+    // The count is dots on the line at once; the speed stays with p50, so dots start as often as they take to cross.
+    base.perSecond = round2(counts[0] / (base.travelMs / 1000))
+    base.dots = round2(counts[0])
+    if (capped) base.capped = true
+  }
+  const size = source?.size ? formulaOf(source.size) : undefined
+  const area = size ? evalFormula(size, vars) : undefined
+  if (area !== undefined && area >= 0) base.radius = round2(clamp(Math.sqrt(area), RADIUS_MIN, RADIUS_MAX))
+  return base
 }
 
 /**
@@ -337,5 +506,37 @@ export function traffic(model: Model, run: Run, load: number, view: string): Tra
     if (s === undefined && m.queue === undefined) continue
     put(boxes, id, { ...(s === undefined ? {} : { strain: round2(s) }), queue: Math.round(m.queue ?? 0) })
   }
-  return { boxes, lines: lines.flatMap(l => (l.rate === undefined ? [] : [lineTraffic(l, l.rate)])) }
+  return { boxes, lines: lines.flatMap(l => (l.rate === undefined ? [] : [lineTraffic(l, l.rate, run.source)])) }
+}
+
+/** The number in a scale, as short as it reads: 50, 0.5, 12.5, with the float noise of a division (3.0000000000000004) rounded off. */
+const plain = (n: number): string => String(Number(n.toPrecision(6)))
+
+/**
+ * "1 dot = 50 calls/s" for a run whose `dot` formula is a constant times the rate and nothing else; undefined for any other, because a scale in
+ * words that is not true for every line is worse than none. Also undefined for a scale nobody reads (under a thousandth of a call or over a billion).
+ */
+export function scaleText(run: Run): string | undefined {
+  const dot = run.source?.dot ? formulaOf(run.source.dot) : undefined
+  const k = dot ? linearInRate(dot) : undefined
+  if (k === undefined) return undefined
+  const calls = 1 / k
+  return calls >= 0.001 && calls < 1e9 ? `1 dot = ${plain(calls)} calls/s` : undefined
+}
+
+/**
+ * The pieces the Performance key draws for a run's source, from the lines on screen now: its name and the colour of its dots; the scale in words when
+ * the formula is a plain ratio of the rate and a line follows it; whether any dot is bigger or smaller than usual; whether any line is scaled down to
+ * fit. Undefined when the run sets no source or no line is on screen, so the key shows only what the picture shows.
+ */
+export function sourceKey(run: Run, lines: LineTraffic[]): { name: string; color?: string; scale?: string; bigger: boolean; scaledDown: boolean } | undefined {
+  if (!run.source || lines.length === 0) return undefined
+  const scale = lines.some(l => l.dots !== undefined) ? scaleText(run) : undefined
+  return {
+    name: run.name,
+    ...(run.source.color === undefined ? {} : { color: run.source.color }),
+    ...(scale === undefined ? {} : { scale }),
+    bigger: lines.some(l => l.radius !== undefined),
+    scaledDown: lines.some(l => l.capped === true),
+  }
 }
