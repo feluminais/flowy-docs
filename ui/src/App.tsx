@@ -31,7 +31,7 @@ import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
 import { activeAnalysis, firstErrorAt, modeCount, modeIn, neighbour, rowsFor, sideForTab } from './failuresview.ts'
 import type { Filter } from './failuresview.ts'
 import { FailuresBody } from './Failures.tsx'
-import { Line, LineMarksContext, LineStyleContext, LineWidthsContext } from './Line.tsx'
+import { LabelSpotsContext, Line, LineMarksContext, labelSpots, LineStyleContext, LineWidthsContext } from './Line.tsx'
 import { TrafficLayer } from './TrafficLayer.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { DWELL, GAP } from './motion.ts'
@@ -350,6 +350,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     // A picked failure mode outlines its line and fades every other.
     return lit === undefined ? drawn : drawn.map(e => ({ ...e, className: [e.className, e.id === lit.failsLine ? 'fails' : 'dim'].filter(Boolean).join(' ') }))
   }, [graph, selectedBox, selectedLine, hovered, pipes, lit])
+  // Labels that would overlap (the lines of a selected shape) are spread along their lines. They follow the boxes, so a drag moves them.
+  const placedAt = nodes.map(n => `${n.position.x},${n.position.y},${n.measured?.width},${n.measured?.height}`).join(' ')
+  const spots = useMemo(() => labelSpots(lines, edges, nodes), [lines, edges, placedAt])
   // The tree follows the canvas: going into a level opens it, and a selected shape is brought into view. It only ever opens rows.
   const reveal = (id: string, self: boolean) =>
     setExpanded(e => {
@@ -900,6 +903,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           <LineStyleContext value={lines}>
             <LineWidthsContext value={widths}>
             <LineMarksContext value={lineMarks}>
+            <LabelSpotsContext value={spots}>
             <ReactFlow
               key={view} // a fresh canvas per view
               nodes={[...frame, ...nodes]}
@@ -976,6 +980,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               ))}
               {flow && <GroupMarks marks={marks} />}
             </ReactFlow>
+            </LabelSpotsContext>
             </LineMarksContext>
             </LineWidthsContext>
           </LineStyleContext>
