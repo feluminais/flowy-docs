@@ -719,8 +719,20 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .sw.heat { width: 20px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, hsl(150 70% 40%), hsl(75 70% 42%), hsl(0 70% 45%)); }
 .sw.none { width: 20px; height: 10px; border: 1px solid var(--line); border-radius: 3px; }
 .sw.queue { min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--warn); color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; }
-.sw.call { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.sw.call { width: 8px; height: 8px; border-radius: 50%; background: var(--src, var(--accent)); }
 .sw.call.bad { background: var(--danger); }
+/* A run's source: dots in its colour (--src, set on the key), a small dot beside a big one, dots that thin out, a call that pops, a call turned away. */
+.sw.bigger, .sw.scaled { display: inline-flex; align-items: center; gap: 3px; }
+.sw.bigger i, .sw.scaled i { display: block; border-radius: 50%; background: var(--src, var(--accent)); }
+.sw.bigger i:first-child { width: 5px; height: 5px; }
+.sw.bigger i:last-child { width: 11px; height: 11px; }
+.sw.scaled i { width: 6px; height: 6px; }
+.sw.scaled i:nth-child(2) { opacity: 0.55; }
+.sw.scaled i:nth-child(3) { opacity: 0.25; }
+.sw.lost { width: 12px; height: 12px; border: 1.5px solid var(--danger); border-radius: 50%; }
+.sw.rejected { position: relative; width: 14px; height: 12px; }
+.sw.rejected::before { content: ''; position: absolute; left: 0; top: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); }
+.sw.rejected::after { content: ''; position: absolute; right: 0; top: 0; width: 2px; height: 12px; border-radius: 1px; background: var(--danger); }
 .hint { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .hint kbd:not(:first-child) { margin-left: 6px; }
 .perf ul.plain { margin: 0; padding-left: 18px; }

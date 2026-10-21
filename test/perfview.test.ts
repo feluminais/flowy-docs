@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseRun } from '../src/core/perf.ts'
 import {
-  activeRun, boxAt, boxSeries, clampPos, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, levelLabels, lineAt, lineSeries, loadAt, METRICS, pathOf, RAMP_MS, rampFrom, rampPos, scaleOf, snap, top, xAt, yAt,
+  activeRun, boxAt, boxSeries, clampPos, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, levelLabels, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, RAMP_MS, rampFrom, rampPos, scaleOf, snap, sourceCss, top, xAt, yAt,
 } from '../ui/src/perfview.ts'
 import { shop } from './fixtures.ts'
 
@@ -137,4 +137,28 @@ test('what a shape or line measured, level by level and at a load, as the view d
   assert.equal(boxAt(model, run, 'shop', 'web', 150), undefined)
   near(lineAt(model, run, 'shop', 'api', 'db', 150)?.rate, 135)
   assert.equal(lineAt(model, run, 'shop', 'web', 'api', 150), undefined)
+})
+
+test('the size of a call is a number of a line, listed after the calls and measured like them', () => {
+  assert.deepEqual([...LINE_KEYS], ['rate', 'bytes', 'p50', 'p95', 'errors'])
+  const sized = parseRun('s', 'name: S\nlevels:\n  - load: 1\n    connections: [{ from: web, to: api, rate: 5, bytes: 400 }]\n  - load: 2\n    connections: [{ from: web, to: api, rate: 9, bytes: 1600 }]\n').run
+  assert.deepEqual(lineSeries(shop(), sized, 'shop', 'web', 'api', 'bytes'), [400, 1600])
+  assert.equal(lineAt(shop(), sized, 'shop', 'web', 'api', 1.5)?.bytes, 1000)
+  assert.deepEqual(lineSeries(shop(), run, 'shop', 'web', 'api', 'bytes'), [undefined, undefined, undefined]) // a run that has none shows none
+})
+
+test('a source colour is CSS for both themes, or a hex as written, or nothing', () => {
+  assert.equal(sourceCss('blue'), 'light-dark(#378add, #85b7eb)')
+  assert.equal(sourceCss('#1D9E75'), '#1d9e75')
+  assert.equal(sourceCss('#abc'), '#aabbcc')
+  assert.equal(sourceCss('chartreuse'), undefined)
+  assert.equal(sourceCss(undefined), undefined)
+})
+
+test('the key draws the fade while no line fails and for a line that fails without saying how, and a lost or rejected call only when a line has one', () => {
+  assert.deepEqual(failureMarks([]), { fade: true, lost: false, rejected: false })
+  assert.deepEqual(failureMarks([{ failed: 0, failure: 'lost' }]), { fade: true, lost: false, rejected: false }) // nothing fails now, so nothing lost is on screen
+  assert.deepEqual(failureMarks([{ failed: 0.1, failure: 'lost' }]), { fade: false, lost: true, rejected: false })
+  assert.deepEqual(failureMarks([{ failed: 0.1, failure: 'rejected' }, { failed: 0.05 }]), { fade: true, lost: false, rejected: true })
+  assert.deepEqual(failureMarks([{ failed: 0.1, failure: 'rejected' }, { failed: 0.2, failure: 'lost' }]), { fade: false, lost: true, rejected: true })
 })
