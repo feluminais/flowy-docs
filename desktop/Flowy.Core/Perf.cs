@@ -608,10 +608,13 @@ public static class Perf
     /// with no rate has no weight; with no rates at all it is the plain mean). The failure style is the one the connections that name one agree on; if they
     /// differ there is none, and a connection that names none doesn't veto.
     /// </summary>
+    /// <summary>The number, or null when it overflowed to infinity or is not a number.</summary>
+    private static double? FiniteOrNull(double? v) => v is { } d && double.IsFinite(d) ? d : null;
+
     private static Pair WithSizes(Pair line, Sizes size) => new(line.From, line.To)
     {
         Rate = line.Rate,
-        Bytes = size.Weight > 0 ? size.Weighted / size.Weight : size.N > 0 ? size.Sum / size.N : null,
+        Bytes = FiniteOrNull(size.Weight > 0 ? size.Weighted / size.Weight : size.N > 0 ? size.Sum / size.N : null),
         P50 = line.P50,
         P95 = line.P95,
         Errors = line.Errors,
@@ -675,7 +678,7 @@ public static class Perf
     public static (double[] Counts, bool Capped) CapCounts(IReadOnlyList<double> counts)
     {
         var most = counts.Count == 0 ? 0 : Math.Max(0, counts.Max());
-        return most <= AtOnce ? (counts.ToArray(), false) : (counts.Select(c => c * AtOnce / most).ToArray(), true);
+        return most <= AtOnce ? (counts.ToArray(), false) : (counts.Select(c => { var v = c * AtOnce / most; return double.IsFinite(v) ? v : c / most * AtOnce; }).ToArray(), true);
     }
 
     /// <summary>The crossing time of a line in ms: what its expected call says, in steps from half a second to four. A line with no p50 is a middling trip.</summary>

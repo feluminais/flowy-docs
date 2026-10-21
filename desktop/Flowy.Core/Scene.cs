@@ -5,7 +5,7 @@ namespace Flowy.Core;
 /// lit or dimmed. <c>Steps</c> lights several at once (a parallel stop); <c>Faint</c> draws steps as dashed, faint lanes (the lanes of a branch this stop
 /// is not in) without lighting their boxes.
 /// </summary>
-public sealed record Playing(IReadOnlyList<(string From, string To)?> Ends, int? Step = null, IReadOnlyList<int>? Steps = null, IReadOnlyList<int>? Faint = null);
+public sealed record Playing(IReadOnlyList<(string From, string To)?> Ends, int? Step = null, IReadOnlyList<int>? Steps = null, IReadOnlyList<int>? Faint = null, IReadOnlyList<string>? Also = null);
 
 /// <summary>What the reader is pointing at: the selected box, the selected line, and the line the pointer is on (on the canvas, or in a box's panel).</summary>
 public sealed record Focus(string? Box = null, string? Line = null, string? Hover = null);
@@ -93,7 +93,7 @@ public static class SceneBuilder
         var dimming = stepsLit is not null;
         (string From, string To)? PlacedAt(int i) => playing is not null && i >= 0 && i < playing.Ends.Count ? playing.Ends[i] : null;
         var litEnds = (stepsLit ?? []).Select(PlacedAt).Where(e => e is not null).Select(e => e!.Value).ToList();
-        var litBoxes = litEnds.SelectMany(e => new[] { e.From, e.To }).ToHashSet();
+        var litBoxes = litEnds.SelectMany(e => new[] { e.From, e.To }).Concat(playing?.Also ?? []).ToHashSet(); // Also: a shape that takes a request off a line is lit with the step
         var faintSteps = (playing?.Faint ?? []).Select(i => (I: i, E: PlacedAt(i))).Where(f => f.E is not null).Select(f => (f.I, E: f.E!.Value)).ToList();
         var around = boxes.Where(id => !isMember.Contains(id)).ToList();
         var placed = PlaceCached(members, around, computed.Edges);

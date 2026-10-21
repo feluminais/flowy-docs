@@ -1303,6 +1303,78 @@
     {
       "animation": {
         "kind": "send",
+        "outcome": "rejected",
+        "reason": "﻿"
+      },
+      "to": true,
+      "problem": "animation reason must be plain text on one line"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "﻿"
+      },
+      "to": false,
+      "problem": "animation reason must be plain text on one line"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "to": false,
+      "problem": "animation \"send\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "to": true,
+      "problem": null
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "to": false,
+      "problem": "animation \"send\" needs a \"to\""
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "﻿"
+      },
+      "to": true,
+      "problem": "animation carries must be a word"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "﻿"
+      },
+      "to": false,
+      "problem": "animation carries must be a word"
+    },
+    {
+      "animation": {
+        "kind": "send",
         "outcome": "intercepted"
       },
       "to": true,
@@ -2395,6 +2467,48 @@
     {
       "animation": {
         "kind": "send",
+        "outcome": "rejected",
+        "reason": "﻿"
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "read": {
+        "kind": "send",
+        "trigger": "inside",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "read": {
+        "kind": "send",
+        "trigger": "inside",
+        "carries": "",
+        "outcome": "lost"
+      }
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "﻿"
+      },
+      "read": null
+    },
+    {
+      "animation": {
+        "kind": "send",
         "outcome": "intercepted"
       },
       "read": null
@@ -2989,6 +3103,24 @@
       },
       "line": "Rejected: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       "named": "Rejected: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "line": "Rejected: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "named": "Rejected: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "line": "Lost",
+      "named": "Lost"
     },
     {
       "animation": {
@@ -4974,6 +5106,22 @@
         "kind": "send",
         "outcome": "rejected",
         "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
       },
       "marks": true
     },
@@ -51972,6 +52120,1476 @@
         }
       ],
       "total": 3208
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3208
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1104,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 1354,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 1354,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1804,
+          "dur": 1104,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2908,
+          "dur": 300
+        }
+      ],
+      "total": 3208
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3208
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1104,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 1354,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 1354,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1804,
+          "dur": 1104,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2908,
+          "dur": 300
+        }
+      ],
+      "total": 3208
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3208
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1104,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 1354,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 1354,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1804,
+          "dur": 1104,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2908,
+          "dur": 300
+        }
+      ],
+      "total": 3208
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3208
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1104,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 1354,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 1354,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1804,
+          "dur": 1104,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2908,
+          "dur": 300
+        }
+      ],
+      "total": 3208
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3208
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1104,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 1354,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 1354,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1804,
+          "dur": 1104,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2908,
+          "dur": 300
+        }
+      ],
+      "total": 3208
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3208
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1104,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 1354,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 1354,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1804,
+          "dur": 1104,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2908,
+          "dur": 300
+        }
+      ],
+      "total": 3208
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3208
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1104,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 1354,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 1354,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1804,
+          "dur": 1104,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2908,
+          "dur": 300
+        }
+      ],
+      "total": 3208
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3208
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1104,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 1354,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 1354,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1804,
+          "dur": 1104,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2908,
+          "dur": 300
+        }
+      ],
+      "total": 3208
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5048
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2024,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 2274,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 2274,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2724,
+          "dur": 2024,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 4748,
+          "dur": 300
+        }
+      ],
+      "total": 5048
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5048
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2024,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 2274,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 2274,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2724,
+          "dur": 2024,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 4748,
+          "dur": 300
+        }
+      ],
+      "total": 5048
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5048
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2024,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 2274,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 2274,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2724,
+          "dur": 2024,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 4748,
+          "dur": 300
+        }
+      ],
+      "total": 5048
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 5048
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 2024,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 2274,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 2274,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 2724,
+          "dur": 2024,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 4748,
+          "dur": 300
+        }
+      ],
+      "total": 5048
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3208
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1104,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 1354,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 1354,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1804,
+          "dur": 1104,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2908,
+          "dur": 300
+        }
+      ],
+      "total": 3208
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx﻿"
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 3208
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1104,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "end": 0.92
+        },
+        {
+          "do": "bar",
+          "on": "line",
+          "at": 1354,
+          "dur": 900,
+          "along": 0.97
+        },
+        {
+          "do": "note",
+          "on": "line",
+          "at": 1354,
+          "dur": 1600,
+          "along": 0.92,
+          "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 1804,
+          "dur": 1104,
+          "dir": "back",
+          "glyph": "envelope",
+          "tone": "fail",
+          "end": 0.92
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 2908,
+          "dur": 300
+        }
+      ],
+      "total": 3208
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 0,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1410
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 660,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 910,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1410
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 0,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1410
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 660,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 910,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1410
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 100,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1410
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 660,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 910,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1410
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 100,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1410
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 660,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 910,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1410
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 250,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1410
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 660,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 910,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1410
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 250,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1410
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 660,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 910,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1410
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 400,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1410
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 660,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 910,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1410
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 400,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1410
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 660,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 910,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1410
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 1000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1960
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1210,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 1460,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1960
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 1000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1960
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1210,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 1460,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1960
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 5000,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1960
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1210,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 1460,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1960
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 5000,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1960
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 1210,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 1460,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1960
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 333.3,
+      "afterLanding": false,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1410
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 660,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 910,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1410
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": ""
+      },
+      "length": 333.3,
+      "afterLanding": true,
+      "beats": [
+        {
+          "do": "pipe",
+          "on": "line",
+          "at": 0,
+          "dur": 1410
+        },
+        {
+          "do": "gulp",
+          "on": "from",
+          "at": 0,
+          "dur": 250
+        },
+        {
+          "do": "blob",
+          "on": "line",
+          "at": 250,
+          "dur": 660,
+          "dir": "fwd",
+          "glyph": "envelope",
+          "label": "",
+          "end": 0.55
+        },
+        {
+          "do": "pop",
+          "on": "line",
+          "at": 910,
+          "dur": 500,
+          "along": 0.55
+        }
+      ],
+      "total": 1410
     },
     {
       "animation": {
