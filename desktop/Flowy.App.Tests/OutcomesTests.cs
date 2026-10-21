@@ -245,6 +245,151 @@ public class OutcomesTests
             Assert.Equal(expected[i], Animations.OutcomeLine(Animations.Read(flow.Steps[i])!, id => Views.NameOf(FolderLoader.Load(Folder).Model, id)));
     }
 
+    private static (TempFolder Temp, string Dir, ReaderView Reader) OpenEditing(string flow)
+    {
+        Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1");
+        var temp = new TempFolder();
+        var dir = Path.Combine(temp.Path, "flowy");
+        var source = Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "edit", "flowy");
+        foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var target = Path.Combine(dir, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.WriteAllText(target, File.ReadAllText(file));
+        }
+        var reader = new ReaderView();
+        var window = new Window { Width = 1200, Height = 800, Content = reader };
+        window.Show();
+        reader.Load(FolderLoader.Load(dir), dir);
+        reader.SetEditing(true);
+        reader.OpenFlowById(flow);
+        window.UpdateLayout();
+        Dispatcher.UIThread.RunJobs();
+        return (temp, dir, reader);
+    }
+
+    private static async Task Until(Func<bool> done)
+    {
+        for (var i = 0; i < 500 && !done(); i++) await Task.Delay(10);
+        Assert.True(done(), "gave up waiting");
+    }
+
+    private static string FlowFile(string dir, string id) => File.ReadAllText(Path.Combine(dir, "flows", $"{id}.yaml")).Replace("\r\n", "\n");
+
+    [AvaloniaFact]
+    public async Task Picking_how_a_step_travels_and_ends_is_one_edit_each_and_keeps_the_rest_of_the_step()
+    {
+        var (temp, dir, reader) = OpenEditing("order");
+        using var _ = temp;
+        var recorder = reader.Panel.CurrentRecorder!;
+        Assert.True(await recorder.StepKinds[0].Choose("call"));
+        await Until(() => FlowFile(dir, "order").Contains("animation: call"));
+        Assert.Contains("  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n    animation: call\n", FlowFile(dir, "order")); // the step's own extra key stays, and the animation comes last
+
+        recorder = reader.Panel.CurrentRecorder!;
+        Assert.True(await recorder.StepOutcomes[0].Choose("rejected"));
+        await Until(() => FlowFile(dir, "order").Contains("outcome: rejected"));
+        recorder = reader.Panel.CurrentRecorder!;
+        recorder.StepReasons[0].Text = "Rate limit";
+        await recorder.StepReasons[0].Commit();
+        await Until(() => FlowFile(dir, "order").Contains("reason: Rate limit"));
+        var step = reader.Folder!.Model.Flows["order"].Steps[0];
+        var animation = (OrderedDictionary<string, object?>)step.Animation!;
+        Assert.Equal(["kind", "outcome", "reason"], animation.Keys);
+        Assert.Equal("rejected", animation["outcome"]);
+        Assert.Contains("owner: product", FlowFile(dir, "order")); // the flow's own extra key
+        Assert.Equal("Takes payment", reader.Folder.Model.Flows["order"].Steps[1].Text); // the other step is as it was
+
+        // Taking the outcome away takes its reason with it, and None takes the animation away.
+        Assert.True(await reader.Panel.CurrentRecorder!.StepOutcomes[0].Choose(""));
+        await Until(() => FlowFile(dir, "order").Contains("animation: call"));
+        Assert.DoesNotContain("reason", FlowFile(dir, "order"));
+        Assert.True(await reader.Panel.CurrentRecorder!.StepKinds[0].Choose(""));
+        await Until(() => !FlowFile(dir, "order").Contains("animation"));
+    }
+
+    [AvaloniaFact]
+    public async Task What_a_step_cannot_have_is_dimmed_with_the_reason_and_the_form_keeps_its_shape()
+    {
+        var (temp, dir, reader) = OpenEditing("order");
+        using var _ = temp;
+        var recorder = reader.Panel.CurrentRecorder!;
+        // A step on one shape does not travel: only None is open, and no outcome.
+        Assert.False(recorder.StepKinds[1].Allowed("call"));
+        Assert.True(recorder.StepKinds[1].Allowed(""));
+        Assert.False(recorder.StepOutcomes[1].Allowed("lost"));
+        // A step with no kind has no outcome.
+        Assert.False(recorder.StepOutcomes[0].Allowed("lost"));
+        Assert.True(recorder.StepOutcomes[0].Allowed(""));
+        Assert.False(recorder.StepShares[0].IsEnabled);
+        Assert.False(recorder.StepReasons[0].IsEnabled);
+        Assert.False(recorder.StepTakerNames[0].IsEnabled);
+
+        await recorder.StepKinds[0].Choose("send");
+        await Until(() => FlowFile(dir, "order").Contains("animation: send"));
+        recorder = reader.Panel.CurrentRecorder!;
+        Assert.True(recorder.StepOutcomes[0].Allowed("lost"));
+        Assert.True(recorder.StepOutcomes[0].Allowed("fail"));
+        Assert.False(recorder.StepOutcomes[0].Allowed("timeout")); // needs a call
+        await recorder.StepKinds[0].Choose("callback");
+        await Until(() => FlowFile(dir, "order").Contains("animation: callback"));
+        Assert.False(reader.Panel.CurrentRecorder!.StepOutcomes[0].Allowed("lost")); // a callback has none
+        Assert.Equal(8, reader.Panel.CurrentRecorder!.StepOutcomes[0].Ids.Count); // the seven outcomes and "arrives" are all still there
+    }
+
+    [AvaloniaFact]
+    public async Task An_interception_is_valid_the_moment_it_is_picked_and_names_a_shape_or_a_party()
+    {
+        var (temp, dir, reader) = OpenEditing("order");
+        using var _ = temp;
+        var recorder = reader.Panel.CurrentRecorder!;
+        await recorder.StepKinds[0].Choose("call");
+        await Until(() => FlowFile(dir, "order").Contains("animation: call"));
+        await reader.Panel.CurrentRecorder!.StepOutcomes[0].Choose("intercepted");
+        await Until(() => FlowFile(dir, "order").Contains("outcome: intercepted"));
+        Assert.Contains("name: Third party", FlowFile(dir, "order")); // a placeholder, so the step is never left without someone
+        recorder = reader.Panel.CurrentRecorder!;
+        Assert.True(recorder.StepTakerNames[0].IsEnabled);
+        Assert.False(recorder.StepTakers[0].Allowed("customer")); // an end of the step
+        Assert.False(recorder.StepTakers[0].Allowed("shop"));
+        Assert.True(recorder.StepTakers[0].Allowed("pay"));
+
+        await recorder.StepTakers[0].Choose("pay");
+        await Until(() => FlowFile(dir, "order").Contains("by: pay"));
+        Assert.DoesNotContain("Third party", FlowFile(dir, "order"));
+        recorder = reader.Panel.CurrentRecorder!;
+        recorder.StepTakerNames[0].Text = "Café wifi proxy";
+        await recorder.StepTakerNames[0].Commit();
+        await Until(() => FlowFile(dir, "order").Contains("name: Café wifi proxy"));
+        Assert.DoesNotContain("by: pay", FlowFile(dir, "order"));
+        // Another outcome drops the taker.
+        await reader.Panel.CurrentRecorder!.StepOutcomes[0].Choose("lost");
+        await Until(() => FlowFile(dir, "order").Contains("outcome: lost"));
+        Assert.DoesNotContain("by:", FlowFile(dir, "order"));
+        Assert.DoesNotContain(reader.Folder!.Problems, p => p.Message.Contains("animation"));
+    }
+
+    [AvaloniaFact]
+    public async Task A_share_out_of_range_is_refused_with_the_checks_words_and_nothing_is_saved()
+    {
+        var (temp, dir, reader) = OpenEditing("order");
+        using var _ = temp;
+        await reader.Panel.CurrentRecorder!.StepKinds[0].Choose("send");
+        await Until(() => FlowFile(dir, "order").Contains("animation: send"));
+        await reader.Panel.CurrentRecorder!.StepOutcomes[0].Choose("lost");
+        await Until(() => FlowFile(dir, "order").Contains("outcome: lost"));
+        var recorder = reader.Panel.CurrentRecorder!;
+        recorder.StepShares[0].Text = "30";
+        await recorder.StepShares[0].Commit();
+        await Until(() => FlowFile(dir, "order").Contains("share: 30"));
+        var before = FlowFile(dir, "order");
+        recorder = reader.Panel.CurrentRecorder!;
+        recorder.StepShares[0].Text = "150";
+        await recorder.StepShares[0].Commit();
+        Assert.Equal(before, FlowFile(dir, "order")); // refused, nothing saved
+        Assert.Equal("30", recorder.StepShares[0].Text); // and the saved text is back in the box
+    }
+
     [AvaloniaFact]
     public void A_step_that_ends_in_an_outcome_still_settles_for_Autoplay()
     {

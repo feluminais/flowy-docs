@@ -1,4 +1,5 @@
-import { animationOf, animationProblem, beatsFor, burstOf, followsLanding, interceptorProblem, leavesMarks, outcomeLine, shortLabel, TINTS, travelMs } from '../../src/core/animation.ts'
+import { ANIMATION_KINDS, animationOf, animationProblem, animationWith, beatsFor, burstOf, followsLanding, interceptorProblem, KIND_SKETCHES, leavesMarks, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, outcomeLine, shortLabel, TINTS, travelMs } from '../../src/core/animation.ts'
+import type { AnimationKey } from '../../src/core/animation.ts'
 import { colorPair } from '../../src/core/look.ts'
 import { active, bump, distance, DWELL, ease, entryPoint, GAP, labelOffset, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, progress, tubeOpacity } from '../../ui/src/motion.ts'
 
@@ -43,6 +44,14 @@ const BURSTS: unknown[] = [
   { kind: 'call', outcome: 'timeout', share: 33 }, { kind: 'event', outcome: 'intercepted', by: { name: 'Tap' }, share: 70 }, { kind: 'call', outcome: 'delayed', share: 100, reason: 'Queue' },
 ]
 const SHARES = [1, 2, 5, 10, 15, 30, 33, 50, 70, 99, 100]
+/** What the pickers of edit mode do, each chain a run of picks from nothing, the result after each one. */
+const PICKS: [AnimationKey, string][][] = [
+  [['kind', 'call'], ['outcome', 'rejected'], ['reason', ' Rate limit '], ['share', '30'], ['reason', '  '], ['outcome', ''], ['kind', '']],
+  [['kind', 'send'], ['outcome', 'lost'], ['at', '0.4'], ['share', '20'], ['reason', 'Packet dropped'], ['outcome', 'rejected'], ['kind', 'event'], ['kind', 'callback']],
+  [['kind', 'call'], ['outcome', 'intercepted'], ['by', 'cache'], ['byName', 'Café wifi proxy'], ['by', 'cache'], ['byName', ''], ['by', ''], ['outcome', 'lost'], ['outcome', 'intercepted'], ['kind', 'send']],
+  [['kind', 'call'], ['outcome', 'timeout'], ['share', '10'], ['kind', 'send'], ['kind', 'call'], ['carries', 'order'], ['carries', ''], ['outcome', 'delayed'], ['outcome', 'duplicated']],
+  [['outcome', 'lost'], ['kind', 'event'], ['outcome', 'fail'], ['kind', 'send'], ['outcome', 'fail'], ['share', '100']],
+]
 /** Which shapes exist, for the checks that need the model. */
 const SHAPES = ['web', 'api', 'proxy']
 const STEP = { from: 'web', to: 'api' }
@@ -75,6 +84,18 @@ export function dumpBeats(): unknown {
       return a?.outcome === undefined ? [] : [{ animation, line: outcomeLine(a) ?? null, named: outcomeLine(a, id => SHAPE_NAMES[id] ?? id) ?? null }]
     }),
     bursts: SHARES.map(share => ({ share, ...burstOf(share) })),
+    blocks: [undefined, '', ...ANIMATION_KINDS].flatMap(kind => ['', ...OUTCOMES].map(outcome => ({ kind: kind ?? null, outcome, block: outcomeBlock(kind, outcome) ?? null }))),
+    sketches: { kinds: Object.entries(KIND_SKETCHES), outcomes: Object.entries(OUTCOME_SKETCHES) },
+    picks: PICKS.map(chain => {
+      let current: unknown
+      return chain.map(([key, value]) => ({ key, value, result: (current = animationWith(current, key, value)) ?? null }))
+    }),
+    // A step that already has an animation of its own, mapping or bare kind.
+    picksFrom: [
+      { kind: 'callback', trigger: 'outside', carries: 'x' }, { kind: 'send', outcome: 'lost', carries: 'order', note: 'kept' }, 'call', { kind: 'call', outcome: 'intercepted', by: { name: 'Proxy' }, reason: 'x' },
+    ].flatMap(from => (
+      [['kind', 'send'], ['kind', 'callback'], ['outcome', 'delayed'], ['outcome', ''], ['reason', 'Why'], ['by', 'cache'], ['byName', 'Tap'], ['share', '40']] as [AnimationKey, string][]
+    ).map(([key, value]) => ({ from, key, value, result: animationWith(from, key, value) ?? null }))),
     marks: RAW.flatMap(animation => {
       const a = read(animation)
       return a ? [{ animation, marks: leavesMarks(a) }] : []

@@ -362,6 +362,9 @@ Editing (press E):
       `code` list with `src/cli.ts`. Clear the field and press Tab: `code` is gone.
 - [ ] Press New flow, name it, click Customer then Web app, type a step and press Enter. Add a
       second step, move it up with ↑, delete it with ×. Leave edit mode and play the new flow.
+- [ ] Open a flow in edit mode and open a step's Animation. Pick Call, then Rejected: the file gains `animation:` with `kind: call` and `outcome: rejected`, and Timeout stays
+      a choice for a call only (dimmed, with "Needs a call", on a send). Type a reason and a share of 30; pick Intercepted and a shape, then Lost: the shape goes and the rest stays.
+      Type 150 as the share: a notice says why and nothing is saved. Pick None: `animation` is gone. A step on one shape has every choice but None dimmed. Light and dark both read.
 - [ ] Lines in edit mode: pick curved and `lines: curved` appears at the top of
       `example/model.yaml`. Ctrl+Z takes it away.
 - [ ] In Shop, drag Web app away: the frame follows it. Press Tidy: Web app goes back and

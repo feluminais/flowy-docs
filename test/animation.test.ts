@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { animationOf, animationProblem, beatsFor, burstOf, followsLanding, interceptorProblem, LABEL_MAX, lostAtOf, outcomeLine, shareOf, shortLabel, TINTS, travelMs } from '../src/core/animation.ts'
+import { ANIMATION_KINDS, animationOf, DEFAULT_TAKER, animationProblem, animationWith, beatsFor, burstOf, followsLanding, interceptorProblem, KIND_SKETCHES, LABEL_MAX, lostAtOf, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, outcomeLine, shareOf, shortLabel, TINTS, travelMs } from '../src/core/animation.ts'
 import type { Animation, Beat } from '../src/core/animation.ts'
 
 const plain = (kind: Animation['kind'], more: Partial<Animation> = {}): Animation => ({ kind, trigger: 'inside', ...more })
@@ -549,4 +549,74 @@ test('a long carried word is cut for display, and the beat keeps the whole word'
   assert.equal(shortLabel('a'.repeat(LABEL_MAX)), 'a'.repeat(LABEL_MAX))
   assert.equal(shortLabel('a'.repeat(LABEL_MAX + 1)), `${'a'.repeat(LABEL_MAX - 1)}…`)
   assert.equal(play('send', { carries: 'x'.repeat(80) }).beats.find(b => b.do === 'blob')!.label, 'x'.repeat(80))
+})
+
+test('the pickers have a sketch for every way to travel and every way to end, and each is a path on the 44 by 24 grid', () => {
+  assert.deepEqual(Object.keys(KIND_SKETCHES), ['none', ...ANIMATION_KINDS])
+  assert.deepEqual(Object.keys(OUTCOME_SKETCHES), ['none', ...OUTCOMES])
+  for (const d of [...Object.values(KIND_SKETCHES), ...Object.values(OUTCOME_SKETCHES)]) {
+    assert.match(d, /^M[\d\s.MHVlLhvazZ-]+$/)
+    for (const n of d.match(/-?\d+\.?\d*/g)!.map(Number)) assert.ok(Math.abs(n) <= 44, d)
+  }
+  assert.equal(new Set(Object.values(OUTCOME_SKETCHES)).size, 8, 'no two outcomes are drawn alike')
+})
+
+test('an outcome that a step cannot have is blocked with the reason, and one it can have is not', () => {
+  assert.equal(outcomeBlock('call', ''), undefined)
+  assert.equal(outcomeBlock('', ''), undefined)
+  assert.equal(outcomeBlock('', 'lost'), 'Pick how it travels first')
+  assert.equal(outcomeBlock(undefined, 'fail'), 'Pick how it travels first')
+  for (const outcome of OUTCOMES) assert.equal(outcomeBlock('callback', outcome), 'Not for a callback')
+  assert.equal(outcomeBlock('send', 'timeout'), 'Needs a call')
+  assert.equal(outcomeBlock('event', 'timeout'), 'Needs a call')
+  assert.equal(outcomeBlock('event', 'fail'), 'Needs a send or a call')
+  for (const outcome of ['fail', 'timeout', 'lost', 'rejected', 'intercepted', 'duplicated', 'delayed']) assert.equal(outcomeBlock('call', outcome), undefined, outcome)
+  // The picker and the checker agree: whatever is blocked is a problem, and the rest is not.
+  for (const kind of ANIMATION_KINDS) {
+    for (const outcome of OUTCOMES) {
+      const raw = { kind, outcome, ...(outcome === 'intercepted' ? { by: { name: 'Proxy' } } : {}) }
+      assert.equal(outcomeBlock(kind, outcome) !== undefined, animationProblem(raw, true) !== undefined, `${kind} ${outcome}`)
+    }
+  }
+})
+
+test('picking in edit mode builds the animation key by key and keeps it valid', () => {
+  assert.equal(animationWith(undefined, 'kind', 'call'), 'call')
+  assert.deepEqual(animationWith('call', 'outcome', 'rejected'), { kind: 'call', outcome: 'rejected' })
+  // An interception always has someone who takes it, so picking it is valid at once, and taking the taker away puts the placeholder back.
+  assert.deepEqual(animationWith('call', 'outcome', 'intercepted'), { kind: 'call', outcome: 'intercepted', by: { name: DEFAULT_TAKER } })
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'intercepted', by: 'cache' }, 'by', ''), { kind: 'call', outcome: 'intercepted', by: { name: DEFAULT_TAKER } })
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'intercepted', by: 'cache' }, 'byName', ''), { kind: 'call', outcome: 'intercepted', by: { name: DEFAULT_TAKER } })
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'intercepted', by: 'cache' }, 'outcome', 'lost'), { kind: 'call', outcome: 'lost' })
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'rejected' }, 'reason', ' Rate limit '), { kind: 'call', outcome: 'rejected', reason: 'Rate limit' })
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'rejected', reason: 'Rate limit' }, 'share', '30'), { kind: 'call', outcome: 'rejected', reason: 'Rate limit', share: '30' })
+  // Taking a text away removes its key, and taking the last extra away leaves the bare kind.
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'rejected', reason: 'x' }, 'reason', '  '), { kind: 'call', outcome: 'rejected' })
+  assert.equal(animationWith({ kind: 'call', outcome: 'rejected' }, 'outcome', ''), 'call')
+  // No outcome takes away what only an outcome has.
+  assert.equal(animationWith({ kind: 'send', outcome: 'lost', share: '30', reason: 'x', at: '0.4' }, 'outcome', ''), 'send')
+  // The one who takes a request: a shape or a name, and picking one replaces the other.
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'intercepted' }, 'by', 'cache'), { kind: 'call', outcome: 'intercepted', by: 'cache' })
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'intercepted', by: 'cache' }, 'byName', 'Café wifi proxy'), { kind: 'call', outcome: 'intercepted', by: { name: 'Café wifi proxy' } })
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'intercepted', by: { name: 'Proxy' } }, 'by', 'cache'), { kind: 'call', outcome: 'intercepted', by: 'cache' })
+  // Another outcome drops what belongs to the old one, and another kind drops an outcome it cannot have.
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'intercepted', by: 'cache', reason: 'x' }, 'outcome', 'lost'), { kind: 'call', outcome: 'lost', reason: 'x' })
+  assert.deepEqual(animationWith({ kind: 'send', outcome: 'lost', at: '0.4' }, 'outcome', 'rejected'), { kind: 'send', outcome: 'rejected' })
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'timeout', share: '20', reason: 'x' }, 'kind', 'send'), { kind: 'send' }.kind)
+  assert.deepEqual(animationWith({ kind: 'call', outcome: 'lost', reason: 'x' }, 'kind', 'event'), { kind: 'event', outcome: 'lost', reason: 'x' })
+  assert.equal(animationWith({ kind: 'call', outcome: 'lost', reason: 'x' }, 'kind', 'callback'), 'callback')
+  assert.equal(animationWith({ kind: 'callback', trigger: 'outside', carries: 'x' }, 'kind', 'send') !== undefined, true)
+  assert.deepEqual(animationWith({ kind: 'callback', trigger: 'outside', carries: 'x' }, 'kind', 'send'), { kind: 'send', carries: 'x' })
+  // A kind of None takes the whole animation away.
+  assert.equal(animationWith({ kind: 'call', outcome: 'lost' }, 'kind', ''), undefined)
+  assert.equal(animationWith('call', 'kind', ''), undefined)
+  // A key that is there keeps its place, and the keys it has no business with are kept.
+  assert.deepEqual(Object.keys(animationWith({ kind: 'send', outcome: 'lost', carries: 'order' }, 'outcome', 'delayed') as object), ['kind', 'outcome', 'carries'])
+  // Whatever is picked passes the checker, once the step has two ends.
+  const picks: [string, string][] = [['kind', 'call'], ['outcome', 'intercepted'], ['byName', 'Proxy'], ['reason', 'Slow'], ['share', '50'], ['outcome', 'lost'], ['kind', 'event'], ['kind', 'callback']]
+  let current: unknown
+  for (const [key, value] of picks) {
+    current = animationWith(current, key as 'kind', value)
+    assert.equal(animationProblem(current, true), undefined, `after ${key} ${value}: ${JSON.stringify(current)}`)
+  }
 })

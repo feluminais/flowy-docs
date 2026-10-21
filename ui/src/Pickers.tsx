@@ -185,6 +185,32 @@ export function IconPicker({ model, object, onPick }: { model: Model; object: Fl
   )
 }
 
+/**
+ * A way a step travels or ends, drawn as a sketch of it (the same strings the desktop app draws, see core's KIND_SKETCHES and OUTCOME_SKETCHES), with its name under it.
+ * A choice that does not fit what is set is greyed out, with why in its tooltip, and stays where it is.
+ */
+export type Sketch = { id: string; name: string; sketch: string; block?: string }
+export function SketchPicker({ label, choices, value, onPick }: { label: string; choices: Sketch[]; value: string; onPick: (id: string) => void }) {
+  const chosen = choices.find(c => c.id === value)
+  return (
+    <div className="pick-field">
+      <Head label={label} value={chosen?.name ?? value} />
+      <div className="pick-grid sketches" role="radiogroup" aria-label={label}>
+        {choices.map(c => (
+          <button
+            key={c.id} type="button" role="radio" aria-checked={c.id === value} disabled={c.block !== undefined} className="pick sketch"
+            title={c.block ?? c.name} aria-label={c.block === undefined ? c.name : `${c.name} (${c.block})`}
+            onClick={() => c.id !== value && onPick(c.id)}
+          >
+            <svg viewBox="0 0 44 24" aria-hidden="true"><path d={c.sketch} /></svg>
+            <span>{c.name}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** The kinds of a group as cells, each with its icon, so which one a group is can be seen without reading. */
 export function KindPicker({ kinds, value, onPick }: { kinds: { id: string; name: string; Icon: (props?: IconProps) => ReactNode }[]; value: string; onPick: (kind: string) => void }) {
   return (

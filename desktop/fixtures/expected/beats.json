@@ -3578,6 +3578,1102 @@
       ]
     }
   ],
+  "blocks": [
+    {
+      "kind": null,
+      "outcome": "",
+      "block": null
+    },
+    {
+      "kind": null,
+      "outcome": "fail",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": null,
+      "outcome": "timeout",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": null,
+      "outcome": "lost",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": null,
+      "outcome": "rejected",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": null,
+      "outcome": "intercepted",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": null,
+      "outcome": "duplicated",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": null,
+      "outcome": "delayed",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": "",
+      "outcome": "",
+      "block": null
+    },
+    {
+      "kind": "",
+      "outcome": "fail",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": "",
+      "outcome": "timeout",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": "",
+      "outcome": "lost",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": "",
+      "outcome": "rejected",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": "",
+      "outcome": "intercepted",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": "",
+      "outcome": "duplicated",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": "",
+      "outcome": "delayed",
+      "block": "Pick how it travels first"
+    },
+    {
+      "kind": "send",
+      "outcome": "",
+      "block": null
+    },
+    {
+      "kind": "send",
+      "outcome": "fail",
+      "block": null
+    },
+    {
+      "kind": "send",
+      "outcome": "timeout",
+      "block": "Needs a call"
+    },
+    {
+      "kind": "send",
+      "outcome": "lost",
+      "block": null
+    },
+    {
+      "kind": "send",
+      "outcome": "rejected",
+      "block": null
+    },
+    {
+      "kind": "send",
+      "outcome": "intercepted",
+      "block": null
+    },
+    {
+      "kind": "send",
+      "outcome": "duplicated",
+      "block": null
+    },
+    {
+      "kind": "send",
+      "outcome": "delayed",
+      "block": null
+    },
+    {
+      "kind": "call",
+      "outcome": "",
+      "block": null
+    },
+    {
+      "kind": "call",
+      "outcome": "fail",
+      "block": null
+    },
+    {
+      "kind": "call",
+      "outcome": "timeout",
+      "block": null
+    },
+    {
+      "kind": "call",
+      "outcome": "lost",
+      "block": null
+    },
+    {
+      "kind": "call",
+      "outcome": "rejected",
+      "block": null
+    },
+    {
+      "kind": "call",
+      "outcome": "intercepted",
+      "block": null
+    },
+    {
+      "kind": "call",
+      "outcome": "duplicated",
+      "block": null
+    },
+    {
+      "kind": "call",
+      "outcome": "delayed",
+      "block": null
+    },
+    {
+      "kind": "callback",
+      "outcome": "",
+      "block": null
+    },
+    {
+      "kind": "callback",
+      "outcome": "fail",
+      "block": "Not for a callback"
+    },
+    {
+      "kind": "callback",
+      "outcome": "timeout",
+      "block": "Not for a callback"
+    },
+    {
+      "kind": "callback",
+      "outcome": "lost",
+      "block": "Not for a callback"
+    },
+    {
+      "kind": "callback",
+      "outcome": "rejected",
+      "block": "Not for a callback"
+    },
+    {
+      "kind": "callback",
+      "outcome": "intercepted",
+      "block": "Not for a callback"
+    },
+    {
+      "kind": "callback",
+      "outcome": "duplicated",
+      "block": "Not for a callback"
+    },
+    {
+      "kind": "callback",
+      "outcome": "delayed",
+      "block": "Not for a callback"
+    },
+    {
+      "kind": "event",
+      "outcome": "",
+      "block": null
+    },
+    {
+      "kind": "event",
+      "outcome": "fail",
+      "block": "Needs a send or a call"
+    },
+    {
+      "kind": "event",
+      "outcome": "timeout",
+      "block": "Needs a call"
+    },
+    {
+      "kind": "event",
+      "outcome": "lost",
+      "block": null
+    },
+    {
+      "kind": "event",
+      "outcome": "rejected",
+      "block": null
+    },
+    {
+      "kind": "event",
+      "outcome": "intercepted",
+      "block": null
+    },
+    {
+      "kind": "event",
+      "outcome": "duplicated",
+      "block": null
+    },
+    {
+      "kind": "event",
+      "outcome": "delayed",
+      "block": null
+    }
+  ],
+  "sketches": {
+    "kinds": [
+      [
+        "none",
+        "M6 12H38"
+      ],
+      [
+        "send",
+        "M6 12H36M30 6l6 6l-6 6"
+      ],
+      [
+        "call",
+        "M6 8H38M32 3l6 5l-6 5M38 17H6M12 12l-6 5l6 5"
+      ],
+      [
+        "callback",
+        "M22 3a5 5 0 0 0 -5 5v4l-2 4h14l-2 -4v-4a5 5 0 0 0 -5 -5zM20 19a2 2 0 0 0 4 0"
+      ],
+      [
+        "event",
+        "M24 2l-9 12h7l-2 8l9 -12h-7z"
+      ]
+    ],
+    "outcomes": [
+      [
+        "none",
+        "M6 12H36M30 6l6 6l-6 6"
+      ],
+      [
+        "fail",
+        "M6 12H26M31 6l9 12M40 6l-9 12"
+      ],
+      [
+        "timeout",
+        "M6 12H22M29 12h.01M34 12h.01M39 12h.01"
+      ],
+      [
+        "lost",
+        "M6 12H16M22 6l10 12M32 6l-10 12"
+      ],
+      [
+        "rejected",
+        "M6 9H31M37 3v18M31 16H12M18 11l-6 5l6 5"
+      ],
+      [
+        "intercepted",
+        "M6 8H18l7 8M27 14h12v8h-12z"
+      ],
+      [
+        "duplicated",
+        "M6 7H36M30 2l6 5l-6 5M6 18H36M30 13l6 5l-6 5"
+      ],
+      [
+        "delayed",
+        "M6 12H15M29 12H38M22 6a6 6 0 1 0 .01 0M22 9v3l2 2"
+      ]
+    ]
+  },
+  "picks": [
+    [
+      {
+        "key": "kind",
+        "value": "call",
+        "result": "call"
+      },
+      {
+        "key": "outcome",
+        "value": "rejected",
+        "result": {
+          "kind": "call",
+          "outcome": "rejected"
+        }
+      },
+      {
+        "key": "reason",
+        "value": " Rate limit ",
+        "result": {
+          "kind": "call",
+          "outcome": "rejected",
+          "reason": "Rate limit"
+        }
+      },
+      {
+        "key": "share",
+        "value": "30",
+        "result": {
+          "kind": "call",
+          "outcome": "rejected",
+          "reason": "Rate limit",
+          "share": "30"
+        }
+      },
+      {
+        "key": "reason",
+        "value": "  ",
+        "result": {
+          "kind": "call",
+          "outcome": "rejected",
+          "share": "30"
+        }
+      },
+      {
+        "key": "outcome",
+        "value": "",
+        "result": "call"
+      },
+      {
+        "key": "kind",
+        "value": "",
+        "result": null
+      }
+    ],
+    [
+      {
+        "key": "kind",
+        "value": "send",
+        "result": "send"
+      },
+      {
+        "key": "outcome",
+        "value": "lost",
+        "result": {
+          "kind": "send",
+          "outcome": "lost"
+        }
+      },
+      {
+        "key": "at",
+        "value": "0.4",
+        "result": {
+          "kind": "send",
+          "outcome": "lost",
+          "at": "0.4"
+        }
+      },
+      {
+        "key": "share",
+        "value": "20",
+        "result": {
+          "kind": "send",
+          "outcome": "lost",
+          "at": "0.4",
+          "share": "20"
+        }
+      },
+      {
+        "key": "reason",
+        "value": "Packet dropped",
+        "result": {
+          "kind": "send",
+          "outcome": "lost",
+          "at": "0.4",
+          "share": "20",
+          "reason": "Packet dropped"
+        }
+      },
+      {
+        "key": "outcome",
+        "value": "rejected",
+        "result": {
+          "kind": "send",
+          "outcome": "rejected",
+          "share": "20",
+          "reason": "Packet dropped"
+        }
+      },
+      {
+        "key": "kind",
+        "value": "event",
+        "result": {
+          "kind": "event",
+          "outcome": "rejected",
+          "share": "20",
+          "reason": "Packet dropped"
+        }
+      },
+      {
+        "key": "kind",
+        "value": "callback",
+        "result": "callback"
+      }
+    ],
+    [
+      {
+        "key": "kind",
+        "value": "call",
+        "result": "call"
+      },
+      {
+        "key": "outcome",
+        "value": "intercepted",
+        "result": {
+          "kind": "call",
+          "outcome": "intercepted",
+          "by": {
+            "name": "Third party"
+          }
+        }
+      },
+      {
+        "key": "by",
+        "value": "cache",
+        "result": {
+          "kind": "call",
+          "outcome": "intercepted",
+          "by": "cache"
+        }
+      },
+      {
+        "key": "byName",
+        "value": "Café wifi proxy",
+        "result": {
+          "kind": "call",
+          "outcome": "intercepted",
+          "by": {
+            "name": "Café wifi proxy"
+          }
+        }
+      },
+      {
+        "key": "by",
+        "value": "cache",
+        "result": {
+          "kind": "call",
+          "outcome": "intercepted",
+          "by": "cache"
+        }
+      },
+      {
+        "key": "byName",
+        "value": "",
+        "result": {
+          "kind": "call",
+          "outcome": "intercepted",
+          "by": {
+            "name": "Third party"
+          }
+        }
+      },
+      {
+        "key": "by",
+        "value": "",
+        "result": {
+          "kind": "call",
+          "outcome": "intercepted",
+          "by": {
+            "name": "Third party"
+          }
+        }
+      },
+      {
+        "key": "outcome",
+        "value": "lost",
+        "result": {
+          "kind": "call",
+          "outcome": "lost"
+        }
+      },
+      {
+        "key": "outcome",
+        "value": "intercepted",
+        "result": {
+          "kind": "call",
+          "outcome": "intercepted",
+          "by": {
+            "name": "Third party"
+          }
+        }
+      },
+      {
+        "key": "kind",
+        "value": "send",
+        "result": {
+          "kind": "send",
+          "outcome": "intercepted",
+          "by": {
+            "name": "Third party"
+          }
+        }
+      }
+    ],
+    [
+      {
+        "key": "kind",
+        "value": "call",
+        "result": "call"
+      },
+      {
+        "key": "outcome",
+        "value": "timeout",
+        "result": {
+          "kind": "call",
+          "outcome": "timeout"
+        }
+      },
+      {
+        "key": "share",
+        "value": "10",
+        "result": {
+          "kind": "call",
+          "outcome": "timeout",
+          "share": "10"
+        }
+      },
+      {
+        "key": "kind",
+        "value": "send",
+        "result": "send"
+      },
+      {
+        "key": "kind",
+        "value": "call",
+        "result": "call"
+      },
+      {
+        "key": "carries",
+        "value": "order",
+        "result": {
+          "kind": "call",
+          "carries": "order"
+        }
+      },
+      {
+        "key": "carries",
+        "value": "",
+        "result": "call"
+      },
+      {
+        "key": "outcome",
+        "value": "delayed",
+        "result": {
+          "kind": "call",
+          "outcome": "delayed"
+        }
+      },
+      {
+        "key": "outcome",
+        "value": "duplicated",
+        "result": {
+          "kind": "call",
+          "outcome": "duplicated"
+        }
+      }
+    ],
+    [
+      {
+        "key": "outcome",
+        "value": "lost",
+        "result": {
+          "outcome": "lost"
+        }
+      },
+      {
+        "key": "kind",
+        "value": "event",
+        "result": {
+          "outcome": "lost",
+          "kind": "event"
+        }
+      },
+      {
+        "key": "outcome",
+        "value": "fail",
+        "result": {
+          "outcome": "fail",
+          "kind": "event"
+        }
+      },
+      {
+        "key": "kind",
+        "value": "send",
+        "result": {
+          "outcome": "fail",
+          "kind": "send"
+        }
+      },
+      {
+        "key": "outcome",
+        "value": "fail",
+        "result": {
+          "outcome": "fail",
+          "kind": "send"
+        }
+      },
+      {
+        "key": "share",
+        "value": "100",
+        "result": {
+          "outcome": "fail",
+          "kind": "send",
+          "share": "100"
+        }
+      }
+    ]
+  ],
+  "picksFrom": [
+    {
+      "from": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x"
+      },
+      "key": "kind",
+      "value": "send",
+      "result": {
+        "kind": "send",
+        "carries": "x"
+      }
+    },
+    {
+      "from": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x"
+      },
+      "key": "kind",
+      "value": "callback",
+      "result": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x"
+      }
+    },
+    {
+      "from": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x"
+      },
+      "key": "outcome",
+      "value": "delayed",
+      "result": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x",
+        "outcome": "delayed"
+      }
+    },
+    {
+      "from": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x"
+      },
+      "key": "outcome",
+      "value": "",
+      "result": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x"
+      }
+    },
+    {
+      "from": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x"
+      },
+      "key": "reason",
+      "value": "Why",
+      "result": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x",
+        "reason": "Why"
+      }
+    },
+    {
+      "from": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x"
+      },
+      "key": "by",
+      "value": "cache",
+      "result": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x",
+        "by": "cache"
+      }
+    },
+    {
+      "from": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x"
+      },
+      "key": "byName",
+      "value": "Tap",
+      "result": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x",
+        "by": {
+          "name": "Tap"
+        }
+      }
+    },
+    {
+      "from": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x"
+      },
+      "key": "share",
+      "value": "40",
+      "result": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "x",
+        "share": "40"
+      }
+    },
+    {
+      "from": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept"
+      },
+      "key": "kind",
+      "value": "send",
+      "result": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept"
+      }
+    },
+    {
+      "from": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept"
+      },
+      "key": "kind",
+      "value": "callback",
+      "result": {
+        "kind": "callback",
+        "carries": "order",
+        "note": "kept"
+      }
+    },
+    {
+      "from": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept"
+      },
+      "key": "outcome",
+      "value": "delayed",
+      "result": {
+        "kind": "send",
+        "outcome": "delayed",
+        "carries": "order",
+        "note": "kept"
+      }
+    },
+    {
+      "from": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept"
+      },
+      "key": "outcome",
+      "value": "",
+      "result": {
+        "kind": "send",
+        "carries": "order",
+        "note": "kept"
+      }
+    },
+    {
+      "from": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept"
+      },
+      "key": "reason",
+      "value": "Why",
+      "result": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept",
+        "reason": "Why"
+      }
+    },
+    {
+      "from": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept"
+      },
+      "key": "by",
+      "value": "cache",
+      "result": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept",
+        "by": "cache"
+      }
+    },
+    {
+      "from": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept"
+      },
+      "key": "byName",
+      "value": "Tap",
+      "result": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept",
+        "by": {
+          "name": "Tap"
+        }
+      }
+    },
+    {
+      "from": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept"
+      },
+      "key": "share",
+      "value": "40",
+      "result": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "order",
+        "note": "kept",
+        "share": "40"
+      }
+    },
+    {
+      "from": "call",
+      "key": "kind",
+      "value": "send",
+      "result": "send"
+    },
+    {
+      "from": "call",
+      "key": "kind",
+      "value": "callback",
+      "result": "callback"
+    },
+    {
+      "from": "call",
+      "key": "outcome",
+      "value": "delayed",
+      "result": {
+        "kind": "call",
+        "outcome": "delayed"
+      }
+    },
+    {
+      "from": "call",
+      "key": "outcome",
+      "value": "",
+      "result": "call"
+    },
+    {
+      "from": "call",
+      "key": "reason",
+      "value": "Why",
+      "result": {
+        "kind": "call",
+        "reason": "Why"
+      }
+    },
+    {
+      "from": "call",
+      "key": "by",
+      "value": "cache",
+      "result": {
+        "kind": "call",
+        "by": "cache"
+      }
+    },
+    {
+      "from": "call",
+      "key": "byName",
+      "value": "Tap",
+      "result": {
+        "kind": "call",
+        "by": {
+          "name": "Tap"
+        }
+      }
+    },
+    {
+      "from": "call",
+      "key": "share",
+      "value": "40",
+      "result": {
+        "kind": "call",
+        "share": "40"
+      }
+    },
+    {
+      "from": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Proxy"
+        },
+        "reason": "x"
+      },
+      "key": "kind",
+      "value": "send",
+      "result": {
+        "kind": "send",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Proxy"
+        },
+        "reason": "x"
+      }
+    },
+    {
+      "from": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Proxy"
+        },
+        "reason": "x"
+      },
+      "key": "kind",
+      "value": "callback",
+      "result": "callback"
+    },
+    {
+      "from": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Proxy"
+        },
+        "reason": "x"
+      },
+      "key": "outcome",
+      "value": "delayed",
+      "result": {
+        "kind": "call",
+        "outcome": "delayed",
+        "reason": "x"
+      }
+    },
+    {
+      "from": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Proxy"
+        },
+        "reason": "x"
+      },
+      "key": "outcome",
+      "value": "",
+      "result": "call"
+    },
+    {
+      "from": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Proxy"
+        },
+        "reason": "x"
+      },
+      "key": "reason",
+      "value": "Why",
+      "result": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Proxy"
+        },
+        "reason": "Why"
+      }
+    },
+    {
+      "from": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Proxy"
+        },
+        "reason": "x"
+      },
+      "key": "by",
+      "value": "cache",
+      "result": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": "cache",
+        "reason": "x"
+      }
+    },
+    {
+      "from": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Proxy"
+        },
+        "reason": "x"
+      },
+      "key": "byName",
+      "value": "Tap",
+      "result": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Tap"
+        },
+        "reason": "x"
+      }
+    },
+    {
+      "from": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Proxy"
+        },
+        "reason": "x"
+      },
+      "key": "share",
+      "value": "40",
+      "result": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Proxy"
+        },
+        "reason": "x",
+        "share": "40"
+      }
+    }
+  ],
   "marks": [
     {
       "animation": "send",

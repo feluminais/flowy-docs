@@ -149,6 +149,46 @@ public class BeatsTests
         Assert.Contains(all, m => !m!["marks"]!.GetValue<bool>());
     }
 
+    /// <summary>An animation as the pickers make it (a bare kind, or a mapping), as the JSON the fixtures hold.</summary>
+    private static JsonNode? Node(object? animation) => animation switch
+    {
+        null => null,
+        string s => JsonValue.Create(s),
+        OrderedDictionary<string, object?> map => new JsonObject(map.Select(kv => KeyValuePair.Create(kv.Key, Node(kv.Value)))),
+        _ => throw new InvalidOperationException("an animation is text or a mapping"),
+    };
+
+    [Fact]
+    public void The_pickers_offer_the_same_drawings_and_block_the_same_choices()
+    {
+        var sketches = Expected()["sketches"]!;
+        Assert.Equal(sketches["kinds"]!.AsArray().Select(k => (k![0]!.GetValue<string>(), k[1]!.GetValue<string>())), Animations.KindSketches);
+        Assert.Equal(sketches["outcomes"]!.AsArray().Select(k => (k![0]!.GetValue<string>(), k[1]!.GetValue<string>())), Animations.OutcomeSketches);
+        var blocks = Expected()["blocks"]!.AsArray();
+        Assert.True(blocks.Count > 40);
+        foreach (var b in blocks) Assert.Equal(b!["block"]?.GetValue<string>(), Animations.OutcomeBlock(b["kind"]?.GetValue<string>(), b["outcome"]!.GetValue<string>()));
+    }
+
+    [Fact]
+    public void Picking_in_edit_mode_builds_the_same_animation_as_the_browser()
+    {
+        var chains = Expected()["picks"]!.AsArray();
+        Assert.True(chains.Count >= 5);
+        foreach (var chain in chains)
+        {
+            object? current = null;
+            foreach (var pick in chain!.AsArray())
+            {
+                current = Animations.With(current, pick!["key"]!.GetValue<string>(), pick["value"]!.GetValue<string>());
+                Assert.Equal(JsonDump.Pretty(pick["result"]), JsonDump.Pretty(Node(current)));
+            }
+        }
+        var from = Expected()["picksFrom"]!.AsArray();
+        Assert.True(from.Count >= 30);
+        foreach (var pick in from)
+            Assert.Equal(JsonDump.Pretty(pick!["result"]), JsonDump.Pretty(Node(Animations.With(YamlWriterTests.Tree(pick["from"]), pick["key"]!.GetValue<string>(), pick["value"]!.GetValue<string>()))));
+    }
+
     [Fact]
     public void A_long_word_is_cut_the_way_the_browser_cuts_it()
     {
