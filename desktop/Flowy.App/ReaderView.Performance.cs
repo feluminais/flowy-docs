@@ -56,6 +56,7 @@ internal sealed partial class ReaderView
         _runId = PerfView.ActiveRun(runs, _runId);
         if (LoadTest is { } run) _pos = _posNow = StartPos(run);
         _details = false; // so that closing it again doesn't leave Details open in its place
+        if (_tab == PanelTab.Failures) _tab = null; // its marks and the load's traffic would draw over each other
         _perf = true;
         _ramping = false;
         Refresh();

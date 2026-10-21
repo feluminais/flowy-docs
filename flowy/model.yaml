@@ -111,14 +111,14 @@ objects:
       Two readers must give the same answers, so a Node script runs the TypeScript over fixture
       folders and the canvas's own functions, and the C# tests must reproduce every number. That
       includes the beats of a step's animation and the maths that draws them, the navigator's rows, flow groups and keys, and how a
-      load-test run reads, rolls up, struggles and is drawn. A root
+      load-test run reads, rolls up, struggles and is drawn, and how a failure analysis ranks, rolls up, lights a picked row and is checked. A root
       test fails if the TypeScript changes without the fixtures being written again.
   desktop-canvas:
     type: component
     in: desktop
     name: Canvas and reader
     tech: Avalonia
-    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs, desktop/Flowy.App/Navigator.cs, desktop/Flowy.App/ExplorerView.cs, desktop/Flowy.App/FlowsView.cs, desktop/Flowy.App/PerfPanel.cs, desktop/Flowy.App/ReaderView.Performance.cs, desktop/Flowy.App/StateMarks.cs]
+    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs, desktop/Flowy.App/Navigator.cs, desktop/Flowy.App/ExplorerView.cs, desktop/Flowy.App/FlowsView.cs, desktop/Flowy.App/PerfPanel.cs, desktop/Flowy.App/ReaderView.Performance.cs, desktop/Flowy.App/StateMarks.cs, desktop/Flowy.App/FailuresPanel.cs, desktop/Flowy.App/ReaderView.Failures.cs]
     description: |
       Shapes are controls on a stage that moves with the camera, with one layer behind them for the
       frame and the lines. The reader holds what you've chosen: the view, the open panel, the flow
@@ -365,11 +365,11 @@ objects:
     type: component
     in: canvas
     name: Failures tab
-    code: [ui/src/Failures.tsx, ui/src/FailuresEdit.tsx, ui/src/failuresview.ts]
+    code: [ui/src/Failures.tsx, ui/src/FailuresEdit.tsx, ui/src/failuresview.ts, desktop/Flowy.App/FailuresPanel.cs, desktop/Flowy.App/ReaderView.Failures.cs, desktop/Flowy.App/Canvas/FailureOverlay.cs]
     description: |
       Lists the rows of an analysis worst first, puts a risk mark on each shape and line, and lights what a picked row hurts. In edit mode it holds the forms that write a row.
 
-      It is browser only for now: the desktop app does not read `failures/` yet.
+      The desktop app has it too, as a tab on the left beside Explorer and Flows and read only: a C# port of the same lists, badges and words, held equal by fixtures. It has no forms for an analysis yet.
   navigator:
     type: component
     in: canvas

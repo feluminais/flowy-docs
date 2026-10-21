@@ -35,10 +35,10 @@ opens it. Its `code:` paths point at placeholder files beside it, so the canvas 
 four runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute,
 the same test after a fix, courier pings with a `source` that sets a colour and a dot scale, and Stripe going down at 40 s and coming back at 85 s, a run over time; the file names sort so the demo still opens on the dinner rush); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
 is a fourteen-mode failure analysis with made-up ratings, and it names shapes, connections, flows and a run in the same way. The screenshots in
-`docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
+`docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one, 1280 by 1000 for the failures one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
 `--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups, `--view ordering --flow stripe-outage --step 3` for `desktop-states.png`,
-`--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, `--view ordering --run stripe-outage --tab performance --at 70` (1280 by 760) for `desktop-time.png`, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
+`--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, `--view ordering --run stripe-outage --tab performance --at 70` (1280 by 760) for `desktop-time.png`, `--view ordering --tab failures --select stripe-timeout` (1280 by 1000) for the failures one, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
 Retake them when the app changes how it looks.
 
 `docs/images/hero.png`, the picture at the top of the README, is cut from those screenshots. After retaking them, run
@@ -156,7 +156,7 @@ dotnet run --project desktop/Flowy.App -- docs/demo --shot out.png         # sav
 
 `--shot` takes flags that set up what the picture shows: `--view ordering`, `--select order-api`, `--line "web order-api"`,
 `--hover "web order-api"`, `--flow place-order --step 1`, `--search re`, `--shortcuts`, `--run stripe-outage --tab performance --at 70` (the Performance panel on
-a run, at a time or load), `--zoom ordering --delay 200` (a frame of the
+a run, at a time or load), `--tab failures --select stripe-timeout` (with Failures open, `--select` picks a failure mode when the id is one), `--zoom ordering --delay 200` (a frame of the
 zoom), `--lines curved`, `--theme dark`, `--size 1100x700`. Check a visual change by looking at pictures next to
 `docs/images/desktop-*.png`. `FLOWY_REDUCE_MOTION=1` turns animation off.
 
@@ -211,6 +211,16 @@ Before merging a change to the app, look at what it could affect, in a real wind
       struggles), and the Key at the bottom draws each mark it names (Busy, Waiting, Not measured, a call, a failing call, More calls) with no
       sentences; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
       are no dots and no Ramp button, and the outlines, thickness, numbers and strip still show. Light and dark both read.
+- [ ] `dotnet run --project desktop/Flowy.App -- docs/demo --view ordering --tab failures --select stripe-timeout`: the left rail has a Failures button under
+      Flows with a 14 on it, and M opens its tab beside Explorer and Flows, with Details free on the right (a shape picked on the canvas reads out there and
+      narrows the list). Opening Performance closes it. It only reads: there are no forms, and while editing the button is greyed out
+      with "Failures (not while editing)" in its tooltip. Order API wears a red 2 and is outlined red, so is Stripe, the line between them wears an amber 2 and
+      is red, Kitchen tablet and Customer app are in a lighter outline and the rest fades. The panel reads Risk 96 Medium and "After: 96 to 32", and the
+      key draws a dot for each band that has modes, then Fails and Affects. The list runs Refunds (126), Orders DB (20) and on down; a click on a row picks
+      it and a second click puts it away; ← → step down the list and stop at its ends; a click on a shape narrows the list to its modes and the chip clears
+      it; a band button filters and "Not analysed (11)" lists the shapes left. Show it plays The payment is captured; Seen in a run on ETA to Mapbox opens
+      Performance on its first level with errors; Copy as table and Copy as CSV put the ranked list on the clipboard. Esc closes the tab (until you click
+      the diagram), and the marks go with it. Light and dark both read.
 - [ ] Click Order API: its panel opens and the view moves it out from under the panel. Click a name in the panel's Out list: the panel
       switches. Open "5 connections": each label shows. Point at a row: its line lights up on the canvas.
 - [ ] Pick "Customer places an order" in Ordering: ← and → step, Home and End jump, Esc stops, and the player card shows "More".

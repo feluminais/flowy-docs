@@ -43,6 +43,18 @@ public class FolderWatcherTests
     }
 
     [Fact]
+    public void A_failure_analysis_saved_in_failures_is_noticed_too()
+    {
+        using var temp = new TempDir();
+        Directory.CreateDirectory(Path.Combine(temp.Dir, "failures"));
+        using var watcher = new FolderWatcher(temp.Dir, TimeSpan.FromMilliseconds(30));
+        using var seen = new ManualResetEventSlim();
+        watcher.Changed += seen.Set;
+        temp.Write("failures/ordering.yaml", "name: Ordering\n");
+        Assert.True(seen.Wait(Patience));
+    }
+
+    [Fact]
     public void Several_saves_in_a_burst_wake_it_once()
     {
         using var temp = new TempDir();

@@ -9,7 +9,7 @@ public enum Move { In, Out, Across }
 public sealed record BoxLine(string From, string To, string Other, IReadOnlyList<Connection> Connections);
 
 /// <summary>Where the canvas shows a problem: the view to open, and the box, line or flow step in it.</summary>
-public sealed record Spot(string View, string? Object = null, (string From, string To)? Line = null, string? Flow = null, int? Step = null);
+public sealed record Spot(string View, string? Object = null, (string From, string To)? Line = null, string? Flow = null, int? Step = null, (string Analysis, string? Mode)? Failure = null);
 
 /// <summary>What one press of Escape closes, innermost first.</summary>
 public enum EscapeStep { Shortcuts, Navigator, Flow, Panel, Up }
@@ -55,6 +55,9 @@ public static partial class Navigation
     [GeneratedRegex(@"^flows/(.+)\.yaml$")]
     private static partial Regex FlowFile();
 
+    [GeneratedRegex(@"^failures/(.+)\.yaml\z")]
+    private static partial Regex FailureFile();
+
     public static Spot Locate(Model model, Problem problem)
     {
         if (problem.Id is not null && model.GetObject(problem.Id) is not null) return new Spot(Views.ParentOf(model, problem.Id), problem.Id);
@@ -67,6 +70,15 @@ public static partial class Navigation
             foreach (var view in Views.Chain(model, end))
                 if (Views.PlaceEnds(model, view, c.From, c.To) is { } line) return new Spot(view, Line: line);
             return new Spot(Views.ParentOf(model, end), end);
+        }
+        var failure = FailureFile().Match(problem.File);
+        if (failure.Success && model.Failures.Contains(failure.Groups[1].Value))
+        {
+            // A mode's problems start with its id and ": " (the id is no shape id: it never names an object). The longest id that fits is the mode.
+            var aid = failure.Groups[1].Value;
+            var modes = model.Failures[aid].Modes;
+            var mode = modes.Keys.Where(id => problem.Message.StartsWith($"{id}: ", StringComparison.Ordinal)).OrderByDescending(id => id.Length).FirstOrDefault();
+            return mode is null ? new Spot(Names.Root, Failure: (aid, null)) : new Spot(Failures.HomeView(model, modes[mode]), Failure: (aid, mode));
         }
         var flow = FlowFile().Match(problem.File);
         if (flow.Success && model.Flows.Contains(flow.Groups[1].Value))

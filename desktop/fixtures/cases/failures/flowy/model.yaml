@@ -1,0 +1,41 @@
+objects:
+  customer:
+    type: actor
+    name: Customer
+  shop:
+    type: system
+    name: Shop
+    description: Sells things online.
+  web:
+    type: app
+    in: shop
+    name: Web app
+    tech: React
+  api:
+    type: app
+    in: shop
+    name: API
+    tech: Node
+  db:
+    type: store
+    in: shop
+    name: Orders DB
+    tech: Postgres
+  auth:
+    type: component
+    in: api
+    name: Auth
+  orders:
+    type: component
+    in: api
+    name: Orders
+  mail:
+    type: system
+    name: Mail service
+    external: "true"
+connections:
+  - { from: customer, to: web, label: browses }
+  - { from: web, to: api, label: REST }
+  - { from: orders, to: db, label: reads and writes }
+  - { from: auth, to: db, label: checks users }
+  - { from: orders, to: mail, label: sends receipts }
