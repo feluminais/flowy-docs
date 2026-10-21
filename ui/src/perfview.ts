@@ -1,6 +1,7 @@
+import { colorPair } from '../../src/core/look.ts'
 import type { Model } from '../../src/core/model.ts'
 import { interpolate, rollUp } from '../../src/core/perf.ts'
-import type { Metrics, Run } from '../../src/core/perf.ts'
+import type { LineTraffic, Metrics, Run } from '../../src/core/perf.ts'
 
 /** The maths and the words of the Performance tab, kept apart from the drawing so the node tests can run them. No DOM in here. */
 
@@ -157,4 +158,25 @@ export function boxAt(model: Model, run: Run, view: string, id: string, load: nu
 /** A line's numbers at a load. */
 export function lineAt(model: Model, run: Run, view: string, from: string, to: string, load: number): Metrics | undefined {
   return rollUp(model, interpolate(run, load), view).lines.find(p => p.from === from && p.to === to)
+}
+
+// ---- Colour and key
+
+/** A source's colour as CSS: a named colour in both themes through light-dark(), a hex as it is. Undefined for text that is neither. */
+export function sourceCss(color: string | undefined): string | undefined {
+  const pair = colorPair(color)
+  return pair === undefined ? undefined : pair[0] === pair[1] ? pair[0] : `light-dark(${pair[0]}, ${pair[1]})`
+}
+
+/**
+ * Which kinds of failing call are on the lines now, for the key to draw: the usual fade (for a line that fails without saying how, and also while
+ * no line fails, so the key of a run that sets nothing is as it was), a lost call, a rejected one.
+ */
+export function failureMarks(lines: readonly Pick<LineTraffic, 'failed' | 'failure'>[]): { fade: boolean; lost: boolean; rejected: boolean } {
+  const failing = lines.filter(l => l.failed > 0)
+  return {
+    fade: failing.length === 0 || failing.some(l => l.failure === undefined),
+    lost: failing.some(l => l.failure === 'lost'),
+    rejected: failing.some(l => l.failure === 'rejected'),
+  }
 }
