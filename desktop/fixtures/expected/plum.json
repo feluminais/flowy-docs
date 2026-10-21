@@ -1148,7 +1148,7 @@
         {
           "from": "courier-app",
           "to": "dispatch",
-          "text": "Accepts",
+          "text": "Accepts, and the offers stop",
           "group": "result",
           "lane": "A courier accepts",
           "placed": [
@@ -1305,7 +1305,7 @@
         },
         {
           "from": "refunds",
-          "text": "Leaves the order marked paid",
+          "text": "Leaves the order marked paid, though the money is back",
           "placed": [
             "order-api",
             "order-api"

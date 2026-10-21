@@ -3099,6 +3099,57 @@
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
+      "rel": "flows/no-courier-answers.yaml",
+      "data": {
+        "name": "No courier answers",
+        "view": "delivery",
+        "groups": {
+          "offer": {
+            "kind": "repeat",
+            "until": "a courier accepts, or the list runs out",
+            "text": "One courier at a time, nearest first. Each has 30 seconds."
+          },
+          "result": {
+            "kind": "branch"
+          }
+        },
+        "steps": [
+          {
+            "from": "offers",
+            "to": "notifier",
+            "text": "Offers the job to the nearest courier",
+            "group": "offer"
+          },
+          {
+            "from": "offers",
+            "text": "Hears nothing within 30 seconds and moves on to the next courier",
+            "group": "offer"
+          },
+          {
+            "from": "courier-app",
+            "to": "dispatch",
+            "text": "Accepts, and the offers stop",
+            "group": "result",
+            "lane": "A courier accepts"
+          },
+          {
+            "from": "offers",
+            "to": "notifier",
+            "text": "Tells the customer that no courier is free yet",
+            "group": "result",
+            "lane": "The list runs out"
+          },
+          {
+            "from": "dispatch",
+            "text": "Searches again in a minute",
+            "group": "result"
+          }
+        ]
+      },
+      "text": "name: No courier answers\nview: delivery\ngroups:\n  offer:\n    kind: repeat\n    until: a courier accepts, or the list runs out\n    text: One courier at a time, nearest first. Each has 30 seconds.\n  result:\n    kind: branch\nsteps:\n  - from: offers\n    to: notifier\n    text: Offers the job to the nearest courier\n    group: offer\n  - from: offers\n    text: Hears nothing within 30 seconds and moves on to the next courier\n    group: offer\n  - from: courier-app\n    to: dispatch\n    text: Accepts, and the offers stop\n    group: result\n    lane: A courier accepts\n  - from: offers\n    to: notifier\n    text: Tells the customer that no courier is free yet\n    group: result\n    lane: The list runs out\n  - from: dispatch\n    text: Searches again in a minute\n    group: result\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
       "rel": "flows/place-order.yaml",
       "data": {
         "name": "Customer places an order",
@@ -3145,6 +3196,43 @@
         ]
       },
       "text": "name: Customer places an order\nview: ordering\nsteps:\n  - from: customer\n    to: customer-app\n    text: Fills a basket and taps Place order\n  - from: customer-app\n    to: order-api\n    text: POST /orders with the basket\n    description: |\n      The app sends an idempotency key with the request, so a double tap or a retry on a bad\n      connection places one order, not two.\n  - from: order-api\n    to: stripe\n    text: Holds the amount on the card\n    description: |\n      **Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\n      once the restaurant accepts, and the hold is released if it refuses.\n  - from: order-api\n    to: orders-db\n    text: Saves the order as placed\n  - from: order-api\n    to: events\n    text: Announces the order\n  - from: events\n    to: dispatch\n    text: Dispatch starts looking for a courier\n  - from: order-api\n    to: kitchen-tablet\n    text: The restaurant's tablet rings\n    description: |\n      The kitchen has two minutes to accept. After that the order is cancelled, the hold is\n      released and the customer is told.\n"
+    },
+    {
+      "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
+      "rel": "flows/refund-not-recorded.yaml",
+      "data": {
+        "name": "The refund is not recorded",
+        "view": "ordering",
+        "steps": [
+          {
+            "from": "refunds",
+            "to": "stripe",
+            "text": "Stripe has refunded the charge",
+            "animation": "call",
+            "description": "The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.\n"
+          },
+          {
+            "from": "refunds",
+            "to": "orders-db",
+            "text": "Can't mark the order refunded, because Orders DB doesn't answer",
+            "animation": {
+              "kind": "call",
+              "outcome": "timeout"
+            },
+            "description": "The refund and the write are two steps, so one can happen without the other.\n"
+          },
+          {
+            "from": "refunds",
+            "text": "Leaves the order marked paid, though the money is back"
+          },
+          {
+            "from": "refunds",
+            "to": "notifier",
+            "text": "Still sends the customer a refund confirmation"
+          }
+        ]
+      },
+      "text": "name: The refund is not recorded\nview: ordering\nsteps:\n  - from: refunds\n    to: stripe\n    text: Stripe has refunded the charge\n    animation: call\n    description: |\n      The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.\n  - from: refunds\n    to: orders-db\n    text: Can't mark the order refunded, because Orders DB doesn't answer\n    animation:\n      kind: call\n      outcome: timeout\n    description: |\n      The refund and the write are two steps, so one can happen without the other.\n  - from: refunds\n    text: Leaves the order marked paid, though the money is back\n  - from: refunds\n    to: notifier\n    text: Still sends the customer a refund confirmation\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
@@ -7252,6 +7340,57 @@
     },
     {
       "folder": "docs/demo/flowy",
+      "rel": "flows/no-courier-answers.yaml",
+      "data": {
+        "name": "No courier answers",
+        "view": "delivery",
+        "groups": {
+          "offer": {
+            "kind": "repeat",
+            "until": "a courier accepts, or the list runs out",
+            "text": "One courier at a time, nearest first. Each has 30 seconds."
+          },
+          "result": {
+            "kind": "branch"
+          }
+        },
+        "steps": [
+          {
+            "from": "offers",
+            "to": "notifier",
+            "text": "Offers the job to the nearest courier",
+            "group": "offer"
+          },
+          {
+            "from": "offers",
+            "text": "Hears nothing within 30 seconds and moves on to the next courier",
+            "group": "offer"
+          },
+          {
+            "from": "courier-app",
+            "to": "dispatch",
+            "text": "Accepts, and the offers stop",
+            "group": "result",
+            "lane": "A courier accepts"
+          },
+          {
+            "from": "offers",
+            "to": "notifier",
+            "text": "Tells the customer that no courier is free yet",
+            "group": "result",
+            "lane": "The list runs out"
+          },
+          {
+            "from": "dispatch",
+            "text": "Searches again in a minute",
+            "group": "result"
+          }
+        ]
+      },
+      "text": "name: No courier answers\nview: delivery\ngroups:\n  offer:\n    kind: repeat\n    until: a courier accepts, or the list runs out\n    text: One courier at a time, nearest first. Each has 30 seconds.\n  result:\n    kind: branch\nsteps:\n  - from: offers\n    to: notifier\n    text: Offers the job to the nearest courier\n    group: offer\n  - from: offers\n    text: Hears nothing within 30 seconds and moves on to the next courier\n    group: offer\n  - from: courier-app\n    to: dispatch\n    text: Accepts, and the offers stop\n    group: result\n    lane: A courier accepts\n  - from: offers\n    to: notifier\n    text: Tells the customer that no courier is free yet\n    group: result\n    lane: The list runs out\n  - from: dispatch\n    text: Searches again in a minute\n    group: result\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
       "rel": "flows/place-order.yaml",
       "data": {
         "name": "Customer places an order",
@@ -7298,6 +7437,43 @@
         ]
       },
       "text": "name: Customer places an order\nview: ordering\nsteps:\n  - from: customer\n    to: customer-app\n    text: Fills a basket and taps Place order\n  - from: customer-app\n    to: order-api\n    text: POST /orders with the basket\n    description: |\n      The app sends an idempotency key with the request, so a double tap or a retry on a bad\n      connection places one order, not two.\n  - from: order-api\n    to: stripe\n    text: Holds the amount on the card\n    description: |\n      **Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\n      once the restaurant accepts, and the hold is released if it refuses.\n  - from: order-api\n    to: orders-db\n    text: Saves the order as placed\n  - from: order-api\n    to: events\n    text: Announces the order\n  - from: events\n    to: dispatch\n    text: Dispatch starts looking for a courier\n  - from: order-api\n    to: kitchen-tablet\n    text: The restaurant's tablet rings\n    description: |\n      The kitchen has two minutes to accept. After that the order is cancelled, the hold is\n      released and the customer is told.\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "flows/refund-not-recorded.yaml",
+      "data": {
+        "name": "The refund is not recorded",
+        "view": "ordering",
+        "steps": [
+          {
+            "from": "refunds",
+            "to": "stripe",
+            "text": "Stripe has refunded the charge",
+            "animation": "call",
+            "description": "The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.\n"
+          },
+          {
+            "from": "refunds",
+            "to": "orders-db",
+            "text": "Can't mark the order refunded, because Orders DB doesn't answer",
+            "animation": {
+              "kind": "call",
+              "outcome": "timeout"
+            },
+            "description": "The refund and the write are two steps, so one can happen without the other.\n"
+          },
+          {
+            "from": "refunds",
+            "text": "Leaves the order marked paid, though the money is back"
+          },
+          {
+            "from": "refunds",
+            "to": "notifier",
+            "text": "Still sends the customer a refund confirmation"
+          }
+        ]
+      },
+      "text": "name: The refund is not recorded\nview: ordering\nsteps:\n  - from: refunds\n    to: stripe\n    text: Stripe has refunded the charge\n    animation: call\n    description: |\n      The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.\n  - from: refunds\n    to: orders-db\n    text: Can't mark the order refunded, because Orders DB doesn't answer\n    animation:\n      kind: call\n      outcome: timeout\n    description: |\n      The refund and the write are two steps, so one can happen without the other.\n  - from: refunds\n    text: Leaves the order marked paid, though the money is back\n  - from: refunds\n    to: notifier\n    text: Still sends the customer a refund confirmation\n"
     },
     {
       "folder": "docs/demo/flowy",

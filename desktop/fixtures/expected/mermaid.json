@@ -101,7 +101,7 @@
         },
         {
           "flow": "no-courier-answers",
-          "text": "sequenceDiagram\n  participant n0 as Dispatch\n  participant n1 as Notifications\n  participant n2 as Courier app\n  loop Until a courier accepts, or the list runs out: One courier at a time, nearest first. Each has 30 seconds.\n    n0->>n1: Offers the job to the nearest courier\n    Note over n0: Hears nothing within 30 seconds and moves on to the next courier\n  end\n  alt A courier accepts\n    n2->>n0: Accepts\n  else The list runs out\n    n0->>n1: Tells the customer that no courier is free yet\n    Note over n0: Searches again in a minute\n  end\n"
+          "text": "sequenceDiagram\n  participant n0 as Dispatch\n  participant n1 as Notifications\n  participant n2 as Courier app\n  loop Until a courier accepts, or the list runs out: One courier at a time, nearest first. Each has 30 seconds.\n    n0->>n1: Offers the job to the nearest courier\n    Note over n0: Hears nothing within 30 seconds and moves on to the next courier\n  end\n  alt A courier accepts\n    n2->>n0: Accepts, and the offers stop\n  else The list runs out\n    n0->>n1: Tells the customer that no courier is free yet\n    Note over n0: Searches again in a minute\n  end\n"
         },
         {
           "flow": "place-order",
@@ -109,7 +109,7 @@
         },
         {
           "flow": "refund-not-recorded",
-          "text": "sequenceDiagram\n  participant n0 as Order API\n  participant n1 as Stripe\n  participant n2 as Orders DB\n  participant n3 as Notifications\n  n0->>n1: Stripe has refunded the charge\n  n0->>n2: Can't mark the order refunded, because Orders DB doesn't answer\n  Note over n0: Leaves the order marked paid\n  n0->>n3: Still sends the customer a refund confirmation\n"
+          "text": "sequenceDiagram\n  participant n0 as Order API\n  participant n1 as Stripe\n  participant n2 as Orders DB\n  participant n3 as Notifications\n  n0->>n1: Stripe has refunded the charge\n  n0->>n2: Can't mark the order refunded, because Orders DB doesn't answer\n  Note over n0: Leaves the order marked paid, though the money is back\n  n0->>n3: Still sends the customer a refund confirmation\n"
         },
         {
           "flow": "refund",
