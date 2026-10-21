@@ -173,7 +173,7 @@ Severity, Likelihood and Hard to spot (10 means nobody would notice). A Failures
 A mode looks like this:
 
 ```yaml
-name: Order to door
+name: Plum fail scenario
 modes:
   stripe-timeout:
     from: checkout
@@ -191,13 +191,13 @@ modes:
 ```
 
 What a mode affects is written by hand. Flowy doesn't work it out from the lines, because a line's direction means different things.
-Plum has an analysis with made-up ratings, [Order to door](docs/demo/flowy/failures/ordering.yaml). From a clone, run
+Plum has an analysis with made-up ratings, [Plum fail scenario](docs/demo/flowy/failures/ordering.yaml). From a clone, run
 `node dist/cli.js --dir docs/demo/flowy` and press **M**. Claude reads and writes analyses through the MCP server (`get_failures`,
 `put_failure`), and `node /path/to/flowy-docs/dist/cli.js failures` prints the ranked table, or a CSV with `--format csv`. It exits with
 an error when a file has a problem, so a CI job can use it. The format, the ranking and the names are in
 [the guide](docs/guide.md#failure-modes).
 
-A second analysis reads parts of the workflow engine [Conductor OSS](https://github.com/conductor-oss/conductor) from its code: seventeen modes, each with the files it came from. It is kept in the maintainer's clone of Conductor and is not published. [CONTRIBUTING](CONTRIBUTING.md#the-conductor-analysis) says how to build a clone like it. Flowy's own folder has an analysis too, [How Flowy fails](flowy/failures/flowy.yaml).
+A second analysis reads parts of the workflow engine [Conductor OSS](https://github.com/conductor-oss/conductor) from its code: seventeen modes, each with the files it came from. It is kept in the maintainer's clone of Conductor and is not published. [CONTRIBUTING](CONTRIBUTING.md#the-conductor-analysis) says how to build a clone like it. Flowy's own folder has an analysis too, [Flowy fail scenario](flowy/failures/flowy.yaml).
 
 Failure modes show in the browser version and in an exported page. The desktop app doesn't draw them yet.
 
