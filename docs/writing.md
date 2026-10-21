@@ -126,16 +126,17 @@ A store's Data section is a picture of what it holds, for a developer who wants 
 
 ## Label connections
 
-A line says that two shapes are connected. Its label says how. Lines show their labels on hover or when a shape is selected, so a label is always read next to the two names. Make it true when read that way.
+A line says that two shapes are connected, and its arrow says which way. Its label says how. Lines show their labels on hover or when a shape is selected, on the arrow and next to the two names. Make it true when read that way.
 
 - **Label every line.**
-- **Write what the source does, from its side:** a verb phrase that reads as a sentence from source to target. Plum: "asks for totals" (Basket to Pricing), "holds the card" (Checkout to Stripe), "refunds the charge" (Refunds to Stripe).
-- **Say what moves.** Avoid "uses", "calls", "talks to", "data", "API". "Sends customer update events to" beats "customer updates".
+- **Write what the source does, from its side:** a verb and what moves. Plum: "asks for totals" (Basket to Pricing), "holds the card" (Checkout to Stripe), "refunds the charge" (Refunds to Stripe).
+- **Don't end on a preposition.** The arrow already says where it goes, so "publishes status" is complete and "publishes status to" is not. A preposition that belongs to the verb and has its object stays: "subscribes to status updates", "signs in with Auth0".
+- **Say what moves.** Avoid "uses", "calls", "talks to", "data", "API". "Sends customer update events" beats "customer updates".
 - **A few words,** two to five. Detail goes in the panel or in a step's More, and code doesn't go in a label.
 - **Run from whoever starts it.** A reply isn't a connection, so show it in a flow. Draw two lines only when each side starts something of its own, such as a server that pushes events to a client that also makes requests.
-- **One line per relationship, not per feature.** The line says "Browses and makes purchases using". A flow step says "Requests the top 20 books from". Feature detail belongs in flows.
-- **Name the protocol only where it matters,** in brackets at the end ("Sends requests to (JSON/HTTPS)"), or leave it to the target's `tech`. A line has no tech field of its own.
-- **Keep a small set of verbs and give each one meaning:** sends requests to, fetches data from, reads from, writes to, publishes events to, subscribes to, authenticates with. Don't use "pushes to", "sends to" and "posts to" for one handover.
+- **One line per relationship, not per feature.** The line says "Browses and makes purchases". A flow step says "Requests the top 20 books". Feature detail belongs in flows.
+- **Name the protocol only where it matters,** in brackets at the end ("Sends requests (JSON/HTTPS)"), or leave it to the target's `tech`. A line has no tech field of its own.
+- **Keep a small set of verbs and give each one meaning:** sends requests, fetches data, reads orders, writes orders, publishes events, subscribes to events, authenticates users. Don't switch between "pushes", "sends" and "posts" for one kind of handover.
 - **Connect the most specific shapes you know** (component to store). Zoomed-out views merge the lines on their own.
 
 ## Write flows
@@ -146,7 +147,7 @@ A flow is a walkthrough of one thing happening. It has a name, the view it plays
 - **Name a flow for a goal:** "Customer places an order", not "Order flow".
 - **One trigger, one story,** about 3 to 9 steps. If you can't say it in a sentence, split it. A longer story becomes phases, and the second names what it needs in step 1's More.
 - **Happy path first, and whole.** Give each failure its own flow, whose first step states the condition as a fact ("Stripe declines the card").
-- **The sender is the subject.** Start the text with a verb and say what is handed over: "Hands the order to Billing", "Asks Pricing for the total". One handover per step.
+- **The sender is the subject.** Start the text with a verb and say what is handed over: "Hands over the order", "Asks for the total". One handover per step. A step shows both its ends, so leave the receiver's name out unless the text needs it, and don't end on "to", "from" or another preposition.
 - **Put the intent in the step and the mechanics in More.** "Sends the basket to place the order", then More: "`POST /orders`, with an idempotency key, so a double tap places one order."
 - **Say who waits.** If the sender doesn't wait (it queues the work, fires and forgets, or runs on a timer), say so.
 - **Add a step back only when something new is sent,** or time passes. "Returns approved or declined" earns a step. A bare acknowledgement doesn't. When a shape asks and gets its answer in the same step, say so.
@@ -191,7 +192,7 @@ steps:
     description: Nothing was charged yet, so there's no refund to make.
   - { from: order-api, to: orders-db, text: Marks the order cancelled }
   - { from: order-api, to: events, text: Announces the cancellation and carries on without waiting }
-  - { from: events, to: dispatch, text: "Hands the cancellation to Dispatch, which stops looking for a courier" }
+  - { from: events, to: dispatch, text: "Delivers the cancellation, so the courier search stops" }
 ```
 
 What changed: the sender is the subject in every step, the endpoint moved into More, the hold is something the Order API does to Stripe rather than something Stripe does, the event step says nobody is waited for, and each step says what passes. The last step's text is in double quotes because it holds a comma (the last rule above).
@@ -321,7 +322,7 @@ Claude's usual mistakes are shapes at the wrong level (every class a shape), pla
 - Does every shape have a teaser that says something its name doesn't?
 - Does every app, store and component have a real `tech`?
 - Is every acronym explained where it's used?
-- Does every line have a verb label that reads as a sentence from the source?
+- Does every line have a verb label that says what the source does, with no "to", "from" or "with" left hanging at the end?
 - Is every flow named for a goal, with one trigger and the sender as the subject of each step?
 - Is every one-line step with a comma, a colon or a bracket in its text in double quotes, and does `flowy export` report no problems?
 - Does each level hold a handful of shapes?
