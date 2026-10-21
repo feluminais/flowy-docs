@@ -60,7 +60,7 @@ objects:
     code: [src/cli.ts, flowy.sh, flowy.cmd]
     description: |
       `node dist/cli.js` and what follows it: no argument serves the canvas, `mcp` speaks MCP over
-      stdio, `export` writes a static copy, `mermaid` prints a diagram, `failures` prints the ranked failure table. `flowy.sh` and
+      stdio, `check` lists every problem and exits 1 if there is one, `export` writes a static copy, `mermaid` prints a diagram, `failures` prints the ranked failure table. `flowy.sh` and
       `flowy.cmd` build once and then run the same thing.
 
       `--dir` picks the model folder, `--port` the port (or the next free one), `--no-open` leaves
@@ -224,16 +224,16 @@ objects:
     in: flowy
     name: MCP server
     tech: stdio
-    code: [src/node/mcp.ts]
+    code: [src/node/mcp.ts, src/node/guidance.ts]
     description: |
-      Sixteen tools over stdio: read the model, a view or a Mermaid diagram, and write objects,
-      connections, flows and failure analyses.
+      Seventeen tools over stdio: read the model (all of it, a summary, or one thing), its problems, a view or a Mermaid diagram, and write objects,
+      connections, flows and failure analyses. It also offers prompts for the usual jobs and the guides as resources.
 
       Calls arrive in bursts and run one at a time, in order, so each one sees what the one before
       it wrote. A write that loses a race on the file is retried once.
 
       Its instructions hand Claude the writing rules: survey the repo and check the list first, what
-      earns a shape, and how to word a description, a label and a flow step. Before the first flow
+      earns a shape, how to name one, and how to word a description, a label and a flow step. Before the first flow
       Claude asks how much to animate: None, Key steps or Every step.
   exporter:
     type: app

@@ -1,0 +1,91 @@
+import { existsSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { z } from 'zod'
+
+/** The guides an AI can read over MCP, by file name in docs/. They sit next to src/ and dist/, so they exist in a clone and not in a package of dist alone. */
+const DOCS = [
+  { file: 'format.md', title: 'File format', description: 'Every key of model.yaml, flows, failure analyses and load-test runs, with what each takes. Read it before writing a file by hand.' },
+  { file: 'writing.md', title: 'Writing good Flowy docs', description: 'What to put in a model: which shapes to draw, how to word a teaser, a connection label and a step, and how to keep it true.' },
+  { file: 'guide.md', title: 'Flowy Docs guide', description: 'What every part of the canvas does, how editing, history, export and the desktop app work, and what Claude can change.' },
+] as const
+
+const docsDir = fileURLToPath(new URL('../../docs/', import.meta.url))
+
+/** What every prompt ends with: the check, then the account the user is owed of how much of the model is read and how much guessed. */
+const FINISH = 'When you have written, call get_problems and fix what it lists. Then say what you read from the code, what you inferred and what you left out.'
+
+type Prompt = { title: string; description: string; args?: Record<string, z.ZodType<string | undefined>>; text: (args: Record<string, string | undefined>) => string }
+
+const PROMPTS: Record<string, Prompt> = {
+  'map-repo': {
+    title: 'Map this repo',
+    description: 'Survey the repo first, check the list with the user, then write the model in passes.',
+    args: { focus: z.string().optional().describe('Who will read the model and what they want to know, in one line. Leave out to ask.') },
+    text: ({ focus }) => [
+      `Map this repository into Flowy.${focus ? ` The reader: ${focus}` : ' First ask me who will read the model and what they want to know, in one line.'}`,
+      'Do not write anything yet. Call get_model with summary: true to see what exists, then list the people, apps, stores (databases, caches, named queues and topics) and outside services you can find in the code, each with the file or folder that shows it. Mark the ones we do not own. Leave out anything you cannot point to. I will check the list.',
+      'Then write in passes, and tell me when each is done: (1) shapes with put_object, each with a code path, a teaser and a real tech; (2) connections with connect, each a verb and what moves, never ending on to or from; (3) three to five flows with put_flow, after asking how much to animate; (4) the text. Read the flowy://docs/writing.md resource if you are unsure how to word something.',
+      FINISH,
+    ].join('\n\n'),
+  },
+  'update-after-change': {
+    title: 'Update the model after a code change',
+    description: 'Change only the parts a code change affects, and say what was left alone.',
+    args: { change: z.string().optional().describe('The diff, a branch or a commit, or a sentence on what changed. Leave out to use the uncommitted changes.') },
+    text: ({ change }) => [
+      `Update the Flowy model for this change: ${change || 'the uncommitted changes in the repo'}.`,
+      'Call get_model with summary: true, then object, flow or analysis for only the parts the change touches. Change only those: a renamed shape, a moved code path, a new connection, a step that no longer happens. Do not rewrite text that is still true, and do not delete what you are unsure of. Mark anything you guessed with "Open question: ..." at the end of its description.',
+      'A path that exists proves little: if code changed what a shape does, update its text even though nothing reports a problem.',
+      FINISH,
+    ].join('\n\n'),
+  },
+  'write-flow': {
+    title: 'Write a flow',
+    description: 'Write one flow for a goal, read from the code, one handover to a step.',
+    args: { goal: z.string().describe('What happens, as a goal: "Customer places an order".') },
+    text: ({ goal }) => [
+      `Write a Flowy flow for: ${goal}.`,
+      'Read the code that does it, and get_model with summary: true for the shape ids. Name the flow for the goal, start from its one trigger and tell the happy path whole in 3 to 9 steps. Each step is one handover with the sender as the subject: "Hands over the order", "Asks for the total". Say who waits, put why and timing in the step\'s description, and play it on the view where its ends are separate shapes. Give a failure its own flow. Ask me how much to animate if I have not said.',
+      'put_flow answers with how each step reads on its view: check that it reads like the code works.',
+      FINISH,
+    ].join('\n\n'),
+  },
+  'failure-analysis': {
+    title: 'Write a failure analysis',
+    description: 'Rank how the system breaks, one row to each way a part fails, rating only what can be defended.',
+    args: { scope: z.string().optional().describe('The shape id the analysis covers, or "root" for everything. Leave out to choose.') },
+    text: ({ scope }) => [
+      `Write a Flowy failure analysis${scope ? ` for ${scope}` : ''}.`,
+      'Call get_model with summary: true, and get_model with object for the shapes that matter. One row for each way a part fails, the mode a condition stated as a fact ("Stripe does not answer within five seconds"), the effect what a person or another part then sees. Name the part with on, or a line with from and to. Give severity, occurrence and detection (1 to 10, and 10 for detection means nobody would notice) only where you can defend them, and leave out the rest: a mode with no ratings shows as Not rated. Put what exists today in controls, what to do next in action, the flow that tells it in flow, and the shapes it hurts in affects. If a load-test run shows it, name it in run, one of the ids get_model lists.',
+      'Use put_failures for the analysis and put_failure to change one mode: put_failure replaces the whole mode, so read it with get_model first.',
+      FINISH,
+    ].join('\n\n'),
+  },
+  'review-model': {
+    title: 'Review the model',
+    description: 'Read the model like a reviewer and report what is wrong, without changing anything.',
+    text: () => [
+      'Review the Flowy model. Change nothing: report.',
+      'Call get_problems, then get_model with summary: true, then read what you need in full. Look for: shapes with no code path, or with a path that proves nothing; a name that is only its type ("Database"); two shapes for one thing; a description that restates its name, or opens with "responsible for"; a teaser that leaves out a warning ("Deprecated") that the panel holds; a connection label that is "uses", or ends on to, from or with; a flow with more than one trigger, a step that names its receiver or ends on a preposition, or a happy path that is not whole; a view with more than a dozen shapes; text that will go stale (versions, counts, endpoint lists); a guess not marked "Open question".',
+      'Give each finding as the shape or flow id, what is wrong, and what you would change, worst first.',
+    ].join('\n\n'),
+  },
+}
+
+/** The prompts and the guides the server offers beside its tools, so an AI starts from the way Flowy is meant to be used. */
+export function registerGuidance(server: McpServer): void {
+  for (const [name, { title, description, args, text }] of Object.entries(PROMPTS)) {
+    server.registerPrompt(name, { title, description, ...(args ? { argsSchema: args } : {}) }, (given: Record<string, string | undefined>) => ({
+      messages: [{ role: 'user', content: { type: 'text', text: text(given ?? {}) } }],
+    }))
+  }
+  for (const { file, title, description } of DOCS) {
+    const path = `${docsDir}${file}`
+    if (!existsSync(path)) continue
+    server.registerResource(file.replace(/\.md$/, ''), `flowy://docs/${file}`, { title, description, mimeType: 'text/markdown' }, async uri => ({
+      contents: [{ uri: uri.href, mimeType: 'text/markdown', text: await readFile(path, 'utf8') }],
+    }))
+  }
+}

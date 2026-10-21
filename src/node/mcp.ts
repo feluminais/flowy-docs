@@ -15,6 +15,7 @@ import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
 import { STATE_NAMES } from '../core/states.ts'
 import { GROUP_KINDS } from '../core/structure.ts'
 import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
+import { registerGuidance } from './guidance.ts'
 import { blockedBy, loadDir, loadReport, loadRuns, missingPaths, saveFile, VersionConflict } from './files.ts'
 import type { Report } from './files.ts'
 import type { History } from './history.ts'
@@ -24,19 +25,22 @@ const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML fil
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
 Connect the most specific objects you know (e.g. component → store); zoomed-out views merge lines automatically.
 A flow is a step-by-step walkthrough played on one view: "root" (the top level) or an object with children.
+Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, put_failures and put_failure, put_icon, and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The guides are resources (flowy://docs/format.md for every key, writing.md, guide.md) and the prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs.
 Before you write:
 - Read the existing model first. Reuse exact names and never add a second object for something already there. Change only what was asked: fill blanks, don't overwrite or delete.
 - Add only what you can point to in the repo, and give it a code path. If you can't, leave it out and say so. Don't add a queue, cache or gateway the code doesn't use. A missing shape is better than an invented one.
-- To map a repo, first list the people, apps, stores and outside services you found, each with the file that shows it, and check the list with the user before writing. If you can't tell what something is for, ask; don't guess.
+- To map a repo, first list the people, apps, stores and outside services you found, each with the file that shows it, and check the list with the user before writing. If you can't tell what something is for, ask; don't guess. Then write in passes, shapes, then connections, then flows, then the text, and say when each is done.
 What gets a shape:
 - An app runs on its own; a component is a part inside one running program. A folder, package, library, class or file is not a shape. Leave out what no flow touches (logging, config, deploy plumbing). Keep a view to a handful of shapes, a dozen at most.
 - Mark services you don't own external: true. A database or bucket the system owns is a store inside it, and so is a named queue or topic.
+- Name a shape for what it holds or does ("Orders DB"), never for its type ("Database"), in words a new teammate knows, and use one name for one thing everywhere. Name an outside service for the vendor (Stripe) and say its role in the teaser. Fill tech on every app, store and component with the real stack, short ("Node, Fastify"). Give every app, store and component a code path: two or three, folders before files.
 Looks (shape, color, opacity, icon) are optional; the type already picks a good default:
 - Leave them out unless they say something the type doesn't. A decision is a diamond, a message queue a queue, a file or report a document, a group of shapes a folder, a remark a note. A colour means something only if it means the same everywhere in the model: say what it means in the descriptions that use it, and don't colour for decoration.
 - Leave opacity alone unless you set a colour: it defaults to a light tint. Pick an icon from the built-in list only when it names the thing better than its type's icon does; put_icon adds one of your own.
 Writing text:
 - A description's first paragraph is the hover teaser: a sentence on what the object does for others, in words its name doesn't hold. Start apps and components with a verb. No "responsible for", no praise. Later paragraphs: why, limits, risks. No versions, counts or endpoint lists.
 - A connection label is a few words, a verb and what moves, said from the side that starts it ("publishes order events", "reads menus"). The arrow already shows which way it goes, so never end a label on "to", "from", "with" or another preposition. Never "uses". A reply is not a connection.
+- Put warnings first in the teaser ("Deprecated: ...", "(planned)"), since a reader may stop there. Write for any day: no "currently" or "soon". Behaviour, not implementation: leave out versions, counts and file lists that go stale. Where something is a guess, end its description with "Open question: ..." and never a plausible sentence.
 - Put long documents (runbooks, decision records, specs, wiki pages) in links, not in a description. code: is the files and folders an object lives in.
 Writing code (put_object's snippets), so a panel shows the few lines that explain an object:
 - Only where a few lines say what a sentence can't: a formula, a query, the request or event an object takes. Copy them from the repo as they are, never rewrite or invent them, and leave out secrets, tokens and real data. At most ${SNIPPET_MAX.snippets} snippets of ${SNIPPET_MAX.lines} lines; anything longer is a file, listed in code.
@@ -59,9 +63,9 @@ Writing a flow, so it reads the way the code works:
 Writing failure modes (put_failures, put_failure), when asked for a failure analysis:
 - One row per way a part fails. The mode is a condition stated as a fact ("Stripe doesn't answer within five seconds"). The effect is what a person or another part then sees. Name the part with on (a shape) or with from and to (a line that exists, in that direction).
 - Rate honestly, and leave a rating out rather than guess it: a mode without all three ratings is shown as Not rated. Severity, occurrence and detection are whole numbers from 1 to 10; for detection, 10 means nobody would notice. Severity 9 or 10 is always High.
-- Put what exists today in controls and what to do next in action. Name the flow that tells the failure in flow, and the shapes it hurts in affects. Never work out affects from the direction of the lines.
+- Put what exists today in controls and what to do next in action. Name the flow that tells the failure in flow, and the shapes it hurts in affects. Never work out affects from the direction of the lines. run is the id of a load-test run: get_model lists them under runs, and a run that is not there is refused. You cannot write runs (they are files in perf/, made by a load-testing tool), so leave run out if there are none.
 - put_failure replaces the whole mode: read it with get_model first, which holds every field of a mode (get_failures is only the table), and send every field you want kept.
-After writing: every write is checked, and a write that would add a problem is refused and nothing is saved. Read the answer, fix the cause (find the right path, name or end) and write again. Don't repeat the same call or drop the field to get past it. Finish by saying what you read from the code, what you inferred and what you left out.`
+After writing: every write is checked, and a write that would add a problem is refused and nothing is saved. Read the answer, fix the cause (find the right path, name or end) and write again. Don't repeat the same call or drop the field to get past it. After a run of writes, or after you change a file by hand, call get_problems: no problems means it is sound. Finish by saying what you read from the code, what you inferred and what you left out.`
 
 /**
  * What put_flow answers: each step as a reader will see it on the flow's view. When an end is drawn as
@@ -465,5 +469,6 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     annotations: destructive,
   }, input => write(m => deleteMode(m, input.analysis, input.id), `Deleted ${input.id} from ${input.analysis}.`, mcpLabel('delete_failure', input)))
 
+  registerGuidance(server)
   return server
 }

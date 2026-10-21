@@ -1,6 +1,6 @@
 # Flowy Docs guide
 
-The full detail behind the [README](../README.md): what every part of the canvas does, how editing and undo work, what Claude can change, and how sharing behaves. The examples come from Plum, a made-up delivery service whose model is in [`docs/demo/flowy`](demo/flowy).
+The full detail behind the [README](../README.md): what every part of the canvas does, how editing and undo work, what Claude can change, and how sharing behaves. [The file format](format.md) lists every key of the files, and [Writing good Flowy docs](writing.md) says what to put in them. The examples come from Plum, a made-up delivery service whose model is in [`docs/demo/flowy`](demo/flowy).
 
 What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md).
 
@@ -840,6 +840,12 @@ From the root of the repo you want to document, once the clone is built as the
 claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
+Any other MCP client takes the same command over stdio. Its config looks like this:
+
+```json
+{ "mcpServers": { "flowy": { "command": "node", "args": ["/path/to/flowy-docs/dist/cli.js", "mcp"] } } }
+```
+
 Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and
 `flowy/flows/*.yaml`, and refuses any change that would break the model. Ask how the system fails and it can write a
 [failure analysis](#failure-modes) in `flowy/failures/` too, leaving a rating out rather than guessing it. Add `--dir <folder>`
@@ -873,11 +879,51 @@ reads the way the code works.
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
 notes in an object's `description` instead.
 
+**The tools.** The server has seventeen. What `get_model` shows can be sent straight back to the tool that writes it.
+
+| Tool | Does |
+| --- | --- |
+| `get_model` | Reads the model. `summary: true` gives one short line for each thing, and `object`, `flow` or `analysis` gives that one thing in full. It also lists the load-test runs and the problems |
+| `get_problems` | Lists every problem right now, one line each, or says "No problems." It is `flowy check` ([below](#check-it)) |
+| `get_view` | What one diagram shows: its shapes, the faded ones that connect in, and the lines merged to that zoom level |
+| `get_mermaid` | One view as a flowchart, or one flow as a sequence diagram |
+| `get_failures` | The failure analyses as tables, worst first, with coverage; `format: csv` for a spreadsheet |
+| `put_object`, `delete_object` | A shape and everything on it ([the file format](format.md#an-object)), or removes one that nothing holds or uses |
+| `connect`, `disconnect` | Adds a line from one shape to another, or removes it |
+| `put_flow`, `delete_flow` | A flow with its groups, states and animations, and answers with how each step reads on its view, or removes it |
+| `put_failures`, `delete_failures` | A whole failure analysis, or removes it |
+| `put_failure`, `delete_failure` | One mode of an analysis, or removes it. `run` must be one of the runs `get_model` lists |
+| `put_icon`, `delete_icon` | Your own icon, or removes one nothing uses |
+
+Not over MCP: the project's `lines:`, the load-test runs in `perf/` (a tool writes those) and `layout.yaml`.
+
+Besides tools, the server offers the guides as resources (`flowy://docs/format.md`, `writing.md` and `guide.md`, which a client can read when
+it has the clone) and five prompts for the usual jobs: `map-repo`, `update-after-change`, `write-flow`, `failure-analysis` and `review-model`.
+[The file format](format.md) lists every key, for writing the files by hand.
+
 If you or Claude write the YAML by hand, put double quotes around the text of a one-line step when it holds a comma:
 `{ from: app, to: api, text: "Sets the time zone, if the request has one" }`. Unquoted, the comma ends the text and what follows
 becomes a key with no value. The file still loads, with the step cut short, but it can't be saved again, so Flowy lists the key as a
 problem (`step 3: "if the request has one" has no value`) instead of leaving it to fail on the next edit.
 [Writing good Flowy docs](writing.md#write-flows) has the full list of characters to quote.
+
+## Check it
+
+```bash
+node /path/to/flowy-docs/dist/cli.js check
+```
+
+`check` prints every problem in the folder, one line each (`flows/checkout.yaml: step 3: unknown object "stripe"`), and exits with 1 if there is any. With
+none it says so and exits 0, so a build can gate on it:
+
+```yaml
+- run: node /path/to/flowy-docs/dist/cli.js check
+```
+
+It reads what the canvas reads: the model, the flows, the failure analyses and the load-test runs, a failure mode whose run doesn't exist, a path in `code:` that
+doesn't exist, and a file Flowy skips (`.yml`). It also writes every file back in memory, which reports a file that loads but could not be saved again, such as a
+key with no value that an unquoted comma leaves behind. `--dir` picks the model folder. A model or flow file that can't be read at all is the one line it prints.
+`export` lists problems on the page and exits 0, and `failures` exits 1 only for the failure files, so `check` is the one to gate on.
 
 ## Share it
 

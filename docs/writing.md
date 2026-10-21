@@ -291,7 +291,7 @@ The server refuses what is broken: a path that doesn't exist, an unknown shape, 
 
 Claude's usual mistakes are shapes at the wrong level (every class a shape), plausible shapes the code doesn't have (a Redis, a gateway), generic descriptions ("Handles requests"), labels like "uses", and outside services nobody told it about. What helps is structure more than longer prompts.
 
-- **Start with a survey, not with writing.**
+- **Start with a survey, not with writing.** Over MCP the `map-repo` prompt does this and the passes below for you.
 
   ```text
   Map this repo into Flowy, but don't write anything yet. List the people, apps, stores and
@@ -305,7 +305,7 @@ Claude's usual mistakes are shapes at the wrong level (every class a shape), pla
 - **Work in passes and commit between them:** shapes, then connections, then flows, then the text.
 - **Reject descriptions you could have written from the name alone.**
 - **Review the diff** for shapes with no `code:`, duplicate names, deletions and descriptions that restate the name. A fresh session makes a good second reader.
-- **Check hand-written YAML before calling a model done.** Claude's writes through MCP are quoted for it, but a file it writes itself is only as good as its quoting. Run `flowy export` and read what it says about problems (`It has N problems`, and nothing when there are none): a comma in an unquoted one-line step leaves a key with no value, which is listed as `step 3: "if the request has one" has no value`. Then run `flowy mermaid --flow <id>` for each flow and read every step text through to its end. The problem list can't see a text cut short at `, retries: 3 times`, because that is a valid extra key.
+- **Check hand-written YAML before calling a model done.** Claude's writes through MCP are quoted for it, but a file it writes itself is only as good as its quoting. Run `flowy check`, or call `get_problems` over MCP: it lists every problem and exits 1 if there is one. A comma in an unquoted one-line step leaves a key with no value, which is listed as `step 3: "if the request has one" has no value`, and a file that loads but could not be saved again is listed too. Then run `flowy mermaid --flow <id>` for each flow and read every step text through to its end. The check can't see a text cut short at `, retries: 3 times`, because that is a valid extra key. [The file format](format.md) lists every key.
 - **After a code change, give Claude the change.**
 
   ```text
@@ -324,7 +324,7 @@ Claude's usual mistakes are shapes at the wrong level (every class a shape), pla
 - Is every acronym explained where it's used?
 - Does every line have a verb label that says what the source does, with no "to", "from" or "with" left hanging at the end?
 - Is every flow named for a goal, with one trigger and the sender as the subject of each step?
-- Is every one-line step with a comma, a colon or a bracket in its text in double quotes, and does `flowy export` report no problems?
+- Is every one-line step with a comma, a colon or a bracket in its text in double quotes, and does `flowy check` report no problems?
 - Does each level hold a handful of shapes?
 - Does every shape you built have a `code:` path that exists?
 - Does anything long (a procedure, a table, a decision) live in a document the shape links to, rather than in its panel?
