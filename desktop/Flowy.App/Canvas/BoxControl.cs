@@ -40,8 +40,12 @@ internal sealed class BoxControl : Grid
     private readonly Path _strainGlow = Layer("strainglow");
     private readonly Path _strain = Layer("strain");
     private readonly Path _stateline = Layer("stateline");
+    private readonly Path _failline = Layer("failline");
     private readonly Border _queue = new();
     private readonly TextBlock _queueText = new();
+    private readonly Border _failBadge = new();
+    private readonly TextBlock _failText = new();
+    private FailureMark? _failMark;
     private readonly Ellipse _handle = new() { Width = 10, Height = 10, IsHitTestVisible = false, IsVisible = false, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 3) };
     private Path? _icon;
     private string? _teaser;
@@ -128,10 +132,15 @@ internal sealed class BoxControl : Grid
         Children.Add(_colorline);
         Children.Add(_strain); // over the author's colour, which stays as it is underneath
         Children.Add(_stateline); // over that: a state beats the strain colour
+        Children.Add(_failline);
         Children.Add(_content);
         Children.Add(_inside);
         Children.Add(badge);
         Children.Add(_queue);
+        _failBadge.Classes.Add("failbadge");
+        _failBadge.Child = _failText;
+        _failBadge.IsHitTestVisible = false;
+        Children.Add(_failBadge);
         _handle.Classes.Add("handle");
         Children.Add(_handle);
         Update(box);
@@ -164,7 +173,7 @@ internal sealed class BoxControl : Grid
         if (shape != _shape)
         {
             var outline = OutlineOf(shape);
-            _glow.Data = _fill.Data = _tint.Data = _outline.Data = _colorline.Data = _strain.Data = _strainGlow.Data = _stateline.Data = outline;
+            _glow.Data = _fill.Data = _tint.Data = _outline.Data = _colorline.Data = _strain.Data = _strainGlow.Data = _stateline.Data = _failline.Data = outline;
             _shape = shape;
             _perimeter = outline.ContourLength > 0 ? outline.ContourLength : 544;
             if (_state is { Inside: false } own) DashFor(own, Looks[own.State].Dash == Dash.Drained ? 1 : 0);
@@ -301,6 +310,29 @@ internal sealed class BoxControl : Grid
         _queueText.Text = queue.ToString(System.Globalization.CultureInfo.InvariantCulture);
         PlaceQueue();
     }
+
+    /// <summary>
+    /// What the Failures tab draws on this shape: a badge with how many failure modes it carries, in the colour of the worst, and for a picked mode a red
+    /// outline when it fails, a fainter one when it is hurt, and a fade when it is neither. The badge's label says the count and the band in words.
+    /// </summary>
+    public void SetFailure(FailureMark? mark, FailLight light)
+    {
+        _failMark = mark;
+        Classes.Set("failmarked", mark is not null);
+        foreach (var band in Enum.GetValues<RiskBand>()) _failBadge.Classes.Set(Failures.BandKey(band), mark?.Band == band);
+        _failText.Text = mark?.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        AutomationProperties.SetName(_failBadge, mark is null ? null : FailureLabel(mark));
+        Classes.Set("fails", light == FailLight.Fails);
+        Classes.Set("affected", light == FailLight.Affects);
+        Classes.Set("faildim", light == FailLight.Dim);
+    }
+
+    /// <summary>The badge's words: how many, and the band, so the colour is never the only copy.</summary>
+    internal static string FailureLabel(FailureMark mark) => $"{mark.Count} failure{(mark.Count == 1 ? "" : "s")}, {Failures.BandName(mark.Band)}";
+
+    /// <summary>What a test can look at: the badge showing now (null when none) and how the shape is lit.</summary>
+    internal (FailureMark? Mark, FailLight Light) FailureShown =>
+        (_failMark, Classes.Contains("fails") ? FailLight.Fails : Classes.Contains("affected") ? FailLight.Affects : Classes.Contains("faildim") ? FailLight.Dim : FailLight.None);
 
     /// <summary>
     /// The state this shape is in, or null for Running: it dims, draws a second outline over its own in the state's dash and carries a glyph on a ring at its
