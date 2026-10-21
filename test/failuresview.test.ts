@@ -106,6 +106,9 @@ test('firstErrorAt is the first tested level where the mode\'s part has errors',
   assert.equal(firstErrorAt(m, run, a.modes['web-glitch']), undefined) // never measured
   assert.equal(firstErrorAt(m, run, { mode: 'x', on: 'gone' }), undefined)
   assert.equal(firstErrorAt(m, run, { mode: 'x' }), undefined)
+  // a run that adds others, or is tested with several sources, has no one level to go to
+  assert.equal(firstErrorAt(m, { ...run, adds: ['a', 'b'] }, a.modes['db-down']), undefined)
+  assert.equal(firstErrorAt(m, { ...run, sources: {} }, a.modes['db-down']), undefined)
 })
 
 test('toLine turns a shape mode into a line on a connection the shape starts, and toShape turns it back', () => {

@@ -620,6 +620,64 @@ take the state the events leave, a state beats the strain colour, and the key na
 state in about 0.6 seconds; dragging the slider changes it at once, so the shapes keep up with the thumb. Nothing moves when the system asks for less motion: there is no Play, and
 the states, marks and numbers stay. The address names a level, as it does for a load run: `#ordering/perf/stripe-outage/2`. A failure mode's `run` can name a time run too.
 
+**Several sources.** A system can have more than one source of requests at once, such as customers placing orders while couriers send their position. A run can show several, in
+two ways, and the top of the panel says which: **Added from separate runs** or **Tested together**. A run of one source has neither label.
+
+![Plum's Orders and pings, added: a slider for Customer orders and one for Courier pings, blue and green dots on the lines into Fleet DB, and Fleet DB outlined red](images/desktop-sources.png)
+
+**Added from separate runs.** One run lists the runs it adds, and each of them keeps its own colour and scale:
+
+```yaml
+name: Orders and pings, added
+adds: [orders-only, pings-climbing]
+```
+
+The list takes two to four runs, and a run that adds has no levels of its own. Each run it lists must be a load run that stands alone: not a run over time, not another run that adds, not one tested
+with several sources, and not itself. Anything else is a problem that names the run, and the others still play (with fewer than two left, the run is left out). Each added run is a source. Its name
+is the run's `name`, its slider runs along the run's own loads, and its colour is the run's `source.color`. A run with no colour takes the first of blue, green, orange and indigo that no other
+source draws in, and two sources that name one colour are a problem.
+
+At a setting of the sliders the picture adds what each run says at its own load. A shape's `util` and `queue` add, so a shape can pass 1: its colour stops at full strain and its numbers say
+"Added use is over 100%". A line's `rate` adds, `p50`, `p95` and `errors` take the worse, and `bytes` is the mean weighted by `rate`. This is an estimate. Queues grow faster than a sum, so near the
+limit it looks calmer than a test with both sources at once would.
+
+**Tested together.** One run with several sources, and a result for each combination that was tested:
+
+```yaml
+name: Orders and pings, tested together
+sources:
+  orders: { name: Customer orders, entry: customer-app, unit: orders/min, color: blue, dot: rate / 4 }
+  pings:  { name: Courier pings, entry: courier-app, unit: pings/s, color: green, dot: rate / 20 }
+levels:
+  - load: { orders: 100, pings: 50 }
+    objects:
+      fleet-db: { util: 0.13 }
+    connections:
+      - { from: tracking, to: fleet-db, rate: 58, by: { orders: { rate: 8 }, pings: { rate: 50 } } }
+```
+
+A run has two or three sources. Each has a `name` and a `unit`, and may have an `entry` (a shape) and the `color`, `dot` and `size` of a `source`, above. A level's `load` gives a number for every
+source. The levels must form a full grid: every load of one source with every load of the others, each once. A combination that is missing is a problem that names it, and the run is left out. Between tested
+combinations the numbers are blended along each source in turn, so the middle of a square is the mean of its four corners. Outside the grid nothing is shown: the sliders stop at the highest tested load.
+
+A connection can carry `by`, which splits what the line carries between the sources. Each source gives any of `rate`, `bytes`, `p50` and `errors`, and its dots take its own colour, scale and size. A
+source that gives no `rate` carries the whole line when it is the only one named. A line with no `by` draws grey with the usual curve, and the key calls it **Other calls**.
+
+**In the tab.** Each source has a block: its name beside its colour, its load, whether that load was tested ("Tested", or "Between 200 and 400, estimated"), a slider with the tested loads under it, and
+its own **Ramp**. The block you moved or clicked last is the active one, marked at its edge. ← →, Home, End and **P** act on it, and the Strip and the small curves are drawn along it, with the others
+held where they stand and named above the chart. The tab opens where things first struggle when every source rises from its lowest load to its highest together, each along its own loads, and the
+sentence says where each stood: "First struggles with Customer orders at 800 orders/min and Courier pings at 400 pings/s: Fleet DB at 101% of capacity". **Go there** returns to it.
+
+The key draws a swatch and the name of each source on screen, with its scale ("1 dot = 4 calls/s") and **Bigger call** where it has them. A line that sources share has a stream of dots for each, side
+by side, in each colour. The limit of 24 dots applies to the busiest source on the line: when it is reached every source on that line is scaled down by the same factor, so a source that sends ten times
+the calls still draws ten times the dots, and the key says **Scaled down**.
+
+The address has one place for each source, in the order of the sliders and separated by commas: `#delivery/perf/together/3,2`. A list of the wrong length, or one with something in it that is not a
+number, opens at the place the tab opens at. In the desktop app `--at 800,400` puts each source at a load, for a picture.
+
+Plum's [together](demo/flowy/perf/together.yaml) adds customer orders and courier pings, and [together-measured](demo/flowy/perf/together-measured.yaml) tests them at once. The showcase has
+[added](showcase/flowy/perf/added.yaml) and [together-grid](showcase/flowy/perf/together-grid.yaml).
+
 **What to remember.** This is a replay. Flowy never predicts a load nobody tested, so the slider stops at the highest one. How
 strained a shape looks is its `util`, or its failure rate counted twenty times (5% failing is as bad as full), whichever is
 worse. A line can pass behind a shape that isn't one of its ends, or under a label, and its dots keep going there as faint, smaller

@@ -1,0 +1,36 @@
+name: Source B
+about: Made-up numbers for the showcase. Source B alone. Its calls climb from 50 to 500 a second along the same way. One green dot stands for 10 calls a second, and its calls are small.
+unit: calls/s
+entry: b-in
+source:
+  color: green
+  dot: rate / 10
+levels:
+  - load: 50
+    overall: { rate: 50, p50: 20, p95: 60, errors: 0 }
+    objects:
+      shared: { util: 0.05 }
+    connections:
+      - { from: b-in, to: gateway, rate: 50, p50: 10, bytes: 100 }
+      - { from: gateway, to: shared, rate: 50, p50: 20, bytes: 100, errors: 0 }
+  - load: 100
+    overall: { rate: 100, p50: 30, p95: 90, errors: 0 }
+    objects:
+      shared: { util: 0.15 }
+    connections:
+      - { from: b-in, to: gateway, rate: 100, p50: 15, bytes: 100 }
+      - { from: gateway, to: shared, rate: 100, p50: 30, bytes: 100, errors: 0 }
+  - load: 200
+    overall: { rate: 200, p50: 50, p95: 150, errors: 0 }
+    objects:
+      shared: { util: 0.35 }
+    connections:
+      - { from: b-in, to: gateway, rate: 200, p50: 25, bytes: 100 }
+      - { from: gateway, to: shared, rate: 200, p50: 50, bytes: 100, errors: 0 }
+  - load: 500
+    overall: { rate: 500, p50: 80, p95: 240, errors: 0 }
+    objects:
+      shared: { util: 0.6 }
+    connections:
+      - { from: b-in, to: gateway, rate: 500, p50: 40, bytes: 100 }
+      - { from: gateway, to: shared, rate: 500, p50: 80, bytes: 100, errors: 0 }

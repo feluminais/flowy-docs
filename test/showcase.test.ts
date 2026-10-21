@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
 import { ANIMATION_KINDS, animationOf, OUTCOMES } from '../src/core/animation.ts'
-import { AT_ONCE, eventsOf, isTime, knee, runStates, scaleText, sourceKey, traffic } from '../src/core/perf.ts'
+import { AT_ONCE, dialsOf, eventsOf, isTime, knee, levelAt, runStates, scaleText, settingAt, sourceKey, sourceKeyAt, traffic, trafficAt } from '../src/core/perf.ts'
 import type { Metrics } from '../src/core/perf.ts'
 import { marksOf, readStates, STATE_NAMES, statesAt } from '../src/core/states.ts'
 import { GROUP_KINDS, runsOf, stopsOf } from '../src/core/structure.ts'
@@ -216,4 +216,63 @@ test('the Colour and scale shapes are all named and each one has a line from the
   const inside = Object.entries(model.objects).filter(([, o]) => o.in === 'scale').map(([id]) => id)
   assert.ok(inside.length >= 7)
   for (const id of inside.filter(i => i !== 'source')) assert.ok(model.connections.some(c => c.from === 'source' && c.to === id), `${id} has no line from the source`)
+})
+
+test('Several sources: a run adds two runs, a run is tested together, and between them there is a line two sources share, a line no source is named for and a shape added past full', () => {
+  const runs = state.runs ?? {}
+  const added = dialsOf(runs, 'added')
+  assert.ok(added, 'perf/added.yaml is missing, or fewer than two runs it adds can be added')
+  assert.equal(added.mode, 'added')
+  assert.equal(added.dials.length, 2)
+  assert.equal(new Set(added.dials.map(d => d.color)).size, 2, 'the two sources should draw in different colours')
+  const tested = dialsOf(runs, 'together-grid')
+  assert.ok(tested, 'perf/together-grid.yaml is missing')
+  assert.equal(tested.mode, 'tested')
+  assert.ok(tested.dials.length >= 2 && tested.dials.every(d => d.values.length >= 2))
+  assert.equal(runs['together-grid'].levels.length, tested.dials.reduce((n, d) => n * d.values.length, 1), 'a run tested together is a full grid')
+  const pairs = runs['together-grid'].levels.flatMap(l => l.connections)
+  assert.ok(pairs.some(c => c.by && Object.keys(c.by).length >= 2), 'no line is carried by both sources with a by that names them')
+  assert.ok(pairs.some(c => c.by === undefined), 'no line is left without a by, so none draws in the neutral colour')
+  for (const [id, run] of Object.entries(runs).filter(([key]) => ['added', 'source-a', 'source-b', 'together-grid'].includes(key))) assert.match(run.about ?? '', /made-up/i, `${id} should say its numbers are made up`)
+
+  const whole = { ...model, flows, failures: {}, layout: state.layout }
+  const highest = (found: NonNullable<typeof added>) => settingAt(found.dials, found.dials.map(d => d.values.length - 1))
+  const lowest = (found: NonNullable<typeof added>) => settingAt(found.dials, found.dials.map(() => 0))
+
+  // Added, at the top: both sources reach the shared shape, past full; their streams share one line, scaled down together so the ratio stays true.
+  const top = trafficAt(whole, runs, 'added', highest(added), 'sources')
+  assert.ok(levelAt(runs, 'added', highest(added)).objects.shared.util! > 1, 'the shared shape should be added past full')
+  assert.equal(top.boxes.shared.strain, 1)
+  const shared = top.lines.filter(l => l.from === 'gateway' && l.to === 'shared')
+  assert.deepEqual(shared.map(l => [l.source, l.color]), added.dials.map(d => [d.id, d.color]))
+  assert.ok(shared.every(l => l.capped === true), 'past the cap the whole line is scaled down')
+  assert.equal(Math.max(...shared.map(l => l.dots ?? 0)), AT_ONCE)
+  assert.deepEqual(shared.map(l => l.offset), [-0.5, 0.5])
+  const rates = shared.map(l => levelAt(runs, 'added', highest(added)).connections.find(c => c.from === 'gateway' && c.to === 'shared')!.by![l.source!].rate!)
+  const wanted = [rates[0] / 50, rates[1] / 10] // the formulas of the two sources
+  assert.ok(Math.abs(shared[0].dots! / shared[1].dots! - wanted[0] / wanted[1]) < 0.05, 'the ratio of the dots should be the formulas\'')
+  assert.ok((shared[0].radius ?? 0) > (shared[1].radius ?? 0), 'Source A sends bigger calls, so its dots are bigger')
+  const key = sourceKeyAt(runs, 'added', top.lines)
+  assert.deepEqual(key.sources.map(s => [s.name, s.color, s.scale]), [['Source A', 'blue', '1 dot = 50 calls/s'], ['Source B', 'green', '1 dot = 10 calls/s']])
+  assert.equal(key.scaledDown, true)
+  const bottom = trafficAt(whole, runs, 'added', lowest(added), 'sources')
+  assert.equal(sourceKeyAt(runs, 'added', bottom.lines).scaledDown, false, 'nothing is scaled down at the lowest loads')
+  assert.ok(bottom.lines.every(l => l.capped === undefined))
+
+  // Tested together: the line no source is named for is neutral, and the key says so.
+  const measured = trafficAt(whole, runs, 'together-grid', highest(tested), 'sources')
+  const audit = measured.lines.find(l => l.from === 'gateway' && l.to === 'audit')
+  assert.equal(audit?.color, 'gray')
+  assert.equal(audit?.source, undefined)
+  assert.equal(sourceKeyAt(runs, 'together-grid', measured.lines).other, true)
+  assert.deepEqual(measured.lines.filter(l => l.to === 'shared').map(l => l.source), tested.dials.map(d => d.id))
+  assert.ok(levelAt(runs, 'together-grid', highest(tested)).objects.shared.util! <= 1, 'what was measured together never passes full')
+  assert.ok(levelAt(runs, 'together-grid', highest(tested)).objects.shared.util! > levelAt(runs, 'together-grid', lowest(tested)).objects.shared.util!)
+})
+
+test('the Several sources shapes are all named, and each is on a line from a source or to where the sources meet', () => {
+  const inside = Object.entries(model.objects).filter(([, o]) => o.in === 'sources').map(([id]) => id)
+  assert.ok(inside.length >= 5)
+  for (const id of inside) assert.ok(model.connections.some(c => c.from === id || c.to === id), `${id} has no line`)
+  assert.deepEqual(Object.keys(state.layout.sources ?? {}).sort(), [...inside].sort(), 'every shape of the view has a place')
 })

@@ -3239,12 +3239,24 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
                 "at": 2
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
+                "at": null
               }
             ]
           },
@@ -3262,12 +3274,24 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
                 "at": 2
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
+                "at": null
               }
             ]
           },
@@ -3285,11 +3309,23 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
+                "at": null
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
                 "at": null
               }
             ]
@@ -3308,11 +3344,23 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
+                "at": null
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
                 "at": null
               }
             ]
@@ -3331,12 +3379,24 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
                 "at": 2
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
+                "at": null
               }
             ]
           },
@@ -3354,11 +3414,23 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
+                "at": null
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
                 "at": null
               }
             ]
@@ -3377,11 +3449,23 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": 3
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
+                "at": null
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
                 "at": null
               }
             ]
@@ -3400,11 +3484,23 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": 4
               },
               {
                 "run": "stripe-outage",
+                "at": null
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
                 "at": null
               }
             ]
@@ -3423,11 +3519,23 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
+                "at": null
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
                 "at": null
               }
             ]
@@ -3446,11 +3554,23 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
+                "at": null
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
                 "at": null
               }
             ]
@@ -3469,11 +3589,23 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
+                "at": null
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
                 "at": null
               }
             ]
@@ -3492,11 +3624,23 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
+                "at": null
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
                 "at": null
               }
             ]
@@ -3515,11 +3659,23 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
+                "at": null
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
                 "at": null
               }
             ]
@@ -3538,11 +3694,23 @@
                 "at": null
               },
               {
+                "run": "orders-only",
+                "at": null
+              },
+              {
                 "run": "pings-climbing",
                 "at": null
               },
               {
                 "run": "stripe-outage",
+                "at": null
+              },
+              {
+                "run": "together-measured",
+                "at": null
+              },
+              {
+                "run": "together",
                 "at": null
               }
             ]

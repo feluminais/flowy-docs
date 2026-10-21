@@ -377,7 +377,13 @@ public partial class MainWindow : Window
         if (options.Value("--run") is { } run) _reader.PickRunById(run);
         if (options.Value("--tab") is { } tab) _reader.OpenTab(tab); // before --select: with Failures open, a select picks a failure mode
         if (options.Value("--select") is { } select) _reader.Select(select);
-        if (options.Value("--at") is { } at && double.TryParse(at, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var time)) _reader.GoToTime(time);
+        if (options.Value("--at") is { } at)
+        {
+            // A load or a time for a run of one source; a load for each dial, separated by commas (--at 200,100), for a run with several.
+            var numbers = at.Split(',').Select(n => double.TryParse(n, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v) ? (double?)v : null).ToList();
+            if (numbers.Count > 1 && numbers.All(n => n is not null)) _reader.GoToLoads([.. numbers.Select(n => n!.Value)]);
+            else if (numbers is [{ } time]) _reader.GoToTime(time);
+        }
         if (options.Has("--add")) _reader.OpenAddPanel();
         if (options.Value("--edit-flow") is { } editFlow) _reader.OpenFlowEditor(editFlow);
         if (options.Value("--line") is { } line && line.Split(' ') is [var from, var to]) _reader.OpenLine(from, to);

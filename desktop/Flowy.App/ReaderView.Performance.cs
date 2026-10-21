@@ -17,6 +17,9 @@ internal sealed partial class ReaderView
     private string _runId = "";
     private double _pos; // where along the run's tested levels the screen is: a whole number is a tested level (a run over time can stand between them: on an event)
     private double _posNow; // where the ramp has got to, which can be ahead of what the screen shows
+    private List<double> _places = []; // for a run with several sources: where each of its dials stands, one place along each dial's tested loads
+    private List<double> _placesNow = []; // and where the ramp has got to
+    private int _active; // the dial the keys and Ramp act on, and the chart and curves follow: the one that was moved last
     private bool _ramping;
     private Stopwatch? _rampClock;
     private double _rampLast;
@@ -37,6 +40,41 @@ internal sealed partial class ReaderView
 
     private static bool Still => MotionSettings.Reduced;
 
+    /// <summary>What the run on show is turned up on, when it has several sources (added from separate runs, or tested together); null for a run of one.</summary>
+    private Dials? Several => LoadTest is not null && _folder?.Runs is { } runs && Perf.DialsOf(runs, PerfView.ActiveRun(runs, _runId)) is { Mode: not Perf.ModeSingle } found ? found : null;
+
+    /// <summary>Where the dial the keys act on stands: along its own loads for a run with several sources, along the levels for any other.</summary>
+    private double ActivePos => Several is not null && _active < _places.Count ? _places[_active] : _pos;
+
+    /// <summary>The top of the dial the keys act on.</summary>
+    private double ActiveTop(LoadRun run) => Several is { } found && _active < found.Items.Count ? PerfView.DialTop(found.Items[_active]) : PerfView.Top(run);
+
+    /// <summary>
+    /// A run with several sources opens with every dial rising together to the first struggle, each along its own loads, or every dial at its top when nothing struggles.
+    /// Anything else has no places: it has the one position, <c>_pos</c>.
+    /// </summary>
+    private void ResetPlaces()
+    {
+        _active = 0;
+        if (Several is { } found && _folder?.Runs is { } runs)
+        {
+            var opening = PerfView.OpeningPositions(found.Items, Perf.KneeOf(runs, PerfView.ActiveRun(runs, _runId)));
+            _places = [.. opening];
+            _placesNow = [.. opening];
+        }
+        else
+        {
+            _places = [];
+            _placesNow = [];
+        }
+    }
+
+    /// <summary>A live reload can change what a run is turned up on: places that no longer fit it start again.</summary>
+    private void EnsurePlaces()
+    {
+        if (Several is { } found && _places.Count != found.Items.Count) ResetPlaces();
+    }
+
     /// <summary>The panel opens on the load where things first struggle, or on the highest if nothing does.</summary>
     private static double StartPos(LoadRun run) => PerfView.ClampPos(run, Perf.FindKnee(run)?.Index ?? PerfView.Top(run));
 
@@ -47,6 +85,15 @@ internal sealed partial class ReaderView
         _perfPanel.Slid += Slide;
         _perfPanel.EventPicked += JumpTo;
         _perfPanel.RampClicked += ToggleRamp;
+        _perfPanel.DialSlid += StepDial;
+        _perfPanel.DialRamped += ToggleDialRamp;
+        _perfPanel.PlacePicked += PlaceAll;
+        _perfPanel.DialActivated += dial =>
+        {
+            if (Several is null || dial == _active) return;
+            _active = dial; // pressing a slider makes it the dial the keys act on
+            ApplyLoad();
+        };
         _perfPanel.Used += () => Focus(); // a control in the panel took the keyboard: give it back, so the keys work
     }
 
@@ -54,7 +101,11 @@ internal sealed partial class ReaderView
     {
         if (!CanPerf || _folder?.Runs is not { } runs) return;
         _runId = PerfView.ActiveRun(runs, _runId);
-        if (LoadTest is { } run) _pos = _posNow = StartPos(run);
+        if (LoadTest is { } run)
+        {
+            if (Several is null) _pos = _posNow = StartPos(run);
+            ResetPlaces();
+        }
         _details = false; // so that closing it again doesn't leave Details open in its place
         if (_tab == PanelTab.Failures) _tab = null; // its marks and the load's traffic would draw over each other
         _perf = true;
@@ -82,7 +133,8 @@ internal sealed partial class ReaderView
         if (_folder?.Runs is not { } runs || !runs.Contains(id)) return;
         _ramping = false;
         _runId = id;
-        _pos = _posNow = StartPos(runs[id]);
+        if (Several is null) _pos = _posNow = StartPos(runs[id]);
+        ResetPlaces();
         Refresh();
     }
 
@@ -90,6 +142,11 @@ internal sealed partial class ReaderView
     private void StepLevel(double to)
     {
         if (LoadTest is not { } run) return;
+        if (Several is not null)
+        {
+            StepDial(_active, to);
+            return;
+        }
         var level = PerfView.Snap(run, to);
         if (!_ramping && level == _pos && level == _posNow)
         {
@@ -99,6 +156,56 @@ internal sealed partial class ReaderView
         _ramping = false;
         _pos = _posNow = level;
         ApplyLoad();
+    }
+
+    /// <summary>Moves a dial of a run with several sources to a tested load (the one the keys act on, or the one whose slider was moved), and makes it the active dial. It stops a ramp.</summary>
+    private void StepDial(int dial, double to)
+    {
+        if (Several is not { } found || dial < 0 || dial >= found.Items.Count) return;
+        EnsurePlaces();
+        var places = PerfView.PlaceActive(found.Items, _places, dial, Perf.JsRound(PerfView.ClampDial(found.Items[dial], to)));
+        if (!_ramping && dial == _active && places.SequenceEqual(_places) && places.SequenceEqual(_placesNow))
+        {
+            _perfPanel.SetPlaces(_places, _active, false); // a drag that has not reached another load: nothing to draw again, but the thumb goes back to its stop
+            return;
+        }
+        _ramping = false;
+        _active = dial;
+        _places = [.. places];
+        _placesNow = [.. places];
+        ApplyLoad();
+    }
+
+    /// <summary>Goes to a place with every dial at its position (Go there). It stops a ramp.</summary>
+    private void PlaceAll(IReadOnlyList<double> places)
+    {
+        if (Several is not { } found) return;
+        _ramping = false;
+        _places = [.. found.Items.Select((d, i) => PerfView.ClampDial(d, i < places.Count ? places[i] : 0))];
+        _placesNow = [.. _places];
+        ApplyLoad();
+    }
+
+    /// <summary>Ramps a dial of a run with several sources, or stops the ramp that is running on it. Pressing another dial's button moves the ramp there.</summary>
+    private void ToggleDialRamp(int dial)
+    {
+        if (Several is not { } found || Still || dial < 0 || dial >= found.Items.Count) return;
+        EnsurePlaces();
+        if (_ramping && dial == _active)
+        {
+            _places = [.. _placesNow]; // where it has got to, not where the screen last was
+            _ramping = false;
+            ApplyLoad();
+            return;
+        }
+        _active = dial; // a ramp is of the dial it was started on
+        _placesNow = PerfView.RampFromActive(found.Items, _placesNow, dial); // at the top, a ramp starts again from the bottom
+        _places = [.. _placesNow];
+        _ramping = true;
+        _rampClock = Stopwatch.StartNew();
+        _rampLast = _rampShown = 0;
+        ApplyLoad();
+        RequestRampFrame();
     }
 
     /// <summary>
@@ -130,6 +237,11 @@ internal sealed partial class ReaderView
     private void ToggleRamp()
     {
         if (LoadTest is not { } run || Still) return;
+        if (Several is not null)
+        {
+            ToggleDialRamp(_active);
+            return;
+        }
         if (_ramping)
         {
             _pos = _posNow; // where it has got to, not where the screen last was
@@ -158,6 +270,20 @@ internal sealed partial class ReaderView
         var now = _rampClock.Elapsed.TotalMilliseconds;
         var step = Math.Min(100, now - _rampLast); // a window that was asleep doesn't jump
         _rampLast = now;
+        if (Several is { } found)
+        {
+            _placesNow = PerfView.RampActive(found.Items, _placesNow, _active, step);
+            var finished = _placesNow[_active] >= PerfView.DialTop(found.Items[_active]);
+            if (finished || now - _rampShown >= PerfView.RampStepMs)
+            {
+                _rampShown = now;
+                _places = [.. _placesNow];
+                if (finished) _ramping = false;
+                ApplyLoad();
+            }
+            if (!finished) RequestRampFrame();
+            return;
+        }
         _posNow = PerfView.RampPos(run, _posNow, step);
         var done = _posNow >= PerfView.Top(run);
         if (done || now - _rampShown >= PerfView.RampStepMs)
@@ -191,6 +317,18 @@ internal sealed partial class ReaderView
             _canvas.ShowLoad(null);
             return;
         }
+        if (Several is { } several)
+        {
+            // A run with several sources: the level at where every dial stands, worked out once, for the canvas and the panel's readouts both.
+            EnsurePlaces();
+            var runs = folder.Runs!;
+            var setting = PerfView.SettingOf(several.Items, [.. several.Items.Select((d, i) => PerfView.ClampDial(d, _places[i]))]);
+            var made = Perf.FrameOf(folder.Model, runs, PerfView.ActiveRun(runs, _runId), setting, CurrentView());
+            _canvas.ShowLoad(made.Traffic);
+            _canvas.ShowStates(RunMarks(folder.Model), snap);
+            _perfPanel.SetPlaces(_places, _active, _ramping, made, _canvas.StatesShown);
+            return;
+        }
         _pos = PerfView.ClampPos(run, _pos);
         var frame = Perf.FrameAt(folder.Model, run, PerfView.LoadAt(run, _pos), CurrentView()); // worked out once, for the canvas and the panel's readouts both
         _canvas.ShowLoad(frame.Traffic);
@@ -207,7 +345,8 @@ internal sealed partial class ReaderView
             { Kind: SideKind.Line, From: { } from, To: { } to } => new PerfSelection(null, from, to),
             _ => null,
         };
-        _perfPanel.Show(model, view, folder.Runs!, folder.RunProblems ?? [], PerfView.ActiveRun(folder.Runs!, _runId), _pos, _ramping, Still, selection);
+        EnsurePlaces();
+        _perfPanel.Show(model, view, folder.Runs!, folder.RunProblems ?? [], PerfView.ActiveRun(folder.Runs!, _runId), _pos, _ramping, Still, selection, Several is null ? null : _places, _active);
         _panel.ShowControl(_perfPanel, "perf");
     }
 
@@ -218,6 +357,9 @@ internal sealed partial class ReaderView
 
     internal (string Run, double Pos, bool Ramping) PerfState => (PerfView.ActiveRun(_folder?.Runs ?? new IdMap<LoadRun>(), _runId), _pos, _ramping);
 
+    /// <summary>Where each dial of a run with several sources stands, and which is active (empty for any other run).</summary>
+    internal (IReadOnlyList<double> Places, int Active) PerfPlaces => (_places, _active);
+
     internal void TickRamp() => RampFrame();
 
     internal void PickRunById(string id) => PickRun(id);
@@ -225,6 +367,17 @@ internal sealed partial class ReaderView
     /// <summary>Goes to a load or a time of the run on show (for a picture taken with <c>--at</c>), as a click on an event does.</summary>
     internal void GoToTime(double x)
     {
-        if (LoadTest is { } run) JumpTo(PerfView.PosAt(run, x));
+        if (LoadTest is { } run && Several is null) JumpTo(PerfView.PosAt(run, x));
+    }
+
+    /// <summary>Puts each dial of a run with several sources at a load, in dial order (for a picture taken with <c>--at 200,100</c>); a dial it names no load for stays.</summary>
+    internal void GoToLoads(IReadOnlyList<double> loads)
+    {
+        if (Several is not { } found) return;
+        EnsurePlaces();
+        _ramping = false;
+        _places = [.. found.Items.Select((d, i) => i < loads.Count ? PerfView.PositionOf(d, loads[i]) : _places[i])];
+        _placesNow = [.. _places];
+        ApplyLoad();
     }
 }

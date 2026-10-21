@@ -2,18 +2,25 @@ import { isValidId, ROOT } from '../../src/core/model.ts'
 
 /**
  * The address of what's on screen: `#<view>`, `#<view>/<flow>` while a flow plays, or `#<view>/perf/<run>/<level>` while the
- * Performance tab shows a run at one of its tested levels (the level's place in the run, from 0). The overview has no hash, so
- * it's the page's own address, and a flow or a run there is `#root/...`. Ids are [a-z0-9-], so nothing needs escaping.
+ * Performance tab shows a run at one of its tested levels (the level's place in the run, from 0). A run with several sources has a place for each,
+ * in dial order and separated by commas: `#<view>/perf/<run>/2,1.5`. The overview has no hash, so it's the page's own address, and a flow or a run
+ * there is `#root/...`. Ids are [a-z0-9-], so nothing needs escaping.
  */
 export function toHash(view: string, flow?: string, perf?: Perf, failures?: Failures): string {
-  if (perf !== undefined) return `#${view}/perf/${perf.run}/${perf.level}`
+  if (perf !== undefined) return `#${view}/perf/${perf.run}/${perf.levels === undefined ? perf.level : perf.levels.join(',')}`
   if (failures !== undefined) return `#${view}/failures/${failures.analysis}${failures.mode === undefined ? '' : `/${failures.mode}`}`
   if (flow !== undefined) return `#${view}/${flow}`
   return view === ROOT ? '' : `#${view}`
 }
 
-/** The run the Performance tab shows, and which tested level of it. */
-export type Perf = { run: string; level: number }
+/**
+ * The run the Performance tab shows, and which tested level of it. For a run with several sources the address gives `levels`, a place for each dial (`level` is the first). An
+ * address that gives a list that isn't one reads as an empty list, which the page takes for the opening place, as it does a list of the wrong length.
+ */
+export type Perf = { run: string; level: number; levels?: number[] }
+
+/** The most places an address names: one for each dial of a run, and a run has at most four. */
+const MOST_PLACES = 4
 
 /** The failure analysis the Failures tab shows, and the mode in it that is picked, if one is: `#<view>/failures/<analysis>/<mode>`. */
 export type Failures = { analysis: string; mode?: string }
@@ -31,6 +38,11 @@ export function readHash(hash: string): { view: string; flow?: string; perf?: Pe
   const [view, flow, third, fourth] = parts
   if (!(view === ROOT || isValidId(view))) return { view: ROOT }
   if (parts.length === 4 && flow === 'perf' && isValidId(third) && /^\d{1,6}$/.test(fourth)) return { view, perf: { run: third, level: Number(fourth) } }
+  if (parts.length === 4 && flow === 'perf' && isValidId(third) && fourth.includes(',')) {
+    const places = fourth.split(',')
+    const levels = places.length <= MOST_PLACES && places.every(place => /^\d{1,6}(?:\.\d{1,6})?$/.test(place)) ? places.map(Number) : []
+    return { view, perf: { run: third, level: levels[0] ?? 0, levels } }
+  }
   if (flow === 'failures' && (parts.length === 3 || parts.length === 4) && isValidId(third) && (parts.length === 3 || isValidId(fourth)))
     return { view, failures: { analysis: third, ...(parts.length === 4 ? { mode: fourth } : {}) } }
   if (parts.length > 2) return { view: ROOT }

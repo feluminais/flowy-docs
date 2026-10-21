@@ -244,6 +244,24 @@ test('runs load from perf/, and a file that cannot be used becomes a run problem
   ])
 })
 
+test('a run that adds others loads when it has two runs to add, and is left out with a problem when it has fewer', async t => {
+  const dir = await tempDir(t)
+  await writeFile(join(dir, 'model.yaml'), RUN_MODEL)
+  await mkdir(join(dir, 'perf'))
+  await writeFile(join(dir, 'perf/ramp.yaml'), RUN_GOOD)
+  await writeFile(join(dir, 'perf/ramp-too.yaml'), RUN_GOOD.replace('name: Ramp', 'name: Ramp too'))
+  await writeFile(join(dir, 'perf/both.yaml'), 'name: Both\nadds: [ramp, ramp-too, ghost]\n')
+  await writeFile(join(dir, 'perf/lonely.yaml'), 'name: Lonely\nadds: [ramp, ghost]\n')
+  const state = await loadState(dir)
+  assert.ok('problems' in state)
+  assert.deepEqual(Object.keys(state.runs ?? {}), ['both', 'ramp-too', 'ramp'])
+  assert.deepEqual(state.runProblems?.map(p => `${p.file} ${p.message}`), [
+    'perf/both.yaml adds "ghost", which is not a run',
+    'perf/lonely.yaml adds "ghost", which is not a run',
+    "perf/lonely.yaml can't be played: fewer than two of the runs it adds can be added",
+  ])
+})
+
 test('runs are read, never written: perf/ is not a path the server or MCP may save', () => {
   assert.equal(isAllowedPath('perf/ramp.yaml'), false)
 })

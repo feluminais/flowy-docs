@@ -804,6 +804,27 @@
     <Setter Property="Background" Value="{DynamicResource FgBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource FgBrush}" />
   </Style>
+  <!-- A run with several sources: how they were measured (a pill), and a block for each dial, the active one tinted and marked at its edge in its own colour (set in code). -->
+  <Style Selector="Border.modelabel">
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="10,2" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </Style>
+  <Style Selector="Border.dial">
+    <Setter Property="BorderThickness" Value="3,0,0,0" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="12,8,10,4" />
+  </Style>
+  <Style Selector="Border.dial.active">
+    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+  </Style>
+  <Style Selector="TextBlock.dangertext">
+    <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
   <Style Selector="Button.event">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
