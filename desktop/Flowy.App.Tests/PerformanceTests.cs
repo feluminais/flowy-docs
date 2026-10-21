@@ -325,13 +325,13 @@ public class PerformanceTests
         reader.ShowShortcuts();
         var text = string.Join("|", reader.GetVisualDescendants().OfType<ShortcutsCard>().SelectMany(c => c.GetVisualDescendants().OfType<TextBlock>()).Select(t => t.Text));
         Assert.Contains("PERFORMANCE", text.ToUpperInvariant());
-        Assert.Contains("Ramp the load up on its own, or pause", text);
+        Assert.Contains("Ramp the load or play the time, or pause", text);
         Assert.Contains("Show a load-test run on the diagram, where there is one", text);
         using var temp = Runless();
         var (_, plain) = Open(temp.Path);
         plain.ShowShortcuts();
         var without = string.Join("|", plain.GetVisualDescendants().OfType<ShortcutsCard>().SelectMany(c => c.GetVisualDescendants().OfType<TextBlock>()).Select(t => t.Text));
-        Assert.DoesNotContain("Ramp the load up", without);
+        Assert.DoesNotContain("Ramp the load", without);
     }
 
     [AvaloniaFact]
@@ -460,6 +460,202 @@ public class PerformanceTests
 
     private static Color ThemeColour(string key, ThemeVariant theme) =>
         Application.Current!.TryGetResource(key, theme, out var found) ? Colour((IBrush)found!) : throw new InvalidOperationException(key);
+
+    // ---- a run over time: Plum's Stripe outage, killed at 40 s, restarting at 70 s and answering at 85 s, over 150 s ----------------------------------
+
+    /// <summary>The panel open on the outage, on the Ordering view where Stripe is drawn, at the time it first struggles (45 s).</summary>
+    private static (Window Window, ReaderView Reader) Outage()
+    {
+        var (window, reader) = Open(Plum);
+        reader.GoTo("ordering");
+        reader.PickRunById("stripe-outage");
+        Press(window, Key.T, PhysicalKey.T);
+        return (window, reader);
+    }
+
+    /// <summary>The words of the key that name a state: what the key says is on screen now.</summary>
+    private static List<string> StateWords(PerfPanel panel) => panel.KeyLabels.Where(l => States.Labels.Values.Contains(l)).ToList();
+
+    private static StateMark? StripeState(ReaderView reader) => ((BoxControl)reader.Canvas.BoxControlFor("stripe")!).State;
+
+    [AvaloniaFact]
+    public void A_run_over_time_says_Time_and_Play_and_lists_its_events_with_the_one_the_run_has_got_to()
+    {
+        using var motion = Motion.On();
+        var (_, reader) = Outage();
+        var panel = reader.PerfPanelNow;
+        Assert.Equal(("stripe-outage", 2.0, false), reader.PerfState); // opens where it first struggles: 45 s
+        Assert.Equal("45 s", panel.LoadText);
+        Assert.Equal("Tested", panel.LoadNote);
+        Assert.Equal("Play", ButtonText(panel.RampButton));
+        Assert.Contains("TIME", AllText(panel)); // a section's title is set in capitals
+        Assert.DoesNotContain("LOAD", AllText(panel));
+        Assert.Contains("EVENTS", AllText(panel));
+        Assert.Equal("Play", AllText(panel).SkipWhile(t => t != "P").Skip(1).First()); // the hint
+        Assert.Equal([("40 s", "Payments killed", true, true), ("70 s", "Restart begins", false, false), ("85 s", "Answers again", false, false)], panel.EventLines);
+        Assert.Equal(3, panel.EventMarkCount);
+        Assert.Equal((0.0, 150.0), (panel.Slider.Minimum, panel.Slider.Maximum)); // the slider is in time
+        Assert.Equal(45.0, panel.SliderValue);
+    }
+
+    [AvaloniaFact]
+    public void A_load_run_still_says_Load_and_Ramp_and_has_no_events()
+    {
+        using var motion = Motion.On();
+        var (window, reader) = Open(Plum);
+        Press(window, Key.T, PhysicalKey.T);
+        var panel = reader.PerfPanelNow;
+        Assert.Equal("Ramp", ButtonText(panel.RampButton));
+        Assert.Contains("LOAD", AllText(panel));
+        Assert.DoesNotContain("EVENTS", AllText(panel));
+        Assert.Empty(panel.EventLines);
+        Assert.Equal(0, panel.EventMarkCount);
+        Assert.Equal(4.0, panel.SliderMaximum); // a step to each level
+    }
+
+    [AvaloniaFact]
+    public void Stripe_is_stopped_from_40_s_starting_from_70_s_and_running_from_85_s_and_the_key_names_only_what_is_on_screen()
+    {
+        var (window, reader) = Outage();
+        var panel = reader.PerfPanelNow;
+        Assert.Equal(new StateMark("stopped", false), StripeState(reader)); // 45 s
+        Assert.Equal(["Stopped"], StateWords(panel));
+        panel.Slider.Value = 39; // the slider goes where it is put, and not only to a level
+        Assert.Null(StripeState(reader));
+        Assert.Equal<string>([], StateWords(panel));
+        panel.Slider.Value = 40;
+        Assert.Equal(new StateMark("stopped", false), StripeState(reader));
+        panel.Slider.Value = 70;
+        Assert.Equal(new StateMark("starting", false), StripeState(reader));
+        Assert.Equal("70 s", panel.LoadText);
+        Assert.Equal("Between 60 and 90, estimated", panel.LoadNote);
+        Assert.Equal(70.0, panel.SliderValue);
+        Assert.Equal(["Starting"], StateWords(panel));
+        panel.Slider.Value = 85;
+        Assert.Null(StripeState(reader)); // Running draws nothing
+        Assert.Equal([("40 s", "Payments killed", true, false), ("70 s", "Restart begins", true, false), ("85 s", "Answers again", true, true)], panel.EventLines);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Null(StripeState(reader)); // closing the panel takes the run's states away
+    }
+
+    [AvaloniaFact]
+    public void A_click_on_an_event_goes_there_and_the_arrow_keys_still_go_from_level_to_level()
+    {
+        var (window, reader) = Outage();
+        var panel = reader.PerfPanelNow;
+        Click(panel.EventButtons[1]); // Restart begins, at 70 s
+        Assert.Equal(70.0, panel.SliderValue);
+        Assert.Equal(new StateMark("starting", false), StripeState(reader));
+        Assert.Equal(PerfView.PosAt(OutageRun(), 70), reader.PerfState.Pos, 9);
+        Press(window, Key.Right, PhysicalKey.ArrowRight);
+        Assert.Equal(4.0, reader.PerfState.Pos); // the next level, 90 s
+        Assert.Equal("90 s", panel.LoadText);
+        Press(window, Key.Left, PhysicalKey.ArrowLeft);
+        Press(window, Key.Left, PhysicalKey.ArrowLeft);
+        Assert.Equal(2.0, reader.PerfState.Pos); // 60 s, then 45 s
+        Click(panel.EventButtons[0]);
+        Assert.Equal(40.0, panel.SliderValue);
+    }
+
+    private static LoadRun OutageRun() => FolderLoader.Load(Plum).Runs!["stripe-outage"];
+
+    [AvaloniaFact]
+    public void The_marks_on_the_slider_sit_where_their_events_are_and_a_click_on_one_goes_there()
+    {
+        var (window, reader) = Outage();
+        window.UpdateLayout();
+        var marks = reader.PerfPanelNow.Marks!;
+        var fractions = PerfView.EventFractions(OutageRun());
+        var hits = marks.Children.OfType<Border>().ToList();
+        Assert.Equal(3, hits.Count);
+        for (var i = 0; i < 3; i++)
+        {
+            var centre = hits[i].Bounds.X + hits[i].Bounds.Width / 2;
+            var expected = TickLabels.Edge + (marks.Bounds.Width - 2 * TickLabels.Edge) * fractions[i].Fraction;
+            Assert.InRange(centre, expected - 1, expected + 1); // layout rounds to whole pixels
+            Assert.Contains(fractions[i].Event.Text, ToolTip.GetTip(hits[i])!.ToString()!);
+        }
+        var at = hits[2].TranslatePoint(new Point(7, 6), window)!.Value;
+        window.MouseDown(at, MouseButton.Left);
+        window.MouseUp(at, MouseButton.Left);
+        Assert.Equal(85.0, reader.PerfPanelNow.SliderValue);
+    }
+
+    [AvaloniaFact]
+    public void Dragging_the_slider_changes_a_state_at_once_and_a_step_eases_it_out()
+    {
+        using var motion = Motion.On();
+        var (window, reader) = Outage();
+        var box = (BoxControl)reader.Canvas.BoxControlFor("stripe")!;
+        Press(window, Key.Left, PhysicalKey.ArrowLeft); // 30 s: Stripe is Running again, and the stopped look fades out
+        Assert.Null(StripeState(reader));
+        Assert.Contains("state-leaving", box.Classes);
+        Press(window, Key.Right, PhysicalKey.ArrowRight);
+        Press(window, Key.Right, PhysicalKey.ArrowRight); // 45 s again, stopped
+        Assert.Equal(new StateMark("stopped", false), StripeState(reader));
+        reader.PerfPanelNow.Slider.Value = 10; // dragged to before the outage: no fade
+        Assert.Null(StripeState(reader));
+        Assert.DoesNotContain("state-leaving", box.Classes);
+        Assert.DoesNotContain(box.Classes, c => c.StartsWith("state-"));
+    }
+
+    [AvaloniaFact]
+    public void Play_goes_through_a_run_over_time_evenly_in_time()
+    {
+        using var motion = Motion.On();
+        var (window, reader) = Outage();
+        var run = OutageRun();
+        Press(window, Key.End, PhysicalKey.End);
+        Press(window, Key.P, PhysicalKey.P); // at the end: from the start
+        Assert.True(reader.PerfState.Ramping);
+        Assert.Equal("Pause", ButtonText(reader.PerfPanelNow.RampButton));
+        Thread.Sleep(300);
+        reader.TickRamp();
+        var time = PerfView.LoadAt(run, reader.PerfState.Pos);
+        Assert.InRange(time, 0.5, 4); // a ramp of 150 s takes 30 s, so 5 s of the run in each second
+        Press(window, Key.P, PhysicalKey.P);
+        Assert.False(reader.PerfState.Ramping);
+        Assert.Equal("Play", ButtonText(reader.PerfPanelNow.RampButton));
+    }
+
+    [AvaloniaFact]
+    public void Without_motion_a_run_over_time_has_no_Play_but_the_states_and_the_events_stay()
+    {
+        var (window, reader) = Outage();
+        var panel = reader.PerfPanelNow;
+        Assert.Null(panel.RampButton.Parent);
+        Assert.DoesNotContain("|P|", string.Join("|", AllText(panel)));
+        Assert.Equal(new StateMark("stopped", false), StripeState(reader));
+        Assert.Equal(3, panel.EventLines.Count);
+        Press(window, Key.P, PhysicalKey.P);
+        Assert.False(reader.PerfState.Ramping);
+    }
+
+    [AvaloniaFact]
+    public void A_picked_shape_says_the_state_it_is_in_under_its_readings()
+    {
+        var (_, reader) = Outage();
+        reader.Select("stripe");
+        Assert.Equal("stopped", reader.PerfPanelNow.SelectedState); // 45 s
+        reader.PerfPanelNow.Slider.Value = 10;
+        Assert.Null(reader.PerfPanelNow.SelectedState);
+        reader.PerfPanelNow.Slider.Value = 75;
+        Assert.Equal("starting", reader.PerfPanelNow.SelectedState);
+    }
+
+    [AvaloniaFact]
+    public void Switching_to_a_load_run_takes_the_states_away_and_the_panel_goes_back_to_levels()
+    {
+        using var motion = Motion.On();
+        var (_, reader) = Outage();
+        Assert.NotNull(StripeState(reader));
+        reader.PickRunById("dinner-rush");
+        Assert.Null(StripeState(reader));
+        Assert.Equal("Ramp", ButtonText(reader.PerfPanelNow.RampButton));
+        Assert.Equal(4.0, reader.PerfPanelNow.SliderMaximum);
+        reader.PickRunById("stripe-outage");
+        Assert.Equal(new StateMark("stopped", false), StripeState(reader));
+    }
 
     [AvaloniaFact]
     public void The_panels_words_are_in_the_themes_colours_when_it_first_opens_and_after_the_theme_changes()

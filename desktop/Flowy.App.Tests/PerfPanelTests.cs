@@ -104,13 +104,13 @@ public class PerfPanelTests
         var runs = new List<string>();
         var ramps = 0;
         var used = 0;
-        panel.LevelPicked += levels.Add;
+        panel.Slid += levels.Add;
         panel.RunPicked += runs.Add;
         panel.RampClicked += () => ramps++;
         panel.Used += () => used++;
         Show(panel, folder, "ramp", 3);
         panel.Slider.Value = 1.4;
-        Assert.Equal([1.0], levels); // snapped to a tested level
+        Assert.Equal([1.0], levels); // a load run's slider snaps to a tested level
         panel.Picker!.SelectedIndex = 0;
         Assert.Equal(["calm"], runs);
         panel.RampButton.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));

@@ -498,7 +498,8 @@ internal sealed partial class ReaderView : Grid
         var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover));
         _canvas.SetScene(scene, LineStyle, SelectedBoxes);
         // Where shapes stand at this stop, folded from the flow's start and the steps up to it: nothing is stored, so stepping back needs no undo.
-        _canvas.ShowStates(flow is { } playing ? States.Marks(model, States.At(playing.Flow, StopsOf(playing.Flow), index)) : null);
+        // While the Performance panel is open a run over time sets the states instead (a flow waits behind the panel).
+        _canvas.ShowStates(flow is { } playing ? States.Marks(model, States.At(playing.Flow, StopsOf(playing.Flow), index)) : RunMarks(model));
         return shown;
     }
 

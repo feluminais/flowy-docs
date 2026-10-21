@@ -704,6 +704,39 @@
     <Setter Property="CornerRadius" Value="1" />
     <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
   </Style>
+  <!--
+    A run over time: its events as bars above the slider in the colour of the state they leave (a bar for a state with no colour of its own is muted, as in
+    the browser), and a list with a ring for an event the run has not got to and a dot for one it has. The row the run has just got to is lit.
+  -->
+  <Style Selector="Border.eventmark">
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Background" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector="Border.eventmark.state-starting, Border.eventmark.state-restarting"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.eventmark.state-stopping, Border.eventmark.state-degraded"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector="Border.evdot">
+    <Setter Property="Width" Value="8" />
+    <Setter Property="Height" Value="8" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="BorderThickness" Value="1.5" />
+    <Setter Property="BorderBrush" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.evdot.passed">
+    <Setter Property="Background" Value="{DynamicResource FgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="Button.event">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Padding" Value="6,4" />
+    <Setter Property="CornerRadius" Value="6" />
+  </Style>
+  <Style Selector="Button.event.current /template/ ContentPresenter, Button.event:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+  </Style>
   <Style Selector=":is(Grid).box:focus-visible Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
     <Setter Property="StrokeThickness" Value="2" />

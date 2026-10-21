@@ -264,9 +264,10 @@ internal sealed class BoxControl : Grid
     /// The state this shape is in, or null for Running: it dims, draws a second outline over its own in the state's dash and carries a glyph on a ring at its
     /// corner. A shape that only holds one in a state (<see cref="StateMark.Inside"/>) gets the glyph on a dashed ring and nothing else. Starting and Restarting
     /// loop, Degraded breathes, and a change eases over 0.6 s; none of it runs when motion is reduced, and no clock runs unless a state that loops is showing.
+    /// With <paramref name="snap"/> (a slider is being dragged) the change is made at once: no ease, no fade, no drain; what loops still loops.
     /// The classes are Styles.axaml's: they colour the outline and the glyph, and a state beats the strain colour.
     /// </summary>
-    public void SetState(StateMark? mark)
+    public void SetState(StateMark? mark, bool snap = false)
     {
         if (mark == _state) return;
         var was = _state;
@@ -276,13 +277,14 @@ internal sealed class BoxControl : Grid
         Classes.Set("stated", mark is { Inside: false });
         Classes.Set("state-inside", mark is { Inside: true });
         Classes.Set("state-leaving", false);
+        if (snap) foreach (var layer in Dimmed) layer.Transitions = null; // so the dim below is made at once; the next change that is not a snap puts them back
+        else EnsureTransitions();
         if (mark is null)
         {
             SetDim(1);
-            Leave(was);
+            Leave(was, snap);
             return;
         }
-        EnsureTransitions();
         SetDim(mark.Inside ? 1 : Looks[mark.State].Dim);
         if (_glyph is not null) Children.Remove(_glyph);
         _glyph = new StateGlyph(mark)
@@ -297,7 +299,7 @@ internal sealed class BoxControl : Grid
         Paint();
         // Still, a stopping shape's outline is already drained (phase 1); with motion it starts full and StartMotion drains it.
         if (!mark.Inside) DashFor(mark, Looks[mark.State].Dash == Dash.Drained ? 1 : 0);
-        StartMotion();
+        StartMotion(snap);
     }
 
     /// <summary>What a test can look at: the state shown (null when Running), whether it is only held, whether the outline and glyph are on, and whether a loop runs.</summary>
@@ -388,9 +390,9 @@ internal sealed class BoxControl : Grid
     }
 
     /// <summary>The outline and glyph of a state that went fade out over the box coming back, then go; with reduced motion they go at once.</summary>
-    private void Leave(StateMark? was)
+    private void Leave(StateMark? was, bool snap)
     {
-        if (was is null || MotionSettings.Reduced || TopLevel.GetTopLevel(this) is null)
+        if (was is null || snap || MotionSettings.Reduced || TopLevel.GetTopLevel(this) is null)
         {
             Hide();
             return;
@@ -422,22 +424,28 @@ internal sealed class BoxControl : Grid
         Paint();
     }
 
-    /// <summary>Starts what moves for the state now showing: Stopping drains once, Starting and Restarting loop (and spin the glyph), Degraded breathes.</summary>
-    private void StartMotion()
+    /// <summary>
+    /// Starts what moves for the state now showing: Stopping drains once, Starting and Restarting loop (and spin the glyph), Degraded breathes. With
+    /// <paramref name="snap"/> the outline is there at once and a stopping one is already drained; the loops start all the same.
+    /// </summary>
+    private void StartMotion(bool snap = false)
     {
         if (_state is not { } mark || MotionSettings.Reduced || TopLevel.GetTopLevel(this) is null) return;
         var look = Looks[mark.State];
-        _enter = 0;
-        Paint();
-        _fade = Anim.Run(this, 600, Anim.EaseOut, t =>
+        if (!snap)
         {
-            _enter = t;
+            _enter = 0;
             Paint();
-        }, () => _fade = null);
-        if (look.Dash == Dash.Drained && !mark.Inside)
-        {
-            DashFor(mark, 0);
-            _drain = Anim.Run(this, 900, Anim.EaseOut, t => DashFor(mark, t), () => _drain = null);
+            _fade = Anim.Run(this, 600, Anim.EaseOut, t =>
+            {
+                _enter = t;
+                Paint();
+            }, () => _fade = null);
+            if (look.Dash == Dash.Drained && !mark.Inside)
+            {
+                DashFor(mark, 0);
+                _drain = Anim.Run(this, 900, Anim.EaseOut, t => DashFor(mark, t), () => _drain = null);
+            }
         }
         if (look.LoopMs <= 0) return;
         void Round() => _loop = Anim.Run(this, look.LoopMs, t => t, t =>
