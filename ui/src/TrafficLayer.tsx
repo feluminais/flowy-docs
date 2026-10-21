@@ -3,19 +3,36 @@ import { useStore, useStoreApi } from '@xyflow/react'
 import type { LineTraffic } from '../../src/core/perf.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { covers } from './graph.ts'
-import type { Outline } from './graph.ts'
+import type { Outline, Rect } from './graph.ts'
 import { outline, pathBetween, rect } from './Line.tsx'
 import { flatten, pointAt } from './pathpoints.ts'
 import { advance, newStream, visibility } from './traffic.ts'
 import type { Stream } from './traffic.ts'
 
 /** A shape a line runs behind: where it is and its outline. */
-type Behind = { rect: ReturnType<typeof rect>; edge: Outline }
+type Behind = { rect: Rect; edge: Outline }
 
-/** Whether a particle at (x, y) is under a shape the line runs behind: the line is hidden there, so the particle is too. */
-const hidden = (behind: Behind[], x: number, y: number, radius: number) => {
+/**
+ * Whether a particle at (x, y) is under a shape the line runs behind, where the line is hidden so the particle is too, or under a label, which
+ * sits on its line with the canvas's own background.
+ */
+const hidden = (behind: Behind[], labels: Rect[], x: number, y: number, radius: number) => {
   for (const s of behind) if (covers(s.rect, s.edge, x, y, radius)) return true
+  for (const l of labels) if (covers(l, [], x, y, radius)) return true
   return false
+}
+
+/**
+ * Where the things that sit over the lines are, in the diagram's own units: the rectangle behind each label showing, and the card a shape shows
+ * when it is pointed at (once it has faded in). The page owns them, so they are read from it.
+ */
+const labelsIn = (el: HTMLElement, [tx, ty, zoom]: [number, number, number]): Rect[] => {
+  const root = el.getBoundingClientRect()
+  return [...(el.closest('.react-flow')?.querySelectorAll('.react-flow__edge-textbg, .teaser') ?? [])].flatMap(n => {
+    const r = n.getBoundingClientRect()
+    if (r.width === 0 || (n.classList.contains('teaser') && Number(getComputedStyle(n).opacity) < 0.05)) return []
+    return [{ x: (r.left - root.left - tx) / zoom, y: (r.top - root.top - ty) / zoom, width: r.width / zoom, height: r.height / zoom }]
+  })
 }
 
 /**
@@ -23,7 +40,7 @@ const hidden = (behind: Behind[], x: number, y: number, radius: number) => {
  * traffic() in core/perf.ts), and the ones that fail dying away short of the end. One canvas over the diagram, drawn with
  * the same camera as the shapes. Each line's path is flattened once, because asking the browser for a point on a path takes
  * about 28 µs and a busy view has thousands of particles a frame. A particle is not drawn where its line runs behind a shape
- * that is not one of its ends, as the line itself isn't. Reduced motion draws none: the caller leaves this out.
+ * that is not one of its ends, as the line itself isn't, or under a label. Reduced motion draws none: the caller leaves this out.
  */
 export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: LineStyle }) {
   const store = useStoreApi()
@@ -70,8 +87,10 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
       }
       ctx.setTransform(1, 0, 0, 1, 0, 0)
       ctx.clearRect(0, 0, w, h)
-      const [tx, ty, zoom] = store.getState().transform
+      const transform = store.getState().transform
+      const [tx, ty, zoom] = transform
       ctx.setTransform(zoom * dpr, 0, 0, zoom * dpr, tx * dpr, ty * dpr)
+      const labels = labelsIn(el, transform)
       const { lines, paths } = now.current
       const alive = new Set<string>()
       lines.forEach((line, i) => {
@@ -88,7 +107,7 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
         for (const m of stream.motes) {
           if (m.fails) continue
           const [x, y] = pointAt(path, m.s)
-          if (hidden(behind, x, y, radius)) continue
+          if (hidden(behind, labels, x, y, radius)) continue
           ctx.moveTo(x + radius, y)
           ctx.arc(x, y, radius, 0, Math.PI * 2)
         }
@@ -97,7 +116,7 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
         for (const m of stream.motes) {
           if (!m.fails) continue
           const [x, y] = pointAt(path, m.s)
-          if (hidden(behind, x, y, radius)) continue
+          if (hidden(behind, labels, x, y, radius)) continue
           ctx.globalAlpha = visibility(m)
           ctx.beginPath()
           ctx.arc(x, y, radius, 0, Math.PI * 2)

@@ -75,6 +75,33 @@ public class CanvasLoadTests
     }
 
     [AvaloniaFact]
+    public void Particles_hide_under_a_label_and_behind_a_shape_their_line_does_not_end_at()
+    {
+        var label = new Flowy.Core.Rect(100, 50, 40, 16);
+        IReadOnlyList<Flowy.Core.Rect> labels = [label];
+        Assert.True(TrafficLayer.Hidden([], labels, 120, 58, 3)); // on the label
+        Assert.True(TrafficLayer.Hidden([], labels, 98, 58, 3)); // a dot's width from it: it would overlap
+        Assert.False(TrafficLayer.Hidden([], labels, 90, 58, 3));
+        var shape = new TrafficLayer.ShapeCover("a", new Flowy.Core.Rect(0, 0, 80, 40), null);
+        Assert.True(TrafficLayer.Hidden([shape], [], 40, 20, 3));
+        Assert.False(TrafficLayer.Hidden([shape], [], 120, 20, 3));
+    }
+
+    [AvaloniaFact]
+    public void The_labels_showing_are_the_ones_traffic_runs_under()
+    {
+        var (canvas, folder) = Open();
+        Assert.Empty(canvas.LabelRects); // no label shows until a shape or a line is picked
+        canvas.SetScene(SceneBuilder.Build(folder.Model, "shop", null, folder.Problems, new Focus(Box: "worker")), "straight", []);
+        Dispatcher.UIThread.RunJobs();
+        Assert.NotEmpty(canvas.LabelRects); // the worker's lines show theirs
+        Assert.All(canvas.LabelRects, r => Assert.True(r.Width > 8 && r.Height > 4));
+        canvas.SetScene(SceneBuilder.Build(folder.Model, "shop", null, folder.Problems, new Focus()), "straight", []);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Empty(canvas.LabelRects);
+    }
+
+    [AvaloniaFact]
     public void Particles_run_along_the_lines_with_motion_and_stop_when_the_load_goes()
     {
         using var motion = Motion.On();

@@ -17,6 +17,7 @@ internal sealed class BackLayer : Control
     private sealed record Drawn(SceneEdge Edge, LinePath Path, Geometry Geometry);
 
     private List<Drawn> _lines = [];
+    private List<CoreRect> _labels = [];
     private IReadOnlyDictionary<string, double>? _widths; // how thick each line is drawn while a load shows (by line id), where it differs from the usual
     private Scene? _scene;
     private Viewport _viewport = new(0, 0, 1);
@@ -50,8 +51,12 @@ internal sealed class BackLayer : Control
                 var path = LinePaths.Build(style, rects[e.From], rects[e.To], outlines[e.From], outlines[e.To]);
                 return new Drawn(e, path, Geometry.Parse(path.Data));
             }).ToList();
+        _labels = _lines.Where(l => l.Edge.Label is { Length: > 0 }).Select(l => LabelBox(l.Path, Format(l.Edge, l.Edge.Label!, Brushes.Black))).ToList();
         InvalidateVisual();
     }
+
+    /// <summary>Where the labels showing now are, with their padding: what traffic runs under, as it runs under a shape.</summary>
+    internal IReadOnlyList<CoreRect> LabelRects => _labels;
 
     /// <summary>Draws the lines at these thicknesses (a load's traffic makes busy lines thicker), or as usual for null.</summary>
     public void SetWidths(IReadOnlyDictionary<string, double>? widths)
@@ -155,14 +160,20 @@ internal sealed class BackLayer : Control
         context.DrawGeometry(brush, null, arrow);
     }
 
+    private static FormattedText Format(SceneEdge e, string text, IBrush brush) =>
+        new(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+            new Typeface(FontFamily.Default, FontStyle.Normal, e.Flags.HasFlag(EdgeFlags.Active) ? FontWeight.SemiBold : FontWeight.Normal), 11, brush);
+
+    /// <summary>The box a label is drawn in: its text centred on the line's label point, with a little room round it.</summary>
+    private static CoreRect LabelBox(LinePath path, FormattedText text) =>
+        new(path.Label.X - text.Width / 2 - 4, path.Label.Y - text.Height / 2 - 2, text.Width + 8, text.Height + 4);
+
     private void DrawLabel(DrawingContext context, Drawn line, string text)
     {
-        var e = line.Edge;
-        using var opacity = context.PushOpacity(Fade(e));
-        var formatted = new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
-            new Typeface(FontFamily.Default, FontStyle.Normal, e.Flags.HasFlag(EdgeFlags.Active) ? FontWeight.SemiBold : FontWeight.Normal), 11, Brush("FgBrush"));
-        var at = new Point(line.Path.Label.X - formatted.Width / 2, line.Path.Label.Y - formatted.Height / 2);
-        context.DrawRectangle(Brush("BgBrush"), null, new Avalonia.Rect(at.X - 4, at.Y - 2, formatted.Width + 8, formatted.Height + 4), 2, 2);
-        context.DrawText(formatted, at);
+        using var opacity = context.PushOpacity(Fade(line.Edge));
+        var formatted = Format(line.Edge, text, Brush("FgBrush"));
+        var box = LabelBox(line.Path, formatted);
+        context.DrawRectangle(Brush("BgBrush"), null, new Avalonia.Rect(box.X, box.Y, box.Width, box.Height), 2, 2);
+        context.DrawText(formatted, new Point(box.X + 4, box.Y + 2));
     }
 }
