@@ -116,7 +116,7 @@ A store's Data section is a picture of what it holds, for a developer who wants 
   rows. Leave out the audit columns. Types, defaults and indexes are left out on purpose: a sample row says more than a type does.
 - **Invent the rows.** Never paste rows from a real database, a dump or a log, and never use a real name, email or id. `o_1042`,
   `c_77` and `Noodle Bar` are enough to show what a row looks like.
-- **A note says why, in one line.** "Cents, not decimals. Rounding broke the first tax run." explains a choice a reader would
+- **A note says why, in one line.** "Stored in cents because rounding broke the first tax run." explains a choice a reader would
   question. "The order's total" repeats the column's name, so leave it out. Longer reasoning goes in a design document, linked from the shape.
 - **A limits line says how long or how much,** in the words people use: "Kept 7 years, then archived", "Swept after 24 hours",
   "Kept 7 days, 6 partitions", "Oldest unused go first at 256 MB". It states a fact the team set, so check it against the config.

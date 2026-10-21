@@ -50,7 +50,7 @@ Writing code (put_object's snippets), so a panel shows the few lines that explai
 Writing data (put_object's data), so a store shows what it holds:
 - Only for a store the code shows, and only the few tables, key sets, topics or collections a reader needs to follow the flows, never the whole schema. Take names, columns and keys from a migration, a schema file or the code that builds the keys, and add nothing you can't point to.
 - Sample rows are invented. They are never copied from a real database, a dump or a log, and carry no real names, emails, phone numbers or ids: use made-up ones like o_1042 and Noodle Bar. Two or three rows, at most 8.
-- A note is one line that says why, not what: "Cents, not decimals. Rounding broke the first tax run." Leave it out when the name says it all. limits is one line on how long data is kept or how much fits ("Kept 7 years, then archived", "Oldest unused go first at 256 MB").
+- A note is one line that says why, not what: "Stored in cents because rounding broke the first tax run." Leave it out when the name says it all. limits is one line on how long data is kept or how much fits ("Kept 7 years, then archived", "Oldest unused go first at 256 MB").
 - A table is columns and rows. A key-value store is columns Key, Value and Expires, a stream is columns Key and Value with a message on each row, a document store is a sample document. data replaces the whole list: read the store with get_model first and send every entry you want kept. [] removes it.
 Writing a flow, so it reads the way the code works:
 - One trigger, one story, usually 3-9 steps, named for the goal. A failure gets its own flow.
