@@ -4,7 +4,7 @@ import { typesIn } from '../../src/core/check.ts'
 import { modelFiles, ROOT, serializeLayout } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteFlow, deleteObject, deleteObjects, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setLines, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import { connect, deleteFlow, deleteObject, deleteObjects, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setLines, setStepGroup, setStepStates, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
@@ -131,6 +131,25 @@ export const STEPS: Spec[] = [
   { op: 'setGroupKind', id: 'plan', group: 'nope', kind: 'repeat' },
   { op: 'setGroupKind', id: 'nope', group: 'ending', kind: 'repeat' },
   { op: 'deleteFlow', id: 'plan' },
+  { op: 'putFlow', id: 'outage', name: 'The shop goes down', view: 'root', states: { web: 'degraded' }, steps: [{ from: 'customer', to: 'shop', text: 'Orders' }, { from: 'shop', text: 'Stops answering', states: { api: 'stopped' } }, { from: 'customer', text: 'Waits', states: {} }, { from: 'shop', text: 'Is back', description: ' ', states: { api: 'running', web: 'running' } }] },
+  { op: 'putFlow', id: 'no-states', name: 'An empty set writes none', view: 'root', states: {}, steps: [{ from: 'customer', text: 'Only step', states: {} }] },
+  { op: 'putFlow', id: 'bad-state', name: 'A word that is not a state', view: 'root', states: { web: 'asleep' }, steps: [{ from: 'customer', text: 'x' }] },
+  { op: 'putFlow', id: 'bad-shape', name: 'A shape nobody has', view: 'root', steps: [{ from: 'customer', text: 'x', states: { ghost: 'stopped' } }] },
+  { op: 'setStepStates', id: 'outage', index: 0, states: { api: 'starting' } },
+  { op: 'setStepStates', id: 'outage', index: 0, states: { web: 'degraded', db: 'stopping', api: 'restarting' } },
+  { op: 'setStepStates', id: 'outage', index: 1, states: { db: 'stopped' } },
+  { op: 'setStepStates', id: 'outage', index: 3, states: {} },
+  { op: 'setStepStates', id: 'outage', index: 2, states: {} },
+  { op: 'setStepStates', id: 'outage', index: 0, states: { api: 'asleep' } },
+  { op: 'setStepStates', id: 'outage', index: 0, states: { ghost: 'stopped' } },
+  { op: 'setStepStates', id: 'outage', index: 0, states: { root: 'stopped' } },
+  { op: 'setStepStates', id: 'outage', index: 9, states: { api: 'stopped' } },
+  { op: 'setStepStates', id: 'nope', index: 0, states: { api: 'stopped' } },
+  { op: 'setStepStates', id: 'tagged-bad', index: 0, states: { api: 'stopped' } },
+  { op: 'setStepStates', id: 'outage', index: 1, states: { db: 'stopped', cache: 'degraded' } },
+  { op: 'deleteObject', id: 'cache' }, // a step of outage sets it
+  { op: 'deleteFlow', id: 'no-states' },
+  { op: 'deleteFlow', id: 'outage' },
   { op: 'placeBoxes', view: 'root', boxes: { customer: [12, 34], shop: [300.5, 40], ghost: [1, 2] } },
   { op: 'placeBoxes', view: 'shop', boxes: { api: [5, 6], web: [0, 0] } },
   { op: 'placeBoxes', view: 'nowhere', boxes: { api: [5, 6] } },
@@ -167,12 +186,13 @@ function apply(model: Model, s: Spec): Model {
     case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label })
     case 'removeConnection': return removeConnection(model, { from: s.from, to: s.to, label: s.which })
     case 'relabel': return relabel(model, { from: s.from, to: s.to, label: s.which }, s.label)
-    case 'putFlow': return putFlow(model, { id: s.id, name: s.name, view: s.view, steps: s.steps as Step[], ...(s.groups === undefined ? {} : { groups: s.groups }) })
+    case 'putFlow': return putFlow(model, { id: s.id, name: s.name, view: s.view, steps: s.steps as Step[], ...(s.groups === undefined ? {} : { groups: s.groups }), ...(s.states === undefined ? {} : { states: s.states }) })
     case 'updateFlow': return updateFlow(model, s.id, { ...(s.name === undefined ? {} : { name: s.name }), ...(s.steps === undefined ? {} : { steps: s.steps as Step[] }), ...(s.groups === undefined ? {} : { groups: s.groups }) })
     case 'removeStep': return removeStep(model, s.id, s.index)
     case 'putGroup': return putGroup(model, s.id, s.group, s.options)
     case 'removeGroup': return removeGroup(model, s.id, s.group)
     case 'setStepGroup': return setStepGroup(model, s.id, s.index, s.group)
+    case 'setStepStates': return setStepStates(model, s.id, s.index, s.states)
     case 'setGroupKind': return setGroupKind(model, s.id, s.group, s.kind)
     case 'groupSteps': return groupSteps(model, s.id, s.group, s.kind, s.first, s.last)
     case 'deleteFlow': return deleteFlow(model, s.id)

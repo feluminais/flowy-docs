@@ -90,10 +90,14 @@ public static class EditOps
         if (ObjectOf(doc, id) is null) throw new OpError($"unknown object \"{id}\"");
         var children = JsKeys.Order(doc.Objects.Keys).Where(other => other != id && Text(Entry(doc.Objects[other]), "in") == id).ToList();
         if (children.Count > 0) throw new OpError($"\"{id}\" still contains {string.Join(", ", children)}. Delete or move those first.");
+        // A shape that only a `states` names (the flow's or a step's) is used too: its state would be left pointing at nothing.
+        bool Staged(object? states) => states is OrderedDictionary<string, object?> map && map.ContainsKey(id);
         var flows = JsKeys.Order(doc.Flows.Keys).Where(fid =>
         {
             var flow = Entry(doc.Flows[fid]);
-            return Text(flow, "view") == id || (flow.TryGetValue("steps", out var steps) && steps is List<object?> list && list.Any(s => Text(Entry(s), "from") == id || Text(Entry(s), "to") == id));
+            return Text(flow, "view") == id
+                || (flow.TryGetValue("steps", out var steps) && steps is List<object?> list && list.Any(s => Text(Entry(s), "from") == id || Text(Entry(s), "to") == id || (Entry(s).TryGetValue("states", out var own) && Staged(own))))
+                || (flow.TryGetValue("states", out var start) && Staged(start));
         }).ToList();
         if (flows.Count > 0) throw new OpError($"\"{id}\" is used by flow{(flows.Count > 1 ? "s" : "")} {string.Join(", ", flows)}. Change or delete those first.");
         var d = doc.Clone();
@@ -185,8 +189,11 @@ public static class EditOps
         return step;
     }
 
-    /// <summary>Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. <paramref name="groups"/> (group id → its options, all text) is written between the view and the steps; none or an empty set writes no <c>groups:</c>.</summary>
-    public static EditDoc PutFlow(EditDoc doc, string id, string name, string view, IEnumerable<OrderedDictionary<string, object?>> steps, OrderedDictionary<string, object?>? groups = null)
+    /// <summary>
+    /// Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. <paramref name="groups"/> (group id → its options, all text) is written between the view and the steps; none or an empty set writes no <c>groups:</c>.
+    /// <paramref name="states"/> (shape id → state word) is where shapes stand before step 1, written right after the view; none or an empty set writes no <c>states:</c>, and neither does an empty one on a step.
+    /// </summary>
+    public static EditDoc PutFlow(EditDoc doc, string id, string name, string view, IEnumerable<OrderedDictionary<string, object?>> steps, OrderedDictionary<string, object?>? groups = null, OrderedDictionary<string, object?>? states = null)
     {
         if (!Names.IsValidId(id)) throw new OpError($"\"{id}\" is not a valid flow id: {Names.IdRule}");
         // Flow ids are file names, and Windows and macOS don't tell Visit.yaml from visit.yaml.
@@ -199,9 +206,11 @@ public static class EditOps
             var copy = Clone(s);
             // A blank detail is no detail, as on the canvas, so the file stays as short as it can be.
             if (copy.TryGetValue("description", out var detail) && detail is string text && text.Trim() == "") copy.Remove("description");
+            if (copy.TryGetValue("states", out var own) && own is OrderedDictionary<string, object?> { Count: 0 }) copy.Remove("states");
             copies.Add(copy);
         }
         var flow = new OrderedDictionary<string, object?> { ["name"] = name, ["view"] = view };
+        if (states is { Count: > 0 }) flow["states"] = Clone(states);
         if (groups is { Count: > 0 }) flow["groups"] = Clone(groups);
         flow["steps"] = copies;
         d.Flows[id] = flow;
@@ -243,6 +252,48 @@ public static class EditOps
         if (name is not null) flow["name"] = name;
         if (steps is not null) flow["steps"] = steps.Select(s => (object?)Clone(s)).ToList();
         if (groups is not null) d.Flows[id] = WithGroups(flow, Clone(groups));
+        return d;
+    }
+
+    /// <summary>The keys of a step in the order the guide shows them; a key set later goes after the nearest earlier one that is there.</summary>
+    private static readonly string[] StepOrder = ["from", "to", "text", "description", "animation", "states", "group", "lane", "flow"];
+
+    /// <summary>
+    /// Set which shapes step <paramref name="index"/> changes, as a whole: <paramref name="states"/> replaces what the step had, so pass the entries to keep too, and an empty map takes
+    /// <c>states</c> out. Refused for a shape that does not exist or a word that is not a state, in the checks' words. Every other key of the step is kept.
+    /// </summary>
+    public static EditDoc SetStepStates(EditDoc doc, string id, int index, IReadOnlyDictionary<string, string> states)
+    {
+        ExistingFlow(doc, id);
+        var d = doc.Clone();
+        var flow = Entry(d.Flows[id]);
+        var steps = StepsOf(flow);
+        if (index < 0 || index >= steps.Count) throw NoStep(id, index);
+        var tree = new OrderedDictionary<string, object?>();
+        foreach (var shape in JsKeys.Order(states.Keys)) tree[shape] = states[shape];
+        var probe = new Flow("", "", [new Step("", null, "", null, States: tree)]);
+        if (States.Problems(probe, [], shape => ObjectOf(doc, shape) is not null) is [var (_, why), ..]) throw new OpError(why);
+        var entries = Entry(steps[index]).ToList();
+        var at = entries.FindIndex(e => e.Key == "states");
+        if (tree.Count == 0)
+        {
+            if (at != -1) entries.RemoveAt(at);
+        }
+        else if (at != -1) entries[at] = new("states", tree);
+        else
+        {
+            var rank = Array.IndexOf(StepOrder, "states");
+            int after = -1, nearest = -1;
+            for (var i = 0; i < entries.Count; i++)
+            {
+                var r = Array.IndexOf(StepOrder, entries[i].Key);
+                if (r != -1 && r < rank && r > nearest) (nearest, after) = (r, i);
+            }
+            entries.Insert(after + 1, new("states", tree));
+        }
+        var next = new OrderedDictionary<string, object?>();
+        foreach (var (key, value) in entries) next[key] = value;
+        steps[index] = next;
         return d;
     }
 

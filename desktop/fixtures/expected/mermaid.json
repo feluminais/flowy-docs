@@ -223,6 +223,61 @@
           "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Billing\n  participant n2 as Dispatch\n  participant n3 as Orders DB\n  par Billing\n    n0->>n1: Starts together with Dispatch\n  and Dispatch\n    n0->>n2: Starts together with Billing\n  end\n  n0->>n1: Asks Billing for a total\n  par A\n    n0->>n1: Lane A one\n    n1->>n3: Lane A two\n  and B\n    n0->>n2: Lane B only\n  and C\n    n0->>n3: Lane C one\n    n3->>n0: Lane C two\n    n0->>n3: Lane C three\n  end\n  opt A courier is wanted\n    n0->>n2: Books a courier\n  end\n  loop Until the job is done\n    n0->>n3: Checks the job\n  end\n  loop Up to 2 times\n    n0->>n3: Saves\n    n0->>n3: Saves once more\n  end\n  opt Last\n    n0->>n1: Ends the flow\n  end\n"
         }
       ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/states/flowy",
+      "views": [
+        {
+          "view": "root",
+          "text": "flowchart TB\n  n0[\"Two<br/>system\"]\n  n1[\"Ten<br/>system\"]\n  n2([\"Customer<br/>actor\"])\n  n3[\"Shop<br/>system\"]\n  n4[\"Stripe<br/>system\"]\n  n2 -- \"browses\" --> n3\n  n3 -- \"charges with\" --> n4\n"
+        },
+        {
+          "view": "shop",
+          "text": "flowchart TB\n  n0[\"Web app<br/>app\"]\n  n1[\"API<br/>app\"]\n  n2[(\"Orders DB<br/>store\")]\n  n3([\"Customer<br/>actor\"])\n  n4[\"Stripe<br/>system\"]\n  n3 -- \"browses\" --> n0\n  n0 -- \"REST\" --> n1\n  n1 -- \"2 connections\" --> n2\n  n1 -- \"charges with\" --> n4\n  classDef outsider stroke-dasharray: 4 3\n  class n3,n4 outsider\n"
+        },
+        {
+          "view": "api",
+          "text": "flowchart TB\n  n0[\"Orders<br/>component\"]\n  n1[\"Auth<br/>component\"]\n  n2[(\"Orders DB<br/>store\")]\n  n0 -- \"reads/writes\" --> n2\n  n1 -- \"checks users\" --> n2\n  classDef outsider stroke-dasharray: 4 3\n  class n2 outsider\n"
+        }
+      ],
+      "flows": [
+        {
+          "flow": "bad",
+          "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  participant n2 as Auth\n  n0->>n1: Unknown shape and state\n  n0->>n1: Wrong case\n  n0->>n1: Not words\n  n0->>n1: Fine\n  Note over n2: Degraded\n"
+        },
+        {
+          "flow": "branching",
+          "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  participant n2 as Orders DB\n  participant n3 as Orders\n  Note over n2: Degraded\n  n0->>n1: Asks\n  Note over n1: Degraded\n  alt Retry\n    Note over n1: Restarts it\n    Note over n1: Restarting\n    Note over n1: Writes it down\n  else Give up\n    Note over n2: Gives up\n    Note over n2: Stopped\n    Note over n3: Stopping\n  end\n  n0->>n1: Carries on\n"
+        },
+        {
+          "flow": "hold",
+          "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  participant n2 as Orders DB\n  participant n3 as Stripe\n  participant n4 as Orders\n  Note over n3: Starting\n  n0->>n1: Asks\n  Note over n1: Stops answering\n  Note over n4: Stopped\n  n0->>n1: Waits\n  n1->>n2: Restarts\n  Note over n1: Restarting\n  Note over n4: Running\n  Note over n0: Degraded\n  Note over n1: Is back\n  Note over n1: Running\n  Note over n3: Running\n"
+        },
+        {
+          "flow": "hostile",
+          "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  n0->>n1: Asks\n  Note over n1: Stopped\n  n0->>n1: Then\n"
+        },
+        {
+          "flow": "numbered",
+          "text": "sequenceDiagram\n  actor n0 as Customer\n  participant n1 as Shop\n  participant n2 as Two\n  participant n3 as Ten\n  participant n4 as Stripe\n  Note over n2: Starting\n  Note over n3: Degraded\n  Note over n4: Stopped\n  n0->>n1: Visits\n  n1->>n2: Calls\n  Note over n3: Stopping\n  Note over n1: Running\n  n2->>n3: Then\n  Note over n2: Running\n"
+        },
+        {
+          "flow": "parallel-clash",
+          "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Orders DB\n  participant n2 as Web app\n  par A\n    Note over n0: One lane\n    Note over n1: Stopped\n    Note over n2: Degraded\n  and B\n    Note over n1: The other\n    Note over n1: Degraded\n    Note over n2: Degraded\n  and C\n    Note over n0: A third\n    Note over n1: Starting\n  end\n  n2->>n0: After\n"
+        },
+        {
+          "flow": "parallel-ok",
+          "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  participant n2 as Orders DB\n  participant n3 as Auth\n  n0->>n1: Asks\n  par Order\n    Note over n1: Takes the order\n    Note over n1: Degraded\n    Note over n2: Stopped\n  and Stock\n    Note over n2: Takes the stock\n    Note over n2: Stopped\n    Note over n3: Starting\n    Note over n1: Then\n    Note over n1: Running\n  end\n  n0->>n1: Done\n"
+        },
+        {
+          "flow": "repeat",
+          "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  loop Up to 3 times\n    n0->>n1: Tries\n    Note over n1: Starting\n    Note over n1: Is slow\n    Note over n1: Degraded\n  end\n  n0->>n1: Gives up\n  Note over n1: Running\n"
+        },
+        {
+          "flow": "shapes",
+          "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  n0->>n1: A list\n  n0->>n1: A blank key\n  n0->>n1: A tilde\n  n0->>n1: Empty\n  n0->>n1: Fine\n  Note over n1: Stopped\n"
+        }
+      ]
     }
   ]
 }

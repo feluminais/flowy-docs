@@ -184,6 +184,11 @@ public static class Checks
                 if (step is { } n) P($"step {n + 1}: {message}", n);
                 else P(message);
             }
+            foreach (var (step, message) in States.Problems(f, Structure.Stops(f), id => model.GetObject(id) is not null))
+            {
+                if (step is { } n) P($"step {n + 1}: {message}", n);
+                else P(message);
+            }
         }
         return problems;
     }

@@ -14,6 +14,7 @@ import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
 import { dumpOutline } from './outline.ts'
 import { dumpPerf, dumpPerfView } from './perf.ts'
+import { dumpStates } from './states.ts'
 import { dumpCaptions, dumpStops } from './structure.ts'
 import { dumpOps } from './ops.ts'
 import { dumpYamlWrite } from './yaml-write.ts'
@@ -40,6 +41,7 @@ await write('perf-runs', await dumpPerf())
 await write('perf-view', await dumpPerfView())
 await write('stops', await dumpStops())
 await write('captions', await dumpCaptions())
+await write('state-folds', await dumpStates())
 await write('history', await dumpHistory())
 await write('editlabel', dumpEditLabels())
 await write('detect', dumpDetect())

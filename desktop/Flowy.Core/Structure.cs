@@ -127,6 +127,19 @@ public static partial class Structure
         return stops;
     }
 
+    /// <summary>
+    /// The stop that stop <paramref name="k"/> follows: the one its <c>Before</c> points at, which is the stop whose first step is <c>Before[0]</c>. Null for a first
+    /// stop (nothing came before), and for a <paramref name="k"/> that is not a stop. A stop only ever follows an earlier one, so this is found by looking back from <paramref name="k"/>.
+    /// </summary>
+    public static int? StopBefore(IReadOnlyList<Stop> stops, int k)
+    {
+        if (k < 0 || k >= stops.Count || stops[k].Before.Count == 0) return null;
+        var first = stops[k].Before[0];
+        for (var i = k - 1; i >= 0; i--)
+            if (stops[i].Steps.Count > 0 && stops[i].Steps[0] == first) return i;
+        return null;
+    }
+
     /// <summary>The stop that holds file step <paramref name="step"/>, or the first stop when none does (a stale step number never leaves the player nowhere).</summary>
     public static int StopIndexOf(IReadOnlyList<Stop> stops, int step)
     {
