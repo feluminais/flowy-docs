@@ -41,8 +41,52 @@ public static class PerfView
     /// <summary>Whether a position is a tested level, not somewhere between two.</summary>
     public static bool IsTested(double pos) => Math.Abs(pos - Perf.JsRound(pos)) < 1e-6;
 
-    /// <summary>The position <paramref name="ms"/> further on in a ramp (it stops at the last level).</summary>
-    public static double RampPos(LoadRun run, double pos, double ms) => ClampPos(run, pos + ms * Top(run) / RampMs);
+    /// <summary>
+    /// The position of a time or load <paramref name="x"/>, the other way round from <see cref="LoadAt"/>: a tested level's own number is its whole position, and between two it is a
+    /// straight line. Outside the run it is the nearest end; a time that is not finite is the start, as for <see cref="ClampPos"/>.
+    /// </summary>
+    public static double PosAt(LoadRun run, double x)
+    {
+        var levels = run.Levels;
+        if (!double.IsFinite(x) || x <= levels[0].Load) return 0;
+        if (x >= levels[Top(run)].Load) return Top(run);
+        for (var i = 0; i < Top(run); i++)
+            if (x < levels[i + 1].Load) return i + (x - levels[i].Load) / (levels[i + 1].Load - levels[i].Load);
+        return Top(run);
+    }
+
+    /// <summary>The time or load at a position (the same as <see cref="LoadAt"/>, named for the way round that goes with <see cref="PosAt"/>).</summary>
+    public static double XOfPos(LoadRun run, double pos) => LoadAt(run, pos);
+
+    /// <summary>How wide a run is: from its first level's time or load to its last's.</summary>
+    private static double Span(LoadRun run) => run.Levels[Top(run)].Load - run.Levels[0].Load;
+
+    /// <summary>Where a time or load sits along the run, 0 to 1, by time or load itself and not by level.</summary>
+    private static double Along(LoadRun run, double x) => (x - run.Levels[0].Load) / Span(run);
+
+    /// <summary>
+    /// Where the slider's thumb is, 0 to 1 along it. A time run's slider is linear in time, so a level sits where its time is and an event on its own time. A load run's is even,
+    /// a step to each level, whatever the loads are.
+    /// </summary>
+    public static double SliderFraction(LoadRun run, double pos) =>
+        run.IsTime ? Math.Min(1, Math.Max(0, Along(run, XOfPos(run, pos)))) : Top(run) == 0 ? 0 : ClampPos(run, pos) / Top(run);
+
+    /// <summary>The events of a time run with where each sits along the slider, 0 to 1, in time order. Nothing for a load run.</summary>
+    public static IReadOnlyList<(double Fraction, RunEvent Event)> EventFractions(LoadRun run) =>
+        run.IsTime ? [.. run.Events.Select(e => (Math.Min(1, Math.Max(0, Along(run, e.At))), e))] : [];
+
+    /// <summary>What the slider's own numbers run between: a time run's are times, a load run's are positions.</summary>
+    public static (double Min, double Max) SliderRange(LoadRun run) => run.IsTime ? (run.Levels[0].Load, run.Levels[Top(run)].Load) : (0, Top(run));
+
+    /// <summary>The number the slider holds at a position (see <see cref="SliderRange"/>).</summary>
+    public static double SliderValue(LoadRun run, double pos) => run.IsTime ? XOfPos(run, pos) : ClampPos(run, pos);
+
+    /// <summary>The position a dragged slider stands for. A time run goes where it is put, so an event can be stood on; a load run snaps to a tested level.</summary>
+    public static double SlidePos(LoadRun run, double value) => run.IsTime ? PosAt(run, value) : Snap(run, value);
+
+    /// <summary>The position <paramref name="ms"/> further on in a ramp (it stops at the last level). A time run goes on evenly in time, a load run evenly from level to level.</summary>
+    public static double RampPos(LoadRun run, double pos, double ms) =>
+        run.IsTime ? PosAt(run, XOfPos(run, pos) + ms * Span(run) / RampMs) : ClampPos(run, pos + ms * Top(run) / RampMs);
 
     /// <summary>Where a ramp starts: from the bottom when it is at the top already, else from where it is.</summary>
     public static double RampFrom(LoadRun run, double pos) => pos >= Top(run) ? 0 : pos;
@@ -135,14 +179,20 @@ public static class PerfView
     /// <summary>Where level <paramref name="i"/> of <paramref name="n"/> sits across an area: evenly spaced, so a run that goes 10, 25, 50, 100, 200, 400 reads as steps.</summary>
     public static double XAt(Area box, double i, int n) => box.X + (n <= 1 ? 0 : box.Width * i / (n - 1));
 
+    /// <summary>Where level <paramref name="i"/> of a run sits across an area: evenly for a load run, as <see cref="XAt"/> has it, and by its time for a time run.</summary>
+    public static double LevelX(LoadRun run, Area box, int i) => run.IsTime ? box.X + box.Width * Along(run, run.Levels[i].Load) : XAt(box, i, run.Levels.Count);
+
+    /// <summary>Where a position sits across an area, for the cursor of a curve.</summary>
+    public static double CursorX(LoadRun run, Area box, double pos) => run.IsTime ? box.X + box.Width * SliderFraction(run, pos) : XAt(box, pos, run.Levels.Count);
+
     public static double YAt(Area box, Scale scale, double v) => box.Y + box.Height * (1 - Place(scale, v));
 
     private static double Round1(double n) => Perf.JsRound(n * 10) / 10;
 
     private static string Num(double n) => n.ToString("R", CultureInfo.InvariantCulture);
 
-    /// <summary>A curve through the values as SVG path data, one point to each level, broken where a level has no number.</summary>
-    public static string PathOf(IReadOnlyList<double?> values, Scale scale, Area box)
+    /// <summary>A curve through the values as SVG path data, one point to each level, broken where a level has no number. Given a time run, the points sit at their times, not evenly.</summary>
+    public static string PathOf(IReadOnlyList<double?> values, Scale scale, Area box, LoadRun? run = null)
     {
         var d = new System.Text.StringBuilder();
         var pen = false;
@@ -153,7 +203,7 @@ public static class PerfView
                 pen = false;
                 continue;
             }
-            d.Append(pen ? 'L' : 'M').Append(Num(Round1(XAt(box, i, values.Count)))).Append(' ').Append(Num(Round1(YAt(box, scale, v))));
+            d.Append(pen ? 'L' : 'M').Append(Num(Round1(run is { IsTime: true } ? LevelX(run, box, i) : XAt(box, i, values.Count)))).Append(' ').Append(Num(Round1(YAt(box, scale, v))));
             pen = true;
         }
         return d.ToString();
@@ -167,16 +217,42 @@ public static class PerfView
         return lines;
     }
 
-    /// <summary>The labels under the levels: every level's load, or every few when there would be too many to read.</summary>
-    public static IReadOnlyList<(double X, string Label)> LevelLabels(LoadRun run, Area box, int most = 8)
+    /// <summary>How near two labels may be along a time run's slider (a fraction of its width) before the later one is left out.</summary>
+    private const double LabelGap = 0.08;
+
+    /// <summary>
+    /// The levels that get a label: every one, or every few when there would be too many to read. The last is always named. In a time run levels can sit close together, so one that
+    /// would land on the label before it is left out, and the last takes the place of those it would cover.
+    /// </summary>
+    private static List<int> Labelled(LoadRun run, int most)
     {
         var n = run.Levels.Count;
         var every = (int)Math.Ceiling(n / (double)most);
-        var labels = new List<(double, string)>();
+        var wanted = new List<int>();
         for (var i = 0; i < n; i++)
-            if (i % every == 0 || i == n - 1) labels.Add((Round1(XAt(box, i, n)), Num(run.Levels[i].Load)));
-        return labels;
+            if (i % every == 0 || i == n - 1) wanted.Add(i);
+        if (!run.IsTime) return wanted;
+        double At(int i) => Along(run, run.Levels[i].Load);
+        var shown = new List<int>();
+        foreach (var i in wanted)
+        {
+            if (shown.Count > 0 && At(i) - At(shown[^1]) < LabelGap)
+            {
+                if (i != n - 1) continue;
+                while (shown.Count > 1 && At(i) - At(shown[^1]) < LabelGap) shown.RemoveAt(shown.Count - 1);
+            }
+            shown.Add(i);
+        }
+        return shown;
     }
+
+    /// <summary>The labels under the levels: every level's load, or every few when there would be too many to read.</summary>
+    public static IReadOnlyList<(double X, string Label)> LevelLabels(LoadRun run, Area box, int most = 8) =>
+        [.. Labelled(run, most).Select(i => (Round1(LevelX(run, box, i)), Num(run.Levels[i].Load)))];
+
+    /// <summary>The labels under the slider: a level's time or load at its place along it (0 to 1), thinned the way <see cref="LevelLabels"/> is.</summary>
+    public static IReadOnlyList<(double Fraction, string Label)> TickLabels(LoadRun run, int most = 8) =>
+        [.. Labelled(run, most).Select(i => (run.IsTime ? Along(run, run.Levels[i].Load) : Top(run) == 0 ? 0 : (double)i / Top(run), Num(run.Levels[i].Load)))];
 
     // ---- readings -----------------------------------------------------------------------------------------------
 

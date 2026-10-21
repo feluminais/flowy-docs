@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseRun } from '../src/core/perf.ts'
 import {
-  activeRun, boxAt, boxSeries, clampPos, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, levelLabels, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, RAMP_MS, rampFrom, rampPos, scaleOf, snap, sourceCss, top, xAt, yAt,
+  activeRun, boxAt, boxSeries, clampPos, cursorX, eventFractions, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, isTime, levelLabels, levelX, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, posAt, RAMP_MS, rampFrom, rampPos, scaleOf, sliderFraction, slidePos, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
 } from '../ui/src/perfview.ts'
 import { shop } from './fixtures.ts'
 
@@ -161,4 +161,120 @@ test('the key draws the fade while no line fails and for a line that fails witho
   assert.deepEqual(failureMarks([{ failed: 0.1, failure: 'lost' }]), { fade: false, lost: true, rejected: false })
   assert.deepEqual(failureMarks([{ failed: 0.1, failure: 'rejected' }, { failed: 0.05 }]), { fade: true, lost: false, rejected: true })
   assert.deepEqual(failureMarks([{ failed: 0.1, failure: 'rejected' }, { failed: 0.2, failure: 'lost' }]), { fade: false, lost: true, rejected: true })
+})
+
+// ---- Runs over time
+
+/** The spec's outage: levels at 0, 45 and 120 seconds, and events at 40, 70 and 85. The slider of such a run is linear in time. */
+const outage = parseRun('outage', `name: Payments killed at 40 s
+axis: time
+unit: s
+events:
+  - { at: 40, on: api, state: stopped, text: Payments killed }
+  - { at: 70, on: api, state: starting, text: Restart begins }
+  - { at: 85, on: api, state: running, text: Answers again }
+levels:
+  - at: 0
+    overall: { p50: 60, p95: 140 }
+    objects: { api: { util: 0.4 } }
+  - at: 45
+    overall: { p50: 80, p95: 400 }
+    objects: { api: { util: 0 } }
+  - at: 120
+    overall: { p50: 70, p95: 150 }
+    objects: { api: { util: 0.5 } }
+`).run
+
+test('a time run is a time run, and a load run is not', () => {
+  assert.equal(isTime(outage), true)
+  assert.equal(isTime(run), false)
+})
+
+test('posAt is the position of a time, the other way round from loadAt', () => {
+  assert.equal(posAt(outage, 0), 0)
+  assert.equal(posAt(outage, 45), 1)
+  assert.equal(posAt(outage, 82.5), 1.5)
+  assert.equal(posAt(outage, 120), 2)
+  near(posAt(outage, 22.5), 0.5)
+  assert.equal(posAt(outage, -5), 0) // outside the run is the nearest end, as loadAt clamps
+  assert.equal(posAt(outage, 500), 2)
+  assert.equal(posAt(outage, Number.NaN), 0)
+  assert.equal(posAt(outage, Number.POSITIVE_INFINITY), 0) // not finite is the start, as clampPos has it
+  for (const pos of [0, 0.25, 1, 1.5, 1.9, 2]) near(posAt(outage, loadAt(outage, pos)), pos)
+  assert.equal(xOfPos(outage, 1.5), 82.5)
+  assert.equal(posAt(run, 300), 1.5) // the same for a load run
+})
+
+test('the slider of a time run is linear in time: a level sits where its time is, and an event on its own time', () => {
+  assert.equal(sliderFraction(outage, 0), 0)
+  assert.equal(sliderFraction(outage, 1), 0.375) // 45 of 120
+  near(sliderFraction(outage, 1.5), 82.5 / 120)
+  assert.equal(sliderFraction(outage, 2), 1)
+  assert.equal(sliderFraction(outage, 9), 1)
+  const events = eventFractions(outage)
+  assert.deepEqual(events.map(e => e.event.at), [40, 70, 85])
+  near(events[0].fraction, 1 / 3)
+  near(events[1].fraction, 7 / 12)
+  near(events[2].fraction, 17 / 24)
+})
+
+test('the slider of a load run is as it was: even steps, and no events to mark', () => {
+  assert.equal(sliderFraction(run, 0), 0)
+  assert.equal(sliderFraction(run, 1), 0.5)
+  assert.equal(sliderFraction(run, 1.5), 0.75)
+  assert.equal(sliderFraction(run, 7), 1)
+  assert.deepEqual(eventFractions(run), [])
+  assert.deepEqual(sliderRange(run), { min: 0, max: 2 })
+  assert.equal(sliderValue(run, 1.5), 1.5)
+  assert.equal(slidePos(run, 1.4), 1) // dragging a load run still snaps to a tested level
+})
+
+test('a time run is dragged freely in time, and the value of the slider is a time', () => {
+  assert.deepEqual(sliderRange(outage), { min: 0, max: 120 })
+  assert.equal(sliderValue(outage, 1), 45)
+  assert.equal(sliderValue(outage, 1.5), 82.5)
+  near(slidePos(outage, 40), 40 / 45) // an event's own time is a place the slider can stand on
+  assert.equal(slidePos(outage, 45), 1)
+  assert.equal(slidePos(outage, 999), 2)
+})
+
+test('Play sweeps a time run in RAMP_MS of wall time, evenly in time, and stops at the end', () => {
+  assert.equal(rampPos(outage, 0, RAMP_MS), 2)
+  near(rampPos(outage, 0, RAMP_MS / 4), posAt(outage, 30)) // a quarter of the time: 30 s of 120
+  near(rampPos(outage, 1, RAMP_MS / 2), posAt(outage, 45 + 60)) // from the middle level, half the sweep further on
+  assert.equal(rampPos(outage, 1.9, RAMP_MS), 2)
+  assert.equal(rampFrom(outage, 2), 0)
+  assert.equal(rampFrom(outage, 1.5), 1.5)
+  near(rampPos(run, 0, RAMP_MS / 2), 1) // a load run goes level to level as before
+})
+
+test('the arrow keys still go from level to level in a time run: 0, 45, 120', () => {
+  assert.deepEqual([0, 1, 2].map(i => xOfPos(outage, snap(outage, i))), [0, 45, 120])
+  assert.equal(snap(outage, posAt(outage, 40)), 1)
+  assert.equal(snap(outage, posAt(outage, 100)), 2)
+})
+
+test('the strip places a time run by time, and a load run evenly as before', () => {
+  const area = { x: 0, y: 0, width: 120, height: 10 }
+  assert.deepEqual([0, 1, 2].map(i => levelX(outage, area, i)), [0, 45, 120])
+  assert.deepEqual([0, 1, 2].map(i => levelX(run, area, i)), [0, 60, 120])
+  assert.equal(cursorX(outage, area, 1.5), 82.5)
+  assert.equal(cursorX(run, area, 1.5), 90)
+  assert.deepEqual(levelLabels(outage, area).map(l => [l.x, l.label]), [[0, '0'], [45, '45'], [120, '120']])
+  const values = [10, 20, 30]
+  const scale = { lo: 0, hi: 40, log: false }
+  assert.equal(pathOf(values, scale, area), 'M0 7.5L60 5L120 2.5') // even
+  assert.equal(pathOf(values, scale, area, outage), 'M0 7.5L45 5L120 2.5') // by time
+  assert.equal(pathOf(values, scale, area, run), pathOf(values, scale, area))
+})
+
+test('levels close in time do not pile their labels up: the last is always named', () => {
+  const crowded = parseRun('crowded', 'name: C\naxis: time\nlevels:\n  - at: 0\n  - at: 1\n  - at: 2\n  - at: 100\n  - at: 101\n  - at: 150\n').run
+  const area = { x: 0, y: 0, width: 150, height: 10 }
+  assert.deepEqual(levelLabels(crowded, area).map(l => l.label), ['0', '100', '150'])
+  assert.deepEqual(tickLabels(crowded).map(t => t.label), ['0', '100', '150'])
+  const close = parseRun('close', 'name: C\naxis: time\nlevels:\n  - at: 0\n  - at: 100\n  - at: 101\n').run
+  assert.deepEqual(tickLabels(close).map(t => t.label), ['0', '101']) // the last level takes the place of the one it would cover
+  assert.deepEqual(tickLabels(run).map(t => [t.fraction, t.label]), [[0, '100'], [0.5, '200'], [1, '400']])
+  assert.deepEqual(tickLabels(outage).map(t => [t.fraction, t.label]), [[0, '0'], [0.375, '45'], [1, '120']])
 })

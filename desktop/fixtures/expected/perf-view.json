@@ -14165,5 +14165,2578 @@
   "ramp": {
     "id": "ramp",
     "levels": 4
-  }
+  },
+  "sliders": [
+    {
+      "id": "calm",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "events": [],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "5"
+        },
+        {
+          "fraction": 1,
+          "label": "10"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "5"
+        },
+        {
+          "fraction": 1,
+          "label": "10"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 5,
+          "back": 0
+        },
+        {
+          "pos": 0,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 5,
+          "back": 0
+        },
+        {
+          "pos": 0.25,
+          "fraction": 0.25,
+          "value": 0.25,
+          "slide": 0,
+          "x": 6.25,
+          "back": 0.25
+        },
+        {
+          "pos": 0.5,
+          "fraction": 0.5,
+          "value": 0.5,
+          "slide": 1,
+          "x": 7.5,
+          "back": 0.5
+        },
+        {
+          "pos": 1,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 10,
+          "back": 1
+        },
+        {
+          "pos": 1.5,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 10,
+          "back": 1
+        },
+        {
+          "pos": 2.999,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 10,
+          "back": 1
+        },
+        {
+          "pos": 3,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 10,
+          "back": 1
+        },
+        {
+          "pos": 9,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 10,
+          "back": 1
+        }
+      ]
+    },
+    {
+      "id": "edge",
+      "range": {
+        "min": 0,
+        "max": 3
+      },
+      "events": [],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "1"
+        },
+        {
+          "fraction": 0.3333333333333333,
+          "label": "2"
+        },
+        {
+          "fraction": 0.6666666666666666,
+          "label": "3"
+        },
+        {
+          "fraction": 1,
+          "label": "4"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "1"
+        },
+        {
+          "fraction": 0.6666666666666666,
+          "label": "3"
+        },
+        {
+          "fraction": 1,
+          "label": "4"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 1,
+          "back": 0
+        },
+        {
+          "pos": 0,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 1,
+          "back": 0
+        },
+        {
+          "pos": 0.25,
+          "fraction": 0.08333333333333333,
+          "value": 0.25,
+          "slide": 0,
+          "x": 1.25,
+          "back": 0.25
+        },
+        {
+          "pos": 0.5,
+          "fraction": 0.16666666666666666,
+          "value": 0.5,
+          "slide": 1,
+          "x": 1.5,
+          "back": 0.5
+        },
+        {
+          "pos": 1,
+          "fraction": 0.3333333333333333,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        },
+        {
+          "pos": 1.5,
+          "fraction": 0.5,
+          "value": 1.5,
+          "slide": 2,
+          "x": 2.5,
+          "back": 1.5
+        },
+        {
+          "pos": 2.999,
+          "fraction": 0.9996666666666667,
+          "value": 2.999,
+          "slide": 3,
+          "x": 3.999,
+          "back": 2.999
+        },
+        {
+          "pos": 3,
+          "fraction": 1,
+          "value": 3,
+          "slide": 3,
+          "x": 4,
+          "back": 3
+        },
+        {
+          "pos": 9,
+          "fraction": 1,
+          "value": 3,
+          "slide": 3,
+          "x": 4,
+          "back": 3
+        }
+      ]
+    },
+    {
+      "id": "errors",
+      "range": {
+        "min": 0,
+        "max": 2
+      },
+      "events": [],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "100"
+        },
+        {
+          "fraction": 0.5,
+          "label": "200"
+        },
+        {
+          "fraction": 1,
+          "label": "400"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "100"
+        },
+        {
+          "fraction": 1,
+          "label": "400"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 100,
+          "back": 0
+        },
+        {
+          "pos": 0,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 100,
+          "back": 0
+        },
+        {
+          "pos": 0.25,
+          "fraction": 0.125,
+          "value": 0.25,
+          "slide": 0,
+          "x": 125,
+          "back": 0.25
+        },
+        {
+          "pos": 0.5,
+          "fraction": 0.25,
+          "value": 0.5,
+          "slide": 1,
+          "x": 150,
+          "back": 0.5
+        },
+        {
+          "pos": 1,
+          "fraction": 0.5,
+          "value": 1,
+          "slide": 1,
+          "x": 200,
+          "back": 1
+        },
+        {
+          "pos": 1.5,
+          "fraction": 0.75,
+          "value": 1.5,
+          "slide": 2,
+          "x": 300,
+          "back": 1.5
+        },
+        {
+          "pos": 2.999,
+          "fraction": 1,
+          "value": 2,
+          "slide": 2,
+          "x": 400,
+          "back": 2
+        },
+        {
+          "pos": 3,
+          "fraction": 1,
+          "value": 2,
+          "slide": 2,
+          "x": 400,
+          "back": 2
+        },
+        {
+          "pos": 9,
+          "fraction": 1,
+          "value": 2,
+          "slide": 2,
+          "x": 400,
+          "back": 2
+        }
+      ]
+    },
+    {
+      "id": "extremes",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "events": [],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "1"
+        },
+        {
+          "fraction": 1,
+          "label": "2"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "1"
+        },
+        {
+          "fraction": 1,
+          "label": "2"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 1,
+          "back": 0
+        },
+        {
+          "pos": 0,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 1,
+          "back": 0
+        },
+        {
+          "pos": 0.25,
+          "fraction": 0.25,
+          "value": 0.25,
+          "slide": 0,
+          "x": 1.25,
+          "back": 0.25
+        },
+        {
+          "pos": 0.5,
+          "fraction": 0.5,
+          "value": 0.5,
+          "slide": 1,
+          "x": 1.5,
+          "back": 0.5
+        },
+        {
+          "pos": 1,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        },
+        {
+          "pos": 1.5,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        },
+        {
+          "pos": 2.999,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        },
+        {
+          "pos": 3,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        },
+        {
+          "pos": 9,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        }
+      ]
+    },
+    {
+      "id": "latency",
+      "range": {
+        "min": 0,
+        "max": 3
+      },
+      "events": [],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "1"
+        },
+        {
+          "fraction": 0.3333333333333333,
+          "label": "2"
+        },
+        {
+          "fraction": 0.6666666666666666,
+          "label": "4"
+        },
+        {
+          "fraction": 1,
+          "label": "8"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "1"
+        },
+        {
+          "fraction": 0.6666666666666666,
+          "label": "4"
+        },
+        {
+          "fraction": 1,
+          "label": "8"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 1,
+          "back": 0
+        },
+        {
+          "pos": 0,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 1,
+          "back": 0
+        },
+        {
+          "pos": 0.25,
+          "fraction": 0.08333333333333333,
+          "value": 0.25,
+          "slide": 0,
+          "x": 1.25,
+          "back": 0.25
+        },
+        {
+          "pos": 0.5,
+          "fraction": 0.16666666666666666,
+          "value": 0.5,
+          "slide": 1,
+          "x": 1.5,
+          "back": 0.5
+        },
+        {
+          "pos": 1,
+          "fraction": 0.3333333333333333,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        },
+        {
+          "pos": 1.5,
+          "fraction": 0.5,
+          "value": 1.5,
+          "slide": 2,
+          "x": 3,
+          "back": 1.5
+        },
+        {
+          "pos": 2.999,
+          "fraction": 0.9996666666666667,
+          "value": 2.999,
+          "slide": 3,
+          "x": 7.996,
+          "back": 2.999
+        },
+        {
+          "pos": 3,
+          "fraction": 1,
+          "value": 3,
+          "slide": 3,
+          "x": 8,
+          "back": 3
+        },
+        {
+          "pos": 9,
+          "fraction": 1,
+          "value": 3,
+          "slide": 3,
+          "x": 8,
+          "back": 3
+        }
+      ]
+    },
+    {
+      "id": "numbers",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "events": [],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "10"
+        },
+        {
+          "fraction": 1,
+          "label": "20"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "10"
+        },
+        {
+          "fraction": 1,
+          "label": "20"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 10,
+          "back": 0
+        },
+        {
+          "pos": 0,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 10,
+          "back": 0
+        },
+        {
+          "pos": 0.25,
+          "fraction": 0.25,
+          "value": 0.25,
+          "slide": 0,
+          "x": 12.5,
+          "back": 0.25
+        },
+        {
+          "pos": 0.5,
+          "fraction": 0.5,
+          "value": 0.5,
+          "slide": 1,
+          "x": 15,
+          "back": 0.5
+        },
+        {
+          "pos": 1,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 20,
+          "back": 1
+        },
+        {
+          "pos": 1.5,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 20,
+          "back": 1
+        },
+        {
+          "pos": 2.999,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 20,
+          "back": 1
+        },
+        {
+          "pos": 3,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 20,
+          "back": 1
+        },
+        {
+          "pos": 9,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 20,
+          "back": 1
+        }
+      ]
+    },
+    {
+      "id": "ramp",
+      "range": {
+        "min": 0,
+        "max": 3
+      },
+      "events": [],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "10"
+        },
+        {
+          "fraction": 0.3333333333333333,
+          "label": "25"
+        },
+        {
+          "fraction": 0.6666666666666666,
+          "label": "50"
+        },
+        {
+          "fraction": 1,
+          "label": "100"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "10"
+        },
+        {
+          "fraction": 0.6666666666666666,
+          "label": "50"
+        },
+        {
+          "fraction": 1,
+          "label": "100"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 10,
+          "back": 0
+        },
+        {
+          "pos": 0,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 10,
+          "back": 0
+        },
+        {
+          "pos": 0.25,
+          "fraction": 0.08333333333333333,
+          "value": 0.25,
+          "slide": 0,
+          "x": 13.75,
+          "back": 0.25
+        },
+        {
+          "pos": 0.5,
+          "fraction": 0.16666666666666666,
+          "value": 0.5,
+          "slide": 1,
+          "x": 17.5,
+          "back": 0.5
+        },
+        {
+          "pos": 1,
+          "fraction": 0.3333333333333333,
+          "value": 1,
+          "slide": 1,
+          "x": 25,
+          "back": 1
+        },
+        {
+          "pos": 1.5,
+          "fraction": 0.5,
+          "value": 1.5,
+          "slide": 2,
+          "x": 37.5,
+          "back": 1.5
+        },
+        {
+          "pos": 2.999,
+          "fraction": 0.9996666666666667,
+          "value": 2.999,
+          "slide": 3,
+          "x": 99.95,
+          "back": 2.999
+        },
+        {
+          "pos": 3,
+          "fraction": 1,
+          "value": 3,
+          "slide": 3,
+          "x": 100,
+          "back": 3
+        },
+        {
+          "pos": 9,
+          "fraction": 1,
+          "value": 3,
+          "slide": 3,
+          "x": 100,
+          "back": 3
+        }
+      ]
+    },
+    {
+      "id": "sparse",
+      "range": {
+        "min": 0,
+        "max": 2
+      },
+      "events": [],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "10"
+        },
+        {
+          "fraction": 0.5,
+          "label": "20"
+        },
+        {
+          "fraction": 1,
+          "label": "30"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "10"
+        },
+        {
+          "fraction": 1,
+          "label": "30"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 10,
+          "back": 0
+        },
+        {
+          "pos": 0,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 10,
+          "back": 0
+        },
+        {
+          "pos": 0.25,
+          "fraction": 0.125,
+          "value": 0.25,
+          "slide": 0,
+          "x": 12.5,
+          "back": 0.25
+        },
+        {
+          "pos": 0.5,
+          "fraction": 0.25,
+          "value": 0.5,
+          "slide": 1,
+          "x": 15,
+          "back": 0.5
+        },
+        {
+          "pos": 1,
+          "fraction": 0.5,
+          "value": 1,
+          "slide": 1,
+          "x": 20,
+          "back": 1
+        },
+        {
+          "pos": 1.5,
+          "fraction": 0.75,
+          "value": 1.5,
+          "slide": 2,
+          "x": 25,
+          "back": 1.5
+        },
+        {
+          "pos": 2.999,
+          "fraction": 1,
+          "value": 2,
+          "slide": 2,
+          "x": 30,
+          "back": 2
+        },
+        {
+          "pos": 3,
+          "fraction": 1,
+          "value": 2,
+          "slide": 2,
+          "x": 30,
+          "back": 2
+        },
+        {
+          "pos": 9,
+          "fraction": 1,
+          "value": 2,
+          "slide": 2,
+          "x": 30,
+          "back": 2
+        }
+      ]
+    },
+    {
+      "id": "unknown",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "events": [],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "1"
+        },
+        {
+          "fraction": 1,
+          "label": "2"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "1"
+        },
+        {
+          "fraction": 1,
+          "label": "2"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 1,
+          "back": 0
+        },
+        {
+          "pos": 0,
+          "fraction": 0,
+          "value": 0,
+          "slide": 0,
+          "x": 1,
+          "back": 0
+        },
+        {
+          "pos": 0.25,
+          "fraction": 0.25,
+          "value": 0.25,
+          "slide": 0,
+          "x": 1.25,
+          "back": 0.25
+        },
+        {
+          "pos": 0.5,
+          "fraction": 0.5,
+          "value": 0.5,
+          "slide": 1,
+          "x": 1.5,
+          "back": 0.5
+        },
+        {
+          "pos": 1,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        },
+        {
+          "pos": 1.5,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        },
+        {
+          "pos": 2.999,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        },
+        {
+          "pos": 3,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        },
+        {
+          "pos": 9,
+          "fraction": 1,
+          "value": 1,
+          "slide": 1,
+          "x": 2,
+          "back": 1
+        }
+      ]
+    }
+  ],
+  "timed": [
+    {
+      "id": "outage",
+      "text": "name: Payments killed at 40 s\nabout: Made up\naxis: time\nunit: s\nentry: web\nevents:\n  - { at: 85, on: gateway, state: running, text: Answers again }\n  - { at: 40, on: gateway, state: stopped, text: Payments killed }\n  - { at: 70, on: gateway, state: starting, text: Restart begins }\nlevels:\n  - at: 0\n    overall: { rate: 98, p50: 60, p95: 140, errors: 0 }\n    objects:\n      gateway: { util: 0.4 }\n  - at: 45\n    objects:\n      gateway: { util: 0 }\n      web: { util: 0.9, errors: 0.6 }\n  - at: 120\n",
+      "top": 2,
+      "range": {
+        "min": 0,
+        "max": 120
+      },
+      "events": [
+        {
+          "fraction": 0.3333333333333333,
+          "event": {
+            "at": 40,
+            "on": "gateway",
+            "state": "stopped",
+            "text": "Payments killed"
+          }
+        },
+        {
+          "fraction": 0.5833333333333334,
+          "event": {
+            "at": 70,
+            "on": "gateway",
+            "state": "starting",
+            "text": "Restart begins"
+          }
+        },
+        {
+          "fraction": 0.7083333333333334,
+          "event": {
+            "at": 85,
+            "on": "gateway",
+            "state": "running",
+            "text": "Answers again"
+          }
+        }
+      ],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "0"
+        },
+        {
+          "fraction": 0.375,
+          "label": "45"
+        },
+        {
+          "fraction": 1,
+          "label": "120"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "0"
+        },
+        {
+          "fraction": 1,
+          "label": "120"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "load": 0,
+          "x": 0,
+          "fraction": 0,
+          "value": 0,
+          "cursor": 10,
+          "snap": 0,
+          "ramp": [
+            0,
+            0.0014222222222222223,
+            0.08888888888888889,
+            1.2,
+            2
+          ],
+          "from": -1
+        },
+        {
+          "pos": 0,
+          "load": 0,
+          "x": 0,
+          "fraction": 0,
+          "value": 0,
+          "cursor": 10,
+          "snap": 0,
+          "ramp": [
+            0,
+            0.0014222222222222223,
+            0.08888888888888889,
+            1.2,
+            2
+          ],
+          "from": 0
+        },
+        {
+          "pos": 0.25,
+          "load": 11.25,
+          "x": 11.25,
+          "fraction": 0.09375,
+          "value": 11.25,
+          "cursor": 18.4375,
+          "snap": 0,
+          "ramp": [
+            0.25,
+            0.2514222222222222,
+            0.3388888888888889,
+            1.35,
+            2
+          ],
+          "from": 0.25
+        },
+        {
+          "pos": 0.5,
+          "load": 22.5,
+          "x": 22.5,
+          "fraction": 0.1875,
+          "value": 22.5,
+          "cursor": 26.875,
+          "snap": 1,
+          "ramp": [
+            0.5,
+            0.5014222222222222,
+            0.5888888888888889,
+            1.5,
+            2
+          ],
+          "from": 0.5
+        },
+        {
+          "pos": 1,
+          "load": 45,
+          "x": 45,
+          "fraction": 0.375,
+          "value": 45,
+          "cursor": 43.75,
+          "snap": 1,
+          "ramp": [
+            1,
+            1.0008533333333334,
+            1.0533333333333332,
+            1.8,
+            2
+          ],
+          "from": 1
+        },
+        {
+          "pos": 1.5,
+          "load": 82.5,
+          "x": 82.5,
+          "fraction": 0.6875,
+          "value": 82.5,
+          "cursor": 71.875,
+          "snap": 2,
+          "ramp": [
+            1.5,
+            1.5008533333333332,
+            1.5533333333333332,
+            2,
+            2
+          ],
+          "from": 1.5
+        },
+        {
+          "pos": 2.999,
+          "load": 120,
+          "x": 120,
+          "fraction": 1,
+          "value": 120,
+          "cursor": 100,
+          "snap": 2,
+          "ramp": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "from": 0
+        },
+        {
+          "pos": 3,
+          "load": 120,
+          "x": 120,
+          "fraction": 1,
+          "value": 120,
+          "cursor": 100,
+          "snap": 2,
+          "ramp": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "from": 0
+        },
+        {
+          "pos": 9,
+          "load": 120,
+          "x": 120,
+          "fraction": 1,
+          "value": 120,
+          "cursor": 100,
+          "snap": 2,
+          "ramp": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "from": 0
+        }
+      ],
+      "posAt": [
+        {
+          "x": -5,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 0,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 30,
+          "pos": 0.6666666666666666,
+          "slide": 0.6666666666666666
+        },
+        {
+          "x": 40,
+          "pos": 0.8888888888888888,
+          "slide": 0.8888888888888888
+        },
+        {
+          "x": 45,
+          "pos": 1,
+          "slide": 1
+        },
+        {
+          "x": 82.5,
+          "pos": 1.5,
+          "slide": 1.5
+        },
+        {
+          "x": 119.999,
+          "pos": 1.9999866666666666,
+          "slide": 1.9999866666666666
+        },
+        {
+          "x": 120,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 500,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 0,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 45,
+          "pos": 1,
+          "slide": 1
+        },
+        {
+          "x": 120,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 40,
+          "pos": 0.8888888888888888,
+          "slide": 0.8888888888888888
+        },
+        {
+          "x": 70,
+          "pos": 1.3333333333333333,
+          "slide": 1.3333333333333333
+        },
+        {
+          "x": 85,
+          "pos": 1.5333333333333332,
+          "slide": 1.5333333333333332
+        }
+      ],
+      "levels": [
+        10,
+        43.75,
+        100
+      ],
+      "labels": [
+        {
+          "x": 10,
+          "label": "0"
+        },
+        {
+          "x": 43.8,
+          "label": "45"
+        },
+        {
+          "x": 100,
+          "label": "120"
+        }
+      ],
+      "few_labels": [
+        {
+          "x": 10,
+          "label": "0"
+        },
+        {
+          "x": 100,
+          "label": "120"
+        }
+      ],
+      "path": "M10 46.8M100 34.3",
+      "even": "M10 46.8M100 34.3"
+    },
+    {
+      "id": "plum",
+      "text": "name: P\naxis: time\nunit: s\nevents:\n  - { at: 40, on: web, state: stopped }\n  - { at: 70, on: web, state: starting }\n  - { at: 85, on: web, state: running }\nlevels:\n  - at: 0\n  - at: 30\n  - at: 45\n  - at: 60\n  - at: 90\n  - at: 120\n  - at: 150\n",
+      "top": 6,
+      "range": {
+        "min": 0,
+        "max": 150
+      },
+      "events": [
+        {
+          "fraction": 0.26666666666666666,
+          "event": {
+            "at": 40,
+            "on": "web",
+            "state": "stopped",
+            "text": ""
+          }
+        },
+        {
+          "fraction": 0.4666666666666667,
+          "event": {
+            "at": 70,
+            "on": "web",
+            "state": "starting",
+            "text": ""
+          }
+        },
+        {
+          "fraction": 0.5666666666666667,
+          "event": {
+            "at": 85,
+            "on": "web",
+            "state": "running",
+            "text": ""
+          }
+        }
+      ],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "0"
+        },
+        {
+          "fraction": 0.2,
+          "label": "30"
+        },
+        {
+          "fraction": 0.3,
+          "label": "45"
+        },
+        {
+          "fraction": 0.4,
+          "label": "60"
+        },
+        {
+          "fraction": 0.6,
+          "label": "90"
+        },
+        {
+          "fraction": 0.8,
+          "label": "120"
+        },
+        {
+          "fraction": 1,
+          "label": "150"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "0"
+        },
+        {
+          "fraction": 0.6,
+          "label": "90"
+        },
+        {
+          "fraction": 1,
+          "label": "150"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "load": 0,
+          "x": 0,
+          "fraction": 0,
+          "value": 0,
+          "cursor": 10,
+          "snap": 0,
+          "ramp": [
+            0,
+            0.0026666666666666666,
+            0.16666666666666666,
+            3.5,
+            6
+          ],
+          "from": -1
+        },
+        {
+          "pos": 0,
+          "load": 0,
+          "x": 0,
+          "fraction": 0,
+          "value": 0,
+          "cursor": 10,
+          "snap": 0,
+          "ramp": [
+            0,
+            0.0026666666666666666,
+            0.16666666666666666,
+            3.5,
+            6
+          ],
+          "from": 0
+        },
+        {
+          "pos": 0.25,
+          "load": 7.5,
+          "x": 7.5,
+          "fraction": 0.05,
+          "value": 7.5,
+          "cursor": 14.5,
+          "snap": 0,
+          "ramp": [
+            0.25,
+            0.25266666666666665,
+            0.4166666666666667,
+            3.75,
+            6
+          ],
+          "from": 0.25
+        },
+        {
+          "pos": 0.5,
+          "load": 15,
+          "x": 15,
+          "fraction": 0.1,
+          "value": 15,
+          "cursor": 19,
+          "snap": 1,
+          "ramp": [
+            0.5,
+            0.5026666666666667,
+            0.6666666666666666,
+            4,
+            6
+          ],
+          "from": 0.5
+        },
+        {
+          "pos": 1,
+          "load": 30,
+          "x": 30,
+          "fraction": 0.2,
+          "value": 30,
+          "cursor": 28,
+          "snap": 1,
+          "ramp": [
+            1,
+            1.0053333333333332,
+            1.3333333333333333,
+            4.5,
+            6
+          ],
+          "from": 1
+        },
+        {
+          "pos": 1.5,
+          "load": 37.5,
+          "x": 37.5,
+          "fraction": 0.25,
+          "value": 37.5,
+          "cursor": 32.5,
+          "snap": 2,
+          "ramp": [
+            1.5,
+            1.5053333333333332,
+            1.8333333333333335,
+            4.75,
+            6
+          ],
+          "from": 1.5
+        },
+        {
+          "pos": 2.999,
+          "load": 59.985,
+          "x": 59.985,
+          "fraction": 0.3999,
+          "value": 59.985,
+          "cursor": 45.991,
+          "snap": 3,
+          "ramp": [
+            2.999,
+            3.0021666666666667,
+            3.166166666666667,
+            5.4995,
+            6
+          ],
+          "from": 2.999
+        },
+        {
+          "pos": 3,
+          "load": 60,
+          "x": 60,
+          "fraction": 0.4,
+          "value": 60,
+          "cursor": 46,
+          "snap": 3,
+          "ramp": [
+            3,
+            3.002666666666667,
+            3.1666666666666665,
+            5.5,
+            6
+          ],
+          "from": 3
+        },
+        {
+          "pos": 9,
+          "load": 150,
+          "x": 150,
+          "fraction": 1,
+          "value": 150,
+          "cursor": 100,
+          "snap": 6,
+          "ramp": [
+            6,
+            6,
+            6,
+            6,
+            6
+          ],
+          "from": 0
+        }
+      ],
+      "posAt": [
+        {
+          "x": -5,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 0,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 37.5,
+          "pos": 1.5,
+          "slide": 1.5
+        },
+        {
+          "x": 40,
+          "pos": 1.6666666666666665,
+          "slide": 1.6666666666666665
+        },
+        {
+          "x": 45,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 82.5,
+          "pos": 3.75,
+          "slide": 3.75
+        },
+        {
+          "x": 119.999,
+          "pos": 4.9999666666666664,
+          "slide": 4.9999666666666664
+        },
+        {
+          "x": 150,
+          "pos": 6,
+          "slide": 6
+        },
+        {
+          "x": 530,
+          "pos": 6,
+          "slide": 6
+        },
+        {
+          "x": 0,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 30,
+          "pos": 1,
+          "slide": 1
+        },
+        {
+          "x": 45,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 60,
+          "pos": 3,
+          "slide": 3
+        },
+        {
+          "x": 90,
+          "pos": 4,
+          "slide": 4
+        },
+        {
+          "x": 120,
+          "pos": 5,
+          "slide": 5
+        },
+        {
+          "x": 150,
+          "pos": 6,
+          "slide": 6
+        },
+        {
+          "x": 40,
+          "pos": 1.6666666666666665,
+          "slide": 1.6666666666666665
+        },
+        {
+          "x": 70,
+          "pos": 3.3333333333333335,
+          "slide": 3.3333333333333335
+        },
+        {
+          "x": 85,
+          "pos": 3.8333333333333335,
+          "slide": 3.8333333333333335
+        }
+      ],
+      "levels": [
+        10,
+        28,
+        37,
+        46,
+        64,
+        82,
+        100
+      ],
+      "labels": [
+        {
+          "x": 10,
+          "label": "0"
+        },
+        {
+          "x": 28,
+          "label": "30"
+        },
+        {
+          "x": 37,
+          "label": "45"
+        },
+        {
+          "x": 46,
+          "label": "60"
+        },
+        {
+          "x": 64,
+          "label": "90"
+        },
+        {
+          "x": 82,
+          "label": "120"
+        },
+        {
+          "x": 100,
+          "label": "150"
+        }
+      ],
+      "few_labels": [
+        {
+          "x": 10,
+          "label": "0"
+        },
+        {
+          "x": 64,
+          "label": "90"
+        },
+        {
+          "x": 100,
+          "label": "150"
+        }
+      ],
+      "path": "M10 46.8M37 34.3L46 28M82 15.5L100 9.3",
+      "even": "M10 46.8M40 34.3L55 28M85 15.5L100 9.3"
+    },
+    {
+      "id": "crowded",
+      "text": "name: C\naxis: time\nlevels:\n  - at: 0\n  - at: 1\n  - at: 2\n  - at: 100\n  - at: 101\n  - at: 150\n",
+      "top": 5,
+      "range": {
+        "min": 0,
+        "max": 150
+      },
+      "events": [],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "0"
+        },
+        {
+          "fraction": 0.6666666666666666,
+          "label": "100"
+        },
+        {
+          "fraction": 1,
+          "label": "150"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "0"
+        },
+        {
+          "fraction": 0.6666666666666666,
+          "label": "100"
+        },
+        {
+          "fraction": 1,
+          "label": "150"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "load": 0,
+          "x": 0,
+          "fraction": 0,
+          "value": 0,
+          "cursor": 10,
+          "snap": 0,
+          "ramp": [
+            0,
+            0.08,
+            2.0306122448979593,
+            2.7448979591836737,
+            5
+          ],
+          "from": -1
+        },
+        {
+          "pos": 0,
+          "load": 0,
+          "x": 0,
+          "fraction": 0,
+          "value": 0,
+          "cursor": 10,
+          "snap": 0,
+          "ramp": [
+            0,
+            0.08,
+            2.0306122448979593,
+            2.7448979591836737,
+            5
+          ],
+          "from": 0
+        },
+        {
+          "pos": 0.25,
+          "load": 0.25,
+          "x": 0.25,
+          "fraction": 0.0016666666666666668,
+          "value": 0.25,
+          "cursor": 10.15,
+          "snap": 0,
+          "ramp": [
+            0.25,
+            0.33,
+            2.0331632653061225,
+            2.747448979591837,
+            5
+          ],
+          "from": 0.25
+        },
+        {
+          "pos": 0.5,
+          "load": 0.5,
+          "x": 0.5,
+          "fraction": 0.0033333333333333335,
+          "value": 0.5,
+          "cursor": 10.3,
+          "snap": 1,
+          "ramp": [
+            0.5,
+            0.58,
+            2.0357142857142856,
+            2.75,
+            5
+          ],
+          "from": 0.5
+        },
+        {
+          "pos": 1,
+          "load": 1,
+          "x": 1,
+          "fraction": 0.006666666666666667,
+          "value": 1,
+          "cursor": 10.6,
+          "snap": 1,
+          "ramp": [
+            1,
+            1.08,
+            2.0408163265306123,
+            2.7551020408163263,
+            5
+          ],
+          "from": 1
+        },
+        {
+          "pos": 1.5,
+          "load": 1.5,
+          "x": 1.5,
+          "fraction": 0.01,
+          "value": 1.5,
+          "cursor": 10.9,
+          "snap": 2,
+          "ramp": [
+            1.5,
+            1.58,
+            2.045918367346939,
+            2.760204081632653,
+            5
+          ],
+          "from": 1.5
+        },
+        {
+          "pos": 2.999,
+          "load": 99.90200000000002,
+          "x": 99.90200000000002,
+          "fraction": 0.6660133333333335,
+          "value": 99.90200000000002,
+          "cursor": 69.94120000000001,
+          "snap": 3,
+          "ramp": [
+            2.999,
+            2.9998163265306124,
+            4.079632653061225,
+            5,
+            5
+          ],
+          "from": 2.999
+        },
+        {
+          "pos": 3,
+          "load": 100,
+          "x": 100,
+          "fraction": 0.6666666666666666,
+          "value": 100,
+          "cursor": 70,
+          "snap": 3,
+          "ramp": [
+            3,
+            3.0799999999999983,
+            4.081632653061225,
+            5,
+            5
+          ],
+          "from": 3
+        },
+        {
+          "pos": 9,
+          "load": 150,
+          "x": 150,
+          "fraction": 1,
+          "value": 150,
+          "cursor": 100,
+          "snap": 5,
+          "ramp": [
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "from": 0
+        }
+      ],
+      "posAt": [
+        {
+          "x": -5,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 0,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 37.5,
+          "pos": 2.362244897959184,
+          "slide": 2.362244897959184
+        },
+        {
+          "x": 40,
+          "pos": 2.387755102040816,
+          "slide": 2.387755102040816
+        },
+        {
+          "x": 45,
+          "pos": 2.438775510204082,
+          "slide": 2.438775510204082
+        },
+        {
+          "x": 82.5,
+          "pos": 2.821428571428571,
+          "slide": 2.821428571428571
+        },
+        {
+          "x": 119.999,
+          "pos": 4.387734693877551,
+          "slide": 4.387734693877551
+        },
+        {
+          "x": 150,
+          "pos": 5,
+          "slide": 5
+        },
+        {
+          "x": 530,
+          "pos": 5,
+          "slide": 5
+        },
+        {
+          "x": 0,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 1,
+          "pos": 1,
+          "slide": 1
+        },
+        {
+          "x": 2,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 100,
+          "pos": 3,
+          "slide": 3
+        },
+        {
+          "x": 101,
+          "pos": 4,
+          "slide": 4
+        },
+        {
+          "x": 150,
+          "pos": 5,
+          "slide": 5
+        }
+      ],
+      "levels": [
+        10,
+        10.6,
+        11.2,
+        70,
+        70.6,
+        100
+      ],
+      "labels": [
+        {
+          "x": 10,
+          "label": "0"
+        },
+        {
+          "x": 70,
+          "label": "100"
+        },
+        {
+          "x": 100,
+          "label": "150"
+        }
+      ],
+      "few_labels": [
+        {
+          "x": 10,
+          "label": "0"
+        },
+        {
+          "x": 70,
+          "label": "100"
+        },
+        {
+          "x": 100,
+          "label": "150"
+        }
+      ],
+      "path": "M10 46.8M11.2 34.3L70 28M100 15.5",
+      "even": "M10 46.8M46 34.3L64 28M100 15.5"
+    },
+    {
+      "id": "close",
+      "text": "name: C\naxis: time\nlevels:\n  - at: 0\n  - at: 100\n  - at: 101\n",
+      "top": 2,
+      "range": {
+        "min": 0,
+        "max": 101
+      },
+      "events": [],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "0"
+        },
+        {
+          "fraction": 1,
+          "label": "101"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "0"
+        },
+        {
+          "fraction": 1,
+          "label": "101"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "load": 0,
+          "x": 0,
+          "fraction": 0,
+          "value": 0,
+          "cursor": 10,
+          "snap": 0,
+          "ramp": [
+            0,
+            0.0005386666666666667,
+            0.033666666666666664,
+            0.505,
+            2
+          ],
+          "from": -1
+        },
+        {
+          "pos": 0,
+          "load": 0,
+          "x": 0,
+          "fraction": 0,
+          "value": 0,
+          "cursor": 10,
+          "snap": 0,
+          "ramp": [
+            0,
+            0.0005386666666666667,
+            0.033666666666666664,
+            0.505,
+            2
+          ],
+          "from": 0
+        },
+        {
+          "pos": 0.25,
+          "load": 25,
+          "x": 25,
+          "fraction": 0.24752475247524752,
+          "value": 25,
+          "cursor": 32.27722772277228,
+          "snap": 0,
+          "ramp": [
+            0.25,
+            0.2505386666666667,
+            0.2836666666666667,
+            0.755,
+            2
+          ],
+          "from": 0.25
+        },
+        {
+          "pos": 0.5,
+          "load": 50,
+          "x": 50,
+          "fraction": 0.49504950495049505,
+          "value": 50,
+          "cursor": 54.554455445544555,
+          "snap": 1,
+          "ramp": [
+            0.5,
+            0.5005386666666667,
+            0.5336666666666666,
+            1.5,
+            2
+          ],
+          "from": 0.5
+        },
+        {
+          "pos": 1,
+          "load": 100,
+          "x": 100,
+          "fraction": 0.9900990099009901,
+          "value": 100,
+          "cursor": 99.10891089108911,
+          "snap": 1,
+          "ramp": [
+            1,
+            1.0538666666666643,
+            2,
+            2,
+            2
+          ],
+          "from": 1
+        },
+        {
+          "pos": 1.5,
+          "load": 100.5,
+          "x": 100.5,
+          "fraction": 0.995049504950495,
+          "value": 100.5,
+          "cursor": 99.55445544554455,
+          "snap": 2,
+          "ramp": [
+            1.5,
+            1.5538666666666643,
+            2,
+            2,
+            2
+          ],
+          "from": 1.5
+        },
+        {
+          "pos": 2.999,
+          "load": 101,
+          "x": 101,
+          "fraction": 1,
+          "value": 101,
+          "cursor": 100,
+          "snap": 2,
+          "ramp": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "from": 0
+        },
+        {
+          "pos": 3,
+          "load": 101,
+          "x": 101,
+          "fraction": 1,
+          "value": 101,
+          "cursor": 100,
+          "snap": 2,
+          "ramp": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "from": 0
+        },
+        {
+          "pos": 9,
+          "load": 101,
+          "x": 101,
+          "fraction": 1,
+          "value": 101,
+          "cursor": 100,
+          "snap": 2,
+          "ramp": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "from": 0
+        }
+      ],
+      "posAt": [
+        {
+          "x": -5,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 0,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 25.25,
+          "pos": 0.2525,
+          "slide": 0.2525
+        },
+        {
+          "x": 40,
+          "pos": 0.4,
+          "slide": 0.4
+        },
+        {
+          "x": 45,
+          "pos": 0.45,
+          "slide": 0.45
+        },
+        {
+          "x": 82.5,
+          "pos": 0.825,
+          "slide": 0.825
+        },
+        {
+          "x": 119.999,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 101,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 481,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 0,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 100,
+          "pos": 1,
+          "slide": 1
+        },
+        {
+          "x": 101,
+          "pos": 2,
+          "slide": 2
+        }
+      ],
+      "levels": [
+        10,
+        99.10891089108911,
+        100
+      ],
+      "labels": [
+        {
+          "x": 10,
+          "label": "0"
+        },
+        {
+          "x": 100,
+          "label": "101"
+        }
+      ],
+      "few_labels": [
+        {
+          "x": 10,
+          "label": "0"
+        },
+        {
+          "x": 100,
+          "label": "101"
+        }
+      ],
+      "path": "M10 46.8M100 34.3",
+      "even": "M10 46.8M100 34.3"
+    },
+    {
+      "id": "offset",
+      "text": "name: O\naxis: time\nunit: min\nevents:\n  - { at: 10, on: db, state: degraded }\n  - { at: 20, on: db, state: running }\nlevels:\n  - at: 10\n  - at: 12.5\n  - at: 20\n",
+      "top": 2,
+      "range": {
+        "min": 10,
+        "max": 20
+      },
+      "events": [
+        {
+          "fraction": 0,
+          "event": {
+            "at": 10,
+            "on": "db",
+            "state": "degraded",
+            "text": ""
+          }
+        },
+        {
+          "fraction": 1,
+          "event": {
+            "at": 20,
+            "on": "db",
+            "state": "running",
+            "text": ""
+          }
+        }
+      ],
+      "ticks": [
+        {
+          "fraction": 0,
+          "label": "10"
+        },
+        {
+          "fraction": 0.25,
+          "label": "12.5"
+        },
+        {
+          "fraction": 1,
+          "label": "20"
+        }
+      ],
+      "few": [
+        {
+          "fraction": 0,
+          "label": "10"
+        },
+        {
+          "fraction": 1,
+          "label": "20"
+        }
+      ],
+      "at": [
+        {
+          "pos": -1,
+          "load": 10,
+          "x": 10,
+          "fraction": 0,
+          "value": 10,
+          "cursor": 10,
+          "snap": 0,
+          "ramp": [
+            0,
+            0.0021333333333330984,
+            0.13333333333333358,
+            1.3333333333333333,
+            2
+          ],
+          "from": -1
+        },
+        {
+          "pos": 0,
+          "load": 10,
+          "x": 10,
+          "fraction": 0,
+          "value": 10,
+          "cursor": 10,
+          "snap": 0,
+          "ramp": [
+            0,
+            0.0021333333333330984,
+            0.13333333333333358,
+            1.3333333333333333,
+            2
+          ],
+          "from": 0
+        },
+        {
+          "pos": 0.25,
+          "load": 10.625,
+          "x": 10.625,
+          "fraction": 0.0625,
+          "value": 10.625,
+          "cursor": 15.625,
+          "snap": 0,
+          "ramp": [
+            0.25,
+            0.2521333333333331,
+            0.3833333333333336,
+            1.4166666666666667,
+            2
+          ],
+          "from": 0.25
+        },
+        {
+          "pos": 0.5,
+          "load": 11.25,
+          "x": 11.25,
+          "fraction": 0.125,
+          "value": 11.25,
+          "cursor": 21.25,
+          "snap": 1,
+          "ramp": [
+            0.5,
+            0.5021333333333331,
+            0.6333333333333335,
+            1.5,
+            2
+          ],
+          "from": 0.5
+        },
+        {
+          "pos": 1,
+          "load": 12.5,
+          "x": 12.5,
+          "fraction": 0.25,
+          "value": 12.5,
+          "cursor": 32.5,
+          "snap": 1,
+          "ramp": [
+            1,
+            1.000711111111111,
+            1.0444444444444445,
+            1.6666666666666665,
+            2
+          ],
+          "from": 1
+        },
+        {
+          "pos": 1.5,
+          "load": 16.25,
+          "x": 16.25,
+          "fraction": 0.625,
+          "value": 16.25,
+          "cursor": 66.25,
+          "snap": 2,
+          "ramp": [
+            1.5,
+            1.5007111111111109,
+            1.5444444444444443,
+            2,
+            2
+          ],
+          "from": 1.5
+        },
+        {
+          "pos": 2.999,
+          "load": 20,
+          "x": 20,
+          "fraction": 1,
+          "value": 20,
+          "cursor": 100,
+          "snap": 2,
+          "ramp": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "from": 0
+        },
+        {
+          "pos": 3,
+          "load": 20,
+          "x": 20,
+          "fraction": 1,
+          "value": 20,
+          "cursor": 100,
+          "snap": 2,
+          "ramp": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "from": 0
+        },
+        {
+          "pos": 9,
+          "load": 20,
+          "x": 20,
+          "fraction": 1,
+          "value": 20,
+          "cursor": 100,
+          "snap": 2,
+          "ramp": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "from": 0
+        }
+      ],
+      "posAt": [
+        {
+          "x": 5,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 10,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 7.5,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 40,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 45,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 82.5,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 119.999,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 20,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 400,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 10,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 12.5,
+          "pos": 1,
+          "slide": 1
+        },
+        {
+          "x": 20,
+          "pos": 2,
+          "slide": 2
+        },
+        {
+          "x": 10,
+          "pos": 0,
+          "slide": 0
+        },
+        {
+          "x": 20,
+          "pos": 2,
+          "slide": 2
+        }
+      ],
+      "levels": [
+        10,
+        32.5,
+        100
+      ],
+      "labels": [
+        {
+          "x": 10,
+          "label": "10"
+        },
+        {
+          "x": 32.5,
+          "label": "12.5"
+        },
+        {
+          "x": 100,
+          "label": "20"
+        }
+      ],
+      "few_labels": [
+        {
+          "x": 10,
+          "label": "10"
+        },
+        {
+          "x": 100,
+          "label": "20"
+        }
+      ],
+      "path": "M10 46.8M100 34.3",
+      "even": "M10 46.8M100 34.3"
+    }
+  ]
 }

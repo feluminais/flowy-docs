@@ -7,7 +7,7 @@ import { checkRun, eventsPassed, eventText, interpolate, knee, kneeText, parseRu
 import type { Metrics } from '../../src/core/perf.ts'
 import { nameOf } from '../../src/core/views.ts'
 import {
-  activeRun, BOX_KEYS, boxAt, boxSeries, clampPos, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, lineAt, lineSeries, loadAt, METRICS, pathOf, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, snap, sourceCss, top, xAt, yAt,
+  activeRun, BOX_KEYS, boxAt, boxSeries, clampPos, cursorX, eventFractions, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
 } from '../../ui/src/perfview.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -352,6 +352,17 @@ const MARKS: { failed: number; failure?: 'lost' | 'rejected' }[][] = [
 /** A source's colour as the key draws it: a name for both themes, a hex as written, and what is neither. */
 const COLOURS: (string | undefined)[] = ['blue', 'gray', '#1D9E75', '#abc', '#ABCDEF', 'chartreuse', '#12', '', undefined]
 const POSITIONS = [-1, 0, 0.25, 0.5, 1, 1.5, 2.999, 3, 9]
+/**
+ * Runs over time for the panel's maths: the outage of the design (levels at 0, 45 and 120 s, events at 40, 70 and 85), Plum's seven levels, levels that crowd
+ * together, a run whose last two levels are close, and one that starts away from zero.
+ */
+const TIMED_VIEW: [id: string, text: string][] = [
+  ['outage', RAW.find(([id]) => id === 'time-good')![1]],
+  ['plum', 'name: P\naxis: time\nunit: s\nevents:\n  - { at: 40, on: web, state: stopped }\n  - { at: 70, on: web, state: starting }\n  - { at: 85, on: web, state: running }\nlevels:\n  - at: 0\n  - at: 30\n  - at: 45\n  - at: 60\n  - at: 90\n  - at: 120\n  - at: 150\n'],
+  ['crowded', 'name: C\naxis: time\nlevels:\n  - at: 0\n  - at: 1\n  - at: 2\n  - at: 100\n  - at: 101\n  - at: 150\n'],
+  ['close', 'name: C\naxis: time\nlevels:\n  - at: 0\n  - at: 100\n  - at: 101\n'],
+  ['offset', 'name: O\naxis: time\nunit: min\nevents:\n  - { at: 10, on: db, state: degraded }\n  - { at: 20, on: db, state: running }\nlevels:\n  - at: 10\n  - at: 12.5\n  - at: 20\n'],
+]
 const SCALES: [(number | undefined)[], { log?: boolean; from?: number; to?: number }?][] = [
   [[0.2, 0.8, undefined]], [[0.2, 0.8], { to: 1 }], [[undefined]], [[12, 450, undefined], { log: true }], [[100], { log: true }], [[0, -4], { log: true }],
   [[5, 5]], [[3, 9], { from: 2 }], [[], { log: true }], [[0.001, 20000], { log: true }],
@@ -408,5 +419,41 @@ export async function dumpPerfView(): Promise<unknown> {
       }))
     }),
     ramp: ramp ? { id: 'ramp', levels: ramp.levels.length } : null,
+    // The slider of the folder's load runs, which stays even, and the slider of runs over time, which is linear in time.
+    sliders: Object.entries(runs).map(([id, run]) => ({
+      id,
+      range: sliderRange(run),
+      events: eventFractions(run),
+      ticks: tickLabels(run),
+      few: tickLabels(run, 2),
+      at: POSITIONS.map(pos => ({ pos, fraction: sliderFraction(run, pos), value: sliderValue(run, pos), slide: slidePos(run, pos), x: xOfPos(run, pos), back: posAt(run, loadAt(run, pos)) })),
+    })),
+    timed: TIMED_VIEW.map(([id, text]) => {
+      const run = parseRun(id, text).run
+      const values = run.levels.map((_, i) => (i % 3 === 1 ? undefined : (i + 1) * 10))
+      const line = { lo: 0, hi: 80, log: false }
+      const first = run.levels[0].load
+      const last = run.levels[run.levels.length - 1].load
+      const xs = [first - 5, first, (first + last) / 4, 40, 45, 82.5, 119.999, last, last + 380, ...run.levels.map(l => l.load), ...(run.events ?? []).map(e => e.at)]
+      return {
+        id,
+        text,
+        top: top(run),
+        range: sliderRange(run),
+        events: eventFractions(run),
+        ticks: tickLabels(run),
+        few: tickLabels(run, 2),
+        at: POSITIONS.map(pos => ({
+          pos, load: loadAt(run, pos), x: xOfPos(run, pos), fraction: sliderFraction(run, pos), value: sliderValue(run, pos), cursor: cursorX(run, AREA, pos), snap: snap(run, pos),
+          ramp: [0, 16, 1000, RAMP_MS / 2, RAMP_MS].map(ms => rampPos(run, pos, ms)), from: rampFrom(run, pos),
+        })),
+        posAt: xs.map(x => ({ x, pos: posAt(run, x), slide: slidePos(run, x) })),
+        levels: run.levels.map((_, i) => levelX(run, AREA, i)),
+        labels: levelLabels(run, AREA),
+        few_labels: levelLabels(run, AREA, 2),
+        path: pathOf(values, line, AREA, run),
+        even: pathOf(values, line, AREA),
+      }
+    }),
   }
 }
