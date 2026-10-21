@@ -1,0 +1,87 @@
+name: How Flowy fails
+about: Written from Flowy's own code, with ratings that are the author's estimate. It shows the Failures tab on a second model.
+scale:
+  severity: { low: Nobody loses anything, high: Someone loses work or the model is wrong }
+  occurrence: { low: Never seen, high: Most weeks }
+  detection: { low: The page says so at once, high: Nothing says so }
+modes:
+  folder-parse-error:
+    on: filestore
+    mode: A model or flow file can't be parsed
+    effect: Every save is refused with the parser's message, and nothing is written, until the file is fixed.
+    cause: A hand edit left bad syntax, a duplicate key or a merge conflict marker in the file.
+    severity: 5
+    occurrence: 3
+    detection: 1
+    controls: The message names the file and the line, and Flowy never writes over a file it can't read.
+    owner: Core
+    status: accepted
+    affects: [sync, mcp]
+    description: |
+      The check runs before every write in `src/node/writes.ts`, so one broken file in the folder blocks edits to all of it. That is on purpose: a save would otherwise write a model that disagrees with the file nobody could read.
+  save-loses-to-edit:
+    on: filestore
+    mode: A file changes on disk between the page reading it and the save
+    effect: The save is dropped and the page reloads the file. The edit is lost, and nothing is overwritten.
+    cause: Someone saves the same file in an editor while the page is open.
+    severity: 4
+    occurrence: 5
+    detection: 2
+    controls: Every write carries the version it read, and the page says that the file changed outside Flowy.
+    owner: Core
+    status: accepted
+    affects: [sync]
+    description: |
+      The version is a hash of the file. A write whose version is out of date gets a 409 from `saveFile` in `src/node/files.ts`, and `ui/src/save.ts` turns that into the reload message.
+  run-file-unreadable:
+    on: perf
+    mode: A run file in perf/ can't be read
+    effect: That run is skipped and listed as a problem. The model, the flows and the other runs still load.
+    cause: The file has bad syntax, a name that is not an id, or a .yml ending.
+    severity: 3
+    occurrence: 4
+    detection: 2
+    controls: The loader reports the file and the reason, and never lets a file of numbers stop the model loading.
+    owner: Core
+    status: accepted
+    affects: [perf-tab]
+  analysis-file-skipped:
+    on: failures
+    mode: A failure analysis file can't be read
+    effect: That analysis is skipped and shown as a problem in the Failures tab. Flowy never writes over it.
+    cause: The file has bad syntax, a name that is not an id, or a .yml ending.
+    severity: 4
+    occurrence: 3
+    detection: 2
+    controls: The other analyses and the model load, and a write to the skipped file is refused even when only the letter case differs.
+    owner: Core
+    status: accepted
+    affects: [failures-tab]
+  code-path-moved:
+    on: check
+    mode: A code path points at a file that has moved
+    effect: The shape keeps its link, and the problem list names the path. Nothing fixes it.
+    cause: A file was renamed or deleted in the repo and nobody changed the model.
+    severity: 2
+    occurrence: 7
+    detection: 5
+    controls: The checker looks up every code path on each load.
+    action: Add a command that exits non-zero while the problem list is not empty, so a build can fail on it.
+    owner: Core
+    status: open
+    after: { severity: 2, occurrence: 7, detection: 2 }
+    affects: [panel]
+    description: |
+      A path that is gone is only seen by someone who opens the problem list, so a model can drift for weeks.
+  desktop-port-drifts:
+    on: desktop-core
+    mode: The C# port drifts from the TypeScript
+    effect: The desktop app shows other words or numbers than the browser for the same folder.
+    cause: A change to the TypeScript core reaches the C# twin late, or not at all.
+    severity: 5
+    occurrence: 4
+    detection: 2
+    controls: Fixtures from the TypeScript core are the expected answers, and the C# tests reproduce them.
+    owner: Desktop
+    status: accepted
+    affects: [desktop-canvas]

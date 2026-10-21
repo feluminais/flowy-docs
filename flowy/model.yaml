@@ -47,8 +47,8 @@ objects:
     tech: YAML
     code: [flowy/]
     description: |
-      `model.yaml` (objects and connections), `flows/<id>.yaml` (one walkthrough each) and
-      `layout.yaml` (where shapes were dragged).
+      `model.yaml` (objects and connections), `flows/<id>.yaml` (one walkthrough each),
+      `failures/<id>.yaml` (one failure analysis each) and `layout.yaml` (where shapes were dragged).
 
       Saving rewrites a file, so YAML comments don't survive: notes belong in an object's
       `description`. This repo documents itself with the folder you're reading now.
@@ -349,6 +349,15 @@ objects:
 
       The dots are drawn on one canvas from each line's path, flattened once, and during a ramp the
       screen gets a new position at most every 50 ms. Nothing moves when the system asks for less motion.
+  failures-tab:
+    type: component
+    in: canvas
+    name: Failures tab
+    code: [ui/src/Failures.tsx, ui/src/FailuresEdit.tsx, ui/src/failuresview.ts]
+    description: |
+      Lists the rows of an analysis worst first, puts a risk mark on each shape and line, and lights what a picked row hurts. In edit mode it holds the forms that write a row.
+
+      It is browser only for now: the desktop app does not read `failures/` yet.
   navigator:
     type: component
     in: canvas
@@ -466,6 +475,15 @@ objects:
       It replays what was measured and never predicts: above the highest tested load there is
       nothing to show. Nothing here draws: the canvas and the desktop app each show it, and the desktop
       app's port (`Perf.cs`) is kept equal by fixtures.
+  failures:
+    type: component
+    in: core
+    name: Failure analyses
+    code: [src/core/failures.ts]
+    description: |
+      A failure analysis as data: one row for each way a part fails, with how bad, how likely and how hard to spot it, and what to do next. It ranks the rows by risk, checks them against the model, and works out where a row's mark goes at each zoom level.
+
+      Nothing here draws or reads a file. The canvas shows it, and the checker refuses an analysis that names a shape, a line, a flow or a step that isn't there.
   views:
     type: component
     in: core
@@ -567,6 +585,10 @@ connections:
   - { from: panel, to: store-data, label: what a store holds }
   - { from: ops, to: store-data, label: puts an entry's keys in order }
   - { from: check, to: snippets, label: asks if a snippet is right }
+  - { from: check, to: failures, label: asks if an analysis is right }
+  - { from: ops, to: failures, label: puts a row's keys in order }
+  - { from: shell, to: failures-tab, label: "which analysis, which row, what is selected" }
+  - { from: failures-tab, to: failures, label: ranks the rows and places the marks }
   - { from: panel, to: snippets, label: names the language }
   - { from: ops, to: snippets, label: puts a snippet's keys in order }
   - { from: mermaid, to: structure, label: draws a group as a block }
