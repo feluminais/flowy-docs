@@ -106,3 +106,19 @@ test('the tools still tell a model that these are numbers and flags', async t =>
   const object = tools.find(x => x.name === 'put_object')!.inputSchema.properties as Record<string, { type?: string }>
   assert.equal(object.external.type, 'boolean')
 })
+
+test('put_flow takes the effect of a step, keeps it through a read and write back, and refuses one that is not there', async t => {
+  const { dir, call } = await setup(t)
+  const steps = (effect: string) => [{ from: 'web', to: 'stripe', text: 'Holds the card', animation: { kind: 'send', carries: 'order 42', effect } }]
+  assert.equal((await call('put_flow', { id: 'fun', name: 'Fun', view: 'root', steps: steps('bounce') })).error, false)
+  assert.match(await readFile(join(dir, 'flows/fun.yaml'), 'utf8'), /effect: bounce/)
+  const flow = JSON.parse((await call('get_model')).text).flows.fun
+  assert.equal(flow.steps[0].animation.effect, 'bounce')
+  const before = await readFile(join(dir, 'flows/fun.yaml'), 'utf8')
+  assert.equal((await call('put_flow', { id: 'fun', ...flow })).error, false)
+  assert.equal(await readFile(join(dir, 'flows/fun.yaml'), 'utf8'), before)
+  const refused = await call('put_flow', { id: 'fun', name: 'Fun', view: 'root', steps: steps('spin') })
+  assert.equal(refused.error, true)
+  assert.equal(await readFile(join(dir, 'flows/fun.yaml'), 'utf8'), before)
+  assert.equal((await call('get_problems')).text, 'No problems.')
+})

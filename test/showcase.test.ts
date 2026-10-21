@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
-import { ANIMATION_KINDS, animationOf, OUTCOMES } from '../src/core/animation.ts'
+import { ANIMATION_KINDS, animationOf, EFFECTS, OUTCOMES } from '../src/core/animation.ts'
 import { AT_ONCE, knee, scaleText, sourceKey, traffic } from '../src/core/perf.ts'
 import type { Metrics } from '../src/core/perf.ts'
 import { marksOf, readStates, STATE_NAMES, statesAt } from '../src/core/states.ts'
@@ -66,6 +66,14 @@ test('every step animation kind is played by a step, and the callback is shown a
   assert.ok(outside.afterStep > 0, 'no callback that a step before it set off')
   assert.ok(outside.cold > 0, 'no callback that something outside set off, with no step before it')
   assert.ok(carries > 0, 'no step carries a word on its blob')
+})
+
+test('every effect of a blob is played by a step, on a slanted line, with its own word on the blob', () => {
+  const effects = flowList.flatMap(([, flow]) => flow.steps.flatMap(step => animationOf(step) ?? [])).filter(a => a.effect !== undefined)
+  for (const effect of EFFECTS) assert.ok(effects.some(a => a.effect === effect), `no step plays effect "${effect}": add one to docs/showcase/flowy/flows/effects.yaml`)
+  const layout = state.layout.steps ?? {}
+  const [from, to] = [layout['effects-from'], layout['effects-to']]
+  assert.ok(from && to && to[0] > from[0] && to[1] > from[1], 'the effects pair should sit on a slope, so the label shows it stays level on a slanted line')
 })
 
 test('every step animation kind has a flow of one step to click through, and so does a callback from outside', () => {

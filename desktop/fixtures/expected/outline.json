@@ -6091,8 +6091,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 70,
-              "flows": 24,
+              "shapes": 72,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -6100,8 +6100,8 @@
             }
           ],
           "totals": {
-            "shapes": 70,
-            "flows": 24,
+            "shapes": 72,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -6120,8 +6120,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 70,
-              "flows": 24,
+              "shapes": 72,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6200,8 +6200,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -6209,8 +6209,8 @@
             }
           ],
           "totals": {
-            "shapes": 70,
-            "flows": 24,
+            "shapes": 72,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -6230,8 +6230,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 70,
-              "flows": 24,
+              "shapes": 72,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6310,8 +6310,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6469,6 +6469,38 @@
               "depth": 2,
               "name": "Duplicated · to",
               "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-from",
+              "kind": "shape",
+              "id": "effects-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-to",
+              "kind": "shape",
+              "id": "effects-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · to",
+              "type": "store",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -6910,6 +6942,22 @@
               "match": true
             },
             {
+              "key": "flow:effects",
+              "kind": "flow",
+              "id": "effects",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:event",
               "kind": "flow",
               "id": "event",
@@ -7103,8 +7151,8 @@
             }
           ],
           "totals": {
-            "shapes": 70,
-            "flows": 24,
+            "shapes": 72,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -7118,6 +7166,8 @@
             "states",
             "send-from",
             "send-to",
+            "effects-from",
+            "effects-to",
             "call-from",
             "call-to",
             "event-from",
@@ -7193,8 +7243,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 70,
-              "flows": 24,
+              "shapes": 72,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -7913,8 +7963,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8072,6 +8122,38 @@
               "depth": 2,
               "name": "Duplicated · to",
               "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-from",
+              "kind": "shape",
+              "id": "effects-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-to",
+              "kind": "shape",
+              "id": "effects-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · to",
+              "type": "store",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -8513,6 +8595,22 @@
               "match": true
             },
             {
+              "key": "flow:effects",
+              "kind": "flow",
+              "id": "effects",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:event",
               "kind": "flow",
               "id": "event",
@@ -8706,8 +8804,8 @@
             }
           ],
           "totals": {
-            "shapes": 70,
-            "flows": 24,
+            "shapes": 72,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -8721,6 +8819,8 @@
             "states",
             "send-from",
             "send-to",
+            "effects-from",
+            "effects-to",
             "call-from",
             "call-to",
             "event-from",
@@ -8796,8 +8896,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 70,
-              "flows": 24,
+              "shapes": 72,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -9516,8 +9616,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -9675,6 +9775,38 @@
               "depth": 2,
               "name": "Duplicated · to",
               "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-from",
+              "kind": "shape",
+              "id": "effects-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-to",
+              "kind": "shape",
+              "id": "effects-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · to",
+              "type": "store",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -10116,6 +10248,22 @@
               "match": true
             },
             {
+              "key": "flow:effects",
+              "kind": "flow",
+              "id": "effects",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:event",
               "kind": "flow",
               "id": "event",
@@ -10309,8 +10457,8 @@
             }
           ],
           "totals": {
-            "shapes": 70,
-            "flows": 24,
+            "shapes": 72,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -10327,8 +10475,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 70,
-              "flows": 24,
+              "shapes": 72,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -10935,8 +11083,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -11392,8 +11540,8 @@
             }
           ],
           "totals": {
-            "shapes": 70,
-            "flows": 24,
+            "shapes": 72,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -11406,8 +11554,8 @@
           "editing": false,
           "rows": [],
           "totals": {
-            "shapes": 70,
-            "flows": 24,
+            "shapes": 72,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -11426,8 +11574,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 70,
-              "flows": 24,
+              "shapes": 72,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -11506,8 +11654,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -11515,8 +11663,8 @@
             }
           ],
           "totals": {
-            "shapes": 70,
-            "flows": 24,
+            "shapes": 72,
+            "flows": 25,
             "problems": 0
           }
         }
@@ -11625,6 +11773,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -11699,7 +11853,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "root",
@@ -11804,6 +11958,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -11878,7 +12038,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "steps",
@@ -11912,6 +12072,12 @@
               "id": "duplicated",
               "name": "Duplicated",
               "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "effects",
+              "name": "Effects",
+              "steps": 4,
               "view": "steps"
             },
             {
@@ -12049,7 +12215,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "steps",
@@ -12083,6 +12249,12 @@
               "id": "duplicated",
               "name": "Duplicated",
               "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "effects",
+              "name": "Effects",
+              "steps": 4,
               "view": "steps"
             },
             {
@@ -12220,7 +12392,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "structure",
@@ -12317,6 +12489,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -12391,7 +12569,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "structure",
@@ -12488,6 +12666,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -12562,7 +12746,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "performance",
@@ -12667,6 +12851,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -12741,7 +12931,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "performance",
@@ -12846,6 +13036,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -12920,7 +13116,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "states",
@@ -13017,6 +13213,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13091,7 +13293,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "states",
@@ -13188,6 +13390,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13262,7 +13470,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "rolled-up",
@@ -13367,6 +13575,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13441,7 +13655,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "rolled-up",
@@ -13546,6 +13760,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13620,7 +13840,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "states-holder",
@@ -13725,6 +13945,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13799,7 +14025,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "states-holder",
@@ -13904,6 +14130,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13978,7 +14210,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "scale",
@@ -14083,6 +14315,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -14157,7 +14395,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "scale",
@@ -14262,6 +14500,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -14336,7 +14580,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         }
       ],
       "expandTo": [
@@ -14443,6 +14687,40 @@
           "opened": [
             "root",
             "send-to",
+            "steps"
+          ]
+        },
+        {
+          "id": "effects-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "effects-from",
+          "self": true,
+          "opened": [
+            "effects-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "effects-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "effects-to",
+          "self": true,
+          "opened": [
+            "effects-to",
+            "root",
             "steps"
           ]
         },

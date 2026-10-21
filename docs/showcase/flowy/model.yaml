@@ -44,6 +44,19 @@ objects:
     name: Send · to
     tech: send
     description: Takes the envelope in with a squash.
+  effects-from:
+    type: app
+    in: steps
+    name: Effects · from
+    tech: effect
+    description: "`animation: { kind: send, effect: bounce }`. What the moving label does on its way, besides travelling. None of them bends its shape."
+  effects-to:
+    type: store
+    in: steps
+    shape: queue
+    name: Effects · to
+    tech: effect
+    description: Sits down the slope from its sender, so the label runs along a slanted line and shows it stays level.
   call-from:
     type: app
     in: steps
@@ -405,6 +418,9 @@ connections:
   - from: send-from
     to: send-to
     label: send
+  - from: effects-from
+    to: effects-to
+    label: effects
   - from: call-from
     to: call-to
     label: call

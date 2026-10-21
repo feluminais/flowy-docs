@@ -1,0 +1,7 @@
+name: Effects
+view: steps
+steps:
+  - { from: effects-from, to: effects-to, text: The label stretches along its way, animation: { kind: send, carries: squish, effect: squish } }
+  - { from: effects-from, to: effects-to, text: The label hops as it goes, animation: { kind: send, carries: bounce, effect: bounce } }
+  - { from: effects-from, to: effects-to, text: The label swells and settles, animation: { kind: send, carries: pulse, effect: pulse } }
+  - { from: effects-from, to: effects-to, text: The label rocks from side to side, animation: { kind: send, carries: wiggle, effect: wiggle } }
