@@ -48,3 +48,24 @@ export function readHash(hash: string): { view: string; flow?: string; perf?: Pe
   if (parts.length > 2) return { view: ROOT }
   return flow !== undefined && isValidId(flow) ? { view, flow } : { view }
 }
+
+/**
+ * The address of a run on show: its tested level (the first dial's place, rounded). A run with several sources keeps a place between two loads (to two decimals) while the
+ * screen stands still, and rounds to a load during a ramp, which would otherwise rewrite the address every step.
+ */
+export function runAddress(run: string, here: number[], multi: boolean, ramping: boolean): Perf {
+  const level = Math.round(here[0])
+  return multi ? { run, level, levels: here.map(p => (ramping ? Math.round(p) : Math.round(p * 100) / 100)) } : { run, level }
+}
+
+/**
+ * How the address should change to `address`, given the one in the bar (`current`), or undefined when it should be left alone. A step the reader takes pushes an entry, so Back goes
+ * back. Anything else replaces the address: the page opening (`quiet`, which also drops a part that named nothing), Back or a typed address, E, a live reload that falls back
+ * to another view than the one asked for (`view` is not `viewId`), moving along a run (not a step to go back to), or picking another mode. A zoom with a mode picked is a step.
+ */
+export function addressChange(a: { quiet: boolean; address: string; current: string; view: string; viewId: string; perfOpen: boolean; runKey: string; failuresAt: Failures | undefined }): 'push' | 'replace' | undefined {
+  if (!a.quiet && a.address === a.current) return undefined
+  const was = readHash(a.current)
+  const alongRun = a.perfOpen && was.perf?.run === a.runKey && was.view === a.view
+  return a.quiet || a.view !== a.viewId || alongRun || alongFailures(was.failures, a.failuresAt) ? 'replace' : 'push'
+}

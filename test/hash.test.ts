@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ROOT } from '../src/core/model.ts'
-import { alongFailures, readHash, toHash } from '../ui/src/hash.ts'
+import { addressChange, alongFailures, readHash, runAddress, toHash } from '../ui/src/hash.ts'
 
 test('an address and what it names go both ways', () => {
   const cases: [string, string?][] = [[ROOT], ['shop'], ['shop', 'checkout'], [ROOT, 'tour']]
@@ -80,4 +80,31 @@ test('a list of places that is not one reads as no places, so the page opens at 
   for (const hash of ['#shop/perf/Together/1,2', '#Bad/perf/together/1,2', '#shop/perf/together/1,2/3', '#shop/runs/together/1,2'])
     assert.deepEqual(readHash(hash), { view: ROOT }, hash)
   assert.doesNotThrow(() => readHash('#shop/perf/together/' + '9,'.repeat(5000)))
+})
+
+test('the address of a run: a level, or for several sources a place for each', () => {
+  assert.deepEqual(runAddress('burst', [2.4], false, false), { run: 'burst', level: 2 })
+  assert.deepEqual(runAddress('burst', [1.234, 0.5], true, false), { run: 'burst', level: 1, levels: [1.23, 0.5] }, 'two decimals while the screen stands still')
+  assert.deepEqual(runAddress('burst', [1.234, 0.5], true, true), { run: 'burst', level: 1, levels: [1, 1] }, 'whole loads during a ramp, or every step would rewrite it')
+  assert.equal(toHash('shop', undefined, runAddress('burst', [1.234, 0.5], true, false)), '#shop/perf/burst/1.23,0.5')
+})
+
+test('a step the reader takes pushes an entry; the page opening, Back and moving along a run replace it', () => {
+  const same = { quiet: false, address: '#shop', current: '#shop', view: 'shop', viewId: 'shop', perfOpen: false, runKey: '', failuresAt: undefined }
+  assert.equal(addressChange(same), undefined, 'nothing changed: the address is left alone')
+  assert.equal(addressChange({ ...same, address: '#shop/checkout' }), 'push', 'playing a flow is a step')
+  assert.equal(addressChange({ ...same, address: '#other', view: 'other', viewId: 'other' }), 'push', 'a zoom is a step')
+  assert.equal(addressChange({ ...same, quiet: true }), 'replace', 'the page opening, or E, writes the address without a step')
+  assert.equal(addressChange({ ...same, address: '#other', view: 'other', viewId: 'shop' }), 'replace', 'a live reload fell back to another view than the one asked for')
+})
+
+test('moving along a run is not a step to go back to, nor is picking another mode', () => {
+  const along = { quiet: false, address: '#shop/perf/burst/2', current: '#shop/perf/burst/1', view: 'shop', viewId: 'shop', perfOpen: true, runKey: 'burst', failuresAt: undefined }
+  assert.equal(addressChange(along), 'replace')
+  assert.equal(addressChange({ ...along, perfOpen: false }), 'push', 'opening the panel is a step')
+  assert.equal(addressChange({ ...along, runKey: 'other' }), 'push', 'another run is a step')
+  assert.equal(addressChange({ ...along, current: '#root/perf/burst/1' }), 'push', 'the same run on another view is a step')
+  const failing = { quiet: false, address: '#shop/failures/a/two', current: '#shop/failures/a/one', view: 'shop', viewId: 'shop', perfOpen: false, runKey: '', failuresAt: { analysis: 'a', mode: 'two' } }
+  assert.equal(addressChange(failing), 'replace')
+  assert.equal(addressChange({ ...failing, current: '#shop', address: '#shop/failures/a/two' }), 'push', 'opening the tab is a step')
 })

@@ -8,6 +8,7 @@ import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
 import { Activity, Bolt, ChevronRight, Close, FileCode, Home, Info, Pencil, Play, Route, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
+import { keyOf } from './keymap.ts'
 import { MAX_WIDTH, MIN_WIDTH } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { scrollToRow, visibleRows } from './window.ts'
@@ -49,10 +50,10 @@ export function NavRail({ tab, flows, shapes, modes, showFlows, showYaml, showFa
 }) {
   return (
     <nav className="rail left" aria-label="Navigator">
-      <RailButton label="Explorer" hint="O" Icon={ExplorerIcon} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
-      {showFlows && <RailButton label="Flows" hint="L" Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
-      {showFailures && <RailButton label="Failures" hint="M" Icon={Bolt} count={modes} pressed={tab === 'failures'} onClick={() => onPick('failures')} />}
-      {showYaml && <RailButton label="YAML" hint="Y" Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />}
+      <RailButton label="Explorer" hint={keyOf('explorer')} Icon={ExplorerIcon} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
+      {showFlows && <RailButton label="Flows" hint={keyOf('flows')} Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
+      {showFailures && <RailButton label="Failures" hint={keyOf('failures')} Icon={Bolt} count={modes} pressed={tab === 'failures'} onClick={() => onPick('failures')} />}
+      {showYaml && <RailButton label="YAML" hint={keyOf('yaml')} Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />}
     </nav>
   )
 }
@@ -65,7 +66,7 @@ export function DetailsRail({ open, onToggle, perf }: { open: boolean; onToggle:
   return (
     <nav className="rail" aria-label={perf ? 'Details and performance' : 'Details'}>
       <RailButton label="Details" Icon={Info} pressed={open} onClick={onToggle} />
-      {perf && <RailButton label="Performance" hint="T" Icon={Activity} count={perf.runs} pressed={perf.open} off={perf.off} onClick={perf.onToggle} />}
+      {perf && <RailButton label="Performance" hint={keyOf('perf')} Icon={Activity} count={perf.runs} pressed={perf.open} off={perf.off} onClick={perf.onToggle} />}
     </nav>
   )
 }
