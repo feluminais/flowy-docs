@@ -18,7 +18,7 @@ import { connectionsOf, linesOf, newId, pickStepState, problemsOf, stateOf, step
 import type { BoxLine } from './edit.ts'
 import { lineId } from './graph.ts'
 import { StateGlyph, stateClasses, stateWord } from './states.tsx'
-import { openInEditor, vscode } from './host.ts'
+import { openInBrowser, openInEditor, vscode } from './host.ts'
 import { opensEditor, repoLink } from './repolink.ts'
 import { Chip, kindClass, lookVars, ObjectTile, Section, TypeTile } from './Chrome.tsx'
 import { ColorPicker, ExternalToggle, IconPicker, KindPicker, OpacityPicker, ShapePicker, SketchPicker, StatePicker, TypePicker } from './Pickers.tsx'
@@ -105,11 +105,11 @@ function RepoPath({ path, codeBase, children }: { path: string; codeBase?: strin
   const link = repoLink(path, codeBase, vscode !== undefined)
   if (!link) return <span>{children}</span>
   return (
-    <a href={link.href ?? '#'} target="_blank" rel="noreferrer" title={link.title}
+    <a href={link.anchor} target={link.editor ? undefined : '_blank'} rel="noreferrer" title={link.title}
       onClick={link.editor ? e => {
-        if (!opensEditor(link, e)) return
         e.preventDefault()
-        openInEditor(path)
+        if (opensEditor(link, e)) openInEditor(path)
+        else if (link.href) openInBrowser(link.href)
       } : undefined}>
       {children}
     </a>
