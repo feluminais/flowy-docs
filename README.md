@@ -144,13 +144,14 @@ it as `loop`, `alt` and `par` blocks. The format is in [the guide](docs/guide.md
 Flowy can also play back how a system behaved under load. Put a load test's results in `flowy/perf/<name>.yaml`, and a Performance
 tab joins the icons on the right edge (or press **T**). The diagram then shows the load: dots run along the lines as often, and as
 slowly, as the calls were, a line gets thicker with traffic, a shape's outline goes from green to red as it fills up, and a number
-on it says how many are waiting. Move the slider (← →) to another tested load, or press **Ramp** (**P**) to sweep up through them.
+on it says how many are waiting. A run can also set the colour of its dots and a small formula for how many there are, so that ten times the calls
+is ten times the dots ("1 dot = 50 calls/s" in the key) until the screen limit says it is scaled down. Move the slider (← →) to another tested load, or press **Ramp** (**P**) to sweep up through them.
 The tab says where things first struggle ("First struggles at 200 req/s: Fulfilment worker at 100% of capacity"), plots latency
 against load, and reads out the numbers of the shape or line you click.
 
 It plays back what was measured and nothing more: between two tested loads it blends the two, past the highest there is nothing
 to show, and a shape nobody measured stays plain. The file format is in [the guide](docs/guide.md#performance). To see it work, open the demo (Help › Open the Demo) and press **T**:
-Plum has two made-up runs of a dinner rush, one where Delivery gives way and one after a fix. `perf-lab/` is a
+Plum has three made-up runs: a dinner rush where Delivery gives way, the same test after a fix, and courier pings with a dot scale. `perf-lab/` is a
 small shop that really runs, with a load generator that writes these files (`npm run lab:run`, then
 `node src/cli.ts --dir perf-lab/flowy` to look at it). The browser and the desktop app both show runs.
 

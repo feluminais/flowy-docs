@@ -216,6 +216,18 @@ A failure analysis ranks how the system breaks, for someone deciding what to fix
   links to.
 - **Give a severity of 9 or 10 on purpose.** It makes the mode High whatever the other ratings say.
 
+## Draw a load test
+
+A run is written by a tool, and a few of its keys are choices you make about how it reads.
+
+- **Set a `source` when the ratio is the point.** Without one the dots follow a curve that makes a hundred times the calls look about twice as busy. A `dot` formula
+  makes them a count: `rate / 50` is one dot for every 50 calls a second. Pick the divisor so the busiest line you want to show stays under 24 dots, because past
+  that the line is scaled down and the ratio stops being true.
+- **Leave red to failing calls.** A failing dot draws in the danger colour, so a source that is red can't be told from its own failures.
+- **Give `bytes` where sizes differ.** A `size` formula needs it, and the size of a call shows in the numbers of a line.
+- **Say how a failure fails only where you know.** `failure: lost` is for calls that die on the way, `failure: rejected` for calls a gateway turns away (a rate limit,
+  a 429). When the run only says that some calls failed, leave it out and they fade.
+
 ## Point at code
 
 `code:` lists the files and folders a shape lives in. A path that doesn't exist shows up as a problem, so the model can't quietly point at code that's gone.

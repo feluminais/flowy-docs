@@ -5547,7 +5547,7 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
+              "shapes": 50,
               "flows": 15,
               "problem": false,
               "expandable": true,
@@ -5556,7 +5556,7 @@
             }
           ],
           "totals": {
-            "shapes": 42,
+            "shapes": 50,
             "flows": 15,
             "problems": 0
           }
@@ -5576,11 +5576,27 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
+              "shapes": 50,
               "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
               "match": true
             },
             {
@@ -5633,7 +5649,7 @@
             }
           ],
           "totals": {
-            "shapes": 42,
+            "shapes": 50,
             "flows": 15,
             "problems": 0
           }
@@ -5654,11 +5670,27 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
+              "shapes": 50,
               "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
               "match": true
             },
             {
@@ -6143,7 +6175,7 @@
             }
           ],
           "totals": {
-            "shapes": 42,
+            "shapes": 50,
             "flows": 15,
             "problems": 0
           }
@@ -6193,7 +6225,15 @@
             "not-measured",
             "rolled-up",
             "rolled-a",
-            "rolled-b"
+            "rolled-b",
+            "scale",
+            "source",
+            "dots-few",
+            "dots-many",
+            "dots-slow",
+            "dots-big",
+            "calls-lost",
+            "calls-rejected"
           ],
           "filter": "",
           "editing": false,
@@ -6205,11 +6245,139 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
+              "shapes": 50,
               "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:dots-big",
+              "kind": "shape",
+              "id": "dots-big",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Bigger calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-few",
+              "kind": "shape",
+              "id": "dots-few",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Few calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-lost",
+              "kind": "shape",
+              "id": "calls-lost",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Lost calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-rejected",
+              "kind": "shape",
+              "id": "calls-rejected",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Rejected calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-slow",
+              "kind": "shape",
+              "id": "dots-slow",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Same calls, slower",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:source",
+              "kind": "shape",
+              "id": "source",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Source",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-many",
+              "kind": "shape",
+              "id": "dots-many",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Ten times the calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
               "match": true
             },
             {
@@ -7126,7 +7294,7 @@
             }
           ],
           "totals": {
-            "shapes": 42,
+            "shapes": 50,
             "flows": 15,
             "problems": 0
           }
@@ -7176,7 +7344,15 @@
             "not-measured",
             "rolled-up",
             "rolled-a",
-            "rolled-b"
+            "rolled-b",
+            "scale",
+            "source",
+            "dots-few",
+            "dots-many",
+            "dots-slow",
+            "dots-big",
+            "calls-lost",
+            "calls-rejected"
           ],
           "filter": "",
           "editing": true,
@@ -7188,11 +7364,139 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
+              "shapes": 50,
               "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:dots-big",
+              "kind": "shape",
+              "id": "dots-big",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Bigger calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-few",
+              "kind": "shape",
+              "id": "dots-few",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Few calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-lost",
+              "kind": "shape",
+              "id": "calls-lost",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Lost calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-rejected",
+              "kind": "shape",
+              "id": "calls-rejected",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Rejected calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-slow",
+              "kind": "shape",
+              "id": "dots-slow",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Same calls, slower",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:source",
+              "kind": "shape",
+              "id": "source",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Source",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-many",
+              "kind": "shape",
+              "id": "dots-many",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Ten times the calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
               "match": true
             },
             {
@@ -8109,7 +8413,7 @@
             }
           ],
           "totals": {
-            "shapes": 42,
+            "shapes": 50,
             "flows": 15,
             "problems": 0
           }
@@ -8127,12 +8431,124 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
+              "shapes": 50,
               "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
               "match": false
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:dots-big",
+              "kind": "shape",
+              "id": "dots-big",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Bigger calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-few",
+              "kind": "shape",
+              "id": "dots-few",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Few calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-lost",
+              "kind": "shape",
+              "id": "calls-lost",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Lost calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-rejected",
+              "kind": "shape",
+              "id": "calls-rejected",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Rejected calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-slow",
+              "kind": "shape",
+              "id": "dots-slow",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Same calls, slower",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-many",
+              "kind": "shape",
+              "id": "dots-many",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Ten times the calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             },
             {
               "key": "shape:structure",
@@ -8760,7 +9176,7 @@
             }
           ],
           "totals": {
-            "shapes": 42,
+            "shapes": 50,
             "flows": 15,
             "problems": 0
           }
@@ -8774,7 +9190,7 @@
           "editing": false,
           "rows": [],
           "totals": {
-            "shapes": 42,
+            "shapes": 50,
             "flows": 15,
             "problems": 0
           }
@@ -8794,11 +9210,27 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
+              "shapes": 50,
               "flows": 15,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
               "match": true
             },
             {
@@ -8851,7 +9283,7 @@
             }
           ],
           "totals": {
-            "shapes": 42,
+            "shapes": 50,
             "flows": 15,
             "problems": 0
           }
@@ -9985,6 +10417,238 @@
             }
           ],
           "total": 15
+        },
+        {
+          "view": "scale",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 15
+        },
+        {
+          "view": "scale",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 15
         }
       ],
       "expandTo": [
@@ -10710,6 +11374,140 @@
             "rolled-b",
             "rolled-up",
             "root"
+          ]
+        },
+        {
+          "id": "scale",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "scale",
+          "self": true,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "source",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "source",
+          "self": true,
+          "opened": [
+            "root",
+            "scale",
+            "source"
+          ]
+        },
+        {
+          "id": "dots-few",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-few",
+          "self": true,
+          "opened": [
+            "dots-few",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-many",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-many",
+          "self": true,
+          "opened": [
+            "dots-many",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-slow",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-slow",
+          "self": true,
+          "opened": [
+            "dots-slow",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-big",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-big",
+          "self": true,
+          "opened": [
+            "dots-big",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-lost",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-lost",
+          "self": true,
+          "opened": [
+            "calls-lost",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-rejected",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-rejected",
+          "self": true,
+          "opened": [
+            "calls-rejected",
+            "root",
+            "scale"
           ]
         },
         {

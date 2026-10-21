@@ -32,8 +32,8 @@ npm run dev:ui
 
 `docs/demo/` is Plum, the made-up delivery service in the README's screenshots. `node src/cli.ts --dir docs/demo/flowy`
 opens it. Its `code:` paths point at placeholder files beside it, so the canvas shows no problems. Its `flowy/perf/` holds
-two load-test runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute, and
-the same test after a fix); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
+three load-test runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute,
+the same test after a fix, and courier pings with a `source` that sets a colour and a dot scale; its file name sorts last so the demo still opens on the dinner rush); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
 is an eight-mode failure analysis with made-up ratings, and it names shapes, connections, a flow and a run in the same way. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
@@ -55,11 +55,12 @@ the list has You, Claude and Outside steps, press Y, and pick the step Claude wr
 `docs/showcase/` plays every animation Flowy has, so you can open it and see that each one works and looks right, in the browser and
 in the desktop app. `node src/cli.ts --dir docs/showcase/flowy` opens it, and so does
 `dotnet run --project desktop/Flowy.App -- docs/showcase`. Each shape is named for the animation it plays (Send · from, Flash · to), and its second line holds the tag that sets it off.
-It has three views:
+It has four views:
 
 - Step animations: a flow of one step for each way a step can travel (Send, Call, Event, Callback, Flash, Bolt drop, Send with a word, Fail, Timeout), so you can click through them, and Every step animation, which plays them all: press **P** to watch them one after the other, or **R** to play a step again.
 - Flow structure: a flow each for Repeat, Branch, Parallel and Flow link.
 - Performance: the run Every load effect (**T**) gives each shape one effect of load, and **Ramp** sweeps all of them.
+- Colour and scale: the run Colour and scale gives each shape one thing a run's `source` does (dots in proportion to the calls, the same dots at another pace, bigger calls, a line scaled down, lost calls, rejected calls).
 
 `test/showcase.test.ts` fails when an animation kind, an outcome, a kind of group or a load effect has no place there. When you add one, add a
 pair of shapes named for it, a step or a flow, and (for a load effect) numbers in `docs/showcase/flowy/perf/every-load-effect.yaml`, then add the check to that test.
@@ -292,6 +293,11 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       squashes or flashes where the animation says it does, on the queue, the cylinder and the hexagon too. With the system's animation effects off, nothing moves.
 - [ ] Open Repeat, Branch, Parallel and Flow link in Flow structure. Repeat says it repeats up to 3 times, Branch says One of 2 and dashes the
       lane you are not in, Parallel lights three lanes together with a bolt each, and Flow link has an Open flow that lands on the other flow and a bar to come back.
+- [ ] In Colour and scale, press T and then Home: every line carries blue dots, Few calls 1, Ten times the calls 10, Same calls, slower 1 (moving slower than
+      Few calls), and Bigger calls has dots smaller than the usual. The Key says "1 dot = 50 calls/s" and "Bigger call". Press End: Few calls shows 16 dots and
+      Ten times the calls 24, and the Key adds "Scaled down" (click that line: its numbers say it too). Bigger calls has dots twice as wide, Lost calls pops a ring where each failing dot dies
+      ("Lost call" in the Key), and Rejected calls runs its failing dots to the end of the line, stops them at a red bar and sends them back red ("Rejected call").
+      Change `color: blue` in `perf/scale.yaml` to `"#e8590c"`: the dots and the Key's dots turn orange, in both themes. With reduced motion there are no dots and the Key says nothing of the source.
 - [ ] In Performance, press T and then Home: the lines are thin and no outline is red. Press Ramp: Traffic's line thickens, Latency's dots slow down,
       Failing calls sends red dots, Strain and Failing shape run from green to red, Queue and Rolled up grow a number, and Not measured stays plain at every load.
 
