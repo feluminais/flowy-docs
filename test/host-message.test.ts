@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { changedMessage, copyMessage, isChanged, openMessage, pathToOpen, requestMessage, requestOf, responseMessage, responseOf, revealMessage, revealOf, textToCopy } from '../src/core/host.ts'
+import { changedMessage, copyMessage, isChanged, openMessage, openUrlMessage, pathToOpen, requestMessage, requestOf, responseMessage, responseOf, revealMessage, revealOf, textToCopy, urlToOpen } from '../src/core/host.ts'
 
 test('a page asks its host to copy text, and the host reads it back', () => {
   assert.equal(textToCopy(copyMessage('```mermaid\ngraph TD\n```\n')), '```mermaid\ngraph TD\n```\n')
@@ -60,4 +60,13 @@ test('the host tells the page to show a shape or a flow, and the page reads it b
   for (const data of [undefined, null, {}, { type: 'other', target: { shape: 'a' } }, { type: 'flowy-reveal' }, { type: 'flowy-reveal', target: null },
     { type: 'flowy-reveal', target: {} }, { type: 'flowy-reveal', target: { shape: 3 } }, { type: 'flowy-reveal', target: { shape: '' } }, { type: 'flowy-reveal', target: { flow: [] } }])
     assert.equal(revealOf(data), undefined, JSON.stringify(data))
+})
+
+test('a page asks its host to open a web address, and the host reads back only http(s) ones', () => {
+  assert.equal(urlToOpen(openUrlMessage('https://github.com/o/r/blob/main/a%20b.ts')), 'https://github.com/o/r/blob/main/a%20b.ts')
+  assert.equal(urlToOpen(openUrlMessage('http://localhost:3000/x')), 'http://localhost:3000/x')
+  for (const data of [undefined, null, 'flowy-open-url', {}, { type: 'other', url: 'https://a.b' }, { type: 'flowy-open-url' }, { type: 'flowy-open-url', url: 3 },
+    { type: 'flowy-open-url', url: '' }, { type: 'flowy-open-url', url: 'file:///etc/passwd' }, { type: 'flowy-open-url', url: 'command:workbench.action.reloadWindow' },
+    { type: 'flowy-open-url', url: 'javascript:alert(1)' }, { type: 'flowy-open-url', url: 'https://a.b c' }])
+    assert.equal(urlToOpen(data), undefined, JSON.stringify(data))
 })
