@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import { Controls, ReactFlow } from '@xyflow/react'
-import type { FitViewOptions, NodeChange, XYPosition } from '@xyflow/react'
+import type { FitViewOptions, NodeChange } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import { getObject, LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
@@ -13,11 +13,10 @@ import { captionOf, progressOf } from '../../src/core/captions.ts'
 import { marksOf, statesAt, usesStates } from '../../src/core/states.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { otherLaneSteps, stopIndexOf, stopsOf } from '../../src/core/structure.ts'
-import { kneeOf, runStates } from '../../src/core/perf/analyse.ts'
-import { dialsOf } from '../../src/core/perf/dials.ts'
+import { runStates } from '../../src/core/perf/analyse.ts'
 import { trafficAt } from '../../src/core/perf/traffic.ts'
 import { eventsOf } from '../../src/core/perf/types.ts'
-import type { Dial, LineTraffic, Setting } from '../../src/core/perf/types.ts'
+import type { LineTraffic, Setting } from '../../src/core/perf/types.ts'
 import { drawnIn, homeView, lightFor, rollUp, table } from '../../src/core/failures.ts'
 import type { Mark, Part } from '../../src/core/failures.ts'
 import { expandTo, outline } from '../../src/core/outline.ts'
@@ -27,25 +26,23 @@ import { Box, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
 import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pencil, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
 import { connectionsOf, locate, moveBetween } from './edit.ts'
-import type { Move } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
-import { alongFailures, readHash, toHash } from './hash.ts'
-import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
+import { addressChange, readHash, runAddress, toHash } from './hash.ts'
+import { contextOf, dispatch } from './keymap.ts'
+import type { KeyActions, KeyState } from './keymap.ts'
 import { activeAnalysis, firstErrorAt, modeCount, modeIn, neighbour, rowsFor } from './failuresview.ts'
 import type { Filter } from './failuresview.ts'
 import { FailuresBody } from './Failures.tsx'
 import { LabelSpotsContext, Line, LineMarksContext, labelSpots, LineStyleContext, LineWidthsContext } from './Line.tsx'
 import { TrafficLayer } from './TrafficLayer.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
-import { DWELL, GAP } from './motion.ts'
 import { clampWidth, openTab } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { keepNav, loadNav } from './navstore.ts'
-import { store } from './store.ts'
 import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, NavTitle, Sash } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
-import { activeRun, clampDial, clampPos, dialTop, loadAt, openingPositions, placeActive, rampActive, rampFrom, rampFromActive, rampPos, RAMP_STEP_MS, settingOf, snap, starterRun, stepFrom, top } from './perfview.ts'
+import { clampPos, dialTop, settingOf, starterRun, stepFrom, top } from './perfview.ts'
 import { AddPanel, LinePanel, ObjectPanel, OverviewPanel } from './Panel.tsx'
 import { Recorder } from './Recorder.tsx'
 import { PickedBar } from './PickedBar.tsx'
@@ -55,10 +52,8 @@ import { Shortcuts } from './Shortcuts.tsx'
 import { StepMotion, takenBy } from './StepMotion.tsx'
 import { GroupMarks } from './GroupMarks.tsx'
 import { Player } from './Player.tsx'
-import { closeFlow, followBack, openFlow as leaveFlow } from './trail.ts'
-import type { Spot } from './trail.ts'
+import { cameFrom, closeFlow, followBack, openFlow as leaveFlow } from './trail.ts'
 import type { Recording } from './Recorder.tsx'
-import type { SaveEdit as Run } from './forms.tsx'
 import { copyMessage } from '../../src/core/host.ts'
 import { saveState, vscode } from './host.ts'
 import { useReveal } from './reveal.ts'
@@ -66,26 +61,18 @@ import { useColorMode } from './hosttheme.ts'
 import { createHistoryStore } from './historystore.ts'
 import type { HistoryClient } from './historyclient.ts'
 import { useModel } from './useModel.ts'
+import { useEditSession } from './useEditSession.ts'
+import { usePerfRun } from './usePerfRun.ts'
+import { usePlayback, usePlayer } from './usePlayer.ts'
+import { useZoom } from './useZoom.ts'
 import type { Edit, Loaded, Restore } from './useModel.ts'
 import { Yaml } from './Yaml.tsx'
 
 const nodeTypes = { box: Box, frame: Frame }
 const NO_MARKS: Record<string, StateMark> = {} // the same object every time, so a flow with no states never rebuilds the graph for them
-const NO_DIALS: Dial[] = [] // and no dials, for a run that is not there
 const NO_LINES: LineTraffic[] = [] // and no traffic, so the Performance panel's key is not rebuilt for it
 const edgeTypes = { line: Line }
-const SCRUB_MS = 250 // ms after the slider of a run was last dragged that the shapes still change their state at once, with no fade
 const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is the first half of a double-click
-const LEAVE = 220 // ms the old view takes to fly off; keep in sync with the leave-* keyframes in style.css
-const ARRIVE = 320 // ms the new view takes to settle; keep in sync with the arrive-* keyframes
-
-/**
- * A move between views, heading `to` a view. In and out zoom about (x, y) on the canvas. Across slides:
- * the old view moves away from (x, y) and the new one comes in from that side; (dx, dy) is that way, in
- * percent of the canvas.
- */
-type Motion = { dir: Move; phase: 'leave' | 'arrive'; x: number; y: number; dx: number; dy: number; to: string }
-
 /** What the side panel shows. One thing at a time. */
 type Side =
   | { kind: 'object'; id: string }
@@ -148,10 +135,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     return m !== undefined && !drawnIn(model, named.view, m) ? homeView(model, m) : named.view
   })
   const [side, setSide] = useState<Side>()
-  // The left-hand panel's tab (the navigator: Explorer, Flows, Failures or YAML), and whether the right-hand Details panel was opened from its rail. Details shows
-  // `side`, or the level you are in, so a `side` opens it too. An address that names a failure analysis opens on the Failures tab.
+  // The left-hand panel's tab (the navigator: Explorer, Flows, Performance, Failures or YAML), and whether the right-hand Details panel was opened from its rail. Details shows
+  // `side`, or the level you are in, so a `side` opens it too. The Performance and Failures panels are tabs of the navigator too, and an address that names one opens on it.
   const [remembered] = useState(loadNav)
-  // The Performance and Failures panels are tabs of it too, and an address that names one opens on it.
   const [tab, setNavTab] = useState<NavTab | undefined>(() => {
     const named = readHash(location.hash)
     return named.perf !== undefined ? 'performance' : named.failures !== undefined ? 'failures' : remembered.tab
@@ -166,65 +152,24 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const [details, setDetails] = useState(false)
   const [navWidth, setNavWidth] = useState(remembered.navWidth ?? NAV) // dragged by the sashes on the panels' edges
   const [detailsWidth, setDetailsWidth] = useState(remembered.detailsWidth ?? PANEL)
-  // The Performance panel, a tab on the left: which run, and where along its tested levels. A whole number is a tested level; a ramp goes between them.
-  // A run has a position for each of its dials (one for a run of one source), and `active` is the dial the keys and Ramp act on, the one that was moved last.
-  // Where a run opens: a single run at the level its address names, else at its first struggle, else at the top. A run with several sources at the places its address names when it
-  // names one for each dial, else together at the first struggle (each dial along its own loads), else every dial at its top.
-  const startPositions = (id: string, level?: number, levels?: number[]): number[] => {
-    const dialled = dialsOf(runs, id)
-    if (!dialled) return [0]
-    if (dialled.mode === 'single') return [clampPos(runs[id], (levels === undefined ? level : undefined) ?? kneeOf(runs, id)?.index ?? top(runs[id]))]
-    if (levels !== undefined && levels.length === dialled.dials.length) return dialled.dials.map((d, i) => clampDial(d, levels[i]))
-    return openingPositions(dialled.dials, kneeOf(runs, id))
-  }
-  const [runId, setRunId] = useState(() => {
-    const named = readHash(location.hash).perf?.run
-    return named !== undefined && Object.hasOwn(runs, named) ? named : Object.keys(runs)[0] ?? ''
-  })
-  const [positions, setPositions] = useState(() => startPositions(runId, readHash(location.hash).perf?.level, readHash(location.hash).perf?.levels))
-  const [active, setActive] = useState(0)
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches // no ramp and no traffic: the colours, thickness, badges and numbers say it all
+  // The run the Performance panel (a tab on the left) shows and where along it (see usePerfRun.ts).
+  const perfRun = usePerfRun({ runs, named: () => readHash(location.hash).perf, still })
+  const { runKey, loadTest, dials, multi, activeDial, here, hereKey, load, ramping, scrubbing, startPositions } = perfRun
   // The Failures panel, a tab on the left too: which analysis, which mode is picked in it, and what the list is narrowed to.
   const [analysisId, setAnalysisId] = useState(() => readHash(location.hash).failures?.analysis ?? '')
   const [modeId, setModeId] = useState<string | undefined>(() => readHash(location.hash).failures?.mode)
   const [filter, setFilter] = useState<Filter>({})
-  const [ramping, setRamping] = useState(false)
-  const [scrubbing, setScrubbing] = useState(false) // the slider of a run is being dragged: the states of shapes snap instead of moving
-  const scrubTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
-  useEffect(() => () => clearTimeout(scrubTimer.current), [])
-  const posNow = useRef(positions) // the ramp reads where it is from here, so a render in between never makes it start over
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set([ROOT, ...remembered.expanded])) // the project's own row starts open
-  const [playing, setPlaying] = useState<{ flow: string; step: number; auto?: boolean; trail?: Spot[] } | undefined>(() => {
-    const { flow } = readHash(location.hash)
-    return flow === undefined ? undefined : { flow, step: 0 }
-  })
-  const [replays, setReplays] = useState(0) // R counts up, and a new count plays the step again
-  const [repeat, setRepeat] = useState(() => {
-    try {
-      return store.get('flowy.repeat') !== 'off'
-    } catch {
-      return true
-    }
-  }) // whether a step that moves plays again after a rest
-  const toggleRepeat = () => {
-    setRepeat(!repeat)
-    try {
-      store.set('flowy.repeat', repeat ? 'off' : 'on')
-    } catch {
-      // storage is blocked: the choice lasts until the page closes
-    }
-  }
-  const [settledKey, setSettledKey] = useState('') // the step (and replay) whose motion has finished
-  const [editMode, setEditMode] = useState(false)
-  const [notice, setNotice] = useState<string>()
-  // Where boxes are being dragged to. Nodes are controlled, so a box only moves through this.
-  const [moved, setMoved] = useState(new Map<string, XYPosition>())
+  // The flow playing, and the player's small settings (see usePlayer.ts).
+  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey } = usePlayer({ initialFlow: () => readHash(location.hash).flow })
+  // Edit mode, the notice, the boxes being dragged and the runner every edit goes through (see useEditSession.ts).
+  const session = useEditSession({ edit, undo, redo, restore, readOnly })
+  const { editing, notice, setNotice, moved, run, takeBack, bringBack, restoreVersion, clearMoved, didSomethingElse } = session
   // What each box measured. React Flow throws a box's measurements away when it gets a node object
   // it hasn't seen, which every render here is, and its lines have nowhere to land until the browser
   // has measured it again: they'd blink away for a frame on every drag, click and hover.
   const sizes = useRef(new Map<string, { width: number; height: number }>())
-  const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
-  const justMoved = useRef(false) // the last thing done was dragging a box, and nothing has been done since: Esc or Backspace take it back
-  const banding = useRef(false) // a box is being drawn round shapes to pick them (Shift and drag)
   const [hovered, setHovered] = useState<string>() // the line the pointer is on
   const [searching, setSearching] = useState(false)
   const [shortcuts, setShortcuts] = useState(false) // the list ? opens
@@ -237,11 +182,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     openingBox.current = undefined
   }
   const quiet = useRef(true) // the next address write replaces instead of pushing (see the address effect)
-  const [motion, setMotion] = useState<Motion>()
-  const motionTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const canvas = useRef<HTMLElement>(null)
+  const zoom = useZoom({ canvas, model, go: id => go(id) }) // the zoom between views (see useZoom.ts)
+  const { motion } = zoom
 
-  const editing = editMode && !readOnly // a file that can't be read, a lost server, or an exported page makes the canvas read-only
   // In edit mode lines show the project's style, which is what the picker changes there. Reading, the
   // picker only changes this screen.
   const [mine, setMine] = useState(ownLines)
@@ -253,20 +197,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const view = chain(model, viewId).find(v => v === ROOT || canOpen(v)) ?? ROOT
   const recording = editing && side?.kind === 'flow' ? side : undefined
   const flowsHere = Object.entries(model.flows).filter(([, f]) => f.view === view && (editing || f.steps.length > 0))
-  // The run on show and where along it: a run that was renamed, deleted or cut short under a live reload falls back to one that is there.
-  const runKey = activeRun(runs, runId)
-  const loadTest = runKey ? runs[runKey] : undefined
-  // What the run is turned up on: one dial for a run of one source, one for each source of a run with several.
-  const found = useMemo(() => (runKey ? dialsOf(runs, runKey) : undefined), [runs, runKey])
-  const dials = found?.dials ?? NO_DIALS
-  const multi = found !== undefined && found.mode !== 'single'
-  const activeDial = Math.min(active, Math.max(0, dials.length - 1))
-  const here = multi ? dials.map((d, i) => clampDial(d, positions[i] ?? 0)) : [loadTest ? clampPos(loadTest, positions[0] ?? 0) : 0]
-  const hereKey = here.join(',')
-  if (!ramping) posNow.current = here // while it ramps, the ramp is ahead of what the screen shows
   // The Performance and Failures tabs are always there: with nothing to show, their panels say how to make a run or an analysis.
   const canPerf = !editing // while editing the tab is greyed out: the numbers would sit on a model that is changing
-  const load = loadTest && !multi ? loadAt(loadTest, here[0]) : 0 // the load at the position on show, or for a run over time the time (a run with several sources has none of its own)
   const analysisKey = activeAnalysis(model.failures, analysisId)
   const analysis = analysisKey === undefined ? undefined : model.failures[analysisKey]
   const mode = modeIn(model, analysisKey, modeId)
@@ -281,7 +213,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const showYaml = yamlStore !== undefined && !yamlGone
   const nav = openTab(tab, { flows: showFlows, yaml: showYaml, performance: canPerf })
   const perfOpen = nav === 'performance' && loadTest !== undefined // a run is drawn on the canvas
-  const failuresOpen = nav === 'failures'
+  useEffect(() => {
+    if (!perfOpen) perfRun.stopRamp()
+  }, [perfOpen])
+  const failuresOpen = nav === 'failures' // a tab of the navigator on the left, with Explorer, Flows and YAML
   // A flow that was playing waits behind the Performance and Failures tabs, so a step's motion, the traffic and the risk marks never draw at once.
   const flow = editing || perfOpen || failuresOpen ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
   // The player moves through stops, not steps: a stop is what is on screen at once (see structure.ts). `playing.step` is a stop.
@@ -332,25 +267,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     const p = shown?.ends[i]
     return p && stop.kind && caption.marks[n] !== '' ? [{ ends: p, text: caption.marks[n], kind: stop.kind }] : []
   }) : []
-  // A stop settles when every motion in it has finished, not the first.
-  const finishedSteps = useRef(new Set<number>())
-  useEffect(() => {
-    finishedSteps.current = new Set()
-  }, [stepKey])
-  const finished = (i: number) => {
-    finishedSteps.current.add(i)
-    if (finishedSteps.current.size >= animated.length) setSettledKey(stepKey)
-  }
-  const lastLeft = playing?.trail?.at(-1)
-  const leftFlow = lastLeft && Object.hasOwn(model.flows, lastLeft.flow) ? model.flows[lastLeft.flow] : undefined
-  const trail = flow && lastLeft ? { name: leftFlow?.name ?? lastLeft.flow, step: Math.min(lastLeft.step, leftFlow ? stopsOf(leftFlow).length - 1 : lastLeft.step) + 1 } : undefined
+  const { finished, stepTo, togglePlay } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey })
+  const left = cameFrom(model.flows, playing?.trail ?? [])
+  const trail = flow ? left : undefined
   const graph = useMemo(() => toGraph(model, view, shown, problems, stateMarks), [model, view, shown, problems, stateMarks])
   // The states on the canvas now, for the key: a shape on another view that is in one is not drawn here.
   const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
   const setting = useMemo<Setting>(() => (multi ? settingOf(dials, here) : { '': load }), [multi, dials, hereKey, load])
   const loadTraffic = useMemo(() => (perfOpen && loadTest ? trafficAt(model, runs, runKey, setting, view) : undefined), [perfOpen, model, runs, runKey, loadTest, setting, view])
   const widths = useMemo(() => new Map(loadTraffic?.lines.map(l => [lineId(l.from, l.to), l.width])), [loadTraffic])
-  const still = matchMedia('(prefers-reduced-motion: reduce)').matches // no ramp and no traffic: the colours, thickness, badges and numbers say it all
   const drawnLines = useMemo(() => (still ? NO_LINES : loadTraffic?.lines ?? NO_LINES), [still, loadTraffic]) // what the panel's key is told, so the tab makes no traffic of its own
   const chosen = side?.kind === 'objects' ? side.ids : side?.kind === 'object' ? [side.id] : [] // the shapes picked for editing, one or several
   const picked = recording ? [recording.from, recording.to] : chosen
@@ -378,7 +303,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // A click on its outline is a click on that shape: its Details open, as the rail's button opens them. While a flow is recorded or a load shows,
   // the panel has its own work, so the outline takes no click.
   const openLevel = recording || perfOpen ? undefined : () => {
-    justMoved.current = false
+    didSomethingElse()
     clearTimeout(opening.current)
     if (details && side === undefined) return closeDetails() // its Details are already showing: a second click closes them
     setSide(undefined)
@@ -410,13 +335,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   }, [selectedBox])
   useEffect(() => keepNav({ tab, expanded: [...expanded], navWidth, detailsWidth }), [tab, expanded, navWidth, detailsWidth])
 
-  const run: Run = async op => {
-    justMoved.current = false
-    setNotice(undefined)
-    const message = await edit(op)
-    setNotice(message)
-    return message === undefined
-  }
   const close = () => setSide(undefined)
   const closeDetails = () => {
     setSide(undefined)
@@ -426,6 +344,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const leave = (t: NavTab) => setNavTab(now => (now === t ? undefined : now))
   /** Shows what a click on the canvas, a problem or a button points at, in the Details panel on the right (and, while Performance is open, in its readings too). */
   const show = (s: Side | undefined) => setSide(s)
+  // The Performance and Failures panels are tabs of the same panel on the left, so the traffic and the risk marks never draw over each other.
   const openPerf = () => setTab('performance')
   const openFailures = () => setTab('failures')
   const toggleTab = (t: NavTab) => {
@@ -436,18 +355,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   }
   const closeFailures = () => leave('failures')
   const closePerf = () => leave('performance')
-  const takeBack = async () => {
-    justMoved.current = false
-    setNotice(undefined)
-    setNotice((await undo()) ?? 'Undone.')
-    setMoved(new Map()) // a box dragged back shows where the file says
-  }
-  const bringBack = async () => {
-    justMoved.current = false
-    setNotice(undefined)
-    setNotice((await redo()) ?? 'Redone.')
-    setMoved(new Map())
-  }
   // Fenced, so it pastes straight into a README or a PR, where GitHub draws it.
   const copyText = async (text: string, notice: string) => {
     try {
@@ -469,31 +376,12 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (analysis) void copyText(table(model, analysis, format), format === 'csv' ? 'Copied this analysis as CSV.' : 'Copied this analysis as a table.')
   }
   const go = (id: string) => {
-    justMoved.current = false
     cancelOpen()
-    clearTimeout(motionTimer.current)
-    setMotion(undefined)
+    zoom.cancelMotion()
     setViewId(id)
     setPlaying(undefined)
-    setMoved(new Map())
+    session.viewChanged()
     setSide(s => (s?.kind === 'object' ? s : undefined)) // lines, Add and recording belong to one view
-  }
-  /** Open `id` with a zoom. A second zoom on the way, or reduced motion, opens it straight away. */
-  const zoomTo = (id: string, dir: Move, x: number, y: number) => {
-    if (motion || matchMedia('(prefers-reduced-motion: reduce)').matches) return go(id)
-    const r = canvas.current?.getBoundingClientRect()
-    const [ux, uy] = [x - (r?.width ?? 0) / 2, y - (r?.height ?? 0) / 2]
-    const length = Math.hypot(ux, uy) || 1 // a box dead in the middle slides nowhere and just fades
-    const slide = { dx: (ux / length) * 25, dy: (uy / length) * 25 }
-    // A busy view takes a while to lay out the first time. The old one is still flying off (transform and opacity run off the main
-    // thread), so work the new one out now, behind that, instead of when it should arrive.
-    setTimeout(() => toGraph(model, id), 30)
-    setMotion({ dir, phase: 'leave', x, y, ...slide, to: id })
-    motionTimer.current = setTimeout(() => {
-      go(id)
-      setMotion({ dir, phase: 'arrive', x, y, ...slide, to: id })
-      motionTimer.current = setTimeout(() => setMotion(undefined), ARRIVE)
-    }, LEAVE)
   }
   /** Open box `id`, from where it sits on screen: zoom in when it's inside this view, slide across when it sits beside it. */
   const zoomInto = (id: string) => {
@@ -501,12 +389,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     close()
     const c = canvas.current!.getBoundingClientRect()
     const b = canvas.current!.querySelector(`.react-flow__node[data-id="${CSS.escape(id)}"]`)?.getBoundingClientRect()
-    zoomTo(id, moveBetween(model, view, id), b ? b.x + b.width / 2 - c.x : c.width / 2, b ? b.y + b.height / 2 - c.y : c.height / 2)
-  }
-  /** Zoom out to `id`, about the middle of the canvas: the box's place in the outer view isn't known until it's drawn. */
-  const zoomOut = (id: string) => {
-    const r = canvas.current?.getBoundingClientRect()
-    zoomTo(id, 'out', (r?.width ?? 0) / 2, (r?.height ?? 0) / 2)
+    zoom.zoomTo(id, moveBetween(model, view, id), b ? b.x + b.width / 2 - c.x : c.width / 2, b ? b.y + b.height / 2 - c.y : c.height / 2)
   }
   /** Play a flow where it plays (going to its level first), or while editing open it to edit. */
   const openFlow = (id: string) => {
@@ -544,10 +427,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (at === undefined) return
     closeFailures()
     go(homeView(model, m))
-    setRamping(false)
-    setRunId(name)
-    setPositions([clampPos(runs[name], at)])
-    setActive(0)
+    perfRun.stopRamp()
+    perfRun.pick(name, [clampPos(runs[name], at)])
     openPerf()
   }
   // VS Code asks to show a shape (the one a file belongs to, or a pick from its list) or a flow.
@@ -585,12 +466,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       else next.delete(id)
       return next
     })
-  const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, stops.length - 1)), auto: false })
-  const togglePlay = () => {
-    if (!playing || !flow) return
-    const atEnd = stopIndex === stops.length - 1
-    setPlaying(playing.auto ? { ...playing, auto: false } : { ...playing, step: atEnd ? 0 : stopIndex, auto: true })
-  }
   /** A step's story continues in another flow: open it (on its own view), leaving the place to come back to. */
   const openLinked = (id: string) => {
     const f = Object.hasOwn(model.flows, id) ? model.flows[id] : undefined
@@ -606,88 +481,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (parent.view !== view) go(parent.view)
     setPlaying({ flow: closed.back.flow, step: closed.back.step, ...(closed.trail.length > 0 ? { trail: closed.trail } : {}) })
   }
-  // Autoplay: a step that doesn't move waits a moment, then each finished step is followed by the next. Taking a step yourself stops it.
-  useEffect(() => {
-    if (!playing?.auto || moving) return
-    const wait = setTimeout(() => setSettledKey(stepKey), DWELL)
-    return () => clearTimeout(wait)
-  }, [playing?.auto, moving, stepKey])
-  useEffect(() => {
-    if (!playing?.auto || !flow || settledKey !== stepKey) return
-    const wait = setTimeout(() => setPlaying(stopIndex < stops.length - 1 ? { ...playing, step: stopIndex + 1 } : { ...playing, auto: false }), GAP)
-    return () => clearTimeout(wait)
-  }, [playing?.auto, settledKey, stepKey])
-  // Ramp: the load sweeps up through the tested levels on its own, with a frame for each step of the screen.
-  useEffect(() => {
-    if (!ramping || !loadTest) return
-    let last = performance.now()
-    let shown = last // when the screen last got a position
-    let frame = 0
-    const tick = (t: number) => {
-      const ms = Math.min(100, t - last) // a tab that was asleep doesn't jump
-      const next = multi ? rampActive(dials, posNow.current, activeDial, ms) : [rampPos(loadTest, posNow.current[0], ms)]
-      last = t
-      posNow.current = next
-      const done = multi ? next[activeDial] >= dialTop(dials[activeDial]) : next[0] >= top(loadTest)
-      if (done || t - shown >= RAMP_STEP_MS) {
-        shown = t
-        setPositions(next)
-      }
-      if (done) setRamping(false)
-      else frame = requestAnimationFrame(tick)
-    }
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [ramping, loadTest, multi, dials, activeDial])
-  useEffect(() => {
-    if (!perfOpen) setRamping(false)
-  }, [perfOpen])
-  // Ramp a dial (the active one when none is named), or stop the ramp that runs on it. Pressing another dial's button moves the ramp there.
-  const toggleRamp = (dial = activeDial) => {
-    if (!loadTest || still) return
-    if (ramping && dial === activeDial) {
-      setPositions(posNow.current) // where it has got to, not where the screen last was
-      return setRamping(false)
-    }
-    setActive(dial) // a ramp is of the dial it was started on
-    const from = multi ? rampFromActive(dials, posNow.current, dial) : [rampFrom(loadTest, posNow.current[0])] // at the top, a ramp starts again from the bottom
-    posNow.current = from // the ramp reads it before the next render
-    setPositions(from)
-    setRamping(true)
-  }
-  // To a tested level of the active dial (or of the dial named): the arrow keys and Home and End.
-  const stepLevel = (to: number, dial = activeDial) => {
-    if (!loadTest) return
-    setRamping(false)
-    if (multi) {
-      setActive(dial)
-      setPositions(placeActive(dials, here, dial, Math.round(clampDial(dials[dial], to))))
-    } else setPositions([snap(loadTest, to)])
-  }
-  // Go to a place with every dial at its position (Go there), at tested levels.
-  const placeAll = (to: number[]) => {
-    if (!loadTest) return
-    setRamping(false)
-    setPositions(multi ? dials.map((d, i) => clampDial(d, to[i] ?? 0)) : [snap(loadTest, to[0] ?? 0)])
-  }
-  // Anywhere along the run, not only at a level: a click on an event. The states move to it, as they do for a step.
-  const jumpTo = (to: number) => {
-    if (!loadTest) return
-    setRamping(false)
-    setPositions([clampPos(loadTest, to)])
-  }
-  // The slider of a dial is being dragged: the states follow at once, and for a moment after the last move (a drag is many moves), so the shapes don't fade behind the thumb.
-  const slide = (to: number, dial = activeDial) => {
-    if (!loadTest) return
-    setScrubbing(true)
-    clearTimeout(scrubTimer.current)
-    scrubTimer.current = setTimeout(() => setScrubbing(false), SCRUB_MS)
-    if (multi) {
-      setRamping(false)
-      setActive(dial)
-      setPositions(placeActive(dials, here, dial, to))
-    } else jumpTo(to)
-  }
   const pickLines = (value: string) => {
     const style = LINE_STYLES.find(s => s === value)
     if (style === undefined) return
@@ -700,11 +493,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     else own(style === projectLines ? undefined : style) // the project's own style isn't kept as a pick: the screen follows the project again
   }
   const toggleEdit = () => {
-    justMoved.current = false
     quiet.current = true // E isn't a step to go back to
-    setEditMode(!editing)
+    session.toggleEditMode()
     leave('performance') // editing and the Performance panel don't mix: the numbers would sit on a model that is changing
-    setNotice(undefined) // "Press E to fix this flow" is stale the moment E is pressed
     setPlaying(undefined)
     setSide(s => (s?.kind === 'object' || s?.kind === 'line' ? s : undefined))
   }
@@ -748,23 +539,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     // The browser measured a box: keep it, so the next render hands it back instead of hiding its lines.
     for (const c of changes) if (c.type === 'dimensions' && c.dimensions) sizes.current.set(c.id, c.dimensions)
     // Drawing a box round shapes: the ones it takes in are the selection. Boxes outside this view's own (the people and systems around it) stay out.
-    if (banding.current) setSide(sideFor(banded(chosen, changes, new Set(graph.members))))
+    if (session.isBanding()) setSide(sideFor(banded(chosen, changes, new Set(graph.members))))
     const moves = changes.flatMap(c => (c.type === 'position' && c.position ? [{ ...c, position: c.position }] : []))
     if (moves.length === 0) return
-    const next = new Map(moved)
-    for (const c of moves) next.set(c.id, c.position)
-    setMoved(next)
-    if (moves.some(c => c.dragging)) return
-    const boxes = Object.fromEntries(nodes.map(n => {
-      const { x, y } = next.get(n.id) ?? n.position
-      return [n.id, [Math.round(x), Math.round(y)] as [number, number]]
-    }))
-    // Arrow keys queue a save per press. Clearing `moved` after an early one would snap the box back mid-way.
-    layoutSaves.current++
-    void run(m => placeBoxes(m, view, boxes)).then(saved => {
-      layoutSaves.current--
-      if (layoutSaves.current === 0) setMoved(new Map())
-      justMoved.current = saved
+    session.dragged(moves, next => {
+      const boxes = Object.fromEntries(nodes.map(n => {
+        const { x, y } = next.get(n.id) ?? n.position
+        return [n.id, [Math.round(x), Math.round(y)] as [number, number]]
+      }))
+      return m => placeBoxes(m, view, boxes)
     })
   }
 
@@ -773,16 +556,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // opening (which also drops a part that named nothing), Back or a typed address, E, or a live reload that
   // falls back to another view.
   const failuresAt = failuresOpen && analysisKey !== undefined ? { analysis: analysisKey, ...(mode ? { mode: modeId } : {}) } : undefined
-  // The address of a run with several sources keeps a place between two loads (to two decimals) while the screen stands still, and rounds to a load during a ramp, which would otherwise rewrite it every step.
-  const perfAt = perfOpen ? (multi ? { run: runKey, level: Math.round(here[0]), levels: here.map(p => (ramping ? Math.round(p) : Math.round(p * 100) / 100)) } : { run: runKey, level: Math.round(here[0]) }) : undefined
+  const perfAt = perfOpen ? runAddress(runKey, here, multi, ramping) : undefined
   const address = toHash(view, flow ? playing?.flow : undefined, perfAt, failuresAt)
   useEffect(() => {
-    if (quiet.current || address !== location.hash) {
-      const was = readHash(location.hash)
-      const alongRun = perfOpen && was.perf?.run === runKey && was.view === view // moving along a run is not a step to go back to
-      // Nor is picking another mode, even one that moves the canvas to its view. A zoom with a mode picked is a step: same mode, another view.
-      history[quiet.current || view !== viewId || alongRun || alongFailures(was.failures, failuresAt) ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
-    }
+    const change = addressChange({ quiet: quiet.current, address, current: location.hash, view, viewId, perfOpen, runKey, failuresAt })
+    if (change) history[change === 'replace' ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
     quiet.current = false
     saveState({ hash: address }) // a VS Code panel that is restored opens where the reader was
   })
@@ -801,11 +579,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           setPlaying({ flow: named.flow, step: back.step, ...(back.trail.length > 0 ? { trail: back.trail } : {}) })
         }
       }
-      setRamping(false)
+      perfRun.stopRamp()
       if (named.perf !== undefined && Object.hasOwn(runs, named.perf.run)) {
-        setRunId(named.perf.run)
-        setPositions(startPositions(named.perf.run, named.perf.level, named.perf.levels))
-        setActive(0)
+        perfRun.pick(named.perf.run, startPositions(named.perf.run, named.perf.level, named.perf.levels))
         openPerf()
       } else leave('performance')
       if (named.failures !== undefined && Object.hasOwn(model.failures, named.failures.analysis)) {
@@ -834,13 +610,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     return () => window.removeEventListener('pointerdown', onDown, true)
   }, [])
 
-  // Added again on every render, so the handler always sees the current state.
+  // Added again on every render, so the handler always sees the current state. Which key does what is in keymap.ts; this builds what it needs to know and can do.
   useEffect(() => {
-    // The list ? shows (Shortcuts.tsx) follows this handler: keep the two in step.
     const onKey = (e: KeyboardEvent) => {
-      const key = letter(e)
-      const plain = !e.ctrlKey && !e.metaKey && !e.altKey
-      const control = (e.ctrlKey || e.metaKey) && !e.repeat // held down, undo or redo would run through the whole stack
       const inNavigator = e.target instanceof Element && e.target.closest('.navpanel') !== null
       // A field keeps its keys, except the load slider: its arrows and Home and End are the tab's own, so they work right after it was used.
       // The navigator's filters clear themselves on Escape and stop it, so one that gets here is empty: a click in it lets Escape close the navigator.
@@ -848,67 +620,52 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       if ((e.target instanceof HTMLInputElement && e.target.type !== 'range') || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
         if (!(e.key === 'Escape' && inNavigator && e.target instanceof HTMLInputElement && e.target.closest('.navfind') !== null)) return
       }
-      // A second press while a zoom out is still leaving goes up from where that one is heading.
-      const up = () => zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view))
-      if (undoesMove(e, { editing, justMoved: justMoved.current, shortcuts, plain })) {
-        void takeBack()
+      const state: KeyState = {
+        editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, halfStep: recording?.from !== undefined,
+        panel: detailsOpen || manyPicked || perfOpen || failuresOpen, inside: view !== ROOT, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
+        showFlows, showYaml, canPerf,
       }
-      else if (e.key === 'Escape') {
-        const navigator = nav !== undefined && (navUsed.current || inNavigator)
-        const layer = escapeStep({ shortcuts, navigator, flow: flow !== undefined, halfStep: recording?.from !== undefined, panel: detailsOpen || manyPicked || perfOpen || failuresOpen, inside: view !== ROOT })
-        if (layer === 'shortcuts') setShortcuts(false)
-        else if (layer === 'navigator') setTab(undefined)
-        else if (layer === 'flow') setPlaying(undefined)
-        else if (layer === 'step' && recording) setSide({ ...recording, from: undefined, to: undefined })
-        else if (layer === 'panel') {
-          if (detailsOpen || manyPicked) closeDetails()
-          else if (perfOpen) closePerf()
-          else closeFailures()
-        }
-        else if (layer === 'up') up()
-        else return
+      const act: KeyActions = {
+        takeBack: () => void takeBack(),
+        bringBack: () => void bringBack(),
+        closeShortcuts: () => setShortcuts(false),
+        toggleShortcuts: () => setShortcuts(open => !open),
+        closeNavigator: () => setTab(undefined),
+        stopFlow: () => setPlaying(undefined),
+        clearStep: () => { if (recording) setSide({ ...recording, from: undefined, to: undefined }) },
+        closePanel: () => (detailsOpen || manyPicked ? closeDetails() : perfOpen ? closePerf() : closeFailures()),
+        // A second press while a zoom out is still leaving goes up from where that one is heading.
+        up: () => zoom.zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view)),
+        stepRun: by => perfRun.stepLevel(stepFrom(here[activeDial], by)),
+        runEnd: end => {
+          if (end === 'first') perfRun.stepLevel(0)
+          else if (loadTest) perfRun.stepLevel(multi ? dialTop(dials[activeDial]) : top(loadTest))
+        },
+        ramp: () => perfRun.toggleRamp(),
+        stepFailure: by => selectMode(neighbour([...rows.here, ...rows.elsewhere].map(r => r.id), mode ? modeId : undefined, by)),
+        stepFlow: by => stepTo(stopIndex + by),
+        flowEnd: end => stepTo(end === 'first' ? 0 : stops.length - 1),
+        play: togglePlay,
+        replay,
+        enter: () => {
+          // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
+          const id = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('.react-flow__node-box')?.dataset.id ?? selectedBox
+          if (id === undefined) return false
+          if (canOpen(id)) zoomInto(id)
+          else show({ kind: 'object', id })
+          return true
+        },
+        search: () => setSearching(true),
+        fit: () => fitNow.current?.({ ...fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0), duration: 300 }),
+        toggleTab,
+        togglePerf: () => toggleTab('performance'),
+        toggleFailures: () => toggleTab('failures'),
+        toggleEdit,
+        add: () => show({ kind: 'add' }),
+        remove,
+        selectAll: () => show(sideFor(graph.members)),
       }
-      else if (perfOpen && e.key === 'ArrowRight') stepLevel(stepFrom(here[activeDial], 1))
-      else if (perfOpen && e.key === 'ArrowLeft') stepLevel(stepFrom(here[activeDial], -1))
-      else if (perfOpen && e.key === 'Home') stepLevel(0)
-      else if (perfOpen && loadTest && e.key === 'End') stepLevel(multi ? dialTop(dials[activeDial]) : top(loadTest))
-      else if (perfOpen && key === 'p' && plain && !e.repeat) toggleRamp()
-      // In edit mode the arrow keys nudge a picked shape, so the list is stepped with them only outside it.
-      else if (failuresOpen && !editing && analysis && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
-        selectMode(neighbour([...rows.here, ...rows.elsewhere].map(r => r.id), mode ? modeId : undefined, e.key === 'ArrowRight' ? 1 : -1))
-      }
-      else if (flow && e.key === 'ArrowRight') stepTo(stopIndex + 1)
-      else if (flow && e.key === 'ArrowLeft') stepTo(stopIndex - 1)
-      else if (flow && e.key === 'Home') stepTo(0)
-      else if (flow && e.key === 'End') stepTo(stops.length - 1)
-      else if (flow && key === 'p' && plain && !e.repeat) togglePlay()
-      else if (flow && key === 'r' && plain && !e.repeat) setReplays(n => n + 1)
-      else if (e.key === 'Enter' && !recording && !takesEnter(e.target as Element | null)) {
-        // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
-        const id = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('.react-flow__node-box')?.dataset.id ?? selectedBox
-        if (id === undefined) return
-        if (canOpen(id)) zoomInto(id)
-        else show({ kind: 'object', id })
-      }
-      // ? before the slash key's fallback: some layouts type ? on that key without Shift.
-      else if (e.key === '?') setShortcuts(open => !open)
-      else if ((key === 'k' && (e.ctrlKey || e.metaKey)) || e.key === '/' || (e.code === 'Slash' && !e.shiftKey)) setSearching(true)
-      else if (key === 'f' && plain) fitNow.current?.({ ...fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0), duration: 300 })
-      else if (key === 'l' && plain && !e.repeat && showFlows) toggleTab('flows')
-      else if (key === 'o' && plain && !e.repeat) toggleTab('explorer')
-      else if (key === 'y' && plain && !e.repeat && showYaml) toggleTab('yaml')
-      else if (key === 't' && plain && !e.repeat && canPerf) toggleTab('performance')
-      else if (key === 'm' && plain && !e.repeat) toggleTab('failures')
-      else if (key === 'e' && plain && !e.repeat && !readOnly) toggleEdit()
-      else if (editing && key === 'n' && plain && !recording) show({ kind: 'add' })
-      else if (editing && e.key === 'Delete') remove()
-      else if (editing && control && key === 'a' && !recording) show(sideFor(graph.members))
-      else if (editing && control && ((key === 'z' && e.shiftKey) || key === 'y')) void bringBack()
-      else if (editing && control && key === 'z') void takeBack()
-      // Z zooms out, always: Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
-      else if ((e.key === 'Backspace' || (key === 'z' && plain)) && view !== ROOT && !recording) up()
-      else return
-      e.preventDefault()
+      if (dispatch(contextOf(e, inNavigator, state, act))) e.preventDefault()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -917,15 +674,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   /** What the canvas can give one panel: all of it but a strip to look at, and what the other panel takes. */
   const spare = (other: number) => (canvas.current?.clientWidth ?? Infinity) - 160 - other
   const navTabs = <NavTabs tab={nav ?? 'explorer'} showFlows={showFlows} showYaml={showYaml} onPick={setTab} />
-  // Putting a version back from the YAML tab: the notice says which, and a shape dragged earlier shows where the file says.
-  const restoreVersion = async (id: string, seen: Record<string, string | null>, label: string) => {
-    justMoved.current = false
-    setNotice(undefined)
-    const message = await restore(id, seen, label)
-    setNotice(message ?? `${label}.`)
-    setMoved(new Map())
-    return message
-  }
   const clearHistory = async () => {
     await historyApi?.clear()
     await yamlStore?.refresh()
@@ -937,7 +685,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {chain(model, view).reverse().map((id, i) => (
             <Fragment key={id}>
               {i > 0 && <ChevronRight size={14} />}
-              <button disabled={id === view} onClick={() => zoomOut(id)}>{i === 0 && <Home size={16} />}{nameOf(model, id)}</button>
+              <button disabled={id === view} onClick={() => zoom.zoomOut(id)}>{i === 0 && <Home size={16} />}{nameOf(model, id)}</button>
             </Fragment>
           ))}
         </nav>
@@ -948,7 +696,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         {editing && (
           <button title="Forget where shapes here were dragged, and lay this view out again" onClick={() => void run(m => forgetLayout(m, view)).then(saved => {
             if (!saved) return
-            setMoved(new Map())
+            clearMoved()
             setTidied(n => n + 1)
           })}>
             <Grid size={16} />Tidy
@@ -994,12 +742,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               deleteKeyCode={null}
               selectionKeyCode={editing && !recording ? 'Shift' : null} // Shift and drag on the empty canvas draws a box round shapes to pick them
               onSelectionStart={() => {
-                banding.current = true
-                justMoved.current = false
+                session.startBanding()
                 cancelOpen()
               }}
               onSelectionEnd={() => {
-                banding.current = false
+                session.endBanding()
               }}
               onNodesChange={onNodesChange}
               isValidConnection={c => placeEnds(model, view, c.source, c.target) !== null} // only lines this view can show
@@ -1007,7 +754,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 .then(saved => saved && show({ kind: 'line', from: c.source, to: c.target }))}
               onNodeClick={(e, node) => {
                 if (node.type !== 'box') return // the frame takes no pointer events, this is a guard
-                justMoved.current = false
+                didSomethingElse()
                 const waiting = openingBox.current
                 cancelOpen()
                 if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
@@ -1033,7 +780,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 fitNow.current = options => void instance.fitView(options)
               }}
               onEdgeClick={(_, e) => {
-                justMoved.current = false
+                didSomethingElse()
                 if (recording || isStepLine(e.id)) return
                 if (selectedLine === e.id) closeDetails() // its panel is already open: a second click closes it
                 else show({ kind: 'line', from: e.source, to: e.target })
@@ -1041,7 +788,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               onEdgeMouseEnter={(_, e) => setHovered(e.id)}
               onEdgeMouseLeave={() => setHovered(undefined)}
               onPaneClick={() => {
-                justMoved.current = false
+                didSomethingElse()
                 cancelOpen()
                 setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
               }}
@@ -1100,12 +847,21 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runKey} positions={here} active={activeDial} lines={drawnLines} ramping={ramping} still={still} states={marksHere}
                 selection={side?.kind === 'object' || side?.kind === 'line' ? side : undefined}
                 onRun={id => {
-                  setRamping(false)
-                  setRunId(id)
-                  setPositions(startPositions(id))
-                  setActive(0)
+                  perfRun.stopRamp()
+                  perfRun.pick(id)
                 }}
-                onActive={setActive} onSlide={(dial, to) => slide(to, dial)} onJump={jumpTo} onPlace={placeAll} onRamp={toggleRamp} onCreate={live ? createRun : undefined} />
+                onActive={perfRun.setActive} onSlide={(dial, to) => perfRun.slide(to, dial)} onJump={perfRun.jumpTo} onPlace={perfRun.placeAll} onRamp={perfRun.toggleRamp} onCreate={live ? createRun : undefined} />
+            </NavPanel>
+          )}
+          {nav === 'flows' && (
+            <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
+              <FlowsTab model={model} view={view} editing={editing} current={recording?.id || (flow ? playing?.flow : undefined)} onOpen={f => openFlow(f.id)} />
+            </NavPanel>
+          )}
+          {nav === 'explorer' && (
+            <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
+              <Explorer model={model} problems={problems} editing={editing} expanded={expanded} onToggle={toggleOpen} here={view} selected={selectedBox}
+                playing={flow ? playing?.flow : undefined} onPick={pickRow} onOpen={openRow} />
             </NavPanel>
           )}
           {nav === 'failures' && (
@@ -1121,17 +877,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 onShowFlow={showFlow} onSeenInRun={seenInRun} onCopy={copyFailures} editing={editing} run={run} onCreate={live && !readOnly ? toggleEdit : undefined} />
             </NavPanel>
           )}
-          {nav === 'flows' && (
-            <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
-              <FlowsTab model={model} view={view} editing={editing} current={recording?.id || (flow ? playing?.flow : undefined)} onOpen={f => openFlow(f.id)} />
-            </NavPanel>
-          )}
-          {nav === 'explorer' && (
-            <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
-              <Explorer model={model} problems={problems} editing={editing} expanded={expanded} onToggle={toggleOpen} here={view} selected={selectedBox}
-                playing={flow ? playing?.flow : undefined} onPick={pickRow} onOpen={openRow} />
-            </NavPanel>
-          )}
           {nav === 'yaml' && yamlStore && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
               <Yaml store={yamlStore}editing={editing} broken={broken} flow={recording?.id || (flow ? playing?.flow : undefined) || undefined} selected={selectedBox}
@@ -1142,7 +887,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {detailsOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && stop && caption && progress && (
             <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
-              trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={() => setReplays(n => n + 1)} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
+              trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={replay} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
           )}
         </main>
         <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else setDetails(true) }} />

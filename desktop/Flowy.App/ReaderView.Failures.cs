@@ -39,8 +39,8 @@ internal sealed partial class ReaderView
     /// <summary>The shape or line picked on the canvas: the list shows what it carries.</summary>
     private FailurePart? PickedPart => _side switch
     {
-        { Kind: SideKind.Object, Id: { } id } => new FailurePart.Box(id),
-        { Kind: SideKind.Line, From: { } from, To: { } to } => new FailurePart.Line(from, to),
+        Side.Box box => new FailurePart.Box(box.Id),
+        Side.Line line => new FailurePart.Line(line.From, line.To),
         _ => null,
     };
 
@@ -139,11 +139,10 @@ internal sealed partial class ReaderView
         if (_tab == PanelTab.Failures) _tab = null;
         _side = null;
         GoTo(Failures.HomeView(folder.Model, mode));
-        _ramping = false;
-        _runId = name;
+        _perf.StopRamp();
+        _perf.SetRun(name);
         OpenPerf();
-        _pos = _posNow = PerfView.ClampPos(run, at);
-        ApplyLoad();
+        _perf.JumpTo(at);
     }
 
     /// <summary>Copies the analysis on show as a table (Markdown, to paste into a README or a PR) or as CSV (for a spreadsheet), and says so.</summary>

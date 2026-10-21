@@ -15,12 +15,15 @@ internal sealed class Shell
 {
     private readonly Dictionary<string, MainWindow> _windows = [];
     private readonly UserStateStore? _store;
+    private readonly LaunchOptions? _launch;
     private UserState _state;
 
     /// <param name="store">Where to remember things between runs; null remembers nothing (a screenshot run).</param>
-    public Shell(UserStateStore? store)
+    /// <param name="launch">What the command line asked for, for the windows this opens.</param>
+    public Shell(UserStateStore? store, LaunchOptions? launch = null)
     {
         _store = store;
+        _launch = launch;
         _state = store?.Load() ?? UserState.Default;
     }
 
@@ -92,7 +95,7 @@ internal sealed class Shell
             return existing;
         }
         // A window that has no folder yet (the first one, before a folder was chosen) takes it.
-        var window = EmptyWindow() ?? new MainWindow(this);
+        var window = EmptyWindow() ?? new MainWindow(this, _launch);
         window.Open(dir, options);
         _windows[key] = window;
         window.Closed += (_, _) =>
@@ -133,7 +136,7 @@ internal sealed class Shell
             Show(dir, options);
             return;
         }
-        var window = EmptyWindow() ?? new MainWindow(this);
+        var window = EmptyWindow() ?? new MainWindow(this, _launch);
         window.Show();
         if (options?.Shot is not null) await window.ApplyAndShootAsync(options); // a picture of the welcome, not a dialog nobody can answer
         else await ChooseAsync(window);

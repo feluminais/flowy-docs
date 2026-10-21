@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace Flowy.Core;
 
 /// <summary>
@@ -12,36 +10,16 @@ public sealed record Folder(Model Model, IReadOnlyList<Problem> Problems, IdMap<
 /// <summary>Reads a flowy/ folder. A port of loadDir and loadState in src/node/files.ts, without the parts that write.</summary>
 public static class FolderLoader
 {
-    // Strict: a file that isn't UTF-8 must fail to load, not show replacement characters. GetString keeps a BOM, which Parse strips.
-    private static readonly UTF8Encoding Utf8 = new(false, true);
-
-    /// <summary>The file's text, or null when it doesn't exist.</summary>
+    /// <summary>The file's text, or null when it doesn't exist. A folder where the file should be is a <see cref="ParseError"/>.</summary>
     private static string? ReadText(string dir, string rel)
     {
-        byte[] bytes;
         try
         {
-            // Shared with an editor that is saving it, which is what File.ReadAllBytes would refuse.
-            using var stream = new FileStream(Path.Combine(dir, rel), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            using var copy = new MemoryStream();
-            stream.CopyTo(copy);
-            bytes = copy.ToArray();
-        }
-        catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
-        {
-            return null;
+            return FileText.Read(dir, rel);
         }
         catch (UnauthorizedAccessException) when (Directory.Exists(Path.Combine(dir, rel)))
         {
             throw new ParseError(rel, "is a folder, not a file.");
-        }
-        try
-        {
-            return Utf8.GetString(bytes);
-        }
-        catch (DecoderFallbackException)
-        {
-            throw new ParseError(rel, "is not UTF-8 text. Save it as UTF-8 and try again.");
         }
     }
 
@@ -65,40 +43,32 @@ public static class FolderLoader
     /// <summary>Reads the whole folder. Throws <see cref="ParseError"/> for a file that can't be read.</summary>
     public static Folder Load(string dir)
     {
-        var modelText = ReadText(dir, "model.yaml");
-        var layoutText = ReadText(dir, "layout.yaml");
+        var modelText = ReadText(dir, FolderLayout.ModelFile);
+        var layoutText = ReadText(dir, FolderLayout.LayoutFile);
         var parsed = modelText is null ? null : ModelFiles.ParseModel(modelText);
         var layout = layoutText is null ? [] : ModelFiles.ParseLayout(layoutText);
 
         var flows = new IdMap<Flow>();
         var ignored = new List<string>();
-        var flowsDir = Path.Combine(dir, "flows");
+        var flowsDir = Path.Combine(dir, FolderLayout.FlowsDir);
         if (Directory.Exists(flowsDir))
         {
             var names = Directory.EnumerateFiles(flowsDir).Select(Path.GetFileName).OfType<string>().ToList();
             names.Sort(StringComparer.Ordinal);
-            foreach (var name in names.Where(n => n.EndsWith(".yaml", StringComparison.Ordinal)))
+            foreach (var name in names.Where(FolderLayout.IsRead))
             {
-                var id = name[..^".yaml".Length];
-                var text = ReadText(dir, $"flows/{name}");
+                var id = FolderLayout.IdOfName(name);
+                var text = ReadText(dir, FolderLayout.FlowFile(id));
                 if (text is not null) flows.Add(id, ModelFiles.ParseFlow(id, text));
             }
-            ignored.AddRange(names.Where(n => n.EndsWith(".yml", StringComparison.Ordinal)).Select(n => $"flows/{n}"));
+            ignored.AddRange(names.Where(FolderLayout.IsIgnored).Select(n => $"{FolderLayout.FlowsDir}/{n}"));
         }
 
         var (analyses, unread) = LoadFailures(dir);
-        var model = new Model
-        {
-            Objects = parsed?.Objects ?? new IdMap<FlowyObject>(),
-            Connections = parsed?.Connections ?? [],
-            Meta = parsed?.Meta ?? new Dictionary<string, object?>(),
-            Flows = flows,
-            Failures = analyses,
-            Layout = layout,
-        };
+        var model = Model.FromParts(parsed, flows, layout, analyses);
         // A flow file that isn't read is no part of the model, so the checks can't see it.
         var skipped = ignored.Select(file => new Problem(file, null,
-            $"Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to {file[..^".yml".Length]}.yaml."));
+            $"Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to {FolderLayout.RenamedFromIgnored(file)}."));
         var (runs, runProblems) = LoadRuns(dir, model);
         // A mode's run link needs the runs, which are not in the model, so it is checked here. The rest of an analysis is checked in Checks.Run.
         var failureProblems = unread.Concat(model.Failures.SelectMany(kv => Failures.RunLinkProblems(kv.Key, kv.Value, runs))).ToList();
@@ -113,7 +83,7 @@ public static class FolderLoader
     {
         var analyses = new IdMap<FailureAnalysis>();
         var problems = new List<Problem>();
-        var failures = Path.Combine(dir, "failures");
+        var failures = Path.Combine(dir, FolderLayout.FailuresDir);
         if (!Directory.Exists(failures)) return (analyses, problems);
         List<string> names;
         try
@@ -122,20 +92,20 @@ public static class FolderLoader
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            problems.Add(new Problem("failures", null, $"can't be read: {e.Message}"));
+            problems.Add(new Problem(FolderLayout.FailuresDir, null, $"can't be read: {e.Message}"));
             return (analyses, problems);
         }
         names.Sort(StringComparer.Ordinal);
         foreach (var name in names)
         {
-            var file = $"failures/{name}";
-            if (name.EndsWith(".yml", StringComparison.Ordinal))
+            var file = $"{FolderLayout.FailuresDir}/{name}";
+            if (FolderLayout.IsIgnored(name))
             {
-                problems.Add(new Problem(file, null, $"Flowy reads analysis files that end in .yaml, so this one is ignored. Rename it to {name[..^".yml".Length]}.yaml."));
+                problems.Add(new Problem(file, null, $"Flowy reads analysis files that end in .yaml, so this one is ignored. Rename it to {FolderLayout.RenamedFromIgnored(name)}."));
                 continue;
             }
-            if (!name.EndsWith(".yaml", StringComparison.Ordinal)) continue;
-            var id = name[..^".yaml".Length];
+            if (!FolderLayout.IsRead(name)) continue;
+            var id = FolderLayout.IdOfName(name);
             if (!Names.IsValidId(id))
             {
                 problems.Add(new Problem(file, null, $"\"{id}\" is not a valid analysis id: the file name must {Names.IdRule}"));
@@ -165,7 +135,7 @@ public static class FolderLoader
     {
         var runs = new IdMap<LoadRun>();
         var problems = new List<Problem>();
-        var perf = Path.Combine(dir, "perf");
+        var perf = Path.Combine(dir, FolderLayout.PerfDir);
         if (!Directory.Exists(perf)) return (runs, problems);
         List<string> names;
         try
@@ -174,20 +144,20 @@ public static class FolderLoader
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            problems.Add(new Problem("perf", null, $"can't be read: {e.Message}"));
+            problems.Add(new Problem(FolderLayout.PerfDir, null, $"can't be read: {e.Message}"));
             return (runs, problems);
         }
         names.Sort(StringComparer.Ordinal);
         foreach (var name in names)
         {
-            var file = $"perf/{name}";
-            if (name.EndsWith(".yml", StringComparison.Ordinal))
+            var file = $"{FolderLayout.PerfDir}/{name}";
+            if (FolderLayout.IsIgnored(name))
             {
-                problems.Add(new Problem(file, null, $"Flowy reads run files that end in .yaml, so this one is ignored. Rename it to {name[..^".yml".Length]}.yaml."));
+                problems.Add(new Problem(file, null, $"Flowy reads run files that end in .yaml, so this one is ignored. Rename it to {FolderLayout.RenamedFromIgnored(name)}."));
                 continue;
             }
-            if (!name.EndsWith(".yaml", StringComparison.Ordinal)) continue;
-            var id = name[..^".yaml".Length];
+            if (!FolderLayout.IsRead(name)) continue;
+            var id = FolderLayout.IdOfName(name);
             if (!Names.IsValidId(id))
             {
                 problems.Add(new Problem(file, null, $"\"{id}\" is not a valid run id: the file name must {Names.IdRule}"));

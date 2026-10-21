@@ -126,9 +126,8 @@ public static class Outlines
         foreach (var p in problems)
         {
             if (p.Id is { } id && model.GetObject(id) is not null) Mark(id);
-            if (p.File.StartsWith("flows/", StringComparison.Ordinal) && p.File.EndsWith(".yaml", StringComparison.Ordinal) && p.File.Length > "flows/.yaml".Length)
+            if (FolderLayout.FlowIdOf(p.File) is { } flow)
             {
-                var flow = p.File["flows/".Length..^".yaml".Length];
                 if (model.Flows.Contains(flow))
                 {
                     flows.Add(flow);

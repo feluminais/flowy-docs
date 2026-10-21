@@ -173,7 +173,7 @@ public static class EditOps
     private static OrderedDictionary<string, object?> ExistingFlow(EditDoc doc, string id)
     {
         if (!doc.Flows.TryGetValue(id, out var flow)) throw new OpError($"unknown flow \"{id}\"");
-        if (!Names.IsValidId(id)) throw new OpError($"flows/{id}.yaml has an invalid file name, so it can't be changed here. Rename or delete it by hand.");
+        if (!Names.IsValidId(id)) throw new OpError($"{FolderLayout.FlowFile(id)} has an invalid file name, so it can't be changed here. Rename or delete it by hand.");
         return Entry(flow);
     }
 
@@ -213,7 +213,7 @@ public static class EditOps
         if (!Names.IsValidId(id)) throw new OpError($"\"{id}\" is not a valid flow id: {Names.IdRule}");
         // Flow ids are file names, and Windows and macOS don't tell Visit.yaml from visit.yaml.
         string? clash = doc.Flows.Keys.Cast<string?>().FirstOrDefault(other => other != id && string.Equals(other, id, StringComparison.OrdinalIgnoreCase));
-        if (clash is not null) throw new OpError($"flows/{clash}.yaml already exists and differs only in case. Rename or delete that file by hand.");
+        if (clash is not null) throw new OpError($"{FolderLayout.FlowFile(clash)} already exists and differs only in case. Rename or delete that file by hand.");
         var d = doc.Clone();
         var copies = new List<object?>();
         foreach (var s in steps)

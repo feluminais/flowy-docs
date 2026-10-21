@@ -26,10 +26,22 @@ internal sealed partial class ReaderView : Grid
     private const double LeaveMilliseconds = 140;
     private const double ArriveMilliseconds = 230;
 
-    private enum SideKind { Object, Objects, Line, Add, Flow }
+    /// <summary>What is picked, and shows in Details. <c>Boxes</c> is several boxes picked in edit mode, to move or delete together; <c>Flow</c> is a flow being recorded or edited.</summary>
+    private abstract record Side
+    {
+        public sealed record Box(string Id) : Side;
 
-    /// <summary><c>Objects</c> is several boxes picked in edit mode, to move or delete together: their ids are in <c>Ids</c>.</summary>
-    private sealed record Side(SideKind Kind, string? Id = null, string? From = null, string? To = null, string? FlowName = null, IReadOnlyList<string>? Ids = null);
+        public sealed record Boxes(IReadOnlyList<string> Ids) : Side;
+
+        public sealed record Line(string From, string To) : Side;
+
+        public sealed record Add : Side;
+
+        public sealed record Flow(Recording Rec) : Side;
+    }
+
+    /// <summary>The panel opened on the right besides what a pick opens: Details from its rail (the level you are in), or Performance. One field, so the two never stand together.</summary>
+    private enum RightPanel { Closed, Details, Performance }
 
     private readonly CanvasView _canvas = new();
     private readonly Border _motionHost;
@@ -62,16 +74,12 @@ internal sealed partial class ReaderView : Grid
     private Side? _side; // what is picked: it shows in Details
     private PanelTab? _tab; // the navigator's tab (Flows or Explorer), chosen on its rail or its strip; null: the navigator is closed
     private bool _navUsed; // the navigator is where the reader last clicked or opened something: Escape closes it then, and leaves it alone once they work in the diagram
-    private bool _details; // Details was opened from its rail, to show the level you are in; a pick opens it too
+    private RightPanel _right; // Details is also open while something is picked
     private double _navWidth = Camera.Nav; // dragged by the sashes on the panels' edges
     private double _detailsWidth = Camera.Panel;
     private readonly HashSet<string> _expanded = [Names.Root]; // the shapes whose children show in the Explorer; the project's own row starts open
     private (Model Model, bool Editing, OutlineTotals Totals)? _totals;
 
-    /// <summary>The flow playing, the stop it is at (see <see cref="Structure.Stops"/>), and the places it was opened from.</summary>
-    private sealed record Playhead(string Flow, int Step, IReadOnlyList<FlowPlace> Trail);
-
-    private Playhead? _playing;
     private readonly System.Runtime.CompilerServices.ConditionalWeakTable<Flow, IReadOnlyList<Stop>> _stops = new(); // a flow's stops, made once for as long as that flow is the one in the model
     private string? _hover;
     private string? _ownLines; // this reader's own pick of line style
@@ -137,16 +145,15 @@ internal sealed partial class ReaderView : Grid
         _canvas.EdgeClicked += id =>
         {
             if (_folder is null) return;
-            _undoMove = false;
-            _opening?.Stop();
+            Interacted();
             var edge = Scene()?.Edges.FirstOrDefault(e => e.Id == id);
             if (edge is null) return;
-            if (_side is { Kind: SideKind.Line } line && line.From == edge.From && line.To == edge.To)
+            if (_side is Side.Line line && line.From == edge.From && line.To == edge.To)
             {
                 CloseDetails(); // its panel is already open: a second click closes it
                 return;
             }
-            _side = new Side(SideKind.Line, From: edge.From, To: edge.To);
+            _side = new Side.Line(edge.From, edge.To);
             Refresh();
         };
         _canvas.EdgeHovered += id => SetHover(id);
@@ -162,6 +169,9 @@ internal sealed partial class ReaderView : Grid
             if (PerfOpen) ClosePerf();
             else CloseDetails();
         };
+        _perf = new PerfSession(new PerfHooks(() => _folder?.Runs, snap => ApplyLoad(snap), () => _perfPanel.SnapSlider(),
+            (places, active) => _perfPanel.SetPlaces(places, active, false), frame => TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ => frame()), () => Still));
+        _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Refresh, (ms, then) => Anim.Run(this, ms, t => t, _ => InvalidateVisual(), then)));
         WirePerformance();
         WireFailures();
         _nav.Tabs.Picked += SetTab;
@@ -183,8 +193,8 @@ internal sealed partial class ReaderView : Grid
         _player.Back += () => StepTo(StopIndex() - 1);
         _player.Next += () => StepTo(StopIndex() + 1);
         _player.Stop += Stop;
-        _player.Auto += ToggleAuto;
-        _player.Replay += Replay;
+        _player.Auto += _playback.ToggleAuto;
+        _player.Replay += _playback.Replay;
         _player.OpenFlow += OpenLinked;
         _player.BackToFlow += GoBack;
 
@@ -303,19 +313,22 @@ internal sealed partial class ReaderView : Grid
         _folder = folder;
         WarmCode(folder);
         _session = new EditSession(dir);
+        _disk?.Dispose();
+        _disk = new FolderSession(dir);
+        _disk.Loaded += Reload;
+        _disk.Failed += SetBanner;
         _editMode = false;
         _navUsed = false;
         _view = Names.Root;
         _side = null;
-        _details = false;
-        _perf = false;
-        _ramping = false;
+        _right = RightPanel.Closed;
+        _perf.StopRamp();
         if (_tab == PanelTab.Failures) _tab = null; // another folder's analyses start from the top
         _analysisId = "";
         _modeId = null;
         _band = null;
         _left = false;
-        _playing = null;
+        _playback.Head = null;
         _hover = null;
         _codeBase = null;
         _repoRoot = FolderLoader.RepoRoot(dir);
@@ -353,9 +366,9 @@ internal sealed partial class ReaderView : Grid
     {
         _folder = folder;
         WarmCode(folder);
-        if (_side is { Kind: SideKind.Object, Id: { } id } && folder.Model.GetObject(id) is null) _side = null;
-        if (_side is { Kind: SideKind.Objects, Ids: { } picked }) _side = SideOf(picked.Where(p => folder.Model.GetObject(p) is not null).ToList()); // boxes that went are no longer picked
-        if (!PerfOpen || LoadTest is null) _ramping = false; // a ramp whose run is gone has nothing to run on, and its loop has already ended
+        if (_side is Side.Box box && folder.Model.GetObject(box.Id) is null) _side = null;
+        if (_side is Side.Boxes boxes) _side = SideOf(boxes.Ids.Where(p => folder.Model.GetObject(p) is not null).ToList()); // boxes that went are no longer picked
+        if (!PerfOpen || LoadTest is null) _perf.StopRamp(); // a ramp whose run is gone has nothing to run on, and its loop has already ended
         SetBanner(null);
         Refresh();
     }
@@ -437,10 +450,10 @@ internal sealed partial class ReaderView : Grid
     /// <summary>The view shown: after a reload the view's object may be gone or empty, and the nearest one that still exists stands in.</summary>
     private string CurrentView() => _folder is null ? Names.Root : Views.Chain(_folder.Model, _view).FirstOrDefault(v => v == Names.Root || CanOpen(v)) ?? Names.Root;
 
-    private string? SelectedBox => _side is { Kind: SideKind.Object } s ? s.Id : null;
+    private string? SelectedBox => _side is Side.Box s ? s.Id : null;
 
     /// <summary>The boxes drawn as selected: the open box, or the two picked for the step being recorded.</summary>
-    private IEnumerable<string> SelectedBoxes => Recording is { } r ? new[] { r.From, r.To }.OfType<string>() : _side is { Kind: SideKind.Objects, Ids: { } many } ? many : SelectedBox is { } b ? [b] : [];
+    private IEnumerable<string> SelectedBoxes => Recording is { } r ? new[] { r.From, r.To }.OfType<string>() : _side is Side.Boxes many ? many.Ids : SelectedBox is { } b ? [b] : [];
 
     private Scene? Scene() => _canvas.Scene;
 
@@ -451,12 +464,12 @@ internal sealed partial class ReaderView : Grid
         return _folder.Model.Flows.Where(kv => kv.Value.View == view && (kv.Value.Steps.Count > 0 || Editing)).Select(kv => (kv.Key, kv.Value)).ToList();
     }
 
-    private (string Id, Flow Flow)? PlayingFlow() => Editing || PerfOpen || FailuresOpen ? null : _playing is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
+    private (string Id, Flow Flow)? PlayingFlow() => Editing || PerfOpen || FailuresOpen ? null : _playback.Head is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
 
     /// <summary>What the player steps through: the stops of a flow. A flow with no groups has one for each step.</summary>
     private IReadOnlyList<Stop> StopsOf(Flow flow) => _stops.GetValue(flow, f => Structure.Stops(f));
 
-    private int StopIndex() => PlayingFlow() is { } f && _playing is { } p ? Math.Max(0, Math.Min(p.Step, StopsOf(f.Flow).Count - 1)) : 0;
+    private int StopIndex() => PlayingFlow() is { } f && _playback.Head is { } p ? Math.Max(0, Math.Min(p.Step, StopsOf(f.Flow).Count - 1)) : 0;
 
     // ---- drawing -----------------------------------------------------------------------------------------------
 
@@ -503,7 +516,7 @@ internal sealed partial class ReaderView : Grid
             shown = new Playing(f.Flow.Steps.Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList(), null, stops[index].Steps, Structure.OtherLaneSteps(stops, index), also.Count > 0 ? also : null);
         }
         else if (Recording is { } rec) shown = RecordingShown(model, view, rec);
-        var line = _side is { Kind: SideKind.Line } l ? SceneBuilder.LineId(l.From!, l.To!) : null;
+        var line = _side is Side.Line l ? SceneBuilder.LineId(l.From, l.To) : null;
         var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover));
         _canvas.SetScene(scene, LineStyle, SelectedBoxes);
         // Where shapes stand at this stop, folded from the flow's start and the steps up to it: nothing is stored, so stepping back needs no undo.
@@ -576,23 +589,23 @@ internal sealed partial class ReaderView : Grid
         }
         switch (_side)
         {
-            case { Kind: SideKind.Object, Id: { } id } when Editing:
+            case Side.Box { Id: var id } when Editing:
                 _panel.ShowObjectEditor(model, id, _folder!.Problems, RunAsync, OpenObject, SetHover, CloseSide);
                 break;
-            case { Kind: SideKind.Object, Id: { } id }:
+            case Side.Box { Id: var id }:
                 _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover, StateHere(id));
                 break;
-            case { Kind: SideKind.Line, From: { } from, To: { } to } when Editing:
+            case Side.Line { From: var from, To: var to } when Editing:
                 _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide);
                 break;
-            case { Kind: SideKind.Line, From: { } from, To: { } to }:
+            case Side.Line { From: var from, To: var to }:
                 _panel.ShowLine(model, view, from, to, _folder!.Problems);
                 break;
-            case { Kind: SideKind.Add } when Editing:
+            case Side.Add when Editing:
                 _panel.ShowAdd(model, view, RunAsync, OpenObject);
                 break;
-            case { Kind: SideKind.Flow } side when Editing:
-                _panel.ShowRecorder(model, view, new Recording(side.Id ?? "", side.FlowName ?? "", side.From, side.To), RunAsync,
+            case Side.Flow { Rec: var rec } when Editing:
+                _panel.ShowRecorder(model, view, rec, RunAsync,
                     r => SetRecording(r), name => Navigation.NewId(name, model.Flows.Keys, "flow"), CloseSide);
                 break;
             default:
@@ -607,7 +620,7 @@ internal sealed partial class ReaderView : Grid
     /// <summary>Details with nothing picked, while its rail button is pressed: the level you are inside, or the project's Overview at the top.</summary>
     private void ShowViewDetails(Model model, string view)
     {
-        if (!_details) _panel.Clear();
+        if (_right != RightPanel.Details) _panel.Clear();
         else if (view == Names.Root) _panel.ShowOverview(Totals());
         else if (Editing) _panel.ShowObjectEditor(model, view, _folder!.Problems, RunAsync, OpenObject, SetHover, CloseSide);
         else _panel.ShowObject(model, view, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover);
@@ -633,8 +646,8 @@ internal sealed partial class ReaderView : Grid
             return new PlayerStep(ends, step.Text ?? "", step.Description, n < caption.Lanes.Count ? caption.Lanes[n] : "", LinkOf(model, step), outcome);
         }).ToList();
         var moves = stop.Steps.Any(i => Animations.Read(f.Flow.Steps[i]) is not null && shown?.Ends[i] is not null);
-        (string Name, int Step)? trail = _playing is { Trail.Count: > 0 } here ? TrailBar(model, here.Trail[^1]) : null;
-        _player.Show(new PlayerView(string.IsNullOrEmpty(f.Flow.Name) ? f.Id : f.Flow.Name, index, stops.Count, stop.Kind, caption, Captions.ProgressOf(f.Flow, stops), _auto, moves, trail, steps, _canvas.StatesShown.Values.ToList()));
+        (string Name, int Step)? trail = _playback.Head is { Trail.Count: > 0 } here ? TrailBar(model, here.Trail[^1]) : null;
+        _player.Show(new PlayerView(string.IsNullOrEmpty(f.Flow.Name) ? f.Id : f.Flow.Name, index, stops.Count, stop.Kind, caption, Captions.ProgressOf(f.Flow, stops), _playback.Auto, moves, trail, steps, _canvas.StatesShown.Values.ToList()));
         _canvas.SetMarks(stop.Steps
             .Select((i, n) => (Placed: shown?.Ends[i], Text: n < caption.Marks.Count ? caption.Marks[n] : ""))
             .Where(x => x.Placed is not null && x.Text != "" && stop.Kind is not null)
@@ -672,17 +685,16 @@ internal sealed partial class ReaderView : Grid
     public void GoTo(string view)
     {
         if (_folder is null) return;
-        _undoMove = false;
-        _opening?.Stop();
+        Interacted();
         _motion?.Dispose();
         _moving = false;
         _canvas.RenderTransform = null;
         _canvas.Opacity = 1;
         _view = view;
-        _playing = null;
-        StopAuto();
+        _playback.Head = null;
+        _playback.StopAuto();
         _hover = null;
-        if (_side is { Kind: not SideKind.Object }) _side = null; // lines belong to one view
+        if (_side is not (null or Side.Box)) _side = null; // lines belong to one view
         Refresh();
     }
 
@@ -695,8 +707,7 @@ internal sealed partial class ReaderView : Grid
     /// <summary>Opens a box from where it sits on screen: zoom in when it's inside this view, slide across when it sits beside it.</summary>
     private void ZoomInto(string id)
     {
-        _opening?.Stop();
-        _undoMove = false;
+        Interacted();
         _side = null;
         var rect = _canvas.RectOf(id);
         var origin = rect is { } r ? _canvas.Viewport.ToScreen(r.Center) : new Pt(_canvas.Bounds.Width / 2, _canvas.Bounds.Height / 2);
@@ -756,13 +767,26 @@ internal sealed partial class ReaderView : Grid
 
     // ---- selecting ---------------------------------------------------------------------------------------------
 
-    private void PaneClicked()
+    /// <summary>The reader did something: a pending click on a box that waits out the double-click is dropped, and the drag just made can no longer be taken back with Esc.</summary>
+    private void Interacted()
+    {
+        StopOpening();
+        DidSomethingElse();
+    }
+
+    /// <summary>Drops the click on a box that was waiting out the double-click window.</summary>
+    private void StopOpening()
     {
         _opening?.Stop();
-        _undoMove = false;
+        _openingBox = null;
+    }
+
+    private void PaneClicked()
+    {
+        Interacted();
         if (Recording is { } rec)
         {
-            _side = _side! with { From = null, To = null };
+            _side = new Side.Flow(rec with { From = null, To = null });
             Refresh();
             return;
         }
@@ -774,29 +798,27 @@ internal sealed partial class ReaderView : Grid
     /// <summary>Opens Details on the level you are inside, as its button on the rail does: what a click on the outline round that level does.</summary>
     private void ShowLevel()
     {
-        _opening?.Stop();
-        _undoMove = false;
-        if (_details && _side is null)
+        Interacted();
+        if (_right == RightPanel.Details && _side is null)
         {
             CloseDetails(); // its Details are already showing: a second click closes them
             return;
         }
         _side = null;
-        _details = true;
+        _right = RightPanel.Details;
         Refresh();
         Focus();
     }
 
     private void BoxClicked(string id)
     {
-        _opening?.Stop();
-        _undoMove = false;
+        Interacted();
         if (Recording is { } rec)
         {
             PickBox(rec, id);
             return;
         }
-        if (_side is { Kind: SideKind.Object, Id: { } open } && open == id)
+        if (_side is Side.Box { Id: var open } && open == id)
         {
             CloseDetails(); // its panel is already open: a second click closes it
             return;
@@ -811,8 +833,7 @@ internal sealed partial class ReaderView : Grid
         _openingBox = id;
         _opening = new DispatcherTimer(TimeSpan.FromMilliseconds(DoubleClickMilliseconds), DispatcherPriority.Normal, (_, _) =>
         {
-            _opening?.Stop();
-            _openingBox = null;
+            StopOpening();
             OpenObject(id);
         });
         _opening.Start();
@@ -822,8 +843,8 @@ internal sealed partial class ReaderView : Grid
     public void OpenObject(string id)
     {
         if (_folder?.Model.GetObject(id) is null) return;
-        _undoMove = false;
-        _side = new Side(SideKind.Object, Id: id);
+        DidSomethingElse();
+        _side = new Side.Box(id);
         Refresh();
         _canvas.Reveal(id, _detailsWidth, ShownTab is not null ? _navWidth : 0);
     }
@@ -838,8 +859,8 @@ internal sealed partial class ReaderView : Grid
     /// <summary>Shows the panel of a line of the current view.</summary>
     public void OpenLine(string from, string to)
     {
-        _undoMove = false;
-        _side = new Side(SideKind.Line, From: from, To: to);
+        DidSomethingElse();
+        _side = new Side.Line(from, to);
         Refresh();
     }
 
@@ -848,52 +869,52 @@ internal sealed partial class ReaderView : Grid
     public void Play(string flow, int step = 0)
     {
         if (Editing) return;
-        StopAuto();
+        _playback.StopAuto();
         // A step number is the file's; the player stops where that step is.
         var at = _folder?.Model.Flows.TryGetValue(flow, out var found) == true ? Structure.StopIndexOf(StopsOf(found), step) : step;
-        _playing = new Playhead(flow, at, []);
+        _playback.Head = new Playhead(flow, at, []);
         Refresh();
     }
 
     private void StepTo(int index)
     {
-        if (PlayingFlow() is not { } f || _playing is not { } p) return;
-        StopAuto();
-        _playing = p with { Step = Math.Max(0, Math.Min(index, StopsOf(f.Flow).Count - 1)) };
+        if (PlayingFlow() is not { } f || _playback.Head is not { } p) return;
+        _playback.StopAuto();
+        _playback.Head = p with { Step = Math.Max(0, Math.Min(index, StopsOf(f.Flow).Count - 1)) };
         Refresh();
     }
 
     private void Stop()
     {
-        _playing = null;
-        StopAuto();
+        _playback.Head = null;
+        _playback.StopAuto();
         Refresh();
     }
 
     /// <summary>A step's story continues in another flow: opens it (on its own view), leaving the place to come back to.</summary>
     private void OpenLinked(string id)
     {
-        if (_folder is not { } folder || PlayingFlow() is not { } here || _playing is not { } p) return;
+        if (_folder is not { } folder || PlayingFlow() is not { } here || _playback.Head is not { } p) return;
         if (!folder.Model.Flows.TryGetValue(id, out var target) || target.Steps.Count == 0 || !Views.IsView(folder.Model, target.View)) return; // a flow whose view can't open can't play
-        StopAuto();
+        _playback.StopAuto();
         var trail = Trails.Open(p.Trail, new FlowPlace(here.Id, StopIndex()));
         if (target.View != CurrentView()) GoTo(target.View!); // GoTo clears what plays
-        _playing = new Playhead(id, 0, trail);
+        _playback.Head = new Playhead(id, 0, trail);
         Refresh();
     }
 
     /// <summary>Back to the flow this one was opened from, at the stop the reader left.</summary>
     private void GoBack()
     {
-        if (_folder is not { } folder || _playing is not { } p || Trails.Close(p.Trail) is not { } closed) return;
+        if (_folder is not { } folder || _playback.Head is not { } p || Trails.Close(p.Trail) is not { } closed) return;
         if (!folder.Model.Flows.TryGetValue(closed.Back.Flow, out var parent) || !Views.IsView(folder.Model, parent.View))
         {
             Stop(); // the flow it came from is gone, or can't play any more
             return;
         }
-        StopAuto();
+        _playback.StopAuto();
         if (parent.View != CurrentView()) GoTo(parent.View!);
-        _playing = new Playhead(closed.Back.Flow, closed.Back.Step, closed.Trail);
+        _playback.Head = new Playhead(closed.Back.Flow, closed.Back.Step, closed.Trail);
         Refresh();
     }
 
@@ -950,7 +971,7 @@ internal sealed partial class ReaderView : Grid
         if (spot.Object is { } obj) OpenObject(obj);
         else if (spot.Line is { } line)
         {
-            _side = new Side(SideKind.Line, From: line.From, To: line.To);
+            _side = new Side.Line(line.From, line.To);
             Refresh();
         }
         else if (spot.Failure is { } failure)
@@ -1015,7 +1036,7 @@ internal sealed partial class ReaderView : Grid
         else if (e.Key == Key.Escape && _canvas.CancelGesture()) { }
         else if (UndoMoveKey(e)) { }
         else if (e.Key == Key.Escape && ResetPick()) { }
-        else if (e.Key == Key.Escape && _shortcuts is null && _side is { Kind: SideKind.Objects }) ClearPicked();
+        else if (e.Key == Key.Escape && _shortcuts is null && _side is Side.Boxes) ClearPicked();
         else if (e.Key == Key.Escape)
         {
             var navigator = ShownTab is not null && (_navUsed || inNavigator);
@@ -1033,18 +1054,18 @@ internal sealed partial class ReaderView : Grid
             }
         }
         else if (EditKey(e)) { }
-        else if (PerfOpen && e.Key == Key.Right) StepLevel(PerfView.StepFrom(ActivePos, 1));
-        else if (PerfOpen && e.Key == Key.Left) StepLevel(PerfView.StepFrom(ActivePos, -1));
-        else if (PerfOpen && e.Key == Key.Home) StepLevel(0);
-        else if (PerfOpen && LoadTest is { } top && e.Key == Key.End) StepLevel(ActiveTop(top));
-        else if (PerfOpen && e.PhysicalKey == PhysicalKey.P && plain) ToggleRamp();
+        else if (PerfOpen && e.Key == Key.Right) _perf.StepLevel(PerfView.StepFrom(_perf.ActivePos, 1));
+        else if (PerfOpen && e.Key == Key.Left) _perf.StepLevel(PerfView.StepFrom(_perf.ActivePos, -1));
+        else if (PerfOpen && e.Key == Key.Home) _perf.StepLevel(0);
+        else if (PerfOpen && LoadTest is { } top && e.Key == Key.End) _perf.StepLevel(_perf.ActiveTop(top));
+        else if (PerfOpen && e.PhysicalKey == PhysicalKey.P && plain) _perf.ToggleRamp();
         else if (FailuresOpen && e.Key is Key.Right or Key.Left && StepFailures(e.Key)) { }
         else if (flow is not null && e.Key == Key.Right) StepTo(StopIndex() + 1);
         else if (flow is not null && e.Key == Key.Left) StepTo(StopIndex() - 1);
         else if (flow is not null && e.Key == Key.Home) StepTo(0);
         else if (flow is not null && e.Key == Key.End) StepTo(StopsOf(flow.Value.Flow).Count - 1);
-        else if (flow is not null && e.PhysicalKey == PhysicalKey.P && plain) ToggleAuto();
-        else if (flow is not null && e.PhysicalKey == PhysicalKey.R && plain) Replay();
+        else if (flow is not null && e.PhysicalKey == PhysicalKey.P && plain) _playback.ToggleAuto();
+        else if (flow is not null && e.PhysicalKey == PhysicalKey.R && plain) _playback.Replay();
         else if (e.Key == Key.Enter && Recording is null)
         {
             // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.

@@ -72,8 +72,7 @@ internal sealed class LatencyStrip : Control
 
     protected override Size MeasureOverride(Size available) => new(double.IsInfinity(available.Width) ? 320 : available.Width, (double.IsInfinity(available.Width) ? 320 : available.Width) * 120 / 320);
 
-    private IBrush Brush(string key) =>
-        this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
+    private IBrush Brush(string key) => AppTheme.Brush(this, key);
 
     private FormattedText Text(string text, IBrush brush) =>
         new(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default), 10, brush);
@@ -138,7 +137,7 @@ internal sealed class HeatSwatch : Border
 
     private void Fill()
     {
-        var dark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+        var dark = AppTheme.IsDark(this);
         var brush = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0.5, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0.5, RelativeUnit.Relative) };
         foreach (var strain in new[] { 0.0, 0.5, 1.0 }) brush.GradientStops.Add(new GradientStop(Color.Parse(PerfColors.Hex(strain, dark)), strain));
         Background = brush;
@@ -226,7 +225,7 @@ internal static class KeyHint
             // Keys that do the same thing are written with a space between: each is its own cap.
             foreach (var key in keys.Split(' '))
             {
-                var cap = new Border { Child = new TextBlock { Text = key, FontSize = 12, FontFamily = new FontFamily("Cascadia Mono, Consolas, Menlo, monospace") } };
+                var cap = new Border { Child = new TextBlock { Text = key, FontSize = 12, FontFamily = Fonts.Mono } };
                 cap.Classes.Add("kbd");
                 hint.Children.Add(cap);
             }
@@ -284,8 +283,7 @@ internal sealed class Sparkline : Control
         InvalidateVisual();
     }
 
-    private IBrush Brush(string key) =>
-        this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
+    private IBrush Brush(string key) => AppTheme.Brush(this, key);
 
     public override void Render(DrawingContext context)
     {
@@ -317,7 +315,7 @@ internal sealed class TickLabels : Control
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        var muted = this.TryFindResource("MutedBrush", ActualThemeVariant, out var found) && found is IBrush b ? b : Brushes.Gray;
+        var muted = AppTheme.Brush(this, "MutedBrush");
         foreach (var (fraction, label) in _ticks)
         {
             var text = new FormattedText(label, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default), 11, muted);
@@ -560,8 +558,7 @@ internal sealed class PerfPanel : StackPanel
         slider.Resources["SliderTrackFillPointerOver"] = Resource("LineBrush");
     }
 
-    private IBrush Resource(string key) =>
-        this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush b ? b : Brushes.Gray;
+    private IBrush Resource(string key) => AppTheme.Brush(this, key);
 
     private static string NameOf(Model model, string id) => Views.NameOf(model, id);
 
@@ -839,7 +836,7 @@ internal sealed class PerfPanel : StackPanel
         if (selection is { From: { } scaledFrom, To: { } scaledTo })
         {
             // Hidden until the line is scaled down to fit the screen; SetPos shows it.
-            var dark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+            var dark = AppTheme.IsDark(this);
             _scaledLine = (scaledFrom, scaledTo);
             _scaledRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, IsVisible = false, Children = { KeyRow.Scaled(along is null ? run.Source?.Color : Perf.OtherColor, dark), new TextBlock { Text = "Scaled down", Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center } } };
             Children.Add(_scaledRow);
@@ -859,7 +856,7 @@ internal sealed class PerfPanel : StackPanel
         var shape = $"{marks}|{source}|{string.Join(",", states)}";
         if (shape == _keyShape) return;
         _keyShape = shape;
-        var dark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+        var dark = AppTheme.IsDark(this);
         _keyRows.Children.Clear();
         _keyRows.Children.Add(KeyRow.Of(
             (new HeatSwatch(), "Busy"),
@@ -1063,7 +1060,7 @@ internal sealed class PerfPanel : StackPanel
         _active = Math.Min(Math.Max(0, active), dials.Items.Count - 1);
         _ramping = ramping;
         if (states is not null) _states = states;
-        var dark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+        var dark = AppTheme.IsDark(this);
         _syncing = true; // putting the thumbs where the dials stand is not the reader moving them
         for (var i = 0; i < _dialViews.Count && i < _places.Count; i++)
         {
@@ -1124,7 +1121,7 @@ internal sealed class PerfPanel : StackPanel
         var shape = $"{marks}|{string.Join(";", keyed.Sources.Select(s => $"{s.Id}/{s.Color}/{s.Scale}/{s.Bigger}"))}|{keyed.ScaledDown}|{keyed.Other}|{string.Join(",", states)}";
         if (shape == _keyShape) return;
         _keyShape = shape;
-        var dark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+        var dark = AppTheme.IsDark(this);
         var items = new List<(Control Swatch, string Label)?>
         {
             (new HeatSwatch(), "Busy"),

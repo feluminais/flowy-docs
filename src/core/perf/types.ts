@@ -4,7 +4,7 @@ import type { StateName } from '../states.ts'
  * Load-test runs. A run is a test summarised: for each load level that was tested, what each object and each
  * connection measured. Flowy replays the numbers and never predicts: between two tested levels it interpolates,
  * and outside the tested range there is nothing to show. Pure, so the browser and the node side use the same code
- * (desktop/Flowy.Core/Perf.cs is to be a port of it, kept equal by fixtures).
+ * (desktop/Flowy.Core/Perf*.cs is a port of it, kept equal by fixtures).
  */
 
 /** Everything a run can measure. On an object: util, queue, errors. On a connection or overall: rate, bytes (a call's size), p50, p95, errors. A missing number means "not measured", never zero. */
@@ -94,4 +94,4 @@ export type LineTraffic = {
   from: string; to: string; width: number; perSecond: number; travelMs: number; failed: number
   color?: string; radius?: number; capped?: true; failure?: Failure; dots?: number; source?: string; offset?: number
 }
-export type Traffic = { boxes: Record<string, BoxTraffic>; lines: LineTraffic[] }
+export type Traffic = { boxes: Record<string, BoxTraffic>; lines: LineTraffic[] }

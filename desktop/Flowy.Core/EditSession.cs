@@ -53,9 +53,9 @@ public sealed class EditSession(string dir)
             versions[rel] = version;
             return text;
         }
-        var model = Read("model.yaml");
-        var layout = Read("layout.yaml");
-        var flows = FileStore.FlowFiles(dir).Select(name => KeyValuePair.Create(name[..^".yaml".Length], Read($"flows/{name}"))).Where(f => f.Value is not null)
+        var model = Read(FolderLayout.ModelFile);
+        var layout = Read(FolderLayout.LayoutFile);
+        var flows = FileStore.FlowFiles(dir).Select(name => KeyValuePair.Create(FolderLayout.IdOfName(name), Read(FolderLayout.FlowFile(FolderLayout.IdOfName(name))))).Where(f => f.Value is not null)
             .Select(f => KeyValuePair.Create(f.Key, f.Value!)).ToList();
         return new Disk(EditDoc.Parse(model, layout, flows), versions);
     }

@@ -127,8 +127,7 @@ internal sealed class BackLayer : Control
         return new Avalonia.Rect(frame.X + 14, frame.Y - title.Height / 2, title.Width + 12, title.Height).Contains(at);
     }
 
-    private IBrush Brush(string key) =>
-        this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
+    private IBrush Brush(string key) => AppTheme.Brush(this, key);
 
     private double _litFade = 1;
 

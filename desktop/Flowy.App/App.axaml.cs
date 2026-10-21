@@ -28,7 +28,7 @@ public partial class App : Application
             desktop.ShutdownMode = ShutdownMode.OnLastWindowClose;
             var options = Program.Options;
             // A screenshot run remembers nothing: it must not leave its folder among the reader's recent ones.
-            var shell = new Shell(options.Shot is null ? new UserStateStore(UserStateStore.DefaultFile()) : null);
+            var shell = new Shell(options.Shot is null ? new UserStateStore(UserStateStore.DefaultFile()) : null, options);
             Shell.Current = shell;
             // A reader must not die for a surprise in one model: say what happened in the newest window and carry on. A screenshot run wants it loud.
             if (options.Shot is null)

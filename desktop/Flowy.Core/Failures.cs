@@ -283,7 +283,7 @@ public static class Failures
     /// </summary>
     public static List<Problem> AnalysisProblems(Model model, string aid, FailureAnalysis a)
     {
-        var file = $"failures/{aid}.yaml";
+        var file = FolderLayout.FailureFile(aid);
         var problems = new List<Problem>();
         void Add(string message) => problems.Add(new Problem(file, null, message));
         if (!Names.IsValidId(aid)) Add($"\"{aid}\" is not a valid analysis id: the file name must {Names.IdRule}");
@@ -357,5 +357,5 @@ public static class Failures
     /// <summary>The modes of an analysis whose <c>run</c> names a run that isn't in perf/. Kept apart because the model doesn't hold runs: the folder loader calls this.</summary>
     public static List<Problem> RunLinkProblems(string aid, FailureAnalysis a, IdMap<LoadRun> runs) =>
         a.Modes.Where(kv => Has(kv.Value.Run) && !runs.Contains(kv.Value.Run!))
-            .Select(kv => new Problem($"failures/{aid}.yaml", null, $"{kv.Key}: run \"{kv.Value.Run}\" doesn't exist")).ToList();
+            .Select(kv => new Problem(FolderLayout.FailureFile(aid), null, $"{kv.Key}: run \"{kv.Value.Run}\" doesn't exist")).ToList();
 }

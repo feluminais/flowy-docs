@@ -196,7 +196,6 @@ public static class PerfView
 
     private static double Round1(double n) => Perf.JsRound(n * 10) / 10;
 
-    private static string Num(double n) => n.ToString("R", CultureInfo.InvariantCulture);
 
     /// <summary>A curve through the values as SVG path data, one point to each level, broken where a level has no number. Given a time run, the points sit at their times, not evenly.</summary>
     public static string PathOf(IReadOnlyList<double?> values, Scale scale, Area box, LoadRun? run = null)
@@ -210,7 +209,7 @@ public static class PerfView
                 pen = false;
                 continue;
             }
-            d.Append(pen ? 'L' : 'M').Append(Num(Round1(run is { IsTime: true } ? LevelX(run, box, i) : XAt(box, i, values.Count)))).Append(' ').Append(Num(Round1(YAt(box, scale, v))));
+            d.Append(pen ? 'L' : 'M').Append(JsCompat.Raw(Round1(run is { IsTime: true } ? LevelX(run, box, i) : XAt(box, i, values.Count)))).Append(' ').Append(JsCompat.Raw(Round1(YAt(box, scale, v))));
             pen = true;
         }
         return d.ToString();
@@ -255,11 +254,11 @@ public static class PerfView
 
     /// <summary>The labels under the levels: every level's load, or every few when there would be too many to read.</summary>
     public static IReadOnlyList<(double X, string Label)> LevelLabels(LoadRun run, Area box, int most = 8) =>
-        [.. Labelled(run, most).Select(i => (Round1(LevelX(run, box, i)), Num(run.Levels[i].Load)))];
+        [.. Labelled(run, most).Select(i => (Round1(LevelX(run, box, i)), JsCompat.Raw(run.Levels[i].Load)))];
 
     /// <summary>The labels under the slider: a level's time or load at its place along it (0 to 1), thinned the way <see cref="LevelLabels"/> is.</summary>
     public static IReadOnlyList<(double Fraction, string Label)> TickLabels(LoadRun run, int most = 8) =>
-        [.. Labelled(run, most).Select(i => (run.IsTime ? Along(run, run.Levels[i].Load) : Top(run) == 0 ? 0 : (double)i / Top(run), Num(run.Levels[i].Load)))];
+        [.. Labelled(run, most).Select(i => (run.IsTime ? Along(run, run.Levels[i].Load) : Top(run) == 0 ? 0 : (double)i / Top(run), JsCompat.Raw(run.Levels[i].Load)))];
 
     // ---- readings -----------------------------------------------------------------------------------------------
 
@@ -402,7 +401,7 @@ public static class PerfView
         var every = (int)Math.Ceiling(n / (double)most);
         var output = new List<(double, string)>();
         for (var i = 0; i < n; i++)
-            if (i % every == 0 || i == n - 1) output.Add((n == 1 ? 0 : (double)i / (n - 1), Num(d.Values[i])));
+            if (i % every == 0 || i == n - 1) output.Add((n == 1 ? 0 : (double)i / (n - 1), JsCompat.Raw(d.Values[i])));
         return output;
     }
 
