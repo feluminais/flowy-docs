@@ -7,7 +7,7 @@ import { interpolate, knee, kneeText, parseRun, rollUp, scaleText, sourceKey, st
 import type { Metrics } from '../../src/core/perf.ts'
 import { nameOf } from '../../src/core/views.ts'
 import {
-  activeRun, BOX_KEYS, boxAt, boxSeries, clampPos, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, lineAt, lineSeries, loadAt, METRICS, pathOf, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, snap, top, xAt, yAt,
+  activeRun, BOX_KEYS, boxAt, boxSeries, clampPos, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, lineAt, lineSeries, loadAt, METRICS, pathOf, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, snap, sourceCss, top, xAt, yAt,
 } from '../../ui/src/perfview.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -249,7 +249,14 @@ export async function dumpPerf(): Promise<unknown> {
   }
 }
 
-const NUMBERS = [0, 0.00005, 0.00125, 0.0004, 0.034, 0.045, 0.0625, 1.005, 7.35, 7.45, 0.05, 0.096, 0.1, 0.4, 0.996, 1, 4.2, 4.25, 9.99, 10, 12.5, 98, 180, 999, 1000, 2400, 2500, 12345.678]
+const NUMBERS = [0, 0.00005, 0.00125, 0.0004, 0.034, 0.045, 0.0625, 1.005, 7.35, 7.45, 0.05, 0.096, 0.1, 0.4, 0.996, 1, 4.2, 4.25, 9.99, 10, 12.5, 98, 180, 999, 1000, 2400, 2500, 12345.678, 999999, 1000000, 2400000, 48000000]
+/** Which kinds of failing call the key draws, for lines as the traffic makes them. */
+const MARKS: { failed: number; failure?: 'lost' | 'rejected' }[][] = [
+  [], [{ failed: 0 }], [{ failed: 0, failure: 'lost' }], [{ failed: 0.1 }], [{ failed: 0.1, failure: 'lost' }], [{ failed: 0.1, failure: 'rejected' }, { failed: 0.05 }],
+  [{ failed: 0.1, failure: 'rejected' }, { failed: 0.2, failure: 'lost' }], [{ failed: 0.1, failure: 'lost' }, { failed: 0 }, { failed: 0.3, failure: 'lost' }],
+]
+/** A source's colour as the key draws it: a name for both themes, a hex as written, and what is neither. */
+const COLOURS: (string | undefined)[] = ['blue', 'gray', '#1D9E75', '#abc', '#ABCDEF', 'chartreuse', '#12', '', undefined]
 const POSITIONS = [-1, 0, 0.25, 0.5, 1, 1.5, 2.999, 3, 9]
 const SCALES: [(number | undefined)[], { log?: boolean; from?: number; to?: number }?][] = [
   [[0.2, 0.8, undefined]], [[0.2, 0.8], { to: 1 }], [[undefined]], [[12, 450, undefined], { log: true }], [[100], { log: true }], [[0, -4], { log: true }],
@@ -270,7 +277,9 @@ export async function dumpPerfView(): Promise<unknown> {
   const views = [ROOT, 'shop', 'web']
   return {
     constants: { rampMs: RAMP_MS, rampStepMs: RAMP_STEP_MS },
-    words: NUMBERS.map(n => ({ n, ms: fmtMs(n), pct: fmtPct(n), rate: fmtRate(n), load: fmtLoad(n, 'req/s') })),
+    words: NUMBERS.map(n => ({ n, ms: fmtMs(n), pct: fmtPct(n), rate: fmtRate(n), bytes: fmtBytes(n), load: fmtLoad(n, 'req/s') })),
+    marks: MARKS.map(lines => ({ lines, marks: failureMarks(lines) })),
+    colours: COLOURS.map(color => ({ color: color ?? null, css: sourceCss(color) ?? null })),
     metrics: Object.entries(METRICS).map(([key, m]) => ({ key, label: m.label, log: m.log ?? false, max: m.max ?? null, shown: [0, 0.4, 0.93, 40.4, 2500].map(v => m.show(v)) })),
     keys: { box: BOX_KEYS, line: LINE_KEYS },
     positions: Object.entries(runs).map(([id, run]) => ({

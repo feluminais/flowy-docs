@@ -195,4 +195,25 @@ public static class PerfView
     /// <summary>A line's numbers at a load.</summary>
     public static Metrics? LineAt(Model model, LoadRun run, string view, string from, string to, double load) =>
         Perf.RollUp(model, Perf.Interpolate(run, load), view).Lines.FirstOrDefault(p => p.From == from && p.To == to);
+
+    // ---- colour and key -----------------------------------------------------------------------------------------
+
+    /// <summary>Which kinds of failing call are on the lines now, for the key to draw (see <see cref="FailureMarksOf"/>).</summary>
+    public readonly record struct FailureMarks(bool Fade, bool Lost, bool Rejected);
+
+    /// <summary>
+    /// Which kinds of failing call are on the lines now, for the key to draw: the usual fade (for a line that fails without saying how, and also while no line
+    /// fails, so the key of a run that sets nothing is as it was), a lost call, a rejected one.
+    /// </summary>
+    public static FailureMarks FailureMarksOf(IEnumerable<LineTraffic> lines)
+    {
+        var failing = lines.Where(l => l.Failed > 0).ToList();
+        return new FailureMarks(
+            failing.Count == 0 || failing.Any(l => l.Failure is null),
+            failing.Any(l => l.Failure == "lost"),
+            failing.Any(l => l.Failure == "rejected"));
+    }
+
+    /// <summary>A source's colour for the theme that is showing, as <c>#rrggbb</c>: a named colour has one for each theme, a hex is the same in both. Null for text that is neither.</summary>
+    public static string? SourceHex(string? color, bool dark) => Look.ColorPair(color) is { } pair ? (dark ? pair.Dark : pair.Light) : null;
 }

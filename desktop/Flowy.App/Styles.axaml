@@ -689,6 +689,21 @@
     <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
   </Style>
   <Style Selector="Border.sw.call.bad"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <!-- A run's source in the key: dots in its colour (a brush set on the dot; .accent when it has none), a call that pops, a call turned away. -->
+  <Style Selector="Border.sw.accent"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.sw.lost">
+    <Setter Property="Width" Value="12" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="BorderThickness" Value="1.5" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+  </Style>
+  <Style Selector="Border.sw.bar">
+    <Setter Property="Width" Value="2" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="CornerRadius" Value="1" />
+    <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+  </Style>
   <Style Selector=":is(Grid).box:focus-visible Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
     <Setter Property="StrokeThickness" Value="2" />

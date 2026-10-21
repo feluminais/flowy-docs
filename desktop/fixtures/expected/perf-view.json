@@ -9,6 +9,7 @@
       "ms": "0 ms",
       "pct": "0%",
       "rate": "0 calls a second",
+      "bytes": "0 B",
       "load": "0 req/s"
     },
     {
@@ -16,6 +17,7 @@
       "ms": "0 ms",
       "pct": "0%",
       "rate": "0 calls a second",
+      "bytes": "0 B",
       "load": "0 req/s"
     },
     {
@@ -23,6 +25,7 @@
       "ms": "0 ms",
       "pct": "0.1%",
       "rate": "0 calls a second",
+      "bytes": "0 B",
       "load": "0 req/s"
     },
     {
@@ -30,6 +33,7 @@
       "ms": "0 ms",
       "pct": "0%",
       "rate": "0 calls a second",
+      "bytes": "0 B",
       "load": "0 req/s"
     },
     {
@@ -37,6 +41,7 @@
       "ms": "0 ms",
       "pct": "3.4%",
       "rate": "0 calls a second",
+      "bytes": "0 B",
       "load": "0 req/s"
     },
     {
@@ -44,6 +49,7 @@
       "ms": "0 ms",
       "pct": "4.5%",
       "rate": "0 calls a second",
+      "bytes": "0 B",
       "load": "0 req/s"
     },
     {
@@ -51,6 +57,7 @@
       "ms": "0.1 ms",
       "pct": "6.3%",
       "rate": "0.1 calls a second",
+      "bytes": "0.1 B",
       "load": "0.1 req/s"
     },
     {
@@ -58,6 +65,7 @@
       "ms": "1 ms",
       "pct": "100%",
       "rate": "1 calls a second",
+      "bytes": "1 B",
       "load": "1 req/s"
     },
     {
@@ -65,6 +73,7 @@
       "ms": "7.3 ms",
       "pct": "735%",
       "rate": "7.3 calls a second",
+      "bytes": "7.3 B",
       "load": "7.3 req/s"
     },
     {
@@ -72,6 +81,7 @@
       "ms": "7.5 ms",
       "pct": "745%",
       "rate": "7.5 calls a second",
+      "bytes": "7.5 B",
       "load": "7.5 req/s"
     },
     {
@@ -79,6 +89,7 @@
       "ms": "0.1 ms",
       "pct": "5%",
       "rate": "0.1 calls a second",
+      "bytes": "0.1 B",
       "load": "0.1 req/s"
     },
     {
@@ -86,6 +97,7 @@
       "ms": "0.1 ms",
       "pct": "9.6%",
       "rate": "0.1 calls a second",
+      "bytes": "0.1 B",
       "load": "0.1 req/s"
     },
     {
@@ -93,6 +105,7 @@
       "ms": "0.1 ms",
       "pct": "10%",
       "rate": "0.1 calls a second",
+      "bytes": "0.1 B",
       "load": "0.1 req/s"
     },
     {
@@ -100,6 +113,7 @@
       "ms": "0.4 ms",
       "pct": "40%",
       "rate": "0.4 calls a second",
+      "bytes": "0.4 B",
       "load": "0.4 req/s"
     },
     {
@@ -107,6 +121,7 @@
       "ms": "1 ms",
       "pct": "100%",
       "rate": "1 calls a second",
+      "bytes": "1 B",
       "load": "1 req/s"
     },
     {
@@ -114,6 +129,7 @@
       "ms": "1 ms",
       "pct": "100%",
       "rate": "1 calls a second",
+      "bytes": "1 B",
       "load": "1 req/s"
     },
     {
@@ -121,6 +137,7 @@
       "ms": "4.2 ms",
       "pct": "420%",
       "rate": "4.2 calls a second",
+      "bytes": "4.2 B",
       "load": "4.2 req/s"
     },
     {
@@ -128,6 +145,7 @@
       "ms": "4.3 ms",
       "pct": "425%",
       "rate": "4.3 calls a second",
+      "bytes": "4.3 B",
       "load": "4.3 req/s"
     },
     {
@@ -135,6 +153,7 @@
       "ms": "10 ms",
       "pct": "999%",
       "rate": "10 calls a second",
+      "bytes": "10 B",
       "load": "10 req/s"
     },
     {
@@ -142,6 +161,7 @@
       "ms": "10 ms",
       "pct": "1000%",
       "rate": "10 calls a second",
+      "bytes": "10 B",
       "load": "10 req/s"
     },
     {
@@ -149,6 +169,7 @@
       "ms": "13 ms",
       "pct": "1250%",
       "rate": "13 calls a second",
+      "bytes": "13 B",
       "load": "13 req/s"
     },
     {
@@ -156,6 +177,7 @@
       "ms": "98 ms",
       "pct": "9800%",
       "rate": "98 calls a second",
+      "bytes": "98 B",
       "load": "98 req/s"
     },
     {
@@ -163,6 +185,7 @@
       "ms": "180 ms",
       "pct": "18000%",
       "rate": "180 calls a second",
+      "bytes": "180 B",
       "load": "180 req/s"
     },
     {
@@ -170,6 +193,7 @@
       "ms": "999 ms",
       "pct": "99900%",
       "rate": "999 calls a second",
+      "bytes": "999 B",
       "load": "999 req/s"
     },
     {
@@ -177,6 +201,7 @@
       "ms": "1 s",
       "pct": "100000%",
       "rate": "1000 calls a second",
+      "bytes": "1 KB",
       "load": "1000 req/s"
     },
     {
@@ -184,6 +209,7 @@
       "ms": "2.4 s",
       "pct": "240000%",
       "rate": "2400 calls a second",
+      "bytes": "2.4 KB",
       "load": "2400 req/s"
     },
     {
@@ -191,6 +217,7 @@
       "ms": "2.5 s",
       "pct": "250000%",
       "rate": "2500 calls a second",
+      "bytes": "2.5 KB",
       "load": "2500 req/s"
     },
     {
@@ -198,7 +225,191 @@
       "ms": "12.3 s",
       "pct": "1234568%",
       "rate": "12346 calls a second",
+      "bytes": "12 KB",
       "load": "12346 req/s"
+    },
+    {
+      "n": 999999,
+      "ms": "1000 s",
+      "pct": "99999900%",
+      "rate": "999999 calls a second",
+      "bytes": "1000 KB",
+      "load": "999999 req/s"
+    },
+    {
+      "n": 1000000,
+      "ms": "1000 s",
+      "pct": "100000000%",
+      "rate": "1000000 calls a second",
+      "bytes": "1 MB",
+      "load": "1000000 req/s"
+    },
+    {
+      "n": 2400000,
+      "ms": "2400 s",
+      "pct": "240000000%",
+      "rate": "2400000 calls a second",
+      "bytes": "2.4 MB",
+      "load": "2400000 req/s"
+    },
+    {
+      "n": 48000000,
+      "ms": "48000 s",
+      "pct": "4800000000%",
+      "rate": "48000000 calls a second",
+      "bytes": "48 MB",
+      "load": "48000000 req/s"
+    }
+  ],
+  "marks": [
+    {
+      "lines": [],
+      "marks": {
+        "fade": true,
+        "lost": false,
+        "rejected": false
+      }
+    },
+    {
+      "lines": [
+        {
+          "failed": 0
+        }
+      ],
+      "marks": {
+        "fade": true,
+        "lost": false,
+        "rejected": false
+      }
+    },
+    {
+      "lines": [
+        {
+          "failed": 0,
+          "failure": "lost"
+        }
+      ],
+      "marks": {
+        "fade": true,
+        "lost": false,
+        "rejected": false
+      }
+    },
+    {
+      "lines": [
+        {
+          "failed": 0.1
+        }
+      ],
+      "marks": {
+        "fade": true,
+        "lost": false,
+        "rejected": false
+      }
+    },
+    {
+      "lines": [
+        {
+          "failed": 0.1,
+          "failure": "lost"
+        }
+      ],
+      "marks": {
+        "fade": false,
+        "lost": true,
+        "rejected": false
+      }
+    },
+    {
+      "lines": [
+        {
+          "failed": 0.1,
+          "failure": "rejected"
+        },
+        {
+          "failed": 0.05
+        }
+      ],
+      "marks": {
+        "fade": true,
+        "lost": false,
+        "rejected": true
+      }
+    },
+    {
+      "lines": [
+        {
+          "failed": 0.1,
+          "failure": "rejected"
+        },
+        {
+          "failed": 0.2,
+          "failure": "lost"
+        }
+      ],
+      "marks": {
+        "fade": false,
+        "lost": true,
+        "rejected": true
+      }
+    },
+    {
+      "lines": [
+        {
+          "failed": 0.1,
+          "failure": "lost"
+        },
+        {
+          "failed": 0
+        },
+        {
+          "failed": 0.3,
+          "failure": "lost"
+        }
+      ],
+      "marks": {
+        "fade": false,
+        "lost": true,
+        "rejected": false
+      }
+    }
+  ],
+  "colours": [
+    {
+      "color": "blue",
+      "css": "light-dark(#378add, #85b7eb)"
+    },
+    {
+      "color": "gray",
+      "css": "light-dark(#888780, #b4b2a9)"
+    },
+    {
+      "color": "#1D9E75",
+      "css": "#1d9e75"
+    },
+    {
+      "color": "#abc",
+      "css": "#aabbcc"
+    },
+    {
+      "color": "#ABCDEF",
+      "css": "#abcdef"
+    },
+    {
+      "color": "chartreuse",
+      "css": null
+    },
+    {
+      "color": "#12",
+      "css": null
+    },
+    {
+      "color": "",
+      "css": null
+    },
+    {
+      "color": null,
+      "css": null
     }
   ],
   "metrics": [
