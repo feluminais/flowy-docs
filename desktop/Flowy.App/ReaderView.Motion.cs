@@ -6,32 +6,13 @@ namespace Flowy.App;
 /// <summary>The step playing: when its animation starts, Replay, and Autoplay.</summary>
 internal sealed partial class ReaderView
 {
-    private string _stepKey = ""; // the step (and replay) now showing; empty when no flow plays
-    private string _settledKey = ""; // the step whose motion has finished
-    private int _replays;
-    private bool _auto;
-    private IDisposable? _wait; // what Autoplay is waiting for, run on animation frames like everything that moves here
+    private readonly Playback _playback;
 
     internal bool StepMoving => _canvas.StepMoving;
-    internal bool Autoplaying => _auto && PlayingFlow() is not null;
+    internal bool Autoplaying => _playback.Auto && PlayingFlow() is not null;
 
-    /// <summary>
-    /// Waits on animation frames, as everything that moves here does, so a test can drive them. Each frame invalidates the reader: a headless
-    /// window only ticks frames while something needs drawing, and a wait draws nothing of its own.
-    /// </summary>
-    private void After(double milliseconds, Action then)
-    {
-        _wait?.Dispose();
-        _wait = Anim.Run(this, milliseconds, t => t, _ => InvalidateVisual(), then);
-    }
-
-    /// <summary>Taking a step yourself, leaving the flow or changing view ends Autoplay. The caller draws.</summary>
-    private void StopAuto()
-    {
-        _auto = false;
-        _wait?.Dispose();
-        _wait = null;
-    }
+    /// <summary>Where the flow on show stands, for <see cref="Playback"/>: its stop and how many it has, or null when none plays.</summary>
+    private (int Index, int Count)? PlayWhere() => PlayingFlow() is { } f ? (StopIndex(), StopsOf(f.Flow).Count) : null;
 
     /// <summary>
     /// Starts the motion of the step now showing, once for each step and replay: Refresh runs for many other reasons (a hover, a theme, a
@@ -39,9 +20,7 @@ internal sealed partial class ReaderView
     /// </summary>
     private void UpdateMotion(Model model, string view, (string Id, Flow Flow)? flow, int index, Playing? shown)
     {
-        var key = flow is { } f ? $"{f.Id}:{index}:{_replays}" : "";
-        if (key == _stepKey) return;
-        _stepKey = key;
+        if (!_playback.Begin(flow?.Id, index, out var key)) return;
         _canvas.StopStep();
         if (flow is { } playing && shown is not null)
         {
@@ -54,14 +33,9 @@ internal sealed partial class ReaderView
                 runs.Add(new CanvasView.StepRun(animation, placed.From, placed.To, stop.Before.Any(j => Animations.Follows(shown.Ends[j], placed)), TakenBy(model, view, animation, placed)));
             }
             if (runs.Count > 0)
-                _canvas.PlaySteps(runs, () =>
-                {
-                    if (key != _stepKey) return;
-                    _settledKey = key;
-                    ArmAuto();
-                });
+                _canvas.PlaySteps(runs, () => _playback.Settled(key));
         }
-        ArmAuto();
+        _playback.ArmAuto();
     }
 
     /// <summary>
@@ -74,60 +48,5 @@ internal sealed partial class ReaderView
         if (by.Name is { } name) return new CanvasView.TakenBy(Name: name);
         var box = Views.PlaceStep(model, view, by.Shape, null)?.From;
         return box is not null && box != placed.From && box != placed.To ? new CanvasView.TakenBy(Node: box) : new CanvasView.TakenBy(Name: Views.NameOf(model, by.Shape!));
-    }
-
-    /// <summary>
-    /// Autoplay: once the step now showing has finished moving (or has had a moment, if it doesn't move), rest a moment and go on to the
-    /// next, or stop after the last. Called whenever something it depends on changes.
-    /// </summary>
-    private void ArmAuto()
-    {
-        _wait?.Dispose();
-        _wait = null;
-        if (!_auto || PlayingFlow() is not { } f) return;
-        var key = _stepKey;
-        if (_settledKey == key)
-        {
-            After(MotionMath.Gap, () =>
-            {
-                // The flow may have been reloaded while this waited: ask which one is playing now, not the one it was armed on.
-                if (key != _stepKey || !_auto || PlayingFlow() is not { } now) return;
-                if (StopIndex() < StopsOf(now.Flow).Count - 1) _playing = _playing! with { Step = StopIndex() + 1 };
-                else _auto = false;
-                Refresh();
-            });
-        }
-        else if (!_canvas.StepMoving)
-        {
-            After(MotionMath.Dwell, () =>
-            {
-                if (key != _stepKey || !_auto) return;
-                _settledKey = key;
-                ArmAuto();
-            });
-        }
-        // Otherwise the motion's end settles it (see UpdateMotion).
-    }
-
-    private void ToggleAuto()
-    {
-        if (PlayingFlow() is not { } f) return;
-        if (_auto)
-        {
-            StopAuto();
-            Refresh();
-            return;
-        }
-        _auto = true;
-        if (StopIndex() == StopsOf(f.Flow).Count - 1) _playing = _playing! with { Step = 0 }; // from the start
-        Refresh();
-        ArmAuto();
-    }
-
-    private void Replay()
-    {
-        if (PlayingFlow() is null) return;
-        _replays++;
-        Refresh();
     }
 }

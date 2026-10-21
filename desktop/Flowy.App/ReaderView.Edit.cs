@@ -13,6 +13,7 @@ namespace Flowy.App;
 internal sealed partial class ReaderView
 {
     private EditSession? _session;
+    private FolderSession? _disk; // the folder on disk, read again after each edit
     private bool _editMode;
     private bool _undoMove; // the last thing done was dragging a box, and nothing has been done since
     private readonly Button _editButton = new();
@@ -22,6 +23,9 @@ internal sealed partial class ReaderView
     private readonly Button _redoButton = new();
     private readonly Button _tidyButton = new();
     private readonly StackPanel _editTools = new() { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 2, IsVisible = false, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
+
+    /// <summary>Anything done but dragging a box ends the chance to take that drag back with Esc.</summary>
+    private void DidSomethingElse() => _undoMove = false;
 
     /// <summary>False for a model that must not be written, such as the sample that ships inside the app.</summary>
     public bool CanEdit { get; set; } = true;
@@ -56,12 +60,11 @@ internal sealed partial class ReaderView
         if (on && ReadOnly) return;
         if (_editMode == on) return;
         _editMode = on;
-        _perf = false; // editing and the Performance panel don't mix: the numbers would sit on a model that is changing
+        LeavePerformance(); // editing and the Performance panel don't mix: the numbers would sit on a model that is changing
         if (_tab == PanelTab.Failures) _tab = null; // nor does the Failures tab: its marks would sit on a model that is changing, and it has no forms here yet
-        _ramping = false;
         DismissNotice();
-        _playing = null;
-        if (!on && _side is { Kind: SideKind.Add or SideKind.Flow or SideKind.Objects }) _side = null;
+        _playback.Head = null;
+        if (!on && _side is Side.Add or Side.Flow or Side.Boxes) _side = null;
         Refresh();
     }
 
@@ -69,8 +72,8 @@ internal sealed partial class ReaderView
     private void RefreshEdit()
     {
         _editTools.IsVisible = Editing;
-        _pickedBar.Show(Editing && _side is { Kind: SideKind.Objects, Ids: { } picked } ? picked.Count : 0);
-        _canvas.Editable = Editing && _side is not { Kind: SideKind.Flow };
+        _pickedBar.Show(Editing && _side is Side.Boxes picked ? picked.Ids.Count : 0);
+        _canvas.Editable = Editing && _side is not Side.Flow;
         _editButton.IsEnabled = Editing || !ReadOnly;
         if (Editing) _editButton.Classes.Add("pressed");
         else _editButton.Classes.Remove("pressed");
@@ -96,7 +99,7 @@ internal sealed partial class ReaderView
     {
         if (_session is not { } session || _folder is null) return false;
         DismissNotice();
-        _undoMove = false;
+        DidSomethingElse();
         EditResult result;
         try
         {
@@ -121,19 +124,7 @@ internal sealed partial class ReaderView
 
     private async Task ReloadFromDiskAsync(string dir)
     {
-        try
-        {
-            var folder = await Task.Run(() => FolderLoader.Load(dir));
-            if (_session?.Dir == dir) Reload(folder);
-        }
-        catch (ParseError e)
-        {
-            SetBanner(e.Message);
-        }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-        {
-            SetBanner($"Can't read the folder: {e.Message}");
-        }
+        if (_disk is { } disk && disk.Dir == dir) await disk.LoadAsync();
     }
 
     internal Task UndoAsync() => BackAsync(s => s.Undo(), "Undone.");
@@ -144,7 +135,7 @@ internal sealed partial class ReaderView
     {
         if (_session is not { } session) return;
         DismissNotice();
-        _undoMove = false;
+        DidSomethingElse();
         var result = await Task.Run(() => step(session));
         if (result.IsOk) ShowNotice(done, 3);
         else ShowNotice(result.Message!);
@@ -177,7 +168,7 @@ internal sealed partial class ReaderView
     {
         if (!_undoMove || !Editing || _shortcuts is not null) return false;
         if (e.Key != Key.Escape && !(e.Key == Key.Back && e.KeyModifiers == KeyModifiers.None)) return false;
-        _undoMove = false;
+        DidSomethingElse();
         _ = UndoAsync();
         return true;
     }
@@ -185,43 +176,43 @@ internal sealed partial class ReaderView
     private void OpenAdd()
     {
         if (!Editing) return;
-        _undoMove = false;
-        _side = new Side(SideKind.Add);
+        DidSomethingElse();
+        _side = new Side.Add();
         Refresh();
     }
 
     /// <summary>The flow being recorded or edited, while edit mode is on.</summary>
-    private Side? Recording => Editing && _side is { Kind: SideKind.Flow } ? _side : null;
+    private Recording? Recording => Editing && _side is Side.Flow flow ? flow.Rec : null;
 
     private void NewFlow()
     {
         if (!Editing) return;
-        _undoMove = false;
-        _side = new Side(SideKind.Flow, Id: "", FlowName: "");
+        DidSomethingElse();
+        _side = new Side.Flow(new Recording("", ""));
         Refresh();
     }
 
     private void EditFlow(string id)
     {
         if (_folder is null) return;
-        _side = new Side(SideKind.Flow, Id: id, FlowName: _folder.Model.Flows.TryGetValue(id, out var f) ? f.Name ?? "" : "");
+        _side = new Side.Flow(new Recording(id, _folder.Model.Flows.TryGetValue(id, out var f) ? f.Name ?? "" : ""));
         Refresh();
         FitNow(); // every box has to stay reachable beside the panel: they are what is clicked
     }
 
     private void SetRecording(Recording rec)
     {
-        var starting = _side is { Kind: SideKind.Flow, Id: "" };
-        _side = new Side(SideKind.Flow, Id: rec.Id, FlowName: rec.Name, From: rec.From, To: rec.To);
+        var starting = _side is Side.Flow { Rec.Id: "" };
+        _side = new Side.Flow(rec);
         Refresh();
         if (starting) FitNow();
     }
 
     /// <summary>A box clicked while recording: the first starts the step, the second ends it (the same box again: a step it does on its own), a third starts over.</summary>
-    private void PickBox(Side rec, string id)
+    private void PickBox(Recording rec, string id)
     {
         if (string.IsNullOrEmpty(rec.Id)) return; // still being named
-        _side = rec.From is null || rec.To is not null ? rec with { From = id, To = null } : rec with { To = id };
+        _side = new Side.Flow(rec.From is null || rec.To is not null ? rec with { From = id, To = null } : rec with { To = id });
         Refresh();
     }
 
@@ -229,15 +220,15 @@ internal sealed partial class ReaderView
     private bool ResetPick()
     {
         if (Recording is not { From: not null } rec) return false;
-        _side = rec with { From = null, To = null };
+        _side = new Side.Flow(rec with { From = null, To = null });
         Refresh();
         return true;
     }
 
     /// <summary>What the canvas shows while recording: the flow's steps so far, and the step being picked lit.</summary>
-    private static Playing RecordingShown(Model model, string view, Side rec)
+    private static Playing RecordingShown(Model model, string view, Recording rec)
     {
-        var done = (model.Flows.TryGetValue(rec.Id ?? "", out var flow) ? flow.Steps : []).Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList();
+        var done = (model.Flows.TryGetValue(rec.Id, out var flow) ? flow.Steps : []).Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList();
         if (rec.From is null || rec.To is null) return new Playing(done);
         done.Add(Views.PlaceStep(model, view, rec.From, rec.To == rec.From ? null : rec.To));
         return new Playing(done, done.Count - 1);
@@ -256,19 +247,17 @@ internal sealed partial class ReaderView
 
     /// <summary>What the side panel shows for these boxes picked: none shows nothing, one is its own panel, several are the many-boxes panel.</summary>
     private static Side? SideOf(IReadOnlyList<string> ids) =>
-        ids.Count switch { 0 => null, 1 => new Side(SideKind.Object, Id: ids[0]), _ => new Side(SideKind.Objects, Ids: ids) };
+        ids.Count switch { 0 => null, 1 => new Side.Box(ids[0]), _ => new Side.Boxes(ids) };
 
     /// <summary>The boxes picked now: the open box, or the several in the panel.</summary>
-    private IReadOnlyList<string> PickedBoxes() => _side is { Kind: SideKind.Objects, Ids: { } many } ? many : SelectedBox is { } one ? [one] : [];
+    private IReadOnlyList<string> PickedBoxes() => _side is Side.Boxes many ? many.Ids : SelectedBox is { } one ? [one] : [];
 
     /// <summary>Ctrl, Cmd or Shift+click on a box: it joins the boxes picked, or leaves them. A box clicked a moment ago, whose panel is still waiting out the double-click, counts as picked.</summary>
     private void ToggleBox(string id)
     {
         if (!Editing || Recording is not null || _folder?.Model.GetObject(id) is null) return;
         var waiting = _opening is { IsEnabled: true } ? _openingBox : null;
-        _opening?.Stop();
-        _openingBox = null;
-        _undoMove = false;
+        Interacted();
         var now = _side is null && waiting is not null ? [waiting] : PickedBoxes();
         SetPicked(now.Contains(id) ? now.Where(b => b != id).ToList() : [.. now, id]);
     }
@@ -277,9 +266,7 @@ internal sealed partial class ReaderView
     private void SetPicked(IReadOnlyList<string> ids)
     {
         if (!Editing) return;
-        _opening?.Stop();
-        _openingBox = null;
-        _undoMove = false;
+        Interacted();
         if (ids.Count == 1)
         {
             OpenObject(ids[0]);
@@ -319,18 +306,18 @@ internal sealed partial class ReaderView
     internal async Task DeleteSelectedAsync()
     {
         if (_folder is not { } folder || !Editing) return;
-        if (_side is { Kind: SideKind.Object, Id: { } id })
+        if (_side is Side.Box { Id: var id })
         {
             if (await RunAsync(d => EditOps.DeleteObject(d, id))) CloseSide();
             return;
         }
-        if (_side is { Kind: SideKind.Objects, Ids: { } picked })
+        if (_side is Side.Boxes { Ids: var picked })
         {
             // One edit for the lot, so one undo brings them all back, and a box that can't go (it has boxes inside, or a flow uses it) stops them all.
             if (await RunAsync(d => EditOps.DeleteObjects(d, picked))) CloseSide();
             return;
         }
-        if (_side is not { Kind: SideKind.Line, From: { } from, To: { } to }) return;
+        if (_side is not Side.Line { From: var from, To: var to }) return;
         var merged = Navigation.ConnectionsOf(folder.Model, CurrentView(), from, to);
         if (merged.Count > 1)
         {
@@ -408,7 +395,7 @@ internal sealed partial class ReaderView
     internal ComboBox LinePicker => _linePicker;
 
 
-    internal Recording? RecordingNow => Recording is { } r ? new Recording(r.Id ?? "", r.FlowName ?? "", r.From, r.To) : null;
+    internal Recording? RecordingNow => Recording;
 
     internal Task TidyForTestAsync() => TidyAsync();
 }

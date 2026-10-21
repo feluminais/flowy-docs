@@ -27,15 +27,14 @@ internal sealed partial class ReaderView
     private PanelTab? ShownTab => (_tab == PanelTab.Flows && !ShowFlows) || (_tab == PanelTab.Failures && !CanFailures) ? null : _tab;
 
     /// <summary>Whether the Details panel on the right is open: from its rail, or because something is picked.</summary>
-    private bool DetailsOpen => (_details || _side is { Kind: not SideKind.Objects }) && !PerfOpen; // the Performance panel is in its place while it is open
+    private bool DetailsOpen => (_right == RightPanel.Details || _side is not (null or Side.Boxes)) && !PerfOpen; // the Performance panel is in its place while it is open
 
     private void SetTab(PanelTab tab)
     {
         if (tab == PanelTab.Failures)
         {
             if (!CanFailures) return;
-            _perf = false; // its traffic and the failure marks would draw over each other
-            _ramping = false;
+            LeavePerformance(); // its traffic and the failure marks would draw over each other
         }
         _tab = tab;
         _navUsed = true; // opened or switched on purpose: Escape takes it back until the reader clicks in the diagram
@@ -52,9 +51,8 @@ internal sealed partial class ReaderView
             if (DetailsOpen) CloseDetails();
             else
             {
-                _perf = false; // Details takes the place of Performance
-                _ramping = false;
-                _details = true;
+                LeavePerformance(); // Details takes the place of Performance
+                _right = RightPanel.Details;
                 Refresh();
             }
         }
@@ -74,7 +72,7 @@ internal sealed partial class ReaderView
     private void CloseDetails()
     {
         _side = null;
-        _details = false;
+        if (_right == RightPanel.Details) _right = RightPanel.Closed;
         Refresh();
         Focus();
     }
