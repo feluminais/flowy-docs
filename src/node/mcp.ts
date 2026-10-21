@@ -1,8 +1,8 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { ANIMATION_KINDS } from '../core/animation.ts'
-import { check } from '../core/check.ts'
-import { analysisText, BAND_NAMES, bandOf, riskOf, STATUSES } from '../core/failures.ts'
+import { check, newProblems } from '../core/check.ts'
+import { analysisText, BAND_NAMES, bandOf, riskOf, runLinkProblems, STATUSES } from '../core/failures.ts'
 import { mcpLabel } from '../core/history.ts'
 import { ICON_GROUPS } from '../core/icons.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
@@ -15,7 +15,8 @@ import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
 import { STATE_NAMES } from '../core/states.ts'
 import { GROUP_KINDS } from '../core/structure.ts'
 import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
-import { blockedBy, loadDir, missingPaths, saveFile, VersionConflict } from './files.ts'
+import { blockedBy, loadDir, loadReport, loadRuns, missingPaths, saveFile, VersionConflict } from './files.ts'
+import type { Report } from './files.ts'
 import type { History } from './history.ts'
 import { blockedMessage } from './writes.ts'
 
@@ -130,6 +131,15 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     }
   })
 
+  /** Like read, but with the whole report: the load-test runs and every problem in the folder, not only the model. */
+  const reading = (fn: (report: Report) => unknown) => inOrder(async () => {
+    try {
+      return ok(fn(await loadReport(dir)))
+    } catch (e) {
+      return fail(e)
+    }
+  })
+
   /**
    * Load fresh, apply, refuse new problems, write changed files. Retries once if a file changed underneath. With history on, the files as
    * they were become a step first, and `label` is the step the write makes.
@@ -141,6 +151,16 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         const { model, versions } = loaded
         const next = op(model)
         refuseNewProblems(model, next, missingPaths(dir, model, next)) // the canvas refuses the same edits, except missing code paths, which only Node can see
+        // A mode's run is a file in perf/, which the model doesn't hold, so only Node can tell that one doesn't exist.
+        if (next.failures !== model.failures) {
+          const { runs } = await loadRuns(dir, model)
+          const links = (m: Model) => Object.entries(m.failures).flatMap(([aid, a]) => runLinkProblems(aid, a, runs))
+          const added = newProblems(links(model), links(next))
+          if (added.length > 0) {
+            const known = Object.keys(runs)
+            return fail(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}\n${known.length > 0 ? `The runs in perf/ are: ${known.join(', ')}.` : 'There are no load-test runs in perf/, so leave run out.'}`)
+          }
+        }
         // Every op changes at most one file today, so a failure can't leave a half-applied multi-file change.
         const changes = changedFiles(model, next)
         // An analysis file that was skipped because it can't be read holds someone's work: it is never replaced or deleted.
@@ -173,12 +193,58 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   const readOnly = { readOnlyHint: true }
   const destructive = { destructiveHint: true }
 
-  // Known limit: returns the whole model; add filters if models grow past a few hundred objects
   server.registerTool('get_model', {
-    description: 'Everything in the model: objects, connections, flows, failure analyses, the custom icons put_icon defined (name → SVG path data), and current problems.',
-    inputSchema: {}, // without a schema the SDK runs this one step sooner and it overtakes earlier calls
+    description: 'The model: objects, connections, flows, failure analyses, the custom icons put_icon defined (name → SVG path data), the load-test runs (id and name; a failure mode\'s run is one of these ids) and current problems. Everything it shows can be sent back to put_object, put_flow and the failure tools as it is. A big model is a lot to read, so ask for less: summary gives one short line for each thing, and object, flow or analysis gives that one thing in full (an object with its connections, the flows that use it and the failure modes that name it). Give at most one of the four.',
+    inputSchema: {
+      summary: z.boolean().optional().describe('true: only ids, names, types, parents and tech of the objects, each connection as one line, and each flow, analysis and run with its name and size. Read this first, then ask for what you need.'),
+      object: z.string().max(64).optional().describe('An object id: that object in full, with the connections that touch it, the flows that use it and the failure modes that name it.'),
+      flow: z.string().max(64).optional().describe('A flow id: that flow in full.'),
+      analysis: z.string().max(64).optional().describe('A failure analysis id: that analysis in full, every field of every mode.'),
+    },
     annotations: readOnly,
-  }, () => read(m => ({ objects: m.objects, connections: m.connections, flows: m.flows, failures: m.failures, icons: customIcons(m.meta), problems: check(m, missingPaths(dir, m)) })))
+  }, ({ summary, object, flow, analysis }) => reading(({ model: m, runs, problems }) => {
+    if ([summary === true, object !== undefined, flow !== undefined, analysis !== undefined].filter(Boolean).length > 1) throw new Error('Give at most one of summary, object, flow and analysis.')
+    const runList = Object.entries(runs).map(([runId, r]) => ({ id: runId, name: r.name }))
+    const about = (pick: (p: Report['problems'][number]) => boolean) => problems.filter(pick)
+    if (summary === true) {
+      const objects = Object.entries(m.objects).map(([oid, o]) => ({ id: oid, type: o.type, name: o.name, ...(o.in ? { in: o.in } : {}), ...(o.tech ? { tech: o.tech } : {}), ...(o.external === 'true' ? { external: true } : {}) }))
+      return {
+        objects,
+        connections: m.connections.map(c => `${c.from} → ${c.to}${c.label ? `: ${c.label}` : ''}`),
+        flows: Object.entries(m.flows).map(([fid, f]) => ({ id: fid, name: f.name, view: f.view, steps: f.steps.length })),
+        failures: Object.entries(m.failures).map(([aid, a]) => ({ id: aid, name: a.name, modes: Object.keys(a.modes).length })),
+        icons: Object.keys(customIcons(m.meta)),
+        runs: runList,
+        problems,
+      }
+    }
+    if (object !== undefined) {
+      const o = getObject(m, object)
+      if (!o) throw new Error(`unknown object "${object}"`)
+      return {
+        id: object, object: o,
+        connections: m.connections.filter(c => c.from === object || c.to === object),
+        flows: Object.entries(m.flows).filter(([, f]) => f.steps.some(s => s.from === object || s.to === object)).map(([fid]) => fid),
+        failureModes: Object.entries(m.failures).flatMap(([aid, a]) => Object.entries(a.modes).filter(([, x]) => x.on === object || x.from === object || x.to === object || x.affects?.includes(object)).map(([mid]) => `${aid}/${mid}`)),
+        problems: about(p => p.file === 'model.yaml' && (p.id === object || p.message.startsWith(`connection ${object} →`) || p.message.includes(`→ ${object}:`))),
+      }
+    }
+    if (flow !== undefined) {
+      if (!Object.hasOwn(m.flows, flow)) throw new Error(`unknown flow "${flow}"`)
+      return { id: flow, flow: m.flows[flow], problems: about(p => p.file === `flows/${flow}.yaml`) }
+    }
+    if (analysis !== undefined) {
+      if (!Object.hasOwn(m.failures, analysis)) throw new Error(`unknown analysis "${analysis}"`)
+      return { id: analysis, analysis: m.failures[analysis], problems: about(p => p.file === `failures/${analysis}.yaml`) }
+    }
+    return { objects: m.objects, connections: m.connections, flows: m.flows, failures: m.failures, icons: customIcons(m.meta), runs: runList, problems }
+  }))
+
+  server.registerTool('get_problems', {
+    description: 'Everything wrong with the folder right now, one line each, the same list `flowy check` prints: model, flows, failure analyses and load-test runs, a failure mode whose run does not exist, a file Flowy skips, and a file that loads but could not be saved again. "No problems." means it is sound. Cheaper than get_model, so use it to check your work after a run of writes, and after changing a file by hand.',
+    inputSchema: {},
+    annotations: readOnly,
+  }, () => reading(({ problems }) => (problems.length === 0 ? 'No problems.' : problems.map(p => `${p.file}: ${p.message}`).join('\n'))))
 
   server.registerTool('get_view', {
     description: 'What one diagram shows: members (its shapes), outsiders (faded shapes from elsewhere that connect in) and edges (connections merged to that zoom level).',
