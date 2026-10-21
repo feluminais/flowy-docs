@@ -27,8 +27,93 @@ public static class MotionMath
     /// <summary>The tube fades in over the first 150 ms of its beat and out over the last 250.</summary>
     public static double TubeOpacity(Beat b, double t) => Math.Min(1, Math.Max(0, Math.Min((t - b.At) / 150, (b.At + b.Dur - t) / 250)));
 
-    /// <summary>How far along a line of length <paramref name="length"/> a blob is at progress <paramref name="p"/>, running forward or back.</summary>
-    public static double Distance(string? dir, double p, double length) => (dir == "back" ? 1 - Ease(p) : Ease(p)) * length;
+    /// <summary>
+    /// How far along a line of length <paramref name="length"/> a blob is at progress <paramref name="p"/>, running forward or back. <paramref name="start"/> and
+    /// <paramref name="end"/> are the stretch of the line it runs between, as fractions of it (the whole line when left out): forward runs from start to end,
+    /// back from end to start, and a blob whose start is its end waits where it is.
+    /// </summary>
+    public static double Distance(string? dir, double p, double length, double? start = null, double? end = null)
+    {
+        var from = start ?? 0;
+        var to = end ?? 1;
+        return (from + (to - from) * (dir == "back" ? 1 - Ease(p) : Ease(p))) * length;
+    }
+
+    /// <summary>The colour of a slot of <see cref="Animations.Tints"/> as [light, dark] #rrggbb: a request that meets an outcome in a burst. The slot wraps round.</summary>
+    public static (string Light, string Dark) TintPair(int slot)
+    {
+        var n = Animations.Tints.Length;
+        return Look.ColorPair(Animations.Tints[(slot % n + n) % n])!.Value;
+    }
+
+    private const double PipeHalf = 15;
+    private const double LabelGap = 6;
+
+    // JavaScript's `|| 0`: a negative zero or NaN is plain 0.
+    private static double Zero(double v) => v == 0 || double.IsNaN(v) ? 0 : v;
+
+    /// <summary>
+    /// Where to move a line's label so it sits beside the blob's path, on the upper side of the line (the right side of a vertical line), far enough that a label of
+    /// <paramref name="chars"/> characters clears the blob at any slope. <paramref name="dx"/> and <paramref name="dy"/> run from one end of the line to the other.
+    /// </summary>
+    public static (double X, double Y) LabelOffset(double dx, double dy, int chars)
+    {
+        var len = double.Hypot(dx, dy);
+        if (len == 0) return (0, -(PipeHalf + LabelGap + 10));
+        var nx = dy / len;
+        var ny = -dx / len;
+        if (ny > 0 || (ny == 0 && nx < 0))
+        {
+            nx = -nx;
+            ny = -ny;
+        }
+        var far = PipeHalf + LabelGap + Math.Abs(nx) * (chars * 3 + 6) + Math.Abs(ny) * 10;
+        return (Zero(nx * far), Zero(ny * far));
+    }
+
+    /// <summary>The unit normal of a line that points to its lower side: away from where its label sits, so a note or a marker beside the line never meets the label.</summary>
+    public static (double X, double Y) LowerSide(double dx, double dy)
+    {
+        var up = LabelOffset(dx, dy, 0);
+        var len = double.Hypot(up.X, up.Y);
+        return (Zero(-up.X / len), Zero(-up.Y / len));
+    }
+
+    /// <summary>How far a note sits from the line: clear of a puff or a clock of radius about 26 around the spot it is about.</summary>
+    private const double NoteGap = 32;
+
+    /// <summary>Where to put a note of <paramref name="chars"/> characters, from the spot it is about: on the lower side of the line, further for a long note on a steep line.</summary>
+    public static (double X, double Y) NoteSpot(double dx, double dy, int chars)
+    {
+        var n = LowerSide(dx, dy);
+        var far = NoteGap + Math.Abs(n.X) * (chars * 3.2 + 6) + Math.Abs(n.Y) * 6;
+        return (Zero(n.X * far), Zero(n.Y * far));
+    }
+
+    /// <summary>The size of the dashed marker of a party that is not in the model, for its name.</summary>
+    public static (double Width, double Height) MarkerSize(string name) => (Math.Floor(name.Length * 7.5 + 28 + 0.5), 28);
+
+    /// <summary>The clear space between the pipe and the marker beside it.</summary>
+    private const double MarkerGap = 26;
+
+    /// <summary>Where the middle of a marker of this size sits, from the point on the line it hangs from: on the lower side, clear of the blob that runs along the line.</summary>
+    public static (double X, double Y) MarkerSpot(double dx, double dy, (double Width, double Height) size)
+    {
+        var n = LowerSide(dx, dy);
+        var far = MarkerGap + Math.Abs(n.X) * (size.Width / 2) + Math.Abs(n.Y) * (size.Height / 2);
+        return (Zero(n.X * far), Zero(n.Y * far));
+    }
+
+    /// <summary>Where a straight run from <paramref name="from"/> to the middle of a box first meets the box's edge, so a blob taken in by a box stops at its edge. From inside the box it is the middle.</summary>
+    public static (double X, double Y) EntryPoint((double X, double Y) from, Rect box)
+    {
+        var middle = (X: box.X + box.Width / 2, Y: box.Y + box.Height / 2);
+        if (from.X >= box.X && from.X <= box.X + box.Width && from.Y >= box.Y && from.Y <= box.Y + box.Height) return middle;
+        // The fraction of the run at which each axis enters the box; the run enters when both have.
+        static double Enter(double a, double to, double lo, double size) => to == a ? 0 : Math.Min((lo - a) / (to - a), (lo + size - a) / (to - a));
+        var t = Math.Min(1, Math.Max(Math.Max(Enter(from.X, middle.X, box.X, box.Width), Enter(from.Y, middle.Y, box.Y, box.Height)), 0));
+        return (from.X + (middle.X - from.X) * t, from.Y + (middle.Y - from.Y) * t);
+    }
 
     /// <summary>How much of its strength a lit line keeps once a step has timed out.</summary>
     public const double LitFloor = 0.25;

@@ -440,3 +440,10 @@ export function beatsFor(a: Animation, { length, afterLanding }: { length: numbe
     : []
   return { beats: [{ do: 'pipe', on: 'line', at: 0, dur: total }, ...marker, ...body], total }
 }
+
+/**
+ * Whether the step leaves marks where its outcome happened (a cross, a bar, a clock, a marker, a reason). A still picture needs them too, and the label of
+ * its line moves aside so they never sit on it.
+ */
+export const leavesMarks = (a: Animation): boolean =>
+  beatsFor(a, { length: 0, afterLanding: false }).beats.some(b => b.do === 'pop' || b.do === 'bar' || b.do === 'clock' || b.do === 'note' || b.do === 'marker')

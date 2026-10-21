@@ -49,10 +49,6 @@ export function takenBy(model: Model, view: string, a: Animation, placed: readon
   return box !== undefined && box !== placed[0] && box !== placed[1] ? { node: box } : { name: nameOf(model, a.by.shape) }
 }
 
-/** Whether the step draws marks that stay where its outcome happened (a cross, a bar, a clock, a marker, a reason), which a still picture needs too. */
-export const leavesMarks = (a: Animation): boolean =>
-  beatsFor(a, { length: 0, afterLanding: false }).beats.some(b => b.do === 'pop' || b.do === 'bar' || b.do === 'clock' || b.do === 'note' || b.do === 'marker')
-
 /** What `shape` needs to draw something at the one who takes a request: the box when it is on the canvas, else the name its marker carries. */
 type Taker = { rect?: Rect; path?: string; name?: string }
 

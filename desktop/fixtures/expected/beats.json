@@ -3578,6 +3578,336 @@
       ]
     }
   ],
+  "marks": [
+    {
+      "animation": "send",
+      "marks": false
+    },
+    {
+      "animation": "call",
+      "marks": false
+    },
+    {
+      "animation": "callback",
+      "marks": false
+    },
+    {
+      "animation": "event",
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "carries": "order"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "carries": "basket"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "callback"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "inside"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "callback",
+        "trigger": "outside",
+        "carries": "receipt"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "fail",
+        "carries": "declined"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "lost",
+        "at": 0.4,
+        "reason": "Packet dropped"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "event",
+        "outcome": "lost",
+        "at": "0.9",
+        "carries": "ping"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "Rate limit"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "rejected"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "event",
+        "outcome": "rejected",
+        "carries": "ping"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "intercepted",
+        "by": "proxy"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Café wifi proxy"
+        },
+        "reason": "Reads the call"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "event",
+        "outcome": "intercepted",
+        "by": {
+          "name": "Tap"
+        },
+        "carries": "ping"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "duplicated",
+        "carries": "order"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "duplicated",
+        "reason": "Retried"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "event",
+        "outcome": "duplicated"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "delayed"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "delayed",
+        "reason": "Cold start"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "event",
+        "outcome": "delayed"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail",
+        "reason": "Card declined"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout",
+        "reason": "Slow upstream"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "share": 30
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "timeout",
+        "share": 50,
+        "carries": "order"
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "duplicated",
+        "share": "100",
+        "reason": "Retried"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "fail",
+        "share": 20
+      },
+      "marks": false
+    },
+    {
+      "animation": {
+        "kind": "event",
+        "outcome": "delayed",
+        "share": 10
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "call",
+        "outcome": "rejected",
+        "share": 5,
+        "reason": "Rate limit"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "intercepted",
+        "by": "proxy",
+        "share": 40
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "carries": "a-very-long-word-for-a-small-dot"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "rejected",
+        "reason": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "intercepted",
+        "by": {
+          "name": "xxxxxxxxxxxxxxxxxxxxxxxx"
+        }
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "at": 0.1
+      },
+      "marks": true
+    },
+    {
+      "animation": {
+        "kind": "send",
+        "outcome": "lost",
+        "at": ".5"
+      },
+      "marks": true
+    }
+  ],
   "labels": [
     {
       "label": "order",
@@ -52867,6 +53197,713 @@
       {
         "t": 9000,
         "lit": 0.25
+      }
+    ],
+    "spans": [
+      {
+        "span": {},
+        "dir": "fwd",
+        "p": 0,
+        "distance": 0
+      },
+      {
+        "span": {},
+        "dir": "fwd",
+        "p": 0.3,
+        "distance": 21.6
+      },
+      {
+        "span": {},
+        "dir": "fwd",
+        "p": 0.5,
+        "distance": 100
+      },
+      {
+        "span": {},
+        "dir": "fwd",
+        "p": 1,
+        "distance": 200
+      },
+      {
+        "span": {},
+        "dir": "back",
+        "p": 0,
+        "distance": 200
+      },
+      {
+        "span": {},
+        "dir": "back",
+        "p": 0.3,
+        "distance": 178.4
+      },
+      {
+        "span": {},
+        "dir": "back",
+        "p": 0.5,
+        "distance": 100
+      },
+      {
+        "span": {},
+        "dir": "back",
+        "p": 1,
+        "distance": 0
+      },
+      {
+        "span": {
+          "end": 0.4
+        },
+        "dir": "fwd",
+        "p": 0,
+        "distance": 0
+      },
+      {
+        "span": {
+          "end": 0.4
+        },
+        "dir": "fwd",
+        "p": 0.3,
+        "distance": 8.64
+      },
+      {
+        "span": {
+          "end": 0.4
+        },
+        "dir": "fwd",
+        "p": 0.5,
+        "distance": 40
+      },
+      {
+        "span": {
+          "end": 0.4
+        },
+        "dir": "fwd",
+        "p": 1,
+        "distance": 80
+      },
+      {
+        "span": {
+          "end": 0.4
+        },
+        "dir": "back",
+        "p": 0,
+        "distance": 80
+      },
+      {
+        "span": {
+          "end": 0.4
+        },
+        "dir": "back",
+        "p": 0.3,
+        "distance": 71.36
+      },
+      {
+        "span": {
+          "end": 0.4
+        },
+        "dir": "back",
+        "p": 0.5,
+        "distance": 40
+      },
+      {
+        "span": {
+          "end": 0.4
+        },
+        "dir": "back",
+        "p": 1,
+        "distance": 0
+      },
+      {
+        "span": {
+          "start": 0.4
+        },
+        "dir": "fwd",
+        "p": 0,
+        "distance": 80
+      },
+      {
+        "span": {
+          "start": 0.4
+        },
+        "dir": "fwd",
+        "p": 0.3,
+        "distance": 92.96
+      },
+      {
+        "span": {
+          "start": 0.4
+        },
+        "dir": "fwd",
+        "p": 0.5,
+        "distance": 140
+      },
+      {
+        "span": {
+          "start": 0.4
+        },
+        "dir": "fwd",
+        "p": 1,
+        "distance": 200
+      },
+      {
+        "span": {
+          "start": 0.4
+        },
+        "dir": "back",
+        "p": 0,
+        "distance": 200
+      },
+      {
+        "span": {
+          "start": 0.4
+        },
+        "dir": "back",
+        "p": 0.3,
+        "distance": 187.04000000000002
+      },
+      {
+        "span": {
+          "start": 0.4
+        },
+        "dir": "back",
+        "p": 0.5,
+        "distance": 140
+      },
+      {
+        "span": {
+          "start": 0.4
+        },
+        "dir": "back",
+        "p": 1,
+        "distance": 80
+      },
+      {
+        "span": {
+          "start": 0.4,
+          "end": 0.4
+        },
+        "dir": "fwd",
+        "p": 0,
+        "distance": 80
+      },
+      {
+        "span": {
+          "start": 0.4,
+          "end": 0.4
+        },
+        "dir": "fwd",
+        "p": 0.3,
+        "distance": 80
+      },
+      {
+        "span": {
+          "start": 0.4,
+          "end": 0.4
+        },
+        "dir": "fwd",
+        "p": 0.5,
+        "distance": 80
+      },
+      {
+        "span": {
+          "start": 0.4,
+          "end": 0.4
+        },
+        "dir": "fwd",
+        "p": 1,
+        "distance": 80
+      },
+      {
+        "span": {
+          "start": 0.4,
+          "end": 0.4
+        },
+        "dir": "back",
+        "p": 0,
+        "distance": 80
+      },
+      {
+        "span": {
+          "start": 0.4,
+          "end": 0.4
+        },
+        "dir": "back",
+        "p": 0.3,
+        "distance": 80
+      },
+      {
+        "span": {
+          "start": 0.4,
+          "end": 0.4
+        },
+        "dir": "back",
+        "p": 0.5,
+        "distance": 80
+      },
+      {
+        "span": {
+          "start": 0.4,
+          "end": 0.4
+        },
+        "dir": "back",
+        "p": 1,
+        "distance": 80
+      },
+      {
+        "span": {
+          "end": 0.92
+        },
+        "dir": "fwd",
+        "p": 0,
+        "distance": 0
+      },
+      {
+        "span": {
+          "end": 0.92
+        },
+        "dir": "fwd",
+        "p": 0.3,
+        "distance": 19.872
+      },
+      {
+        "span": {
+          "end": 0.92
+        },
+        "dir": "fwd",
+        "p": 0.5,
+        "distance": 92
+      },
+      {
+        "span": {
+          "end": 0.92
+        },
+        "dir": "fwd",
+        "p": 1,
+        "distance": 184
+      },
+      {
+        "span": {
+          "end": 0.92
+        },
+        "dir": "back",
+        "p": 0,
+        "distance": 184
+      },
+      {
+        "span": {
+          "end": 0.92
+        },
+        "dir": "back",
+        "p": 0.3,
+        "distance": 164.12800000000001
+      },
+      {
+        "span": {
+          "end": 0.92
+        },
+        "dir": "back",
+        "p": 0.5,
+        "distance": 92
+      },
+      {
+        "span": {
+          "end": 0.92
+        },
+        "dir": "back",
+        "p": 1,
+        "distance": 0
+      }
+    ],
+    "tints": [
+      {
+        "slot": 0,
+        "pair": [
+          "#1d9e75",
+          "#5dcaa5"
+        ]
+      },
+      {
+        "slot": 1,
+        "pair": [
+          "#d4537e",
+          "#ed93b1"
+        ]
+      },
+      {
+        "slot": 2,
+        "pair": [
+          "#7f77dd",
+          "#afa9ec"
+        ]
+      },
+      {
+        "slot": 3,
+        "pair": [
+          "#d85a30",
+          "#f0997b"
+        ]
+      },
+      {
+        "slot": 4,
+        "pair": [
+          "#1d9e75",
+          "#5dcaa5"
+        ]
+      },
+      {
+        "slot": 7,
+        "pair": [
+          "#d85a30",
+          "#f0997b"
+        ]
+      },
+      {
+        "slot": -1,
+        "pair": [
+          "#d85a30",
+          "#f0997b"
+        ]
+      }
+    ],
+    "sides": [
+      {
+        "dx": 300,
+        "dy": 0,
+        "label": {
+          "x": 0,
+          "y": -31
+        },
+        "lower": {
+          "x": 0,
+          "y": 1
+        },
+        "note": {
+          "x": 0,
+          "y": 38
+        },
+        "marker": {
+          "x": 0,
+          "y": 40
+        }
+      },
+      {
+        "dx": -300,
+        "dy": 0,
+        "label": {
+          "x": 0,
+          "y": -31
+        },
+        "lower": {
+          "x": 0,
+          "y": 1
+        },
+        "note": {
+          "x": 0,
+          "y": 38
+        },
+        "marker": {
+          "x": 0,
+          "y": 40
+        }
+      },
+      {
+        "dx": 0,
+        "dy": 300,
+        "label": {
+          "x": 45,
+          "y": 0
+        },
+        "lower": {
+          "x": -1,
+          "y": 0
+        },
+        "note": {
+          "x": -70,
+          "y": 0
+        },
+        "marker": {
+          "x": -96.5,
+          "y": 0
+        }
+      },
+      {
+        "dx": 0,
+        "dy": -300,
+        "label": {
+          "x": 45,
+          "y": 0
+        },
+        "lower": {
+          "x": -1,
+          "y": 0
+        },
+        "note": {
+          "x": -70,
+          "y": 0
+        },
+        "marker": {
+          "x": -96.5,
+          "y": 0
+        }
+      },
+      {
+        "dx": 0,
+        "dy": 0,
+        "label": {
+          "x": 0,
+          "y": -31
+        },
+        "lower": {
+          "x": 0,
+          "y": 1
+        },
+        "note": {
+          "x": 0,
+          "y": 38
+        },
+        "marker": {
+          "x": 0,
+          "y": 40
+        }
+      },
+      {
+        "dx": 100,
+        "dy": 100,
+        "label": {
+          "x": 31.84924240491749,
+          "y": -31.84924240491749
+        },
+        "lower": {
+          "x": -0.7071067811865475,
+          "y": 0.7071067811865475
+        },
+        "note": {
+          "x": -44.62741699796951,
+          "y": 44.62741699796951
+        },
+        "marker": {
+          "x": -60.63477631085023,
+          "y": 60.63477631085023
+        }
+      },
+      {
+        "dx": 100,
+        "dy": -100,
+        "label": {
+          "x": -31.84924240491749,
+          "y": -31.84924240491749
+        },
+        "lower": {
+          "x": 0.7071067811865475,
+          "y": 0.7071067811865475
+        },
+        "note": {
+          "x": 44.62741699796951,
+          "y": 44.62741699796951
+        },
+        "marker": {
+          "x": 60.63477631085023,
+          "y": 60.63477631085023
+        }
+      },
+      {
+        "dx": -50,
+        "dy": 200,
+        "label": {
+          "x": -45.3141689736402,
+          "y": -11.32854224341005
+        },
+        "lower": {
+          "x": 0.9701425001453319,
+          "y": 0.24253562503633297
+        },
+        "note": {
+          "x": 68.22103059288591,
+          "y": 17.055257648221477
+        },
+        "marker": {
+          "x": 94.87076382730804,
+          "y": 23.71769095682701
+        }
+      },
+      {
+        "dx": 300,
+        "dy": 20,
+        "label": {
+          "x": 2.166810725424031,
+          "y": -32.50216088136047
+        },
+        "lower": {
+          "x": -0.06651901052377392,
+          "y": 0.9977851578566088
+        },
+        "note": {
+          "x": -2.6949800181766945,
+          "y": 40.42470027265042
+        },
+        "marker": {
+          "x": -2.9706447160959972,
+          "y": 44.559670741439966
+        }
+      }
+    ],
+    "markers": [
+      {
+        "name": "",
+        "size": {
+          "width": 28,
+          "height": 28
+        }
+      },
+      {
+        "name": "Tap",
+        "size": {
+          "width": 51,
+          "height": 28
+        }
+      },
+      {
+        "name": "Café wifi proxy",
+        "size": {
+          "width": 141,
+          "height": 28
+        }
+      },
+      {
+        "name": "xxxxxxxxxxxxxxxxxxxxxxxx",
+        "size": {
+          "width": 208,
+          "height": 28
+        }
+      }
+    ],
+    "entries": [
+      {
+        "from": {
+          "x": 200,
+          "y": 0
+        },
+        "box": {
+          "x": 100,
+          "y": 100,
+          "width": 200,
+          "height": 72
+        },
+        "point": {
+          "x": 200,
+          "y": 100
+        }
+      },
+      {
+        "from": {
+          "x": 0,
+          "y": 136
+        },
+        "box": {
+          "x": 100,
+          "y": 100,
+          "width": 200,
+          "height": 72
+        },
+        "point": {
+          "x": 100,
+          "y": 136
+        }
+      },
+      {
+        "from": {
+          "x": 200,
+          "y": 400
+        },
+        "box": {
+          "x": 100,
+          "y": 100,
+          "width": 200,
+          "height": 72
+        },
+        "point": {
+          "x": 200,
+          "y": 172
+        }
+      },
+      {
+        "from": {
+          "x": 400,
+          "y": 136
+        },
+        "box": {
+          "x": 100,
+          "y": 100,
+          "width": 200,
+          "height": 72
+        },
+        "point": {
+          "x": 300,
+          "y": 136
+        }
+      },
+      {
+        "from": {
+          "x": 150,
+          "y": 120
+        },
+        "box": {
+          "x": 100,
+          "y": 100,
+          "width": 200,
+          "height": 72
+        },
+        "point": {
+          "x": 200,
+          "y": 136
+        }
+      },
+      {
+        "from": {
+          "x": 0,
+          "y": 0
+        },
+        "box": {
+          "x": 100,
+          "y": 100,
+          "width": 200,
+          "height": 72
+        },
+        "point": {
+          "x": 147.05882352941177,
+          "y": 100
+        }
+      },
+      {
+        "from": {
+          "x": 400,
+          "y": 400
+        },
+        "box": {
+          "x": 100,
+          "y": 100,
+          "width": 200,
+          "height": 72
+        },
+        "point": {
+          "x": 227.27272727272728,
+          "y": 172
+        }
+      },
+      {
+        "from": {
+          "x": 200,
+          "y": 136
+        },
+        "box": {
+          "x": 100,
+          "y": 100,
+          "width": 200,
+          "height": 72
+        },
+        "point": {
+          "x": 200,
+          "y": 136
+        }
       }
     ]
   }

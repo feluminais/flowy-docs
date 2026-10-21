@@ -1,5 +1,6 @@
-import { animationOf, animationProblem, beatsFor, burstOf, followsLanding, interceptorProblem, outcomeLine, shortLabel, travelMs } from '../../src/core/animation.ts'
-import { active, bump, distance, DWELL, ease, GAP, litOpacity, progress, tubeOpacity } from '../../ui/src/motion.ts'
+import { animationOf, animationProblem, beatsFor, burstOf, followsLanding, interceptorProblem, leavesMarks, outcomeLine, shortLabel, TINTS, travelMs } from '../../src/core/animation.ts'
+import { colorPair } from '../../src/core/look.ts'
+import { active, bump, distance, DWELL, ease, entryPoint, GAP, labelOffset, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, progress, tubeOpacity } from '../../ui/src/motion.ts'
 
 /** Tags as the files can hold them: good ones, and every kind of wrong one. */
 const RAW: unknown[] = [
@@ -49,6 +50,10 @@ const SHAPE_NAMES: Record<string, string> = { proxy: 'Edge proxy' }
 const LENGTHS = [0, 100, 250, 400, 1000, 5000, 333.3]
 const ENDS: [string, string][] = [['a', 'b'], ['b', 'c'], ['a', 'c'], ['a', 'a']]
 const TIMEOUT_BEATS = beatsFor({ kind: 'call', trigger: 'inside', outcome: 'timeout' }, { length: 250, afterLanding: false }).beats
+/** The stretches of a line a blob runs between, and the directions a line can run, for the maths the outcomes added. */
+const SPANS: { start?: number; end?: number }[] = [{}, { end: 0.4 }, { start: 0.4 }, { start: 0.4, end: 0.4 }, { end: 0.92 }]
+const DIRECTIONS: [number, number][] = [[300, 0], [-300, 0], [0, 300], [0, -300], [0, 0], [100, 100], [100, -100], [-50, 200], [300, 20]]
+const BOX = { x: 100, y: 100, width: 200, height: 72 }
 const SPAN = { at: 100, dur: 400 }
 const TUBE = { at: 0, dur: 1000 }
 
@@ -70,6 +75,10 @@ export function dumpBeats(): unknown {
       return a?.outcome === undefined ? [] : [{ animation, line: outcomeLine(a) ?? null, named: outcomeLine(a, id => SHAPE_NAMES[id] ?? id) ?? null }]
     }),
     bursts: SHARES.map(share => ({ share, ...burstOf(share) })),
+    marks: RAW.flatMap(animation => {
+      const a = read(animation)
+      return a ? [{ animation, marks: leavesMarks(a) }] : []
+    }),
     labels: ['order', 'a'.repeat(16), 'a'.repeat(17), 'a-very-long-word-for-a-small-dot', ''].map(label => ({ label, short: shortLabel(label) })),
     bursting: [...BURSTS, ...RAW.filter(hasShare)].flatMap(animation => {
       const a = read(animation)
@@ -89,6 +98,18 @@ export function dumpBeats(): unknown {
       distance: (['fwd', 'back'] as const).flatMap(dir => [0, 0.3, 1].map(p => ({ dir, p, distance: distance(dir, p, 200) }))),
       // How far a timeout has dimmed the lit line, over the beats of a call that nobody answers.
       lit: [0, 1000, 3250, 3550, 3850, 9000].map(t => ({ t, lit: litOpacity(TIMEOUT_BEATS, t) })),
+      // A blob that runs between two fractions of the line, and waits where start is end.
+      spans: SPANS.flatMap(span => (['fwd', 'back'] as const).flatMap(dir => [0, 0.3, 0.5, 1].map(p => ({ span, dir, p, distance: distance(dir, p, 200, span) })))),
+      // The colour of each slot of the tints, which wrap round.
+      tints: [0, 1, 2, 3, 4, 7, -1].map(slot => ({ slot, pair: colorPair(TINTS[((slot % TINTS.length) + TINTS.length) % TINTS.length])! })),
+      // Where a label, a note and a marker sit beside a line that runs in each direction.
+      sides: DIRECTIONS.map(([dx, dy]) => ({
+        dx, dy, label: labelOffset(dx, dy, 6), lower: lowerSide(dx, dy), note: noteSpot(dx, dy, 10),
+        marker: markerSpot(dx, dy, markerSize('Café wifi proxy')),
+      })),
+      markers: ['', 'Tap', 'Café wifi proxy', 'x'.repeat(24)].map(name => ({ name, size: markerSize(name) })),
+      // Where a blob that is taken in by a box stops.
+      entries: [[200, 0], [0, 136], [200, 400], [400, 136], [150, 120], [0, 0], [400, 400], [200, 136]].map(([x, y]) => ({ from: { x, y }, box: BOX, point: entryPoint({ x, y }, BOX) })),
     },
   }
 }

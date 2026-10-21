@@ -235,6 +235,12 @@ public static class Animations
     /// <summary>The beats, or none when the condition is false.</summary>
     private static Beat[] When(bool condition, params Beat[] beats) => condition ? beats : [];
 
+    /// <summary>
+    /// Whether the step leaves marks where its outcome happened (a cross, a bar, a clock, a marker, a reason). A still picture needs them too, and the label of its line
+    /// moves aside so they never sit on it.
+    /// </summary>
+    public static bool LeavesMarks(StepAnimation a) => BeatsFor(a, 0, false).Beats.Any(b => b.Do is "pop" or "bar" or "clock" or "note" or "marker");
+
     private static string LowerFirst(string s) => s.Length == 0 ? s : char.ToLowerInvariant(s[0]) + s[1..];
 
     /// <summary>

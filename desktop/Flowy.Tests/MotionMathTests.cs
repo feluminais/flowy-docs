@@ -56,6 +56,88 @@ public class MotionMathTests
     }
 
     [Fact]
+    public void A_blob_runs_between_the_fractions_of_the_line_it_is_given()
+    {
+        var all = Motion()["spans"]!.AsArray();
+        Assert.True(all.Count >= 40);
+        foreach (var e in all)
+        {
+            var span = e!["span"]!;
+            Assert.Equal(
+                e["distance"]!.GetValue<double>(),
+                MotionMath.Distance(e["dir"]!.GetValue<string>(), e["p"]!.GetValue<double>(), 200, span["start"]?.GetValue<double>(), span["end"]?.GetValue<double>()), 9);
+        }
+        Assert.Equal(80, MotionMath.Distance("fwd", 1, 200, end: 0.4), 9);
+        Assert.Equal(80, MotionMath.Distance("fwd", 0.3, 200, 0.4, 0.4), 9); // it waits where it is
+    }
+
+    [Fact]
+    public void A_request_that_meets_an_outcome_has_the_same_colour_as_in_the_browser()
+    {
+        var all = Motion()["tints"]!.AsArray();
+        Assert.True(all.Count >= 6);
+        foreach (var e in all)
+        {
+            var (light, dark) = MotionMath.TintPair(e!["slot"]!.GetValue<int>());
+            Assert.Equal(e["pair"]![0]!.GetValue<string>(), light);
+            Assert.Equal(e["pair"]![1]!.GetValue<string>(), dark);
+        }
+        Assert.Equal(MotionMath.TintPair(0), MotionMath.TintPair(Animations.Tints.Length));
+        foreach (var taken in new[] { "blue", "red", "amber", "gray" }) Assert.DoesNotContain(taken, Animations.Tints);
+    }
+
+    [Fact]
+    public void A_note_and_a_marker_sit_on_the_lower_side_of_the_line_as_in_the_browser()
+    {
+        var all = Motion()["sides"]!.AsArray();
+        Assert.True(all.Count >= 9);
+        var size = MotionMath.MarkerSize("Café wifi proxy");
+        foreach (var e in all)
+        {
+            double dx = e!["dx"]!.GetValue<double>(), dy = e["dy"]!.GetValue<double>();
+            void Same(JsonNode? expected, (double X, double Y) actual)
+            {
+                Assert.Equal(expected!["x"]!.GetValue<double>(), actual.X, 9);
+                Assert.Equal(expected["y"]!.GetValue<double>(), actual.Y, 9);
+            }
+            Same(e["label"], MotionMath.LabelOffset(dx, dy, 6));
+            Same(e["lower"], MotionMath.LowerSide(dx, dy));
+            Same(e["note"], MotionMath.NoteSpot(dx, dy, 10));
+            Same(e["marker"], MotionMath.MarkerSpot(dx, dy, size));
+            var (up, down) = (MotionMath.LabelOffset(dx, dy, 6), MotionMath.LowerSide(dx, dy));
+            Assert.True(up.X * down.X + up.Y * down.Y < 0, "the label is on the other side");
+        }
+        Assert.Equal((0.0, 1.0), MotionMath.LowerSide(300, 0));
+        Assert.Equal((-1.0, 0.0), MotionMath.LowerSide(0, 300));
+    }
+
+    [Fact]
+    public void A_marker_is_as_wide_as_its_name()
+    {
+        foreach (var e in Motion()["markers"]!.AsArray())
+        {
+            var (width, height) = MotionMath.MarkerSize(e!["name"]!.GetValue<string>());
+            Assert.Equal(e["size"]!["width"]!.GetValue<double>(), width);
+            Assert.Equal(e["size"]!["height"]!.GetValue<double>(), height);
+        }
+    }
+
+    [Fact]
+    public void A_blob_taken_in_by_a_box_stops_at_its_edge()
+    {
+        var all = Motion()["entries"]!.AsArray();
+        Assert.True(all.Count >= 8);
+        foreach (var e in all)
+        {
+            var box = e!["box"]!;
+            var (x, y) = MotionMath.EntryPoint((e["from"]!["x"]!.GetValue<double>(), e["from"]!["y"]!.GetValue<double>()),
+                new Rect(box["x"]!.GetValue<double>(), box["y"]!.GetValue<double>(), box["width"]!.GetValue<double>(), box["height"]!.GetValue<double>()));
+            Assert.Equal(e["point"]!["x"]!.GetValue<double>(), x, 9);
+            Assert.Equal(e["point"]!["y"]!.GetValue<double>(), y, 9);
+        }
+    }
+
+    [Fact]
     public void A_gulp_squashes_the_box_it_is_on_while_it_runs()
     {
         var (beats, _) = Animations.BeatsFor(new StepAnimation("send", "inside", null), 250, false);

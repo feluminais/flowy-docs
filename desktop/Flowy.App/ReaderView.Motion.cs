@@ -37,7 +37,7 @@ internal sealed partial class ReaderView
     /// Starts the motion of the step now showing, once for each step and replay: Refresh runs for many other reasons (a hover, a theme, a
     /// change on disk) and must not start it again.
     /// </summary>
-    private void UpdateMotion((string Id, Flow Flow)? flow, int index, Playing? shown)
+    private void UpdateMotion(Model model, string view, (string Id, Flow Flow)? flow, int index, Playing? shown)
     {
         var key = flow is { } f ? $"{f.Id}:{index}:{_replays}" : "";
         if (key == _stepKey) return;
@@ -51,7 +51,7 @@ internal sealed partial class ReaderView
             foreach (var i in stop.Steps)
             {
                 if (Animations.Read(playing.Flow.Steps[i]) is not { } animation || shown.Ends[i] is not { } placed) continue;
-                runs.Add(new CanvasView.StepRun(animation, placed.From, placed.To, stop.Before.Any(j => Animations.Follows(shown.Ends[j], placed))));
+                runs.Add(new CanvasView.StepRun(animation, placed.From, placed.To, stop.Before.Any(j => Animations.Follows(shown.Ends[j], placed)), TakenBy(model, view, animation, placed)));
             }
             if (runs.Count > 0)
                 _canvas.PlaySteps(runs, () =>
@@ -62,6 +62,18 @@ internal sealed partial class ReaderView
                 });
         }
         ArmAuto();
+    }
+
+    /// <summary>
+    /// Who takes an intercepted request, as the view can draw it: the box that stands for the shape in this view, unless that is an end of the step (the view folds
+    /// the shape into one of them) or the view can't show it; then its name stands in, drawn as a marker. Null for a step that is not intercepted.
+    /// </summary>
+    private static CanvasView.TakenBy? TakenBy(Model model, string view, StepAnimation animation, (string From, string To) placed)
+    {
+        if (animation.By is not { } by) return null;
+        if (by.Name is { } name) return new CanvasView.TakenBy(Name: name);
+        var box = Views.PlaceStep(model, view, by.Shape, null)?.From;
+        return box is not null && box != placed.From && box != placed.To ? new CanvasView.TakenBy(Node: box) : new CanvasView.TakenBy(Name: Views.NameOf(model, by.Shape!));
     }
 
     /// <summary>
