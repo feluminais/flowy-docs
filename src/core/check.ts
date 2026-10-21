@@ -5,7 +5,8 @@ import { animationProblem } from './animation.ts'
 import { dataProblems } from './data.ts'
 import { analysisProblems } from './failures.ts'
 import { snippetProblems } from './snippets.ts'
-import { structureProblems } from './structure.ts'
+import { stateProblems } from './states.ts'
+import { structureProblems, stopsOf } from './structure.ts'
 import { isView, placeStep } from './views.ts'
 
 /**
@@ -163,6 +164,10 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
         sp(`${s.from} → ${s.to} can't be shown in view "${f.view}"`)
     })
     for (const sq of structureProblems(f, id => Object.hasOwn(model.flows, id))) {
+      if (sq.step === undefined) p(sq.message)
+      else p(`step ${sq.step + 1}: ${sq.message}`, { step: sq.step })
+    }
+    for (const sq of stateProblems(f, stopsOf(f), id => getObject(model, id) !== undefined)) {
       if (sq.step === undefined) p(sq.message)
       else p(`step ${sq.step + 1}: ${sq.message}`, { step: sq.step })
     }

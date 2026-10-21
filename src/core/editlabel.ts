@@ -1,5 +1,8 @@
 import { customIcons } from './look.ts'
-import type { Connection, Model } from './model.ts'
+import { isMap } from './model.ts'
+import type { Connection, Flow, Model } from './model.ts'
+import { isStateName, STATE_LABELS } from './states.ts'
+import type { StateName } from './states.ts'
 
 const MAX_NAME = 40
 
@@ -18,6 +21,30 @@ function fieldWord(key: string): string {
   if (key === 'snippets') return 'code'
   if (key === 'type' || key === 'tech' || key === 'description' || key === 'links' || key === 'data' || key === 'external') return key
   return key === 'shape' || key === 'color' || key === 'opacity' || key === 'icon' ? 'look' : 'details'
+}
+
+/**
+ * When the only difference between two versions of a flow is one shape's state in the flow's `states` or in one step's, that change: the shape
+ * and its new state, or undefined for a state taken out. Nothing when anything else differs, or when more than one state does.
+ */
+function stateEdit(before: Flow, after: Flow): { id: string; state: StateName | undefined } | undefined {
+  if (before.steps.length !== after.steps.length) return undefined
+  const bare = (f: Flow) => canon({ ...f, states: undefined, steps: f.steps.map(step => ({ ...step, states: undefined })) })
+  if (bare(before) !== bare(after)) return undefined
+  const changes: { id: string; state: StateName | undefined }[] = []
+  let odd = false // a word that is not a state is not an edit worth a sentence
+  const compare = (b: unknown, a: unknown) => {
+    const [was, now] = [isMap(b) ? b : {}, isMap(a) ? a : {}]
+    for (const id of new Set([...Object.keys(was), ...Object.keys(now)])) {
+      if (canon(was[id]) === canon(now[id])) continue
+      const state = has(now, id) ? now[id] : undefined
+      if (state !== undefined && !isStateName(state)) odd = true
+      changes.push({ id, state: isStateName(state) ? state : undefined })
+    }
+  }
+  compare(before.states, after.states)
+  before.steps.forEach((step, i) => compare(step.states, after.steps[i].states))
+  return changes.length === 1 && !odd ? changes[0] : undefined
 }
 
 /** Connections as a multiset, so two identical lines are two. */
@@ -106,7 +133,10 @@ export function describeEdit(before: Model, after: Model): string | undefined {
     else if (!has(after.flows, id)) flowChanges.push(`Deleted the ${flowName(before, id)} flow`)
     else if (canon(before.flows[id]) !== canon(after.flows[id])) {
       const onlyTheName = canon({ ...before.flows[id], name: '' }) === canon({ ...after.flows[id], name: '' })
-      flowChanges.push(onlyTheName ? `Renamed the flow ${flowName(before, id)} to ${flowName(after, id)}` : `Changed the ${flowName(after, id)} flow`)
+      const state = stateEdit(before.flows[id], after.flows[id])
+      flowChanges.push(onlyTheName
+        ? `Renamed the flow ${flowName(before, id)} to ${flowName(after, id)}`
+        : state === undefined ? `Changed the ${flowName(after, id)} flow` : state.state === undefined ? `Cleared ${nameOf(state.id)}'s state` : `Set ${nameOf(state.id)} to ${STATE_LABELS[state.state]}`)
     }
   }
   found.push(flowChanges.length === 0 ? undefined : flowChanges.length === 1 ? flowChanges[0] : `Changed ${flowChanges.length} flows`)
