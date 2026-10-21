@@ -71,6 +71,17 @@ export function pathToOpen(data: unknown): string | undefined {
   return typeof data.path === 'string' && data.path !== '' ? data.path : undefined
 }
 
+export const OPEN_URL_MESSAGE = 'flowy-open-url'
+
+/** The message that asks the host to open the web address `url` in the reader's browser. The page sends it rather than leaving a link to the webview, which sends every link it is given to the browser, prevented or not. */
+export const openUrlMessage = (url: string) => ({ type: OPEN_URL_MESSAGE, url })
+
+/** The web address a message asks the host to open, or undefined when `data` is some other message or the address isn't http(s). */
+export function urlToOpen(data: unknown): string | undefined {
+  if (!isObject(data) || data.type !== OPEN_URL_MESSAGE || typeof data.url !== 'string') return undefined
+  return /^https?:\/\/\S+$/i.test(data.url) ? data.url : undefined
+}
+
 /** What the host can ask the page to show: a shape (it is drawn where it sits and selected) or a flow (it plays). */
 export type Target = { shape: string } | { flow: string }
 export const REVEAL_MESSAGE = 'flowy-reveal'
