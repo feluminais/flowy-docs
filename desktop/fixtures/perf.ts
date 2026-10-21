@@ -11,7 +11,7 @@ import {
 import type { Dial, Metrics, Run, Setting } from '../../src/core/perf.ts'
 import { nameOf } from '../../src/core/views.ts'
 import {
-  activeRun, BOX_KEYS, boxAt, boxSeries, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
+  activeRun, activeSeries, bracketOf, BOX_KEYS, boxAt, boxSeries, boxSeriesIn, dialTicks, dialTop, edgeActive, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, positionsOf, rampActive, rampFromActive, settingOf, stepActive, stepFrom, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
 } from '../../ui/src/perfview.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -471,7 +471,7 @@ function settingsOf(dials: Dial[]): Setting[] {
  * adder with fewer than two runs it can add is left out too), then played at settings of their dials against the same shop as the folder's: what each dial is, the level at each
  * setting, the traffic and key in each view, the roll-up with what each source carries, and where everything rising together first struggles.
  */
-async function dumpSources(model: Model): Promise<unknown> {
+function assembleSources(model: Model) {
   const files = SOURCES.map(([id, text]) => {
     try {
       return { id, text, ...parseRun(id, text) }
@@ -491,7 +491,11 @@ async function dumpSources(model: Model): Promise<unknown> {
   }
   problems.push(...checkRuns(runs))
   for (const id of Object.keys(runs)) if (runs[id].adds !== undefined && dialsOf(runs, id) === undefined) delete runs[id]
+  return { files, runs, problems }
+}
 
+async function dumpSources(model: Model): Promise<unknown> {
+  const { files, runs, problems } = assembleSources(model)
   const views = (id: string) => (id === 'together' || id === 'grid-good' ? [ROOT, 'shop', 'web'] : [ROOT, 'shop'])
   return {
     files,
@@ -628,6 +632,58 @@ const TIMED_VIEW: [id: string, text: string][] = [
   ['close', 'name: C\naxis: time\nlevels:\n  - at: 0\n  - at: 100\n  - at: 101\n'],
   ['offset', 'name: O\naxis: time\nunit: min\nevents:\n  - { at: 10, on: db, state: degraded }\n  - { at: 20, on: db, state: running }\nlevels:\n  - at: 10\n  - at: 12.5\n  - at: 20\n'],
 ]
+/**
+ * The panel's maths for a run with several dials (and for a single run's one): the setting a set of positions makes and back, the opening place, a step, a ramp, the series along the
+ * active dial with the others held, the held dials in words, the labels under a dial, the loads either side of a position and what the panel says once.
+ */
+function dumpDials(model: Model) {
+  const { runs } = assembleSources(model)
+  const sets = (tops: number[]): number[][] => [
+    tops.map(() => 0), tops.map(t => t), tops.map(t => t / 2), tops.map((t, i) => (i % 2 === 0 ? 0.5 : t - 0.25)), tops.map(() => -3), tops.map(() => 99), tops.map((t, i) => Math.min(t, i + 1)),
+  ]
+  return ['orders-run', 'together', 'three-added', 'grid-good', 'grid-three', 'grid-numeric'].map(id => {
+    const { dials, mode } = dialsOf(runs, id)!
+    const knee = kneeOf(runs, id)
+    return {
+      id,
+      mode,
+      label: modeLabel(mode) ?? null,
+      over: [undefined, 0.5, 1, 1.3].map(util => ({ util: util ?? null, text: overText(mode, util) ?? null })),
+      opening: openingPositions(dials, knee),
+      openingNone: openingPositions(dials),
+      dials: dials.map(d => ({
+        id: d.id, top: dialTop(d), ticks: dialTicks(d), few: dialTicks(d, 2),
+        brackets: [-1, 0, 0.25, 1, 1.5, dialTop(d), 99].map(pos => ({ pos, ...bracketOf(d, pos) })),
+      })),
+      sets: sets(dials.map(dialTop)).map(positions => {
+        const setting = settingOf(dials, positions)
+        return {
+          positions,
+          setting,
+          back: positionsOf(dials, setting),
+          actives: dials.map((_, active) => {
+            const along = activeSeries(runs, id, dials, positions, active)
+            return {
+              active,
+              step: [stepActive(dials, positions, active, 1), stepActive(dials, positions, active, -1)],
+              edge: [edgeActive(dials, positions, active, 'start'), edgeActive(dials, positions, active, 'end')],
+              place: [placeActive(dials, positions, active, 1.5), placeActive(dials, positions, active, -2), placeActive(dials, positions, active, 99)],
+              ramp: [0, 16, 1000, RAMP_MS / 2, RAMP_MS, RAMP_MS * 3].map(ms => rampActive(dials, positions, active, ms)),
+              from: rampFromActive(dials, positions, active),
+              held: heldText(dials, positions, active),
+              loads: along.map(l => l.loads ?? null),
+              util: boxSeriesIn(model, along, 'shop', 'db', 'util').map(v => v ?? null),
+              rate: lineSeriesIn(model, along, 'shop', 'web', 'db', 'rate').map(v => v ?? null),
+              wide: lineSeriesIn(model, along, ROOT, 'shop', 'gateway', 'rate').map(v => v ?? null),
+              p95: along.map(l => l.overall.p95 ?? null),
+            }
+          }),
+        }
+      }),
+    }
+  })
+}
+
 const SCALES: [(number | undefined)[], { log?: boolean; from?: number; to?: number }?][] = [
   [[0.2, 0.8, undefined]], [[0.2, 0.8], { to: 1 }], [[undefined]], [[12, 450, undefined], { log: true }], [[100], { log: true }], [[0, -4], { log: true }],
   [[5, 5]], [[3, 9], { from: 2 }], [[], { log: true }], [[0.001, 20000], { log: true }],
@@ -647,6 +703,8 @@ export async function dumpPerfView(): Promise<unknown> {
   const views = [ROOT, 'shop', 'web']
   return {
     constants: { rampMs: RAMP_MS, rampStepMs: RAMP_STEP_MS },
+    dials: dumpDials(model),
+    steps: [[0, 1], [0, -1], [1, 1], [1, -1], [1.5, 1], [1.5, -1], [1 + 1e-9, -1], [1 - 1e-9, 1], [2, 1], [-1, 1], [99, -1]].map(([pos, direction]) => ({ pos, direction, to: stepFrom(pos, direction as 1 | -1) })),
     words: NUMBERS.map(n => ({ n, ms: fmtMs(n), pct: fmtPct(n), rate: fmtRate(n), bytes: fmtBytes(n), load: fmtLoad(n, 'req/s') })),
     marks: MARKS.map(lines => ({ lines, marks: failureMarks(lines) })),
     colours: COLOURS.map(color => ({ color: color ?? null, css: sourceCss(color) ?? null })),

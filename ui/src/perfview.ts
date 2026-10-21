@@ -1,7 +1,7 @@
 import { colorPair } from '../../src/core/look.ts'
 import type { Model } from '../../src/core/model.ts'
-import { eventsOf, interpolate, isTime, rollUp } from '../../src/core/perf.ts'
-import type { LineTraffic, Metrics, Run, RunEvent } from '../../src/core/perf.ts'
+import { eventsOf, interpolate, isTime, levelAt, loadOfPosition, lockstepPositions, rollUp, settingAt } from '../../src/core/perf.ts'
+import type { Dial, Knee, Level, LineTraffic, Metrics, Mode, Run, RunEvent, Setting } from '../../src/core/perf.ts'
 
 export { isTime }
 
@@ -226,15 +226,25 @@ export function tickLabels(run: Run, most = 8): { fraction: number; label: strin
 
 /** What each tested level says about an object, key by key, as the view draws it (a shape that holds others takes the worst of what is inside). */
 export function boxSeries(model: Model, run: Run, view: string, id: string, key: keyof Metrics): (number | undefined)[] {
-  return run.levels.map(l => {
+  return boxSeriesIn(model, run.levels, view, id, key)
+}
+
+/** The same for the line a view draws between two shapes. */
+export function lineSeries(model: Model, run: Run, view: string, from: string, to: string, key: keyof Metrics): (number | undefined)[] {
+  return lineSeriesIn(model, run.levels, view, from, to, key)
+}
+
+/** An object's number at each of these levels (the levels of a run, or of a run with several sources along one dial: see activeSeries). */
+export function boxSeriesIn(model: Model, levels: readonly Level[], view: string, id: string, key: keyof Metrics): (number | undefined)[] {
+  return levels.map(l => {
     const { objects } = rollUp(model, l, view)
     return Object.hasOwn(objects, id) ? objects[id][key] : undefined
   })
 }
 
 /** The same for the line a view draws between two shapes. */
-export function lineSeries(model: Model, run: Run, view: string, from: string, to: string, key: keyof Metrics): (number | undefined)[] {
-  return run.levels.map(l => rollUp(model, l, view).lines.find(p => p.from === from && p.to === to)?.[key])
+export function lineSeriesIn(model: Model, levels: readonly Level[], view: string, from: string, to: string, key: keyof Metrics): (number | undefined)[] {
+  return levels.map(l => rollUp(model, l, view).lines.find(p => p.from === from && p.to === to)?.[key])
 }
 
 /** An object's numbers at a load, or undefined when nothing was measured on it. */
@@ -268,3 +278,97 @@ export function failureMarks(lines: readonly Pick<LineTraffic, 'failed' | 'failu
     rejected: failing.some(l => l.failure === 'rejected'),
   }
 }
+
+// ---- Several dials
+
+/**
+ * Where each dial of a run stands, one position for each, in dial order. A position is a place along that dial's tested loads: 0 is the first, 1.5 halfway from the second to the third
+ * (the same as a single run's position). A run with one source has one dial.
+ */
+export type Positions = number[]
+
+/** The top of a dial's slider: the position of its last tested load. */
+export const dialTop = (d: Dial): number => d.values.length - 1
+
+export const clampDial = (d: Dial, pos: number): number => Math.min(dialTop(d), Math.max(0, Number.isFinite(pos) ? pos : 0))
+
+/** The setting that puts every dial at its position (see settingAt). */
+export const settingOf = (dials: readonly Dial[], positions: Positions): Setting => settingAt(dials, positions)
+
+/** The position of a load along a dial, the other way round from loadOfPosition: a tested load is its whole position, and between two it is a straight line. Outside the loads it is the nearest end. */
+export function positionOf(d: Dial, x: number): number {
+  const top = dialTop(d)
+  if (!Number.isFinite(x) || x <= d.values[0]) return 0
+  if (x >= d.values[top]) return top
+  for (let i = 0; i < top; i++) if (x < d.values[i + 1]) return i + (x - d.values[i]) / (d.values[i + 1] - d.values[i])
+  return top
+}
+
+/** The positions of a setting, one for each dial; a dial it doesn't name is at its lowest load. */
+export const positionsOf = (dials: readonly Dial[], setting: Setting): Positions => dials.map(d => positionOf(d, Object.hasOwn(setting, d.id) ? setting[d.id] : Number.NaN))
+
+/**
+ * Where the tab opens: at the first struggle when every dial rises together (the knee's step, each dial along its own loads), else every dial at its top, as a single run opens.
+ * `knee` is what kneeOf found for the run, if anything.
+ */
+export function openingPositions(dials: readonly Dial[], knee?: Pick<Knee, 'index'>): Positions {
+  return knee === undefined ? dials.map(dialTop) : lockstepPositions(dials, knee.index)
+}
+
+/** `positions` with the dial `active` at `pos` (kept inside the dial); the others stay where they are. */
+export const placeActive = (dials: readonly Dial[], positions: Positions, active: number, pos: number): Positions =>
+  positions.map((p, i) => (i === active ? clampDial(dials[i], pos) : p))
+
+/** The whole-number position one step on from `pos` in `direction` (1 or -1): the next tested load, or the one before, even when `pos` is between two. */
+export const stepFrom = (pos: number, direction: 1 | -1): number => (direction === 1 ? Math.floor(pos + 1e-6) + 1 : Math.ceil(pos - 1e-6) - 1)
+
+/** `positions` with the dial `active` one tested load further on (it stops at either end). Arrow keys. */
+export const stepActive = (dials: readonly Dial[], positions: Positions, active: number, direction: 1 | -1): Positions =>
+  placeActive(dials, positions, active, Math.round(clampDial(dials[active], stepFrom(positions[active], direction))))
+
+/** `positions` with the dial `active` at its first or last tested load. Home and End. */
+export const edgeActive = (dials: readonly Dial[], positions: Positions, active: number, edge: 'start' | 'end'): Positions =>
+  placeActive(dials, positions, active, edge === 'start' ? 0 : dialTop(dials[active]))
+
+/** `positions` with the dial `active` `ms` further on in a ramp (it stops at its last tested load). The others are held. */
+export const rampActive = (dials: readonly Dial[], positions: Positions, active: number, ms: number): Positions =>
+  placeActive(dials, positions, active, positions[active] + (ms * dialTop(dials[active])) / RAMP_MS)
+
+/** Where a ramp of the dial `active` starts: from its bottom when it is at the top already, else from where it is. */
+export const rampFromActive = (dials: readonly Dial[], positions: Positions, active: number): Positions =>
+  positions[active] >= dialTop(dials[active]) ? placeActive(dials, positions, active, 0) : positions
+
+/**
+ * The level at each tested load of the dial `active`, with the others held where they stand: what the Strip and the small curves plot, as a single run plots the levels it was
+ * tested at. One level for each load of the dial, in order.
+ */
+export function activeSeries(runs: Record<string, Run>, id: string, dials: readonly Dial[], positions: Positions, active: number): Level[] {
+  const held = settingOf(dials, positions)
+  const dial = dials[Math.min(dials.length - 1, Math.max(0, active))]
+  return dial.values.map(v => levelAt(runs, id, { ...held, [dial.id]: v }))
+}
+
+/** The dials that are held while the Strip and the curves follow `active`, each with its name and where it stands in words: "Courier pings held at 100 pings/s". */
+export function heldText(dials: readonly Dial[], positions: Positions, active: number): string[] {
+  return dials.flatMap((d, i) => (i === active ? [] : [`${d.name} held at ${fmtLoad(loadOfPosition(d.values, positions[i]), d.unit)}`]))
+}
+
+/** The labels under a dial's slider: its tested loads at their places along it (0 to 1), every one, or every few when there would be too many to read. The last is always named. */
+export function dialTicks(d: Dial, most = 8): { fraction: number; label: string }[] {
+  const n = d.values.length
+  const every = Math.ceil(n / most)
+  return d.values.flatMap((v, i) => (i % every === 0 || i === n - 1 ? [{ fraction: n === 1 ? 0 : i / (n - 1), label: String(v) }] : []))
+}
+
+/** The tested loads either side of a position (the same when it is on one), for "Between 600 and 900, estimated". */
+export function bracketOf(d: Dial, pos: number): { lower: number; upper: number; tested: boolean } {
+  const top = dialTop(d)
+  const p = clampDial(d, pos)
+  return { lower: d.values[Math.min(top - 1, Math.floor(p))], upper: d.values[Math.min(top, Math.floor(p) + 1)], tested: isTested(p) }
+}
+
+/** What the panel says once, near the top, about how the sources were measured: nothing for a single run. */
+export const modeLabel = (mode: Mode): string | undefined => (mode === 'added' ? 'Added from separate runs' : mode === 'tested' ? 'Tested together' : undefined)
+
+/** What a shape's readout says when runs that were added made it pass its capacity, which one run never does: nothing for a share that is 1 or under, or for runs tested together. */
+export const overText = (mode: Mode, util: number | undefined): string | undefined => (mode === 'added' && util !== undefined && util > 1 ? 'Added use is over 100%' : undefined)
