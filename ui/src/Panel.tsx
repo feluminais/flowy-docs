@@ -7,18 +7,18 @@ import { getObject, isExternal, linksOf, parseData, ROOT } from '../../src/core/
 import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { deleteFlow, deleteObject, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
-import type { StateMark } from '../../src/core/states.ts'
+import type { StateMark, StateName } from '../../src/core/states.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { CodeFields, CodeSection } from './Code.tsx'
 import { DataField, DataSection } from './Data.tsx'
-import { connectionsOf, linesOf, newId, problemsOf, withKey } from './edit.ts'
+import { connectionsOf, linesOf, newId, pickStepState, problemsOf, stateOf, stepStateShapes, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
 import { lineId } from './graph.ts'
 import { StateGlyph, stateClasses, stateWord } from './states.tsx'
 import { openInEditor, vscode } from './host.ts'
 import { Chip, kindClass, lookVars, ObjectTile, Section } from './Chrome.tsx'
-import { ColorPicker, ExternalToggle, IconPicker, KindPicker, OpacityPicker, ShapePicker, TypePicker } from './Pickers.tsx'
+import { ColorPicker, ExternalToggle, IconPicker, KindPicker, OpacityPicker, ShapePicker, StatePicker, TypePicker } from './Pickers.tsx'
 import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Table, Text, Trash, Close } from './icons.tsx'
 
 /** Runs one edit and resolves to true once it's saved. Whatever went wrong shows as a notice. */
@@ -409,6 +409,20 @@ function StepStructure({ step, self, groups, others, onGroup, onLane, onFlow }: 
   )
 }
 
+/** A state for each end of a step, as drawn tiles. A pick is one edit, and None takes the state out. A shape the model no longer has is left out; the checks report it. */
+function StepStates({ model, step, onPick }: { model: Model; step: Step; onPick: (shape: string, state: StateName | '') => Promise<boolean> }) {
+  const shapes = stepStateShapes(step).filter(id => getObject(model, id) !== undefined)
+  if (shapes.length === 0) return null
+  return (
+    <details className="more" open={shapes.some(id => stateOf(step, id) !== undefined) || undefined}>
+      <summary>State</summary>
+      <div className="form">
+        {shapes.map(id => <StatePicker key={id} label={nameOf(model, id)} value={stateOf(step, id)} onPick={state => void onPick(id, state)} />)}
+      </div>
+    </details>
+  )
+}
+
 /** The groups of the flow being recorded: how each one behaves, and a form that puts a stretch of its steps in a new one. */
 function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps: Step[]; groups: Record<string, Group>; edit: Run }) {
   const ids = Object.keys(groups)
@@ -535,6 +549,7 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
               onLane={lane => change(all => all.with(i, withKey(all[i], 'lane', lane)))}
               onFlow={target => change(all => all.with(i, withKey(all[i], 'flow', target)))}
             />
+            <StepStates model={model} step={s} onPick={(shape, state) => edit(m => pickStepState(m, rec.id, i, shape, state))} />
             <div className="step-buttons">
               <button aria-label="Move up" disabled={i === 0} onClick={() => void change(all => all.with(i - 1, all[i]).with(i, all[i - 1]))}><ArrowUp size={16} /></button>
               <button aria-label="Move down" disabled={i === steps.length - 1} onClick={() => void change(all => all.with(i + 1, all[i]).with(i, all[i + 1]))}><ArrowDown size={16} /></button>

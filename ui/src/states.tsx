@@ -29,13 +29,18 @@ export function StateGlyph({ mark, size = 12, className }: { mark: StateMark; si
 export const stateClasses = (mark: StateMark): string => `state-${mark.state} ${mark.inside ? 'state-inside' : 'stated'}`
 
 /** The mark as the key draws it: a small outline in the state's own dash with its glyph on the corner. Still, whatever the shape does. */
-function Swatch({ mark }: { mark: StateMark }) {
+export function Swatch({ mark }: { mark: StateMark }) {
   return (
     <span className={`state-key ${stateClasses(mark)}`}>
       {!mark.inside && <svg viewBox="0 0 26 16" aria-hidden="true"><rect x="1" y="1" width="24" height="14" rx="4" /></svg>}
       <StateGlyph mark={mark} size={9} />
     </span>
   )
+}
+
+/** The picker's tile for no change at all ("none": a faint dotted outline) and for Running (a plain outline, which is how a running shape looks). */
+export function PlainSwatch({ none }: { none?: boolean }) {
+  return <span className={`state-key plain${none ? ' none' : ''}`}><svg viewBox="0 0 26 16" aria-hidden="true"><rect x="1" y="1" width="24" height="14" rx="4" /></svg></span>
 }
 
 /** The key under the player: one mark for each state that is on the canvas now, drawn as it looks there, and nothing when no shape is in one. */
