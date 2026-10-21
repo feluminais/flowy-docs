@@ -1121,13 +1121,13 @@
     },
     {
       "id": "no-courier-answers",
-      "name": "No courier answers",
+      "name": "An offer goes unanswered",
       "view": "delivery",
       "steps": [
         {
           "from": "offers",
           "to": "notifier",
-          "text": "Offers the job to the nearest courier",
+          "text": "Offers the job, and the nearest courier doesn't answer within 30 seconds",
           "group": "offer",
           "placed": [
             "dispatch",
@@ -1137,7 +1137,7 @@
         },
         {
           "from": "offers",
-          "text": "Hears nothing within 30 seconds and moves on to the next courier",
+          "text": "Moves on to the next courier on the list",
           "group": "offer",
           "placed": [
             "dispatch",
@@ -1292,7 +1292,6 @@
           "from": "refunds",
           "to": "orders-db",
           "text": "Can't mark the order refunded, because Orders DB doesn't answer",
-          "description": "The refund and the write are two steps, so one can happen without the other.\n",
           "animation": {
             "kind": "call",
             "outcome": "timeout"

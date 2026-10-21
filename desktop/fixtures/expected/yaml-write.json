@@ -3101,7 +3101,7 @@
       "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
       "rel": "flows/no-courier-answers.yaml",
       "data": {
-        "name": "No courier answers",
+        "name": "An offer goes unanswered",
         "view": "delivery",
         "groups": {
           "offer": {
@@ -3117,12 +3117,12 @@
           {
             "from": "offers",
             "to": "notifier",
-            "text": "Offers the job to the nearest courier",
+            "text": "Offers the job, and the nearest courier doesn't answer within 30 seconds",
             "group": "offer"
           },
           {
             "from": "offers",
-            "text": "Hears nothing within 30 seconds and moves on to the next courier",
+            "text": "Moves on to the next courier on the list",
             "group": "offer"
           },
           {
@@ -3146,7 +3146,7 @@
           }
         ]
       },
-      "text": "name: No courier answers\nview: delivery\ngroups:\n  offer:\n    kind: repeat\n    until: a courier accepts, or the list runs out\n    text: One courier at a time, nearest first. Each has 30 seconds.\n  result:\n    kind: branch\nsteps:\n  - from: offers\n    to: notifier\n    text: Offers the job to the nearest courier\n    group: offer\n  - from: offers\n    text: Hears nothing within 30 seconds and moves on to the next courier\n    group: offer\n  - from: courier-app\n    to: dispatch\n    text: Accepts, and the offers stop\n    group: result\n    lane: A courier accepts\n  - from: offers\n    to: notifier\n    text: Tells the customer that no courier is free yet\n    group: result\n    lane: The list runs out\n  - from: dispatch\n    text: Searches again in a minute\n    group: result\n"
+      "text": "name: An offer goes unanswered\nview: delivery\ngroups:\n  offer:\n    kind: repeat\n    until: a courier accepts, or the list runs out\n    text: One courier at a time, nearest first. Each has 30 seconds.\n  result:\n    kind: branch\nsteps:\n  - from: offers\n    to: notifier\n    text: Offers the job, and the nearest courier doesn't answer within 30 seconds\n    group: offer\n  - from: offers\n    text: Moves on to the next courier on the list\n    group: offer\n  - from: courier-app\n    to: dispatch\n    text: Accepts, and the offers stop\n    group: result\n    lane: A courier accepts\n  - from: offers\n    to: notifier\n    text: Tells the customer that no courier is free yet\n    group: result\n    lane: The list runs out\n  - from: dispatch\n    text: Searches again in a minute\n    group: result\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
@@ -3218,8 +3218,7 @@
             "animation": {
               "kind": "call",
               "outcome": "timeout"
-            },
-            "description": "The refund and the write are two steps, so one can happen without the other.\n"
+            }
           },
           {
             "from": "refunds",
@@ -3232,7 +3231,7 @@
           }
         ]
       },
-      "text": "name: The refund is not recorded\nview: ordering\nsteps:\n  - from: refunds\n    to: stripe\n    text: Stripe has refunded the charge\n    animation: call\n    description: |\n      The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.\n  - from: refunds\n    to: orders-db\n    text: Can't mark the order refunded, because Orders DB doesn't answer\n    animation:\n      kind: call\n      outcome: timeout\n    description: |\n      The refund and the write are two steps, so one can happen without the other.\n  - from: refunds\n    text: Leaves the order marked paid, though the money is back\n  - from: refunds\n    to: notifier\n    text: Still sends the customer a refund confirmation\n"
+      "text": "name: The refund is not recorded\nview: ordering\nsteps:\n  - from: refunds\n    to: stripe\n    text: Stripe has refunded the charge\n    animation: call\n    description: |\n      The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.\n  - from: refunds\n    to: orders-db\n    text: Can't mark the order refunded, because Orders DB doesn't answer\n    animation:\n      kind: call\n      outcome: timeout\n  - from: refunds\n    text: Leaves the order marked paid, though the money is back\n  - from: refunds\n    to: notifier\n    text: Still sends the customer a refund confirmation\n"
     },
     {
       "folder": "M:\\Projects\\Flowy Docs\\docs\\demo\\flowy",
@@ -7342,7 +7341,7 @@
       "folder": "docs/demo/flowy",
       "rel": "flows/no-courier-answers.yaml",
       "data": {
-        "name": "No courier answers",
+        "name": "An offer goes unanswered",
         "view": "delivery",
         "groups": {
           "offer": {
@@ -7358,12 +7357,12 @@
           {
             "from": "offers",
             "to": "notifier",
-            "text": "Offers the job to the nearest courier",
+            "text": "Offers the job, and the nearest courier doesn't answer within 30 seconds",
             "group": "offer"
           },
           {
             "from": "offers",
-            "text": "Hears nothing within 30 seconds and moves on to the next courier",
+            "text": "Moves on to the next courier on the list",
             "group": "offer"
           },
           {
@@ -7387,7 +7386,7 @@
           }
         ]
       },
-      "text": "name: No courier answers\nview: delivery\ngroups:\n  offer:\n    kind: repeat\n    until: a courier accepts, or the list runs out\n    text: One courier at a time, nearest first. Each has 30 seconds.\n  result:\n    kind: branch\nsteps:\n  - from: offers\n    to: notifier\n    text: Offers the job to the nearest courier\n    group: offer\n  - from: offers\n    text: Hears nothing within 30 seconds and moves on to the next courier\n    group: offer\n  - from: courier-app\n    to: dispatch\n    text: Accepts, and the offers stop\n    group: result\n    lane: A courier accepts\n  - from: offers\n    to: notifier\n    text: Tells the customer that no courier is free yet\n    group: result\n    lane: The list runs out\n  - from: dispatch\n    text: Searches again in a minute\n    group: result\n"
+      "text": "name: An offer goes unanswered\nview: delivery\ngroups:\n  offer:\n    kind: repeat\n    until: a courier accepts, or the list runs out\n    text: One courier at a time, nearest first. Each has 30 seconds.\n  result:\n    kind: branch\nsteps:\n  - from: offers\n    to: notifier\n    text: Offers the job, and the nearest courier doesn't answer within 30 seconds\n    group: offer\n  - from: offers\n    text: Moves on to the next courier on the list\n    group: offer\n  - from: courier-app\n    to: dispatch\n    text: Accepts, and the offers stop\n    group: result\n    lane: A courier accepts\n  - from: offers\n    to: notifier\n    text: Tells the customer that no courier is free yet\n    group: result\n    lane: The list runs out\n  - from: dispatch\n    text: Searches again in a minute\n    group: result\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -7459,8 +7458,7 @@
             "animation": {
               "kind": "call",
               "outcome": "timeout"
-            },
-            "description": "The refund and the write are two steps, so one can happen without the other.\n"
+            }
           },
           {
             "from": "refunds",
@@ -7473,7 +7471,7 @@
           }
         ]
       },
-      "text": "name: The refund is not recorded\nview: ordering\nsteps:\n  - from: refunds\n    to: stripe\n    text: Stripe has refunded the charge\n    animation: call\n    description: |\n      The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.\n  - from: refunds\n    to: orders-db\n    text: Can't mark the order refunded, because Orders DB doesn't answer\n    animation:\n      kind: call\n      outcome: timeout\n    description: |\n      The refund and the write are two steps, so one can happen without the other.\n  - from: refunds\n    text: Leaves the order marked paid, though the money is back\n  - from: refunds\n    to: notifier\n    text: Still sends the customer a refund confirmation\n"
+      "text": "name: The refund is not recorded\nview: ordering\nsteps:\n  - from: refunds\n    to: stripe\n    text: Stripe has refunded the charge\n    animation: call\n    description: |\n      The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.\n  - from: refunds\n    to: orders-db\n    text: Can't mark the order refunded, because Orders DB doesn't answer\n    animation:\n      kind: call\n      outcome: timeout\n  - from: refunds\n    text: Leaves the order marked paid, though the money is back\n  - from: refunds\n    to: notifier\n    text: Still sends the customer a refund confirmation\n"
     },
     {
       "folder": "docs/demo/flowy",

@@ -18,7 +18,7 @@ modes:
     status: accepted
     affects: [sync, mcp]
     description: |
-      The check runs before every write in `src/node/writes.ts`, so one broken file in the folder blocks edits to all of it. That is on purpose: a save would otherwise write a model that disagrees with the file nobody could read.
+      Before every write, `src/node/writes.ts` loads the whole folder, so one file that fails to parse blocks edits to all of it. That is on purpose: a save would otherwise write a model that disagrees with the file nobody could read.
   save-loses-to-edit:
     on: filestore
     mode: A file changes on disk between the page reading it and the save
@@ -32,7 +32,7 @@ modes:
     status: accepted
     affects: [sync]
     description: |
-      The version is a hash of the file. A write whose version is out of date gets a 409 from `saveFile` in `src/node/files.ts`, and `ui/src/save.ts` turns that into the reload message.
+      The version is a hash of the file. A write whose version is out of date makes `saveFile` in `src/node/files.ts` throw a version conflict, `src/node/writes.ts` answers it with a 409, and `ui/src/save.ts` turns that into the reload message.
   run-file-unreadable:
     on: perf
     mode: A run file in perf/ can't be read
@@ -46,7 +46,7 @@ modes:
     status: accepted
     affects: [perf-tab]
   analysis-file-skipped:
-    on: failures
+    on: filestore
     mode: A failure analysis file can't be read
     effect: That analysis is skipped and shown as a problem in the Failures tab. Flowy never writes over it.
     cause: The file has bad syntax, a name that is not an id, or a .yml ending.
@@ -64,7 +64,7 @@ modes:
     cause: A file was renamed or deleted in the repo and nobody changed the model.
     severity: 2
     occurrence: 7
-    detection: 5
+    detection: 4
     controls: The checker looks up every code path on each load.
     action: Add a command that exits non-zero while the problem list is not empty, so a build can fail on it.
     owner: Core
@@ -72,7 +72,7 @@ modes:
     after: { severity: 2, occurrence: 7, detection: 2 }
     affects: [panel]
     description: |
-      A path that is gone is only seen by someone who opens the problem list, so a model can drift for weeks.
+      The top bar counts the problem and the shape is marked, but nothing fails a build, so a model can drift for weeks.
   desktop-port-drifts:
     on: desktop-core
     mode: The C# port drifts from the TypeScript

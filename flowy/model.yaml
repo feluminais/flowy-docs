@@ -60,7 +60,7 @@ objects:
     code: [src/cli.ts, flowy.sh, flowy.cmd]
     description: |
       `node dist/cli.js` and what follows it: no argument serves the canvas, `mcp` speaks MCP over
-      stdio, `export` writes a static copy, `mermaid` prints a diagram. `flowy.sh` and
+      stdio, `export` writes a static copy, `mermaid` prints a diagram, `failures` prints the ranked failure table. `flowy.sh` and
       `flowy.cmd` build once and then run the same thing.
 
       `--dir` picks the model folder, `--port` the port (or the next free one), `--no-open` leaves
@@ -222,8 +222,8 @@ objects:
     tech: stdio
     code: [src/node/mcp.ts]
     description: |
-      Nine tools over stdio: read the model, a view or a Mermaid diagram, and write objects,
-      connections and flows.
+      Sixteen tools over stdio: read the model, a view or a Mermaid diagram, and write objects,
+      connections, flows and failure analyses.
 
       Calls arrive in bursts and run one at a time, in order, so each one sees what the one before
       it wrote. A write that loses a race on the file is retried once.
@@ -586,7 +586,7 @@ connections:
   - { from: ops, to: store-data, label: puts an entry's keys in order }
   - { from: check, to: snippets, label: asks if a snippet is right }
   - { from: check, to: failures, label: asks if an analysis is right }
-  - { from: ops, to: failures, label: puts a row's keys in order }
+  - { from: ops, to: failures, label: refuses to delete what an analysis names }
   - { from: shell, to: failures-tab, label: "which analysis, which row, what is selected" }
   - { from: failures-tab, to: failures, label: ranks the rows and places the marks }
   - { from: panel, to: snippets, label: names the language }
