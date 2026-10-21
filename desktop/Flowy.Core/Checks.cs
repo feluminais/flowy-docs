@@ -62,21 +62,21 @@ public static class Checks
         }
 
         if (model.Meta.TryGetValue("lines", out var lines) && !(lines is string style && Names.LineStyles.Contains(style)))
-            Add("model.yaml", null, "lines must be straight, curved or angled");
+            Add(FolderLayout.ModelFile, null, "lines must be straight, curved or angled");
 
         foreach (var path in EmptyKeys.Of(model.Meta)) Add("model.yaml", null, EmptyKeys.Message(path));
 
         if (model.Meta.TryGetValue("icons", out var icons) && !(icons is ""))
         {
-            if (icons is not OrderedDictionary<string, object?> iconMap) Add("model.yaml", null, "icons must map names to SVG path data");
+            if (icons is not OrderedDictionary<string, object?> iconMap) Add(FolderLayout.ModelFile, null, "icons must map names to SVG path data");
             else
                 foreach (var name in JsCompat.OrderKeys(iconMap.Keys))
-                    if (Look.IconProblem(name, iconMap[name]) is { } why) Add("model.yaml", null, $"icon {name}: {why}");
+                    if (Look.IconProblem(name, iconMap[name]) is { } why) Add(FolderLayout.ModelFile, null, $"icon {name}: {why}");
         }
 
         foreach (var (id, o) in model.Objects)
         {
-            void P(string message) => Add("model.yaml", id, $"{id}: {message}");
+            void P(string message) => Add(FolderLayout.ModelFile, id, $"{id}: {message}");
             if (!Names.IsValidId(id)) P($"ids {Names.IdRule}");
             if (!NonEmpty(o.Name)) P("name is missing");
             foreach (var path in o.NoValue) P(EmptyKeys.Message(path));
@@ -140,7 +140,7 @@ public static class Checks
             var c = model.Connections[i];
             var index = i;
             string End(string? v) => Missing(v) ? "?" : v!;
-            void P(string message) => Add("model.yaml", null, $"connection {End(c.From)} → {End(c.To)}: {message}", connection: index);
+            void P(string message) => Add(FolderLayout.ModelFile, null, $"connection {End(c.From)} → {End(c.To)}: {message}", connection: index);
             CheckEnds(P, c.From, c.To);
             foreach (var path in c.NoValue) P(EmptyKeys.Message(path));
             if (!Missing(c.From) && c.From == c.To) P("connects an object to itself");
@@ -149,7 +149,7 @@ public static class Checks
 
         foreach (var (fid, f) in model.Flows)
         {
-            void P(string message, int? step = null) => Add($"flows/{fid}.yaml", null, message, step: step);
+            void P(string message, int? step = null) => Add(FolderLayout.FlowFile(fid), null, message, step: step);
             if (!Names.IsValidId(fid)) P($"\"{fid}\" is not a valid flow id: the file name must {Names.IdRule}");
             if (!NonEmpty(f.Name)) P("name is missing");
             var viewOk = Views.IsView(model, f.View);
