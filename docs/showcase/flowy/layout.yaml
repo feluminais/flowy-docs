@@ -1,5 +1,7 @@
 steps:
   send-from: [0, 0]
+  effects-from: [1000, 1450]
+  effects-to: [1360, 1700]
   send-to: [360, 0]
   call-from: [1015, 31]
   call-to: [1360, 0]
