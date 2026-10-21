@@ -7,6 +7,7 @@ import { getObject, isExternal, linksOf, parseData, ROOT } from '../../src/core/
 import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { deleteFlow, deleteObject, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
+import type { StateMark } from '../../src/core/states.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { CodeFields, CodeSection } from './Code.tsx'
@@ -14,6 +15,7 @@ import { DataField, DataSection } from './Data.tsx'
 import { connectionsOf, linesOf, newId, problemsOf, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
 import { lineId } from './graph.ts'
+import { StateGlyph, stateClasses, stateWord } from './states.tsx'
 import { openInEditor, vscode } from './host.ts'
 import { Chip, kindClass, lookVars, ObjectTile, Section } from './Chrome.tsx'
 import { ColorPicker, ExternalToggle, IconPicker, KindPicker, OpacityPicker, ShapePicker, TypePicker } from './Pickers.tsx'
@@ -53,7 +55,7 @@ function ProblemList({ problems }: { problems: Problem[] }) {
 }
 
 /** The top of a shape's panel: its tile, its name, and chips for its type, its tech, whether it is outside, and what is wrong with it. Tinted in the shape's colour. */
-function ObjectHeader({ model, id, object, problems }: { model: Model; id: string; object: FlowyObject; problems: number }) {
+function ObjectHeader({ model, id, object, problems, state }: { model: Model; id: string; object: FlowyObject; problems: number; state?: StateMark }) {
   const external = isExternal(object)
   return (
     <header className={`hero ${kindClass(object.type, external)}`} style={lookVars({ color: object.color })}>
@@ -66,6 +68,7 @@ function ObjectHeader({ model, id, object, problems }: { model: Model; id: strin
           {external && <Chip kind="t-external" icon={Cloud}>external</Chip>}
           {problems > 0 && <Chip kind="warn" icon={Alert}>{problems} problem{problems === 1 ? '' : 's'}</Chip>}
         </div>
+        {state && <p className={`stateline ${stateClasses(state)}`}><span className="muted">State</span><StateGlyph mark={state} />{stateWord(state)}</p>}
       </div>
     </header>
   )
@@ -223,13 +226,13 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
 type Lines = { onPick: (id: string) => void; onHover: (line?: string) => void }
 
 /** An object's description, code, links, source and connections, or in edit mode a form for its name, type, tech, description, code, source and links. */
-export function ObjectPanel({ model, id, editing, problems, codeBase, run, onClose, onPick, onHover }: Common & Lines & { id: string; editing: boolean; problems: Problem[]; codeBase?: string }) {
+export function ObjectPanel({ model, id, editing, problems, codeBase, state, run, onClose, onPick, onHover }: Common & Lines & { id: string; editing: boolean; problems: Problem[]; codeBase?: string; state?: StateMark }) {
   const object = getObject(model, id)
   if (!object) return null
   const save = (fields: Omit<ObjectInput, 'id'>) => run(m => putObject(m, { id, ...fields }))
   const ours = problemsOf(model, problems, id)
   const mine = <ProblemList problems={ours} />
-  const header = <ObjectHeader model={model} id={id} object={object} problems={ours.length} />
+  const header = <ObjectHeader model={model} id={id} object={object} problems={ours.length} state={state} />
   if (!editing) return (
     <Panel onClose={onClose}>
       {header}

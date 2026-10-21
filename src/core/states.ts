@@ -36,6 +36,9 @@ export function readStates(raw: unknown): States {
   return out
 }
 
+/** Whether a flow says anything about states, in its start or in any step. A flow that does not folds to nothing and draws nothing. */
+export const usesStates = (flow: Flow): boolean => flow.states !== undefined || flow.steps.some(s => s.states !== undefined)
+
 const USE = `use ${STATE_NAMES.join(', ')}`
 const SHAPE_MAP = 'states must map shape ids to states'
 

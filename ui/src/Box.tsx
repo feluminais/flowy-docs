@@ -1,4 +1,4 @@
-import { Children, isValidElement, useRef, useState } from 'react'
+import { Children, isValidElement, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from 'react'
 import { Handle, NodeToolbar, Position, useConnection } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
@@ -8,10 +8,12 @@ import type { Mark } from '../../src/core/failures.ts'
 import { fillOpacity, isColor, onFill, SHAPE_DEFS, shapeOf, showsTile } from '../../src/core/look.ts'
 import { isExternal } from '../../src/core/model.ts'
 import { languageOf } from '../../src/core/snippets.ts'
+import type { StateMark } from '../../src/core/states.ts'
 import { CodeBlock } from './Code.tsx'
 import { lookVars } from './Chrome.tsx'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { PathIcon, ZoomIn } from './icons.tsx'
+import { StateGlyph, stateClasses } from './states.tsx'
 
 /** The language a fence names (```ts), as one of ours, or nothing when it names none we know. */
 const fenceLanguage = (className?: string): string | undefined => languageOf(/(?:^|\s)language-(\S+)/.exec(className ?? '')?.[1])?.id
@@ -43,13 +45,36 @@ export function FailBadge({ mark, className, style }: { mark: Mark; className?: 
 /** The first paragraph of a description: everything up to the first blank line. */
 export const teaser = (description?: string) => description?.trim().split(/\n\s*\n/)[0]
 
+/** How long a state takes to go, in the same milliseconds as the 0.6s the transitions in style.css take to dim and bring back the box. */
+const STATE_LEAVE_MS = 700
+
+/**
+ * The state a box is in, and for a moment after it leaves one, the one it left: the outline and the glyph fade out over the box coming back
+ * instead of vanishing. A box that never has a state costs one ref and an effect that does nothing.
+ */
+function useStateMark(state: StateMark | undefined): { shown: StateMark | undefined; leaving: boolean } {
+  const [left, setLeft] = useState<StateMark>()
+  const was = useRef<StateMark>(undefined)
+  const [word, inside] = [state?.state, state?.inside]
+  useEffect(() => {
+    const before = was.current
+    was.current = state
+    setLeft(state === undefined ? before : undefined)
+    if (state !== undefined || before === undefined) return
+    const timer = setTimeout(() => setLeft(undefined), STATE_LEAVE_MS)
+    return () => clearTimeout(timer)
+  }, [word, inside])
+  return { shown: state ?? left, leaving: state === undefined && left !== undefined }
+}
+
 /**
  * One object on the canvas: its shape (an outline drawn behind the rest, in the colour and fill it names), a tile with its
  * icon (grey with a cloud when it's external), its name, its tech (or type), and how many shapes it opens onto. Hovering
  * shows the teaser. In edit mode a line starts at the dot at the bottom, and while it's being drawn the whole shape is a place to drop it.
  */
-export function Box({ id, data: { object, inside, icon, perf, fail }, isConnectable }: NodeProps<BoxNode>) {
+export function Box({ id, data: { object, inside, icon, perf, fail, state }, isConnectable }: NodeProps<BoxNode>) {
   const [hover, setHover] = useState(false)
+  const { shown, leaving } = useStateMark(state)
   const connecting = useConnection(c => c.inProgress)
   const short = teaser(object.description)
   const external = isExternal(object)
@@ -57,11 +82,12 @@ export function Box({ id, data: { object, inside, icon, perf, fail }, isConnecta
   const kind = external ? `external ${object.type}` : object.type
   return (
     <div
-      className={`box box-${object.type}${external ? ' external' : ''}${isColor(object.color) ? ' colored' : ''}${fillOpacity(object) > 0 ? ' tinted' : ''}${onFill(object) ? ' on' : ''}${perf?.strain !== undefined ? ' strained' : ''}`}
+      className={`box box-${object.type}${external ? ' external' : ''}${isColor(object.color) ? ' colored' : ''}${fillOpacity(object) > 0 ? ' tinted' : ''}${onFill(object) ? ' on' : ''}${perf?.strain !== undefined ? ' strained' : ''}${shown ? ` ${stateClasses(shown)}${leaving ? ' state-leaving' : ''}` : ''}`}
       style={{ ...lookVars(object), ...(perf?.strain !== undefined && { '--strain': perf.strain }), padding: `${top}px ${right}px ${bottom}px ${left}px` }}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
     >
       <svg className="shape" viewBox="0 0 200 72" aria-hidden="true"><path d={path} /></svg>
+      {shown && !shown.inside && <svg className="state-outline" viewBox="0 0 200 72" aria-hidden="true"><path d={path} pathLength={100} /></svg>}
       <Handle type="target" position={Position.Top} isConnectable={isConnectable} isConnectableStart={false} className={connecting ? 'drop' : undefined} />
       {showsTile(object) && <span className="tile" role="img" aria-label={kind} title={kind}><PathIcon d={icon} /></span>}
       <div className="box-text">
@@ -70,6 +96,7 @@ export function Box({ id, data: { object, inside, icon, perf, fail }, isConnecta
       </div>
       {perf && perf.queue > 0 && <span className="queue-badge" title={`${perf.queue} waiting`}>{perf.queue}</span>}
       {fail && <FailBadge mark={fail} />}
+      {shown && <StateGlyph mark={shown} />}
       {inside > 0 && <span className="inside" style={{ right: badge[0], bottom: badge[1] }}><ZoomIn />{inside} inside</span>}
       <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} />
       {short && (

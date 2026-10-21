@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { getObject, parseFlowFile } from '../src/core/model.ts'
 import type { Flow, Step } from '../src/core/model.ts'
-import { isStateName, marksOf, readStates, STATE_LABELS, STATE_NAMES, stateProblems, statesAt } from '../src/core/states.ts'
+import { isStateName, marksOf, readStates, STATE_LABELS, STATE_NAMES, stateProblems, statesAt, usesStates } from '../src/core/states.ts'
 import { stopBefore, stopsOf } from '../src/core/structure.ts'
 import { shop } from './fixtures.ts'
 
@@ -193,4 +193,10 @@ test('marksOf: the roll-up picks the worst state below, in the order stopped, re
 test('marksOf: a shape the model does not have is ignored', () => {
   assert.deepEqual(marksOf(model, { ghost: 'stopped' }), {})
   assert.deepEqual(marksOf(model, {}), {})
+})
+
+test('usesStates: a flow says something about states in its start or in any step', () => {
+  assert.equal(usesStates(flowOf([step(), step()])), false)
+  assert.equal(usesStates(flowOf([step()], { states: {} })), true)
+  assert.equal(usesStates(flowOf([step(), step({ states: { api: 'stopped' } })])), true)
 })
