@@ -35,7 +35,7 @@ Looks (shape, color, opacity, icon) are optional; the type already picks a good 
 - Leave opacity alone unless you set a colour: it defaults to a light tint. Pick an icon from the built-in list only when it names the thing better than its type's icon does; put_icon adds one of your own.
 Writing text:
 - A description's first paragraph is the hover teaser: a sentence on what the object does for others, in words its name doesn't hold. Start apps and components with a verb. No "responsible for", no praise. Later paragraphs: why, limits, risks. No versions, counts or endpoint lists.
-- A connection label is a few words from the side that starts it, and reads as a sentence between the two names ("publishes order events to"). Say what moves; never "uses". A reply is not a connection.
+- A connection label is a few words, a verb and what moves, said from the side that starts it ("publishes order events", "reads menus"). The arrow already shows which way it goes, so never end a label on "to", "from", "with" or another preposition. Never "uses". A reply is not a connection.
 - Put long documents (runbooks, decision records, specs, wiki pages) in links, not in a description. code: is the files and folders an object lives in.
 Writing code (put_object's snippets), so a panel shows the few lines that explain an object:
 - Only where a few lines say what a sentence can't: a formula, a query, the request or event an object takes. Copy them from the repo as they are, never rewrite or invent them, and leave out secrets, tokens and real data. At most ${SNIPPET_MAX.snippets} snippets of ${SNIPPET_MAX.lines} lines; anything longer is a file, listed in code.
@@ -47,7 +47,7 @@ Writing data (put_object's data), so a store shows what it holds:
 - A table is columns and rows. A key-value store is columns Key, Value and Expires, a stream is columns Key and Value with a message on each row, a document store is a sample document. data replaces the whole list: read the store with get_model first and send every entry you want kept. [] removes it.
 Writing a flow, so it reads the way the code works:
 - One trigger, one story, usually 3-9 steps, named for the goal. A failure gets its own flow.
-- A step's text says what passes from "from" to "to", from the side of "from": "Hands the order to Billing", "Asks Pricing for the total". When "from" asks and gets its answer in the same step, say so, and don't add a step going back unless something new is sent.
+- A step's text says what passes between "from" and "to", from the side of "from": "Hands over the order", "Asks for the total". The step already shows both ends, so leave the receiver's name out unless the text needs it, and never end a text on "to", "from" or another preposition. When "from" asks and gets its answer in the same step, say so, and don't add a step going back unless something new is sent.
 - Say when the sender doesn't wait for the other side (it queues the work, fires and forgets, or runs on a timer).
 - Keep to what the flow's trigger causes. Something that happens on its own gets a step that says so, or a flow of its own.
 - Play the flow on the view where its ends are separate shapes. put_flow answers with how each step reads there: an end written "X in Y" is drawn as Y.
