@@ -20,6 +20,7 @@ public class BeatsTests
         if (a.Reason is not null) o["reason"] = a.Reason;
         if (a.By is { } by) o["by"] = by.Name is not null ? new JsonObject { ["name"] = by.Name } : new JsonObject { ["shape"] = by.Shape };
         if (a.At is { } at) o["at"] = at;
+        if (a.Effect is not null) o["effect"] = a.Effect;
         return o;
     }
 

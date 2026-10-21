@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { active, bump, cyclePeriod, distance, ease, entryPoint, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, progress, REST, squish, tintColor, tubeOpacity } from '../ui/src/motion.ts'
-import { beatsFor, TINTS } from '../src/core/animation.ts'
+import { active, bump, cyclePeriod, distance, ease, entryPoint, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, effectPose, EFFECT, progress, REST, squish, STILL, tintColor, tubeOpacity } from '../ui/src/motion.ts'
+import { beatsFor, EFFECTS, TINTS } from '../src/core/animation.ts'
 import { COLORS } from '../src/core/look.ts'
 
 const beat = { at: 100, dur: 400 }
@@ -170,4 +170,34 @@ test('a dot is stretched along its way, and a label pill is never sheared', () =
   }
   // The same stretch from either way along a line.
   assert.equal(squish(true, 30, 1), squish(true, 210, 1))
+})
+
+test('every effect leaves and lands a blob as it is, keeps its shape whole, and a step with none stays still', () => {
+  for (const effect of EFFECTS) for (const label of [true, false]) for (const angle of [0, 20, 90, 200, -70]) {
+    for (const p of [0, 1]) {
+      const pose = effectPose(effect, label, angle, p)
+      for (const key of ['dy', 'turn'] as const) assert.ok(Math.abs(pose[key]) < 1e-9, `${effect} ${key} at ${p}`)
+      for (const key of ['grow', 'x', 'y'] as const) assert.ok(Math.abs(pose[key] - 1) < 1e-9, `${effect} ${key} at ${p}`)
+    }
+  }
+  assert.deepEqual(effectPose(undefined, true, 30, 0.5), STILL)
+  assert.deepEqual(effectPose('spin' as never, true, 30, 0.5), STILL)
+})
+
+test('what each effect does in the middle of a run', () => {
+  // A bounce is a hop, upward, of the height it says; a pulse swells evenly; a wiggle turns the whole blob either way.
+  assert.equal(effectPose('bounce', true, 0, 1 / 6).dy, -EFFECT.hop)
+  assert.ok(effectPose('bounce', true, 0, 0.1).dy < 0)
+  const swell = effectPose('pulse', false, 45, 1 / 6)
+  assert.ok(Math.abs(swell.grow - (1 + EFFECT.swell)) < 1e-9 && swell.x === 1 && swell.y === 1 && swell.turn === 0)
+  assert.ok(Math.abs(effectPose('wiggle', true, 0, 1 / 12).turn - EFFECT.rock) < 1e-9)
+  assert.ok(Math.abs(effectPose('wiggle', true, 0, 3 / 12).turn + EFFECT.rock) < 1e-9)
+  // Squish is the same stretch squishParts gives, a label's never turned, so its edges stay level on any line.
+  for (const angle of [20, 63, 135]) assert.equal(effectPose('squish', true, angle, 0.5).rotate, 0)
+  assert.equal(effectPose('squish', false, 63, 0.5).rotate, 63)
+  // Only the effect that stretches changes the shape's proportions, and only the one that hops lifts it.
+  for (const effect of ['bounce', 'pulse', 'wiggle'] as const) {
+    const pose = effectPose(effect, true, 63, 0.37)
+    assert.ok(pose.x === 1 && pose.y === 1 && pose.rotate === 0, effect)
+  }
 })

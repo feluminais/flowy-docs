@@ -8,7 +8,7 @@ import { isView, nameOf, stepEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import type { StateMark } from '../../src/core/states.ts'
 import { Chip } from './Chrome.tsx'
-import { ArrowLeft, ArrowRight, ArrowsSplit, Close, GitFork, Help, Pause, Play, Reload, Repeat, Route, Sparkles } from './icons.tsx'
+import { ArrowLeft, ArrowRight, ArrowsSplit, Close, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
 import { StateKey } from './states.tsx'
 import { store } from './store.ts'
 
@@ -43,14 +43,12 @@ type Props = {
   moving: boolean
   /** Whether a step that moves plays again after a rest. */
   repeat: boolean
-  squish: boolean
   /** The flow the reader came from and the step they left it at, when they opened this one from it. */
   trail?: { name: string; step: number }
   onStep: (stop: number) => void
   onAuto: () => void
   onReplay: () => void
   onRepeat: () => void
-  onSquish: () => void
   onStop: () => void
   onOpenFlow: (id: string) => void
   onBack: () => void
@@ -77,7 +75,7 @@ function Bar({ progress, now }: { progress: Progress; now: number }) {
 }
 
 /** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
-export function Player({ model, flow, stops, stop, ends, caption, progress, marks, auto, moving, repeat, squish, trail, onStep, onAuto, onReplay, onRepeat, onSquish, onStop, onOpenFlow, onBack }: Props) {
+export function Player({ model, flow, stops, stop, ends, caption, progress, marks, auto, moving, repeat, trail, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
   const [legend, setLegend] = useState(legendWasOpen)
   const grouped = progress.brackets.length > 0 // the legend explains groups, so a flow with none has no button
@@ -154,7 +152,6 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
         <button onClick={onAuto} title="Step through the flow on its own (P)">{auto ? <><Pause size={16} />Pause</> : <><Play size={16} />Autoplay</>}</button>
         {moving && <button aria-label="Replay this step" title="Replay this step (R)" onClick={onReplay}><Reload size={16} /></button>}
         {moving && <button aria-label="Repeat" aria-pressed={repeat} title={repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>}
-        {moving && <button aria-label="Squish" aria-pressed={squish} title={squish ? 'Squishing: the moving label stretches as it runs' : 'Squish: let the moving label stretch as it runs'} onClick={onSquish}><Sparkles size={16} /></button>}
         <button onClick={onStop}><Close size={16} />Stop</button>
       </div>
     </section>
