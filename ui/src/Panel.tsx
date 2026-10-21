@@ -7,12 +7,12 @@ import { lineKey } from '../../src/core/failures.ts'
 import { getObject, isExternal, linksOf, parseData, ROOT } from '../../src/core/model.ts'
 import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { encodePath, isRepoPath, isWebAddress } from '../../src/core/paths.ts'
-import { ANIMATION_KINDS, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
+import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
 import { deleteFlow, deleteObject, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
-import { isMap } from '../../src/core/text.ts'
+import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { CodeFields, CodeSection } from './Code.tsx'
@@ -365,17 +365,11 @@ const OUTCOME_CHOICES: Sketch[] = [{ id: '', name: 'Arrives', sketch: OUTCOME_SK
  * who takes it). Each pick or field is one edit. What the step cannot have is greyed out with the reason in its tooltip, so the form never changes shape.
  */
 function StepAnimation({ step, takers, onSet }: { step: Step; takers: { id: string; type: string; name: string; end: boolean }[]; onSet: (key: AnimationKey, value: string) => Promise<boolean> }) {
-  const raw = step.animation
-  const map = isMap(raw) ? raw : typeof raw === 'string' ? { kind: raw } : {}
-  const text = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v) : '')
-  const kind = text(map.kind)
-  const outcome = text(map.outcome)
+  const { kind, outcome, share, reason, by: taken, byName: named } = animationFields(step)
   const travels = typeof step.to === 'string' && step.to !== '' && step.to !== step.from
   const kinds = KIND_CHOICES.map(c => ({ ...c, block: c.id !== '' && !travels ? 'Needs two shapes' : undefined }))
   const outcomes = OUTCOME_CHOICES.map(c => ({ ...c, block: outcomeBlock(kind, c.id) }))
   const ended = outcome !== ''
-  const taken = text(map.by)
-  const named = isMap(map.by) ? text(map.by.name) : ''
   const intercepted = outcome === 'intercepted'
   const off = (why: string, on: boolean) => (on ? undefined : why)
   return (
@@ -384,8 +378,8 @@ function StepAnimation({ step, takers, onSet }: { step: Step; takers: { id: stri
       <div className="form">
         <SketchPicker label="Travels as" choices={kinds} value={kind} onPick={id => void onSet('kind', id)} />
         <SketchPicker label="Ends as" choices={outcomes} value={outcome} onPick={id => void onSet('outcome', id)} />
-        <Field label="Share of requests (1 to 100)" value={text(map.share)} placeholder="e.g. 30" disabled={!ended} title={off('Pick an outcome first', ended)} onSave={v => onSet('share', v)} />
-        <Field label={`Reason (${REASON_MAX} characters)`} value={text(map.reason)} placeholder="e.g. Rate limit" disabled={!ended} title={off('Pick an outcome first', ended)} onSave={v => onSet('reason', v)} />
+        <Field label="Share of requests (1 to 100)" value={share} placeholder="e.g. 30" disabled={!ended} title={off('Pick an outcome first', ended)} onSave={v => onSet('share', v)} />
+        <Field label={`Reason (${REASON_MAX} characters)`} value={reason} placeholder="e.g. Rate limit" disabled={!ended} title={off('Pick an outcome first', ended)} onSave={v => onSet('reason', v)} />
         <div className="pick-field" title={off('Only for Intercepted', intercepted)}>
           <div className="pick-head"><span>Taken by</span><span className="pick-value">{named !== '' ? named : takers.find(t => t.id === taken)?.name ?? (taken !== '' ? `${taken} · no such shape` : '')}</span></div>
           <div className="pick-grid shapes-list" role="radiogroup" aria-label="Taken by a shape">
@@ -408,7 +402,6 @@ const KIND_ICONS: Record<string, typeof Repeat> = { repeat: Repeat, branch: GitF
 const KINDS = Object.entries(KIND_NAMES).map(([id, name]) => ({ id, name, Icon: KIND_ICONS[id] }))
 /** A value of a table by a key from a file: only the table's own keys count, so a kind called "constructor" is not on it. */
 const own = <T,>(table: Record<string, T>, key: unknown): T | undefined => (typeof key === 'string' && Object.hasOwn(table, key) ? table[key] : undefined)
-const hasLanes = (group?: Group) => group?.kind === 'branch' || group?.kind === 'parallel'
 
 /** The group a step is in, the lane it starts and the flow that tells the rest of its story. Each choice is one edit, which keeps the file valid or says why not. */
 function StepStructure({ step, self, groups, others, onGroup, onLane, onFlow }: {
@@ -430,7 +423,7 @@ function StepStructure({ step, self, groups, others, onGroup, onLane, onFlow }: 
             {gid !== '' && !ids.includes(gid) && <option value={gid}>{gid} · not declared</option>}
           </select>
         </label>
-        {hasLanes(groups[gid]) && <Field label="Lane (a new lane starts here)" value={String(step.lane ?? '')} placeholder="e.g. The card is declined" onSave={onLane} />}
+        {hasLanes(groups[gid]?.kind) && <Field label="Lane (a new lane starts here)" value={String(step.lane ?? '')} placeholder="e.g. The card is declined" onSave={onLane} />}
         <label>
           Opens flow
           <select value={target} onChange={e => void onFlow(e.target.value)}>
@@ -498,7 +491,7 @@ function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps:
                   <button className="danger" aria-label={`Remove group ${gid}`} title="Remove the group. Its steps stay" onClick={() => void edit(m => removeGroup(m, flowId, gid))}><Trash size={16} /></button>
                 </div>
                 <KindPicker kinds={KINDS} value={own(KIND_NAMES, g.kind) === undefined ? '' : String(g.kind)} onPick={kind => void edit(m => setGroupKind(m, flowId, gid, kind))} />
-                {g.kind === 'repeat' && (
+                {takesOption(g.kind, 'times') && (
                   <>
                     <Field label="Times (2 to 99)" value={String(g.times ?? '')} onSave={value => save('times', value.trim())} />
                     <Field label="Until (instead of a count)" value={String(g.until ?? '')} onSave={value => save('until', value)} />
@@ -549,7 +542,7 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
   const change = (edit: (steps: Step[]) => Step[]) => run(m => updateFlow(m, rec.id, { steps: edit(onScreen(m)) }))
   // An edit that counts steps (put one in a group, delete one) is checked against the list on screen as well.
   const edit: SaveEdit = op => run(m => { onScreen(m); return op(m) })
-  const groups: Record<string, Group> = flow && isMap(flow.groups) ? flow.groups : {}
+  const groups = declaredGroups(flow)
   const others = Object.entries(model.flows).filter(([id]) => id !== rec.id).map(([id, f]): [string, string] => [id, f.name])
   // A step with no "to", or one recorded by clicking the same box twice, is that box acting on its own.
   const ends = (from: string, to?: string) => (to === undefined || to === from ? `${nameOf(model, from)}, on its own` : `${nameOf(model, from)} → ${nameOf(model, to)}`)

@@ -246,6 +246,27 @@ export function animationOf(step: { to?: string; animation?: unknown }): Animati
 }
 
 /**
+ * What a step's animation says, field by field, as the text the edit form shows: "" for a field the file leaves out. Unlike animationOf it
+ * keeps what is wrong (an unknown kind, a share of "many", a number as text), so the form can show a file's mistake instead of hiding it.
+ * A bare tag is the kind. `by` is the id of the shape that takes the request, `byName` the name of a party that is not in the model.
+ */
+export type AnimationFields = { kind: string; outcome: string; share: string; reason: string; by: string; byName: string }
+
+export function animationFields(step: { animation?: unknown }): AnimationFields {
+  const raw = step.animation
+  const map = isMap(raw) ? raw : typeof raw === 'string' ? { kind: raw } : {}
+  const text = (v: unknown): string => (typeof v === 'string' || typeof v === 'number' ? String(v) : '')
+  return {
+    kind: text(map.kind),
+    outcome: text(map.outcome),
+    share: text(map.share),
+    reason: text(map.reason),
+    by: text(map.by),
+    byName: isMap(map.by) ? text(map.by.name) : '',
+  }
+}
+
+/**
  * How many requests a share plays, and which of them meet the outcome: 10 when the share is a multiple of 10, 20 for a multiple of 5,
  * otherwise 100, so the share shows exactly. Request `i` is hit when the running total of `share` percent crosses a whole request, which
  * spreads the hits evenly through the burst. It is fixed by the numbers and never random, so the browser, the desktop app and the tests play the same.
