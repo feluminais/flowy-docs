@@ -57,6 +57,24 @@ internal static class Pick
         return chooser;
     }
 
+    /// <summary>
+    /// The six states as tiles drawn the way the canvas draws them, with None first for a step that leaves the shape as it is. <paramref name="chosen"/> is
+    /// a state word or "" for None; a pick is a word or "". Twin of StatePicker in ui/src/Pickers.tsx.
+    /// </summary>
+    public static Chooser StateTiles(string label, string chosen, Func<string, Task<bool>> picked)
+    {
+        var chooser = new Chooser(label, new UniformGrid { Columns = 4 }, picked, id => id == "" ? "None" : States.Labels[id]);
+        foreach (var id in new[] { "" }.Concat(States.Names))
+        {
+            Control swatch = id switch { "" => new PlainSwatch(true), "running" => new PlainSwatch(false), _ => new StateSwatch(new StateMark(id, false)) };
+            swatch.HorizontalAlignment = HorizontalAlignment.Center;
+            var name = id == "" ? "None" : States.Labels[id];
+            chooser.Add(id, name, new StackPanel { Spacing = 6, Children = { swatch, new TextBlock { Text = name, FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center } } });
+        }
+        chooser.Show(chosen);
+        return chooser;
+    }
+
     /// <summary>One thing to pick: a soft tile, ringed once it is the chosen one.</summary>
     public static Button Cell(string name, Control content, params string[] classes)
     {

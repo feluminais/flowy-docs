@@ -885,6 +885,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .state-stopped { --sc: var(--muted); --sd: 2.2 1.6; --sk: 4 3; --scap: butt; --sw: 2; --sdim: 0.55; --sg: 1; }
 .state-restarting { --sc: var(--accent); --sd: 20 80; --sk: 16 56; --scap: round; --sw: 3; --sdim: 0.55; --sg: 0.8; }
 .state-degraded { --sc: var(--warn); --sd: 100 0; --sk: 100 0; --scap: butt; --sw: 2.6; --sdim: 1; --sg: 0; }
+/* What a step does not light is faded to 0.15; a shape in a state stays easier to see, since where it stands holds until a step changes it. */
+.react-flow__node.dim:has(.box.stated) { opacity: 0.45; }
 .box.stated .shape, .box.stated .tile, .box.stated .box-text { opacity: var(--sdim); filter: grayscale(var(--sg)); }
 .box.stated.state-leaving { --sdim: 1; --sg: 0; }
 .canvas.states .box .shape, .canvas.states .box .tile, .canvas.states .box .box-text { transition: opacity 0.6s ease, filter 0.6s ease; }

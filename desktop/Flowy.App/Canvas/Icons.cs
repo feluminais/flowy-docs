@@ -42,6 +42,15 @@ internal static class Icons
     public const string GitFork = "M12 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M7 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M17 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M7 8v2a2 2 0 0 0 2 2h6a2 2 0 0 0 2 -2v-2M12 12l0 4";
     public const string ArrowsSplit = "M21 17h-8l-3.5 -5h-6.5M21 7h-8l-3.495 5";
 
+    // What names a state (see StateMarks.cs): an arc that spins coming up, an hourglass shutting down, a power symbol when off, a circling arrow restarting, and the alert triangle when not well.
+    public const string Loader = "M12 3a9 9 0 1 0 9 9";
+    public const string Hourglass = "M6.5 7h11M6.5 17h11M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1zM6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z";
+    public const string Power = "M7 6a7.75 7.75 0 1 0 10 0M12 4l0 8";
+    public const string Refresh = "M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4";
+
+    /// <summary>The glyph of a state. Running has none, since it draws nothing.</summary>
+    public static string ForState(string state) => state switch { "starting" => Loader, "stopping" => Hourglass, "stopped" => Power, "restarting" => Refresh, _ => Alert };
+
     /// <summary>The icon of a kind of group: repeat, branch or parallel.</summary>
     public static string ForKind(string? kind) => kind switch { "repeat" => Repeat, "branch" => GitFork, _ => ArrowsSplit };
 

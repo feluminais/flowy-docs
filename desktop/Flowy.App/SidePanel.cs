@@ -166,8 +166,17 @@ internal sealed class SidePanel : Border
         return new StackPanel { Spacing = 18, Children = { grid, Chrome.Rule(rule) } };
     }
 
+    /// <summary>The state of the shape at the stop on show: the word State, its glyph and its name. The glyph's colour is the state's own.</summary>
+    private Control StateLine(StateMark state)
+    {
+        var label = new TextBlock { Text = "State", VerticalAlignment = VerticalAlignment.Center };
+        label.Classes.Add("muted");
+        var name = new TextBlock { Text = StateKey.Word(state), VerticalAlignment = VerticalAlignment.Center };
+        return new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { label, new StateGlyph(state), name } };
+    }
+
     /// <summary>A box: its header, any problems, its description, the files it lives in, and every line out and in.</summary>
-    public void ShowObject(Model model, string id, IReadOnlyList<Problem> problems, string? codeBase, LinkContext links, Action<string> pick, Action<string?> hover)
+    public void ShowObject(Model model, string id, IReadOnlyList<Problem> problems, string? codeBase, LinkContext links, Action<string> pick, Action<string?> hover, StateMark? state = null)
     {
         if (model.GetObject(id) is not { } o)
         {
@@ -177,6 +186,7 @@ internal sealed class SidePanel : Border
         var mine = Navigation.ProblemsOf(model, problems, id);
         var column = new StackPanel { Spacing = 14 };
         column.Children.Add(Header(model, id, o, mine.Count));
+        if (state is not null) column.Children.Add(StateLine(state));
         if (mine.Count > 0) column.Children.Add(Problems(mine.Select(p => p.Message)));
         column.Children.Add(Chrome.Section(Icons.Text, "Description"));
         column.Children.Add(string.IsNullOrEmpty(o.Description) ? Muted("No description yet.") : new MarkdownView(o.Description, 14.5));

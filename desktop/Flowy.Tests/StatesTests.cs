@@ -84,6 +84,16 @@ public class StatesTests
     }
 
     [Fact]
+    public void A_flow_uses_states_when_its_start_or_any_step_says_something_about_them()
+    {
+        var model = FolderLoader.Load(Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "states", "flowy")).Model;
+        Assert.True(States.Uses(model.Flows["hold"]));
+        Assert.False(States.Uses(new Flow("F", "shop", [new Step("web", "api", "t", null), new Step("web", "api", "t", null)])));
+        Assert.True(States.Uses(new Flow("F", "shop", [new Step("web", "api", "t", null)], null, new OrderedDictionary<string, object?>())));
+        Assert.True(States.Uses(new Flow("F", "shop", [new Step("web", "api", "t", null, States: new OrderedDictionary<string, object?>())])));
+    }
+
+    [Fact]
     public void Hostile_ids_are_data()
     {
         var model = FolderLoader.Load(Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "states", "flowy")).Model;

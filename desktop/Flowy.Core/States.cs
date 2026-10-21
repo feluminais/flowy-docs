@@ -20,6 +20,9 @@ public static class States
 
     public static bool IsName(object? v) => v is string s && Names.Contains(s);
 
+    /// <summary>Whether a flow says anything about states, in its start or in any step. A flow that does not folds to nothing and draws nothing.</summary>
+    public static bool Uses(Flow flow) => flow.States is not null || flow.Steps.Any(s => s.States is not null);
+
     private static readonly string Use = $"use {string.Join(", ", Names)}";
 
     private const string ShapeMap = "states must map shape ids to states";
