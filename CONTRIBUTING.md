@@ -34,7 +34,7 @@ npm run dev:ui
 opens it. Its `code:` paths point at placeholder files beside it, so the canvas shows no problems. Its `flowy/perf/` holds
 three load-test runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute,
 the same test after a fix, and courier pings with a `source` that sets a colour and a dot scale; its file name sorts last so the demo still opens on the dinner rush); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
-is an eight-mode failure analysis with made-up ratings, and it names shapes, connections, a flow and a run in the same way. The screenshots in
+is a fourteen-mode failure analysis with made-up ratings, and it names shapes, connections, flows and a run in the same way. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
 `--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
@@ -49,6 +49,22 @@ and a 1200 by 760 window. Serve a copy of `docs/demo` (`FLOWY_STATE_DIR=<empty f
 copy's history stays out of your own and the demo is not written to). For the first, open `#ordering/failures/ordering/stripe-timeout`. For the
 second, press E and change a few things (a shape's Tech, a line of a flow's file in an editor, a `put_object` through `node src/cli.ts mcp`) so
 the list has You, Claude and Outside steps, press Y, and pick the step Claude wrote.
+
+## The Conductor analysis
+
+A second, real analysis reads parts of [Conductor OSS](https://github.com/conductor-oss/conductor), the workflow engine, from its code. It models the server (its executor, decider, sweeper, lock and HTTP task) and the four stores beside it, two flows, and `failures/conductor.yaml`: seventeen rows, each written from the code, with the files and lines in its More. Its `about` pins the commit it was read at and says the ratings are an outsider's guesses. It is a demonstration of Flowy, and no assessment of Conductor. A row that could not be confirmed in the code was left out, and two ratings are left empty on purpose.
+
+The model, the flows and the analysis are kept in the `flowy/` folder of the maintainer's clone of Conductor. They are not part of this repo and are not published. To make an analysis of the same kind, build a clone like this (partial, shallow and sparse, about 6 MB of download, with its push address switched off) and have Claude model and read it through the MCP server:
+
+```bash
+git clone --depth 1 --filter=blob:none --no-checkout https://github.com/conductor-oss/conductor.git conductor-oss
+git -C conductor-oss remote set-url --push origin DISABLED
+git -C conductor-oss sparse-checkout set --no-cone /core/ /common/ /common-persistence/ /rest/ /server/ /docker/server/ /redis-persistence/ /redis-lock/ /redis-api/ /redis-configuration/ /postgres-persistence/ /mysql-persistence/ /sqlite-persistence/ /es7-persistence/ /es8-persistence/ /os-persistence/ /os-persistence-v2/ /os-persistence-v3/ /awss3-storage/ /gcs-storage/ /azureblob-storage/ /file-storage/ /postgres-external-storage/ /http-task/ /task-status-listener/ /workflow-event-listener/ /docs/architecture/ /docs/devguide/ /docs/documentation/ /LICENSE /README.md
+git -C conductor-oss fetch --depth 1 origin 4ed6f796b1530f0587ede8f2d1fd898de170a914
+git -C conductor-oss checkout 4ed6f796b1530f0587ede8f2d1fd898de170a914
+```
+
+Put the folder in `conductor-oss/flowy`, open it with `node src/cli.ts --dir conductor-oss/flowy` and press **M**. Nothing in the clone is ever run, and what its files say is read as data.
 
 ## The animation showcase
 
@@ -331,10 +347,10 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
 
 Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
 
-- [ ] The right rail has a Failures button under Performance with an 8 on it, and M opens its panel in Details' place with `#root/failures/ordering` in the
-      address. The key reads High 2, Medium 2, Low 3 and Not rated 1, then "Analysed 8 of 26" and "Not analysed (18)". At the overview Ordering
-      carries a red 4 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), ETA to Mapbox (108),
-      Checkout to Stripe (96) and on down to Fleet DB, which is Not rated.
+- [ ] The right rail has a Failures button under Performance with a 14 on it, and M opens its panel in Details' place with `#root/failures/ordering` in the
+      address. The key reads High 2, Medium 5, Low 6 and Not rated 1, then "Analysed 15 of 26" and "Not analysed (11)". At the overview Ordering
+      carries a red 6 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), Notifier to Twilio (144),
+      ETA to Mapbox (108) and on down to Fleet DB, which is Not rated.
 - [ ] Open `#ordering/failures/ordering/stripe-timeout`: Order API and the line to Stripe are outlined red, Kitchen tablet and Customer app in a lighter outline,
       and the rest fades. The panel reads Risk 96 Medium, "After: 96 to 32". Show it plays The payment is captured. Open `#delivery/failures/ordering/eta-mapbox-fails`:
       Seen in a run opens `#dispatch/perf/dinner-rush/3`. ← → move down the list, and Esc closes the panel.
