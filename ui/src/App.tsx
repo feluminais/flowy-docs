@@ -766,7 +766,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // opening (which also drops a part that named nothing), Back or a typed address, E, or a live reload that
   // falls back to another view.
   const failuresAt = failuresOpen && analysisKey !== undefined ? { analysis: analysisKey, ...(mode ? { mode: modeId } : {}) } : undefined
-  const perfAt = perfOpen ? (multi ? { run: runKey, level: Math.round(here[0]), levels: here.map(Math.round) } : { run: runKey, level: Math.round(here[0]) }) : undefined
+  // The address of a run with several sources keeps a place between two loads (to two decimals) while the screen stands still, and rounds to a load during a ramp, which would otherwise rewrite it every step.
+  const perfAt = perfOpen ? (multi ? { run: runKey, level: Math.round(here[0]), levels: here.map(p => (ramping ? Math.round(p) : Math.round(p * 100) / 100)) } : { run: runKey, level: Math.round(here[0]) }) : undefined
   const address = toHash(view, flow ? playing?.flow : undefined, perfAt, failuresAt)
   useEffect(() => {
     if (quiet.current || address !== location.hash) {
