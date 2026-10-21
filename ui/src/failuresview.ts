@@ -3,7 +3,7 @@ import type { Band, Part, Ranked } from '../../src/core/failures.ts'
 import { getObject } from '../../src/core/model.ts'
 import type { Analysis, Mode, Model } from '../../src/core/model.ts'
 import type { ModeChanges } from '../../src/core/ops.ts'
-import type { Run } from '../../src/core/perf.ts'
+import type { Run } from '../../src/core/perf/types.ts'
 import { placeEnds, placeStep } from '../../src/core/views.ts'
 import { boxSeries, lineSeries } from './perfview.ts'
 

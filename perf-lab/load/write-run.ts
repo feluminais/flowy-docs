@@ -1,4 +1,4 @@
-import type { Level, Metrics } from '../../src/core/perf.ts'
+import type { Level, Metrics } from '../../src/core/perf/types.ts'
 
 /** A number as short as it can be at `digits` places: 12.30 is 12.3, 0.0004 at 3 places is 0. */
 const num = (n: number, digits: number): string => String(Number(n.toFixed(digits)))

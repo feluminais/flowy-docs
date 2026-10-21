@@ -3,7 +3,7 @@ namespace Flowy.Core;
 /// <summary>
 /// A dial: one thing the load can be turned up on. A run with one source has one (its <c>Id</c> is ""); a run that adds others has one for each run it adds (the id of that run); a
 /// run tested together has one for each of its sources. <c>Values</c> are the loads that were tested, going up; <c>Color</c> is the colour its dots are drawn in, from its source or
-/// else from the palette. A port of <c>Dial</c> in src/core/perf.ts.
+/// else from the palette. A port of <c>Dial</c> in src/core/perf/types.ts.
 /// </summary>
 public sealed record Dial(string Id, string Name, string Unit, IReadOnlyList<double> Values, Source? Source, string Color);
 
@@ -16,7 +16,7 @@ public sealed record KeyedSource(string Id, string Name, string? Color, string? 
 /// <summary>The pieces the Performance key draws for the sources (see <see cref="Perf.SourceKeyAt"/>).</summary>
 public sealed record SourcesKey(IReadOnlyList<KeyedSource> Sources, bool ScaledDown, bool Other);
 
-/// <summary>Several sources of requests: a port of the end of src/core/perf.ts, kept equal to it by the same fixtures.</summary>
+/// <summary>Several sources of requests: a port of src/core/perf/dials.ts, src/core/perf/levels.ts, src/core/perf/analyse.ts, src/core/perf/traffic.ts and src/core/perf/text.ts, kept equal to them by the same fixtures.</summary>
 public static partial class Perf
 {
     public const string ModeSingle = "single";

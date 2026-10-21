@@ -1,6 +1,6 @@
 import { Agent, request } from 'node:http'
 import { performance } from 'node:perf_hooks'
-import type { Metrics } from '../../src/core/perf.ts'
+import type { Metrics } from '../../src/core/perf/types.ts'
 import { percentile } from '../src/stats.ts'
 
 export type Kind = 'catalog' | 'order' | 'upload' | 'download' | 'report'

@@ -3,7 +3,7 @@ import type { Edge, FitViewOptions, Node, Viewport, XYPosition } from '@xyflow/r
 import type { Problem } from '../../src/core/problem.ts'
 import { lineKey } from '../../src/core/failures.ts'
 import type { Mark } from '../../src/core/failures.ts'
-import type { BoxTraffic } from '../../src/core/perf.ts'
+import type { BoxTraffic } from '../../src/core/perf/types.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { iconData } from '../../src/core/look.ts'
 import type { FlowyObject, Model } from '../../src/core/model.ts'

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseRun } from '../src/core/perf.ts'
+import { parseRun } from '../src/core/perf/parse.ts'
 import {
   activeRun, boxAt, boxSeries, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, isTime, levelLabels, levelX, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, posAt, RAMP_MS, rampFrom, rampPos, scaleOf, sliderFraction, slidePos, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
 } from '../ui/src/perfview.ts'
