@@ -50,7 +50,7 @@ internal sealed class FieldBox : StackPanel
         };
         if (mono)
         {
-            _box.FontFamily = new FontFamily("Cascadia Mono, Consolas, Menlo, monospace");
+            _box.FontFamily = Fonts.Mono;
             _box.FontSize = 12;
             ScrollViewer.SetHorizontalScrollBarVisibility(_box, ScrollBarVisibility.Auto);
         }

@@ -6,7 +6,7 @@ import { analysisText, BAND_NAMES, bandOf, riskOf, STATUSES } from '../core/fail
 import { mcpLabel } from '../core/history.ts'
 import { ICON_GROUPS } from '../core/icons.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
-import { changedFiles, getObject, OBJECT_TYPES, parseFile, ROOT } from '../core/model.ts'
+import { changedFiles, getObject, OBJECT_TYPES, ROOT } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
 import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, disconnect, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
@@ -15,9 +15,9 @@ import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
 import { STATE_NAMES } from '../core/states.ts'
 import { GROUP_KINDS } from '../core/structure.ts'
 import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
-import { blockedBy, loadDir, missingPaths, saveFile, VersionConflict } from './files.ts'
+import { blockedMessage, firstBlocked, firstUnreadable } from './commit.ts'
+import { loadDir, missingPaths, saveFile, VersionConflict } from './files.ts'
 import type { History } from './history.ts'
-import { blockedMessage } from './writes.ts'
 
 const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML files in the repo.
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
@@ -137,16 +137,11 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         // Every op changes at most one file today, so a failure can't leave a half-applied multi-file change.
         const changes = changedFiles(model, next)
         // An analysis file that was skipped because it can't be read holds someone's work: it is never replaced or deleted.
-        for (const [rel] of changes) {
-          const blocking = blockedBy(loaded, rel)
-          if (blocking !== undefined) return fail(`Refused, nothing saved. ${blockedMessage(blocking, rel)}`)
-        }
+        const blocked = firstBlocked(loaded, changes.map(([rel]) => rel))
+        if (blocked) return fail(`Refused, nothing saved. ${blockedMessage(blocked.blocking, blocked.rel)}`)
         // Never write what can't be read back: if saving and loading ever disagree, refuse instead of breaking the folder.
-        try {
-          for (const [rel, text] of changes) if (text !== null) parseFile(rel, text)
-        } catch (e) {
-          return fail(`Refused, nothing saved. The result couldn't be read back: ${e instanceof Error ? e.message : String(e)}`)
-        }
+        const unreadable = firstUnreadable(changes)
+        if (unreadable) return fail(`Refused, nothing saved. The result couldn't be read back: ${unreadable.error instanceof Error ? unreadable.error.message : String(unreadable.error)}`)
         await history?.ensureCurrent('write')
         for (const [rel, text] of changes) await saveFile(dir, rel, text, versions[rel] ?? null)
         await history?.record(label, 'claude')

@@ -1,4 +1,4 @@
-import { isMap } from './model.ts'
+import { isMap } from './text.ts'
 import type { FlowyObject } from './model.ts'
 
 /** How much of a store's data the section shows, so it stays a picture of the few tables that matter and never a dump. */
@@ -107,6 +107,7 @@ export type DataInput = {
   notes?: Record<string, string>
 }
 
+/** Text that is only whitespace. Unlike text.ts's blank, a value that is not text is not blank here. */
 const blank = (v: unknown) => typeof v === 'string' && v.trim() === ''
 
 /** Numbers and booleans become text and null becomes "", at any depth; everything else is kept. */

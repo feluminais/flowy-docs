@@ -1,0 +1,10 @@
+import type { CSSProperties, ReactNode } from 'react'
+
+/** A row of marks, each drawn as it looks on the chart or the canvas with its name beside it: the way to say what a colour or a shape means. */
+export function KeyRow({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+  return <ul className="keyrow" style={style}>{children}</ul>
+}
+
+export function KeyItem({ swatch, children, style }: { swatch: ReactNode; children: ReactNode; style?: CSSProperties }) {
+  return <li style={style}><span className="swatch" aria-hidden="true">{swatch}</span>{children}</li>
+}

@@ -3,6 +3,7 @@ import { homedir } from 'node:os'
 import { posix, win32 } from 'node:path'
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import type { Step, StepApp, StepSource } from '../core/history.ts'
+import { isMap } from '../core/text.ts'
 
 /**
  * Where the app keeps what it remembers for one person: FLOWY_STATE_DIR if set, else the application-data folder the desktop app already
@@ -59,7 +60,7 @@ function parseStep(id: string, text: string): Step | undefined {
   const { time, label, source, app, files } = body as Record<string, unknown>
   if (typeof time !== 'string' || typeof label !== 'string') return undefined
   if (typeof source !== 'string' || !SOURCES.has(source) || typeof app !== 'string' || !APPS.has(app)) return undefined
-  if (typeof files !== 'object' || files === null || Array.isArray(files)) return undefined
+  if (!isMap(files)) return undefined
   const named: Record<string, string> = {}
   for (const [path, hash] of Object.entries(files)) {
     if (typeof hash !== 'string' || !isHash(hash)) return undefined

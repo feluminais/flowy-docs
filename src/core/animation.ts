@@ -4,6 +4,7 @@
  * a timed list of the few things a renderer can draw. Nothing here draws, and nothing needs a browser.
  * desktop/Flowy.Core/Animation.cs is a port, and desktop/fixtures/beats.ts keeps the two equal.
  */
+import { isMap } from './text.ts'
 
 export const ANIMATION_KINDS = ['send', 'call', 'callback', 'event'] as const
 export type AnimationKind = (typeof ANIMATION_KINDS)[number]
@@ -22,6 +23,44 @@ const TRAVEL_OUTCOMES = ['lost', 'rejected', 'intercepted', 'duplicated', 'delay
 const isOutcome = (v: unknown): v is Outcome => OUTCOMES.some(o => o === v)
 type TravelOutcome = (typeof TRAVEL_OUTCOMES)[number]
 const isTravelOutcome = (v: unknown): v is TravelOutcome => TRAVEL_OUTCOMES.some(o => o === v)
+
+/**
+ * Which kinds each outcome fits. `kinds` are the ones it may take, `only` finishes "animation outcome X only applies to ...", and `needs` is
+ * the picker's tooltip when the kind is wrong (the travel outcomes have none: only a callback is wrong for them, and `outcomeBlock` words that).
+ */
+type OutcomeRule = { kinds: readonly AnimationKind[]; only: string; needs?: string }
+const TRAVEL_RULE: OutcomeRule = { kinds: ['send', 'call', 'event'], only: 'send, call and event' }
+const OUTCOME_RULES: Record<Outcome, OutcomeRule> = {
+  fail: { kinds: ['send', 'call'], only: 'send and call', needs: 'Needs a send or a call' },
+  timeout: { kinds: ['call'], only: 'call', needs: 'Needs a call' },
+  lost: TRAVEL_RULE, rejected: TRAVEL_RULE, intercepted: TRAVEL_RULE, duplicated: TRAVEL_RULE, delayed: TRAVEL_RULE,
+}
+
+/**
+ * Where each option of an animation means something. `kind` is the one kind it applies to; `outcome` is the one outcome it applies to, or
+ * 'any' for every outcome (it needs one). A new kind or outcome drops the options that no longer apply (see animationWith).
+ */
+type OptionRule = { kind?: AnimationKind; outcome?: Outcome | 'any' }
+type PlacedOption = 'trigger' | 'share' | 'reason' | 'by' | 'at'
+const OPTION_RULES: Record<PlacedOption, OptionRule> = {
+  trigger: { kind: 'callback' },
+  share: { outcome: 'any' },
+  reason: { outcome: 'any' },
+  by: { outcome: 'intercepted' },
+  at: { outcome: 'lost' },
+}
+const PLACED_OPTIONS = Object.keys(OPTION_RULES) as PlacedOption[]
+/** The options that mean something only while the step has an outcome. */
+const NEEDS_OUTCOME = PLACED_OPTIONS.filter(o => OPTION_RULES[o].outcome !== undefined)
+
+/** Why an option is out of place for a step of this kind and outcome, worded to follow "animation ", or undefined when it is there or fits. */
+function misplaced(option: PlacedOption, value: unknown, kind: AnimationKind, outcome: unknown): string | undefined {
+  if (value === undefined) return undefined
+  const rule = OPTION_RULES[option]
+  if (rule.kind !== undefined && kind !== rule.kind) return `${option} only applies to ${rule.kind}`
+  if (rule.outcome === 'any') return outcome === undefined ? `${option} needs an outcome` : undefined
+  return rule.outcome !== undefined && outcome !== rule.outcome ? `${option} only applies to outcome ${rule.outcome}` : undefined
+}
 
 /** The longest a reason and an interceptor's name may be, in characters. */
 export const REASON_MAX = 40
@@ -94,7 +133,6 @@ export const TINTS = ['teal', 'pink', 'purple', 'orange'] as const
 export const LABEL_MAX = 16
 export const shortLabel = (label: string): string => (label.length > LABEL_MAX ? `${label.slice(0, LABEL_MAX - 1)}…` : label)
 
-const isMap = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 const isKind = (v: string): v is AnimationKind => ANIMATION_KINDS.some(k => k === v)
 const KINDS_HINT = `use ${ANIMATION_KINDS.join(', ')}`
 /** "a, b or c". */
@@ -142,30 +180,31 @@ export function animationProblem(raw: unknown, hasTo: boolean): string | undefin
     if (extra !== undefined) return `unknown animation option "${extra}" (use ${OPTIONS.join(', ')})`
     const { trigger, carries, outcome, share, reason, by, at } = raw
     if (trigger !== undefined && !TRIGGERS.some(t => t === trigger)) return `animation trigger must be ${TRIGGERS.join(' or ')}`
-    if (trigger !== undefined && kind !== 'callback') return 'animation trigger only applies to callback'
+    let out = misplaced('trigger', trigger, kind, outcome)
+    if (out) return `animation ${out}`
     if (carries !== undefined && (typeof carries !== 'string' || carries.trim() === '')) return 'animation carries must be a word'
     if (outcome !== undefined && !isOutcome(outcome)) return `animation outcome must be ${orList(OUTCOMES)}`
-    if (outcome === 'timeout' && kind !== 'call') return 'animation outcome timeout only applies to call'
-    if (outcome === 'fail' && kind !== 'send' && kind !== 'call') return 'animation outcome fail only applies to send and call'
-    if (isTravelOutcome(outcome) && kind === 'callback') return `animation outcome ${String(outcome)} only applies to send, call and event`
-    if (share !== undefined) {
-      if (shareOf(share) === undefined) return 'animation share must be a whole number from 1 to 100'
-      if (outcome === undefined) return 'animation share needs an outcome'
-    }
+    if (isOutcome(outcome) && !OUTCOME_RULES[outcome].kinds.some(k => k === kind)) return `animation outcome ${outcome} only applies to ${OUTCOME_RULES[outcome].only}`
+    if (share !== undefined && shareOf(share) === undefined) return 'animation share must be a whole number from 1 to 100'
+    out = misplaced('share', share, kind, outcome)
+    if (out) return `animation ${out}`
     if (reason !== undefined) {
       if (!plainLine(reason)) return 'animation reason must be plain text on one line'
       if (reason.trim().length > REASON_MAX) return `animation reason can be at most ${REASON_MAX} characters`
-      if (outcome === undefined) return 'animation reason needs an outcome'
     }
+    out = misplaced('reason', reason, kind, outcome)
+    if (out) return `animation ${out}`
     if (outcome === 'intercepted') {
       if (by === undefined) return 'animation outcome intercepted needs a "by" (a shape id, or { name: ... })'
       const why = byProblem(by)
       if (why !== undefined) return why
-    } else if (by !== undefined) return 'animation by only applies to outcome intercepted'
-    if (at !== undefined) {
-      if (lostAtOf(at) === undefined) return 'animation at must be a number from 0.1 to 0.9'
-      if (outcome !== 'lost') return 'animation at only applies to outcome lost'
+    } else {
+      out = misplaced('by', by, kind, outcome)
+      if (out) return `animation ${out}`
     }
+    if (at !== undefined && lostAtOf(at) === undefined) return 'animation at must be a number from 0.1 to 0.9'
+    out = misplaced('at', at, kind, outcome)
+    if (out) return `animation ${out}`
   }
   if (!hasTo) return `animation "${kind}" needs a "to"`
   return undefined
@@ -203,6 +242,27 @@ export function animationOf(step: { to?: string; animation?: unknown }): Animati
     ...(typeof map.reason === 'string' ? { reason: map.reason.trim() } : {}),
     ...(by === undefined ? {} : { by }),
     ...(at === undefined ? {} : { at }),
+  }
+}
+
+/**
+ * What a step's animation says, field by field, as the text the edit form shows: "" for a field the file leaves out. Unlike animationOf it
+ * keeps what is wrong (an unknown kind, a share of "many", a number as text), so the form can show a file's mistake instead of hiding it.
+ * A bare tag is the kind. `by` is the id of the shape that takes the request, `byName` the name of a party that is not in the model.
+ */
+export type AnimationFields = { kind: string; outcome: string; share: string; reason: string; by: string; byName: string }
+
+export function animationFields(step: { animation?: unknown }): AnimationFields {
+  const raw = step.animation
+  const map = isMap(raw) ? raw : typeof raw === 'string' ? { kind: raw } : {}
+  const text = (v: unknown): string => (typeof v === 'string' || typeof v === 'number' ? String(v) : '')
+  return {
+    kind: text(map.kind),
+    outcome: text(map.outcome),
+    share: text(map.share),
+    reason: text(map.reason),
+    by: text(map.by),
+    byName: isMap(map.by) ? text(map.by.name) : '',
   }
 }
 
@@ -471,9 +531,7 @@ export function outcomeBlock(kind: string | undefined, outcome: string): string 
   if (outcome === '') return undefined
   if (kind === undefined || kind === '') return 'Pick how it travels first'
   if (kind === 'callback') return 'Not for a callback'
-  if (outcome === 'timeout' && kind !== 'call') return 'Needs a call'
-  if (outcome === 'fail' && kind !== 'send' && kind !== 'call') return 'Needs a send or a call'
-  return undefined
+  return isOutcome(outcome) && !OUTCOME_RULES[outcome].kinds.some(k => k === kind) ? OUTCOME_RULES[outcome].needs : undefined
 }
 
 /** The keys of an animation the pickers and fields of edit mode set. `by` is the id of a shape that takes the request, `byName` the name of a party that is not in the model. */
@@ -481,9 +539,6 @@ export type AnimationKey = 'kind' | 'outcome' | 'share' | 'reason' | 'at' | 'car
 
 /** Who takes an intercepted request until the reader names one: an interception needs a taker, so picking it never leaves the step without. */
 export const DEFAULT_TAKER = 'Third party'
-
-/** The keys that mean something only while the step has an outcome. */
-const NEEDS_OUTCOME = ['share', 'reason', 'by', 'at'] as const
 
 /**
  * A step's `animation` with one key set, as the pickers of edit mode make it. Setting the kind to "" takes the animation away, and the outcome to "" takes it
@@ -499,14 +554,13 @@ export function animationWith(current: unknown, key: AnimationKey, value: string
   if (key === 'kind') {
     if (text === '') return undefined
     map.kind = text
-    if (text !== 'callback') drop('trigger')
+    drop(...PLACED_OPTIONS.filter(o => OPTION_RULES[o].kind !== undefined && OPTION_RULES[o].kind !== text))
     if (typeof map.outcome === 'string' && outcomeBlock(text, map.outcome) !== undefined) drop('outcome', ...NEEDS_OUTCOME)
   } else if (key === 'outcome') {
     if (text === '') drop('outcome', ...NEEDS_OUTCOME)
     else {
       map.outcome = text
-      if (text !== 'intercepted') drop('by')
-      if (text !== 'lost') drop('at')
+      drop(...PLACED_OPTIONS.filter(o => OPTION_RULES[o].outcome !== undefined && OPTION_RULES[o].outcome !== 'any' && OPTION_RULES[o].outcome !== text))
     }
   } else if (key === 'byName') {
     if (text === '') drop('by')

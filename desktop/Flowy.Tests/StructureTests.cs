@@ -59,15 +59,15 @@ public class StructureTests
     [InlineData(" a ", false)]
     public void Blank_means_what_JavaScripts_trim_means(string text, bool blank)
     {
-        Assert.Equal(blank, Structure.Blank(text));
-        Assert.Equal(text.Trim('\uFEFF', ' ', '\t', '\r', '\n', '\u00A0', '\u2028'), Structure.JsTrim(text));
+        Assert.Equal(blank, JsCompat.Blank(text));
+        Assert.Equal(text.Trim('\uFEFF', ' ', '\t', '\r', '\n', '\u00A0', '\u2028'), JsCompat.JsTrim(text));
     }
 
     [Fact]
     public void A_value_that_is_not_text_is_blank()
     {
-        Assert.True(Structure.Blank(null));
-        Assert.True(Structure.Blank(new List<object?>()));
-        Assert.False(Structure.Blank("x"));
+        Assert.True(JsCompat.Blank(null));
+        Assert.True(JsCompat.Blank(new List<object?>()));
+        Assert.False(JsCompat.Blank("x"));
     }
 }

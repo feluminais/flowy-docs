@@ -1,5 +1,6 @@
 import { Document, isMap as isYamlMap, isScalar, isSeq, parse, stringify, visit, YAMLParseError } from 'yaml'
 import type { Scalar, YAMLMap, YAMLSeq } from 'yaml'
+import { isMap, own } from './text.ts'
 
 export const ROOT = 'root'
 export const OBJECT_TYPES = ['actor', 'system', 'app', 'store', 'component'] as const
@@ -94,7 +95,7 @@ export type Link = { url: string; title?: string; [extra: string]: unknown }
 /** The well-formed entries of an object's `links` (a mapping with a text `url`). check() reports anything else. */
 export function linksOf(o: FlowyObject): Link[] {
   return Array.isArray(o.links)
-    ? o.links.filter((l): l is Link => typeof l === 'object' && l !== null && !Array.isArray(l) && typeof l.url === 'string' && (l.title === undefined || typeof l.title === 'string'))
+    ? o.links.filter((l): l is Link => isMap(l) && typeof l.url === 'string' && (l.title === undefined || typeof l.title === 'string'))
     : []
 }
 
@@ -121,8 +122,6 @@ export class ParseError extends Error {
     this.reason = reason
   }
 }
-
-export const isMap = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
 /** For sections (objects, connections, steps, layout views): an empty value, `~` or `null` means empty. */
 export const orEmpty = (v: unknown, empty: unknown): unknown =>
@@ -227,7 +226,7 @@ export function parseAnalysisFile(id: string, text: string): Analysis {
     if (affects === undefined) delete mode.affects
     else if (!Array.isArray(affects) || affects.some(a => typeof a !== 'string')) throw new ParseError(file, `${at}: "affects" must be a list of ids`)
     // Not `modes[mid] = ...`: a mode named __proto__ would replace the prototype and vanish.
-    Object.defineProperty(modes, mid, { value: mode, enumerable: true, writable: true, configurable: true })
+    own(modes, mid, mode)
   }
   const scale = orEmpty(doc.scale, undefined)
   if (scale !== undefined) {

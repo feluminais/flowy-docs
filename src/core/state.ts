@@ -1,4 +1,4 @@
-import type { Problem } from './check.ts'
+import type { Problem } from './problem.ts'
 import type { Analysis, Flow, Layout, Model } from './model.ts'
 import type { Run } from './perf.ts'
 

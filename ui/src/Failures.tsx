@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react'
-import type { Problem } from '../../src/core/check.ts'
+import type { Problem } from '../../src/core/problem.ts'
 import { bandOf, BAND_NAMES, coverage, partName, lightFor, ratingsOf, riskOf } from '../../src/core/failures.ts'
 import type { Band, Part, Ranked } from '../../src/core/failures.ts'
 import type { Model } from '../../src/core/model.ts'
@@ -12,8 +12,8 @@ import type { Filter } from './failuresview.ts'
 import { AddMode, AnalysisForm, ModeForm, NewAnalysis } from './FailuresEdit.tsx'
 import type { Preset } from './FailuresEdit.tsx'
 import { Activity, Alert, Close, Copy, Info, Plus, Route } from './icons.tsx'
-import type { Run as Edit } from './Panel.tsx'
-import { KeyItem, KeyRow } from './Performance.tsx'
+import type { SaveEdit as Edit } from './forms.tsx'
+import { KeyItem, KeyRow } from './legend.tsx'
 
 /** What the Failures tab's body is told: the folder, the analysis on show and the mode picked in it, the rows to list, and what to do about a click. */
 export type FailuresProps = {

@@ -126,7 +126,7 @@ public sealed class UserStateStore(string file)
             var recent = root.TryGetProperty("recent", out var r) && r.ValueKind == JsonValueKind.Array
                 ? Recents.Trim(r.EnumerateArray().Where(e => e.ValueKind == JsonValueKind.String).Select(e => e.GetString()!))
                 : [];
-            var lines = root.TryGetProperty("lines", out var l) && l.ValueKind == JsonValueKind.String && l.GetString() is "straight" or "curved" or "angled" ? l.GetString() : null;
+            var lines = root.TryGetProperty("lines", out var l) && l.ValueKind == JsonValueKind.String && l.GetString() is { } style && Names.LineStyles.Contains(style) ? style : null;
             var updates = !(root.TryGetProperty("checkForUpdates", out var u) && u.ValueKind == JsonValueKind.False);
             // A size that isn't sane (a hand-edited file, a monitor that is gone) is forgotten: the window then opens at its usual size.
             WindowSize? window = null;

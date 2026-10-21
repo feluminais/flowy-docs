@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { ParseError, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
-import type { Problem } from '../../src/core/check.ts'
+import type { Problem } from '../../src/core/problem.ts'
 import {
   checkRun, checkRuns, dialsOf, eventsPassed, eventText, interpolate, knee, kneeOf, kneeText, kneeTextOf, levelAt, loadOfPosition, lockstepPositions, lockstepTop, parseRun, rollUp, runStates, scaleText, settingAt,
   sourceKey, sourceKeyAt, strain, traffic, trafficAt,

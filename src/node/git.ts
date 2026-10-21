@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { encodePath } from '../core/check.ts'
+import { encodePath } from '../core/paths.ts'
 
 const run = promisify(execFile)
 

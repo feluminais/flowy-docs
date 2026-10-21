@@ -6,15 +6,61 @@
  * Nothing here draws, and nothing needs a browser. desktop/Flowy.Core/Structure.cs is a port, and
  * desktop/fixtures/structure.ts keeps the two equal.
  */
-import { ID_RULE, isMap, isValidId } from './model.ts'
-import type { Flow } from './model.ts'
+import { ID_RULE, isValidId } from './model.ts'
+import { blank, isMap } from './text.ts'
+import type { Flow, Group } from './model.ts'
 
 export const GROUP_KINDS = ['repeat', 'branch', 'parallel'] as const
 export type GroupKind = (typeof GROUP_KINDS)[number]
 export const isGroupKind = (v: unknown): v is GroupKind => GROUP_KINDS.some(k => k === v)
 
-/** Whether a value says nothing: not text, or only whitespace. A blank group, lane, flow or option is the same as none. */
-export const blank = (v: unknown): boolean => typeof v !== 'string' || v.trim() === ''
+/** The options a group may take besides its kind and `text`. */
+export type GroupOption = 'times' | 'until'
+
+/**
+ * What each kind of group is, in one place: whether its steps split into lanes, and which options it takes. The algorithms differ per kind
+ * (a repeat plays its steps again, a branch picks one lane, parallel lanes run together), so they stay as switches where they are.
+ */
+export const GROUP_INFO: Record<GroupKind, { lanes: boolean; options: readonly GroupOption[] }> = {
+  repeat: { lanes: false, options: ['times', 'until'] },
+  branch: { lanes: true, options: [] },
+  parallel: { lanes: true, options: [] },
+}
+
+/** Whether a group of this kind splits its steps into lanes. False for a value that is no kind. */
+export const hasLanes = (kind: unknown): boolean => isGroupKind(kind) && GROUP_INFO[kind].lanes
+
+/** Whether a group of this kind takes the option. False for a value that is no kind. */
+export const takesOption = (kind: unknown, option: GroupOption): boolean => isGroupKind(kind) && GROUP_INFO[kind].options.includes(option)
+
+/** The text of a value from a file, trimmed; "" when it says nothing. */
+const textOf = (v: unknown): string => (blank(v) ? '' : String(v).trim())
+
+/** The declared groups of a flow, raw as the file has them; none when `groups` is missing or is not a mapping. */
+export const declaredGroups = (flow: Flow | undefined): Record<string, Group> => (flow !== undefined && isMap(flow.groups) ? flow.groups : {})
+
+/**
+ * A declared group as a reader needs it. `kind` is undefined when the file gives none or one that is not known. `times`, `until` and `text`
+ * are trimmed text and left out when blank (files hold text, so a number reads as none).
+ */
+export type GroupInfo = { kind: GroupKind | undefined; times?: string; until?: string; text?: string }
+
+/**
+ * Group `id` of the flow, or undefined when `id` is blank, not declared (a name Object has is not declared) or declared as something
+ * other than a mapping. Like animationOf, it reads the raw value once so no reader does.
+ */
+export function groupOf(flow: Flow, id: string): GroupInfo | undefined {
+  const groups = flow.groups
+  if (id === '' || !isMap(groups) || !Object.hasOwn(groups, id)) return undefined
+  const body = groups[id]
+  if (!isMap(body)) return undefined
+  const info: GroupInfo = { kind: isGroupKind(body.kind) ? body.kind : undefined }
+  for (const key of ['times', 'until', 'text'] as const) {
+    const text = textOf(body[key])
+    if (text !== '') info[key] = text
+  }
+  return info
+}
 
 /** A step's group id, trimmed; "" when it has none. */
 export const stepGroup = (flow: Flow, i: number): string => {
@@ -23,12 +69,7 @@ export const stepGroup = (flow: Flow, i: number): string => {
 }
 
 /** The kind of a declared group, or undefined when `id` is blank, not declared (a name Object has is not declared) or of no known kind. */
-function kindOf(flow: Flow, id: string): GroupKind | undefined {
-  const groups = flow.groups
-  if (id === '' || !isMap(groups) || !Object.hasOwn(groups, id)) return undefined
-  const g = groups[id]
-  return isMap(g) && isGroupKind(g.kind) ? g.kind : undefined
-}
+const kindOf = (flow: Flow, id: string): GroupKind | undefined => groupOf(flow, id)?.kind
 
 /**
  * A stretch of neighbouring steps in one declared group: file step numbers from `start` to `end` (inclusive). For a branch or
@@ -51,7 +92,7 @@ export function runsOf(flow: Flow): Run[] {
     let end = i
     while (end + 1 < n && stepGroup(flow, end + 1) === id) end++
     const lanes: Run['lanes'] = []
-    if (kind !== 'repeat') {
+    if (GROUP_INFO[kind].lanes) {
       for (let j = i; j <= end; j++) {
         const label = flow.steps[j].lane
         if (!blank(label)) lanes.push({ label: (label as string).trim(), steps: [j] })
@@ -122,7 +163,7 @@ export const timesOk = (v: unknown): boolean => typeof v === 'string' && /^[0-9]
  */
 export function structureProblems(flow: Flow, hasFlow: (id: string) => boolean): { step?: number; message: string }[] {
   const out: { step?: number; message: string }[] = []
-  const groups = isMap(flow.groups) ? flow.groups : {}
+  const groups = declaredGroups(flow)
   const ids = Object.keys(groups)
   const kinds = GROUP_KINDS.join(', ')
 
@@ -136,10 +177,8 @@ export function structureProblems(flow: Flow, hasFlow: (id: string) => boolean):
     const extra = Object.keys(body).find(k => !GROUP_OPTIONS.some(o => o === k))
     if (extra !== undefined) add(`unknown option "${extra}" (use ${GROUP_OPTIONS.join(', ')})`)
     if (!isGroupKind(kind)) continue
-    if (kind !== 'repeat') {
-      if (!blank(body.times)) add('times only applies to repeat')
-      if (!blank(body.until)) add('until only applies to repeat')
-    } else {
+    for (const option of ['times', 'until'] as const) if (!takesOption(kind, option) && !blank(body[option])) add(`${option} only applies to repeat`)
+    if (takesOption(kind, 'times')) {
       if (!blank(body.times) && !timesOk(body.times)) add(`times must be a whole number from ${TIMES_MIN} to ${TIMES_MAX}`)
       if (blank(body.times) && blank(body.until)) add('a repeat needs times or until')
     }
@@ -160,8 +199,8 @@ export function structureProblems(flow: Flow, hasFlow: (id: string) => boolean):
     const lane = laneOf(i)
     if (gid !== '' && !declared) at(`group "${gid}" is not declared under groups`)
     if (lane !== '' && gid === '') at('lane needs a group')
-    if (declared && kind === 'repeat' && lane !== '') at('lane only applies to branch and parallel')
-    if (declared && (kind === 'branch' || kind === 'parallel')) {
+    if (declared && kind !== undefined && !hasLanes(kind) && lane !== '') at('lane only applies to branch and parallel')
+    if (declared && hasLanes(kind)) {
       const mine = members.get(gid) ?? []
       if (mine[0] === i && lane === '') at(`the first step of group "${gid}" needs a lane`)
       if (lane !== '' && mine.some(j => j < i && laneOf(j) === lane)) at(`lane "${lane}" is already used in group "${gid}"`)

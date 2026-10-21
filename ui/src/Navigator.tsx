@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode, Ref } from 'react'
-import type { Problem } from '../../src/core/check.ts'
+import type { Problem } from '../../src/core/problem.ts'
 import { ROOT } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
 import { flowGroups, outline, outlineKey } from '../../src/core/outline.ts'
