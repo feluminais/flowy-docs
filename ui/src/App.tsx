@@ -189,6 +189,21 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       // storage is blocked: the choice lasts until the page closes
     }
   }
+  const [squish, setSquish] = useState(() => {
+    try {
+      return store.get('flowy.squish') === 'on'
+    } catch {
+      return false
+    }
+  }) // whether a moving blob squishes as it runs: off until the reader turns it on
+  const toggleSquish = () => {
+    setSquish(!squish)
+    try {
+      store.set('flowy.squish', squish ? 'off' : 'on')
+    } catch {
+      // storage is blocked: the choice lasts until the page closes
+    }
+  }
   const [settledKey, setSettledKey] = useState('') // the step (and replay) whose motion has finished
   const [editMode, setEditMode] = useState(false)
   const [notice, setNotice] = useState<string>()
@@ -975,7 +990,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               <Controls showInteractive={false} fitViewOptions={fitOptions(rightOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
               {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
               {flow && stop && animated.map(m => (
-                <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
+                <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} squished={squish} onDone={() => finished(m.i)} />
               ))}
               {flow && <GroupMarks marks={marks} />}
             </ReactFlow>
@@ -1066,7 +1081,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {rightOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && stop && caption && progress && (
             <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
-              trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={() => setReplays(n => n + 1)} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
+              trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={() => setReplays(n => n + 1)} repeat={repeat} onRepeat={toggleRepeat} squish={squish} onSquish={toggleSquish} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
           )}
         </main>
         <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else { setPerf(false); setFailures(false); setDetails(true) } }}

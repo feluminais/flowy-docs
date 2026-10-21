@@ -59,9 +59,10 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   way, and `callback` shows what set it off (`trigger: outside` when it was the step before).
   A step that really ends another way adds an `outcome`: `fail` on a `send` or `call` runs red and flashes the receiver, `timeout` on a `call` leaves the sender waiting with no reply and dims the line, and five more show a request that is lost, turned away, taken by someone else, delivered twice or held up (see [How a request ends](#how-a-request-ends)). The step's text still says what happened.
   In the browser the step plays again two and a half seconds after it ends, until you move on (the Repeat button on the card turns that off),
-  R plays it again from the start, and Autoplay (P) steps through the flow on its own after the first play. Nothing moves when
+  R plays it again from the start, and Autoplay (P) steps through the flow on its own after the first play. The moving label keeps its
+  shape. The Squish button on the card, which is off until you press it, lets it stretch a little as it runs. Nothing moves when
   the system asks for less motion, and a step's text always says the same thing. The desktop app
-  plays each step once.
+  plays each step once, and its label never squishes.
 - A flow whose steps are grouped (see [Repeats, branches and parallel steps](#repeats-branches-and-parallel-steps)) is played in
   stops: a chip names the group, a branch shows its lanes as tabs, the bar has a bracket under each group, and the lanes of a parallel
   group are one stop, lit and moving together. A step that says `flow:` has an Open flow button, and a bar to come back.

@@ -10,7 +10,7 @@ import { nameOf, placeStep } from '../../src/core/views.ts'
 import { BOX } from './graph.ts'
 import type { BoxData, Rect } from './graph.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
-import { active, bump, cyclePeriod, distance, DWELL, ease, entryPoint, litOpacity, markerSize, markerSpot, noteSpot, progress, squashTile, tintColor, tubeOpacity } from './motion.ts'
+import { active, bump, cyclePeriod, distance, DWELL, ease, entryPoint, litOpacity, markerSize, markerSpot, noteSpot, progress, squashTile, squish, tintColor, tubeOpacity } from './motion.ts'
 
 // The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
 const GLYPHS: Record<Glyph, string> = {
@@ -176,6 +176,8 @@ type Props = {
   afterLanding: boolean
   /** Whether it plays again after a rest, until the step is left. */
   repeat: boolean
+  /** Whether the blob squishes as it runs. Off, it keeps its shape. Read as it plays, so a change shows at once. */
+  squished: boolean
   /** Who takes an intercepted request, as this view can draw it. Left out, the name or id the step gives is drawn as a marker. */
   by?: TakenBy
   /** Called once when the motion has finished, or after a moment when motion is reduced. */
@@ -188,7 +190,7 @@ type Props = {
  * When the system asks for less motion nothing moves: it draws only where the outcome happened (a cross, a bar, a marker, a clock, the reason)
  * and reports that it is done after a moment.
  */
-export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }: Props) {
+export function StepMotion({ ends, animation, afterLanding, repeat, squished, by, onDone }: Props) {
   const style = useContext(LineStyleContext)
   const from = useInternalNode(ends[0])
   const to = useInternalNode(ends[1])
@@ -198,6 +200,8 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }
   done.current = onDone
   const again = useRef(repeat)
   again.current = repeat
+  const squishy = useRef(squished)
+  squishy.current = squished
   const still = reducedMotion()
   // The one who takes an intercepted request: a box when the view shows it, else a marker with a name.
   const named = by !== undefined && 'name' in by ? by.name : animation.by === undefined ? undefined : 'name' in animation.by ? animation.by.name : animation.by.shape
@@ -315,12 +319,10 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }
             const ahead = route.getPointAtLength(Math.min(length, pos + 2))
             angle = (Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * 180) / Math.PI
           }
-          // A blob that waits where it is does not stretch.
+          // A blob squishes only when the reader has asked for it, and one that waits where it is never does. The glyph or the words in it are not squished at all.
           const waiting = beat.start !== undefined && beat.start === beat.end
-          const stretch = waiting ? 0 : bump(p)
-          // The shape is stretched along the way it runs, and no more rotated than that. The glyph or the words in it are not stretched at all.
           node.setAttribute('transform', `translate(${here.x} ${here.y})`)
-          stretches[i]?.setAttribute('transform', `rotate(${angle}) scale(${1 + 0.3 * stretch} ${1 - 0.15 * stretch}) rotate(${-angle})`)
+          stretches[i]?.setAttribute('transform', squishy.current && !waiting ? squish(beat.label !== undefined, angle, bump(p)) : '')
         } else if (beat.do === 'ring') {
           const r = beat.on === 'to' ? b : a
           const grow = 6 + 22 * p
