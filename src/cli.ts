@@ -8,7 +8,7 @@ import { flowToMermaid, viewToMermaid } from './core/mermaid.ts'
 import { analysisText } from './core/failures.ts'
 import { modelOf } from './core/state.ts'
 import { exportSite } from './node/export.ts'
-import { loadDir, loadState } from './node/files.ts'
+import { loadDir, loadReport, loadState } from './node/files.ts'
 import { openHistory } from './node/history.ts'
 import { createMcpServer } from './node/mcp.ts'
 import { startServer } from './node/server.ts'
@@ -83,6 +83,20 @@ async function printFailures(dir: string, analysis: string | undefined, format: 
   return problems.length > 0 ? 1 : 0
 }
 
+/**
+ * `flowy check`: every problem in the folder, one line each on stderr, and exit code 1 if there is any, so a person, an AI or a build can tell
+ * that a model is sound. It reads what the canvas reads, and also writes every file back in memory, which catches a file that loads but could
+ * not be saved again. A model or flow file that can't be read at all is the one error line. Resolves to the exit code.
+ */
+async function printCheck(dir: string): Promise<number> {
+  const { model, runs, problems } = await loadReport(dir)
+  for (const p of problems) console.error(`${p.file}: ${p.message}`)
+  const what = `${count(Object.keys(model.objects).length, 'shape')}, ${count(Object.keys(model.flows).length, 'flow')}, ${count(Object.keys(model.failures).length, 'failure analysis', 'failure analyses')} and ${count(Object.keys(runs).length, 'load-test run')} in ${dir}`
+  if (problems.length === 0) console.log(`No problems in ${what}.`)
+  else console.error(`${count(problems.length, 'problem')} in ${what}.`)
+  return problems.length > 0 ? 1 : 0
+}
+
 if (args?.positionals[0] === 'mcp') {
   const dir = resolve(args.values.dir)
   await createMcpServer(dir, openHistory(dir, { app: 'mcp' })).connect(new StdioServerTransport())
@@ -101,6 +115,13 @@ if (args?.positionals[0] === 'mcp') {
   try {
     const { model } = await loadDir(resolve(args.values.dir))
     process.stdout.write(args.values.flow === undefined ? viewToMermaid(model, args.values.view!) : flowToMermaid(model, args.values.flow))
+  } catch (e) {
+    console.error(e instanceof Error ? e.message : String(e))
+    process.exitCode = 1
+  }
+} else if (args?.positionals[0] === 'check' && args.positionals.length === 1 && !mermaidFlags && !failuresFlags) {
+  try {
+    process.exitCode = await printCheck(resolve(args.values.dir))
   } catch (e) {
     console.error(e instanceof Error ? e.message : String(e))
     process.exitCode = 1
@@ -124,6 +145,6 @@ if (args?.positionals[0] === 'mcp') {
     process.exitCode = 1
   }
 } else {
-  console.error('Usage: flowy [--dir flowy] [--port 4321] [--no-open]\n       flowy export [--dir flowy] [--out flowy-site]\n       flowy mermaid (--flow <id> | --view <id>) [--dir flowy]\n       flowy failures [--analysis <id>] [--format markdown|csv] [--dir flowy]\n       flowy mcp [--dir flowy]')
+  console.error('Usage: flowy [--dir flowy] [--port 4321] [--no-open]\n       flowy export [--dir flowy] [--out flowy-site]\n       flowy mermaid (--flow <id> | --view <id>) [--dir flowy]\n       flowy check [--dir flowy]\n       flowy failures [--analysis <id>] [--format markdown|csv] [--dir flowy]\n       flowy mcp [--dir flowy]')
   process.exitCode = 1
 }
