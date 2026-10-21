@@ -240,7 +240,7 @@
         "speed": "fast"
       },
       "to": true,
-      "problem": "unknown animation option \"speed\" (use kind, trigger, carries, outcome)"
+      "problem": "unknown animation option \"speed\" (use kind, trigger, carries, outcome, share, reason, by, at)"
     },
     {
       "animation": {
@@ -248,7 +248,7 @@
         "speed": "fast"
       },
       "to": false,
-      "problem": "unknown animation option \"speed\" (use kind, trigger, carries, outcome)"
+      "problem": "unknown animation option \"speed\" (use kind, trigger, carries, outcome, share, reason, by, at)"
     },
     {
       "animation": {
@@ -484,7 +484,7 @@
         "outcome": "maybe"
       },
       "to": true,
-      "problem": "animation outcome must be fail or timeout"
+      "problem": "animation outcome must be fail, timeout, lost, rejected, intercepted, duplicated or delayed"
     },
     {
       "animation": {
@@ -492,7 +492,7 @@
         "outcome": "maybe"
       },
       "to": false,
-      "problem": "animation outcome must be fail or timeout"
+      "problem": "animation outcome must be fail, timeout, lost, rejected, intercepted, duplicated or delayed"
     },
     {
       "animation": {
@@ -500,7 +500,7 @@
         "outcome": ""
       },
       "to": true,
-      "problem": "animation outcome must be fail or timeout"
+      "problem": "animation outcome must be fail, timeout, lost, rejected, intercepted, duplicated or delayed"
     },
     {
       "animation": {
@@ -508,7 +508,7 @@
         "outcome": ""
       },
       "to": false,
-      "problem": "animation outcome must be fail or timeout"
+      "problem": "animation outcome must be fail, timeout, lost, rejected, intercepted, duplicated or delayed"
     },
     {
       "animation": {
@@ -518,7 +518,7 @@
         ]
       },
       "to": true,
-      "problem": "animation outcome must be fail or timeout"
+      "problem": "animation outcome must be fail, timeout, lost, rejected, intercepted, duplicated or delayed"
     },
     {
       "animation": {
@@ -528,7 +528,7 @@
         ]
       },
       "to": false,
-      "problem": "animation outcome must be fail or timeout"
+      "problem": "animation outcome must be fail, timeout, lost, rejected, intercepted, duplicated or delayed"
     }
   ],
   "reads": [
