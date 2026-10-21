@@ -1,0 +1,685 @@
+{
+  "reads": [
+    {
+      "text": "rate / 50",
+      "formula": "rate / 50",
+      "names": [
+        "rate"
+      ],
+      "linear": 0.02
+    },
+    {
+      "text": "rate/50",
+      "formula": "rate / 50",
+      "names": [
+        "rate"
+      ],
+      "linear": 0.02
+    },
+    {
+      "text": "1 + 2 * 3",
+      "formula": "1 + (2 * 3)",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "(1 + 2) * 3",
+      "formula": "(1 + 2) * 3",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "10 - 4 - 3",
+      "formula": "(10 - 4) - 3",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "100 / 10 / 5",
+      "formula": "(100 / 10) / 5",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "-rate / 2 * -1",
+      "formula": "(-rate / 2) * -1",
+      "names": [
+        "rate"
+      ],
+      "linear": 0.5
+    },
+    {
+      "text": "--3",
+      "formula": "--3",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "-(1 + 2)",
+      "formula": "-(1 + 2)",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "2 * -3",
+      "formula": "2 * -3",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "0.5 * 4",
+      "formula": "0.5 * 4",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": ".5 * 4",
+      "formula": "0.5 * 4",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "5. * 2",
+      "formula": "5 * 2",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "007",
+      "formula": "7",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "rate + bytes + p50",
+      "formula": "(rate + bytes) + p50",
+      "names": [
+        "rate",
+        "bytes",
+        "p50"
+      ],
+      "linear": null
+    },
+    {
+      "text": "bytes * rate + bytes - p50",
+      "formula": "((bytes * rate) + bytes) - p50",
+      "names": [
+        "bytes",
+        "rate",
+        "p50"
+      ],
+      "linear": null
+    },
+    {
+      "text": "3 * 4",
+      "formula": "3 * 4",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "bytes / 400",
+      "formula": "bytes / 400",
+      "names": [
+        "bytes"
+      ],
+      "linear": null
+    },
+    {
+      "text": "rate / 12.5",
+      "formula": "rate / 12.5",
+      "names": [
+        "rate"
+      ],
+      "linear": 0.08
+    },
+    {
+      "text": "rate * 2",
+      "formula": "rate * 2",
+      "names": [
+        "rate"
+      ],
+      "linear": 2
+    },
+    {
+      "text": "rate / 3",
+      "formula": "rate / 3",
+      "names": [
+        "rate"
+      ],
+      "linear": 0.3333333333333333
+    },
+    {
+      "text": "rate / 50 + 1",
+      "formula": "(rate / 50) + 1",
+      "names": [
+        "rate"
+      ],
+      "linear": null
+    },
+    {
+      "text": "rate * rate",
+      "formula": "rate * rate",
+      "names": [
+        "rate"
+      ],
+      "linear": null
+    },
+    {
+      "text": "2 * rate + rate",
+      "formula": "(2 * rate) + rate",
+      "names": [
+        "rate"
+      ],
+      "linear": 3
+    },
+    {
+      "text": "(rate + rate) / 4",
+      "formula": "(rate + rate) / 4",
+      "names": [
+        "rate"
+      ],
+      "linear": 0.5
+    },
+    {
+      "text": "rate - rate",
+      "formula": "rate - rate",
+      "names": [
+        "rate"
+      ],
+      "linear": null
+    },
+    {
+      "text": "-rate",
+      "formula": "-rate",
+      "names": [
+        "rate"
+      ],
+      "linear": null
+    },
+    {
+      "text": "rate / 0",
+      "formula": "rate / 0",
+      "names": [
+        "rate"
+      ],
+      "linear": null
+    },
+    {
+      "text": "50",
+      "formula": "50",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "rate / 50 + bytes * 0",
+      "formula": "(rate / 50) + (bytes * 0)",
+      "names": [
+        "rate",
+        "bytes"
+      ],
+      "linear": null
+    },
+    {
+      "text": "rate / 1000000000000",
+      "formula": "rate / 1000000000000",
+      "names": [
+        "rate"
+      ],
+      "linear": 1e-12
+    },
+    {
+      "text": "rate + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1",
+      "formula": "((((((((((((((((((rate + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1",
+      "names": [
+        "rate"
+      ],
+      "linear": null
+    },
+    {
+      "text": "(((((((((((((((((((((((((((((((((((((((1)))))))))))))))))))))))))))))))))))))))",
+      "formula": "1",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "-------------------------------------------------------------------------------1",
+      "formula": "-------------------------------------------------------------------------------1",
+      "names": [],
+      "linear": null
+    },
+    {
+      "text": "",
+      "problem": "formula \"\": empty"
+    },
+    {
+      "text": "    ",
+      "problem": "formula \"    \": empty"
+    },
+    {
+      "text": "rate / 50 + ",
+      "problem": "formula \"rate / 50 + \": unexpected end"
+    },
+    {
+      "text": "rate *",
+      "problem": "formula \"rate *\": unexpected end"
+    },
+    {
+      "text": "((rate)",
+      "problem": "formula \"((rate)\": missing \")\""
+    },
+    {
+      "text": "rate)",
+      "problem": "formula \"rate)\": unexpected \")\" at 5"
+    },
+    {
+      "text": "rate()",
+      "problem": "formula \"rate()\": unexpected \"(\" at 5"
+    },
+    {
+      "text": "( )",
+      "problem": "formula \"( )\": unexpected \")\" at 3"
+    },
+    {
+      "text": "rate rate",
+      "problem": "formula \"rate rate\": unexpected \"rate\" at 6"
+    },
+    {
+      "text": "foo * 2",
+      "problem": "formula \"foo * 2\": unknown name \"foo\" (use rate, bytes, p50)"
+    },
+    {
+      "text": "Rate",
+      "problem": "formula \"Rate\": unknown name \"Rate\" (use rate, bytes, p50)"
+    },
+    {
+      "text": "1e3",
+      "problem": "formula \"1e3\": unexpected \"e3\" at 2"
+    },
+    {
+      "text": "0x10",
+      "problem": "formula \"0x10\": unexpected \"x10\" at 2"
+    },
+    {
+      "text": "1.2.3",
+      "problem": "formula \"1.2.3\": bad number \"1.2.3\" at 1"
+    },
+    {
+      "text": "rate * .",
+      "problem": "formula \"rate * .\": bad number \".\" at 8"
+    },
+    {
+      "text": "rate ^ 2",
+      "problem": "formula \"rate ^ 2\": unexpected \"^\" at 6"
+    },
+    {
+      "text": "Math.max(1)",
+      "problem": "formula \"Math.max(1)\": unknown name \"Math\" (use rate, bytes, p50)"
+    },
+    {
+      "text": "+rate",
+      "problem": "formula \"+rate\": unexpected \"+\" at 1"
+    },
+    {
+      "text": "rate; 1",
+      "problem": "formula \"rate; 1\": unexpected \";\" at 5"
+    },
+    {
+      "text": "rate\t/ 5",
+      "problem": "formula \"rate\t/ 5\": unexpected \"\t\" at 5"
+    },
+    {
+      "text": "٣",
+      "problem": "formula \"٣\": unexpected \"٣\" at 1"
+    },
+    {
+      "text": "😀",
+      "problem": "formula \"😀\": unexpected \"😀\" at 1"
+    },
+    {
+      "text": "rate * 😀",
+      "problem": "formula \"rate * 😀\": unexpected \"😀\" at 8"
+    },
+    {
+      "text": "rate.constructor",
+      "problem": "formula \"rate.constructor\": bad number \".\" at 5"
+    },
+    {
+      "text": "__proto__",
+      "problem": "formula \"__proto__\": unknown name \"__proto__\" (use rate, bytes, p50)"
+    },
+    {
+      "text": "constructor",
+      "problem": "formula \"constructor\": unknown name \"constructor\" (use rate, bytes, p50)"
+    },
+    {
+      "text": "rate[\"x\"]",
+      "problem": "formula \"rate[\"x\"]\": unexpected \"[\" at 5"
+    },
+    {
+      "text": "1; process.exit()",
+      "problem": "formula \"1; process.exit()\": unexpected \";\" at 2"
+    },
+    {
+      "text": "(",
+      "problem": "formula \"(\": unexpected end"
+    },
+    {
+      "text": ")",
+      "problem": "formula \")\": unexpected \")\" at 1"
+    },
+    {
+      "text": "*",
+      "problem": "formula \"*\": unexpected \"*\" at 1"
+    },
+    {
+      "text": "/ 2",
+      "problem": "formula \"/ 2\": unexpected \"/\" at 1"
+    },
+    {
+      "text": "1 +",
+      "problem": "formula \"1 +\": unexpected end"
+    },
+    {
+      "text": "1 + + 1",
+      "problem": "formula \"1 + + 1\": unexpected \"+\" at 5"
+    },
+    {
+      "text": "2 3",
+      "problem": "formula \"2 3\": unexpected \"3\" at 3"
+    },
+    {
+      "text": "( ( ( 1",
+      "problem": "formula \"( ( ( 1\": missing \")\""
+    },
+    {
+      "text": "rate + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 ",
+      "problem": "formula \"rate + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1…\": at most 80 characters"
+    },
+    {
+      "text": "                                                                                 ",
+      "problem": "formula \"                                        …\": empty"
+    },
+    {
+      "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "problem": "formula \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx…\": at most 80 characters"
+    },
+    {
+      "text": "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((",
+      "problem": "formula \"((((((((((((((((((((((((((((((((((((((((…\": unexpected end"
+    },
+    {
+      "text": "rate / 50 )",
+      "problem": "formula \"rate / 50 )\": unexpected \")\" at 11"
+    },
+    {
+      "text": "1..2",
+      "problem": "formula \"1..2\": bad number \"1..2\" at 1"
+    },
+    {
+      "text": "..",
+      "problem": "formula \"..\": bad number \"..\" at 1"
+    },
+    {
+      "text": ".",
+      "problem": "formula \".\": bad number \".\" at 1"
+    },
+    {
+      "text": "5.5.",
+      "problem": "formula \"5.5.\": bad number \"5.5.\" at 1"
+    },
+    {
+      "text": "p50p50",
+      "problem": "formula \"p50p50\": unknown name \"p50p50\" (use rate, bytes, p50)"
+    },
+    {
+      "text": "p 50",
+      "problem": "formula \"p 50\": unknown name \"p\" (use rate, bytes, p50)"
+    },
+    {
+      "text": "rate_2",
+      "problem": "formula \"rate_2\": unknown name \"rate_2\" (use rate, bytes, p50)"
+    },
+    {
+      "text": "_",
+      "problem": "formula \"_\": unknown name \"_\" (use rate, bytes, p50)"
+    }
+  ],
+  "values": [
+    {
+      "text": "rate / 50",
+      "vars": {
+        "rate": 100
+      },
+      "value": 2
+    },
+    {
+      "text": "rate / 50",
+      "vars": {
+        "rate": 1000
+      },
+      "value": 20
+    },
+    {
+      "text": "rate / 50",
+      "vars": {},
+      "value": null
+    },
+    {
+      "text": "rate / 50",
+      "vars": {
+        "bytes": 3
+      },
+      "value": null
+    },
+    {
+      "text": "rate / 50",
+      "vars": {
+        "rate": 0
+      },
+      "value": 0
+    },
+    {
+      "text": "rate / 0",
+      "vars": {
+        "rate": 5
+      },
+      "value": null
+    },
+    {
+      "text": "1 / 0",
+      "vars": {},
+      "value": null
+    },
+    {
+      "text": "0 / 0",
+      "vars": {},
+      "value": null
+    },
+    {
+      "text": "rate / (rate - rate)",
+      "vars": {
+        "rate": 5
+      },
+      "value": null
+    },
+    {
+      "text": "1 + rate / 0",
+      "vars": {
+        "rate": 5
+      },
+      "value": null
+    },
+    {
+      "text": "1 + 2 * 3",
+      "vars": {},
+      "value": 7
+    },
+    {
+      "text": "(1 + 2) * 3",
+      "vars": {},
+      "value": 9
+    },
+    {
+      "text": "10 - 4 - 3",
+      "vars": {},
+      "value": 3
+    },
+    {
+      "text": "100 / 10 / 5",
+      "vars": {},
+      "value": 2
+    },
+    {
+      "text": "1 - 2 * 3 - 4",
+      "vars": {},
+      "value": -9
+    },
+    {
+      "text": "-rate / 2 * -1",
+      "vars": {
+        "rate": 10
+      },
+      "value": 5
+    },
+    {
+      "text": "--3",
+      "vars": {},
+      "value": 3
+    },
+    {
+      "text": "-rate",
+      "vars": {
+        "rate": 4
+      },
+      "value": -4
+    },
+    {
+      "text": "rate + bytes + p50",
+      "vars": {
+        "rate": 1,
+        "bytes": 20,
+        "p50": 300
+      },
+      "value": 321
+    },
+    {
+      "text": "bytes / 400",
+      "vars": {
+        "bytes": 1600
+      },
+      "value": 4
+    },
+    {
+      "text": "p50 * 2",
+      "vars": {
+        "p50": 15
+      },
+      "value": 30
+    },
+    {
+      "text": "rate / 3",
+      "vars": {
+        "rate": 10
+      },
+      "value": 3.3333333333333335
+    },
+    {
+      "text": "0.1 + 0.2",
+      "vars": {},
+      "value": 0.30000000000000004
+    },
+    {
+      "text": "0.5 * 4",
+      "vars": {},
+      "value": 2
+    },
+    {
+      "text": ".5 * 4",
+      "vars": {},
+      "value": 2
+    },
+    {
+      "text": "007",
+      "vars": {},
+      "value": 7
+    },
+    {
+      "text": "rate * 1000000",
+      "vars": {
+        "rate": 50
+      },
+      "value": 50000000
+    },
+    {
+      "text": "rate * 1000000",
+      "vars": {
+        "rate": 1e+305
+      },
+      "value": null
+    },
+    {
+      "text": "9999999999999999999999999999999999999999999999999999999999999999999999 * rate",
+      "vars": {
+        "rate": 1e+305
+      },
+      "value": null
+    },
+    {
+      "text": "1 / (rate * 999999999999999999999999999999999999999999999999999999999999)",
+      "vars": {
+        "rate": 1e+305
+      },
+      "value": null
+    },
+    {
+      "text": "-rate * 0",
+      "vars": {
+        "rate": 5
+      },
+      "value": 0
+    },
+    {
+      "text": "0 * -1",
+      "vars": {},
+      "value": 0
+    },
+    {
+      "text": "rate - rate",
+      "vars": {
+        "rate": 7
+      },
+      "value": 0
+    },
+    {
+      "text": "bytes * rate + bytes - p50",
+      "vars": {
+        "rate": 2,
+        "bytes": 3,
+        "p50": 4
+      },
+      "value": 5
+    },
+    {
+      "text": "rate / 50 + bytes * 0",
+      "vars": {
+        "rate": 5
+      },
+      "value": null
+    },
+    {
+      "text": "rate / 50 + bytes * 0",
+      "vars": {
+        "rate": 5,
+        "bytes": 9
+      },
+      "value": 0.1
+    },
+    {
+      "text": "p50",
+      "vars": {
+        "p50": 0
+      },
+      "value": 0
+    }
+  ]
+}

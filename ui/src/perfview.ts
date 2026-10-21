@@ -73,7 +73,7 @@ export const METRICS: Record<keyof Metrics, { label: string; show: (v: number) =
 }
 /** The numbers a shape can have, and a line, in the order the panel lists them. */
 export const BOX_KEYS = ['util', 'queue', 'errors'] as const
-export const LINE_KEYS = ['rate', 'p50', 'p95', 'errors'] as const
+export const LINE_KEYS = ['rate', 'bytes', 'p50', 'p95', 'errors'] as const
 
 // ---- Curves
 

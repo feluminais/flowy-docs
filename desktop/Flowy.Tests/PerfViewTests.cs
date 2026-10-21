@@ -37,6 +37,7 @@ public class PerfViewTests
         Put("queue", m.Queue);
         Put("errors", m.Errors);
         Put("rate", m.Rate);
+        Put("bytes", m.Bytes);
         Put("p50", m.P50);
         Put("p95", m.P95);
         if (m is Pair p)

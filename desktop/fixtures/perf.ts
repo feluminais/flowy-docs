@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { ParseError, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
-import { interpolate, knee, kneeText, parseRun, rollUp, strain, traffic } from '../../src/core/perf.ts'
+import { interpolate, knee, kneeText, parseRun, rollUp, scaleText, sourceKey, strain, traffic } from '../../src/core/perf.ts'
 import type { Metrics } from '../../src/core/perf.ts'
 import { nameOf } from '../../src/core/views.ts'
 import {
@@ -51,12 +51,130 @@ const RAW: [id: string, text: string][] = [
   ['unknown-keys', 'name: A\ncolour: red\nlevels:\n  - load: 1\n    extra: 1\n    objects:\n      a: { util: 0.1, note: hi }\n  - load: 2\n'],
   ['merge', 'name: A\n<<<<<<< HEAD\nlevels: []\n=======\nlevels: [1]\n>>>>>>> other\n'],
   ['proto', 'name: A\nlevels:\n  - load: 1\n    objects:\n      __proto__: { util: 0.5 }\n      constructor: { util: 0.6 }\n  - load: 2\n'],
+  ['source-good', 'name: S\nunit: u\nsource: { color: blue, dot: rate / 50, size: bytes / 400 }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-hex', 'name: S\nsource: { color: "#1D9E75" }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-short-hex', 'name: S\nsource: { color: "#abc", dot: "-rate", size: "bytes * 2" }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-block', 'name: S\nsource:\n  color: teal\n  dot: (rate + rate) / 100\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-empty', 'name: S\nsource: {}\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-null', 'name: S\nsource: ~\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-blank', 'name: S\nsource:\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-text', 'name: S\nsource: 5\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-list', 'name: S\nsource: [blue]\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-unknown', 'name: S\nsource: { colour: blue, extra: 1, color: red }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-unknown-only', 'name: S\nsource: { colour: blue }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-long-key', `name: S\nsource: { ${'k'.repeat(300)}: 1, color: red }\nlevels:\n  - load: 1\n  - load: 2\n`],
+  ['source-proto', 'name: S\nsource: { __proto__: x, constructor: y, color: red }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-bad-color', 'name: S\nsource: { color: chartreuse, dot: rate / 50 }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-short-color', 'name: S\nsource: { color: "#12" }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-color-list', 'name: S\nsource: { color: [red] }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-long-color', `name: S\nsource: { color: ${'x'.repeat(300)} }\nlevels:\n  - load: 1\n  - load: 2\n`],
+  ['source-bad-dot', 'name: S\nsource: { color: green, dot: "rate *", size: "bytes / 0.5" }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-dot-list', 'name: S\nsource: { dot: [rate] }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-size-map', 'name: S\nsource: { size: { a: b } }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-formulas', 'name: S\nsource: { dot: "((rate)", size: "1e3" }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-formula-call', 'name: S\nsource: { dot: "rate()" }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-formula-hex', 'name: S\nsource: { dot: "0x10", size: "1.2.3" }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-formula-name', 'name: S\nsource: { dot: "speed / 2", size: "Rate" }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-formula-blank', 'name: S\nsource: { dot: "", size: "   " }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['source-formula-80', `name: S\nsource: { dot: "rate${' + 1'.repeat(19)}" }\nlevels:\n  - load: 1\n  - load: 2\n`],
+  ['source-formula-81', `name: S\nsource: { dot: "rate${' + 1'.repeat(19)} " }\nlevels:\n  - load: 1\n  - load: 2\n`],
+  ['source-formula-divide', 'name: S\nsource: { dot: rate / 0, size: -bytes }\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['bytes-good', 'name: B\nlevels:\n  - load: 1\n    overall: { bytes: 90 }\n    connections:\n      - { from: web, to: db, bytes: 400.5, rate: 3 }\n  - load: 2\n'],
+  ['bytes-bad', 'name: B\nlevels:\n  - load: 1\n    connections:\n      - { from: web, to: api, bytes: big }\n      - { from: auth, to: db, bytes: -3 }\n  - load: 2\n'],
+  ['failure-good', 'name: F\nlevels:\n  - load: 1\n    connections:\n      - { from: web, to: api, failure: lost }\n      - { from: auth, to: db, failure: rejected }\n      - { from: orders, to: db, failure: "" }\n      - { from: queue, to: worker, failure: ~ }\n  - load: 2\n'],
+  ['failure-bad', 'name: F\nlevels:\n  - load: 1\n    connections:\n      - { from: web, to: api, failure: weird }\n      - { from: auth, to: db, failure: [lost] }\n      - { from: orders, to: db, failure: Lost }\n  - load: 2\n'],
   ['numeric-ids', 'name: A\nlevels:\n  - load: 1\n    objects:\n      b: { util: 0.1 }\n      "10": { util: 0.2 }\n      "2": { util: 0.3 }\n  - load: 2\n    objects:\n      "2": { util: 0.4 }\n'],
 ]
 
 const METRICS_CASES: Metrics[] = [
   {}, { util: 0 }, { util: 0.5 }, { errors: 0 }, { errors: 0.01 }, { errors: 0.05 }, { errors: 0.5 }, { util: 0.9, errors: 0.01 }, { util: 0.3, errors: 0.04 }, { util: 0.849 }, { util: 0.85 }, { errors: 0.0425 }, { errors: 0.043 },
   { util: 0.2, errors: 0.01 }, { util: 0.5, errors: 0.025 }, { queue: 4 }, { rate: 9, p50: 1 },
+]
+
+/**
+ * Runs with a source, read and played against the same shop as the folder's: each is a made-up run whose texts the C# test reads from the fixture.
+ * Between them: a formula for dots and for size, a colour alone, formulas that give no value on a line, a count past the cap, failure styles, and a
+ * line that two connections land on (bytes weighted by rate, failure kept or dropped).
+ */
+const SCALED: [id: string, text: string][] = [
+  ['dots', `name: Dots
+unit: req/s
+source: { color: blue, dot: rate / 50, size: bytes / 400 }
+levels:
+  - load: 1
+    connections:
+      - { from: customer, to: web, rate: 100, p50: 10, bytes: 400, errors: 0 }
+      - { from: orders, to: db, rate: 50, p50: 400, bytes: 800, errors: 0.1, failure: lost }
+      - { from: auth, to: db, rate: 150, p50: 100, bytes: 300, errors: 0.02, failure: lost }
+      - { from: orders, to: queue, rate: 1000, p50: 0.5, bytes: 100 }
+      - { from: worker, to: gateway, rate: 40, p50: 90, bytes: 2000, errors: 0.3, failure: rejected }
+      - { from: orders, to: gateway, rate: 40, p50: 90, errors: 0.3, failure: lost }
+  - load: 2
+    connections:
+      - { from: customer, to: web, rate: 1000, p50: 10, bytes: 1600, errors: 0.05 }
+      - { from: orders, to: db, rate: 500, p50: 800, bytes: 800, errors: 0.2, failure: lost }
+      - { from: auth, to: db, rate: 1500, p50: 400, bytes: 300, errors: 0.04, failure: rejected }
+      - { from: orders, to: queue, rate: 100000, p50: 0.5, bytes: 100000000 }
+      - { from: worker, to: gateway, rate: 0, p50: 90, bytes: 10 }
+      - { from: orders, to: gateway, rate: 60, p50: 90, errors: 0.3 }
+`],
+  ['curve', `name: Curve
+source: { color: "#1D9E75" }
+levels:
+  - load: 1
+    connections: [{ from: customer, to: web, rate: 100, p50: 10 }, { from: orders, to: db, rate: 10, p50: 5, errors: 0.5, failure: rejected }]
+  - load: 2
+    connections: [{ from: customer, to: web, rate: 900, p50: 30 }, { from: orders, to: db, rate: 90 }]
+`],
+  ['fallback', `name: Fallback
+source: { color: amber, dot: bytes / 100, size: bytes / 400 }
+levels:
+  - load: 1
+    connections: [{ from: customer, to: web, rate: 100, p50: 10 }, { from: orders, to: db, rate: 10, p50: 5, bytes: 500 }, { from: orders, to: queue, rate: 5, bytes: -1 }]
+  - load: 2
+    connections: [{ from: customer, to: web, rate: 100, p50: 10, bytes: 100 }, { from: orders, to: db, rate: 10, p50: 5 }, { from: orders, to: queue, rate: 5 }]
+`],
+  ['no-value', `name: No value
+source: { dot: -rate, size: rate / 0 }
+levels:
+  - load: 1
+    connections: [{ from: customer, to: web, rate: 100, p50: 10 }, { from: orders, to: db, rate: 10 }]
+  - load: 2
+    connections: [{ from: customer, to: web, rate: 100, p50: 10 }, { from: orders, to: db, rate: 10 }]
+`],
+  ['huge', `name: Huge
+source: { dot: rate * 1000000, size: rate * rate }
+levels:
+  - load: 1
+    connections: [{ from: customer, to: web, rate: 100000000, p50: 3000 }, { from: orders, to: db, rate: 5, p50: 1 }]
+  - load: 2
+    connections: [{ from: customer, to: web, rate: 1, p50: 3000 }, { from: orders, to: db, rate: 5, p50: 1 }]
+`],
+  ['ratio', `name: Ratio
+source: { color: teal, dot: rate * 3 }
+levels:
+  - load: 1
+    connections: [{ from: customer, to: web, rate: 0.1, p50: 10 }, { from: orders, to: db, rate: 0.4, p50: 400 }]
+  - load: 2
+    connections: [{ from: customer, to: web, rate: 2, p50: 10 }, { from: orders, to: db, rate: 8, p50: 400 }]
+`],
+  ['sized', `name: Sized
+levels:
+  - load: 100
+    connections:
+      - { from: orders, to: db, rate: 50, bytes: 100, failure: lost }
+      - { from: auth, to: db, rate: 150, bytes: 300, failure: lost }
+      - { from: customer, to: web, rate: 10, bytes: 200, failure: lost }
+      - { from: orders, to: queue, bytes: 100 }
+      - { from: queue, to: worker, rate: 5, bytes: 100, failure: lost }
+  - load: 200
+    connections:
+      - { from: orders, to: db, rate: 50, bytes: 100, failure: rejected }
+      - { from: auth, to: db, rate: 150, bytes: 300, failure: lost }
+      - { from: customer, to: web, rate: 30, bytes: 600 }
+      - { from: orders, to: queue, bytes: 300 }
+      - { from: queue, to: worker, rate: 5, bytes: 100, failure: lost }
+`],
 ]
 
 const failure = (e: unknown) => {
@@ -101,11 +219,33 @@ export async function dumpPerf(): Promise<unknown> {
     }
   })
 
+  // Runs with a source, kept out of the folder so the panel's tests see the runs they always did.
+  const scaled = SCALED.map(([id, text]) => {
+    const read = parseRun(id, text)
+    const loads = [...new Set(read.run.levels.flatMap((l, i, all) => (i === 0 ? [l.load] : [(all[i - 1].load + l.load) / 2, l.load])))]
+    return {
+      id,
+      text,
+      ...read,
+      scale: scaleText(read.run) ?? null,
+      loads: loads.map(load => ({
+        load,
+        level: interpolate(read.run, load),
+        traffic: views.map(view => {
+          const t = traffic(model, read.run, load, view)
+          return { view, ...t, key: sourceKey(read.run, t.lines) ?? null }
+        }),
+        rolled: views.map(view => ({ view, ...rollUp(model, interpolate(read.run, load), view) })),
+      })),
+    }
+  })
+
   return {
     parsed,
     strain: METRICS_CASES.map(metrics => ({ metrics, strain: strain(metrics) ?? null })),
     folder: { runs, problems: state.runProblems ?? [] },
     computed,
+    scaled,
   }
 }
 
