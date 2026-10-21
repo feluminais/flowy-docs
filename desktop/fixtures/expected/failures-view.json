@@ -1,0 +1,3217 @@
+{
+  "ratingCells": [
+    {
+      "rating": null,
+      "cells": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "rating": 0,
+      "cells": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "rating": 1,
+      "cells": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "rating": 5,
+      "cells": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "rating": 10,
+      "cells": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  ],
+  "statusNames": {
+    "open": "Open",
+    "planned": "Planned",
+    "done": "Done",
+    "accepted": "Accepted"
+  },
+  "neighbour": [
+    {
+      "ids": [
+        "a",
+        "b",
+        "c"
+      ],
+      "current": null,
+      "delta": 1,
+      "id": "a"
+    },
+    {
+      "ids": [
+        "a",
+        "b",
+        "c"
+      ],
+      "current": null,
+      "delta": -1,
+      "id": "a"
+    },
+    {
+      "ids": [
+        "a",
+        "b",
+        "c"
+      ],
+      "current": "a",
+      "delta": -1,
+      "id": "a"
+    },
+    {
+      "ids": [
+        "a",
+        "b",
+        "c"
+      ],
+      "current": "a",
+      "delta": 1,
+      "id": "b"
+    },
+    {
+      "ids": [
+        "a",
+        "b",
+        "c"
+      ],
+      "current": "b",
+      "delta": 1,
+      "id": "c"
+    },
+    {
+      "ids": [
+        "a",
+        "b",
+        "c"
+      ],
+      "current": "b",
+      "delta": -1,
+      "id": "a"
+    },
+    {
+      "ids": [
+        "a",
+        "b",
+        "c"
+      ],
+      "current": "c",
+      "delta": 1,
+      "id": "c"
+    },
+    {
+      "ids": [
+        "a",
+        "b",
+        "c"
+      ],
+      "current": "c",
+      "delta": -1,
+      "id": "b"
+    },
+    {
+      "ids": [
+        "a",
+        "b",
+        "c"
+      ],
+      "current": "x",
+      "delta": 1,
+      "id": "a"
+    },
+    {
+      "ids": [],
+      "current": null,
+      "delta": 1,
+      "id": null
+    },
+    {
+      "ids": [],
+      "current": "a",
+      "delta": 1,
+      "id": null
+    }
+  ],
+  "shop": {
+    "modeCount": 25,
+    "active": [
+      {
+        "id": "empty",
+        "active": "empty"
+      },
+      {
+        "id": "ordering",
+        "active": "ordering"
+      },
+      {
+        "id": "problems",
+        "active": "problems"
+      },
+      {
+        "id": "nope",
+        "active": "empty"
+      },
+      {
+        "id": "",
+        "active": "empty"
+      },
+      {
+        "id": "constructor",
+        "active": "empty"
+      }
+    ],
+    "analyses": [
+      {
+        "id": "empty",
+        "bandCounts": {
+          "high": 0,
+          "medium": 0,
+          "low": 0,
+          "unrated": 0
+        },
+        "rows": [
+          {
+            "view": "root",
+            "band": null,
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "high",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "medium",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "low",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "unrated",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": null,
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": "high",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": "medium",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": "low",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": "unrated",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "api",
+            "band": null,
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "api",
+            "band": "high",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "api",
+            "band": "medium",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "api",
+            "band": "low",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "api",
+            "band": "unrated",
+            "here": [],
+            "elsewhere": []
+          }
+        ],
+        "partRows": [
+          {
+            "view": "root",
+            "box": "customer",
+            "here": []
+          },
+          {
+            "view": "root",
+            "box": "shop",
+            "here": []
+          },
+          {
+            "view": "root",
+            "box": "mail",
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "customer",
+              "shop"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "shop",
+              "mail"
+            ],
+            "here": []
+          },
+          {
+            "view": "shop",
+            "box": "web",
+            "here": []
+          },
+          {
+            "view": "shop",
+            "box": "api",
+            "here": []
+          },
+          {
+            "view": "shop",
+            "box": "db",
+            "here": []
+          },
+          {
+            "view": "shop",
+            "box": "customer",
+            "here": []
+          },
+          {
+            "view": "shop",
+            "box": "mail",
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "customer",
+              "web"
+            ],
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "web",
+              "api"
+            ],
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "api",
+              "db"
+            ],
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "api",
+              "mail"
+            ],
+            "here": []
+          },
+          {
+            "view": "api",
+            "box": "auth",
+            "here": []
+          },
+          {
+            "view": "api",
+            "box": "orders",
+            "here": []
+          },
+          {
+            "view": "api",
+            "box": "db",
+            "here": []
+          },
+          {
+            "view": "api",
+            "box": "mail",
+            "here": []
+          },
+          {
+            "view": "api",
+            "line": [
+              "orders",
+              "db"
+            ],
+            "here": []
+          },
+          {
+            "view": "api",
+            "line": [
+              "auth",
+              "db"
+            ],
+            "here": []
+          },
+          {
+            "view": "api",
+            "line": [
+              "orders",
+              "mail"
+            ],
+            "here": []
+          }
+        ],
+        "modes": []
+      },
+      {
+        "id": "ordering",
+        "bandCounts": {
+          "high": 3,
+          "medium": 1,
+          "low": 3,
+          "unrated": 1
+        },
+        "rows": [
+          {
+            "view": "root",
+            "band": null,
+            "here": [
+              "auth-lock",
+              "db-down",
+              "mail-severe",
+              "mail-timeout",
+              "web-glitch",
+              "api-slow",
+              "constructor",
+              "orders-unrated"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "high",
+            "here": [
+              "auth-lock",
+              "db-down",
+              "mail-severe"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "medium",
+            "here": [
+              "mail-timeout"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "low",
+            "here": [
+              "web-glitch",
+              "api-slow",
+              "constructor"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "unrated",
+            "here": [
+              "orders-unrated"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": null,
+            "here": [
+              "auth-lock",
+              "db-down",
+              "mail-timeout",
+              "web-glitch",
+              "api-slow",
+              "constructor",
+              "orders-unrated"
+            ],
+            "elsewhere": [
+              "mail-severe"
+            ]
+          },
+          {
+            "view": "shop",
+            "band": "high",
+            "here": [
+              "auth-lock",
+              "db-down"
+            ],
+            "elsewhere": [
+              "mail-severe"
+            ]
+          },
+          {
+            "view": "shop",
+            "band": "medium",
+            "here": [
+              "mail-timeout"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": "low",
+            "here": [
+              "web-glitch",
+              "api-slow",
+              "constructor"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": "unrated",
+            "here": [
+              "orders-unrated"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "api",
+            "band": null,
+            "here": [
+              "auth-lock",
+              "mail-timeout",
+              "api-slow",
+              "orders-unrated"
+            ],
+            "elsewhere": [
+              "db-down",
+              "mail-severe",
+              "web-glitch",
+              "constructor"
+            ]
+          },
+          {
+            "view": "api",
+            "band": "high",
+            "here": [
+              "auth-lock"
+            ],
+            "elsewhere": [
+              "db-down",
+              "mail-severe"
+            ]
+          },
+          {
+            "view": "api",
+            "band": "medium",
+            "here": [
+              "mail-timeout"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "api",
+            "band": "low",
+            "here": [
+              "api-slow"
+            ],
+            "elsewhere": [
+              "web-glitch",
+              "constructor"
+            ]
+          },
+          {
+            "view": "api",
+            "band": "unrated",
+            "here": [
+              "orders-unrated"
+            ],
+            "elsewhere": []
+          }
+        ],
+        "partRows": [
+          {
+            "view": "root",
+            "box": "customer",
+            "here": []
+          },
+          {
+            "view": "root",
+            "box": "shop",
+            "here": [
+              "auth-lock",
+              "db-down",
+              "web-glitch",
+              "api-slow",
+              "constructor",
+              "orders-unrated"
+            ]
+          },
+          {
+            "view": "root",
+            "box": "mail",
+            "here": [
+              "mail-severe"
+            ]
+          },
+          {
+            "view": "root",
+            "line": [
+              "customer",
+              "shop"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "shop",
+              "mail"
+            ],
+            "here": [
+              "mail-timeout"
+            ]
+          },
+          {
+            "view": "shop",
+            "box": "web",
+            "here": [
+              "web-glitch"
+            ]
+          },
+          {
+            "view": "shop",
+            "box": "api",
+            "here": [
+              "auth-lock",
+              "api-slow",
+              "orders-unrated"
+            ]
+          },
+          {
+            "view": "shop",
+            "box": "db",
+            "here": [
+              "db-down",
+              "constructor"
+            ]
+          },
+          {
+            "view": "shop",
+            "box": "customer",
+            "here": []
+          },
+          {
+            "view": "shop",
+            "box": "mail",
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "customer",
+              "web"
+            ],
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "web",
+              "api"
+            ],
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "api",
+              "db"
+            ],
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "api",
+              "mail"
+            ],
+            "here": [
+              "mail-timeout"
+            ]
+          },
+          {
+            "view": "api",
+            "box": "auth",
+            "here": [
+              "auth-lock"
+            ]
+          },
+          {
+            "view": "api",
+            "box": "orders",
+            "here": [
+              "orders-unrated"
+            ]
+          },
+          {
+            "view": "api",
+            "box": "db",
+            "here": []
+          },
+          {
+            "view": "api",
+            "box": "mail",
+            "here": []
+          },
+          {
+            "view": "api",
+            "line": [
+              "orders",
+              "db"
+            ],
+            "here": []
+          },
+          {
+            "view": "api",
+            "line": [
+              "auth",
+              "db"
+            ],
+            "here": []
+          },
+          {
+            "view": "api",
+            "line": [
+              "orders",
+              "mail"
+            ],
+            "here": [
+              "mail-timeout"
+            ]
+          }
+        ],
+        "modes": [
+          {
+            "id": "db-down",
+            "after": "40 to 20",
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "mail-timeout",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": 1
+              }
+            ]
+          },
+          {
+            "id": "api-slow",
+            "after": "60 to 8",
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": 1
+              }
+            ]
+          },
+          {
+            "id": "auth-lock",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "web-glitch",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "orders-unrated",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "mail-severe",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "constructor",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "problems",
+        "bandCounts": {
+          "high": 0,
+          "medium": 0,
+          "low": 0,
+          "unrated": 17
+        },
+        "rows": [
+          {
+            "view": "root",
+            "band": null,
+            "here": [
+              "no-part",
+              "both",
+              "unknown-shape",
+              "half-line",
+              "no-connection",
+              "unknown-end",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "high",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "medium",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "low",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "unrated",
+            "here": [
+              "no-part",
+              "both",
+              "unknown-shape",
+              "half-line",
+              "no-connection",
+              "unknown-end",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": null,
+            "here": [
+              "both",
+              "half-line",
+              "no-connection",
+              "unknown-end",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ],
+            "elsewhere": [
+              "no-part",
+              "unknown-shape"
+            ]
+          },
+          {
+            "view": "shop",
+            "band": "high",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": "medium",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": "low",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "shop",
+            "band": "unrated",
+            "here": [
+              "both",
+              "half-line",
+              "no-connection",
+              "unknown-end",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ],
+            "elsewhere": [
+              "no-part",
+              "unknown-shape"
+            ]
+          },
+          {
+            "view": "api",
+            "band": null,
+            "here": [],
+            "elsewhere": [
+              "no-part",
+              "both",
+              "unknown-shape",
+              "half-line",
+              "no-connection",
+              "unknown-end",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ]
+          },
+          {
+            "view": "api",
+            "band": "high",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "api",
+            "band": "medium",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "api",
+            "band": "low",
+            "here": [],
+            "elsewhere": []
+          },
+          {
+            "view": "api",
+            "band": "unrated",
+            "here": [],
+            "elsewhere": [
+              "no-part",
+              "both",
+              "unknown-shape",
+              "half-line",
+              "no-connection",
+              "unknown-end",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ]
+          }
+        ],
+        "partRows": [
+          {
+            "view": "root",
+            "box": "customer",
+            "here": []
+          },
+          {
+            "view": "root",
+            "box": "shop",
+            "here": [
+              "both",
+              "no-connection",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ]
+          },
+          {
+            "view": "root",
+            "box": "mail",
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "customer",
+              "shop"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "shop",
+              "mail"
+            ],
+            "here": []
+          },
+          {
+            "view": "shop",
+            "box": "web",
+            "here": []
+          },
+          {
+            "view": "shop",
+            "box": "api",
+            "here": []
+          },
+          {
+            "view": "shop",
+            "box": "db",
+            "here": [
+              "both",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ]
+          },
+          {
+            "view": "shop",
+            "box": "customer",
+            "here": []
+          },
+          {
+            "view": "shop",
+            "box": "mail",
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "customer",
+              "web"
+            ],
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "web",
+              "api"
+            ],
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "api",
+              "db"
+            ],
+            "here": []
+          },
+          {
+            "view": "shop",
+            "line": [
+              "api",
+              "mail"
+            ],
+            "here": []
+          },
+          {
+            "view": "api",
+            "box": "auth",
+            "here": []
+          },
+          {
+            "view": "api",
+            "box": "orders",
+            "here": []
+          },
+          {
+            "view": "api",
+            "box": "db",
+            "here": []
+          },
+          {
+            "view": "api",
+            "box": "mail",
+            "here": []
+          },
+          {
+            "view": "api",
+            "line": [
+              "orders",
+              "db"
+            ],
+            "here": []
+          },
+          {
+            "view": "api",
+            "line": [
+              "auth",
+              "db"
+            ],
+            "here": []
+          },
+          {
+            "view": "api",
+            "line": [
+              "orders",
+              "mail"
+            ],
+            "here": []
+          }
+        ],
+        "modes": [
+          {
+            "id": "no-part",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "both",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "unknown-shape",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "half-line",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "no-connection",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "unknown-end",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "bad-affects",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "bad-rating",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "bad-after",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "bad-status",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "bad-flow",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "step-without-flow",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "step-zero",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "step-beyond",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "blank-mode",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "Bad-Id",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "bad-run",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "plum": {
+    "modeCount": 14,
+    "active": [
+      {
+        "id": "ordering",
+        "active": "ordering"
+      },
+      {
+        "id": "nope",
+        "active": "ordering"
+      },
+      {
+        "id": "",
+        "active": "ordering"
+      },
+      {
+        "id": "constructor",
+        "active": "ordering"
+      }
+    ],
+    "analyses": [
+      {
+        "id": "ordering",
+        "bandCounts": {
+          "high": 2,
+          "medium": 5,
+          "low": 6,
+          "unrated": 1
+        },
+        "rows": [
+          {
+            "view": "root",
+            "band": null,
+            "here": [
+              "refund-not-recorded",
+              "orders-db-down",
+              "sms-not-delivered",
+              "eta-mapbox-fails",
+              "offers-no-answer",
+              "stripe-timeout",
+              "events-lag",
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "tracking-signal-lost",
+              "double-tap",
+              "warehouse-down",
+              "fleet-position-writes"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "high",
+            "here": [
+              "refund-not-recorded",
+              "orders-db-down"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "medium",
+            "here": [
+              "sms-not-delivered",
+              "eta-mapbox-fails",
+              "offers-no-answer",
+              "stripe-timeout",
+              "events-lag"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "low",
+            "here": [
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "tracking-signal-lost",
+              "double-tap",
+              "warehouse-down"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "root",
+            "band": "unrated",
+            "here": [
+              "fleet-position-writes"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "ordering",
+            "band": null,
+            "here": [
+              "refund-not-recorded",
+              "orders-db-down",
+              "stripe-timeout",
+              "events-lag",
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "double-tap"
+            ],
+            "elsewhere": [
+              "sms-not-delivered",
+              "eta-mapbox-fails",
+              "offers-no-answer",
+              "tracking-signal-lost",
+              "warehouse-down",
+              "fleet-position-writes"
+            ]
+          },
+          {
+            "view": "ordering",
+            "band": "high",
+            "here": [
+              "refund-not-recorded",
+              "orders-db-down"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "ordering",
+            "band": "medium",
+            "here": [
+              "stripe-timeout",
+              "events-lag"
+            ],
+            "elsewhere": [
+              "sms-not-delivered",
+              "eta-mapbox-fails",
+              "offers-no-answer"
+            ]
+          },
+          {
+            "view": "ordering",
+            "band": "low",
+            "here": [
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "double-tap"
+            ],
+            "elsewhere": [
+              "tracking-signal-lost",
+              "warehouse-down"
+            ]
+          },
+          {
+            "view": "ordering",
+            "band": "unrated",
+            "here": [],
+            "elsewhere": [
+              "fleet-position-writes"
+            ]
+          },
+          {
+            "view": "delivery",
+            "band": null,
+            "here": [
+              "eta-mapbox-fails",
+              "offers-no-answer",
+              "tracking-signal-lost",
+              "fleet-position-writes"
+            ],
+            "elsewhere": [
+              "refund-not-recorded",
+              "orders-db-down",
+              "sms-not-delivered",
+              "stripe-timeout",
+              "events-lag",
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "double-tap",
+              "warehouse-down"
+            ]
+          },
+          {
+            "view": "delivery",
+            "band": "high",
+            "here": [],
+            "elsewhere": [
+              "refund-not-recorded",
+              "orders-db-down"
+            ]
+          },
+          {
+            "view": "delivery",
+            "band": "medium",
+            "here": [
+              "eta-mapbox-fails",
+              "offers-no-answer"
+            ],
+            "elsewhere": [
+              "sms-not-delivered",
+              "stripe-timeout",
+              "events-lag"
+            ]
+          },
+          {
+            "view": "delivery",
+            "band": "low",
+            "here": [
+              "tracking-signal-lost"
+            ],
+            "elsewhere": [
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "double-tap",
+              "warehouse-down"
+            ]
+          },
+          {
+            "view": "delivery",
+            "band": "unrated",
+            "here": [
+              "fleet-position-writes"
+            ],
+            "elsewhere": []
+          },
+          {
+            "view": "notifications",
+            "band": null,
+            "here": [
+              "sms-not-delivered"
+            ],
+            "elsewhere": [
+              "refund-not-recorded",
+              "orders-db-down",
+              "eta-mapbox-fails",
+              "offers-no-answer",
+              "stripe-timeout",
+              "events-lag",
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "tracking-signal-lost",
+              "double-tap",
+              "warehouse-down",
+              "fleet-position-writes"
+            ]
+          },
+          {
+            "view": "notifications",
+            "band": "high",
+            "here": [],
+            "elsewhere": [
+              "refund-not-recorded",
+              "orders-db-down"
+            ]
+          },
+          {
+            "view": "notifications",
+            "band": "medium",
+            "here": [
+              "sms-not-delivered"
+            ],
+            "elsewhere": [
+              "eta-mapbox-fails",
+              "offers-no-answer",
+              "stripe-timeout",
+              "events-lag"
+            ]
+          },
+          {
+            "view": "notifications",
+            "band": "low",
+            "here": [],
+            "elsewhere": [
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "tracking-signal-lost",
+              "double-tap",
+              "warehouse-down"
+            ]
+          },
+          {
+            "view": "notifications",
+            "band": "unrated",
+            "here": [],
+            "elsewhere": [
+              "fleet-position-writes"
+            ]
+          },
+          {
+            "view": "backoffice",
+            "band": null,
+            "here": [
+              "warehouse-down"
+            ],
+            "elsewhere": [
+              "refund-not-recorded",
+              "orders-db-down",
+              "sms-not-delivered",
+              "eta-mapbox-fails",
+              "offers-no-answer",
+              "stripe-timeout",
+              "events-lag",
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "tracking-signal-lost",
+              "double-tap",
+              "fleet-position-writes"
+            ]
+          },
+          {
+            "view": "backoffice",
+            "band": "high",
+            "here": [],
+            "elsewhere": [
+              "refund-not-recorded",
+              "orders-db-down"
+            ]
+          },
+          {
+            "view": "backoffice",
+            "band": "medium",
+            "here": [],
+            "elsewhere": [
+              "sms-not-delivered",
+              "eta-mapbox-fails",
+              "offers-no-answer",
+              "stripe-timeout",
+              "events-lag"
+            ]
+          },
+          {
+            "view": "backoffice",
+            "band": "low",
+            "here": [
+              "warehouse-down"
+            ],
+            "elsewhere": [
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "tracking-signal-lost",
+              "double-tap"
+            ]
+          },
+          {
+            "view": "backoffice",
+            "band": "unrated",
+            "here": [],
+            "elsewhere": [
+              "fleet-position-writes"
+            ]
+          },
+          {
+            "view": "order-api",
+            "band": null,
+            "here": [
+              "refund-not-recorded",
+              "stripe-timeout",
+              "card-declined",
+              "double-tap"
+            ],
+            "elsewhere": [
+              "orders-db-down",
+              "sms-not-delivered",
+              "eta-mapbox-fails",
+              "offers-no-answer",
+              "events-lag",
+              "menu-cache-stale",
+              "kitchen-tablet-offline",
+              "tracking-signal-lost",
+              "warehouse-down",
+              "fleet-position-writes"
+            ]
+          },
+          {
+            "view": "order-api",
+            "band": "high",
+            "here": [
+              "refund-not-recorded"
+            ],
+            "elsewhere": [
+              "orders-db-down"
+            ]
+          },
+          {
+            "view": "order-api",
+            "band": "medium",
+            "here": [
+              "stripe-timeout"
+            ],
+            "elsewhere": [
+              "sms-not-delivered",
+              "eta-mapbox-fails",
+              "offers-no-answer",
+              "events-lag"
+            ]
+          },
+          {
+            "view": "order-api",
+            "band": "low",
+            "here": [
+              "card-declined",
+              "double-tap"
+            ],
+            "elsewhere": [
+              "menu-cache-stale",
+              "kitchen-tablet-offline",
+              "tracking-signal-lost",
+              "warehouse-down"
+            ]
+          },
+          {
+            "view": "order-api",
+            "band": "unrated",
+            "here": [],
+            "elsewhere": [
+              "fleet-position-writes"
+            ]
+          },
+          {
+            "view": "dispatch",
+            "band": null,
+            "here": [
+              "eta-mapbox-fails",
+              "offers-no-answer"
+            ],
+            "elsewhere": [
+              "refund-not-recorded",
+              "orders-db-down",
+              "sms-not-delivered",
+              "stripe-timeout",
+              "events-lag",
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "tracking-signal-lost",
+              "double-tap",
+              "warehouse-down",
+              "fleet-position-writes"
+            ]
+          },
+          {
+            "view": "dispatch",
+            "band": "high",
+            "here": [],
+            "elsewhere": [
+              "refund-not-recorded",
+              "orders-db-down"
+            ]
+          },
+          {
+            "view": "dispatch",
+            "band": "medium",
+            "here": [
+              "eta-mapbox-fails",
+              "offers-no-answer"
+            ],
+            "elsewhere": [
+              "sms-not-delivered",
+              "stripe-timeout",
+              "events-lag"
+            ]
+          },
+          {
+            "view": "dispatch",
+            "band": "low",
+            "here": [],
+            "elsewhere": [
+              "menu-cache-stale",
+              "card-declined",
+              "kitchen-tablet-offline",
+              "tracking-signal-lost",
+              "double-tap",
+              "warehouse-down"
+            ]
+          },
+          {
+            "view": "dispatch",
+            "band": "unrated",
+            "here": [],
+            "elsewhere": [
+              "fleet-position-writes"
+            ]
+          }
+        ],
+        "partRows": [
+          {
+            "view": "root",
+            "box": "customer",
+            "here": []
+          },
+          {
+            "view": "root",
+            "box": "restaurant",
+            "here": []
+          },
+          {
+            "view": "root",
+            "box": "courier",
+            "here": []
+          },
+          {
+            "view": "root",
+            "box": "support",
+            "here": []
+          },
+          {
+            "view": "root",
+            "box": "ordering",
+            "here": [
+              "refund-not-recorded",
+              "orders-db-down",
+              "events-lag",
+              "menu-cache-stale",
+              "kitchen-tablet-offline",
+              "double-tap"
+            ]
+          },
+          {
+            "view": "root",
+            "box": "delivery",
+            "here": [
+              "offers-no-answer",
+              "tracking-signal-lost",
+              "fleet-position-writes"
+            ]
+          },
+          {
+            "view": "root",
+            "box": "notifications",
+            "here": []
+          },
+          {
+            "view": "root",
+            "box": "backoffice",
+            "here": [
+              "warehouse-down"
+            ]
+          },
+          {
+            "view": "root",
+            "box": "stripe",
+            "here": []
+          },
+          {
+            "view": "root",
+            "box": "twilio",
+            "here": []
+          },
+          {
+            "view": "root",
+            "box": "mapbox",
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "customer",
+              "ordering"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "restaurant",
+              "ordering"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "courier",
+              "delivery"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "support",
+              "backoffice"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "ordering",
+              "mapbox"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "ordering",
+              "stripe"
+            ],
+            "here": [
+              "stripe-timeout",
+              "card-declined"
+            ]
+          },
+          {
+            "view": "root",
+            "line": [
+              "ordering",
+              "notifications"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "delivery",
+              "ordering"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "delivery",
+              "mapbox"
+            ],
+            "here": [
+              "eta-mapbox-fails"
+            ]
+          },
+          {
+            "view": "root",
+            "line": [
+              "delivery",
+              "notifications"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "notifications",
+              "twilio"
+            ],
+            "here": [
+              "sms-not-delivered"
+            ]
+          },
+          {
+            "view": "root",
+            "line": [
+              "backoffice",
+              "ordering"
+            ],
+            "here": []
+          },
+          {
+            "view": "root",
+            "line": [
+              "ordering",
+              "backoffice"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "box": "customer-app",
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "box": "web",
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "box": "kitchen-tablet",
+            "here": [
+              "kitchen-tablet-offline"
+            ]
+          },
+          {
+            "view": "ordering",
+            "box": "order-api",
+            "here": [
+              "refund-not-recorded",
+              "double-tap"
+            ]
+          },
+          {
+            "view": "ordering",
+            "box": "orders-db",
+            "here": [
+              "orders-db-down"
+            ]
+          },
+          {
+            "view": "ordering",
+            "box": "menu-cache",
+            "here": [
+              "menu-cache-stale"
+            ]
+          },
+          {
+            "view": "ordering",
+            "box": "events",
+            "here": [
+              "events-lag"
+            ]
+          },
+          {
+            "view": "ordering",
+            "box": "customer",
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "box": "restaurant",
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "box": "mapbox",
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "box": "stripe",
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "box": "notifications",
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "box": "delivery",
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "box": "backoffice",
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "customer",
+              "customer-app"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "customer",
+              "web"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "restaurant",
+              "kitchen-tablet"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "customer-app",
+              "order-api"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "web",
+              "order-api"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "kitchen-tablet",
+              "order-api"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "order-api",
+              "menu-cache"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "order-api",
+              "orders-db"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "order-api",
+              "mapbox"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "order-api",
+              "stripe"
+            ],
+            "here": [
+              "stripe-timeout",
+              "card-declined"
+            ]
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "order-api",
+              "events"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "order-api",
+              "notifications"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "delivery",
+              "events"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "delivery",
+              "order-api"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "delivery",
+              "customer-app"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "delivery",
+              "web"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "backoffice",
+              "order-api"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
+              "events",
+              "backoffice"
+            ],
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "box": "courier-app",
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "box": "dispatch",
+            "here": [
+              "offers-no-answer"
+            ]
+          },
+          {
+            "view": "delivery",
+            "box": "tracking",
+            "here": [
+              "tracking-signal-lost"
+            ]
+          },
+          {
+            "view": "delivery",
+            "box": "fleet-db",
+            "here": [
+              "fleet-position-writes"
+            ]
+          },
+          {
+            "view": "delivery",
+            "box": "courier",
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "box": "ordering",
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "box": "mapbox",
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "box": "notifications",
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "courier",
+              "courier-app"
+            ],
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "dispatch",
+              "ordering"
+            ],
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "dispatch",
+              "fleet-db"
+            ],
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "dispatch",
+              "mapbox"
+            ],
+            "here": [
+              "eta-mapbox-fails"
+            ]
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "dispatch",
+              "notifications"
+            ],
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "courier-app",
+              "dispatch"
+            ],
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "courier-app",
+              "tracking"
+            ],
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "courier-app",
+              "ordering"
+            ],
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "courier-app",
+              "mapbox"
+            ],
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "tracking",
+              "fleet-db"
+            ],
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "tracking",
+              "ordering"
+            ],
+            "here": []
+          },
+          {
+            "view": "notifications",
+            "box": "notifier",
+            "here": []
+          },
+          {
+            "view": "notifications",
+            "box": "templates",
+            "here": []
+          },
+          {
+            "view": "notifications",
+            "box": "ordering",
+            "here": []
+          },
+          {
+            "view": "notifications",
+            "box": "delivery",
+            "here": []
+          },
+          {
+            "view": "notifications",
+            "box": "twilio",
+            "here": []
+          },
+          {
+            "view": "notifications",
+            "line": [
+              "ordering",
+              "notifier"
+            ],
+            "here": []
+          },
+          {
+            "view": "notifications",
+            "line": [
+              "delivery",
+              "notifier"
+            ],
+            "here": []
+          },
+          {
+            "view": "notifications",
+            "line": [
+              "notifier",
+              "twilio"
+            ],
+            "here": [
+              "sms-not-delivered"
+            ]
+          },
+          {
+            "view": "notifications",
+            "line": [
+              "notifier",
+              "templates"
+            ],
+            "here": []
+          },
+          {
+            "view": "backoffice",
+            "box": "admin",
+            "here": []
+          },
+          {
+            "view": "backoffice",
+            "box": "support-console",
+            "here": []
+          },
+          {
+            "view": "backoffice",
+            "box": "warehouse",
+            "here": [
+              "warehouse-down"
+            ]
+          },
+          {
+            "view": "backoffice",
+            "box": "support",
+            "here": []
+          },
+          {
+            "view": "backoffice",
+            "box": "ordering",
+            "here": []
+          },
+          {
+            "view": "backoffice",
+            "line": [
+              "support",
+              "support-console"
+            ],
+            "here": []
+          },
+          {
+            "view": "backoffice",
+            "line": [
+              "support",
+              "admin"
+            ],
+            "here": []
+          },
+          {
+            "view": "backoffice",
+            "line": [
+              "support-console",
+              "ordering"
+            ],
+            "here": []
+          },
+          {
+            "view": "backoffice",
+            "line": [
+              "admin",
+              "ordering"
+            ],
+            "here": []
+          },
+          {
+            "view": "backoffice",
+            "line": [
+              "admin",
+              "warehouse"
+            ],
+            "here": []
+          },
+          {
+            "view": "backoffice",
+            "line": [
+              "ordering",
+              "warehouse"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "menu",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "basket",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "pricing",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "checkout",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "status",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "refunds",
+            "here": [
+              "refund-not-recorded"
+            ]
+          },
+          {
+            "view": "order-api",
+            "box": "menu-cache",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "orders-db",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "mapbox",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "stripe",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "events",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "notifications",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "delivery",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "box": "backoffice",
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "menu",
+              "menu-cache"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "menu",
+              "orders-db"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "basket",
+              "orders-db"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "basket",
+              "pricing"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "pricing",
+              "mapbox"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "checkout",
+              "pricing"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "checkout",
+              "stripe"
+            ],
+            "here": [
+              "stripe-timeout",
+              "card-declined"
+            ]
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "checkout",
+              "orders-db"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "checkout",
+              "events"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "status",
+              "orders-db"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "status",
+              "events"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "status",
+              "notifications"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "refunds",
+              "stripe"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "refunds",
+              "orders-db"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "refunds",
+              "notifications"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "delivery",
+              "status"
+            ],
+            "here": []
+          },
+          {
+            "view": "order-api",
+            "line": [
+              "backoffice",
+              "refunds"
+            ],
+            "here": []
+          },
+          {
+            "view": "dispatch",
+            "box": "matcher",
+            "here": []
+          },
+          {
+            "view": "dispatch",
+            "box": "eta",
+            "here": []
+          },
+          {
+            "view": "dispatch",
+            "box": "offers",
+            "here": [
+              "offers-no-answer"
+            ]
+          },
+          {
+            "view": "dispatch",
+            "box": "fleet-db",
+            "here": []
+          },
+          {
+            "view": "dispatch",
+            "box": "mapbox",
+            "here": []
+          },
+          {
+            "view": "dispatch",
+            "box": "notifications",
+            "here": []
+          },
+          {
+            "view": "dispatch",
+            "line": [
+              "matcher",
+              "fleet-db"
+            ],
+            "here": []
+          },
+          {
+            "view": "dispatch",
+            "line": [
+              "matcher",
+              "eta"
+            ],
+            "here": []
+          },
+          {
+            "view": "dispatch",
+            "line": [
+              "matcher",
+              "offers"
+            ],
+            "here": []
+          },
+          {
+            "view": "dispatch",
+            "line": [
+              "eta",
+              "mapbox"
+            ],
+            "here": [
+              "eta-mapbox-fails"
+            ]
+          },
+          {
+            "view": "dispatch",
+            "line": [
+              "offers",
+              "notifications"
+            ],
+            "here": []
+          }
+        ],
+        "modes": [
+          {
+            "id": "stripe-timeout",
+            "after": "96 to 32",
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": 2
+              }
+            ]
+          },
+          {
+            "id": "card-declined",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": 2
+              }
+            ]
+          },
+          {
+            "id": "refund-not-recorded",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "orders-db-down",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "double-tap",
+            "after": "120 to 24",
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": 2
+              }
+            ]
+          },
+          {
+            "id": "menu-cache-stale",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "eta-mapbox-fails",
+            "after": "108 to 36",
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": 3
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "fleet-position-writes",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": 4
+              },
+              {
+                "run": "stripe-outage",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "events-lag",
+            "after": "75 to 30",
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "kitchen-tablet-offline",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "offers-no-answer",
+            "after": "108 to 54",
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "tracking-signal-lost",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "sms-not-delivered",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "warehouse-down",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "dinner-rush",
+                "at": null
+              },
+              {
+                "run": "eta-batched",
+                "at": null
+              },
+              {
+                "run": "pings-climbing",
+                "at": null
+              },
+              {
+                "run": "stripe-outage",
+                "at": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

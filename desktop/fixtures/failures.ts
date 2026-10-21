@@ -5,6 +5,7 @@ import {
   reach, riskOf, rollUp, runLinkProblems, usersOfConnection, usersOfObject,
 } from '../../src/core/failures.ts'
 import { ROOT } from '../../src/core/model.ts'
+import { activeAnalysis, afterText, bandCounts, firstErrorAt, modeCount, modeIn, neighbour, ratingCells, rowsFor, STATUS_NAMES } from '../../ui/src/failuresview.ts'
 import { modelOf } from '../../src/core/state.ts'
 import { computeView, isView } from '../../src/core/views.ts'
 import { loadState } from '../../src/node/files.ts'
@@ -66,5 +67,53 @@ export async function dumpFailures(): Promise<unknown> {
     analysesText: [[], ['a'], ['a', 'b'], ['a', 'b', 'c']].map(ids => analysesText(ids)),
     shop: await dumpDir(FAILURES_DIRS.shop),
     plum: await dumpDir(FAILURES_DIRS.plum),
+  }
+}
+
+/** Every pure answer the Failures tab works out before it draws, over the same two folders. */
+async function dumpViewDir(dir: string): Promise<unknown> {
+  const state = await loadState(dir)
+  if (!('model' in state)) throw new Error(`${dir} did not load`)
+  const model = modelOf(state)
+  const runs = state.runs ?? {}
+  const views = [ROOT, ...Object.keys(model.objects)].filter(id => isView(model, id))
+  const bands = [undefined, 'high', 'medium', 'low', 'unrated'] as const
+  return {
+    modeCount: modeCount(model),
+    active: [...Object.keys(model.failures), 'nope', '', 'constructor'].map(id => ({ id, active: activeAnalysis(model.failures, id) ?? null })),
+    analyses: Object.entries(model.failures).map(([id, a]) => ({
+      id,
+      bandCounts: bandCounts(a),
+      rows: views.flatMap(view => bands.map(band => {
+        const r = rowsFor(model, a, view, { band })
+        return { view, band: band ?? null, here: r.here.map(x => x.id), elsewhere: r.elsewhere.map(x => x.id) }
+      })),
+      partRows: views.flatMap(view => {
+        const v = computeView(model, view)
+        const parts = [...v.members, ...v.outsiders].map(box => ({ box })) as ({ box: string } | { line: [string, string] })[]
+        for (const e of v.edges) parts.push({ line: [e.from, e.to] })
+        return parts.map(part => ({ view, ...part, here: rowsFor(model, a, view, { part }).here.map(x => x.id) }))
+      }),
+      modes: Object.entries(a.modes).map(([mid, m]) => ({
+        id: mid,
+        after: afterText(m) ?? null,
+        known: modeIn(model, id, mid) !== undefined,
+        firstError: Object.entries(runs).map(([run, r]) => ({ run, at: firstErrorAt(model, r, m) ?? null })),
+      })),
+    })),
+  }
+}
+
+export async function dumpFailuresView(): Promise<unknown> {
+  const ids = ['a', 'b', 'c']
+  const neighbours: [string[], string | undefined, 1 | -1][] = [
+    [ids, undefined, 1], [ids, undefined, -1], [ids, 'a', -1], [ids, 'a', 1], [ids, 'b', 1], [ids, 'b', -1], [ids, 'c', 1], [ids, 'c', -1], [ids, 'x', 1], [[], undefined, 1], [[], 'a', 1],
+  ]
+  return {
+    ratingCells: [undefined, 0, 1, 5, 10].map(rating => ({ rating: rating ?? null, cells: ratingCells(rating) })),
+    statusNames: STATUS_NAMES,
+    neighbour: neighbours.map(([list, current, delta]) => ({ ids: list, current: current ?? null, delta, id: neighbour(list, current, delta) ?? null })),
+    shop: await dumpViewDir(FAILURES_DIRS.shop),
+    plum: await dumpViewDir(FAILURES_DIRS.plum),
   }
 }
