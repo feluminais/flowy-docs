@@ -15424,6 +15424,533 @@
           "slide": 1.5333333333333332
         }
       ],
+      "rows": [
+        {
+          "x": -5,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 0,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 30,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 40,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 45,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 82.5,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 119.999,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 120,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 500,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 0,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 45,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 120,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 40,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 70,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 85,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "gateway",
+                "state": "stopped",
+                "text": "Payments killed"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "gateway",
+                "state": "starting",
+                "text": "Restart begins"
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "gateway",
+                "state": "running",
+                "text": "Answers again"
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        }
+      ],
       "levels": [
         10,
         43.75,
@@ -15789,6 +16316,673 @@
           "slide": 3.8333333333333335
         }
       ],
+      "rows": [
+        {
+          "x": -5,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 0,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 37.5,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 40,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 45,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 82.5,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 119.999,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 150,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 530,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 0,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 30,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 45,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 60,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 90,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 120,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 150,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 40,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 70,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 85,
+          "rows": [
+            {
+              "event": {
+                "at": 40,
+                "on": "web",
+                "state": "stopped",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 70,
+                "on": "web",
+                "state": "starting",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 85,
+                "on": "web",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        }
+      ],
       "levels": [
         10,
         28,
@@ -16114,6 +17308,68 @@
           "slide": 5
         }
       ],
+      "rows": [
+        {
+          "x": -5,
+          "rows": []
+        },
+        {
+          "x": 0,
+          "rows": []
+        },
+        {
+          "x": 37.5,
+          "rows": []
+        },
+        {
+          "x": 40,
+          "rows": []
+        },
+        {
+          "x": 45,
+          "rows": []
+        },
+        {
+          "x": 82.5,
+          "rows": []
+        },
+        {
+          "x": 119.999,
+          "rows": []
+        },
+        {
+          "x": 150,
+          "rows": []
+        },
+        {
+          "x": 530,
+          "rows": []
+        },
+        {
+          "x": 0,
+          "rows": []
+        },
+        {
+          "x": 1,
+          "rows": []
+        },
+        {
+          "x": 2,
+          "rows": []
+        },
+        {
+          "x": 100,
+          "rows": []
+        },
+        {
+          "x": 101,
+          "rows": []
+        },
+        {
+          "x": 150,
+          "rows": []
+        }
+      ],
       "levels": [
         10,
         10.6,
@@ -16397,6 +17653,56 @@
           "x": 101,
           "pos": 2,
           "slide": 2
+        }
+      ],
+      "rows": [
+        {
+          "x": -5,
+          "rows": []
+        },
+        {
+          "x": 0,
+          "rows": []
+        },
+        {
+          "x": 25.25,
+          "rows": []
+        },
+        {
+          "x": 40,
+          "rows": []
+        },
+        {
+          "x": 45,
+          "rows": []
+        },
+        {
+          "x": 82.5,
+          "rows": []
+        },
+        {
+          "x": 119.999,
+          "rows": []
+        },
+        {
+          "x": 101,
+          "rows": []
+        },
+        {
+          "x": 481,
+          "rows": []
+        },
+        {
+          "x": 0,
+          "rows": []
+        },
+        {
+          "x": 100,
+          "rows": []
+        },
+        {
+          "x": 101,
+          "rows": []
         }
       ],
       "levels": [
@@ -16704,6 +18010,358 @@
           "x": 20,
           "pos": 2,
           "slide": 2
+        }
+      ],
+      "rows": [
+        {
+          "x": 5,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 10,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 7.5,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 40,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 45,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 82.5,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 119.999,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 20,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 400,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 10,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 12.5,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 20,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
+        },
+        {
+          "x": 10,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": false,
+              "current": false
+            }
+          ]
+        },
+        {
+          "x": 20,
+          "rows": [
+            {
+              "event": {
+                "at": 10,
+                "on": "db",
+                "state": "degraded",
+                "text": ""
+              },
+              "passed": true,
+              "current": false
+            },
+            {
+              "event": {
+                "at": 20,
+                "on": "db",
+                "state": "running",
+                "text": ""
+              },
+              "passed": true,
+              "current": true
+            }
+          ]
         }
       ],
       "levels": [

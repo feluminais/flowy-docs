@@ -7,7 +7,7 @@ import { checkRun, eventsPassed, eventText, interpolate, knee, kneeText, parseRu
 import type { Metrics } from '../../src/core/perf.ts'
 import { nameOf } from '../../src/core/views.ts'
 import {
-  activeRun, BOX_KEYS, boxAt, boxSeries, clampPos, cursorX, eventFractions, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
+  activeRun, BOX_KEYS, boxAt, boxSeries, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
 } from '../../ui/src/perfview.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -448,6 +448,7 @@ export async function dumpPerfView(): Promise<unknown> {
           ramp: [0, 16, 1000, RAMP_MS / 2, RAMP_MS].map(ms => rampPos(run, pos, ms)), from: rampFrom(run, pos),
         })),
         posAt: xs.map(x => ({ x, pos: posAt(run, x), slide: slidePos(run, x) })),
+        rows: xs.map(x => ({ x, rows: eventRows(run, x) })),
         levels: run.levels.map((_, i) => levelX(run, AREA, i)),
         labels: levelLabels(run, AREA),
         few_labels: levelLabels(run, AREA, 2),

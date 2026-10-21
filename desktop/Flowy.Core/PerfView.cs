@@ -75,6 +75,13 @@ public static class PerfView
     public static IReadOnlyList<(double Fraction, RunEvent Event)> EventFractions(LoadRun run) =>
         run.IsTime ? [.. run.Events.Select(e => (Math.Min(1, Math.Max(0, Along(run, e.At))), e))] : [];
 
+    /// <summary>The events of a time run as the panel lists them, in time order: whether each has happened by <paramref name="x"/>, and which is the latest that has.</summary>
+    public static IReadOnlyList<(RunEvent Event, bool Passed, bool Current)> EventRows(LoadRun run, double x)
+    {
+        var done = run.Events.Count(e => e.At <= x); // in time order, so the ones that have happened come first
+        return [.. run.Events.Select((e, i) => (e, i < done, i == done - 1))];
+    }
+
     /// <summary>What the slider's own numbers run between: a time run's are times, a load run's are positions.</summary>
     public static (double Min, double Max) SliderRange(LoadRun run) => run.IsTime ? (run.Levels[0].Load, run.Levels[Top(run)].Load) : (0, Top(run));
 

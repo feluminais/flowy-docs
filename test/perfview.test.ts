@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseRun } from '../src/core/perf.ts'
 import {
-  activeRun, boxAt, boxSeries, clampPos, cursorX, eventFractions, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, isTime, levelLabels, levelX, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, posAt, RAMP_MS, rampFrom, rampPos, scaleOf, sliderFraction, slidePos, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
+  activeRun, boxAt, boxSeries, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, isTime, levelLabels, levelX, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, posAt, RAMP_MS, rampFrom, rampPos, scaleOf, sliderFraction, slidePos, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
 } from '../ui/src/perfview.ts'
 import { shop } from './fixtures.ts'
 
@@ -216,6 +216,16 @@ test('the slider of a time run is linear in time: a level sits where its time is
   near(events[0].fraction, 1 / 3)
   near(events[1].fraction, 7 / 12)
   near(events[2].fraction, 17 / 24)
+})
+
+test('the events list marks the ones that have happened and the latest of them', () => {
+  const flags = (x: number) => eventRows(outage, x).map(r => [r.event.at, r.passed, r.current])
+  assert.deepEqual(flags(39), [[40, false, false], [70, false, false], [85, false, false]])
+  assert.deepEqual(flags(40), [[40, true, true], [70, false, false], [85, false, false]])
+  assert.deepEqual(flags(75), [[40, true, false], [70, true, true], [85, false, false]])
+  assert.deepEqual(flags(120), [[40, true, false], [70, true, false], [85, true, true]])
+  assert.deepEqual(flags(Number.NaN), [[40, false, false], [70, false, false], [85, false, false]])
+  assert.deepEqual(eventRows(run, 200), [])
 })
 
 test('the slider of a load run is as it was: even steps, and no events to mark', () => {

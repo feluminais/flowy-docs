@@ -50,17 +50,17 @@ const STATE_LEAVE_MS = 700
 
 /**
  * The state a box is in, and for a moment after it leaves one, the one it left: the outline and the glyph fade out over the box coming back
- * instead of vanishing. A box that never has a state costs one ref and an effect that does nothing.
+ * instead of vanishing. With `snap` (a slider is being dragged) the old one goes at once. A box that never has a state costs one ref and an effect that does nothing.
  */
-function useStateMark(state: StateMark | undefined): { shown: StateMark | undefined; leaving: boolean } {
+function useStateMark(state: StateMark | undefined, snap: boolean | undefined): { shown: StateMark | undefined; leaving: boolean } {
   const [left, setLeft] = useState<StateMark>()
   const was = useRef<StateMark>(undefined)
   const [word, inside] = [state?.state, state?.inside]
   useEffect(() => {
     const before = was.current
     was.current = state
-    setLeft(state === undefined ? before : undefined)
-    if (state !== undefined || before === undefined) return
+    setLeft(state === undefined && !snap ? before : undefined)
+    if (state !== undefined || before === undefined || snap) return
     const timer = setTimeout(() => setLeft(undefined), STATE_LEAVE_MS)
     return () => clearTimeout(timer)
   }, [word, inside])
@@ -72,9 +72,9 @@ function useStateMark(state: StateMark | undefined): { shown: StateMark | undefi
  * icon (grey with a cloud when it's external), its name, its tech (or type), and how many shapes it opens onto. Hovering
  * shows the teaser. In edit mode a line starts at the dot at the bottom, and while it's being drawn the whole shape is a place to drop it.
  */
-export function Box({ id, data: { object, inside, icon, perf, fail, state }, isConnectable }: NodeProps<BoxNode>) {
+export function Box({ id, data: { object, inside, icon, perf, fail, state, snap }, isConnectable }: NodeProps<BoxNode>) {
   const [hover, setHover] = useState(false)
-  const { shown, leaving } = useStateMark(state)
+  const { shown, leaving } = useStateMark(state, snap)
   const connecting = useConnection(c => c.inProgress)
   const short = teaser(object.description)
   const external = isExternal(object)

@@ -13,7 +13,7 @@ import { captionOf, progressOf } from '../../src/core/captions.ts'
 import { marksOf, statesAt, usesStates } from '../../src/core/states.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { otherLaneSteps, stopIndexOf, stopsOf } from '../../src/core/structure.ts'
-import { knee, traffic as trafficOf } from '../../src/core/perf.ts'
+import { eventsOf, knee, runStates, traffic as trafficOf } from '../../src/core/perf.ts'
 import { drawnIn, homeView, lightFor, rollUp, table } from '../../src/core/failures.ts'
 import type { Mark, Part } from '../../src/core/failures.ts'
 import { expandTo, outline } from '../../src/core/outline.ts'
@@ -66,6 +66,7 @@ import { Yaml } from './Yaml.tsx'
 const nodeTypes = { box: Box, frame: Frame }
 const NO_MARKS: Record<string, StateMark> = {} // the same object every time, so a flow with no states never rebuilds the graph for them
 const edgeTypes = { line: Line }
+const SCRUB_MS = 250 // ms after the slider of a run was last dragged that the shapes still change their state at once, with no fade
 const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is the first half of a double-click
 const LEAVE = 220 // ms the old view takes to fly off; keep in sync with the leave-* keyframes in style.css
 const ARRIVE = 320 // ms the new view takes to settle; keep in sync with the arrive-* keyframes
@@ -167,6 +168,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const [modeId, setModeId] = useState<string | undefined>(() => readHash(location.hash).failures?.mode)
   const [filter, setFilter] = useState<Filter>({})
   const [ramping, setRamping] = useState(false)
+  const [scrubbing, setScrubbing] = useState(false) // the slider of a run is being dragged: the states of shapes snap instead of moving
+  const scrubTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  useEffect(() => () => clearTimeout(scrubTimer.current), [])
   const posNow = useRef(pos) // the ramp reads where it is from here, so a render in between never makes it start over
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set([ROOT, ...remembered.expanded])) // the project's own row starts open
   const [playing, setPlaying] = useState<{ flow: string; step: number; auto?: boolean; trail?: Spot[] } | undefined>(() => {
@@ -237,6 +241,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const showPerf = Object.keys(runs).length > 0 || runProblems.length > 0 // the tab is there whenever there is a run, or a run file to complain about
   const canPerf = showPerf && !editing // while editing the tab is greyed out: the numbers would sit on a model that is changing
   const perfOpen = perf && canPerf && loadTest !== undefined
+  const load = loadTest ? loadAt(loadTest, here) : 0 // the load at the position on show, or for a run over time the time
   // The Failures tab is there whenever there is an analysis or a file of one to complain about, and always in edit mode, so the first analysis can be made.
   const analysisKey = activeAnalysis(model.failures, analysisId)
   const analysis = analysisKey === undefined ? undefined : model.failures[analysisKey]
@@ -250,7 +255,13 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const stopIndex = flow && playing ? Math.max(0, Math.min(playing.step, stops.length - 1)) : 0
   const stop = flow ? stops[stopIndex] : undefined
   // Where shapes stand at this stop: the flow's start and each step's changes up to it (nothing is stored, so stepping back needs no undo).
-  const stateMarks = useMemo(() => (flow && stop ? marksOf(model, statesAt(flow, stops, stopIndex)) : NO_MARKS), [model, flow, stop, stops, stopIndex])
+  const flowMarks = useMemo(() => (flow && stop ? marksOf(model, statesAt(flow, stops, stopIndex)) : NO_MARKS), [model, flow, stop, stops, stopIndex])
+  // While the Performance tab is open, a run over time sets the states instead: the latest event at or before the time on show. The marks are kept as text so
+  // that the graph (which takes dagre tens of ms) is rebuilt only when a state changes, not on every step of a Play.
+  const timeEvents = perfOpen && loadTest !== undefined && eventsOf(loadTest).length > 0
+  const marksText = timeEvents && loadTest ? JSON.stringify(marksOf(model, runStates(loadTest, load))) : ''
+  const runMarks = useMemo(() => (marksText === '' || marksText === '{}' ? NO_MARKS : (JSON.parse(marksText) as Record<string, StateMark>)), [marksText])
+  const stateMarks = flow ? flowMarks : runMarks
   const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
   const showFlows = totals.flows > 0 || editing // the Flows tab is there whenever there is a flow to find
   // The YAML tab needs a server that keeps the history: not an exported page, not the VS Code webview.
@@ -305,7 +316,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const graph = useMemo(() => toGraph(model, view, shown, problems, stateMarks), [model, view, shown, problems, stateMarks])
   // The states on the canvas now, for the key: a shape on another view that is in one is not drawn here.
   const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
-  const load = loadTest ? loadAt(loadTest, here) : 0
   const loadTraffic = useMemo(() => (perfOpen && loadTest ? trafficOf(model, loadTest, load, view) : undefined), [perfOpen, model, loadTest, load, view])
   const widths = useMemo(() => new Map(loadTraffic?.lines.map(l => [lineId(l.from, l.to), l.width])), [loadTraffic])
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches // no ramp and no traffic: the colours, thickness, badges and numbers say it all
@@ -325,7 +335,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.
   const nodes = graph.nodes.map(n => ({
     ...n,
-    data: loadTraffic || failMarks ? { ...n.data, ...(loadTraffic ? { perf: loadTraffic.boxes[n.id] } : {}), ...(failMarks && Object.hasOwn(failMarks.boxes, n.id) ? { fail: failMarks.boxes[n.id] } : {}) } : n.data,
+    data: loadTraffic || failMarks || scrubbing ? { ...n.data, ...(loadTraffic ? { perf: loadTraffic.boxes[n.id] } : {}), ...(failMarks && Object.hasOwn(failMarks.boxes, n.id) ? { fail: failMarks.boxes[n.id] } : {}), ...(scrubbing ? { snap: true } : {}) } : n.data,
     className: [n.className, litClass(n.id)].filter(Boolean).join(' ') || undefined,
     position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id),
   }))
@@ -618,6 +628,20 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     setRamping(false)
     setPos(snap(loadTest, to))
   }
+  // Anywhere along the run, not only at a level: a click on an event. The states move to it, as they do for a step.
+  const jumpTo = (to: number) => {
+    if (!loadTest) return
+    setRamping(false)
+    setPos(clampPos(loadTest, to))
+  }
+  // The slider is being dragged: the states follow at once, and for a moment after the last move (a drag is many moves), so the shapes don't fade behind the thumb.
+  const slide = (to: number) => {
+    if (!loadTest) return
+    setScrubbing(true)
+    clearTimeout(scrubTimer.current)
+    scrubTimer.current = setTimeout(() => setScrubbing(false), SCRUB_MS)
+    jumpTo(to)
+  }
   const pickLines = (value: string) => {
     const style = LINE_STYLES.find(s => s === value)
     if (style === undefined) return
@@ -898,7 +922,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       </header>
       <div className="stage">
         <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} showYaml={showYaml} onPick={toggleTab} />
-        <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', flow && usesStates(flow) && 'states', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
+        <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', ((flow && usesStates(flow)) || timeEvents) && 'states', scrubbing && 'scrubbing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           <LineStyleContext value={lines}>
             <LineWidthsContext value={widths}>
@@ -1021,14 +1045,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {perfOpen && (
             <aside className="panel perfpanel">
               <button className="close" aria-label="Close" onClick={closePerf}><Close size={16} /></button>
-              <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runKey} pos={here} ramping={ramping} still={still}
+              <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runKey} pos={here} ramping={ramping} still={still} states={marksHere}
                 selection={side?.kind === 'object' || side?.kind === 'line' ? side : undefined}
                 onRun={id => {
                   setRamping(false)
                   setRunId(id)
                   setPos(startPos(id))
                 }}
-                onPos={stepLevel} onRamp={toggleRamp} />
+                onPos={stepLevel} onSlide={slide} onJump={jumpTo} onRamp={toggleRamp} />
             </aside>
           )}
           {failuresOpen && (
