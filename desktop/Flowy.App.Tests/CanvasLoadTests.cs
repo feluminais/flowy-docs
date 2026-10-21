@@ -39,7 +39,7 @@ public class CanvasLoadTests
     {
         Assert.Equal(1.5, BackLayer.ThicknessOf(false, false, null)); // no load: as always
         Assert.Equal(2, BackLayer.ThicknessOf(false, true, null));
-        Assert.Equal(3, BackLayer.ThicknessOf(true, false, null));
+        Assert.Equal(2.5, BackLayer.ThicknessOf(true, false, null)); // a lit line is a little bolder, with no halo
         Assert.Equal(6, BackLayer.ThicknessOf(false, false, 6));
         Assert.Equal(6, BackLayer.ThicknessOf(false, true, 6)); // picked or hovered: still as thick as its calls make it
         Assert.Equal(1.2, BackLayer.ThicknessOf(false, true, 1.2)); // a quiet line stays thin
