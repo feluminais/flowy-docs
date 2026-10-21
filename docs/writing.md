@@ -157,6 +157,7 @@ A flow is a walkthrough of one thing happening. It has a name, the view it plays
 - **Ask how much to animate, then follow the answer.** An `animation:` makes a step play as something travelling between its two shapes. There are three levels: **None** (plain steps), **Key steps** (only a step whose way of travelling adds something, such as a call that waits or a callback) and **Every step** that hands something from one shape to another. With no answer, animate every step. Pick the kind by who waits: `call` when the sender waits for the answer, `send` or `event` when it doesn't, `callback` when something sets off a reply to whoever subscribed, with `trigger: outside` when what set it off came in at the step before. A step with no `to` can't travel. Give a step an `outcome` only where it really ends that way: `fail` on a `send` or `call` that is refused (a declined card), `timeout` on a `call` nobody answers, `lost` on a request that never arrives, `rejected` where something at the door turns it away (a rate limit, a firewall), `intercepted` with `by` where a third party takes it, `duplicated` where it is delivered twice and `delayed` where the story is a wait (a cold start, a queue). A step that is a little slow gets none. Add a `reason` of a few words ("Rate limit", "Packet dropped") when the picture raises the question of why, and a `share` when only some of the requests end that way ("a third of the pings are lost" is `share: 30`). The text still says everything: it has to read the same in Mermaid, in a screenshot and with motion off.
 - **Give a shape a state only where the story takes it somewhere.** A step's `states` can say that a service is starting, stopping, stopped, restarting or degraded, and it holds until a later step changes it. Use it for an outage and its recovery, a deploy, or a node that drops out. Set the shape back to `running` when it recovers, because nothing else clears it. Leave out a state that is only the default, and one you cannot point to in the code or the incident. The text must say the same thing with the drawing off.
 - **Mark structure only where it is true.** A *repeat* is the same steps run again, with a limit the code really has: say it in `times`, or what stops it in `until`, and put the backoff or the wait in the group's `text`. A *branch* is alternatives that each get a few steps. A lane starts at the step that says `lane`, named for its condition in plain words, and the player walks every lane in turn. A failure that is one step is a lane, and a failure that is a story is still a flow of its own. A *parallel* group is work that starts together: a fan-out to five subscribers is five one-step lanes, so each step keeps its one `to`. A group's steps sit next to each other, and a group can't hold another group yet. `flow:` on a step says the story continues in another flow, which earns its place when that story needs a page of its own. The step texts still say everything: a group only shapes how the steps are drawn, and a reader may meet them as a plain list.
+- **Quote the text of a one-line step if it has a comma, and give a long step a block.** In `{ ... }` and `[ ... ]` a comma ends the value. `{ from: a, to: b, text: Sets the time zone, if the request has one }` is read as the text "Sets the time zone" plus a key `if the request has one` with nothing after it (and `text: Calls it, retries: 3 times` quietly gains a `retries` key). The file still loads, the step is cut short, and the first sign is a save that fails with "Tag not resolved for null value". So in one-line form put double quotes around every value that holds a `,`, `:`, `#`, `{`, `}`, `[` or `]`, or that starts with `-`, `?`, `*`, `&`, `!`, `|`, `>`, `%`, `@` or a quote: `text: "Sets the time zone, if the request has one"`. A step whose text is more than a few words, or that carries a `description`, is easier to read as a block (the second step below), and a block has no comma problem. Leave no key empty (`text:`) unless you mean it left out: an empty step `text` is a problem.
 
 An example. This is a flow Plum doesn't have, with Plum's shapes.
 
@@ -190,10 +191,10 @@ steps:
     description: Nothing was charged yet, so there's no refund to make.
   - { from: order-api, to: orders-db, text: Marks the order cancelled }
   - { from: order-api, to: events, text: Announces the cancellation and carries on without waiting }
-  - { from: events, to: dispatch, text: Hands the cancellation to Dispatch, which stops looking for a courier }
+  - { from: events, to: dispatch, text: "Hands the cancellation to Dispatch, which stops looking for a courier" }
 ```
 
-What changed: the sender is the subject in every step, the endpoint moved into More, the hold is something the Order API does to Stripe rather than something Stripe does, the event step says nobody is waited for, and each step says what passes.
+What changed: the sender is the subject in every step, the endpoint moved into More, the hold is something the Order API does to Stripe rather than something Stripe does, the event step says nobody is waited for, and each step says what passes. The last step's text is in double quotes because it holds a comma (the last rule above).
 
 ## Failure modes
 
@@ -303,6 +304,7 @@ Claude's usual mistakes are shapes at the wrong level (every class a shape), pla
 - **Work in passes and commit between them:** shapes, then connections, then flows, then the text.
 - **Reject descriptions you could have written from the name alone.**
 - **Review the diff** for shapes with no `code:`, duplicate names, deletions and descriptions that restate the name. A fresh session makes a good second reader.
+- **Check hand-written YAML before calling a model done.** Claude's writes through MCP are quoted for it, but a file it writes itself is only as good as its quoting. Run `flowy export` and read what it says about problems (`It has N problems`, and nothing when there are none): a comma in an unquoted one-line step leaves a key with no value, which is listed as `step 3: "if the request has one" has no value`. Then run `flowy mermaid --flow <id>` for each flow and read every step text through to its end. The problem list can't see a text cut short at `, retries: 3 times`, because that is a valid extra key.
 - **After a code change, give Claude the change.**
 
   ```text
@@ -321,6 +323,7 @@ Claude's usual mistakes are shapes at the wrong level (every class a shape), pla
 - Is every acronym explained where it's used?
 - Does every line have a verb label that reads as a sentence from the source?
 - Is every flow named for a goal, with one trigger and the sender as the subject of each step?
+- Is every one-line step with a comma, a colon or a bracket in its text in double quotes, and does `flowy export` report no problems?
 - Does each level hold a handful of shapes?
 - Does every shape you built have a `code:` path that exists?
 - Does anything long (a procedure, a table, a decision) live in a document the shape links to, rather than in its panel?
