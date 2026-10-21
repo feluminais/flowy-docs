@@ -3,7 +3,7 @@
  * by where they play, and the keys that move about the tree. Nothing here draws, so the canvas and the desktop app each draw
  * these rows and agree on what is on them. desktop/Flowy.Core/Outline.cs is a port, and desktop/fixtures/outline.ts keeps the two equal.
  */
-import type { Problem } from './check.ts'
+import type { Problem } from './problem.ts'
 import { getObject, isExternal, ROOT } from './model.ts'
 import type { Model } from './model.ts'
 import { chain, nameOf, parentOf } from './views.ts'

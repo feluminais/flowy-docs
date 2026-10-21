@@ -2,14 +2,16 @@ import { createHash, randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
-import { check, isRepoPath } from '../core/check.ts'
-import type { Problem } from '../core/check.ts'
+import { check } from '../core/check.ts'
+import type { Problem } from '../core/problem.ts'
 import { runLinkProblems } from '../core/failures.ts'
 import { emptyModel, ID_RULE, isValidId, linksOf, ParseError, parseAnalysisFile, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
+import { isRepoPath } from '../core/paths.ts'
 import { checkRun, parseRun } from '../core/perf.ts'
 import type { Run } from '../core/perf.ts'
 import type { State } from '../core/state.ts'
+import { own } from '../core/text.ts'
 import { codeBase } from './git.ts'
 
 /**
@@ -86,7 +88,7 @@ export async function loadDir(dir: string): Promise<Loaded> {
     const text = await read(`flows/${name}`)
     const id = name.slice(0, -'.yaml'.length)
     // Not `model.flows[id] = ...`: a file named __proto__.yaml would replace the prototype and the flow would vanish.
-    if (text !== null) Object.defineProperty(model.flows, id, { value: parseFlowFile(id, text), enumerable: true, writable: true, configurable: true })
+    if (text !== null) own(model.flows, id, parseFlowFile(id, text))
   }
   const failureProblems = await loadFailures(dir, model, read)
   return { model, versions, ignored: files.filter(n => n.endsWith('.yml')).map(n => `flows/${n}`), failureProblems }
@@ -123,7 +125,7 @@ async function loadFailures(dir: string, model: Model, read: (rel: string) => Pr
     try {
       const text = await read(file)
       // Ids pass isValidId, so "__proto__" can't get here; defineProperty keeps it that way.
-      if (text !== null) Object.defineProperty(model.failures, id, { value: parseAnalysisFile(id, text), enumerable: true, writable: true, configurable: true })
+      if (text !== null) own(model.failures, id, parseAnalysisFile(id, text))
     } catch (e) {
       problems.push(problemOf(file, e))
     }

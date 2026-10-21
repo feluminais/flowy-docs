@@ -1,9 +1,8 @@
 import type { IncomingMessage } from 'node:http'
 import { json } from 'node:stream/consumers'
+import { isMap } from '../core/text.ts'
 import type { History } from './history.ts'
-
-/** What the server answers with. */
-export type Answer = { status: number; body: unknown }
+import type { Answer } from './writes.ts'
 
 export type HistoryApi = {
   /** Answers the history routes. Returns undefined for any other path or method, so the server can go on to its own routes. */
@@ -25,7 +24,7 @@ const bad = (error: string): Answer => ({ status: 400, body: { error } })
 /** Reads a JSON object body, or undefined when it is not one. */
 async function objectBody(req: IncomingMessage): Promise<Record<string, unknown> | undefined> {
   const body: unknown = await json(req).catch(() => undefined)
-  return typeof body === 'object' && body !== null && !Array.isArray(body) ? (body as Record<string, unknown>) : undefined
+  return isMap(body) ? body : undefined
 }
 
 const isLabel = (value: unknown): value is string => typeof value === 'string' && value.length >= 1 && value.length <= MAX_LABEL
@@ -65,7 +64,7 @@ export function createHistoryApi(history: History, options: { gateMs?: number } 
     }
 
     const { id, versions, label } = body ?? {}
-    const seen = typeof versions === 'object' && versions !== null && !Array.isArray(versions) ? (versions as Record<string, unknown>) : undefined
+    const seen = isMap(versions) ? versions : undefined
     if (typeof id !== 'string' || id === '' || !seen || !Object.values(seen).every(v => typeof v === 'string' || v === null) || !isLabel(label))
       return bad('the body needs "id", "versions" (each file\'s version from /api/yaml, or null) and "label"')
     const result = await history.restore(id, seen as Record<string, string | null>, label)

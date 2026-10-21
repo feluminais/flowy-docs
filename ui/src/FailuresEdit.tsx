@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { FormEvent, ReactNode } from 'react'
+import type { FormEvent } from 'react'
 import { bandOf, BAND_NAMES, partName, riskOf } from '../../src/core/failures.ts'
 import type { Analysis, Mode, Model } from '../../src/core/model.ts'
 import { getObject } from '../../src/core/model.ts'
@@ -10,22 +10,10 @@ import { isView } from '../../src/core/views.ts'
 import { newId } from './edit.ts'
 import { STATUS_NAMES, toLine, toShape } from './failuresview.ts'
 import { Plus, Trash } from './icons.tsx'
-import { Field } from './Panel.tsx'
-import type { Run } from './Panel.tsx'
+import { Choice, Field } from './forms.tsx'
+import type { SaveEdit } from './forms.tsx'
 
 /** The forms that write a failure analysis: every save is one edit, refused with the checker's words when it would add a problem, and the field goes back to what it was. */
-
-/** A select that saves when it changes, and goes back to what it was when the edit is refused. Keyed by its value so it shows the saved one after a reload. */
-function Choice({ label, value, options, onSave }: { label: ReactNode; value: string; options: [string, string][]; onSave: (value: string) => Promise<boolean> }) {
-  return (
-    <label>
-      {label}
-      <select key={value} defaultValue={value} onChange={async e => { if (!(await onSave(e.target.value))) e.target.value = value }}>
-        {options.map(([v, text]) => <option key={v} value={v}>{text}</option>)}
-      </select>
-    </label>
-  )
-}
 
 const RATING_OPTIONS: [string, string][] = [['', 'Not rated'], ...Array.from({ length: 10 }, (_, i): [string, string] => [String(i + 1), String(i + 1)])]
 const STATUS_OPTIONS: [string, string][] = Object.entries(STATUS_NAMES)
@@ -37,7 +25,7 @@ const fromOptions = (model: Model): [string, string][] => [...new Set(model.conn
 const toOptions = (model: Model, from: string): [string, string][] => [...new Set(model.connections.filter(c => c.from === from).map(c => c.to))].filter(id => getObject(model, id)).map(id => [id, partName(model, { on: id })])
 
 /** The first analysis: a name, and it is made. */
-export function NewAnalysis({ model, run, onMade }: { model: Model; run: Run; onMade: (id: string) => void }) {
+export function NewAnalysis({ model, run, onMade }: { model: Model; run: SaveEdit; onMade: (id: string) => void }) {
   const make = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.currentTarget
@@ -62,7 +50,7 @@ export function NewAnalysis({ model, run, onMade }: { model: Model; run: Run; on
 }
 
 /** The analysis itself: its name, About and Scope, and deleting it with its modes. */
-export function AnalysisForm({ model, id, run }: { model: Model; id: string; run: Run }) {
+export function AnalysisForm({ model, id, run }: { model: Model; id: string; run: SaveEdit }) {
   const a: Analysis = model.failures[id]
   const save = (changes: { name?: string; about?: string; scope?: string }) => run(m => updateAnalysis(m, id, changes))
   const scopes: [string, string][] = [['', 'Overview'], ...Object.keys(model.objects).filter(o => isView(model, o)).map((o): [string, string] => [o, partName(model, { on: o })])]
@@ -84,7 +72,7 @@ export function AnalysisForm({ model, id, run }: { model: Model; id: string; run
 export type Preset = { on?: string; from?: string; to?: string }
 
 /** A new mode: the part and the sentence, which is all the checker needs. The rest is filled in on the mode's own form. */
-export function AddMode({ model, analysisId, preset, run, onAdded, onCancel }: { model: Model; analysisId: string; preset: Preset; run: Run; onAdded: (id: string) => void; onCancel: () => void }) {
+export function AddMode({ model, analysisId, preset, run, onAdded, onCancel }: { model: Model; analysisId: string; preset: Preset; run: SaveEdit; onAdded: (id: string) => void; onCancel: () => void }) {
   const [kind, setKind] = useState<'shape' | 'line'>(preset.from !== undefined ? 'line' : 'shape')
   const [on, setOn] = useState(preset.on ?? '')
   const [from, setFrom] = useState(preset.from ?? '')
@@ -119,7 +107,7 @@ export function AddMode({ model, analysisId, preset, run, onAdded, onCancel }: {
 }
 
 /** Every field of the picked mode. */
-export function ModeForm({ model, analysisId, modeId, runs, run }: { model: Model; analysisId: string; modeId: string; runs: Record<string, LoadRun>; run: Run }) {
+export function ModeForm({ model, analysisId, modeId, runs, run }: { model: Model; analysisId: string; modeId: string; runs: Record<string, LoadRun>; run: SaveEdit }) {
   const m: Mode = model.failures[analysisId].modes[modeId]
   const save = (changes: ModeChanges) => run(model2 => updateMode(model2, analysisId, modeId, changes))
   const text = (label: string, key: 'mode' | 'effect' | 'cause' | 'owner' | 'step', multiline = false) => (

@@ -1,56 +1,33 @@
-import { COLOR_NAMES, iconProblem, isColor, isKnownIcon, isOpacity, isShape, SHAPES } from './look.ts'
+import { COLOR_NAMES, iconProblem, isColor, isKnownIcon, isOpacity, isShape, OBJECT_TYPE_INFO, SHAPES } from './look.ts'
 import { getObject, ID_RULE, isValidId, LINE_STYLES, OBJECT_TYPES, ROOT } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
 import { animationProblem, interceptorProblem } from './animation.ts'
 import { dataProblems } from './data.ts'
 import { analysisProblems } from './failures.ts'
+import { isRepoPath, isWebAddress } from './paths.ts'
+import type { Problem } from './problem.ts'
 import { snippetProblems } from './snippets.ts'
 import { stateProblems } from './states.ts'
 import { structureProblems, stopsOf } from './structure.ts'
+import { hasText, isMap } from './text.ts'
 import { isView, placeStep } from './views.ts'
-
-/**
- * `connection` (a place in model.connections) and `step` (a place in the flow's steps) tell the
- * canvas where to point. They aren't part of what a problem is: newProblems ignores them, so
- * deleting one connection doesn't make the problems after it look new.
- */
-export type Problem = { file: string; id?: string; message: string; connection?: number; step?: number }
-
-const PARENTS: Record<ObjectType, readonly ObjectType[]> = {
-  actor: [],
-  system: [],
-  app: ['system'],
-  store: ['system'],
-  component: ['app', 'store'],
-}
 
 /** The types an object may have when it sits right inside `view` (root or an object id). */
 export function typesIn(model: Model, view: string): ObjectType[] {
   const parent = view === ROOT ? undefined : getObject(model, view)
   if (view !== ROOT && !parent) return []
-  return OBJECT_TYPES.filter(t => (parent ? PARENTS[t].includes(parent.type) : PARENTS[t].length === 0))
+  return OBJECT_TYPES.filter(t => (parent ? OBJECT_TYPE_INFO[t].parents.includes(parent.type) : OBJECT_TYPE_INFO[t].parents.length === 0))
 }
 
-const nonEmpty = (v: unknown) => typeof v === 'string' && v.trim() !== ''
-/** Absent, or a key with nothing after it (`type:`), which reads as "". */
+/** Absent, or a key with nothing after it (`type:`), which reads as "". Not the opposite of hasText: whitespace is present here, and a value that is not text is too. */
 const missing = (v: unknown) => v === undefined || v === ''
-
-/** A path in the repo as `code` takes it: relative, with / between folders, and no "." or ".." parts. A trailing / is a folder. */
-export const isRepoPath = (path: string): boolean =>
-  !/^\/|\\|:/.test(path) && path.split('/').every((part, i, all) => (part !== '' || (i === all.length - 1 && i > 0)) && part !== '.' && part !== '..')
-
-/** A web address as a link takes it: http or https, then a host. Checks.cs spells the same pattern out character for character, so the two never disagree about a parse. */
-export const isWebAddress = (url: string): boolean => /^https?:\/\/[^\t\n\v\f\r \/?#][^\t\n\v\f\r ]*$/i.test(url)
 
 /** A `links` entry whose known fields are text. A missing `url` is reported separately, as "a link has no url". */
 const isLinkEntry = (l: unknown): l is { url?: string; title?: string } => {
-  if (typeof l !== 'object' || l === null || Array.isArray(l)) return false
-  const { url, title } = l as Record<string, unknown>
+  if (!isMap(l)) return false
+  const { url, title } = l
   return (url === undefined || typeof url === 'string') && (title === undefined || typeof title === 'string')
 }
-
-/** A path made safe for a URL one part at a time, so a # or ? in a name stays part of the name. */
-export const encodePath = (path: string): string => path.split('/').map(encodeURIComponent).join('/')
 
 /**
  * Every problem in the model. Never throws. `absent` holds the code paths that don't exist; only Node
@@ -75,7 +52,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
 
   const icons = model.meta.icons
   if (icons !== undefined && icons !== '') {
-    if (typeof icons !== 'object' || icons === null || Array.isArray(icons)) add('model.yaml', undefined, 'icons must map names to SVG path data')
+    if (!isMap(icons)) add('model.yaml', undefined, 'icons must map names to SVG path data')
     else for (const [name, d] of Object.entries(icons)) {
       const why = iconProblem(name, d)
       if (why) add('model.yaml', undefined, `icon ${name}: ${why}`)
@@ -85,7 +62,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
   for (const [id, o] of Object.entries(model.objects)) {
     const p = (message: string) => add('model.yaml', id, `${id}: ${message}`)
     if (!isValidId(id)) p(`ids ${ID_RULE}`)
-    if (!nonEmpty(o.name)) p('name is missing')
+    if (!hasText(o.name)) p('name is missing')
     if (o.external !== undefined && o.external !== 'true' && o.external !== 'false') p('external must be true or false')
     if (!missing(o.shape) && !isShape(o.shape)) p(`unknown shape "${o.shape}" (use ${SHAPES.join(', ')})`)
     if (!missing(o.color) && !isColor(o.color)) p(`color "${o.color}" must be a name (${COLOR_NAMES.join(', ')}) or a hex like #3b82f6`)
@@ -114,11 +91,11 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       p('type is missing')
       continue
     }
-    if (!Object.hasOwn(PARENTS, o.type)) {
+    if (!Object.hasOwn(OBJECT_TYPE_INFO, o.type)) {
       p(`unknown type "${o.type}" (use ${OBJECT_TYPES.join(', ')})`)
       continue
     }
-    const allowed = PARENTS[o.type]
+    const allowed = OBJECT_TYPE_INFO[o.type].parents
     const parent = getObject(model, o.in)
     if (missing(o.in)) {
       if (allowed.length) p(`${o.type} must be inside ${allowed.join(' or ')}`)
@@ -140,19 +117,21 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
 
   for (const [fid, f] of Object.entries(model.flows)) {
     const p = (message: string, at?: { step: number }) => add(`flows/${fid}.yaml`, undefined, message, at)
+    // A problem that belongs to a step reads "step N: ..." (N counts from 1) and points the canvas at it.
+    const at = (message: string, step?: number) => (step === undefined ? p(message) : p(`step ${step + 1}: ${message}`, { step }))
     if (!isValidId(fid)) p(`"${fid}" is not a valid flow id: the file name must ${ID_RULE}`)
-    if (!nonEmpty(f.name)) p('name is missing')
+    if (!hasText(f.name)) p('name is missing')
     const viewOk = isView(model, f.view)
     if (missing(f.view)) p('view is missing')
     else if (!viewOk) p(`view "${f.view}" must be "root" or an object with children`)
     if (f.steps.length === 0) p('has no steps')
     f.steps.forEach((s, i) => {
-      const sp = (message: string) => p(`step ${i + 1}: ${message}`, { step: i })
+      const sp = (message: string) => at(message, i)
       const alone = s.to === undefined // one box doing something on its own; a blank "to:" is still a missing end
       if (!alone) checkEnds(sp, s.from, s.to)
       else if (missing(s.from)) sp('"from" is missing')
       else if (!getObject(model, s.from)) sp(`unknown object "${s.from}"`)
-      if (!nonEmpty(s.text)) sp('text is missing')
+      if (!hasText(s.text)) sp('text is missing')
       const animation = animationProblem(s.animation, !alone) ?? interceptorProblem(s.animation, s, id => getObject(model, id) !== undefined)
       if (animation) sp(animation)
       if (alone) {
@@ -163,14 +142,8 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       else if (viewOk && getObject(model, s.from) && getObject(model, s.to) && !placeStep(model, f.view, s))
         sp(`${s.from} → ${s.to} can't be shown in view "${f.view}"`)
     })
-    for (const sq of structureProblems(f, id => Object.hasOwn(model.flows, id))) {
-      if (sq.step === undefined) p(sq.message)
-      else p(`step ${sq.step + 1}: ${sq.message}`, { step: sq.step })
-    }
-    for (const sq of stateProblems(f, stopsOf(f), id => getObject(model, id) !== undefined)) {
-      if (sq.step === undefined) p(sq.message)
-      else p(`step ${sq.step + 1}: ${sq.message}`, { step: sq.step })
-    }
+    for (const sq of structureProblems(f, id => Object.hasOwn(model.flows, id))) at(sq.message, sq.step)
+    for (const sq of stateProblems(f, stopsOf(f), id => getObject(model, id) !== undefined)) at(sq.message, sq.step)
   }
 
   for (const [aid, a] of Object.entries(model.failures)) problems.push(...analysisProblems(model, aid, a))
