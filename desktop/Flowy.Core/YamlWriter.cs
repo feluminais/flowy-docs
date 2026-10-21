@@ -327,10 +327,3 @@ public sealed record FlowSeq(IReadOnlyList<object?> Items);
 
 /// <summary>A mapping the writer puts on one line, as a flow mapping: <c>{name: id, key: primary}</c>.</summary>
 public sealed record FlowMap(OrderedDictionary<string, object?> Map);
-
-/// <summary>Keys in the order JavaScript lists an object's. See <see cref="JsCompat.OrderKeys"/>.</summary>
-public static class JsKeys
-{
-    // forwards to JsCompat; remove when the other branches land
-    public static List<string> Order(IEnumerable<string> keys) => JsCompat.OrderKeys(keys);
-}

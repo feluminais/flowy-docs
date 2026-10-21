@@ -26,7 +26,7 @@ public static class ModelFolders
         if (Path.GetFileName(folder) == "flowy") return folder;
         var inside = Path.Combine(folder, "flowy");
         if (disk.IsDir(inside)) return inside;
-        return disk.HasFile(Path.Combine(folder, "model.yaml")) ? folder : null;
+        return disk.HasFile(Path.Combine(folder, FolderLayout.ModelFile)) ? folder : null;
     }
 
     /// <summary>The name a window shows: the repo for <c>&lt;repo&gt;/flowy</c>, else the model folder's own name.</summary>

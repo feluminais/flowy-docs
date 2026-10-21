@@ -18,52 +18,28 @@ public sealed class VersionConflict(string rel, string? version) : Exception($"{
 /// </summary>
 public static class FileStore
 {
-    // Strict, so a file that isn't UTF-8 fails to load instead of being rewritten with replacement characters.
-    private static readonly UTF8Encoding Strict = new(false, true);
     private static readonly UTF8Encoding NoBom = new(false);
     private static readonly ConcurrentDictionary<string, object> Locks = new();
 
     /// <summary>The files an edit may write: model.yaml, layout.yaml and flows/&lt;id&gt;.yaml with a valid id.</summary>
     public static bool IsAllowed(string rel) =>
-        rel is "model.yaml" or "layout.yaml"
-        || (rel.StartsWith("flows/", StringComparison.Ordinal) && rel.EndsWith(".yaml", StringComparison.Ordinal) && rel.Length > "flows/.yaml".Length
-            && Names.IsValidId(rel["flows/".Length..^".yaml".Length]));
+        rel is FolderLayout.ModelFile or FolderLayout.LayoutFile || (FolderLayout.FlowIdOf(rel) is { } id && Names.IsValidId(id));
 
     public static string Hash(string text) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text)))[..16];
 
     /// <summary>The file's text and version, or (null, null) when it isn't there. Throws <see cref="ParseError"/> for text that isn't UTF-8.</summary>
     public static (string? Text, string? Version) Read(string dir, string rel)
     {
-        byte[] bytes;
-        try
-        {
-            using var stream = new FileStream(Path.Combine(dir, rel), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            using var copy = new MemoryStream();
-            stream.CopyTo(copy);
-            bytes = copy.ToArray();
-        }
-        catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
-        {
-            return (null, null);
-        }
-        string text;
-        try
-        {
-            text = Strict.GetString(bytes);
-        }
-        catch (DecoderFallbackException)
-        {
-            throw new ParseError(rel, "is not UTF-8 text. Save it as UTF-8 and try again.");
-        }
-        return (text, Hash(text));
+        var text = FileText.Read(dir, rel);
+        return text is null ? (null, null) : (text, Hash(text));
     }
 
     /// <summary>The folder's flow files, by name, in the order the loader reads them. The .yml ones are not flows.</summary>
     public static List<string> FlowFiles(string dir)
     {
-        var flows = Path.Combine(dir, "flows");
+        var flows = Path.Combine(dir, FolderLayout.FlowsDir);
         if (!Directory.Exists(flows)) return [];
-        var names = Directory.EnumerateFiles(flows).Select(Path.GetFileName).OfType<string>().Where(n => n.EndsWith(".yaml", StringComparison.Ordinal)).ToList();
+        var names = Directory.EnumerateFiles(flows).Select(Path.GetFileName).OfType<string>().Where(FolderLayout.IsRead).ToList();
         names.Sort(StringComparer.Ordinal);
         return names;
     }

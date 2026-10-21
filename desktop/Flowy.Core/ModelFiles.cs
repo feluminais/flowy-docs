@@ -24,9 +24,6 @@ public static class ModelFiles
 
     private static OrderedDictionary<string, object?> NewMap() => [];
 
-    // forwards to JsCompat.OrEmpty; Perf.cs still calls it, remove once Perf.cs uses JsCompat
-    internal static object? OrEmpty(object? v, object? empty) => JsCompat.OrEmpty(v, empty);
-
     private static string? Text(OrderedDictionary<string, object?> map, string key) => map.TryGetValue(key, out var v) ? v as string : null;
 
     private static void CheckEntry(string file, string what, object? entry, string[] fields)
@@ -39,7 +36,7 @@ public static class ModelFiles
 
     public static ParsedModel ParseModel(string text)
     {
-        const string file = "model.yaml";
+        const string file = FolderLayout.ModelFile;
         if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> top)
             throw new ParseError(file, "expected a mapping with \"objects\" and \"connections\"");
 
@@ -77,7 +74,7 @@ public static class ModelFiles
     /// <summary>An empty file gives a flow with no steps; the checks report what's missing.</summary>
     public static Flow ParseFlow(string id, string text)
     {
-        var file = $"flows/{id}.yaml";
+        var file = FolderLayout.FlowFile(id);
         if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
             throw new ParseError(file, "expected a mapping with \"name\", \"view\" and \"steps\"");
         CheckEntry(file, "flow", doc, FlowFields);
@@ -110,7 +107,7 @@ public static class ModelFiles
     /// </summary>
     public static FailureAnalysis ParseAnalysis(string id, string text)
     {
-        var file = $"failures/{id}.yaml";
+        var file = FolderLayout.FailureFile(id);
         if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
             throw new ParseError(file, "expected a mapping with \"name\" and \"modes\"");
         CheckEntry(file, "analysis", doc, AnalysisFields);
@@ -175,7 +172,7 @@ public static class ModelFiles
 
     public static Dictionary<string, IReadOnlyDictionary<string, LayoutPoint>> ParseLayout(string text)
     {
-        const string file = "layout.yaml";
+        const string file = FolderLayout.LayoutFile;
         if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
             throw new ParseError(file, "expected view → object → [x, y]");
 
