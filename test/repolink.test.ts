@@ -25,6 +25,11 @@ test('in the editor, a plain click opens the file there and the tooltip says so,
   assert.equal(destination('src/a b.ts', BASE, true, cmd), `${BASE}src/a%20b.ts`)
 })
 
+test('in the editor the anchor never carries the repository address, which the webview would send to the browser on any click', () => {
+  for (const codeBase of [BASE, undefined]) assert.equal(repoLink('src/a.ts', codeBase, true)?.anchor, '#')
+  assert.equal(repoLink('src/a.ts', BASE, false)?.anchor, `${BASE}src/a.ts`)
+})
+
 test('in the editor with no repository page, every click opens the editor and the tooltip promises nothing else', () => {
   const link = repoLink('src/', undefined, true)
   assert.equal(link?.href, undefined)
