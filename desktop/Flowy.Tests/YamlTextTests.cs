@@ -25,6 +25,36 @@ public class YamlTextTests
         Assert.Equal("", map["type"]);
     }
 
+    [Theory]
+    [InlineData("{ a: x, b }", "x")]
+    [InlineData("{ b, a: x }", "x")]
+    [InlineData("{ a: x,\n  b\n}", "x")]
+    [InlineData("{ a: \"😀: ok\", b }", "😀: ok")]
+    public void A_key_with_no_colon_in_a_one_line_mapping_reads_as_null(string text, string a)
+    {
+        var map = Assert.IsType<OrderedDictionary<string, object?>>(Parse(text));
+        Assert.Equal(a, map["a"]);
+        Assert.Null(map["b"]);
+        Assert.Equal(2, map.Count);
+    }
+
+    [Fact]
+    public void A_colon_with_nothing_after_it_stays_empty_text_even_in_a_one_line_mapping()
+    {
+        var map = Assert.IsType<OrderedDictionary<string, object?>>(Parse("{ a:, b: , c: \"\", d: '', e: x }"));
+        Assert.Equal(["", "", "", "", "x"], map.Values);
+    }
+
+    [Fact]
+    public void An_emoji_earlier_in_the_file_does_not_throw_the_check_for_a_missing_colon_off()
+    {
+        var map = Assert.IsType<OrderedDictionary<string, object?>>(Parse("note: 😀😀😀 hi\nitems:\n  - { a: 😀, b, c: }\n"));
+        var item = Assert.IsType<OrderedDictionary<string, object?>>(Assert.IsType<List<object?>>(map["items"])[0]);
+        Assert.Equal("😀", item["a"]);
+        Assert.Null(item["b"]);
+        Assert.Equal("", item["c"]);
+    }
+
     [Fact]
     public void Mappings_keep_file_order_and_lists_become_lists()
     {

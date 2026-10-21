@@ -142,6 +142,53 @@ public class ChecksTests
         Assert.Equal("flows/steps.yaml", problems[^1].File);
     }
 
+    private const string NoValueRest = "(a comma ends unquoted text: put text that has a comma in double quotes)";
+
+    [Fact]
+    public void A_comma_in_unquoted_flow_text_leaves_a_key_with_no_value_which_is_reported()
+    {
+        var m = TestModels.Shop(flows: "bad\nname: Bad\nview: shop\nsteps:\n  - { from: customer, to: web, text: Sets the time zone, if the request has one }\n");
+        Assert.Equal("Sets the time zone", m.Flows["bad"].Steps[0].Text);
+        var problems = Checks.Run(m);
+        Assert.Equal([$"step 1: \"if the request has one\" has no value {NoValueRest}"], problems.Select(p => p.Message));
+        Assert.Equal("flows/bad.yaml", problems[0].File);
+        Assert.Equal(0, problems[0].Step);
+    }
+
+    [Fact]
+    public void Quoting_the_text_keeps_the_comma_and_no_key_is_left_empty()
+    {
+        var m = TestModels.Shop(flows: "good\nname: Good\nview: shop\nsteps:\n  - { from: customer, to: web, text: \"Sets the time zone, if the request has one\" }\n");
+        Assert.Equal("Sets the time zone, if the request has one", m.Flows["good"].Steps[0].Text);
+        Assert.Empty(Checks.Run(m));
+    }
+
+    [Fact]
+    public void A_key_with_no_value_is_reported_wherever_it_sits()
+    {
+        var m = TestModels.FromYaml(
+            "extra: { note: Hello, world }\nobjects:\n  a: { type: actor, name: A, tech: Go, for the team }\nconnections:\n  - { from: a, to: a, label: sends, then waits }\n",
+            "nested\nname: Nested, the long way\nview: root\ngroups:\n  g: { kind: repeat, until: it stops, or gives up }\nsteps:\n"
+            + "  - { from: a, text: Fine }\n  - { from: a, text: Slow, animation: { kind: call, reason: Rate limit, packet dropped } }\n");
+        var messages = Checks.Run(m).Select(p => $"{p.File} {p.Message}").Where(msg => msg.Contains("has no value")).ToArray();
+        Assert.Equal(
+            [
+                $"model.yaml \"extra → world\" has no value {NoValueRest}",
+                $"model.yaml a: \"for the team\" has no value {NoValueRest}",
+                $"model.yaml connection a → a: \"then waits\" has no value {NoValueRest}",
+                $"flows/nested.yaml \"groups → g → or gives up\" has no value {NoValueRest}",
+                $"flows/nested.yaml step 2: \"animation → packet dropped\" has no value {NoValueRest}",
+            ],
+            messages);
+    }
+
+    [Fact]
+    public void A_colon_with_nothing_after_it_is_blank_text_not_a_key_with_no_value()
+    {
+        var m = TestModels.Shop(flows: "blank\nname: Blank\nview: shop\nsteps:\n  - { from: web, to: api, text: }\n");
+        Assert.Equal(["step 1: text is missing"], Messages(m));
+    }
+
     [Fact]
     public void An_unknown_line_style_is_a_problem()
     {
