@@ -82,6 +82,13 @@ const ok = (value: unknown): Result => ({
 })
 const fail = (e: unknown): Result => ({ ...ok(e instanceof Error ? e.message : String(e)), isError: true })
 
+/**
+ * get_model shows every number and flag as the text the file holds ("7", "true"), so what was read can be sent straight back: digits are taken
+ * as the number they say and "true" and "false" as the flag. Anything else is left for the schema to refuse.
+ */
+const asNumber = (v: unknown) => (typeof v === 'string' && /^\s*\d+\s*$/.test(v) ? Number(v) : v)
+const asFlag = (v: unknown) => (v === 'true' ? true : v === 'false' ? false : v)
+
 /** A state is checked by the checker, not here, so a wrong word is refused in the checker's words. */
 const stateMap = z.record(z.string().max(64), z.string())
 const dataText = z.union([z.string(), z.number(), z.boolean()])
@@ -204,13 +211,13 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         .describe('Required when creating. actor and system: top level. app and store: inside a system. component: inside an app or store.'),
       name: z.string().optional().describe('Display name. Required when creating.'),
       in: z.string().optional().describe('Id of the parent object. Leave it out (never "root") for the top level; "" moves it there.'),
-      external: z.boolean().optional()
-        .describe('An outside service or system you don\'t own, drawn grey. false removes it. get_model shows it as the text "true".'),
+      external: z.preprocess(asFlag, z.boolean()).optional()
+        .describe('An outside service or system you don\'t own, drawn grey. false removes it. "true" and "false" as text are taken too, since that is how get_model shows it.'),
       shape: z.enum([...SHAPES, '']).optional()
         .describe(`How it is drawn: ${SHAPES.join(', ')}. Leave it out to keep the type's own shape (actor: pill, store: cylinder, the rest: rectangle); "" removes it. Pick one only when it says something the type doesn't.`),
       color: z.string().optional()
         .describe(`A name (${COLOR_NAMES.join(', ')}) or a hex like "#3b82f6". Colours the icon, the outline and the fill. Leave it out to keep the type's colour; "" removes it.`),
-      opacity: z.union([z.number().int().min(0).max(100), z.literal('')]).optional()
+      opacity: z.preprocess(asNumber, z.union([z.number().int().min(0).max(100), z.literal('')])).optional()
         .describe('How much of the colour the fill holds, in percent. 15 when a colour is set and this is not; 0 draws the plain surface; "" removes it.'),
       icon: z.string().optional()
         .describe('A built-in icon name (see the put_icon description for the list) or one defined with put_icon. Leave it out to keep the default (cloud for external, else the type\'s); "" removes it.'),
@@ -299,7 +306,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     annotations: destructive,
   }, input => write(m => deleteFlow(m, input.id), `Deleted flow ${input.id}.`, mcpLabel('delete_flow', input)))
 
-  const rating = z.number().int().min(1).max(10)
+  const rating = z.preprocess(asNumber, z.number().int().min(1).max(10))
   const modeFields = {
     mode: z.string().describe('How the part fails, as a condition stated as a fact: "Stripe doesn\'t answer within five seconds"'),
     on: z.string().max(64).optional().describe('Id of the shape that fails. Give this, or from and to for a line, not both'),
@@ -318,7 +325,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
       .describe('The ratings once the next action is done; a rating left out stays as it is'),
     affects: z.array(z.string().max(64)).optional().describe('Ids of the shapes the failure hurts, written by you and never worked out from the lines'),
     flow: z.string().max(64).optional().describe('The id of the flow that tells this failure'),
-    step: z.number().int().min(1).optional().describe('Which step of that flow, counting from 1'),
+    step: z.preprocess(asNumber, z.number().int().min(1)).optional().describe('Which step of that flow, counting from 1'),
     run: z.string().max(64).optional().describe('The id of a performance run that shows it'),
     description: z.string().optional().describe('More, in markdown: why the ratings are what they are'),
   }
