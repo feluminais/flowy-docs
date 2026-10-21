@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { lineKey } from '../src/core/failures.ts'
-import { parseRun } from '../src/core/perf.ts'
+import { parseRun } from '../src/core/perf/parse.ts'
 import { activeAnalysis, afterText, bandCounts, firstErrorAt, modeCount, modeIn, neighbour, ratingCells, rowsFor, sideForTab, STATUS_NAMES, toLine, toShape } from '../ui/src/failuresview.ts'
 import { refuseNewProblems, updateMode } from '../src/core/ops.ts'
 import { lineId } from '../ui/src/graph.ts'

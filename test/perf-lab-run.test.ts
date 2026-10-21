@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseRun } from '../src/core/perf.ts'
-import type { Level } from '../src/core/perf.ts'
+import { parseRun } from '../src/core/perf/parse.ts'
+import type { Level } from '../src/core/perf/types.ts'
 import { formatRun } from '../perf-lab/load/write-run.ts'
 
 test('formatRun writes a file that parseRun reads back as the same levels', () => {

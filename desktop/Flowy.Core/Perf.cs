@@ -4,7 +4,7 @@ namespace Flowy.Core;
 
 /// <summary>
 /// Everything a run can measure. On an object: util, queue, errors. On a connection or overall: rate, bytes (a call's size), p50, p95, errors. A missing number
-/// means "not measured", never zero. A port of <c>Metrics</c> in src/core/perf.ts.
+/// means "not measured", never zero. A port of <c>Metrics</c> in src/core/perf/types.ts.
 /// </summary>
 public record Metrics
 {
@@ -66,7 +66,7 @@ public sealed record Level(double Load, Metrics Overall, IdMap<Metrics> Objects,
 /// </summary>
 public sealed record SourceInfo(string Name, string? Entry, string Unit, Source? Source);
 
-/// <summary>A formula as the run wrote it. Only the text is kept, as in perf.ts, where a run travels to the browser as JSON: the formula is read from the text where it is used.</summary>
+/// <summary>A formula as the run wrote it. Only the text is kept, as in src/core/perf/types.ts, where a run travels to the browser as JSON: the formula is read from the text where it is used.</summary>
 public sealed record SourceFormula(string Text);
 
 /// <summary>Where a run's requests come from, and how to draw them: the dots' colour, and formulas for how many dots a line shows at once and for the area of a dot. Every part is optional.</summary>
@@ -76,8 +76,8 @@ public sealed record Source(string? Color = null, SourceFormula? Dot = null, Sou
 public sealed record RunEvent(double At, string On, string State, string Text);
 
 /// <summary>
-/// A load test, summarised, or a run measured over time (<c>Run</c> in perf.ts; renamed because the app already has things called Run). A time run says so
-/// (<c>IsTime</c>) and may have events; its levels keep their time in <c>Load</c>, as in perf.ts. A load run has neither, as before time runs existed.
+/// A load test, summarised, or a run measured over time (<c>Run</c> in src/core/perf/types.ts; renamed because the app already has things called Run). A time run says so
+/// (<c>IsTime</c>) and may have events; its levels keep their time in <c>Load</c>, as in src/core/perf/types.ts. A load run has neither, as before time runs existed.
 /// </summary>
 public sealed record LoadRun(string Name, string? About, string Unit, string? Entry, IReadOnlyList<Level> Levels, Source? Source = null)
 {
@@ -153,7 +153,7 @@ public sealed record LoadFrame(IdMap<Metrics> Objects, IReadOnlyList<Pair> Lines
 }
 
 /// <summary>
-/// Load-test runs, read and played back. A port of src/core/perf.ts, kept equal to it by the fixtures in desktop/fixtures/perf.ts: a run
+/// Load-test runs, read and played back. A port of src/core/perf/parse.ts, src/core/perf/check.ts, src/core/perf/levels.ts, src/core/perf/rollup.ts, src/core/perf/analyse.ts, src/core/perf/traffic.ts and src/core/perf/text.ts, kept equal to them by the fixtures in desktop/fixtures/perf.ts: a run
 /// is parsed the same way (and its problems worded the same), and between two tested levels the numbers are interpolated and never predicted.
 /// </summary>
 public static partial class Perf

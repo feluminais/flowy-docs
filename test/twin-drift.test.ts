@@ -19,7 +19,7 @@ function portedModules(): string[] {
   const dir = join(root, 'desktop', 'Flowy.Core')
   const found = new Set<string>()
   for (const file of readdirSync(dir).filter(f => f.endsWith('.cs'))) {
-    for (const m of read(join(dir, file)).matchAll(/src\/core\/([\w-]+)\.ts/g)) found.add(m[1])
+    for (const m of read(join(dir, file)).matchAll(/src\/core\/([\w-]+(?:\/[\w-]+)?)\.ts/g)) found.add(m[1])
   }
   return [...found].sort()
 }

@@ -1,4 +1,4 @@
-import type { Failure, LineTraffic } from '../../src/core/perf.ts'
+import type { Failure, LineTraffic } from '../../src/core/perf/types.ts'
 
 /**
  * One particle on a line: how far along it is (0 to 1), and where it is done, if it is going to fail: a failed call is drawn
