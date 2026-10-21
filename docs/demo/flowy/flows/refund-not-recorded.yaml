@@ -13,5 +13,5 @@ steps:
     animation: { kind: call, outcome: timeout }
     description: |
       The refund and the write are two steps, so one can happen without the other.
-  - { from: refunds, text: Leaves the order marked paid, though the money is back }
+  - { from: refunds, text: "Leaves the order marked paid, though the money is back" }
   - { from: refunds, to: notifier, text: Still sends the customer a refund confirmation }
