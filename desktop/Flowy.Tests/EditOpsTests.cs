@@ -44,12 +44,13 @@ public class EditOpsTests
             case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label")));
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));
             case "relabel": return EditOps.Relabel(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "label")!);
-            case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]), Groups(s["groups"]));
+            case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]), Groups(s["groups"]), Groups(s["states"]));
             case "updateFlow": return EditOps.UpdateFlow(doc, Str(s, "id")!, Str(s, "name"), s["steps"] is null ? null : Steps(s["steps"]), Groups(s["groups"]));
             case "removeStep": return EditOps.RemoveStep(doc, Str(s, "id")!, s["index"]!.GetValue<int>());
             case "putGroup": return EditOps.PutGroup(doc, Str(s, "id")!, Str(s, "group")!, (OrderedDictionary<string, object?>)YamlWriterTests.Tree(s["options"])!);
             case "removeGroup": return EditOps.RemoveGroup(doc, Str(s, "id")!, Str(s, "group")!);
             case "setStepGroup": return EditOps.SetStepGroup(doc, Str(s, "id")!, s["index"]!.GetValue<int>(), Str(s, "group")!);
+            case "setStepStates": return EditOps.SetStepStates(doc, Str(s, "id")!, s["index"]!.GetValue<int>(), s["states"]!.AsObject().ToDictionary(kv => kv.Key, kv => kv.Value!.GetValue<string>()));
             case "setGroupKind": return EditOps.SetGroupKind(doc, Str(s, "id")!, Str(s, "group")!, Str(s, "kind")!);
             case "groupSteps": return EditOps.GroupSteps(doc, Str(s, "id")!, Str(s, "group")!, Str(s, "kind")!, s["first"]!.GetValue<int>(), s["last"]!.GetValue<int>());
             case "deleteFlow": return EditOps.DeleteFlow(doc, Str(s, "id")!);

@@ -12,6 +12,7 @@ import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
 import { dumpOutline } from '../desktop/fixtures/outline.ts'
 import { dumpPerf, dumpPerfView } from '../desktop/fixtures/perf.ts'
+import { dumpStates } from '../desktop/fixtures/states.ts'
 import { dumpCaptions, dumpStops } from '../desktop/fixtures/structure.ts'
 import { dumpOps } from '../desktop/fixtures/ops.ts'
 import { dumpYamlWrite } from '../desktop/fixtures/yaml-write.ts'
@@ -99,6 +100,11 @@ test('desktop runs and stops of a flow\'s groups still match what the TypeScript
 test('desktop captions and progress bars still match what the TypeScript core says', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('captions'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(await dumpCaptions())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop shape states, their problems and their marks still match what the TypeScript core says', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('state-folds'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpStates())), expected, 'run: node desktop/fixtures/generate.ts')
 })
 
 test('desktop history rules still match the TypeScript ones: diff, list, retention, labels, keys', async () => {

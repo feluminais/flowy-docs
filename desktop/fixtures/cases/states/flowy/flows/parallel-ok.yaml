@@ -1,0 +1,10 @@
+name: Every lane of a parallel stop applies
+view: shop
+groups:
+  both: { kind: parallel }
+steps:
+  - { from: web, to: api, text: Asks }
+  - { from: api, text: Takes the order, group: both, lane: Order, states: { api: degraded, db: stopped } }
+  - { from: db, text: Takes the stock, group: both, lane: Stock, states: { db: stopped, auth: starting } }
+  - { from: api, text: Then, group: both, states: { api: running } }
+  - { from: web, to: api, text: Done }

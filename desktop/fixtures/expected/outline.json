@@ -25579,6 +25579,2190 @@
           ]
         }
       ]
+    },
+    "states": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "root",
+              "depth": 1,
+              "name": "Numeric ids list first",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "shop"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hold",
+              "kind": "flow",
+              "id": "hold",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A change holds until another step changes it",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A states that is not a mapping",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Each lane starts from the state before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-ok",
+              "kind": "flow",
+              "id": "parallel-ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every lane of a parallel stop applies",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hostile",
+              "kind": "flow",
+              "id": "hostile",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Ids that Object has",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-clash",
+              "kind": "flow",
+              "id": "parallel-clash",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Two lanes that disagree",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Words the checks refuse",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "root",
+              "depth": 1,
+              "name": "Numeric ids list first",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "2",
+            "10",
+            "customer",
+            "shop",
+            "web",
+            "api",
+            "orders",
+            "auth",
+            "db",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "api",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:orders",
+              "kind": "shape",
+              "id": "orders",
+              "parent": "api",
+              "depth": 3,
+              "name": "Orders",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hold",
+              "kind": "flow",
+              "id": "hold",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A change holds until another step changes it",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A states that is not a mapping",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Each lane starts from the state before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-ok",
+              "kind": "flow",
+              "id": "parallel-ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every lane of a parallel stop applies",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hostile",
+              "kind": "flow",
+              "id": "hostile",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Ids that Object has",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-clash",
+              "kind": "flow",
+              "id": "parallel-clash",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Two lanes that disagree",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Words the checks refuse",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "root",
+              "depth": 1,
+              "name": "Numeric ids list first",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "2",
+            "10",
+            "customer",
+            "shop",
+            "web",
+            "api",
+            "orders",
+            "auth",
+            "db",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "api",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:orders",
+              "kind": "shape",
+              "id": "orders",
+              "parent": "api",
+              "depth": 3,
+              "name": "Orders",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hold",
+              "kind": "flow",
+              "id": "hold",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A change holds until another step changes it",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A states that is not a mapping",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Each lane starts from the state before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-ok",
+              "kind": "flow",
+              "id": "parallel-ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every lane of a parallel stop applies",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hostile",
+              "kind": "flow",
+              "id": "hostile",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Ids that Object has",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-clash",
+              "kind": "flow",
+              "id": "parallel-clash",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Two lanes that disagree",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Words the checks refuse",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "root",
+              "depth": 1,
+              "name": "Numeric ids list first",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "api",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hold",
+              "kind": "flow",
+              "id": "hold",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A change holds until another step changes it",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A states that is not a mapping",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Each lane starts from the state before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-ok",
+              "kind": "flow",
+              "id": "parallel-ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every lane of a parallel stop applies",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hostile",
+              "kind": "flow",
+              "id": "hostile",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Ids that Object has",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-clash",
+              "kind": "flow",
+              "id": "parallel-clash",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Two lanes that disagree",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Words the checks refuse",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "root",
+              "depth": 1,
+              "name": "Numeric ids list first",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        }
+      ],
+      "groups": [
+        {
+          "view": "root",
+          "editing": false,
+          "here": [
+            {
+              "id": "numbered",
+              "name": "Numeric ids list first",
+              "steps": 3,
+              "view": "root"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "hold",
+                  "name": "A change holds until another step changes it",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop"
+                },
+                {
+                  "id": "shapes",
+                  "name": "A states that is not a mapping",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "branching",
+                  "name": "Each lane starts from the state before the branch",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-ok",
+                  "name": "Every lane of a parallel stop applies",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "hostile",
+                  "name": "Ids that Object has",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-clash",
+                  "name": "Two lanes that disagree",
+                  "steps": 4,
+                  "view": "shop"
+                },
+                {
+                  "id": "bad",
+                  "name": "Words the checks refuse",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "root",
+          "editing": true,
+          "here": [
+            {
+              "id": "numbered",
+              "name": "Numeric ids list first",
+              "steps": 3,
+              "view": "root"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "hold",
+                  "name": "A change holds until another step changes it",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop"
+                },
+                {
+                  "id": "shapes",
+                  "name": "A states that is not a mapping",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "branching",
+                  "name": "Each lane starts from the state before the branch",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-ok",
+                  "name": "Every lane of a parallel stop applies",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "hostile",
+                  "name": "Ids that Object has",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-clash",
+                  "name": "Two lanes that disagree",
+                  "steps": 4,
+                  "view": "shop"
+                },
+                {
+                  "id": "bad",
+                  "name": "Words the checks refuse",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "shop",
+          "editing": false,
+          "here": [
+            {
+              "id": "hold",
+              "name": "A change holds until another step changes it",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "repeat",
+              "name": "A repeat plays its steps in turn",
+              "steps": 3,
+              "view": "shop"
+            },
+            {
+              "id": "shapes",
+              "name": "A states that is not a mapping",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "branching",
+              "name": "Each lane starts from the state before the branch",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "parallel-ok",
+              "name": "Every lane of a parallel stop applies",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "hostile",
+              "name": "Ids that Object has",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "parallel-clash",
+              "name": "Two lanes that disagree",
+              "steps": 4,
+              "view": "shop"
+            },
+            {
+              "id": "bad",
+              "name": "Words the checks refuse",
+              "steps": 4,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "root",
+              "name": "Overview",
+              "path": [],
+              "flows": [
+                {
+                  "id": "numbered",
+                  "name": "Numeric ids list first",
+                  "steps": 3,
+                  "view": "root"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "shop",
+          "editing": true,
+          "here": [
+            {
+              "id": "hold",
+              "name": "A change holds until another step changes it",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "repeat",
+              "name": "A repeat plays its steps in turn",
+              "steps": 3,
+              "view": "shop"
+            },
+            {
+              "id": "shapes",
+              "name": "A states that is not a mapping",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "branching",
+              "name": "Each lane starts from the state before the branch",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "parallel-ok",
+              "name": "Every lane of a parallel stop applies",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "hostile",
+              "name": "Ids that Object has",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "parallel-clash",
+              "name": "Two lanes that disagree",
+              "steps": 4,
+              "view": "shop"
+            },
+            {
+              "id": "bad",
+              "name": "Words the checks refuse",
+              "steps": 4,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "root",
+              "name": "Overview",
+              "path": [],
+              "flows": [
+                {
+                  "id": "numbered",
+                  "name": "Numeric ids list first",
+                  "steps": 3,
+                  "view": "root"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "api",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "root",
+              "name": "Overview",
+              "path": [],
+              "flows": [
+                {
+                  "id": "numbered",
+                  "name": "Numeric ids list first",
+                  "steps": 3,
+                  "view": "root"
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "hold",
+                  "name": "A change holds until another step changes it",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop"
+                },
+                {
+                  "id": "shapes",
+                  "name": "A states that is not a mapping",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "branching",
+                  "name": "Each lane starts from the state before the branch",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-ok",
+                  "name": "Every lane of a parallel stop applies",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "hostile",
+                  "name": "Ids that Object has",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-clash",
+                  "name": "Two lanes that disagree",
+                  "steps": 4,
+                  "view": "shop"
+                },
+                {
+                  "id": "bad",
+                  "name": "Words the checks refuse",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "api",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "root",
+              "name": "Overview",
+              "path": [],
+              "flows": [
+                {
+                  "id": "numbered",
+                  "name": "Numeric ids list first",
+                  "steps": 3,
+                  "view": "root"
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "hold",
+                  "name": "A change holds until another step changes it",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop"
+                },
+                {
+                  "id": "shapes",
+                  "name": "A states that is not a mapping",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "branching",
+                  "name": "Each lane starts from the state before the branch",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-ok",
+                  "name": "Every lane of a parallel stop applies",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "hostile",
+                  "name": "Ids that Object has",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-clash",
+                  "name": "Two lanes that disagree",
+                  "steps": 4,
+                  "view": "shop"
+                },
+                {
+                  "id": "bad",
+                  "name": "Words the checks refuse",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "2",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "2",
+          "self": true,
+          "opened": [
+            "2",
+            "root"
+          ]
+        },
+        {
+          "id": "10",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "10",
+          "self": true,
+          "opened": [
+            "10",
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": true,
+          "opened": [
+            "customer",
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": true,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": true,
+          "opened": [
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "api",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "api",
+          "self": true,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "orders",
+          "self": false,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "orders",
+          "self": true,
+          "opened": [
+            "api",
+            "orders",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "auth",
+          "self": false,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "auth",
+          "self": true,
+          "opened": [
+            "api",
+            "auth",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": true,
+          "opened": [
+            "db",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": true,
+          "opened": [
+            "root",
+            "stripe"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
     }
   },
   "keys": {

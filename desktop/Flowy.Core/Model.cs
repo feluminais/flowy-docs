@@ -50,14 +50,16 @@ public sealed record Connection(string? From, string? To, string? Label);
 /// One step of a flow. Without <c>To</c>, the <c>From</c> box does something on its own. <c>Animation</c> is what the file
 /// held under <c>animation</c>: text, a mapping or a list, which <see cref="Animations"/> reads and the checks report on.
 /// <c>Group</c>, <c>Lane</c> and <c>FlowId</c> are the step's <c>group</c>, <c>lane</c> and <c>flow</c> keys, text when present (see Structure.cs).
+/// <c>States</c> is what the file held under <c>states</c>: a mapping of shape id to state word if it is well formed, which <see cref="States"/> reads and the checks report on; null when the key is not there.
 /// </summary>
-public sealed record Step(string? From, string? To, string? Text, string? Description, object? Animation = null, string? Group = null, string? Lane = null, string? FlowId = null);
+public sealed record Step(string? From, string? To, string? Text, string? Description, object? Animation = null, string? Group = null, string? Lane = null, string? FlowId = null, object? States = null);
 
 /// <summary>
 /// A flow. <c>Groups</c> is the flow's <c>groups:</c> as the file held it: each id's mapping, whose known options
 /// (<c>kind</c>, <c>text</c>, <c>times</c>, <c>until</c>) are text and whose other keys may hold anything; null when there is none.
+/// <c>States</c> is the flow's <c>states:</c> as the file held it (where shapes stand before step 1), read by <see cref="States"/>; null when there is none.
 /// </summary>
-public sealed record Flow(string? Name, string? View, IReadOnlyList<Step> Steps, OrderedDictionary<string, object?>? Groups = null);
+public sealed record Flow(string? Name, string? View, IReadOnlyList<Step> Steps, OrderedDictionary<string, object?>? Groups = null, object? States = null);
 
 public readonly record struct LayoutPoint(double X, double Y);
 

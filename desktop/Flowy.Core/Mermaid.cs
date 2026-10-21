@@ -78,7 +78,7 @@ public static partial class Mermaid
         return string.Join('\n', lines) + "\n";
     }
 
-    /// <summary>A flow as a sequence diagram, with each step's ends as the boxes its view shows.</summary>
+    /// <summary>A flow as a sequence diagram, with each step's ends as the boxes its view shows. A state a step sets is a note over that shape.</summary>
     public static string Flow(Model model, string flowId)
     {
         if (!model.Flows.TryGetValue(flowId, out var flow)) throw new ArgumentException($"unknown flow \"{flowId}\"");
@@ -88,9 +88,15 @@ public static partial class Mermaid
             var (a, b) = Views.PlaceStep(model, flow.View, s.From, s.To) ?? (s.From ?? "", string.IsNullOrEmpty(s.To) ? s.From ?? "" : s.To);
             return (A: a, B: b, Text: Text(s.Text ?? ""));
         }).ToList();
-        var n = Ids(steps.SelectMany(s => new[] { s.A, s.B }));
+        // A shape that is only named in a states is a participant too, after the ones the steps use. The checks report one the model does not have.
+        List<KeyValuePair<string, string>> Set(object? raw) => States.Read(raw).Where(kv => model.GetObject(kv.Key) is not null).ToList();
+        var n = Ids(steps.SelectMany(s => new[] { s.A, s.B }).Concat(Set(flow.States).Select(kv => kv.Key)).Concat(flow.Steps.SelectMany(s => Set(s.States).Select(kv => kv.Key))));
+        List<string> StateNotes(object? raw, string indent, bool skipRunning = false) =>
+            Set(raw).Where(kv => !skipRunning || kv.Value != "running").Select(kv => $"{indent}Note over {n[kv.Key]}: {States.Labels[kv.Value]}").ToList();
         var lines = new List<string> { "sequenceDiagram" };
         lines.AddRange(n.Select(kv => $"  {(model.GetObject(kv.Key)?.Type == "actor" ? "actor" : "participant")} {kv.Value} as {NameOf(model, kv.Key)}"));
+        // Where shapes stand before step 1: only the ones that are not Running say anything.
+        lines.AddRange(StateNotes(flow.States, "  ", true));
 
         // A step one box does on its own is a note over it. A step that continues in another flow says so in a note over its end.
         List<string> Line(int i, string indent)
@@ -100,6 +106,7 @@ public static partial class Mermaid
             var link = Structure.Blank(flow.Steps[i].FlowId) ? null : Structure.JsTrim(flow.Steps[i].FlowId!);
             if (link is not null && model.Flows.TryGetValue(link, out var target))
                 step.Add($"{indent}Note over {n[b]}: {Text($"Continues in \"{(string.IsNullOrEmpty(target.Name) ? link : target.Name)}\"")}");
+            step.AddRange(StateNotes(flow.Steps[i].States, indent));
             return step;
         }
         static string Keyword(string word, string label) => $"  {word}{(label == "" ? "" : " " + label)}";

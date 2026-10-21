@@ -85,11 +85,11 @@ internal static class JsonDump
             ("layout", new JsonObject(m.Layout.Select(view => KeyValuePair.Create(view.Key, (JsonNode?)new JsonObject(
                 view.Value.Select(box => KeyValuePair.Create(box.Key, (JsonNode?)Arr([box.Value.X, box.Value.Y])))))))),
             ("flows", Arr(m.Flows.Select(kv => Obj(
-                ("id", kv.Key), ("name", kv.Value.Name), ("view", kv.Value.View), ("groups", Raw(kv.Value.Groups)),
+                ("id", kv.Key), ("name", kv.Value.Name), ("view", kv.Value.View), ("groups", Raw(kv.Value.Groups)), ("states", Raw(kv.Value.States)),
                 ("steps", Arr(kv.Value.Steps.Select(s =>
                 {
                     var placed = Views.PlaceStep(m, kv.Value.View, s.From, s.To);
-                    var step = Obj(("from", s.From), ("to", s.To), ("text", s.Text), ("description", s.Description), ("animation", Raw(s.Animation)), ("group", s.Group), ("lane", s.Lane), ("flow", s.FlowId));
+                    var step = Obj(("from", s.From), ("to", s.To), ("text", s.Text), ("description", s.Description), ("animation", Raw(s.Animation)), ("group", s.Group), ("lane", s.Lane), ("flow", s.FlowId), ("states", Raw(s.States)));
                     step["placed"] = Pair(placed); // null stays in the JSON here, as it does in dump.ts
                     step["ends"] = s.From is null ? null : JsonValue.Create(Views.StepEnds(m, s.From, s.To, placed));
                     return step;
