@@ -20511,6 +20511,1151 @@
         }
       ]
     },
+    "outcomes": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 2,
+            "problems": 9
+          }
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 2,
+            "problems": 9
+          }
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "shop"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cache",
+              "kind": "shape",
+              "id": "cache",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Edge cache",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ends",
+              "kind": "flow",
+              "id": "ends",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every way a request can end",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 8,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:wrong",
+              "kind": "flow",
+              "id": "wrong",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Outcomes that are written wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 9,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 2,
+            "problems": 9
+          }
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "web",
+            "api",
+            "db",
+            "cache",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cache",
+              "kind": "shape",
+              "id": "cache",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Edge cache",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ends",
+              "kind": "flow",
+              "id": "ends",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every way a request can end",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 8,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:wrong",
+              "kind": "flow",
+              "id": "wrong",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Outcomes that are written wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 9,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 2,
+            "problems": 9
+          }
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "web",
+            "api",
+            "db",
+            "cache",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cache",
+              "kind": "shape",
+              "id": "cache",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Edge cache",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ends",
+              "kind": "flow",
+              "id": "ends",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every way a request can end",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 8,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:wrong",
+              "kind": "flow",
+              "id": "wrong",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Outcomes that are written wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 9,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 2,
+            "problems": 9
+          }
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cache",
+              "kind": "shape",
+              "id": "cache",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Edge cache",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ends",
+              "kind": "flow",
+              "id": "ends",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every way a request can end",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 8,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:wrong",
+              "kind": "flow",
+              "id": "wrong",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Outcomes that are written wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 9,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 2,
+            "problems": 9
+          }
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 2,
+            "problems": 9
+          }
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 7,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 7,
+            "flows": 2,
+            "problems": 9
+          }
+        }
+      ],
+      "groups": [
+        {
+          "view": "root",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "ends",
+                  "name": "Every way a request can end",
+                  "steps": 8,
+                  "view": "shop"
+                },
+                {
+                  "id": "wrong",
+                  "name": "Outcomes that are written wrong",
+                  "steps": 9,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 2
+        },
+        {
+          "view": "root",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "ends",
+                  "name": "Every way a request can end",
+                  "steps": 8,
+                  "view": "shop"
+                },
+                {
+                  "id": "wrong",
+                  "name": "Outcomes that are written wrong",
+                  "steps": 9,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 2
+        },
+        {
+          "view": "shop",
+          "editing": false,
+          "here": [
+            {
+              "id": "ends",
+              "name": "Every way a request can end",
+              "steps": 8,
+              "view": "shop"
+            },
+            {
+              "id": "wrong",
+              "name": "Outcomes that are written wrong",
+              "steps": 9,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [],
+          "total": 2
+        },
+        {
+          "view": "shop",
+          "editing": true,
+          "here": [
+            {
+              "id": "ends",
+              "name": "Every way a request can end",
+              "steps": 8,
+              "view": "shop"
+            },
+            {
+              "id": "wrong",
+              "name": "Outcomes that are written wrong",
+              "steps": 9,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [],
+          "total": 2
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": true,
+          "opened": [
+            "customer",
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": true,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": true,
+          "opened": [
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "api",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "api",
+          "self": true,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": true,
+          "opened": [
+            "db",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "cache",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "cache",
+          "self": true,
+          "opened": [
+            "cache",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": true,
+          "opened": [
+            "root",
+            "stripe"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
+    },
     "perf": {
       "outlines": [
         {
