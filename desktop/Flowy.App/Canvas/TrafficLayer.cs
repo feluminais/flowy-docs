@@ -11,8 +11,9 @@ namespace Flowy.App.Canvas;
 /// and the ones that fail dying away short of the end. It sits over the boxes in the same camera, takes no pointer, and runs its own clock: a frame at a
 /// time on the window's animation frames, for as long as it has a line to draw. Each line's path is flattened once (<see cref="PathPoints"/>), so a
 /// particle's place is a lookup. Where its line runs behind a shape that is not one of its ends, or under a label, a particle is still drawn, going faint
-/// and a little smaller as it goes behind and back as it comes out, so the flow reads through what covers it. Reduced motion draws none: the canvas
-/// leaves this empty then.
+/// and a little smaller as it goes behind and back as it comes out, so the flow reads through what covers it. A run's source sets the particles' colour and
+/// size (a line's <c>Color</c> and <c>Radius</c>), and a line that says how its failing share fails draws a lost call as a ring where it pops and a rejected
+/// one as a call that stops at a bar at the end of the line and comes back in the danger tone. Reduced motion draws none: the canvas leaves this empty then.
 /// </summary>
 internal sealed class TrafficLayer : Control
 {
@@ -139,6 +140,18 @@ internal sealed class TrafficLayer : Control
     private IBrush Brush(string key) =>
         this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
 
+    private readonly Dictionary<(string, bool), IBrush> _tints = [];
+
+    /// <summary>The brush of a line's particles: its source's colour for the theme that is showing (a named colour for the theme, a hex as it is), else <paramref name="fallback"/>.</summary>
+    private IBrush Tint(string? color, IBrush fallback)
+    {
+        if (color is null) return fallback;
+        var dark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+        if (_tints.TryGetValue((color, dark), out var kept)) return kept;
+        if (PerfView.SourceHex(color, dark) is not { } hex) return fallback;
+        return _tints[(color, dark)] = new SolidColorBrush(Color.Parse(hex)).ToImmutable();
+    }
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -149,26 +162,44 @@ internal sealed class TrafficLayer : Control
         var bad = Brush("DangerBrush");
         foreach (var d in _lines)
         {
-            var radius = (2.2 + d.Line.Width / 2) / _viewport.Zoom; // a few pixels on screen, whatever the zoom
+            var radius = (2.2 + d.Line.Width / 2) * (d.Line.Radius ?? 1) / _viewport.Zoom; // a few pixels on screen, whatever the zoom, and bigger or smaller where the run's size says
             var ramp = radius * 2; // how far either side of an outline a particle takes to go from clear to well behind
+            var tone = Tint(d.Line.Color, ok);
+            var bar = 0.0; // how strongly the bar at the end of a rejected line shows: the strongest of its particles
             foreach (var m in d.Stream.Motes)
             {
-                var (x, y) = PathPoints.PointAt(d.Path, m.S);
-                var (alpha, scale) = Flowy.Core.Particles.Ghost(BehindOf(d.Behind, _labels, x, y, ramp));
+                var look = Flowy.Core.Particles.Look(m, d.Line.Failure);
+                var (x, y) = PathPoints.PointAt(d.Path, look.At);
+                if (look.Bar is { } strength && strength > bar) bar = strength;
+                var (ghostAlpha, scale) = Flowy.Core.Particles.Ghost(BehindOf(d.Behind, _labels, x, y, ramp));
                 var r = radius * scale;
-                if (m.Fails == 0)
+                if (look.Pop is { } pop)
                 {
-                    if (alpha >= 1)
-                    {
-                        context.DrawEllipse(ok, null, new Point(x, y), r, r);
-                        continue;
-                    }
-                    using var dim = context.PushOpacity(alpha);
-                    context.DrawEllipse(ok, null, new Point(x, y), r, r);
+                    // A lost call: a ring where it died, growing and fading.
+                    using var ring = context.PushOpacity((1 - pop) * ghostAlpha);
+                    context.DrawEllipse(null, new Pen(bad, 1.6 / _viewport.Zoom), new Point(x, y), r * (0.9 + 1.8 * pop), r * (0.9 + 1.8 * pop));
                     continue;
                 }
-                using var fade = context.PushOpacity(Flowy.Core.Particles.Visibility(m) * alpha);
-                context.DrawEllipse(bad, null, new Point(x, y), r, r);
+                var brush = look.Bad ? bad : tone;
+                var alpha = look.Alpha * ghostAlpha;
+                if (alpha >= 1)
+                {
+                    context.DrawEllipse(brush, null, new Point(x, y), r, r);
+                    continue;
+                }
+                using var dim = context.PushOpacity(alpha);
+                context.DrawEllipse(brush, null, new Point(x, y), r, r);
+            }
+            if (bar > 0)
+            {
+                // A rejected call meets a bar across the end of the line, strongest while one is at it.
+                var (ex, ey) = PathPoints.PointAt(d.Path, 1);
+                var (px, py) = PathPoints.PointAt(d.Path, 0.96);
+                var length = Math.Sqrt((ex - px) * (ex - px) + (ey - py) * (ey - py));
+                if (length == 0) length = 1;
+                var (nx, ny) = (-(ey - py) / length, (ex - px) / length);
+                using var faint = context.PushOpacity(bar);
+                context.DrawLine(new Pen(bad, 2.4 / _viewport.Zoom, lineCap: PenLineCap.Round), new Point(ex + nx * radius * 2.4, ey + ny * radius * 2.4), new Point(ex - nx * radius * 2.4, ey - ny * radius * 2.4));
             }
         }
     }

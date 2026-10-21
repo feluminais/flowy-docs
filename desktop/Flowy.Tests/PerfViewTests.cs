@@ -68,7 +68,36 @@ public class PerfViewTests
             Assert.Equal(w["ms"]!.GetValue<string>(), PerfView.FmtMs(n));
             Assert.Equal(w["pct"]!.GetValue<string>(), PerfView.FmtPct(n));
             Assert.Equal(w["rate"]!.GetValue<string>(), PerfView.FmtRate(n));
+            Assert.Equal(w["bytes"]!.GetValue<string>(), PerfView.FmtBytes(n));
             Assert.Equal(w["load"]!.GetValue<string>(), PerfView.FmtLoad(n, "req/s"));
+        }
+    }
+
+    [Fact]
+    public void The_key_draws_the_kinds_of_failing_call_that_are_on_the_lines()
+    {
+        var all = Expected["marks"]!.AsArray();
+        Assert.True(all.Count >= 8);
+        foreach (var c in all)
+        {
+            var lines = c!["lines"]!.AsArray().Select(l => new LineTraffic("a", "b", 2, 1, 1000, l!["failed"]!.GetValue<double>()) { Failure = l["failure"]?.GetValue<string>() }).ToList();
+            var marks = PerfView.FailureMarksOf(lines);
+            Assert.Equal(c["marks"]!["fade"]!.GetValue<bool>(), marks.Fade);
+            Assert.Equal(c["marks"]!["lost"]!.GetValue<bool>(), marks.Lost);
+            Assert.Equal(c["marks"]!["rejected"]!.GetValue<bool>(), marks.Rejected);
+        }
+    }
+
+    [Fact]
+    public void A_source_colour_is_a_hex_for_each_theme_the_way_the_browser_writes_it_as_css()
+    {
+        foreach (var c in Expected["colours"]!.AsArray())
+        {
+            var color = c!["color"]?.GetValue<string>();
+            var css = c["css"]?.GetValue<string>();
+            var (light, dark) = (PerfView.SourceHex(color, false), PerfView.SourceHex(color, true));
+            if (css is null) Assert.True(light is null && dark is null, $"{color} is no colour");
+            else Assert.Equal(css, light == dark ? light : $"light-dark({light}, {dark})");
         }
     }
 
