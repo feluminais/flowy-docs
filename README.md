@@ -105,9 +105,10 @@ documents stay documents.
 ![Orders DB's panel: the orders table with a key mark on id and customer_id, a dot on total and its note under the table, and three more tables closed to a line each](docs/images/desktop-data.png)
 
 A store can show what it holds. Its panel draws a table as a table, with column headings, a few sample rows and a short note
-where a choice needs explaining ("Cents, not decimals"), and a line for how long the data is kept. A key set, a topic and a
-document use the same frame. You write it under `data:` on the store; Flowy never connects to a database. [The guide](docs/guide.md#data)
-has the format.
+where a choice needs explaining ("Cents, not decimals"), and a line for how long the data is kept. The first table is open and the
+others are one line each. A key set, a topic and a document use the same frame. You write it under `data:` on the store, or in the
+**Data** box of its form in edit mode, in the app and in the browser alike, and Claude can write it from a migration or a schema file.
+The sample rows are made up: Flowy never connects to a database. [The guide](docs/guide.md#data) has the format.
 
 ## Flows
 
@@ -220,7 +221,7 @@ claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
 Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and `flowy/flows/*.yaml`, points
-each shape at the code it lives in, marks outside services, and refuses any change that would break the model. Ask how the system fails and it can write a failure analysis in `flowy/failures/` too. Keep the
+each shape at the code it lives in, marks outside services, and refuses any change that would break the model. It can show what a store holds (its tables, key sets or topics, from a migration or a schema file) with invented sample rows. Ask how the system fails and it can write a failure analysis in `flowy/failures/` too. Keep the
 model open in the app, and it updates by itself as Claude saves.
 
 You can write the files by hand too. This is Checkout from the demo:
