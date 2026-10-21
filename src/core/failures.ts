@@ -5,7 +5,7 @@ import { chain, isView, memberIds, nameOf, parentOf, placeEnds, placeStep } from
 
 /**
  * Failure analyses. An analysis is a file of failure modes: for a part (a shape or a line), how it fails, what that does, three
- * ratings, and what is done about it. Pure, so the browser and the node side use the same code (desktop/Flowy.Core is to be a port
+ * ratings, and what is done about it. Pure, so the browser and the node side use the same code (desktop/Flowy.Core has a port
  * of it, kept equal by fixtures).
  */
 

@@ -107,6 +107,7 @@ internal sealed partial class ReaderView
             ResetPlaces();
         }
         _details = false; // so that closing it again doesn't leave Details open in its place
+        if (_tab == PanelTab.Failures) _tab = null; // its marks and the load's traffic would draw over each other
         _perf = true;
         _ramping = false;
         Refresh();

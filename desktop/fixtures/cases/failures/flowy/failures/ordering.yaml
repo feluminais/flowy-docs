@@ -1,0 +1,75 @@
+name: Ordering
+about: Made-up ratings for a test.
+scope: shop
+scale:
+  severity: { low: Nobody notices, high: Someone loses money }
+  occurrence: { low: Never seen, high: Every day }
+modes:
+  db-down:
+    mode: The database is unreachable
+    on: db
+    effect: Orders can't be saved.
+    cause: The primary fails.
+    severity: 10
+    occurrence: 2
+    detection: 2
+    controls: A standby takes over.
+    action: Rehearse the failover.
+    owner: Platform
+    status: planned
+    after: { occurrence: 1 }
+    affects: [web, api]
+    flow: checkout
+    step: 3
+    description: |
+      A **severe** one.
+  mail-timeout:
+    mode: The mail service doesn't answer
+    from: orders
+    to: mail
+    effect: Receipts arrive late.
+    severity: 3
+    occurrence: 6
+    detection: 7
+    affects: [web]
+    run: spike
+  api-slow:
+    mode: The API answers slowly
+    on: api
+    effect: Pages hang.
+    severity: 4
+    occurrence: 5
+    detection: 3
+    status: done
+    after: { severity: 2, occurrence: 2, detection: 2 }
+  auth-lock:
+    mode: The login lock is never released
+    on: auth
+    effect: Nobody can sign in.
+    severity: 6
+    occurrence: 5
+    detection: 5
+    status: accepted
+  web-glitch:
+    mode: The page flickers
+    on: web
+    effect: A customer is annoyed.
+    severity: 2
+    occurrence: 3
+    detection: 2
+  orders-unrated:
+    mode: An order is counted twice
+    on: orders
+    effect: A customer is billed twice.
+    severity: 5
+  mail-severe:
+    mode: Receipts go to the wrong person
+    on: mail
+    severity: 9
+  constructor:
+    mode: A mode named like something on every object
+    on: db
+    severity: 1
+    occurrence: 1
+    detection: 1
+    status: constructor

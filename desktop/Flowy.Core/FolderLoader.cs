@@ -3,10 +3,11 @@ using System.Text;
 namespace Flowy.Core;
 
 /// <summary>
-/// A model folder as the reader shows it: the model and everything wrong with it, and the load-test runs in <c>perf/</c> with what is wrong with those
-/// (kept apart, as in the TypeScript State: a file of numbers never stops the model loading).
+/// A model folder as the reader shows it: the model and everything wrong with it, the load-test runs in <c>perf/</c> with what is wrong with those, and what is
+/// wrong with <c>failures/</c> beyond what the checks say (a file that was skipped, a run link that points at nothing). Kept apart, as in the TypeScript State:
+/// a file of numbers or an analysis never stops the model loading.
 /// </summary>
-public sealed record Folder(Model Model, IReadOnlyList<Problem> Problems, IdMap<LoadRun>? Runs = null, IReadOnlyList<Problem>? RunProblems = null);
+public sealed record Folder(Model Model, IReadOnlyList<Problem> Problems, IdMap<LoadRun>? Runs = null, IReadOnlyList<Problem>? RunProblems = null, IReadOnlyList<Problem>? FailureProblems = null);
 
 /// <summary>Reads a flowy/ folder. A port of loadDir and loadState in src/node/files.ts, without the parts that write.</summary>
 public static class FolderLoader
@@ -85,19 +86,75 @@ public static class FolderLoader
             ignored.AddRange(names.Where(n => n.EndsWith(".yml", StringComparison.Ordinal)).Select(n => $"flows/{n}"));
         }
 
+        var (analyses, unread) = LoadFailures(dir);
         var model = new Model
         {
             Objects = parsed?.Objects ?? new IdMap<FlowyObject>(),
             Connections = parsed?.Connections ?? [],
             Meta = parsed?.Meta ?? new Dictionary<string, object?>(),
             Flows = flows,
+            Failures = analyses,
             Layout = layout,
         };
         // A flow file that isn't read is no part of the model, so the checks can't see it.
         var skipped = ignored.Select(file => new Problem(file, null,
             $"Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to {file[..^".yml".Length]}.yaml."));
         var (runs, runProblems) = LoadRuns(dir, model);
-        return new Folder(model, [.. Checks.Run(model, MissingPaths(dir, model)), .. skipped], runs, runProblems);
+        // A mode's run link needs the runs, which are not in the model, so it is checked here. The rest of an analysis is checked in Checks.Run.
+        var failureProblems = unread.Concat(model.Failures.SelectMany(kv => Failures.RunLinkProblems(kv.Key, kv.Value, runs))).ToList();
+        return new Folder(model, [.. Checks.Run(model, MissingPaths(dir, model)), .. skipped], runs, runProblems, failureProblems);
+    }
+
+    /// <summary>
+    /// Reads <c>failures/*.yaml</c>, a port of loadFailures in src/node/files.ts. Unlike a flow, an analysis that can't be read never stops the model loading:
+    /// it is skipped and becomes a problem, because the architecture is worth more than the analysis.
+    /// </summary>
+    public static (IdMap<FailureAnalysis> Analyses, List<Problem> Problems) LoadFailures(string dir)
+    {
+        var analyses = new IdMap<FailureAnalysis>();
+        var problems = new List<Problem>();
+        var failures = Path.Combine(dir, "failures");
+        if (!Directory.Exists(failures)) return (analyses, problems);
+        List<string> names;
+        try
+        {
+            names = Directory.EnumerateFiles(failures).Select(Path.GetFileName).OfType<string>().ToList();
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            problems.Add(new Problem("failures", null, $"can't be read: {e.Message}"));
+            return (analyses, problems);
+        }
+        names.Sort(StringComparer.Ordinal);
+        foreach (var name in names)
+        {
+            var file = $"failures/{name}";
+            if (name.EndsWith(".yml", StringComparison.Ordinal))
+            {
+                problems.Add(new Problem(file, null, $"Flowy reads analysis files that end in .yaml, so this one is ignored. Rename it to {name[..^".yml".Length]}.yaml."));
+                continue;
+            }
+            if (!name.EndsWith(".yaml", StringComparison.Ordinal)) continue;
+            var id = name[..^".yaml".Length];
+            if (!Names.IsValidId(id))
+            {
+                problems.Add(new Problem(file, null, $"\"{id}\" is not a valid analysis id: the file name must {Names.IdRule}"));
+                continue;
+            }
+            try
+            {
+                if (ReadText(dir, file) is { } text) analyses.Add(id, ModelFiles.ParseAnalysis(id, text));
+            }
+            catch (ParseError e)
+            {
+                problems.Add(new Problem(file, null, e.Line is null ? e.Reason : $"line {e.Line}: {e.Reason}"));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                problems.Add(new Problem(file, null, $"can't be read: {e.Message}"));
+            }
+        }
+        return (analyses, problems);
     }
 
     /// <summary>
