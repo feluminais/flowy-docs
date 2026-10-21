@@ -255,6 +255,19 @@
       ]
     },
     {
+      "key": "bytes",
+      "label": "Size of a call",
+      "log": false,
+      "max": null,
+      "shown": [
+        "0 B",
+        "0.4 B",
+        "0.9 B",
+        "40 B",
+        "2.5 KB"
+      ]
+    },
+    {
       "key": "p50",
       "label": "Expected call",
       "log": true,

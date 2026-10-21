@@ -1,5 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { evalFormula } from '../src/core/formula.ts'
 import { ParseError } from '../src/core/model.ts'
 import { checkRun, interpolate, knee, kneeText, parseRun, rollUp, strain, traffic } from '../src/core/perf.ts'
 import { shop } from './fixtures.ts'
@@ -291,4 +292,190 @@ levels:
     { from: 'api', to: 'db', width: 3.06, perSecond: 5.67, travelMs: 1000, failed: 0.05 }, // no p50: a middling trip; 2% failing shows as 5%
     // orders → mail has no rate, so no line of traffic
   ])
+})
+
+// ---- Colour, scale and key: a run's `source:`, the size of a call, and how a failing share fails
+
+/** A run with two levels and `extra` between the unit and the levels, for the keys a run can add. */
+const withSource = (extra: string, connections = '') => `name: R
+unit: req/s
+${extra}
+levels:
+  - load: 1
+    connections: [${connections}]
+  - load: 2
+`
+const problemsOf = (text: string) => parseRun('r', text).problems.map(p => p.message)
+
+test('a source reads its colour and its two formulas', () => {
+  const { run, problems } = parseRun('r', withSource('source: { color: blue, dot: rate / 50, size: bytes / 400 }'))
+  assert.deepEqual(problems, [])
+  assert.equal(run.source?.color, 'blue')
+  assert.equal(run.source?.dot?.text, 'rate / 50')
+  assert.equal(evalFormula(run.source!.dot!.formula, { rate: 100 }), 2)
+  assert.equal(run.source?.size?.text, 'bytes / 400')
+  assert.equal(evalFormula(run.source!.size!.formula, { bytes: 1600 }), 4)
+  assert.equal(JSON.stringify(run.source), '{"color":"blue","dot":{"text":"rate / 50","formula":"rate / 50"},"size":{"text":"bytes / 400","formula":"bytes / 400"}}')
+})
+
+test('every key of a source is optional, and a hex colour is as good as a name', () => {
+  assert.deepEqual(parseRun('r', withSource('source: { color: "#1D9E75" }')).run.source, { color: '#1D9E75' })
+  assert.equal(parseRun('r', withSource('source: { dot: "rate/20" }')).run.source?.color, undefined)
+  assert.equal(parseRun('r', withSource('source: { dot: "rate/20" }')).run.source?.dot?.text, 'rate/20')
+  assert.equal(parseRun('r', withSource('source:')).run.source, undefined) // an empty block says nothing
+  assert.equal(parseRun('r', withSource('source: ~')).run.source, undefined)
+  assert.equal(parseRun('r', withSource('source: {}')).run.source, undefined)
+})
+
+test('a source that is not a mapping, or has a key it does not know, is a problem that names it', () => {
+  assert.deepEqual(problemsOf(withSource('source: 5')), ['source must be a mapping of color, dot and size'])
+  assert.deepEqual(problemsOf(withSource('source: [blue]')), ['source must be a mapping of color, dot and size'])
+  assert.deepEqual(problemsOf(withSource('source: { colour: blue }')), ['source: unknown key "colour" (use color, dot, size)'])
+  assert.equal(parseRun('r', withSource('source: { colour: blue }')).run.source, undefined) // nothing usable was left
+  assert.deepEqual(problemsOf(withSource('source: { color: blue, extra: 1, more: 2 }')), ['source: unknown key "extra" (use color, dot, size)', 'source: unknown key "more" (use color, dot, size)'])
+  assert.equal(parseRun('r', withSource('source: { color: blue, extra: 1 }')).run.source?.color, 'blue') // the rest of the block still counts
+})
+
+test('a colour that is neither a name nor a hex is a problem, and a very long one is not echoed', () => {
+  assert.deepEqual(problemsOf(withSource('source: { color: chartreuse }')), ['source: color must be a colour name or a hex such as #1d9e75'])
+  assert.deepEqual(problemsOf(withSource('source: { color: "#12" }')), ['source: color must be a colour name or a hex such as #1d9e75'])
+  assert.deepEqual(problemsOf(withSource('source: { color: [red] }')), ['source: color must be a colour name or a hex such as #1d9e75'])
+  const long = parseRun('r', withSource(`source: { color: ${'x'.repeat(5000)} }`))
+  assert.deepEqual(long.problems.map(p => p.message), ['source: color must be a colour name or a hex such as #1d9e75'])
+  assert.equal(long.run.source, undefined)
+})
+
+test('a formula that cannot be read is a problem, and the source keeps the rest and falls back to the default curve', () => {
+  const { run, problems } = parseRun('r', withSource('source: { color: green, dot: "rate *", size: "bytes / 0.5" }'))
+  assert.deepEqual(problems.map(p => p.message), ['source: dot formula "rate *": unexpected end'])
+  assert.equal(run.source?.color, 'green')
+  assert.equal(run.source?.dot, undefined)
+  assert.equal(run.source?.size?.text, 'bytes / 0.5')
+})
+
+const dotFormulas: [what: string, formula: string, message: string][] = [
+  ['a division by zero, which reads fine and gives no value', 'rate / 0', ''],
+  ['a unary minus, which reads fine', '-rate', ''],
+  ['an unclosed bracket', '((rate)', 'source: dot formula "((rate)": missing ")"'],
+  ['a trailing operator', 'rate / 50 + ', 'source: dot formula "rate / 50 + ": unexpected end'],
+  ['an exponent', '1e3', 'source: dot formula "1e3": unexpected "e3" at 2'],
+  ['a hex number', '0x10', 'source: dot formula "0x10": unexpected "x10" at 2'],
+  ['a call', 'rate()', 'source: dot formula "rate()": unexpected "(" at 5'],
+  ['two dots in a number', '1.2.3', 'source: dot formula "1.2.3": bad number "1.2.3" at 1'],
+  ['a name it does not know', 'speed / 2', 'source: dot formula "speed / 2": unknown name "speed" (use rate, bytes, p50)'],
+]
+for (const [what, formula, message] of dotFormulas) {
+  test(`a dot formula with ${what}`, () => {
+    assert.deepEqual(problemsOf(withSource(`source: { dot: "${formula}" }`)), message === '' ? [] : [message])
+  })
+}
+
+test('an empty formula says nothing, and one of 81 characters is a problem where one of 80 is read', () => {
+  assert.deepEqual(problemsOf(withSource('source: { dot: "" }')), [])
+  const eighty = `rate${' + 1'.repeat(19)}`
+  assert.deepEqual(problemsOf(withSource(`source: { dot: "${eighty}" }`)), [])
+  assert.deepEqual(problemsOf(withSource(`source: { dot: "${eighty} " }`)), [`source: dot formula "${`${eighty} `.slice(0, 40)}…": at most 80 characters`])
+})
+
+test('a formula that is not text is a problem', () => {
+  assert.deepEqual(problemsOf(withSource('source: { dot: [rate] }')), ['source: dot must be a formula such as rate / 50'])
+  assert.deepEqual(problemsOf(withSource('source: { size: { a: b } }')), ['source: size must be a formula such as bytes / 400'])
+})
+
+test('a hostile source key is data, never the prototype', () => {
+  const { run, problems } = parseRun('r', 'name: R\nsource: { __proto__: x, constructor: y, color: red }\nlevels:\n  - load: 1\n  - load: 2\n')
+  assert.deepEqual(problems.map(p => p.message), ['source: unknown key "__proto__" (use color, dot, size)', 'source: unknown key "constructor" (use color, dot, size)'])
+  assert.deepEqual(run.source, { color: 'red' })
+})
+
+test('bytes is a connection number like rate: 0 or more, read as text', () => {
+  const { run, problems } = parseRun('r', withSource('', '{ from: web, to: api, bytes: 400.5, rate: 3 }'))
+  assert.deepEqual(problems, [])
+  assert.deepEqual(run.levels[0].connections[0], { from: 'web', to: 'api', rate: 3, bytes: 400.5 })
+  assert.deepEqual(problemsOf(withSource('', '{ from: web, to: api, bytes: big }, { from: auth, to: db, bytes: -3 }')), [
+    'load 1, web → api: bytes must be a number',
+    'load 1, auth → db: bytes must be 0 or more',
+  ])
+  assert.equal(parseRun('r', 'name: R\nlevels:\n  - { load: 1, overall: { bytes: 90 } }\n  - load: 2\n').run.levels[0].overall.bytes, 90)
+})
+
+test('failure says how a line fails: lost or rejected, nothing else', () => {
+  const { run, problems } = parseRun('r', withSource('', '{ from: web, to: api, failure: lost }, { from: auth, to: db, failure: rejected }, { from: orders, to: db, failure: "" }'))
+  assert.deepEqual(problems, [])
+  assert.deepEqual(run.levels[0].connections, [
+    { from: 'web', to: 'api', failure: 'lost' },
+    { from: 'auth', to: 'db', failure: 'rejected' },
+    { from: 'orders', to: 'db' },
+  ])
+  assert.deepEqual(problemsOf(withSource('', '{ from: web, to: api, failure: weird }, { from: auth, to: db, failure: [lost] }, { from: orders, to: db, failure: Lost }')), [
+    'load 1, web → api: failure must be lost or rejected',
+    'load 1, auth → db: failure must be lost or rejected',
+    'load 1, orders → db: failure must be lost or rejected',
+  ])
+})
+
+test('a run that uses none of the new keys reads to the run it always did', () => {
+  const run = ramp()
+  assert.deepEqual(Object.keys(run), ['name', 'about', 'unit', 'entry', 'levels'])
+  assert.deepEqual(run.levels[2].connections[0], { from: 'web', to: 'api', rate: 300, p50: 60, p95: 200, errors: 0.08 })
+  assert.deepEqual(Object.keys(run.levels[0].overall), ['rate', 'p50', 'p95', 'errors'])
+})
+
+/** Two levels where web → api lists bytes at both and a failure style at the first, and two connections land on api → db. */
+const SIZED = `name: Sized
+levels:
+  - load: 100
+    connections:
+      - { from: web, to: api, rate: 10, bytes: 200, failure: lost }
+      - { from: orders, to: db, rate: 50, bytes: 100, failure: lost }
+      - { from: auth, to: db, rate: 150, bytes: 300, failure: lost }
+  - load: 200
+    connections:
+      - { from: web, to: api, rate: 30, bytes: 600 }
+      - { from: orders, to: db, rate: 50, bytes: 100, failure: lost }
+      - { from: auth, to: db, rate: 150, bytes: 300, failure: lost }
+`
+const sized = () => parseRun('sized', SIZED).run
+
+test('bytes is interpolated between tested levels like rate, and the failure style is the nearest one at or below', () => {
+  const at150 = interpolate(sized(), 150).connections[0]
+  assert.equal(at150.bytes, 400)
+  assert.equal(at150.rate, 20)
+  assert.equal(at150.failure, 'lost') // level 200 names none; level 100 does
+  assert.equal(interpolate(sized(), 200).connections[0].failure, 'lost')
+  assert.equal(Object.hasOwn(interpolate(ramp(), 150).connections[0], 'failure'), false)
+  assert.equal(Object.hasOwn(interpolate(ramp(), 150).connections[0], 'bytes'), false)
+})
+
+test('a failure style named only at a higher level still counts below it', () => {
+  const { run } = parseRun('r', 'name: R\nlevels:\n  - { load: 1, connections: [{ from: web, to: api, rate: 1 }] }\n  - { load: 2, connections: [{ from: web, to: api, rate: 2, failure: rejected }] }\n')
+  assert.equal(interpolate(run, 1).connections[0].failure, 'rejected')
+})
+
+test('rollUp takes the mean bytes of the connections on a line, weighted by rate', () => {
+  const lines = rollUp(shop(), sized().levels[0], 'shop').lines
+  assert.equal(lines.find(l => l.from === 'api' && l.to === 'db')?.bytes, 250) // (100 * 50 + 300 * 150) / 200
+  assert.equal(lines.find(l => l.from === 'web' && l.to === 'api')?.bytes, 200)
+})
+
+test('with no rates to weigh by, bytes is the plain mean; a connection with no bytes does not count', () => {
+  const { run } = parseRun('r', 'name: R\nlevels:\n  - { load: 1, connections: [{ from: orders, to: db, bytes: 100 }, { from: auth, to: db, bytes: 300 }] }\n  - load: 2\n')
+  assert.equal(rollUp(shop(), run.levels[0], 'shop').lines[0].bytes, 200)
+  const { run: one } = parseRun('r', 'name: R\nlevels:\n  - { load: 1, connections: [{ from: orders, to: db, bytes: 100, rate: 5 }, { from: auth, to: db, rate: 5 }] }\n  - load: 2\n')
+  assert.equal(rollUp(shop(), one.levels[0], 'shop').lines[0].bytes, 100)
+  const { run: none } = parseRun('r', 'name: R\nlevels:\n  - { load: 1, connections: [{ from: orders, to: db, rate: 5 }] }\n  - load: 2\n')
+  assert.equal(Object.hasOwn(rollUp(shop(), none.levels[0], 'shop').lines[0], 'bytes'), false)
+})
+
+test('rollUp keeps a failure style the connections on a line agree on, and drops it when they disagree', () => {
+  assert.equal(rollUp(shop(), sized().levels[0], 'shop').lines.find(l => l.to === 'db')?.failure, 'lost')
+  const mixed = structuredClone(sized())
+  mixed.levels[0].connections[2].failure = 'rejected'
+  assert.equal(Object.hasOwn(rollUp(shop(), mixed.levels[0], 'shop').lines.find(l => l.to === 'db')!, 'failure'), false)
+  delete mixed.levels[0].connections[2].failure
+  assert.equal(rollUp(shop(), mixed.levels[0], 'shop').lines.find(l => l.to === 'db')?.failure, 'lost') // one that names none does not veto
+})
+
+test('rollUp of an old run adds nothing to a line', () => {
+  assert.deepEqual(Object.keys(rollUp(shop(), ramp().levels[2], 'shop').lines[0]), ['from', 'to', 'rate', 'p50', 'p95', 'errors'])
 })
