@@ -691,6 +691,25 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .slide input[type='range'] { display: block; width: 100%; margin: 0; accent-color: var(--accent); }
 .ticks { position: absolute; left: 8px; right: 8px; top: 24px; height: 14px; }
 .ticks span { position: absolute; transform: translateX(-50%); color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+/* A run over time: its events are marks above the slider, in the colour of the state they leave (a bar, dimmer until the run has got there), and a list under the buttons. */
+.slide.timed { padding-top: 14px; }
+.event-marks { position: absolute; left: 8px; right: 8px; top: 0; height: 12px; }
+.event-mark { all: unset; position: absolute; top: 0; width: 14px; height: 12px; margin-left: -7px; cursor: pointer; }
+.event-mark::before { content: ''; position: absolute; left: 50%; top: 0; width: 4px; height: 12px; margin-left: -2px; border-radius: 2px; background: var(--sc, var(--muted)); opacity: 0.45; }
+.event-mark.passed::before { opacity: 1; }
+.events { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.event { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 70px 40px 1fr; align-items: center; gap: 4px; width: 100%; padding: 4px 6px; border-radius: 6px; color: var(--muted); cursor: pointer; }
+.event:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
+.event:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.event.passed { color: var(--fg); }
+.event[aria-current='true'] { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+/* A ring until the run has got there, a filled dot after: a shape, so it is not the colour alone that says so. */
+.event .when { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.event .when::before { content: ''; display: inline-block; box-sizing: border-box; width: 8px; height: 8px; margin-right: 6px; border: 1.5px solid currentColor; border-radius: 50%; vertical-align: 0; }
+.event.passed .when::before { background: currentColor; }
+.event .swatch { display: inline-flex; align-items: center; }
+.event .state-key { margin: 6px 0 6px 6px; }
+.event:not(.passed) .swatch { opacity: 0.6; }
 .perf-buttons { display: flex; align-items: center; gap: 10px; }
 .perf button.link { all: unset; cursor: pointer; color: var(--accent); font-weight: 600; }
 .perf button.link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -953,3 +972,6 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
   .canvas.states .box .shape, .canvas.states .box .tile, .canvas.states .box .box-text { transition: none; }
   .box.state-leaving .state-outline, .box.state-leaving .state-glyph { display: none; }
 }
+/* The slider of a run over time is being dragged: a state changes at once, with no fade in or out and no drain (the loops that mark a state keep going). */
+.canvas.scrubbing .box .shape, .canvas.scrubbing .box .tile, .canvas.scrubbing .box .box-text { transition: none; }
+.canvas.scrubbing .state-outline, .canvas.scrubbing .state-stopping .state-outline path { animation-duration: 1ms; }

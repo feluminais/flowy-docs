@@ -286,6 +286,19 @@ public class PerfViewTests
                 Assert.Equal(D(p["pos"]), PerfView.PosAt(run, x), 9);
                 Assert.Equal(D(p["slide"]), PerfView.SlidePos(run, x), 9);
             }
+            foreach (var row in r["rows"]!.AsArray())
+            {
+                var x = D(row!["x"]);
+                var expected = row["rows"]!.AsArray();
+                var actual = PerfView.EventRows(run, x);
+                Assert.Equal(expected.Count, actual.Count);
+                for (var i = 0; i < expected.Count; i++)
+                {
+                    Assert.Equal(D(expected[i]!["event"]!["at"]), actual[i].Event.At);
+                    Assert.Equal(expected[i]!["passed"]!.GetValue<bool>(), actual[i].Passed);
+                    Assert.Equal(expected[i]!["current"]!.GetValue<bool>(), actual[i].Current);
+                }
+            }
             var levels = r["levels"]!.AsArray();
             for (var i = 0; i < levels.Count; i++) Assert.Equal(D(levels[i]), PerfView.LevelX(run, Plot, i), 9);
             JsonArray Labels(int most) => new(PerfView.LevelLabels(run, Plot, most).Select(x => (JsonNode?)new JsonObject { ["x"] = x.X, ["label"] = x.Label }).ToArray());

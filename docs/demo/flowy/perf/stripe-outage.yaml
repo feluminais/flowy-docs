@@ -1,0 +1,87 @@
+name: "Stripe outage"
+about: "Made-up numbers for the demo. Stripe is killed at 40 s, restarted at 70 s and answering again at 85 s, over 150 seconds at 100 orders a minute. Checkout waits five seconds for every hold, so it fills up and fails while Stripe is down, then Stripe works through the backlog."
+axis: time
+unit: s
+entry: customer-app
+events:
+  - { at: 40, on: stripe, state: stopped, text: Payments killed }
+  - { at: 70, on: stripe, state: starting, text: Restart begins }
+  - { at: 85, on: stripe, state: running, text: Answers again }
+levels:
+  - at: 0
+    overall: { rate: 16.7, p50: 42, p95: 118, errors: 0 }
+    objects:
+      stripe: { util: 0.12 }
+      checkout: { util: 0.06, errors: 0 }
+      order-api: { util: 0.08, errors: 0 }
+      orders-db: { util: 0.08 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 11.67, p50: 40, p95: 112.41, errors: 0 }
+      - { from: checkout, to: stripe, rate: 1.67, p50: 314.04, p95: 696.85, errors: 0 }
+      - { from: checkout, to: orders-db, rate: 1.67, p50: 7.79, p95: 25.2, errors: 0 }
+  - at: 30
+    overall: { rate: 16.7, p50: 43, p95: 121, errors: 0 }
+    objects:
+      stripe: { util: 0.12 }
+      checkout: { util: 0.06, errors: 0 }
+      order-api: { util: 0.08, errors: 0 }
+      orders-db: { util: 0.08 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 11.67, p50: 41, p95: 114, errors: 0 }
+      - { from: checkout, to: stripe, rate: 1.67, p50: 318, p95: 702, errors: 0 }
+      - { from: checkout, to: orders-db, rate: 1.67, p50: 8, p95: 26, errors: 0 }
+  - at: 45
+    overall: { rate: 14.8, p50: 55, p95: 5100, errors: 0.12 }
+    objects:
+      stripe: { util: 0 }
+      checkout: { util: 0.88, errors: 0.3 }
+      order-api: { util: 0.35, errors: 0.1 }
+      orders-db: { util: 0.08 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 10.3, p50: 1200, p95: 5100, errors: 0.1 }
+      - { from: checkout, to: stripe, rate: 1.67, p50: 5000, p95: 5000, errors: 1 }
+      - { from: checkout, to: orders-db, rate: 1.2, p50: 9, p95: 30, errors: 0 }
+  - at: 60
+    overall: { rate: 13.2, p50: 70, p95: 5200, errors: 0.15 }
+    objects:
+      stripe: { util: 0 }
+      checkout: { util: 0.95, errors: 0.42 }
+      order-api: { util: 0.45, errors: 0.14 }
+      orders-db: { util: 0.08 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 9.4, p50: 1800, p95: 5200, errors: 0.14 }
+      - { from: checkout, to: stripe, rate: 1.67, p50: 5000, p95: 5000, errors: 1 }
+      - { from: checkout, to: orders-db, rate: 1, p50: 9, p95: 31, errors: 0 }
+  - at: 90
+    overall: { rate: 16.1, p50: 61, p95: 1400, errors: 0.03 }
+    objects:
+      stripe: { util: 0.4 }
+      checkout: { util: 0.55, errors: 0.05 }
+      order-api: { util: 0.2, errors: 0.02 }
+      orders-db: { util: 0.09 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 11.2, p50: 160, p95: 1400, errors: 0.02 }
+      - { from: checkout, to: stripe, rate: 2.4, p50: 620, p95: 1900, errors: 0.05 }
+      - { from: checkout, to: orders-db, rate: 2.2, p50: 9, p95: 28, errors: 0 }
+  - at: 120
+    overall: { rate: 16.7, p50: 46, p95: 190, errors: 0 }
+    objects:
+      stripe: { util: 0.16 }
+      checkout: { util: 0.12, errors: 0 }
+      order-api: { util: 0.09, errors: 0 }
+      orders-db: { util: 0.08 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 11.67, p50: 44, p95: 150, errors: 0 }
+      - { from: checkout, to: stripe, rate: 1.8, p50: 340, p95: 780, errors: 0 }
+      - { from: checkout, to: orders-db, rate: 1.8, p50: 8, p95: 26, errors: 0 }
+  - at: 150
+    overall: { rate: 16.7, p50: 42, p95: 120, errors: 0 }
+    objects:
+      stripe: { util: 0.12 }
+      checkout: { util: 0.06, errors: 0 }
+      order-api: { util: 0.08, errors: 0 }
+      orders-db: { util: 0.08 }
+    connections:
+      - { from: customer-app, to: order-api, rate: 11.67, p50: 40, p95: 113, errors: 0 }
+      - { from: checkout, to: stripe, rate: 1.67, p50: 315, p95: 698, errors: 0 }
+      - { from: checkout, to: orders-db, rate: 1.67, p50: 7.8, p95: 25.2, errors: 0 }

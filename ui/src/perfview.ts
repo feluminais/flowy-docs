@@ -70,6 +70,13 @@ export function eventFractions(run: Run): { fraction: number; event: RunEvent }[
   return eventsOf(run).map(event => ({ fraction: Math.min(1, Math.max(0, along(run, event.at))), event }))
 }
 
+/** The events of a time run as the panel lists them, in time order: whether each has happened by `x`, and which is the latest that has. */
+export function eventRows(run: Run, x: number): { event: RunEvent; passed: boolean; current: boolean }[] {
+  const events = eventsOf(run)
+  const done = events.filter(e => e.at <= x).length // in time order, so the ones that have happened come first
+  return events.map((event, i) => ({ event, passed: i < done, current: i === done - 1 }))
+}
+
 /** What the slider's own numbers run between: a time run's are times, a load run's are positions. */
 export const sliderRange = (run: Run): { min: number; max: number } => (isTime(run) ? { min: run.levels[0].load, max: run.levels[top(run)].load } : { min: 0, max: top(run) })
 

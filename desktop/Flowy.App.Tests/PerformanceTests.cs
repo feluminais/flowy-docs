@@ -70,13 +70,13 @@ public class PerformanceTests
     }
 
     [AvaloniaFact]
-    public void The_demo_Plum_has_three_runs_and_opens_on_the_one_where_Delivery_gives_way()
+    public void The_demo_Plum_has_four_runs_and_opens_on_the_one_where_Delivery_gives_way()
     {
         var folder = FolderLoader.Load(Plum);
         Assert.Empty(folder.RunProblems!);
-        Assert.Equal(["dinner-rush", "eta-batched", "pings-climbing"], folder.Runs!.Keys); // the file names sort so that the demo opens on the dinner rush
+        Assert.Equal(["dinner-rush", "eta-batched", "pings-climbing", "stripe-outage"], folder.Runs!.Keys); // the file names sort so that the demo opens on the dinner rush
         var (window, reader) = Open(Plum);
-        Assert.Equal(["Details", "Performance, 3"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name));
+        Assert.Equal(["Details", "Performance, 4"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name));
         Press(window, Key.T, PhysicalKey.T);
         Assert.Equal(("dinner-rush", 3.0, false), reader.PerfState); // the load where ETA reaches 90%
         Assert.Contains("First struggles at 900 orders/min: ETA at 90% of capacity", string.Join("|", AllText(reader.PerfPanelNow)));

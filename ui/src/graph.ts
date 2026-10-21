@@ -26,8 +26,9 @@ const PER_ROW = 4 // outsiders that only start lines wait above the members, thi
 /**
  * `inside`: how many boxes sit right inside this one (0: it doesn't open). `perf`: how strained it is at a load. `fail`: the worst failure mode it carries, and how many.
  * `state`: the state it is in (or holds, when `inside`), at the stop on show; a shape that is Running has none.
+ * `snap`: the state changes at once, with none of the fade a change usually has (a slider of a run is being dragged).
  */
-export type BoxData = { object: FlowyObject; inside: number; icon: string; perf?: BoxTraffic; fail?: Mark; state?: StateMark }
+export type BoxData = { object: FlowyObject; inside: number; icon: string; perf?: BoxTraffic; fail?: Mark; state?: StateMark; snap?: boolean }
 export type BoxNode = Node<BoxData, 'box'>
 
 /**
