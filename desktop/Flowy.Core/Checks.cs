@@ -190,6 +190,7 @@ public static class Checks
                 else P(message);
             }
         }
+        foreach (var (aid, a) in model.Failures) problems.AddRange(Failures.AnalysisProblems(model, aid, a));
         return problems;
     }
 }

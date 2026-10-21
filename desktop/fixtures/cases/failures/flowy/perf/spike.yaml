@@ -1,0 +1,21 @@
+name: Spike
+unit: req/s
+levels:
+  - load: 100
+    overall: { rate: 100, errors: 0 }
+    objects:
+      api: { util: 0.3, errors: 0 }
+    connections:
+      - { from: orders, to: mail, rate: 20, p50: 80, p95: 120, errors: 0 }
+  - load: 200
+    overall: { rate: 190, errors: 0.05 }
+    objects:
+      api: { util: 0.6, errors: 0.01 }
+    connections:
+      - { from: orders, to: mail, rate: 40, p50: 90, p95: 400, errors: 0.1 }
+  - load: 400
+    overall: { rate: 250, errors: 0.2 }
+    objects:
+      api: { util: 0.9, errors: 0.2 }
+    connections:
+      - { from: orders, to: mail, rate: 60, p50: 100, p95: 900, errors: 0.3 }

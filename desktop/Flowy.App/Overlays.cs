@@ -124,6 +124,7 @@ internal sealed class ShortcutsCard : Border
         ("L", "Show every flow, and play one"),
         ("O", "Show everything as a tree"),
         ("T", "Show a load-test run on the diagram, where there is one"),
+        ("M", "Show how things fail, worst first"),
         ("E", "Edit mode on and off"),
         ("?", "Show these shortcuts"),
     ];
@@ -145,6 +146,12 @@ internal sealed class ShortcutsCard : Border
         ("Esc", "Close the panel"),
     ];
 
+    private static readonly (string, string)[] Failing =
+    [
+        ("→  ←", "Next and previous failure"),
+        ("Esc", "Close the panel"),
+    ];
+
     private static readonly (string, string)[] Editing =
     [
         ("N", "Add a shape here"),
@@ -157,7 +164,7 @@ internal sealed class ShortcutsCard : Border
         ("Ctrl+Y  Ctrl+Shift+Z", "Redo"),
     ];
 
-    public ShortcutsCard(Action close, bool performance = false)
+    public ShortcutsCard(Action close, bool performance = false, bool failures = false)
     {
         Classes.Add("card");
         HorizontalAlignment = HorizontalAlignment.Center;
@@ -169,6 +176,7 @@ internal sealed class ShortcutsCard : Border
         AddGroup(column, Icons.Search, "Getting around", Reading);
         AddGroup(column, Icons.Play, "Flows", Flows);
         if (performance) AddGroup(column, Icons.Activity, "Performance", Performance);
+        if (failures) AddGroup(column, Icons.Bolt, "Failures", Failing);
         AddGroup(column, Icons.Pencil, "In edit mode", Editing);
         var closeButton = new Button { Content = Icons.Make(Icons.Close, "closeicon", 16), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top };
         closeButton.Classes.Add("close");
