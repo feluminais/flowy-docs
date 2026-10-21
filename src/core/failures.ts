@@ -1,3 +1,4 @@
+import { FILE_KINDS, pathOf } from './filekinds.ts'
 import type { Problem } from './problem.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Analysis, Mode, Model } from './model.ts'
@@ -259,7 +260,7 @@ export function lightFor(model: Model, view: string, m: Mode): Reach | undefined
  * start with it, so a list of problems says which mode. Whether a run exists needs the runs, which are not in the model: see runLinkProblems.
  */
 export function analysisProblems(model: Model, aid: string, a: Analysis): Problem[] {
-  const file = `failures/${aid}.yaml`
+  const file = pathOf(FILE_KINDS.failure, aid)
   const problems: Problem[] = []
   if (!isValidId(aid)) problems.push({ file, message: `"${aid}" is not a valid analysis id: the file name must ${ID_RULE}` })
   if (!hasText(a.name)) problems.push({ file, message: 'name is missing' })
@@ -324,5 +325,5 @@ export const analysesText = (ids: string[]): string => `${ids.length === 1 ? 'fa
 export function runLinkProblems(aid: string, a: Analysis, runs: Record<string, unknown>): Problem[] {
   return Object.entries(a.modes)
     .filter(([, m]) => hasText(m.run) && !Object.hasOwn(runs, m.run))
-    .map(([mid, m]) => ({ file: `failures/${aid}.yaml`, message: `${mid}: run "${m.run}" doesn't exist` }))
+    .map(([mid, m]) => ({ file: pathOf(FILE_KINDS.failure, aid), message: `${mid}: run "${m.run}" doesn't exist` }))
 }
