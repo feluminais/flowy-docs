@@ -87,6 +87,7 @@ public static class FailuresView
     /// </summary>
     public static int? FirstErrorAt(Model model, LoadRun run, FailureMode m)
     {
+        if (run.Adds is not null || run.Sources is not null) return null; // a run with several sources has no one level to go to
         var view = Failures.HomeView(model, m);
         IReadOnlyList<double?> series = [];
         if (m.On is { Length: > 0 } on)

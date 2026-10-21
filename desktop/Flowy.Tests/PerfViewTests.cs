@@ -351,4 +351,96 @@ public class PerfViewTests
             }
         }
     }
+
+    // ---- several dials -----------------------------------------------------------------------------------------
+
+    /// <summary>The runs of desktop/fixtures/perf.ts's SOURCES, as the loader leaves them: their texts are in perf-runs.json, which the C# side of that fixture reads too.</summary>
+    private static IdMap<LoadRun> SourceRuns()
+    {
+        var files = JsonNode.Parse(File.ReadAllText(Path.Combine(Repo.Root, "desktop", "fixtures", "expected", "perf-runs.json")))!["sources"]!["files"]!.AsArray();
+        var runs = new IdMap<LoadRun>();
+        foreach (var f in files)
+        {
+            if (f!["error"] is not null) continue;
+            runs.Add(f["id"]!.GetValue<string>(), Perf.ParseRun(f["id"]!.GetValue<string>(), f["text"]!.GetValue<string>()).Run);
+        }
+        var playable = new IdMap<LoadRun>();
+        foreach (var (id, run) in runs)
+            if (run.Adds is null || Perf.DialsOf(runs, id) is not null) playable.Add(id, run);
+        return playable;
+    }
+
+    private static JsonArray Doubles(IEnumerable<double> values) => new(values.Select(v => (JsonNode?)v).ToArray());
+
+    private static JsonObject Json(IdMap<double> numbers) => new(numbers.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)kv.Value)));
+
+    private static IdMap<double> Setting(JsonNode? node)
+    {
+        var map = new IdMap<double>();
+        foreach (var (key, value) in node!.AsObject()) map.Add(key, D(value));
+        return map;
+    }
+
+    private static JsonArray Ticks(IEnumerable<(double Fraction, string Label)> ticks) => new(ticks.Select(t => (JsonNode?)new JsonObject { ["fraction"] = t.Fraction, ["label"] = t.Label }).ToArray());
+
+    [Fact]
+    public void The_maths_of_several_dials_is_the_browsers()
+    {
+        var runs = SourceRuns();
+        var all = Expected["dials"]!.AsArray();
+        Assert.True(all.Count >= 6);
+        foreach (var item in all)
+        {
+            var id = item!["id"]!.GetValue<string>();
+            var found = Perf.DialsOf(runs, id)!;
+            var dials = found.Items;
+            Assert.Equal(item["mode"]!.GetValue<string>(), found.Mode);
+            Assert.Equal(item["label"]?.GetValue<string>(), PerfView.ModeLabel(found.Mode));
+            foreach (var o in item["over"]!.AsArray()) Assert.Equal(o!["text"]?.GetValue<string>(), PerfView.OverText(found.Mode, Maybe(o["util"])));
+            Same(item["opening"], Doubles(PerfView.OpeningPositions(dials, Perf.KneeOf(runs, id))), $"{id}: where the panel opens");
+            Same(item["openingNone"], Doubles(PerfView.OpeningPositions(dials, null)), $"{id}: where it opens when it never struggles");
+            var shown = item["dials"]!.AsArray();
+            for (var d = 0; d < dials.Count; d++)
+            {
+                Assert.Equal(shown[d]!["top"]!.GetValue<int>(), PerfView.DialTop(dials[d]));
+                foreach (var s in shown[d]!["slide"]!.AsArray()) Assert.Equal(D(s!["to"]), PerfView.SlideDial(dials[d], D(s["value"])));
+                Same(shown[d]!["ticks"], Ticks(PerfView.DialTicks(dials[d])), $"{id} {dials[d].Id}: the labels under it");
+                Same(shown[d]!["few"], Ticks(PerfView.DialTicks(dials[d], 2)), $"{id} {dials[d].Id}: fewer labels");
+                foreach (var b in shown[d]!["brackets"]!.AsArray())
+                {
+                    var (lower, upper, tested) = PerfView.BracketOf(dials[d], D(b!["pos"]));
+                    Same(b, new JsonObject { ["pos"] = D(b["pos"]), ["lower"] = lower, ["upper"] = upper, ["tested"] = tested }, $"{id} {dials[d].Id} at {D(b["pos"])}: the loads either side");
+                }
+            }
+            foreach (var set in item["sets"]!.AsArray())
+            {
+                var positions = Floats(set!["positions"]);
+                var where = $"{id} at {set["positions"]!.ToJsonString()}";
+                var setting = PerfView.SettingOf(dials, positions);
+                Same(set["setting"], Json(setting), $"{where}: the setting");
+                Same(set["back"], Doubles(PerfView.PositionsOf(dials, Setting(set["setting"]))), $"{where}: the positions back");
+                foreach (var a in set["actives"]!.AsArray())
+                {
+                    var active = a!["active"]!.GetValue<int>();
+                    var at = $"{where}, dial {active}";
+                    Same(a["step"], new JsonArray(Doubles(PerfView.StepActive(dials, positions, active, 1)), Doubles(PerfView.StepActive(dials, positions, active, -1))), $"{at}: a step");
+                    Same(a["edge"], new JsonArray(Doubles(PerfView.EdgeActive(dials, positions, active, false)), Doubles(PerfView.EdgeActive(dials, positions, active, true))), $"{at}: the ends");
+                    Same(a["place"], new JsonArray(Doubles(PerfView.PlaceActive(dials, positions, active, 1.5)), Doubles(PerfView.PlaceActive(dials, positions, active, -2)), Doubles(PerfView.PlaceActive(dials, positions, active, 99))), $"{at}: a place");
+                    Same(a["ramp"], new JsonArray(new[] { 0, 16, 1000, PerfView.RampMs / 2, PerfView.RampMs, PerfView.RampMs * 3 }.Select(ms => (JsonNode?)Doubles(PerfView.RampActive(dials, positions, active, ms))).ToArray()), $"{at}: a ramp");
+                    Same(a["from"], Doubles(PerfView.RampFromActive(dials, positions, active)), $"{at}: where a ramp starts");
+                    Same(a["held"], new JsonArray(PerfView.HeldText(dials, positions, active).Select(t => (JsonNode?)t).ToArray()), $"{at}: the held dials");
+                    var along = PerfView.ActiveSeries(runs, id, dials, positions, active);
+                    Same(a["loads"], new JsonArray(along.Select(l => l.Loads is { } loads ? (JsonNode?)Json(loads) : null).ToArray()), $"{at}: the loads along it");
+                    Same(a["util"], Series(PerfView.BoxSeriesIn(Loaded.Model, along, "shop", "db", "util")), $"{at}: db along it");
+                    Same(a["rate"], Series(PerfView.LineSeriesIn(Loaded.Model, along, "shop", "web", "db", "rate")), $"{at}: a line along it");
+                    Same(a["wide"], Series(PerfView.LineSeriesIn(Loaded.Model, along, "root", "shop", "gateway", "rate")), $"{at}: a line along it in the overview");
+                    Same(a["p95"], Series(along.Select(l => l.Overall.P95)), $"{at}: the slowest 5% along it");
+                }
+            }
+        }
+        foreach (var s in Expected["steps"]!.AsArray())
+            Assert.Equal(D(s!["to"]), PerfView.StepFrom(D(s["pos"]), (int)D(s["direction"])));
+    }
+
+    private static List<double> Floats(JsonNode? n) => [.. n!.AsArray().Select(D)];
 }

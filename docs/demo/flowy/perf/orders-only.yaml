@@ -1,0 +1,69 @@
+name: "Customer orders"
+about: "Made-up numbers for the demo. Orders climbing from 100 to 1,200 a minute with no courier pings on top: each order asks Matcher for a courier, Matcher reads Fleet DB and calls ETA, and ETA calls Mapbox. One dot stands for 4 calls a second. ETA runs out of room first."
+unit: orders/min
+entry: customer-app
+source:
+  color: blue
+  dot: rate / 4
+  size: bytes / 400
+levels:
+  - load: 100
+    overall: { rate: 1.7, p50: 40, p95: 110, errors: 0 }
+    objects:
+      matcher: { util: 0.05 }
+      eta: { util: 0.09 }
+      fleet-db: { util: 0.05 }
+      tracking: { util: 0.04 }
+    connections:
+      - { from: matcher, to: fleet-db, rate: 1.7, p50: 9, p95: 24, bytes: 900, errors: 0 }
+      - { from: matcher, to: eta, rate: 10, p50: 5, p95: 14, bytes: 300, errors: 0 }
+      - { from: eta, to: mapbox, rate: 10, p50: 60, p95: 137, bytes: 400, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 8, p50: 2, p95: 6, bytes: 140, errors: 0 }
+  - load: 200
+    overall: { rate: 3.3, p50: 44, p95: 125, errors: 0 }
+    objects:
+      matcher: { util: 0.09 }
+      eta: { util: 0.17 }
+      fleet-db: { util: 0.09 }
+      tracking: { util: 0.07 }
+    connections:
+      - { from: matcher, to: fleet-db, rate: 3.3, p50: 10, p95: 26, bytes: 900, errors: 0 }
+      - { from: matcher, to: eta, rate: 20, p50: 6, p95: 16, bytes: 300, errors: 0 }
+      - { from: eta, to: mapbox, rate: 20, p50: 62, p95: 142, bytes: 400, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 16, p50: 2.2, p95: 7, bytes: 140, errors: 0 }
+  - load: 400
+    overall: { rate: 6.7, p50: 52, p95: 160, errors: 0 }
+    objects:
+      matcher: { util: 0.18 }
+      eta: { util: 0.34 }
+      fleet-db: { util: 0.18 }
+      tracking: { util: 0.14 }
+    connections:
+      - { from: matcher, to: fleet-db, rate: 6.7, p50: 12, p95: 31, bytes: 900, errors: 0 }
+      - { from: matcher, to: eta, rate: 40, p50: 8, p95: 21, bytes: 300, errors: 0 }
+      - { from: eta, to: mapbox, rate: 40, p50: 68, p95: 160, bytes: 400, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 33, p50: 2.8, p95: 9, bytes: 140, errors: 0 }
+  - load: 800
+    overall: { rate: 13, p50: 85, p95: 290, errors: 0.01 }
+    objects:
+      matcher: { util: 0.37 }
+      eta: { util: 0.7, errors: 0.005 }
+      fleet-db: { util: 0.35 }
+      tracking: { util: 0.28 }
+    connections:
+      - { from: matcher, to: fleet-db, rate: 13, p50: 18, p95: 52, bytes: 900, errors: 0 }
+      - { from: matcher, to: eta, rate: 80, p50: 20, p95: 70, bytes: 300, errors: 0.005 }
+      - { from: eta, to: mapbox, rate: 80, p50: 96, p95: 240, bytes: 400, errors: 0.01 }
+      - { from: tracking, to: fleet-db, rate: 67, p50: 4, p95: 14, bytes: 140, errors: 0 }
+  - load: 1200
+    overall: { rate: 19, p50: 190, p95: 700, errors: 0.06 }
+    objects:
+      matcher: { util: 0.55 }
+      eta: { util: 0.93, errors: 0.05 }
+      fleet-db: { util: 0.5 }
+      tracking: { util: 0.42 }
+    connections:
+      - { from: matcher, to: fleet-db, rate: 19, p50: 30, p95: 90, bytes: 900, errors: 0.01 }
+      - { from: matcher, to: eta, rate: 120, p50: 80, p95: 260, bytes: 300, errors: 0.05 }
+      - { from: eta, to: mapbox, rate: 100, p50: 210, p95: 620, bytes: 400, errors: 0.08 }
+      - { from: tracking, to: fleet-db, rate: 100, p50: 6, p95: 20, bytes: 140, errors: 0 }

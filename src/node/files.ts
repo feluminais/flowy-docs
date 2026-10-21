@@ -9,7 +9,7 @@ import { emptyModel, ID_RULE, isValidId, linksOf, ParseError } from '../core/mod
 import { parseAnalysisFile, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/modelfiles.ts'
 import type { Model } from '../core/model.ts'
 import { isRepoPath } from '../core/paths.ts'
-import { checkRun, parseRun } from '../core/perf.ts'
+import { checkRun, checkRuns, dialsOf, parseRun } from '../core/perf.ts'
 import type { Run } from '../core/perf.ts'
 import type { State } from '../core/state.ts'
 import { own } from '../core/text.ts'
@@ -183,6 +183,9 @@ export async function loadRuns(dir: string, model: Model): Promise<{ runs: Recor
       problems.push(problemOf(file, e))
     }
   }
+  // A run that adds others needs the other runs. One with fewer than two it can add can't be played, so it is left out, as a file that can't be read is.
+  problems.push(...checkRuns(runs))
+  for (const id of Object.keys(runs)) if (runs[id].adds !== undefined && dialsOf(runs, id) === undefined) delete runs[id]
   return { runs, problems }
 }
 

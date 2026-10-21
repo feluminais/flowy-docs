@@ -38,6 +38,7 @@ public class PerfTests
         var o = new JsonObject { ["from"] = p.From, ["to"] = p.To };
         foreach (var (key, value) in Json((Metrics)p)) o[key] = value!.DeepClone();
         if (p.Failure is not null) o["failure"] = p.Failure;
+        if (p.By is { } by) o["by"] = Json(by);
         return o;
     }
 
@@ -56,13 +57,26 @@ public class PerfTests
 
     private static JsonObject Json(RunEvent e) => new() { ["at"] = e.At, ["on"] = e.On, ["state"] = e.State, ["text"] = e.Text };
 
-    private static JsonObject Json(Level l) => new()
+    private static JsonObject Json(IdMap<double> numbers) => new(numbers.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)kv.Value)));
+
+    private static JsonObject Json(Level l)
     {
-        ["load"] = l.Load,
-        ["overall"] = Json(l.Overall),
-        ["objects"] = Json(l.Objects),
-        ["connections"] = new JsonArray(l.Connections.Select(c => (JsonNode?)Json(c)).ToArray()),
-    };
+        var o = new JsonObject { ["load"] = l.Load };
+        if (l.Loads is { } loads) o["loads"] = Json(loads);
+        o["overall"] = Json(l.Overall);
+        o["objects"] = Json(l.Objects);
+        o["connections"] = new JsonArray(l.Connections.Select(c => (JsonNode?)Json(c)).ToArray());
+        return o;
+    }
+
+    private static JsonObject Json(SourceInfo info)
+    {
+        var o = new JsonObject { ["name"] = info.Name };
+        if (info.Entry is not null) o["entry"] = info.Entry;
+        o["unit"] = info.Unit;
+        if (info.Source is { } source) o["source"] = Json(source);
+        return o;
+    }
 
     private static JsonObject Json(LoadRun r)
     {
@@ -73,6 +87,8 @@ public class PerfTests
         if (r.Source is { } source) o["source"] = Json(source);
         if (r.IsTime) o["axis"] = "time";
         if (r.Events.Count > 0) o["events"] = new JsonArray(r.Events.Select(e => (JsonNode?)Json(e)).ToArray());
+        if (r.Adds is { } adds) o["adds"] = new JsonArray(adds.Select(a => (JsonNode?)a).ToArray());
+        if (r.Sources is { } sources) o["sources"] = new JsonObject(sources.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)Json(kv.Value))));
         o["levels"] = new JsonArray(r.Levels.Select(l => (JsonNode?)Json(l)).ToArray());
         return o;
     }
@@ -84,6 +100,7 @@ public class PerfTests
     private static JsonObject Json(Knee k)
     {
         var o = new JsonObject { ["index"] = k.Index, ["load"] = k.Load };
+        if (k.Setting is { } setting) o["setting"] = Json(setting);
         if (k.By is { } by) o["by"] = new JsonObject { ["id"] = by.Id, ["kind"] = by.Kind, ["share"] = by.Share };
         else o["latency"] = new JsonObject { ["from"] = k.LatencyFrom, ["to"] = k.LatencyTo };
         return o;
@@ -119,7 +136,38 @@ public class PerfTests
         if (l.Capped) o["capped"] = true;
         if (l.Failure is not null) o["failure"] = l.Failure;
         if (l.Dots is { } dots) o["dots"] = dots;
+        if (l.Source is not null) o["source"] = l.Source;
+        if (l.Offset is { } offset) o["offset"] = offset;
         return o;
+    }
+
+    private static JsonObject Json(Dial d)
+    {
+        var o = new JsonObject { ["id"] = d.Id, ["name"] = d.Name, ["unit"] = d.Unit, ["values"] = new JsonArray(d.Values.Select(v => (JsonNode?)v).ToArray()) };
+        if (d.Source is { } source) o["source"] = Json(source);
+        o["color"] = d.Color;
+        return o;
+    }
+
+    private static JsonObject Json(SourcesKey key) => new()
+    {
+        ["sources"] = new JsonArray(key.Sources.Select(k =>
+        {
+            var o = new JsonObject { ["id"] = k.Id, ["name"] = k.Name };
+            if (k.Color is not null) o["color"] = k.Color;
+            if (k.Scale is not null) o["scale"] = k.Scale;
+            o["bigger"] = k.Bigger;
+            return (JsonNode?)o;
+        }).ToArray()),
+        ["scaledDown"] = key.ScaledDown,
+        ["other"] = key.Other,
+    };
+
+    private static IdMap<double> Setting(JsonNode? node)
+    {
+        var map = new IdMap<double>();
+        foreach (var (key, value) in node!.AsObject()) map.Add(key, value!.GetValue<double>());
+        return map;
     }
 
     private static JsonNode? Json(SourceKey? k)
@@ -290,6 +338,96 @@ public class PerfTests
                 Same(at["states"], new JsonObject(Perf.RunStates(run, t).Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)kv.Value))), $"{id} at {t}: the states");
             }
         }
+    }
+
+    [Fact]
+    public void Runs_that_add_others_or_are_tested_together_read_load_check_and_play_as_the_TypeScript_has_them()
+    {
+        var all = Expected()["sources"]!;
+        var runs = new IdMap<LoadRun>();
+        var problems = new List<Problem>();
+        foreach (var f in all["files"]!.AsArray())
+        {
+            var id = f!["id"]!.GetValue<string>();
+            var text = f["text"]!.GetValue<string>();
+            var file = $"perf/{id}.yaml";
+            if (f["error"] is { } error)
+            {
+                var e = Assert.Throws<ParseError>(() => Perf.ParseRun(id, text));
+                Assert.Equal(error["file"]!.GetValue<string>(), e.File);
+                Assert.Equal(error["message"]!.GetValue<string>(), e.Reason);
+                problems.Add(new Problem(file, null, e.Line is null ? e.Reason : $"line {e.Line}: {e.Reason}"));
+                continue;
+            }
+            var (run, found) = Perf.ParseRun(id, text);
+            Same(f["run"], Json(run), $"{id}: the run");
+            Same(f["problems"], Json(found), $"{id}: its problems");
+            runs.Add(id, run);
+            problems.AddRange(found);
+            problems.AddRange(Perf.CheckRun(id, run, Loaded.Model));
+        }
+        problems.AddRange(Perf.CheckRuns(runs));
+        Same(all["loaded"]!["problems"], Json(problems), "what loading them says");
+        var playable = runs.Where(kv => kv.Value.Adds is null || Perf.DialsOf(runs, kv.Key) is not null).Select(kv => kv.Key).ToList();
+        Assert.Equal(all["loaded"]!["runs"]!.AsArray().Select(r => r!.GetValue<string>()), playable);
+
+        foreach (var item in all["runs"]!.AsArray())
+        {
+            var id = item!["id"]!.GetValue<string>();
+            var dials = Perf.DialsOf(runs, id)!;
+            Assert.Equal(item["mode"]!.GetValue<string>(), dials.Mode);
+            Same(item["dials"], new JsonArray(dials.Items.Select(d => (JsonNode?)Json(d)).ToArray()), $"{id}: its dials");
+            Same(item["lockstep"], new JsonArray(Enumerable.Range(0, Perf.LockstepTop(dials.Items) + 1).Select(i => (JsonNode?)new JsonArray(Perf.LockstepPositions(dials.Items, i).Select(v => (JsonNode?)v).ToArray())).ToArray()), $"{id}: the steps of everything rising together");
+            Same(item["check"], Json(Perf.CheckRun(id, runs[id], Loaded.Model)), $"{id}: what the model does not back up");
+            var knee = Perf.KneeOf(runs, id);
+            Same(item["knee"], knee is null ? null : Json(knee), $"{id}: the knee");
+            Assert.Equal(item["text"]?.GetValue<string>(), knee is null ? null : Perf.KneeTextOf(runs, id, knee, oid => Views.NameOf(Loaded.Model, oid)));
+            foreach (var at in item["settings"]!.AsArray())
+            {
+                var setting = Setting(at!["setting"]);
+                var level = Perf.LevelAt(runs, id, setting);
+                Same(at["level"], Json(level), $"{id} at {at["setting"]!.ToJsonString()}: the level");
+                foreach (var t in at["traffic"]!.AsArray())
+                {
+                    var view = t!["view"]!.GetValue<string>();
+                    var drawn = Perf.TrafficAt(Loaded.Model, runs, id, setting, view);
+                    var expected = t.DeepClone().AsObject();
+                    expected.Remove("key");
+                    Same(expected, Json(drawn, view), $"{id} at {at["setting"]!.ToJsonString()} in {view}: the traffic");
+                    Same(t["key"], Json(Perf.SourceKeyAt(runs, id, drawn.Lines)), $"{id} at {at["setting"]!.ToJsonString()} in {view}: the key");
+                }
+                foreach (var r in at["rolled"]!.AsArray())
+                {
+                    var view = r!["view"]!.GetValue<string>();
+                    var (objects, lines) = Perf.RollUp(Loaded.Model, level, view);
+                    var actual = Json(lines, objects);
+                    actual["view"] = view;
+                    Same(r, actual, $"{id} at {at["setting"]!.ToJsonString()} in {view}: the roll-up");
+                }
+            }
+        }
+        foreach (var p in all["positions"]!.AsArray())
+        {
+            var values = p!["values"]!.AsArray().Select(v => v!.GetValue<double>()).ToList();
+            Assert.Equal(p["load"]!.GetValue<double>(), Perf.LoadOfPosition(values, p["pos"]!.GetValue<double>()));
+        }
+    }
+
+    [Fact]
+    public void A_folder_loads_a_run_that_adds_others_and_leaves_out_one_with_fewer_than_two_to_add()
+    {
+        using var temp = new TempDir();
+        temp.Write("model.yaml", "objects:\n  web: { type: actor, name: Web }\n  api: { type: actor, name: API }\nconnections:\n  - { from: web, to: api, label: calls }\n");
+        const string good = "name: Ramp\nunit: req/s\nlevels:\n  - { load: 10, objects: { api: { util: 0.2 } }, connections: [{ from: web, to: api, rate: 10 }] }\n  - { load: 20, objects: { api: { util: 0.4 } } }\n";
+        temp.Write("perf/ramp.yaml", good);
+        temp.Write("perf/ramp-too.yaml", good.Replace("name: Ramp", "name: Ramp too"));
+        temp.Write("perf/both.yaml", "name: Both\nadds: [ramp, ramp-too, ghost]\n");
+        temp.Write("perf/lonely.yaml", "name: Lonely\nadds: [ramp, ghost]\n");
+        var folder = FolderLoader.Load(temp.Dir);
+        Assert.Equal(["both", "ramp-too", "ramp"], folder.Runs!.Keys);
+        Assert.Equal(
+            ["perf/both.yaml adds \"ghost\", which is not a run", "perf/lonely.yaml adds \"ghost\", which is not a run", "perf/lonely.yaml can't be played: fewer than two of the runs it adds can be added"],
+            folder.RunProblems!.Select(p => $"{p.File} {p.Message}"));
     }
 
     [Fact]

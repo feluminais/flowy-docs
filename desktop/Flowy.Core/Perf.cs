@@ -40,13 +40,31 @@ public record Metrics
     public bool IsEmpty => Util is null && Queue is null && Errors is null && Rate is null && Bytes is null && P50 is null && P95 is null;
 }
 
-/// <summary>What one connection measured, or one line in a view once connections are rolled up. <c>Failure</c> is how its failing share fails when it says (lost or rejected).</summary>
+/// <summary>
+/// What one connection measured, or one line in a view once connections are rolled up. <c>Failure</c> is how its failing share fails when it says (lost or rejected).
+/// <c>By</c> splits what the line carries between the sources of a run that has several: each source's own rate, bytes, p50 and errors. Null for a line that doesn't say.
+/// </summary>
 public sealed record Pair(string From, string To) : Metrics
 {
     public string? Failure { get; init; }
+
+    public IdMap<Metrics>? By { get; init; }
 }
 
-public sealed record Level(double Load, Metrics Overall, IdMap<Metrics> Objects, IReadOnlyList<Pair> Connections);
+/// <summary>
+/// What was measured at one load (or one time). A run tested with several sources has no single load: its levels carry <c>Loads</c>, a load for each source (and <c>Load</c> is 0,
+/// unused). The level of a run with several sources at a setting has <c>Loads</c> too, as the setting it was worked out at.
+/// </summary>
+public sealed record Level(double Load, Metrics Overall, IdMap<Metrics> Objects, IReadOnlyList<Pair> Connections)
+{
+    public IdMap<double>? Loads { get; init; }
+}
+
+/// <summary>
+/// One of the sources of a run that was tested with several at once: a name, the unit of its load, the shape its requests enter at, and how to draw them
+/// (the colour and the two formulas of a single run's <c>source:</c>, kept as a <see cref="Source"/>).
+/// </summary>
+public sealed record SourceInfo(string Name, string? Entry, string Unit, Source? Source);
 
 /// <summary>A formula as the run wrote it. Only the text is kept, as in perf.ts, where a run travels to the browser as JSON: the formula is read from the text where it is used.</summary>
 public sealed record SourceFormula(string Text);
@@ -65,6 +83,12 @@ public sealed record LoadRun(string Name, string? About, string Unit, string? En
 {
     public bool IsTime { get; init; }
 
+    /// <summary>The ids of the runs this run adds (and it has no levels of its own), or null. Read what a run means through <see cref="Perf.DialsOf"/>, never from this.</summary>
+    public IReadOnlyList<string>? Adds { get; init; }
+
+    /// <summary>The sources of a run tested together, in the order they are listed, or null.</summary>
+    public IdMap<SourceInfo>? Sources { get; init; }
+
     /// <summary>The events in time order (later in the file last among those at one time). None for a load run.</summary>
     public IReadOnlyList<RunEvent> Events { get; init; } = [];
 }
@@ -75,8 +99,14 @@ public sealed record Strain(double Value, string By, double Share);
 /// <summary>What decided a knee: the object that is worst, and why.</summary>
 public sealed record KneeBy(string Id, string Kind, double Share);
 
-/// <summary>Where a run first struggles: a tested level, and either the object worst there (<see cref="By"/>) or, with none to blame, the latency (<see cref="LatencyFrom"/> to <see cref="LatencyTo"/>).</summary>
-public sealed record Knee(int Index, double Load, KneeBy? By, double? LatencyFrom = null, double? LatencyTo = null);
+/// <summary>
+/// Where a run first struggles: a tested level, and either the object worst there (<see cref="By"/>) or, with none to blame, the latency (<see cref="LatencyFrom"/> to <see cref="LatencyTo"/>).
+/// A run with several sources has no single load: its knee is a step of the sources rising together (<c>Index</c>) and <c>Setting</c> says where each stood (<c>Load</c> is 0).
+/// </summary>
+public sealed record Knee(int Index, double Load, KneeBy? By, double? LatencyFrom = null, double? LatencyTo = null)
+{
+    public IdMap<double>? Setting { get; init; }
+}
 
 public sealed record BoxTraffic(double? Strain, int Queue);
 
@@ -96,6 +126,12 @@ public sealed record LineTraffic(string From, string To, double Width, double Pe
     public string? Failure { get; init; }
 
     public double? Dots { get; init; }
+
+    /// <summary>The dial this entry is for, when several sources share the line; null for a run with one.</summary>
+    public string? Source { get; init; }
+
+    /// <summary>How far from the middle of the line its dots run, in steps of a dot's width, when several sources share it.</summary>
+    public double? Offset { get; init; }
 }
 
 /// <summary>The pieces the Performance key draws for a run's source (see <see cref="Perf.SourceKeyOf"/>).</summary>
@@ -120,11 +156,29 @@ public sealed record LoadFrame(IdMap<Metrics> Objects, IReadOnlyList<Pair> Lines
 /// Load-test runs, read and played back. A port of src/core/perf.ts, kept equal to it by the fixtures in desktop/fixtures/perf.ts: a run
 /// is parsed the same way (and its problems worded the same), and between two tested levels the numbers are interpolated and never predicted.
 /// </summary>
-public static class Perf
+public static partial class Perf
 {
     private static readonly string[] ObjectKeys = ["util", "queue", "errors"];
     private static readonly string[] EdgeKeys = ["rate", "bytes", "p50", "p95", "errors"];
     private static readonly string[] SourceKeys = ["color", "dot", "size"];
+
+    /// <summary>What a tested-together source may say: its own name, entry and unit, and the three of a single run's <c>source:</c>.</summary>
+    private static readonly string[] SourceInfoKeys = ["name", "entry", "unit", .. SourceKeys];
+
+    /// <summary>The numbers a source may give for one line (<c>by</c>).</summary>
+    private static readonly string[] ByKeys = ["rate", "bytes", "p50", "errors"];
+
+    /// <summary>Most runs one run may add, and most sources a run may be tested with.</summary>
+    public const int MostAdded = 4;
+
+    public const int MostTested = 3;
+
+    /// <summary>
+    /// The colours a source takes when it names none, in the order the sources are listed. Red is left out: it is the colour of a call that fails. A source that names a colour
+    /// keeps it, and one that doesn't takes the first of these that no other source draws in (see <see cref="DialsOf"/>).
+    /// </summary>
+    public static readonly string[] SourcePalette = ["blue", "green", "orange", "indigo"];
+
     private static readonly string[] Failures = ["lost", "rejected"];
     private static readonly string[] Axes = ["load", "time"];
     private static readonly string UseState = $"use {string.Join(", ", States.Names)}";
@@ -183,26 +237,35 @@ public static class Perf
             add("source must be a mapping of color, dot and size");
             return null;
         }
-        foreach (var key in map.Keys)
-            if (!SourceKeys.Contains(key)) add($"source: unknown key \"{Brief(key)}\" (use {string.Join(", ", SourceKeys)})");
+        return ReadSourceKeys(map, SourceKeys, "source", add);
+    }
+
+    /// <summary>
+    /// The colour and the two formulas in a mapping: a single run's <c>source:</c> block, or one of the sources of a run tested together (which also says its name, entry and unit, so
+    /// <paramref name="allowed"/> is wider). <paramref name="label"/> starts each problem. What is wrong is left out; a block with nothing usable in it is no source.
+    /// </summary>
+    private static Source? ReadSourceKeys(OrderedDictionary<string, object?> map, string[] allowed, string label, Action<string> add)
+    {
+        foreach (var key in JsKeys.Order(map.Keys))
+            if (!allowed.Contains(key)) add($"{label}: unknown key \"{Brief(key)}\" (use {string.Join(", ", allowed)})");
         string? color = null;
         if (ModelFiles.OrEmpty(map.TryGetValue("color", out var c) ? c : null, null) is { } colorValue)
         {
             if (colorValue is string text && Look.IsColor(text)) color = text;
-            else add("source: color must be a colour name or a hex such as #1d9e75");
+            else add($"{label}: color must be a colour name or a hex such as #1d9e75");
         }
         SourceFormula? ReadFormula(string key, string example)
         {
             if (ModelFiles.OrEmpty(map.TryGetValue(key, out var f) ? f : null, null) is not { } value) return null;
             if (value is not string text)
             {
-                add($"source: {key} must be a formula such as {example}");
+                add($"{label}: {key} must be a formula such as {example}");
                 return null;
             }
             var read = Formulas.Parse(text);
             if (read.Formula is null)
             {
-                add($"source: {key} {read.Problem}"); // a formula that can't be read leaves the default curve in its place
+                add($"{label}: {key} {read.Problem}"); // a formula that can't be read leaves the default curve in its place
                 return null;
             }
             return new SourceFormula(text);
@@ -210,6 +273,22 @@ public static class Perf
         var dot = ReadFormula("dot", "rate / 50");
         var size = ReadFormula("size", "bytes / 400");
         return color is null && dot is null && size is null ? null : new Source(color, dot, size);
+    }
+
+    /// <summary>Whether two colours draw the same: a name and its own hex are one colour.</summary>
+    private static bool SameColor(string a, string b) => Look.ColorPair(a) is { } pa && Look.ColorPair(b) is { } pb && pa.Light == pb.Light && pa.Dark == pb.Dark;
+
+    /// <summary>A problem for each of the colours (in the order they come) that draws the same as an earlier one, naming the sources by <paramref name="names"/>.</summary>
+    private static void SharedColors(IReadOnlyList<string?> colors, IReadOnlyList<string> names, Action<string> add)
+    {
+        for (var i = 0; i < colors.Count; i++)
+        {
+            if (colors[i] is not { } c) continue;
+            var first = -1;
+            for (var j = 0; j < colors.Count && first < 0; j++)
+                if (colors[j] is { } d && SameColor(c, d)) first = j;
+            if (first != i) add($"{names[first]} and {names[i]} both draw in {Brief(c)}: give each its own colour");
+        }
     }
 
     private static readonly Dictionary<string, Formula?> Read = [];
@@ -316,13 +395,34 @@ public static class Perf
         var name = Word("name");
         if (name is null) Add("name is missing");
         var about = Word("about");
+        var axisValue = ModelFiles.OrEmpty(doc.TryGetValue("axis", out var a) ? a : null, null);
+
+        // A run that adds others is a list of runs and nothing else: no levels of its own, no source (each run it adds has its own).
+        if (ModelFiles.OrEmpty(doc.TryGetValue("adds", out var addsValue) ? addsValue : null, null) is { } addsText)
+        {
+            if (addsText is not List<object?> addsList) throw new ParseError(file, "\"adds\" must be a list of run ids");
+            var adds = ReadAdds(id, file, addsList, Add);
+            foreach (var own in new[] { "levels", "sources", "source" })
+                if (ModelFiles.OrEmpty(doc.TryGetValue(own, out var ownValue) ? ownValue : null, null) is not null) Add($"a run that adds others has no {own} of its own");
+            if (axisValue is "time") Add("a run that adds others is measured over load, not time");
+            return (new LoadRun(name ?? id, about, "", null, [], null) { Adds = adds }, problems);
+        }
+
+        // A run tested with several sources at once: its levels name a load for each.
+        var sources = ModelFiles.OrEmpty(doc.TryGetValue("sources", out var sourcesValue) ? sourcesValue : null, null) is { } sourcesText ? ReadSources(file, sourcesText, Add) : null;
         var unit = Word("unit");
         var entry = Word("entry");
+        if (sources is not null)
+        {
+            if (entry is not null) Add("entry is for a single run: a run with sources gives each source its own entry");
+            if (ModelFiles.OrEmpty(doc.TryGetValue("source", out var ownSource) ? ownSource : null, null) is not null)
+                Add("source is for a single run: a run with sources gives each source its own color, dot and size");
+            if (axisValue is "time") Add("a run with sources is measured over load, not time");
+        }
         doc.TryGetValue("source", out var sourceValue);
-        var source = ReadSource(sourceValue, Add);
-        var axisValue = ModelFiles.OrEmpty(doc.TryGetValue("axis", out var a) ? a : null, null);
-        var axis = Axes.FirstOrDefault(x => x.Equals(axisValue)) ?? "load"; // a run says what it is measured over, or is a load run
-        if (axisValue is not null && !Axes.Any(x => x.Equals(axisValue))) Add($"axis must be {string.Join(" or ", Axes)}");
+        var source = sources is null ? ReadSource(sourceValue, Add) : null;
+        var axis = sources is null ? Axes.FirstOrDefault(x => x.Equals(axisValue)) ?? "load" : "load"; // a run says what it is measured over, or is a load run
+        if (sources is null && axisValue is not null && !Axes.Any(x => x.Equals(axisValue))) Add($"axis must be {string.Join(" or ", Axes)}");
         // The key a level carries its number under, and the other one, which is the commonest slip: a time run written with load, or a load run with at.
         var key = axis == "time" ? "at" : "load";
         var other = axis == "time" ? "load" : "at";
@@ -338,8 +438,13 @@ public static class Perf
             if (map.ContainsKey(other)) Add($"{at}: a {axis} run uses {key}, not {other}");
             // The wrong key is told off above and still gives the number, so the run plays.
             var loadValue = map.TryGetValue(key, out var own) && own is not null ? own : map.TryGetValue(other, out var wrong) ? wrong : null;
-            if (Num(loadValue) is not { } load || load < 0) throw new ParseError(file, $"{at}: {key} must be a number, 0 or more");
-            string Where(string what) => $"{key} {Js(load)}, {what}";
+            // A run with sources names a load for each (and has no single one); any other run has one number.
+            var loads = sources is null ? null : ReadLoads(file, at, loadValue, sources);
+            var number = loads is null ? Num(loadValue) : 0;
+            if (number is not { } load || load < 0)
+                throw new ParseError(file, loadValue is OrderedDictionary<string, object?> ? $"{at}: {key} is a mapping of sources, but the run has no sources" : $"{at}: {key} must be a number, 0 or more");
+            var lead = loads is null ? $"{key} {Js(load)}" : DescribeLoads(loads);
+            string Where(string what) => $"{lead}, {what}";
 
             map.TryGetValue("overall", out var overallValue);
             if (ModelFiles.OrEmpty(overallValue, new OrderedDictionary<string, object?>()) is not OrderedDictionary<string, object?> rawOverall)
@@ -375,22 +480,220 @@ public static class Perf
                 }
                 var label = Where($"{f} → {t}");
                 var failure = ReadFailure(c.TryGetValue("failure", out var failureValue) ? failureValue : null, label, Add);
+                var by = ReadBy(c.TryGetValue("by", out var byValue) ? byValue : null, sources, label, Add);
                 var read = ReadMetrics(EdgeKeys, c, label, Add);
-                connections.Add(new Pair(f, t) { Rate = read.Rate, Bytes = read.Bytes, P50 = read.P50, P95 = read.P95, Errors = read.Errors, Failure = failure });
+                connections.Add(new Pair(f, t) { Rate = read.Rate, Bytes = read.Bytes, P50 = read.P50, P95 = read.P95, Errors = read.Errors, Failure = failure, By = by });
             }
-            return new Level(load, overall, objects, connections);
+            return new Level(load, overall, objects, connections) { Loads = loads };
         }
 
-        var levels = rawLevels.Select(ReadLevel).ToList();
-        for (var i = 1; i < levels.Count; i++)
-            if (levels[i].Load <= levels[i - 1].Load)
-                throw new ParseError(file, $"level {i + 1}: {key} {Js(levels[i].Load)} must be above {Js(levels[i - 1].Load)} (levels go up in {axis})");
+        var parsed = rawLevels.Select(ReadLevel).ToList();
+        if (sources is null)
+        {
+            for (var i = 1; i < parsed.Count; i++)
+                if (parsed[i].Load <= parsed[i - 1].Load)
+                    throw new ParseError(file, $"level {i + 1}: {key} {Js(parsed[i].Load)} must be above {Js(parsed[i - 1].Load)} (levels go up in {axis})");
+        }
+        var levels = sources is null ? parsed : GridOf(file, sources, parsed);
         // Events belong to a time run. On a load run they are a problem and are not read.
         var rawEvents = ModelFiles.OrEmpty(doc.TryGetValue("events", out var ev) ? ev : null, null);
         if (axis == "load" && rawEvents is not null) Add("events are only for a time run (set axis: time)");
-        var runUnit = unit ?? (axis == "time" ? "s" : "load");
+        var runUnit = sources is null ? unit ?? (axis == "time" ? "s" : "load") : ""; // a run with sources has no unit of its own: each source has one
         var events = axis == "time" ? ReadEvents(rawEvents, levels[0].Load, levels[^1].Load, runUnit, Add) : [];
-        return (new LoadRun(name ?? id, about, runUnit, entry, levels, source) { IsTime = axis == "time", Events = events }, problems);
+        return (new LoadRun(name ?? id, about, runUnit, sources is null ? entry : null, levels, source) { IsTime = axis == "time", Events = events, Sources = sources }, problems);
+    }
+
+    /// <summary>
+    /// The runs a run that adds others lists. A slip is a problem and what is wrong is left out: an item that isn't a run id, the run itself, an id listed twice, more than
+    /// <see cref="MostAdded"/> (the rest are left out). Fewer than two left can't be played, so that is a <see cref="ParseError"/>. Whether the runs exist is for <see cref="CheckRuns"/>.
+    /// </summary>
+    private static List<string> ReadAdds(string id, string file, List<object?> list, Action<string> add)
+    {
+        var output = new List<string>();
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (list[i] is not string { } item || item.Trim() == "")
+            {
+                add($"adds: item {i + 1} must be a run id");
+                continue;
+            }
+            var run = item.Trim();
+            if (run == id) add($"adds: {id} can't add itself");
+            else if (output.Contains(run)) add($"adds: {Brief(run)} is listed twice");
+            else output.Add(run);
+        }
+        if (output.Count > MostAdded)
+        {
+            add($"adds: at most four runs, so {string.Join(", ", output.Skip(MostAdded).Select(Brief))} left out");
+            output.RemoveRange(MostAdded, output.Count - MostAdded);
+        }
+        if (output.Count < 2) throw new ParseError(file, $"adds needs two to four runs, not {output.Count}");
+        return output;
+    }
+
+    /// <summary>
+    /// The <c>sources:</c> of a run tested together: 2 to <see cref="MostTested"/>, each a mapping with a name, a unit, an entry and the colour and formulas of a single run's source.
+    /// A slip in one is a problem and is left out of it. What can't be played is a <see cref="ParseError"/>: not a mapping, the wrong count, an id that isn't one, a source that isn't a mapping.
+    /// </summary>
+    private static IdMap<SourceInfo> ReadSources(string file, object raw, Action<string> add)
+    {
+        if (raw is not OrderedDictionary<string, object?> map) throw new ParseError(file, "\"sources\" must map each source id to its name, unit and entry");
+        var ids = JsKeys.Order(map.Keys);
+        if (ids.Count < 2 || ids.Count > MostTested) throw new ParseError(file, $"sources needs two or three sources, not {ids.Count}");
+        var output = new IdMap<SourceInfo>();
+        foreach (var sid in ids)
+        {
+            if (!Names.IsValidId(sid)) throw new ParseError(file, $"source \"{Brief(sid)}\" is not a valid id: the id must {Names.IdRule}");
+            if (ModelFiles.OrEmpty(map[sid], new OrderedDictionary<string, object?>()) is not OrderedDictionary<string, object?> block)
+                throw new ParseError(file, $"source {sid} must be a mapping of name, unit and entry");
+            var label = $"source {sid}";
+            var source = ReadSourceKeys(block, SourceInfoKeys, label, add);
+            string? Text(string key)
+            {
+                var v = ModelFiles.OrEmpty(block.TryGetValue(key, out var found) ? found : null, null);
+                if (v is null) return null;
+                if (v is not string s)
+                {
+                    add($"{label}: {key} must be plain text");
+                    return null;
+                }
+                return s.Trim() == "" ? null : s;
+            }
+            var name = Text("name");
+            if (name is null) add($"{label}: name is missing");
+            var entry = Text("entry");
+            output.Add(sid, new SourceInfo(name ?? sid, entry, Text("unit") ?? "load", source));
+        }
+        SharedColors([.. ids.Select(sid => output[sid].Source?.Color)], [.. ids.Select(sid => output[sid].Name)], add);
+        return output;
+    }
+
+    /// <summary>The load a level of a run tested together names for each source. Anything else is a <see cref="ParseError"/>: a level that can't be placed on the grid.</summary>
+    private static IdMap<double> ReadLoads(string file, string at, object? raw, IdMap<SourceInfo> sources)
+    {
+        var ids = string.Join(", ", sources.Keys);
+        if (raw is not OrderedDictionary<string, object?> map) throw new ParseError(file, $"{at}: load must give a number for each source ({ids})");
+        foreach (var sid in JsKeys.Order(map.Keys))
+            if (!sources.Contains(sid)) throw new ParseError(file, $"{at}: load names \"{Brief(sid)}\", which is not a source ({ids})");
+        var output = new IdMap<double>();
+        foreach (var sid in sources.Keys)
+        {
+            if (Num(map.TryGetValue(sid, out var v) ? v : null) is not { } n || n < 0) throw new ParseError(file, $"{at}: load: {sid} must be a number, 0 or more");
+            output.Add(sid, n);
+        }
+        return output;
+    }
+
+    /// <summary>The loads of a level, in words: "orders 100 and pings 50".</summary>
+    private static string DescribeLoads(IdMap<double> loads) => string.Join(" and ", loads.Select(kv => $"{kv.Key} {Js(kv.Value)}"));
+
+    /// <summary>
+    /// The levels of a run tested together as a full grid: every load that any level names for a source, with every load of the others. Each source needs two loads, a combination may be
+    /// listed once, and a combination that is not listed is the one problem, naming the first in grid order (the first source changes slowest). The levels come back in that order.
+    /// </summary>
+    private static List<Level> GridOf(string file, IdMap<SourceInfo> sources, List<Level> levels)
+    {
+        var ids = sources.Keys;
+        var values = ids.Select(sid => levels.Select(l => l.Loads![sid]).Distinct().Order().ToList()).ToList();
+        for (var i = 0; i < ids.Count; i++)
+            if (values[i].Count < 2) throw new ParseError(file, $"source {ids[i]} needs at least two loads, so there is something to play between");
+        string KeyOf(IdMap<double> loads) => string.Join(",", ids.Select(sid => Js(loads[sid])));
+        var listed = new Dictionary<string, int>();
+        for (var i = 0; i < levels.Count; i++)
+        {
+            var key = KeyOf(levels[i].Loads!);
+            if (listed.TryGetValue(key, out var first)) throw new ParseError(file, $"level {i + 1}: {DescribeLoads(levels[i].Loads!)} is listed twice (level {first + 1} has it)");
+            listed[key] = i;
+        }
+        var ordered = new List<Level>();
+        void Walk(int i, List<double> picked)
+        {
+            if (i == ids.Count)
+            {
+                var loads = new IdMap<double>();
+                for (var j = 0; j < ids.Count; j++) loads.Add(ids[j], picked[j]);
+                if (!listed.TryGetValue(KeyOf(loads), out var at))
+                    throw new ParseError(file, $"no level for {DescribeLoads(loads)}: a run tested together needs every load of each source with every load of the others");
+                ordered.Add(levels[at]);
+                return;
+            }
+            foreach (var v in values[i]) Walk(i + 1, [.. picked, v]);
+        }
+        Walk(0, []);
+        return ordered;
+    }
+
+    /// <summary>
+    /// The <c>by:</c> of a connection: what each source of a run with sources carries on that line, as its own rate, bytes, p50 and errors. A slip is a problem and is left out: <c>by</c> in a
+    /// run without sources, one that isn't a mapping, a source it doesn't have, a key that isn't one of the four. A source with no usable number is left out.
+    /// </summary>
+    private static IdMap<Metrics>? ReadBy(object? raw, IdMap<SourceInfo>? sources, string where, Action<string> add)
+    {
+        var block = ModelFiles.OrEmpty(raw, null);
+        if (block is null) return null;
+        if (sources is null)
+        {
+            add($"{where}: by is for a run with sources");
+            return null;
+        }
+        if (block is not OrderedDictionary<string, object?> map)
+        {
+            add($"{where}: by must map a source to its numbers");
+            return null;
+        }
+        var output = new IdMap<Metrics>();
+        foreach (var sid in JsKeys.Order(map.Keys))
+        {
+            if (!sources.Contains(sid))
+            {
+                add($"{where}: by names \"{Brief(sid)}\", which is not a source");
+                continue;
+            }
+            if (ModelFiles.OrEmpty(map[sid], new OrderedDictionary<string, object?>()) is not OrderedDictionary<string, object?> entry)
+            {
+                add($"{where}: by {sid} must be a mapping of numbers");
+                continue;
+            }
+            foreach (var key in JsKeys.Order(entry.Keys))
+                if (!ByKeys.Contains(key)) add($"{where}: by {sid}: unknown key \"{Brief(key)}\" (use {string.Join(", ", ByKeys)})");
+            var m = ReadMetrics(ByKeys, entry, $"{where}, {sid}", add);
+            if (!m.IsEmpty) output.Add(sid, m);
+        }
+        return output.Count == 0 ? null : output;
+    }
+
+    /// <summary>
+    /// What a run says about other runs, which one run alone can't see: each run an adder lists must be a load run of its own (not missing, not a run over time, not another adder, not
+    /// tested with several sources), and two of them may not draw in one colour. An adder with fewer than two runs it can add can't be played: the loader leaves it out (see
+    /// <see cref="DialsOf"/>). Each problem names the run it is about.
+    /// </summary>
+    public static IReadOnlyList<Problem> CheckRuns(IdMap<LoadRun> runs)
+    {
+        var problems = new List<Problem>();
+        foreach (var (id, run) in runs)
+        {
+            if (run.Adds is not { } adds) continue;
+            void Add(string message) => problems.Add(new Problem($"perf/{id}.yaml", null, message));
+            var good = new List<string>();
+            foreach (var part in adds)
+            {
+                if (WhyNotAdded(runs, part) is { } why) Add($"adds \"{Brief(part)}\", {why}");
+                else good.Add(part);
+            }
+            if (good.Count < 2) Add("can't be played: fewer than two of the runs it adds can be added");
+            else SharedColors([.. good.Select(part => runs[part].Source?.Color)], [.. good.Select(part => runs[part].Name)], Add);
+        }
+        return problems;
+    }
+
+    /// <summary>Why a run can't be one of those an adder adds, or null when it can: it is a load run with levels of its own, and one source.</summary>
+    private static string? WhyNotAdded(IdMap<LoadRun> runs, string id)
+    {
+        if (!runs.TryGetValue(id, out var run)) return "which is not a run";
+        if (run.Adds is not null) return "which adds runs itself";
+        if (run.Sources is not null) return "which is tested with several sources";
+        if (run.IsTime) return "which is a run over time";
+        return null;
     }
 
     /// <summary>
@@ -407,6 +710,8 @@ public static class Perf
             if (said.Add(message)) problems.Add(new Problem(file, null, message));
         }
         if (run.Entry is { } entry && model.GetObject(entry) is null) Once($"entry \"{entry}\" is not an object");
+        foreach (var (sid, info) in run.Sources ?? new IdMap<SourceInfo>())
+            if (info.Entry is { } sourceEntry && model.GetObject(sourceEntry) is null) Once($"source {sid}: entry \"{sourceEntry}\" is not an object");
         foreach (var level in run.Levels)
         {
             foreach (var oid in level.Objects.Keys)
@@ -567,14 +872,17 @@ public static class Perf
                 Rate = Either(so?.Rate, c.Rate, (a, b) => a + b), P50 = Either(so?.P50, c.P50, Math.Max), P95 = Either(so?.P95, c.P95, Math.Max), Errors = Either(so?.Errors, c.Errors, Math.Max),
             };
             var size = so is null ? new Sizes() : sizes[at];
-            if (c.Bytes is { } bytes)
+            size.TakeBytes(c.Bytes, c.Rate);
+            // What each source carries on the line is rolled up the same way, source by source.
+            if (c.By is { } by)
             {
-                size.Sum += bytes;
-                size.N++;
-                if (c.Rate is { } rate)
+                foreach (var (sid, m) in by)
                 {
-                    size.Weighted += bytes * rate;
-                    size.Weight += rate;
+                    if (!size.By.TryGetValue(sid, out var share)) size.By[sid] = share = new Share();
+                    share.Rate = Either(share.Rate, m.Rate, (a, b) => a + b);
+                    share.P50 = Either(share.P50, m.P50, Math.Max);
+                    share.Errors = Either(share.Errors, m.Errors, Math.Max);
+                    share.TakeBytes(m.Bytes, m.Rate);
                 }
             }
             if (c.Failure is { } failure && !size.Failures.Contains(failure)) size.Failures.Add(failure);
@@ -589,8 +897,8 @@ public static class Perf
         return (objects, lines.Select((line, i) => WithSizes(line, sizes[i])).ToList());
     }
 
-    /// <summary>What the connections that land on one line say about the size of a call and how its failing share fails, as <see cref="RollUp"/> collects them.</summary>
-    private sealed class Sizes
+    /// <summary>The sizes of calls seen so far, for a mean that is weighted by rate (<c>Weighted</c> over <c>Weight</c>) or, with no rates, plain (<c>Sum</c> over <c>N</c>).</summary>
+    private class Mean
     {
         public double Weighted { get; set; }
 
@@ -600,7 +908,44 @@ public static class Perf
 
         public int N { get; set; }
 
+        /// <summary>The size of a call a connection gives, if it gives one, counted in; the rate it gives is its weight.</summary>
+        public void TakeBytes(double? bytes, double? rate)
+        {
+            if (bytes is not { } b) return;
+            Sum += b;
+            N++;
+            if (rate is not { } r) return;
+            Weighted += b * r;
+            Weight += r;
+        }
+
+        /// <summary>The mean size of a call: weighted by rate (a connection with no rate has no weight); with no rates at all it is the plain mean; none given is none.</summary>
+        public double? Bytes
+        {
+            get
+            {
+                double? v = Weight > 0 ? Weighted / Weight : N > 0 ? Sum / N : null;
+                return v is { } d && double.IsFinite(d) ? d : null; // an overflowing weighted sum is no number, not Infinity
+            }
+        }
+    }
+
+    /// <summary>What one source carries on a line, as <see cref="RollUp"/> collects it from the connections that land there.</summary>
+    private sealed class Share : Mean
+    {
+        public double? Rate { get; set; }
+
+        public double? P50 { get; set; }
+
+        public double? Errors { get; set; }
+    }
+
+    /// <summary>What the connections that land on one line say about the size of a call, how its failing share fails and what each source carries, as <see cref="RollUp"/> collects them.</summary>
+    private sealed class Sizes : Mean
+    {
         public List<string> Failures { get; } = [];
+
+        public OrderedDictionary<string, Share> By { get; } = [];
     }
 
     /// <summary>
@@ -608,18 +953,25 @@ public static class Perf
     /// with no rate has no weight; with no rates at all it is the plain mean). The failure style is the one the connections that name one agree on; if they
     /// differ there is none, and a connection that names none doesn't veto.
     /// </summary>
-    /// <summary>The number, or null when it overflowed to infinity or is not a number.</summary>
-    private static double? FiniteOrNull(double? v) => v is { } d && double.IsFinite(d) ? d : null;
-
-    private static Pair WithSizes(Pair line, Sizes size) => new(line.From, line.To)
+    private static Pair WithSizes(Pair line, Sizes size)
     {
-        Rate = line.Rate,
-        Bytes = FiniteOrNull(size.Weight > 0 ? size.Weighted / size.Weight : size.N > 0 ? size.Sum / size.N : null),
-        P50 = line.P50,
-        P95 = line.P95,
-        Errors = line.Errors,
-        Failure = size.Failures.Count == 1 ? size.Failures[0] : null,
-    };
+        var by = new IdMap<Metrics>();
+        foreach (var (sid, s) in size.By)
+        {
+            var m = new Metrics { Rate = s.Rate, Bytes = s.Bytes, P50 = s.P50, Errors = s.Errors };
+            if (!m.IsEmpty) by.Add(sid, m);
+        }
+        return new Pair(line.From, line.To)
+        {
+            Rate = line.Rate,
+            Bytes = size.Bytes,
+            P50 = line.P50,
+            P95 = line.P95,
+            Errors = line.Errors,
+            Failure = size.Failures.Count == 1 ? size.Failures[0] : null,
+            By = by.Count > 0 ? by : null,
+        };
+    }
 
     /// <summary>A shape this strained is "struggling" (see <see cref="FindKnee"/>).</summary>
     public const double KneeStrain = 0.85;
@@ -637,28 +989,36 @@ public static class Perf
         for (var index = 0; index < run.Levels.Count; index++)
         {
             var level = run.Levels[index];
-            (string Id, string Kind, double Share, double Value)? worst = null;
-            foreach (var (id, m) in level.Objects)
-            {
-                if (StrainOf(m) is { } s && (worst is null || s.Value > worst.Value.Value)) worst = (id, s.By, s.Share, s.Value);
-            }
-            if (worst is { } w && w.Value >= KneeStrain) return new Knee(index, level.Load, new KneeBy(w.Id, w.Kind, w.Share));
-            var p95 = level.Overall.P95;
-            if (baseline is > 0 && p95 is { } p && p >= KneeLatency * baseline.Value) return new Knee(index, level.Load, null, baseline, p);
+            if (Struggle(level, baseline) is { } found) return found with { Index = index, Load = level.Load };
         }
+        return null;
+    }
+
+    /// <summary>What gives out at a level: the object that is worst there if it is strained to <see cref="KneeStrain"/>, else the latency if the slowest 5% passed <see cref="KneeLatency"/> times <paramref name="baseline"/>.</summary>
+    private static Knee? Struggle(Level level, double? baseline)
+    {
+        (string Id, string Kind, double Share, double Value)? worst = null;
+        foreach (var (id, m) in level.Objects)
+        {
+            if (StrainOf(m) is { } s && (worst is null || s.Value > worst.Value.Value)) worst = (id, s.By, s.Share, s.Value);
+        }
+        if (worst is { } w && w.Value >= KneeStrain) return new Knee(0, 0, new KneeBy(w.Id, w.Kind, w.Share));
+        var p95 = level.Overall.P95;
+        if (baseline is > 0 && p95 is { } p && p >= KneeLatency * baseline.Value) return new Knee(0, 0, null, baseline, p);
         return null;
     }
 
     private static string Pct(double n) => $"{Js(JsRound(n * 100))}%";
 
-    /// <summary>The sentence under the Performance panel's strip. <paramref name="nameOf"/> turns an object id into the name a reader sees.</summary>
-    public static string KneeText(LoadRun run, Knee k, Func<string, string> nameOf)
+    /// <summary>What gives out, in words: "Fleet DB at 90% of capacity", "the slowest 5% of calls go from 100 ms to 420 ms".</summary>
+    private static string StruggleText(Knee k, Func<string, string> nameOf)
     {
-        var at = $"{Js(k.Load)} {run.Unit}";
-        if (k.By is { } by)
-            return $"First struggles at {at}: {nameOf(by.Id)} {(by.Kind == "util" ? $"at {Pct(by.Share)} of capacity" : $"failing {Pct(by.Share)} of calls")}";
-        return $"First struggles at {at}: the slowest 5% of calls go from {Js(JsRound(k.LatencyFrom!.Value))} ms to {Js(JsRound(k.LatencyTo!.Value))} ms";
+        if (k.By is { } by) return $"{nameOf(by.Id)} {(by.Kind == "util" ? $"at {Pct(by.Share)} of capacity" : $"failing {Pct(by.Share)} of calls")}";
+        return $"the slowest 5% of calls go from {Js(JsRound(k.LatencyFrom!.Value))} ms to {Js(JsRound(k.LatencyTo!.Value))} ms";
     }
+
+    /// <summary>The sentence under the Performance panel's strip. <paramref name="nameOf"/> turns an object id into the name a reader sees.</summary>
+    public static string KneeText(LoadRun run, Knee k, Func<string, string> nameOf) => $"First struggles at {Js(k.Load)} {run.Unit}: {StruggleText(k, nameOf)}";
 
     /// <summary>
     /// Most dots a source puts on a line at once. A screen line is a hundred to three hundred pixels long and a dot is a few pixels across, so past about
@@ -685,7 +1045,7 @@ public static class Perf
     private static int TravelOf(double? p50) => p50 is null ? 1000 : (int)JsRound(Clamp(500 + 1000 * Math.Log10(1 + p50.Value / 10), 500, 4000));
 
     /// <summary>A line that carried <paramref name="rate"/> calls a second: logarithmic and capped, because a screen can't draw 1000 particles a second, unless the run's source says how many dots to show.</summary>
-    private static LineTraffic LineTrafficOf(Pair l, double rate, Source? source)
+    private static LineTraffic LineTrafficOf(Pair l, double rate, Source? source, double? wide = null, (double Dots, bool Capped)? counted = null)
     {
         var errors = Round2(l.Errors ?? 0);
         var travelMs = TravelOf(l.P50);
@@ -693,18 +1053,19 @@ public static class Perf
         double? dots = null;
         var capped = false;
         double? radius = null;
-        var vars = new FormulaVars(rate, l.Bytes, l.P50);
         // How many dots: the formula's count when it has a value (a missing number or a negative result leaves today's curve for this line).
-        if (source?.Dot is { } dot && FormulaOf(dot) is { } dotFormula && Formulas.Eval(dotFormula, vars) is { } count && count >= 0)
+        // When several sources share the line the count arrives already scaled, with the cap's verdict.
+        var count = counted is { } given ? given.Dots : DotsFor(l, rate, source);
+        if (count is { } c)
         {
-            var (counts, wasCapped) = CapCounts([count]);
+            var (counts, wasCapped) = counted is { } scaled ? ([c], scaled.Capped) : CapCounts([c]);
             // The count is dots on the line at once; the speed stays with p50, so dots start as often as they take to cross.
             perSecond = Round2(counts[0] / (travelMs / 1000.0));
             dots = Round2(counts[0]);
             capped = wasCapped;
         }
-        if (source?.Size is { } size && FormulaOf(size) is { } sizeFormula && Formulas.Eval(sizeFormula, vars) is { } area && area >= 0) radius = Round2(Clamp(Math.Sqrt(area), RadiusMin, RadiusMax));
-        return new LineTraffic(l.From, l.To, Round2(Clamp(1.5 + 1.5 * Math.Log10(1 + rate), 1.5, 6)), perSecond, travelMs, errors >= 0.01 ? Math.Max(errors, 0.05) : errors)
+        if (source?.Size is { } size && FormulaOf(size) is { } sizeFormula && Formulas.Eval(sizeFormula, new FormulaVars(rate, l.Bytes, l.P50)) is { } area && area >= 0) radius = Round2(Clamp(Math.Sqrt(area), RadiusMin, RadiusMax));
+        return new LineTraffic(l.From, l.To, Round2(Clamp(1.5 + 1.5 * Math.Log10(1 + (wide ?? rate)), 1.5, 6)), perSecond, travelMs, errors >= 0.01 ? Math.Max(errors, 0.05) : errors)
         {
             Color = source?.Color,
             Radius = radius,
@@ -714,6 +1075,13 @@ public static class Perf
         };
     }
 
+    /// <summary>How many dots a source's <c>dot</c> formula puts on a line that carried <paramref name="rate"/> calls a second, or null when it puts none (no formula, a missing number, a negative result).</summary>
+    private static double? DotsFor(Pair l, double rate, Source? source)
+    {
+        if (source?.Dot is not { } dot || FormulaOf(dot) is not { } formula) return null;
+        return Formulas.Eval(formula, new FormulaVars(rate, l.Bytes, l.P50)) is { } count && count >= 0 ? count : null;
+    }
+
     /// <summary>The number in a scale, as short as it reads: 50, 0.5, 12.5, with the float noise of a division (3.0000000000000004) rounded off.</summary>
     private static string Plain(double n) => Js(double.Parse(n.ToString("G6", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture));
 
@@ -721,9 +1089,12 @@ public static class Perf
     /// "1 dot = 50 calls/s" for a run whose <c>dot</c> formula is a constant times the rate and nothing else; null for any other, because a scale in words
     /// that is not true for every line is worse than none. Also null for a scale nobody reads (under a thousandth of a call or over a billion).
     /// </summary>
-    public static string? ScaleText(LoadRun run)
+    public static string? ScaleText(LoadRun run) => SourceScale(run.Source);
+
+    /// <summary>The scale in words of one source (see <see cref="ScaleText"/>).</summary>
+    private static string? SourceScale(Source? source)
     {
-        if (run.Source?.Dot is not { } dot || FormulaOf(dot) is not { } formula || Formulas.LinearInRate(formula) is not { } k) return null;
+        if (source?.Dot is not { } dot || FormulaOf(dot) is not { } formula || Formulas.LinearInRate(formula) is not { } k) return null;
         var calls = 1 / k;
         return calls >= 0.001 && calls < 1e9 ? $"1 dot = {Plain(calls)} calls/s" : null;
     }
@@ -751,13 +1122,22 @@ public static class Perf
     public static LoadFrame FrameAt(Model model, LoadRun run, double load, string view)
     {
         var (objects, lines) = RollUp(model, Interpolate(run, load), view);
+        return new LoadFrame(objects, lines, new Traffic(BoxesOf(objects), lines.Where(l => l.Rate is not null).Select(l => LineTrafficOf(l, l.Rate!.Value, run.Source)).ToList()));
+    }
+
+    /// <summary>
+    /// What each shape looks like: its strain (0 green to 1 red, null when nothing was measured) and its queue. A shape that is added past capacity (0.7 and 0.6 make 1.3) is as strained as
+    /// one that is full: the colour stops at 1, and the readout says the rest.
+    /// </summary>
+    private static IdMap<BoxTraffic> BoxesOf(IdMap<Metrics> objects)
+    {
         var boxes = new IdMap<BoxTraffic>();
         foreach (var (id, m) in objects)
         {
             var s = StrainOf(m)?.Value;
             if (s is null && m.Queue is null) continue;
-            boxes.Add(id, new BoxTraffic(s is null ? null : Round2(s.Value), (int)JsRound(m.Queue ?? 0)));
+            boxes.Add(id, new BoxTraffic(s is null ? null : Round2(Math.Min(1, s.Value)), (int)JsRound(m.Queue ?? 0)));
         }
-        return new LoadFrame(objects, lines, new Traffic(boxes, lines.Where(l => l.Rate is not null).Select(l => LineTrafficOf(l, l.Rate!.Value, run.Source)).ToList()));
+        return boxes;
     }
 }

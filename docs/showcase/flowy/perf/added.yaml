@@ -1,0 +1,3 @@
+name: Several sources added
+about: Made-up numbers for the showcase. Source A and Source B, each from its own run and each at its own load, added. Shared service reads the two together and passes full at the top. The line from Where they meet to Shared service carries both, a stream of dots for each.
+adds: [source-a, source-b]

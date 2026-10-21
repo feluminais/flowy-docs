@@ -61,3 +61,9 @@ scale:
   dots-big: [440, 450]
   calls-lost: [440, 600]
   calls-rejected: [440, 750]
+sources:
+  a-in: [0, 40]
+  b-in: [0, 280]
+  gateway: [440, 160]
+  shared: [880, 80]
+  audit: [880, 280]

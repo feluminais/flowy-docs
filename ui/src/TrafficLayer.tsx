@@ -7,7 +7,7 @@ import { depthIn } from './graph.ts'
 import type { Outline, Rect } from './graph.ts'
 import { outline, pathBetween, rect } from './Line.tsx'
 import { flatten, pointAt } from './pathpoints.ts'
-import { advance, ghost, howBehind, moteLook, newStream } from './traffic.ts'
+import { advance, ghost, howBehind, moteLook, newStream, visibility } from './traffic.ts'
 import type { Stream } from './traffic.ts'
 
 /** A shape a line runs behind: where it is and its outline. */
@@ -46,7 +46,9 @@ const labelsIn = (el: HTMLElement, [tx, ty, zoom]: [number, number, number]): Re
  * or under a label, a particle is still drawn, going faint and a little smaller as it goes behind and back as it comes out, so the
  * flow reads through what covers it. A run's source sets the particles' colour and size (a line's `color` and `radius`), and a line that
  * says how its failing share fails draws a lost call as a ring where it pops and a rejected one as a call that stops at a bar at the end
- * of the line and comes back in the danger tone. Reduced motion draws none: the caller leaves this out.
+ * of the line and comes back in the danger tone. A line that several sources share has a stream for each (a line's `source`), drawn in that
+ * source's colour and running a little to its side of the path (its `offset`). A line with none of these draws in a loop of its own that
+ * makes no object for a particle that doesn't fail. Reduced motion draws none: the caller leaves this out.
  */
 export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: LineStyle }) {
   const store = useStoreApi()
@@ -58,10 +60,16 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
     () => {
       const boxes = store.getState().nodeLookup
       const shapes = [...boxes.values()].filter(n => n.type === 'box').map(n => ({ id: n.id, rect: rect(n), edge: outline(n) }))
+      // The sources that share a line are entries of one path: it is flattened once, however many there are.
+      const made = new Map<string, { path: ReturnType<typeof flatten>; shapes: Shape[] } | undefined>()
       return lines.map(l => {
-        const a = boxes.get(l.from)
-        const b = boxes.get(l.to)
-        return a && b ? { path: flatten(pathBetween(style, a, b)), shapes: shapes.filter(s => s.id !== l.from && s.id !== l.to) } : undefined
+        const key = `${l.from} ${l.to}`
+        if (!made.has(key)) {
+          const a = boxes.get(l.from)
+          const b = boxes.get(l.to)
+          made.set(key, a && b ? { path: flatten(pathBetween(style, a, b)), shapes: shapes.filter(s => s.id !== l.from && s.id !== l.to) } : undefined)
+        }
+        return made.get(key)
       })
     },
     [lines, where, style, store],
@@ -119,34 +127,63 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
       lines.forEach((line, i) => {
         if (!paths[i]) return
         const { path, shapes } = paths[i]!
-        const key = `${line.from} ${line.to}`
+        // One stream for each source on a line (a run with one source has none to name).
+        const key = line.source === undefined ? `${line.from} ${line.to}` : `${line.from} ${line.to} ${line.source}`
         alive.add(key)
         let stream = streams.current.get(key)
         if (!stream) streams.current.set(key, (stream = newStream()))
         advance(stream, line, ms, Math.random)
         const radius = ((2.2 + line.width / 2) * (line.radius ?? 1)) / zoom // a few pixels on screen, whatever the zoom, and bigger or smaller where the run's size says
         const ramp = radius * 2 // how far either side of an outline a particle takes to go from clear to well behind
+        // Sources that share a line run a little apart, to either side of it, by steps of a usual dot and its room: so two on one path don't hide each other.
+        const aside = (line.offset ?? 0) * ((2.2 + line.width / 2) / zoom) * 2.4
         const colour = tint(line.color)
         ctx.fillStyle = colour
         ctx.beginPath()
         const faint: [number, number, number][] = [] // the ones behind something, drawn after the rest one at a time
         const other: { x: number; y: number; bad: boolean; alpha: number; pop?: number; behind: number }[] = [] // the ones failing, drawn one at a time
         let bar = 0 // how strongly the bar at the end of a rejected line shows: the strongest of its particles
-        for (const m of stream.motes) {
-          const look = moteLook(m, line.failure)
-          const [x, y] = pointAt(path, look.at)
-          if (look.bar !== undefined && look.bar > bar) bar = look.bar
-          const b = behindOf(shapes, labels, x, y, ramp)
-          if (look.bad || look.alpha < 1 || look.pop !== undefined) {
-            other.push({ x, y, bad: look.bad, alpha: look.alpha, pop: look.pop, behind: b })
-            continue
+        if (line.failure === undefined && aside === 0) {
+          // The bare line: no style for its failures and none to share it with, so a particle is where it is, and one that fails fades. No object is made for a particle that doesn't fail.
+          for (const m of stream.motes) {
+            const [x, y] = pointAt(path, m.s)
+            const b = behindOf(shapes, labels, x, y, ramp)
+            if (m.fails !== 0) {
+              other.push({ x, y, bad: true, alpha: visibility(m), behind: b })
+              continue
+            }
+            if (b > 0) {
+              faint.push([x, y, b])
+              continue
+            }
+            ctx.moveTo(x + radius, y)
+            ctx.arc(x, y, radius, 0, Math.PI * 2)
           }
-          if (b > 0) {
-            faint.push([x, y, b])
-            continue
+        } else {
+          for (const m of stream.motes) {
+            const look = moteLook(m, line.failure)
+            let [x, y] = pointAt(path, look.at)
+            if (aside !== 0) {
+              // To the side of the path, by its direction a little either way along it.
+              const [ax, ay] = pointAt(path, look.at - 0.02)
+              const [bx, by] = pointAt(path, look.at + 0.02)
+              const length = Math.hypot(bx - ax, by - ay) || 1
+              x += (-(by - ay) / length) * aside
+              y += ((bx - ax) / length) * aside
+            }
+            if (look.bar !== undefined && look.bar > bar) bar = look.bar
+            const b = behindOf(shapes, labels, x, y, ramp)
+            if (look.bad || look.alpha < 1 || look.pop !== undefined) {
+              other.push({ x, y, bad: look.bad, alpha: look.alpha, pop: look.pop, behind: b })
+              continue
+            }
+            if (b > 0) {
+              faint.push([x, y, b])
+              continue
+            }
+            ctx.moveTo(x + radius, y)
+            ctx.arc(x, y, radius, 0, Math.PI * 2)
           }
-          ctx.moveTo(x + radius, y)
-          ctx.arc(x, y, radius, 0, Math.PI * 2)
         }
         ctx.fill()
         for (const [x, y, b] of faint) {

@@ -1,0 +1,37 @@
+name: Source A
+about: Made-up numbers for the showcase. Source A alone. Its calls climb from 500 to 4,000 a second through Where they meet to Shared service. One blue dot stands for 50 calls a second, and its calls are big, so its dots are too.
+unit: calls/s
+entry: a-in
+source:
+  color: blue
+  dot: rate / 50
+  size: bytes / 400
+levels:
+  - load: 500
+    overall: { rate: 500, p50: 20, p95: 60, errors: 0 }
+    objects:
+      shared: { util: 0.1 }
+    connections:
+      - { from: a-in, to: gateway, rate: 500, p50: 10, bytes: 800 }
+      - { from: gateway, to: shared, rate: 500, p50: 20, bytes: 800, errors: 0 }
+  - load: 1000
+    overall: { rate: 1000, p50: 30, p95: 90, errors: 0 }
+    objects:
+      shared: { util: 0.25 }
+    connections:
+      - { from: a-in, to: gateway, rate: 1000, p50: 15, bytes: 800 }
+      - { from: gateway, to: shared, rate: 1000, p50: 30, bytes: 800, errors: 0 }
+  - load: 2000
+    overall: { rate: 2000, p50: 50, p95: 150, errors: 0 }
+    objects:
+      shared: { util: 0.45 }
+    connections:
+      - { from: a-in, to: gateway, rate: 2000, p50: 25, bytes: 800 }
+      - { from: gateway, to: shared, rate: 2000, p50: 50, bytes: 800, errors: 0 }
+  - load: 4000
+    overall: { rate: 4000, p50: 90, p95: 270, errors: 0 }
+    objects:
+      shared: { util: 0.7 }
+    connections:
+      - { from: a-in, to: gateway, rate: 4000, p50: 45, bytes: 800 }
+      - { from: gateway, to: shared, rate: 4000, p50: 90, bytes: 800, errors: 0 }
