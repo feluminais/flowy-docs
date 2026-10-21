@@ -17,7 +17,7 @@ internal static class JsonDump
         _ => throw new ArgumentException($"can't dump a {v.GetType()}"),
     };
 
-    private static JsonObject Obj(params (string Key, object? Value)[] pairs)
+    internal static JsonObject Obj(params (string Key, object? Value)[] pairs)
     {
         var o = new JsonObject();
         foreach (var (key, value) in pairs)
@@ -25,7 +25,7 @@ internal static class JsonDump
         return o;
     }
 
-    private static JsonArray Arr(IEnumerable<object?> items) => new(items.Select(Node).ToArray());
+    internal static JsonArray Arr(IEnumerable<object?> items) => new(items.Select(Node).ToArray());
 
     /// <summary>A value as the YAML held it: text, a list, or a mapping.</summary>
     private static JsonNode? Raw(object? v) => v switch
@@ -95,9 +95,22 @@ internal static class JsonDump
                     return step;
                 }))))))),
             ("problems", Arr(folder.Problems.Select(p => Obj(("file", p.File), ("id", p.Id), ("message", p.Message), ("connection", p.Connection), ("step", p.Step))))),
+            // Left out when there is none, as in dump.ts.
+            ("failures", m.Failures.Count == 0 ? null : Arr(m.Failures.Select(kv => AnalysisNode(kv.Key, kv.Value)))),
+            ("failureProblems", folder.FailureProblems is not { Count: > 0 } found ? null : Arr(found.Select(p => Obj(("file", p.File), ("id", p.Id), ("message", p.Message))))),
             ("views", new JsonObject(views)));
         return result;
     }
+
+    private static JsonNode AnalysisNode(string id, FailureAnalysis a) => Obj(
+        ("id", id), ("name", a.Name), ("about", a.About), ("scope", a.Scope),
+        ("scale", a.Scale is null ? null : new JsonObject(a.Scale.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)Obj(("low", kv.Value.Low), ("high", kv.Value.High)))))),
+        ("modes", Arr(a.Modes.Select(kv => Obj(
+            ("id", kv.Key), ("mode", kv.Value.Mode), ("on", kv.Value.On), ("from", kv.Value.From), ("to", kv.Value.To), ("effect", kv.Value.Effect), ("cause", kv.Value.Cause),
+            ("severity", kv.Value.Severity), ("occurrence", kv.Value.Occurrence), ("detection", kv.Value.Detection), ("controls", kv.Value.Controls), ("action", kv.Value.Action),
+            ("owner", kv.Value.Owner), ("status", kv.Value.Status), ("flow", kv.Value.Flow), ("step", kv.Value.Step), ("run", kv.Value.Run), ("description", kv.Value.Description),
+            ("after", kv.Value.After is null ? null : Obj(("severity", kv.Value.After.Severity), ("occurrence", kv.Value.After.Occurrence), ("detection", kv.Value.After.Detection))),
+            ("affects", kv.Value.Affects is null ? null : Arr(kv.Value.Affects)))))));
 
     /// <summary>Sorted keys and indentation, so two equal dumps print the same and a difference reads as a diff.</summary>
     public static string Pretty(JsonNode? node) => Sorted(node)?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "null";

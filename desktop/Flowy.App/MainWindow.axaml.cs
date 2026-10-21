@@ -374,9 +374,9 @@ public partial class MainWindow : Window
         if (options.Value("--lines") is { } lines) _reader.PickLines(lines);
         if (options.Value("--view") is { } view) _reader.GoTo(view);
         if (options.Value("--flow") is { } flow) _reader.Play(flow, int.TryParse(options.Value("--step"), out var step) ? step : 0);
-        if (options.Value("--select") is { } select) _reader.Select(select);
         if (options.Value("--run") is { } run) _reader.PickRunById(run);
-        if (options.Value("--tab") is { } tab) _reader.OpenTab(tab);
+        if (options.Value("--tab") is { } tab) _reader.OpenTab(tab); // before --select: with Failures open, a select picks a failure mode
+        if (options.Value("--select") is { } select) _reader.Select(select);
         if (options.Value("--at") is { } at)
         {
             // A load or a time for a run of one source; a load for each dial, separated by commas (--at 200,100), for a run with several.

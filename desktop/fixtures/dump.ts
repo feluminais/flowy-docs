@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dataShown } from '../../src/core/data.ts'
 import { lineStyle, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
-import type { Model } from '../../src/core/model.ts'
+import type { Analysis, Model } from '../../src/core/model.ts'
 import { computeView, isView, placeStep, stepEnds } from '../../src/core/views.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -21,6 +21,15 @@ const shownOf = (o: Model['objects'][string]) => {
   const shown = dataShown(o)
   return shown.length === 0 ? undefined : shown
 }
+
+/** An analysis with the keys the native reader holds, in a fixed order (a file's own order and its extra keys do not matter to what is shown). */
+export const analysisDump = (id: string, a: Analysis) => ({
+  id, name: a.name, about: a.about, scope: a.scope, scale: a.scale,
+  modes: Object.entries(a.modes).map(([mid, m]) => ({
+    id: mid, mode: m.mode, on: m.on, from: m.from, to: m.to, effect: m.effect, cause: m.cause, severity: m.severity, occurrence: m.occurrence, detection: m.detection,
+    controls: m.controls, action: m.action, owner: m.owner, status: m.status, flow: m.flow, step: m.step, run: m.run, description: m.description, after: m.after, affects: m.affects,
+  })),
+})
 
 export const expectedPath = (name: string) => join(root, 'desktop/fixtures/expected', `${name}.json`)
 
@@ -50,6 +59,9 @@ export async function dumpFolder(dir: string): Promise<unknown> {
       states: f.states,
     })),
     problems: state.problems,
+    // Left out when there is none, so every older fixture is unchanged.
+    ...(Object.keys(model.failures).length === 0 ? {} : { failures: Object.entries(model.failures).map(([id, a]) => analysisDump(id, a)) }),
+    ...((state.failureProblems ?? []).length === 0 ? {} : { failureProblems: state.failureProblems }),
     views: Object.fromEntries([ROOT, ...Object.keys(model.objects)].filter(id => isView(model, id)).map(id => [id, computeView(model, id)])),
   }
 }
