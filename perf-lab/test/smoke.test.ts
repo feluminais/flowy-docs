@@ -5,7 +5,8 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
-import { checkRun, parseRun } from '../../src/core/perf.ts'
+import { checkRun } from '../../src/core/perf/check.ts'
+import { parseRun } from '../../src/core/perf/parse.ts'
 import { loadDir } from '../../src/node/files.ts'
 
 // Not part of `npm test`: it starts real servers on real ports and takes about half a minute.

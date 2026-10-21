@@ -1,10 +1,15 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ParseError } from '../src/core/model.ts'
-import {
-  AT_ONCE, checkRun, checkRuns, dialsOf, interpolate, knee, kneeOf, kneeTextOf, levelAt, lockstepPositions, parseRun, rollUp, settingAt, SOURCE_PALETTE, sourceKeyAt, trafficAt, traffic,
-} from '../src/core/perf.ts'
-import type { Run } from '../src/core/perf.ts'
+import { knee, kneeOf } from '../src/core/perf/analyse.ts'
+import { checkRun, checkRuns } from '../src/core/perf/check.ts'
+import { dialsOf, lockstepPositions, settingAt, SOURCE_PALETTE } from '../src/core/perf/dials.ts'
+import { interpolate, levelAt } from '../src/core/perf/levels.ts'
+import { parseRun } from '../src/core/perf/parse.ts'
+import { rollUpLoad } from '../src/core/perf/rollup.ts'
+import { kneeTextOf, sourceKeyAt } from '../src/core/perf/text.ts'
+import { AT_ONCE, trafficAt, traffic } from '../src/core/perf/traffic.ts'
+import type { Run } from '../src/core/perf/types.ts'
 import { shop } from './fixtures.ts'
 import { nameOf } from '../src/core/views.ts'
 
@@ -429,7 +434,7 @@ test('a line adds its rates, takes the worst latency and failing share, and weig
 })
 
 test('a line carried by two parts keeps what each carried, once the view folds them onto one line', () => {
-  const [, shared] = rollUp(shop(), levelAt(together(), 'together', { orders: 200, pings: 100 }), 'shop').lines
+  const [, shared] = rollUpLoad(shop(), levelAt(together(), 'together', { orders: 200, pings: 100 }), 'shop').lines
   assert.equal(shared.from + shared.to, 'apidb')
   near(shared.rate, 150)
   assert.deepEqual(shared.by, { orders: { rate: 100, bytes: 400, p50: 20, errors: 0.01 }, pings: { rate: 50, bytes: 100, p50: 50 } })

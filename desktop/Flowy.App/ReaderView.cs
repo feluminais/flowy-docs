@@ -154,7 +154,7 @@ internal sealed partial class ReaderView : Grid
         _canvas.FrameClicked += () =>
         {
             // While a flow is recorded, or a load shows, the outline is just empty canvas: the panel has its own work.
-            if (Recording is not null || PerfOpen || FailuresOpen) PaneClicked();
+            if (Recording is not null || PerfOpen) PaneClicked();
             else ShowLevel();
         };
         _panel.Closed += () =>

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseRun } from '../src/core/perf.ts'
+import { parseRun } from '../src/core/perf/parse.ts'
 import type { State } from '../src/core/state.ts'
 import { fromState } from '../ui/src/save.ts'
 
