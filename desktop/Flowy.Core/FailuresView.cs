@@ -58,6 +58,14 @@ public static class FailuresView
         return $"{before.ToString(CultureInfo.InvariantCulture)} to {after.ToString(CultureInfo.InvariantCulture)}";
     }
 
+    /// <summary>What a reader calls the shape or line picked on the canvas: as <see cref="Failures.PartName"/> names a mode's part.</summary>
+    public static string PartText(Model model, FailurePart part) => part switch
+    {
+        FailurePart.Box b => Failures.ShapeName(model, b.Id),
+        FailurePart.Line l => $"{Views.NameOf(model, l.From)} to {Views.NameOf(model, l.To)}",
+        _ => "",
+    };
+
     /// <summary>The id after or before <paramref name="current"/> in a list, staying at the ends; the first when nothing is current.</summary>
     public static string? Neighbour(IReadOnlyList<string> ids, string? current, int delta)
     {

@@ -982,6 +982,35 @@
   <Style Selector="Button.result.at /template/ ContentPresenter, Button.result:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
   </Style>
+  <!-- The Failures tab's list: a row for each mode, with the band's mark, the part and the mode, and the risk. The one picked is tinted like a pressed tool. -->
+  <Style Selector="Button.failrow">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Padding" Value="8,4" />
+    <Setter Property="MinHeight" Value="34" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.failrow:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
+  <Style Selector="Button.failrow.current /template/ ContentPresenter, Button.failrow.current:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <Style Selector="Button.failrow TextBlock.part, Button.failrow TextBlock.risk">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="Border.cell">
+    <Setter Property="Width" Value="8" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="CornerRadius" Value="2" />
+  </Style>
+  <Style Selector="Border.cell.on">
+    <Setter Property="Background" Value="{DynamicResource FgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource FgBrush}" />
+  </Style>
   <Style Selector="TextBox">
     <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
   </Style>

@@ -57,6 +57,7 @@ internal sealed partial class ReaderView
         if (_editMode == on) return;
         _editMode = on;
         _perf = false; // editing and the Performance panel don't mix: the numbers would sit on a model that is changing
+        _failures = false; // nor does the Failures panel: its marks would sit on a model that is changing, and it has no forms here yet
         _ramping = false;
         DismissNotice();
         _playing = null;

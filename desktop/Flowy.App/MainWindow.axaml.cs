@@ -374,9 +374,9 @@ public partial class MainWindow : Window
         if (options.Value("--lines") is { } lines) _reader.PickLines(lines);
         if (options.Value("--view") is { } view) _reader.GoTo(view);
         if (options.Value("--flow") is { } flow) _reader.Play(flow, int.TryParse(options.Value("--step"), out var step) ? step : 0);
-        if (options.Value("--select") is { } select) _reader.Select(select);
         if (options.Value("--run") is { } run) _reader.PickRunById(run);
-        if (options.Value("--tab") is { } tab) _reader.OpenTab(tab);
+        if (options.Value("--tab") is { } tab) _reader.OpenTab(tab); // before --select: with Failures open, a select picks a failure mode
+        if (options.Value("--select") is { } select) _reader.Select(select);
         if (options.Value("--at") is { } at && double.TryParse(at, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var time)) _reader.GoToTime(time);
         if (options.Has("--add")) _reader.OpenAddPanel();
         if (options.Value("--edit-flow") is { } editFlow) _reader.OpenFlowEditor(editFlow);
