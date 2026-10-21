@@ -55,23 +55,12 @@ public static class SceneBuilder
     private static bool Overlaps(Pt a, Pt b) => Math.Abs(a.X - b.X) < BoxGeometry.BoxWidth && Math.Abs(a.Y - b.Y) < BoxGeometry.BoxHeight;
 
     // toGraph runs again on every flow step and selection change, so placements are kept by what they're made from.
-    private static readonly Dictionary<string, OrderedDictionary<string, Pt>> Placements = [];
-    private static readonly object PlacementsLock = new();
+    private static readonly BoundedCache<string, OrderedDictionary<string, Pt>> Placements = new(50);
 
     private static OrderedDictionary<string, Pt> PlaceCached(List<string> members, List<string> around, IReadOnlyList<Edge> edges)
     {
         var key = $"{string.Join('\u0001', members)}\u0002{string.Join('\u0001', around)}\u0002{string.Join('\u0001', edges.Select(e => e.From + "\u0003" + e.To))}";
-        lock (PlacementsLock)
-        {
-            if (Placements.TryGetValue(key, out var cached)) return cached;
-        }
-        var placed = Layout.Place(members, around, edges);
-        lock (PlacementsLock)
-        {
-            if (Placements.Count >= 50) Placements.Remove(Placements.Keys.First());
-            Placements[key] = placed;
-        }
-        return placed;
+        return Placements.GetOrAdd(key, _ => Layout.Place(members, around, edges));
     }
 
     /// <summary>

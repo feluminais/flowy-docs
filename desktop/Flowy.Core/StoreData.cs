@@ -1,3 +1,5 @@
+using static Flowy.Core.YamlTree;
+
 namespace Flowy.Core;
 
 /// <summary>A column of a grid. <c>Key</c> is only ever "primary"; <c>To</c> names the table a foreign key points to.</summary>
@@ -25,8 +27,6 @@ public static class StoreData
     private static string? Text(object? v) => v is string s && !JsBlank(s) ? s : null;
 
     private static bool Present(object? v) => v is not (null or "");
-
-    private static object? Get(OrderedDictionary<string, object?> map, string key) => map.TryGetValue(key, out var v) ? v : null;
 
     private static string Plural(int n, string word) => $"{n} {word}{(n == 1 ? "" : "s")}";
 
