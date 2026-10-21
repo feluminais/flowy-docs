@@ -404,7 +404,7 @@ public static class EditOps
                 joined["group"] = to;
                 steps[index] = joined;
                 var kind = Text(Entry(declared![to]), "kind");
-                if (kind is "branch" or "parallel")
+                if (Structure.HasLanes(kind))
                 {
                     var first = -1;
                     for (var i = 0; i < steps.Count && first == -1; i++)
@@ -439,7 +439,7 @@ public static class EditOps
             foreach (var (key, value) in old)
                 if (key is not ("times" or "until")) next[key] = value;
             next["kind"] = kind;
-            if (kind == "repeat")
+            if (Structure.TakesOption(kind, "times"))
             {
                 old.TryGetValue("times", out var times);
                 old.TryGetValue("until", out var until);
@@ -449,7 +449,7 @@ public static class EditOps
             }
             var steps = StepsOf(flow);
             var members = Enumerable.Range(0, steps.Count).Where(i => GroupOf(steps[i]) == group).ToList();
-            if (kind == "repeat")
+            if (!Structure.HasLanes(kind))
             {
                 foreach (var i in members)
                     if (Entry(steps[i]).ContainsKey("lane")) steps[i] = WithoutLane(steps[i]);
@@ -497,11 +497,11 @@ public static class EditOps
                 if (other != "") throw new OpError($"step {i + 1} is already in group \"{other}\"");
                 var kept = WithoutLane(steps[i]);
                 kept["group"] = group;
-                if (kind != "repeat") kept["lane"] = LaneName(i - first + 1);
+                if (Structure.HasLanes(kind)) kept["lane"] = LaneName(i - first + 1);
                 steps[i] = kept;
             }
             var declared = new OrderedDictionary<string, object?> { ["kind"] = kind };
-            if (kind == "repeat") declared["times"] = "3";
+            if (Structure.TakesOption(kind, "times")) declared["times"] = "3";
             var all = new OrderedDictionary<string, object?>();
             if (groups is not null)
                 foreach (var (key, value) in groups) all[key] = value;
