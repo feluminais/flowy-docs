@@ -1,4 +1,5 @@
 import type { Problem } from '../problem.ts'
+import { FILE_KINDS, pathOf } from '../filekinds.ts'
 import { parseFormula } from '../formula.ts'
 import { isColor } from '../look.ts'
 import { ID_RULE, isValidId, orEmpty, ParseError } from '../model.ts'
@@ -150,7 +151,7 @@ function readEvents(raw: unknown, range: readonly [number, number], unit: string
  * fewer than two levels, loads that don't go up. A number that is wrong is a problem instead, and is left out of the run.
  */
 export function parseRun(id: string, text: string): { run: Run; problems: Problem[] } {
-  const file = `perf/${id}.yaml`
+  const file = pathOf(FILE_KINDS.run, id)
   const problems: Problem[] = []
   const add = (message: string) => problems.push({ file, message })
   const doc = orEmpty(readYaml(file, text), {})
