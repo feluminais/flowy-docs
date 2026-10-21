@@ -268,6 +268,48 @@ objects:
     in: states-holder
     name: State · part
     description: The part. Its state shows on the holder at the overview.
+  scale:
+    type: system
+    name: Colour and scale
+    description: |
+      One shape for each thing a run's **source** sets: the colour of the dots, how many dots stand for the calls, and how big each is.
+
+      Open the Performance tab (**T**), pick **Colour and scale**, then press **Ramp** or step the levels with the arrow keys.
+  source:
+    type: app
+    in: scale
+    name: Source
+    description: Where the calls come in. Every dot on the lines from here is blue, because the run sets a colour.
+  dots-few:
+    type: app
+    in: scale
+    name: Few calls
+    description: One dot for every 50 calls a second. The line goes from 50 calls a second to 800, so from 1 dot to 16.
+  dots-many:
+    type: app
+    in: scale
+    name: Ten times the calls
+    description: Ten times the calls of Few calls, so ten times the dots, until the screen limit. Past 24 dots at once the line is scaled down, and the key and its numbers say so.
+  dots-slow:
+    type: app
+    in: scale
+    name: Same calls, slower
+    description: The same calls as Few calls, so the same number of dots, but each call takes longer, so the dots move slower.
+  dots-big:
+    type: app
+    in: scale
+    name: Bigger calls
+    description: The more bytes a call carries, the bigger its dot. The area of a dot follows the size of a call, so 1,600 bytes is a dot twice as wide as 400 bytes.
+  calls-lost:
+    type: app
+    in: scale
+    name: Lost calls
+    description: A share of the calls dies on the way. Each ends in a small pop where it is lost.
+  calls-rejected:
+    type: app
+    in: scale
+    name: Rejected calls
+    description: A share of the calls is turned away at the end of the line. Each stops at a bar and comes back red.
 connections:
   - from: send-from
     to: send-to
@@ -355,4 +397,22 @@ connections:
     label: calls
   - from: states-caller
     to: states-holder
+    label: calls
+  - from: source
+    to: dots-few
+    label: calls
+  - from: source
+    to: dots-many
+    label: calls
+  - from: source
+    to: dots-slow
+    label: calls
+  - from: source
+    to: dots-big
+    label: calls
+  - from: source
+    to: calls-lost
+    label: calls
+  - from: source
+    to: calls-rejected
     label: calls

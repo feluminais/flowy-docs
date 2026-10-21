@@ -81,6 +81,14 @@ public static class PerfView
 
     public static string FmtRate(double rate) => $"{Trim(rate, rate < 10 ? 1 : 0)} calls a second";
 
+    /// <summary>The size of a call: "400 B", "1.5 KB", "2.4 MB" (a thousand to the step, like the numbers a formula is written in).</summary>
+    public static string FmtBytes(double bytes) => bytes switch
+    {
+        >= 1_000_000 => $"{Trim(bytes / 1_000_000, bytes < 10_000_000 ? 1 : 0)} MB",
+        >= 1000 => $"{Trim(bytes / 1000, bytes < 10_000 ? 1 : 0)} KB",
+        _ => $"{Trim(bytes, bytes < 10 ? 1 : 0)} B",
+    };
+
     /// <summary>A load with its unit: "200 req/s".</summary>
     public static string FmtLoad(double load, string unit) => $"{Trim(load, load < 10 ? 1 : 0)} {unit}";
 
@@ -91,6 +99,7 @@ public static class PerfView
         ["queue"] = new("Waiting", v => Trim(Perf.JsRound(v), 0)),
         ["errors"] = new("Failing", FmtPct),
         ["rate"] = new("Calls", FmtRate),
+        ["bytes"] = new("Size of a call", FmtBytes),
         ["p50"] = new("Expected call", FmtMs, Log: true),
         ["p95"] = new("Slowest 5%", FmtMs, Log: true),
     };
@@ -98,7 +107,7 @@ public static class PerfView
     /// <summary>The numbers a shape can have, and a line, in the order the panel lists them.</summary>
     public static readonly string[] BoxKeys = ["util", "queue", "errors"];
 
-    public static readonly string[] LineKeys = ["rate", "p50", "p95", "errors"];
+    public static readonly string[] LineKeys = ["rate", "bytes", "p50", "p95", "errors"];
 
     // ---- curves -------------------------------------------------------------------------------------------------
 
@@ -186,4 +195,25 @@ public static class PerfView
     /// <summary>A line's numbers at a load.</summary>
     public static Metrics? LineAt(Model model, LoadRun run, string view, string from, string to, double load) =>
         Perf.RollUp(model, Perf.Interpolate(run, load), view).Lines.FirstOrDefault(p => p.From == from && p.To == to);
+
+    // ---- colour and key -----------------------------------------------------------------------------------------
+
+    /// <summary>Which kinds of failing call are on the lines now, for the key to draw (see <see cref="FailureMarksOf"/>).</summary>
+    public readonly record struct FailureMarks(bool Fade, bool Lost, bool Rejected);
+
+    /// <summary>
+    /// Which kinds of failing call are on the lines now, for the key to draw: the usual fade (for a line that fails without saying how, and also while no line
+    /// fails, so the key of a run that sets nothing is as it was), a lost call, a rejected one.
+    /// </summary>
+    public static FailureMarks FailureMarksOf(IEnumerable<LineTraffic> lines)
+    {
+        var failing = lines.Where(l => l.Failed > 0).ToList();
+        return new FailureMarks(
+            failing.Count == 0 || failing.Any(l => l.Failure is null),
+            failing.Any(l => l.Failure == "lost"),
+            failing.Any(l => l.Failure == "rejected"));
+    }
+
+    /// <summary>A source's colour for the theme that is showing, as <c>#rrggbb</c>: a named colour has one for each theme, a hex is the same in both. Null for text that is neither.</summary>
+    public static string? SourceHex(string? color, bool dark) => Look.ColorPair(color) is { } pair ? (dark ? pair.Dark : pair.Light) : null;
 }

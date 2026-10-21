@@ -152,4 +152,38 @@ public class CanvasLoadTests
         canvas.ShowLoad(load);
         Assert.True(canvas.TrafficNow.Particles > 0);
     }
+
+    private static Traffic Source(Folder folder, string source, string connection, string view = "shop")
+    {
+        var text = $"name: S\nsource: {source}\nlevels:\n  - {{ load: 1, connections: [{connection}] }}\n  - {{ load: 2, connections: [{connection}] }}\n";
+        return Perf.TrafficFor(folder.Model, Perf.ParseRun("s", text).Run, 1, view);
+    }
+
+    [AvaloniaFact]
+    public void A_line_draws_the_number_of_dots_its_formula_says_and_never_more_than_the_cap_asks_for()
+    {
+        using var motion = Motion.On();
+        var (canvas, folder) = Open();
+        canvas.ShowLoad(Source(folder, "{ color: blue, dot: rate / 50 }", "{ from: customer, to: web, rate: 1000, p50: 10 }"));
+        Assert.InRange(canvas.TrafficNow.Particles, 19, 21); // 1,000 calls a second at one dot for 50 is 20 dots on the line
+        canvas.ShowLoad(null); // a line that is new starts with its particles spread along it
+        canvas.ShowLoad(Source(folder, "{ color: blue, dot: rate / 50 }", "{ from: customer, to: web, rate: 100000, p50: 10 }"));
+        Assert.InRange(canvas.TrafficNow.Particles, Perf.AtOnce - 2, Perf.AtOnce + 1); // the count is scaled down to what the screen can hold
+        canvas.ShowLoad(null);
+        canvas.ShowLoad(Source(folder, "{ dot: \"rate * 1000000\" }", "{ from: customer, to: web, rate: 100000, p50: 10 }"));
+        Assert.True(canvas.TrafficNow.Particles <= Particles.Most);
+        canvas.ShowLoad(null);
+    }
+
+    [AvaloniaFact]
+    public void Lost_and_rejected_lines_keep_their_particles_alive_until_the_pop_or_the_way_back_is_over()
+    {
+        using var motion = Motion.On();
+        var (canvas, folder) = Open();
+        canvas.ShowLoad(Source(folder, "{ color: red }", "{ from: customer, to: web, rate: 40, p50: 10, errors: 0.5, failure: lost }"));
+        Assert.True(canvas.TrafficNow.Particles > 0);
+        canvas.ShowLoad(Source(folder, "{ color: red }", "{ from: customer, to: web, rate: 40, p50: 10, errors: 0.5, failure: rejected }"));
+        Assert.True(canvas.TrafficNow.Particles > 0);
+        canvas.ShowLoad(null);
+    }
 }

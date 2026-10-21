@@ -1,0 +1,48 @@
+name: "Courier pings"
+about: "Made-up numbers for the demo. Couriers' position pings climbing from 50 to 800 a second, through Live tracking to Fleet DB. One dot stands for 20 pings a second, so the line from Courier app asks for 2.5 dots at the lowest level and 40 at the highest. The screen holds 24, so the top level is scaled down. Fleet DB fills first."
+unit: pings/s
+entry: courier-app
+source:
+  color: green
+  dot: rate / 20
+levels:
+  - load: 50
+    overall: { rate: 50, p50: 24, p95: 60, errors: 0 }
+    objects:
+      tracking: { util: 0.06 }
+      fleet-db: { util: 0.08 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 50, p50: 18, p95: 46, bytes: 280, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 50, p50: 3, p95: 8, bytes: 140, errors: 0 }
+  - load: 100
+    overall: { rate: 100, p50: 26, p95: 66, errors: 0 }
+    objects:
+      tracking: { util: 0.11 }
+      fleet-db: { util: 0.15 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 100, p50: 19, p95: 48, bytes: 280, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 100, p50: 3.4, p95: 9, bytes: 140, errors: 0 }
+  - load: 200
+    overall: { rate: 200, p50: 30, p95: 80, errors: 0 }
+    objects:
+      tracking: { util: 0.22 }
+      fleet-db: { util: 0.32 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 200, p50: 22, p95: 55, bytes: 280, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 200, p50: 4.6, p95: 13, bytes: 140, errors: 0 }
+  - load: 400
+    overall: { rate: 400, p50: 44, p95: 140, errors: 0 }
+    objects:
+      tracking: { util: 0.45 }
+      fleet-db: { util: 0.66 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 400, p50: 30, p95: 80, bytes: 280, errors: 0 }
+      - { from: tracking, to: fleet-db, rate: 400, p50: 9, p95: 32, bytes: 140, errors: 0 }
+  - load: 800
+    overall: { rate: 780, p50: 98, p95: 380, errors: 0.03 }
+    objects:
+      tracking: { util: 0.78 }
+      fleet-db: { util: 0.93, errors: 0.02 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 800, p50: 64, p95: 210, bytes: 280, errors: 0.01 }
+      - { from: tracking, to: fleet-db, rate: 780, p50: 48, p95: 160, bytes: 140, errors: 0.03 }
