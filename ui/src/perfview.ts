@@ -1,7 +1,9 @@
 import { colorPair } from '../../src/core/look.ts'
 import type { Model } from '../../src/core/model.ts'
-import { interpolate, rollUp } from '../../src/core/perf.ts'
-import type { LineTraffic, Metrics, Run } from '../../src/core/perf.ts'
+import { eventsOf, interpolate, isTime, rollUp } from '../../src/core/perf.ts'
+import type { LineTraffic, Metrics, Run, RunEvent } from '../../src/core/perf.ts'
+
+export { isTime }
 
 /** The maths and the words of the Performance tab, kept apart from the drawing so the node tests can run them. No DOM in here. */
 
@@ -30,8 +32,56 @@ export function loadAt(run: Run, pos: number): number {
 /** Whether a position is a tested level, not somewhere between two. */
 export const isTested = (pos: number): boolean => Math.abs(pos - Math.round(pos)) < 1e-6
 
-/** The position `ms` further on in a ramp (it stops at the last level). */
-export const rampPos = (run: Run, pos: number, ms: number): number => clampPos(run, pos + (ms * top(run)) / RAMP_MS)
+/**
+ * The position of a time or load `x`, the other way round from loadAt: a tested level's own number is its whole position, and between two it is a straight line.
+ * Outside the run it is the nearest end; a time that is not finite is the start, as for clampPos.
+ */
+export function posAt(run: Run, x: number): number {
+  const { levels } = run
+  if (!Number.isFinite(x) || x <= levels[0].load) return 0
+  if (x >= levels[top(run)].load) return top(run)
+  for (let i = 0; i < top(run); i++) {
+    if (x < levels[i + 1].load) return i + (x - levels[i].load) / (levels[i + 1].load - levels[i].load)
+  }
+  return top(run)
+}
+
+/** The time or load at a position (the same as loadAt, named for the way round that goes with posAt). */
+export const xOfPos = (run: Run, pos: number): number => loadAt(run, pos)
+
+/** How wide a run is: from its first level's time or load to its last's. */
+const span = (run: Run): number => run.levels[top(run)].load - run.levels[0].load
+
+/** Where a time or load sits along the run, 0 to 1, by time or load itself and not by level. */
+const along = (run: Run, x: number): number => (x - run.levels[0].load) / span(run)
+
+/**
+ * Where the slider's thumb is, 0 to 1 along it. A time run's slider is linear in time, so a level sits where its time is and an event on its own time. A load run's
+ * is even, a step to each level, whatever the loads are.
+ */
+export function sliderFraction(run: Run, pos: number): number {
+  if (isTime(run)) return Math.min(1, Math.max(0, along(run, xOfPos(run, pos))))
+  return top(run) === 0 ? 0 : clampPos(run, pos) / top(run)
+}
+
+/** The events of a time run with where each sits along the slider, 0 to 1, in time order. Nothing for a load run. */
+export function eventFractions(run: Run): { fraction: number; event: RunEvent }[] {
+  if (!isTime(run)) return []
+  return eventsOf(run).map(event => ({ fraction: Math.min(1, Math.max(0, along(run, event.at))), event }))
+}
+
+/** What the slider's own numbers run between: a time run's are times, a load run's are positions. */
+export const sliderRange = (run: Run): { min: number; max: number } => (isTime(run) ? { min: run.levels[0].load, max: run.levels[top(run)].load } : { min: 0, max: top(run) })
+
+/** The number the slider holds at a position (see sliderRange). */
+export const sliderValue = (run: Run, pos: number): number => (isTime(run) ? xOfPos(run, pos) : clampPos(run, pos))
+
+/** The position a dragged slider stands for. A time run goes where it is put, so an event can be stood on; a load run snaps to a tested level. */
+export const slidePos = (run: Run, value: number): number => (isTime(run) ? posAt(run, value) : snap(run, value))
+
+/** The position `ms` further on in a ramp (it stops at the last level). A time run goes on evenly in time, a load run evenly from level to level. */
+export const rampPos = (run: Run, pos: number, ms: number): number =>
+  isTime(run) ? posAt(run, xOfPos(run, pos) + (ms * span(run)) / RAMP_MS) : clampPos(run, pos + (ms * top(run)) / RAMP_MS)
 
 /** Where a ramp starts: from the bottom when it is at the top already, else from where it is. */
 export const rampFrom = (run: Run, pos: number): number => (pos >= top(run) ? 0 : pos)
@@ -101,12 +151,16 @@ const place = (scale: Scale, v: number): number => {
 }
 /** Where level `i` of `n` sits across `box`: evenly spaced, so a run that goes 10, 25, 50, 100, 200, 400 reads as steps, not as a crowd and a gap. */
 export const xAt = (box: Area, i: number, n: number): number => box.x + (n <= 1 ? 0 : (box.width * i) / (n - 1))
+/** Where level `i` of a run sits across `box`: evenly for a load run, as xAt has it, and by its time for a time run. */
+export const levelX = (run: Run, box: Area, i: number): number => (isTime(run) ? box.x + box.width * along(run, run.levels[i].load) : xAt(box, i, run.levels.length))
+/** Where a position sits across `box`, for the cursor of a curve. */
+export const cursorX = (run: Run, box: Area, pos: number): number => (isTime(run) ? box.x + box.width * sliderFraction(run, pos) : xAt(box, pos, run.levels.length))
 export const yAt = (box: Area, scale: Scale, v: number): number => box.y + box.height * (1 - place(scale, v))
 
 const round1 = (n: number) => Math.round(n * 10) / 10
 
-/** A curve through the values as SVG path data, one point to each level, broken where a level has no number. */
-export function pathOf(values: readonly (number | undefined)[], scale: Scale, box: Area): string {
+/** A curve through the values as SVG path data, one point to each level, broken where a level has no number. Given a time run, the points sit at their times, not evenly. */
+export function pathOf(values: readonly (number | undefined)[], scale: Scale, box: Area, run?: Run): string {
   let d = ''
   let pen = false
   values.forEach((v, i) => {
@@ -114,7 +168,7 @@ export function pathOf(values: readonly (number | undefined)[], scale: Scale, bo
       pen = false
       return
     }
-    d += `${pen ? 'L' : 'M'}${round1(xAt(box, i, values.length))} ${round1(yAt(box, scale, v))}`
+    d += `${pen ? 'L' : 'M'}${round1(run && isTime(run) ? levelX(run, box, i) : xAt(box, i, values.length))} ${round1(yAt(box, scale, v))}`
     pen = true
   })
   return d
@@ -127,11 +181,38 @@ export function gridOf(scale: Scale, box: Area): { y: number; label: string }[] 
   return out
 }
 
-/** The labels under the levels: every level's load, or every few when there would be too many to read. */
-export function levelLabels(run: Run, box: Area, most = 8): { x: number; label: string }[] {
+/** How near two labels may be along a time run's slider (a fraction of its width) before the later one is left out. */
+const LABEL_GAP = 0.08
+
+/**
+ * The levels that get a label: every one, or every few when there would be too many to read. The last is always named. In a time run levels can sit close
+ * together, so one that would land on the label before it is left out, and the last takes the place of those it would cover.
+ */
+function labelled(run: Run, most: number): number[] {
   const n = run.levels.length
   const every = Math.ceil(n / most)
-  return run.levels.flatMap((l, i) => (i % every === 0 || i === n - 1 ? [{ x: round1(xAt(box, i, n)), label: String(l.load) }] : []))
+  const wanted = run.levels.flatMap((_, i) => (i % every === 0 || i === n - 1 ? [i] : []))
+  if (!isTime(run)) return wanted
+  const at = (i: number) => along(run, run.levels[i].load)
+  const shown: number[] = []
+  for (const i of wanted) {
+    if (shown.length > 0 && at(i) - at(shown[shown.length - 1]) < LABEL_GAP) {
+      if (i !== n - 1) continue
+      while (shown.length > 1 && at(i) - at(shown[shown.length - 1]) < LABEL_GAP) shown.pop()
+    }
+    shown.push(i)
+  }
+  return shown
+}
+
+/** The labels under the levels: every level's load, or every few when there would be too many to read. */
+export function levelLabels(run: Run, box: Area, most = 8): { x: number; label: string }[] {
+  return labelled(run, most).map(i => ({ x: round1(levelX(run, box, i)), label: String(run.levels[i].load) }))
+}
+
+/** The labels under the slider: a level's time or load at its place along it (0 to 1), thinned the way levelLabels is. */
+export function tickLabels(run: Run, most = 8): { fraction: number; label: string }[] {
+  return labelled(run, most).map(i => ({ fraction: isTime(run) ? along(run, run.levels[i].load) : top(run) === 0 ? 0 : i / top(run), label: String(run.levels[i].load) }))
 }
 
 // ---- Readings

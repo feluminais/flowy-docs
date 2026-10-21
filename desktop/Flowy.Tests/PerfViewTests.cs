@@ -197,6 +197,117 @@ public class PerfViewTests
         }
     }
 
+    private static Scale Line => new(0, 80, false);
+
+    private static void SameTicks(JsonNode? expected, IEnumerable<(double Fraction, string Label)> ticks)
+    {
+        var all = expected!.AsArray();
+        var actual = ticks.ToList();
+        Assert.Equal(all.Count, actual.Count);
+        for (var i = 0; i < all.Count; i++)
+        {
+            Assert.Equal(D(all[i]!["fraction"]), actual[i].Fraction, 9);
+            Assert.Equal(all[i]!["label"]!.GetValue<string>(), actual[i].Label);
+        }
+    }
+
+    private static void SameEvents(JsonNode? expected, IReadOnlyList<(double Fraction, RunEvent Event)> events, string what)
+    {
+        var all = expected!.AsArray();
+        Assert.Equal(all.Count, events.Count);
+        for (var i = 0; i < all.Count; i++)
+        {
+            Assert.Equal(D(all[i]!["fraction"]), events[i].Fraction, 9);
+            Same(all[i]!["event"], new JsonObject { ["at"] = events[i].Event.At, ["on"] = events[i].Event.On, ["state"] = events[i].Event.State, ["text"] = events[i].Event.Text }, what);
+        }
+    }
+
+    [Fact]
+    public void The_slider_of_a_load_run_is_even_and_snaps_and_has_no_events()
+    {
+        var all = Expected["sliders"]!.AsArray();
+        Assert.Equal(Loaded.Runs!.Count, all.Count);
+        foreach (var r in all)
+        {
+            var id = r!["id"]!.GetValue<string>();
+            var run = Loaded.Runs![id];
+            var (min, max) = PerfView.SliderRange(run);
+            Assert.Equal(D(r["range"]!["min"]), min);
+            Assert.Equal(D(r["range"]!["max"]), max);
+            SameEvents(r["events"], PerfView.EventFractions(run), $"{id}: the events");
+            SameTicks(r["ticks"], PerfView.TickLabels(run));
+            SameTicks(r["few"], PerfView.TickLabels(run, 2));
+            foreach (var at in r["at"]!.AsArray())
+            {
+                var pos = D(at!["pos"]);
+                Assert.Equal(D(at["fraction"]), PerfView.SliderFraction(run, pos), 9);
+                Assert.Equal(D(at["value"]), PerfView.SliderValue(run, pos), 9);
+                Assert.Equal(D(at["slide"]), PerfView.SlidePos(run, pos), 9);
+                Assert.Equal(D(at["x"]), PerfView.XOfPos(run, pos), 9);
+                Assert.Equal(D(at["back"]), PerfView.PosAt(run, PerfView.LoadAt(run, pos)), 9);
+            }
+        }
+    }
+
+    [Fact]
+    public void The_slider_of_a_time_run_is_linear_in_time_and_the_panel_maths_agree_with_the_browser()
+    {
+        var all = Expected["timed"]!.AsArray();
+        Assert.True(all.Count >= 5);
+        foreach (var r in all)
+        {
+            var id = r!["id"]!.GetValue<string>();
+            var run = Perf.ParseRun(id, r["text"]!.GetValue<string>()).Run;
+            Assert.True(run.IsTime);
+            Assert.Equal((int)D(r["top"]), PerfView.Top(run));
+            var (min, max) = PerfView.SliderRange(run);
+            Assert.Equal(D(r["range"]!["min"]), min);
+            Assert.Equal(D(r["range"]!["max"]), max);
+            SameEvents(r["events"], PerfView.EventFractions(run), $"{id}: the events");
+            SameTicks(r["ticks"], PerfView.TickLabels(run));
+            SameTicks(r["few"], PerfView.TickLabels(run, 2));
+            foreach (var at in r["at"]!.AsArray())
+            {
+                var pos = D(at!["pos"]);
+                Assert.Equal(D(at["load"]), PerfView.LoadAt(run, pos), 9);
+                Assert.Equal(D(at["x"]), PerfView.XOfPos(run, pos), 9);
+                Assert.Equal(D(at["fraction"]), PerfView.SliderFraction(run, pos), 9);
+                Assert.Equal(D(at["value"]), PerfView.SliderValue(run, pos), 9);
+                Assert.Equal(D(at["cursor"]), PerfView.CursorX(run, Plot, pos), 9);
+                Assert.Equal(D(at["snap"]), PerfView.Snap(run, pos));
+                Assert.Equal(D(at["from"]), PerfView.RampFrom(run, pos));
+                var ramp = at["ramp"]!.AsArray();
+                var ms = new[] { 0, 16, 1000, PerfView.RampMs / 2, PerfView.RampMs };
+                for (var i = 0; i < ms.Length; i++) Assert.Equal(D(ramp[i]), PerfView.RampPos(run, pos, ms[i]), 9);
+            }
+            foreach (var p in r["posAt"]!.AsArray())
+            {
+                var x = D(p!["x"]);
+                Assert.Equal(D(p["pos"]), PerfView.PosAt(run, x), 9);
+                Assert.Equal(D(p["slide"]), PerfView.SlidePos(run, x), 9);
+            }
+            var levels = r["levels"]!.AsArray();
+            for (var i = 0; i < levels.Count; i++) Assert.Equal(D(levels[i]), PerfView.LevelX(run, Plot, i), 9);
+            JsonArray Labels(int most) => new(PerfView.LevelLabels(run, Plot, most).Select(x => (JsonNode?)new JsonObject { ["x"] = x.X, ["label"] = x.Label }).ToArray());
+            Same(r["labels"], Labels(8), $"{id}: the labels");
+            Same(r["few_labels"], Labels(2), $"{id}: the thinned labels");
+            var values = run.Levels.Select((_, i) => i % 3 == 1 ? (double?)null : (i + 1) * 10).ToList();
+            Assert.Equal(r["path"]!.GetValue<string>(), PerfView.PathOf(values, Line, Plot, run));
+            Assert.Equal(r["even"]!.GetValue<string>(), PerfView.PathOf(values, Line, Plot));
+        }
+    }
+
+    [Fact]
+    public void A_time_that_is_not_a_number_is_the_start_of_a_run()
+    {
+        var run = Perf.ParseRun("t", "name: T\naxis: time\nlevels:\n  - at: 10\n  - at: 20\n").Run;
+        Assert.Equal(0, PerfView.PosAt(run, double.NaN));
+        Assert.Equal(0, PerfView.PosAt(run, double.NegativeInfinity));
+        Assert.Equal(0, PerfView.PosAt(run, double.PositiveInfinity)); // not finite is the start, as for ClampPos
+        Assert.Equal(0.5, PerfView.SliderFraction(run, 0.5));
+        Assert.Equal(0, PerfView.SliderFraction(run, double.NaN));
+    }
+
     [Fact]
     public void What_a_shape_or_line_measured_is_read_level_by_level_and_at_a_load()
     {
