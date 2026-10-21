@@ -31,6 +31,9 @@ const RAW: unknown[] = [
   { kind: 'send', outcome: 'rejected', reason: 'x'.repeat(40) }, { kind: 'send', outcome: 'rejected', reason: 'x'.repeat(41) }, { kind: 'send', outcome: 'rejected', reason: ' ' },
   { kind: 'send', outcome: 'rejected', reason: 'two\nlines' }, { kind: 'send', outcome: 'rejected', reason: 'one' + String.fromCharCode(0x2028) + 'line' },
   { kind: 'send', outcome: 'rejected', reason: ['Rate limit'] }, { kind: 'send', reason: 'Why' },
+  // Exotic white space: JavaScript's trim() and .NET's differ on U+FEFF and U+0085, so the checks must agree on both.
+  { kind: 'send', outcome: 'rejected', reason: String.fromCharCode(0xfeff) }, { kind: 'send', outcome: 'rejected', reason: 'x'.repeat(40) + String.fromCharCode(0xfeff) },
+  { kind: 'send', outcome: 'lost', carries: String.fromCharCode(0x85) }, { kind: 'send', outcome: 'lost', carries: String.fromCharCode(0xfeff) },
   { kind: 'send', outcome: 'intercepted' }, { kind: 'send', outcome: 'intercepted', by: '' }, { kind: 'send', outcome: 'intercepted', by: ['proxy'] },
   { kind: 'send', outcome: 'intercepted', by: { name: '' } }, { kind: 'send', outcome: 'intercepted', by: { name: 'x'.repeat(24) } }, { kind: 'send', outcome: 'intercepted', by: { name: 'x'.repeat(25) } },
   { kind: 'send', outcome: 'intercepted', by: { name: 'Tap', color: 'red' } }, { kind: 'send', outcome: 'intercepted', by: {} }, { kind: 'send', outcome: 'lost', by: 'proxy' }, { kind: 'send', by: 'proxy' },

@@ -920,7 +920,14 @@ public static partial class Perf
         }
 
         /// <summary>The mean size of a call: weighted by rate (a connection with no rate has no weight); with no rates at all it is the plain mean; none given is none.</summary>
-        public double? Bytes => Weight > 0 ? Weighted / Weight : N > 0 ? Sum / N : null;
+        public double? Bytes
+        {
+            get
+            {
+                double? v = Weight > 0 ? Weighted / Weight : N > 0 ? Sum / N : null;
+                return v is { } d && double.IsFinite(d) ? d : null; // an overflowing weighted sum is no number, not Infinity
+            }
+        }
     }
 
     /// <summary>What one source carries on a line, as <see cref="RollUp"/> collects it from the connections that land there.</summary>
@@ -1031,7 +1038,7 @@ public static partial class Perf
     public static (double[] Counts, bool Capped) CapCounts(IReadOnlyList<double> counts)
     {
         var most = counts.Count == 0 ? 0 : Math.Max(0, counts.Max());
-        return most <= AtOnce ? (counts.ToArray(), false) : (counts.Select(c => c * AtOnce / most).ToArray(), true);
+        return most <= AtOnce ? (counts.ToArray(), false) : (counts.Select(c => { var v = c * AtOnce / most; return double.IsFinite(v) ? v : c / most * AtOnce; }).ToArray(), true);
     }
 
     /// <summary>The crossing time of a line in ms: what its expected call says, in steps from half a second to four. A line with no p50 is a middling trip.</summary>

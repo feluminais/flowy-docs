@@ -460,6 +460,7 @@ public class PerfTests
         Case([10, 5], [10, 5], false);
         Case([24, 12], [24, 12], false);
         Case([48, 12], [24, 6], true);
+        Case([1e307, 5e306], [24, 12], true); // a count times AtOnce would overflow: divide first
         Case([6, 120], [1.2, 24], true);
         Case([0, 0], [0, 0], false);
         Case([], [], false);

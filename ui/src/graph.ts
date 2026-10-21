@@ -37,7 +37,7 @@ export type BoxNode = Node<BoxData, 'box'>
  * `steps` lights several at once (a parallel stop); `faint` draws steps as dashed, faint lanes (the lanes of a
  * branch this stop is not in) without lighting their boxes.
  */
-export type Playing = { ends: ([string, string] | null)[]; step?: number; steps?: number[]; faint?: number[] }
+export type Playing = { ends: ([string, string] | null)[]; step?: number; steps?: number[]; faint?: number[]; also?: string[] }
 
 /** Whether an edge is one a flow step added (it has no connection of its own), so a click on it opens no panel. */
 export const isStepLine = (id: string): boolean => /^(step|lane)(-\d+)?$/.test(id)
@@ -348,7 +348,7 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     const e = placedAt(i)
     return e ? [e] : []
   })
-  const litBoxes = new Set(litEnds.flat())
+  const litBoxes = new Set([...litEnds.flat(), ...(playing?.also ?? [])]) // `also`: a shape that takes a request off a line is lit with the step
   const around = boxes.filter(id => !members.includes(id))
   const placed = placeCached(members, around, edges)
 

@@ -210,6 +210,9 @@ svg { flex: none; }
   color: var(--c, var(--muted)); background: color-mix(in srgb, var(--c, var(--muted)) 18%, transparent);
 }
 .box-text { min-width: 0; }
+/* A diamond has its point at each side, so what it holds sits in the middle. */
+.box.shape-diamond { justify-content: center; }
+.box.shape-diamond .box-text { text-align: center; }
 .box-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .box-meta { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .inside { position: absolute; right: 9px; bottom: 5px; display: flex; align-items: center; gap: 3px; color: var(--muted); font-size: 11px; }
@@ -238,6 +241,9 @@ svg { flex: none; }
   background: var(--box); box-shadow: 0 2px 8px #0003; animation: fade-in 0.15s 0.4s both;
 }
 .teaser p { margin: 0; }
+.teaser-name { display: grid; gap: 1px; overflow-wrap: anywhere; }
+.teaser-name:not(:last-child) { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.teaser-name span { color: var(--muted); font-size: 12px; }
 @keyframes fade-in { from { opacity: 0; } }
 
 /*
