@@ -156,11 +156,11 @@ test('an adder keeps only the runs it can add, in the order listed', () => {
 
 const addsParse: [what: string, text: string, reason: string][] = [
   ['an adds that is not a list', 'name: T\nadds: orders\n', '"adds" must be a list of run ids'],
-  ['one id', 'name: T\nadds: [orders]\n', 'adds needs two to 4 runs, not 1'],
-  ['no ids', 'name: T\nadds: []\n', 'adds needs two to 4 runs, not 0'],
-  ['the same id twice', 'name: T\nadds: [orders, orders]\n', 'adds needs two to 4 runs, not 1'],
-  ['itself and one other', 'name: T\nadds: [together, orders]\n', 'adds needs two to 4 runs, not 1'],
-  ['items that are not ids', 'name: T\nadds: [[a], { b: c }]\n', 'adds needs two to 4 runs, not 0'],
+  ['one id', 'name: T\nadds: [orders]\n', 'adds needs two to four runs, not 1'],
+  ['no ids', 'name: T\nadds: []\n', 'adds needs two to four runs, not 0'],
+  ['the same id twice', 'name: T\nadds: [orders, orders]\n', 'adds needs two to four runs, not 1'],
+  ['itself and one other', 'name: T\nadds: [together, orders]\n', 'adds needs two to four runs, not 1'],
+  ['items that are not ids', 'name: T\nadds: [[a], { b: c }]\n', 'adds needs two to four runs, not 0'],
 ]
 for (const [what, text, reason] of addsParse) {
   test(`parseRun refuses ${what} in adds`, () => {
@@ -177,7 +177,7 @@ test('adds reports an item that is not an id, itself and a repeat, and keeps the
 test('five ids are a problem: the first four are kept', () => {
   const { problems, run } = parseRun('together', 'name: T\nadds: [a, b, c, d, e, f]\n')
   assert.deepEqual(run.adds, ['a', 'b', 'c', 'd'])
-  assert.deepEqual(problems.map(p => p.message), ['adds: at most 4 runs, so e, f left out'])
+  assert.deepEqual(problems.map(p => p.message), ['adds: at most four runs, so e, f left out'])
 })
 
 test('an adder that also has levels, sources or a source is told so, and they are not read', () => {
@@ -263,8 +263,8 @@ const gridRefused: [what: string, change: (t: string) => string, reason: string]
   ['a load that is a number, not a map', t => t.replace('{ orders: 100, pings: 100 }', '5'), 'level 2: load must give a number for each source (orders, pings)'],
   ['a level with no load', t => t.replace('  - load: { orders: 100, pings: 100 }\n', '  - overall: {}\n'), 'level 2: load must give a number for each source (orders, pings)'],
   ['a source with one load only', t => t.replace(/  - load: \{ orders: \d+, pings: 100 \}\n    objects: \{ db: \{ util: [\d.]+ \} \}\n/g, ''), 'source pings needs at least two loads, so there is something to play between'],
-  ['one source', t => t.replace('  pings:  { name: Courier pings, entry: auth, unit: pings/s, color: green, dot: rate / 25, size: bytes / 100 }\n', ''), 'sources needs two to 3 sources, not 1'],
-  ['four sources', t => t.replace('levels:', '  c: { name: C }\n  d: { name: D }\nlevels:').replace(/  pings: /, '  b: { name: B }\n  pings: '), 'sources needs two to 3 sources, not 5'],
+  ['one source', t => t.replace('  pings:  { name: Courier pings, entry: auth, unit: pings/s, color: green, dot: rate / 25, size: bytes / 100 }\n', ''), 'sources needs two or three sources, not 1'],
+  ['four sources', t => t.replace('levels:', '  c: { name: C }\n  d: { name: D }\nlevels:').replace(/  pings: /, '  b: { name: B }\n  pings: '), 'sources needs two or three sources, not 5'],
   ['a source id that is not an id', t => t.replace('  pings:', '  Pings:'), 'source "Pings" is not a valid id'],
   ['sources that are not a mapping', t => t.replace(/sources:\n(  .*\n){2}/, 'sources: [a, b]\n'), '"sources" must map each source id'],
   ['a source that is not a mapping', t => t.replace('pings:  { name: Courier pings, entry: auth, unit: pings/s, color: green, dot: rate / 25, size: bytes / 100 }', 'pings: nope'), 'source pings must be a mapping of name, unit and entry'],

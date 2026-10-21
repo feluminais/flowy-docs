@@ -153,6 +153,15 @@ public static class FolderLoader
                 problems.Add(new Problem(file, null, $"can't be read: {e.Message}"));
             }
         }
+        // A run that adds others needs the other runs. One with fewer than two it can add can't be played, so it is left out, as a file that can't be read is.
+        problems.AddRange(Perf.CheckRuns(runs));
+        if (runs.Any(kv => kv.Value.Adds is not null && Perf.DialsOf(runs, kv.Key) is null))
+        {
+            var playable = new IdMap<LoadRun>();
+            foreach (var (id, run) in runs)
+                if (run.Adds is null || Perf.DialsOf(runs, id) is not null) playable.Add(id, run);
+            runs = playable;
+        }
         return (runs, problems);
     }
 }

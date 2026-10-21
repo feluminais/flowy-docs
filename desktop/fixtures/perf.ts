@@ -3,8 +3,12 @@ import { fileURLToPath } from 'node:url'
 import { ParseError, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
-import { checkRun, eventsPassed, eventText, interpolate, knee, kneeText, parseRun, rollUp, runStates, scaleText, sourceKey, strain, traffic } from '../../src/core/perf.ts'
-import type { Metrics } from '../../src/core/perf.ts'
+import type { Problem } from '../../src/core/check.ts'
+import {
+  checkRun, checkRuns, dialsOf, eventsPassed, eventText, interpolate, knee, kneeOf, kneeText, kneeTextOf, levelAt, loadOfPosition, lockstepPositions, lockstepTop, parseRun, rollUp, runStates, scaleText, settingAt,
+  sourceKey, sourceKeyAt, strain, traffic, trafficAt,
+} from '../../src/core/perf.ts'
+import type { Dial, Metrics, Run, Setting } from '../../src/core/perf.ts'
 import { nameOf } from '../../src/core/views.ts'
 import {
   activeRun, BOX_KEYS, boxAt, boxSeries, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
@@ -15,6 +19,94 @@ const root = fileURLToPath(new URL('../../', import.meta.url))
 
 /** The folder the runs live in: a small shop, and a run for each way a run can read, struggle or fail. */
 export const PERF_DIR = join(root, 'desktop/fixtures/cases/perf/flowy')
+
+const SOURCE_ORDERS = '  orders: { name: Customer orders, entry: customer, unit: orders/min, color: blue, dot: rate / 50 }\n'
+const SOURCE_PINGS = '  pings: { name: Courier pings, entry: auth, unit: pings/s, color: green, dot: rate / 25, size: bytes / 100 }\n'
+const GRID_LOADS: [orders: number, pings: number][] = [[100, 50], [100, 100], [200, 50], [200, 100], [300, 50], [300, 100]]
+
+/**
+ * One level of the grid of orders and pings: db fills with both, a shared line carries both with a `by`, a line carries only orders, and one has no `by` (it draws in a neutral
+ * colour). `load` is the level's own text when a case wants it wrong.
+ */
+function gridLevel(o: number, p: number, load = `{ orders: ${o}, pings: ${p} }`, by = `by: { orders: { rate: ${o / 2}, bytes: 400 } }`): string {
+  const util = Math.round((0.05 + o * 0.0015 + p * 0.004) * 1000) / 1000
+  return `  - load: ${load}
+    overall: { rate: ${o / 2 + p / 2}, p50: ${10 + o / 20}, p95: ${40 + o / 5 + p} }
+    objects:
+      db: { util: ${util}, queue: ${Math.round(o / 50 + p / 25)} }
+      web: { util: ${o / 1000} }
+    connections:
+      - { from: orders, to: db, rate: ${o / 2}, p50: ${5 + o / 50}, bytes: 400, ${by} }
+      - { from: auth, to: db, rate: ${p / 2}, p50: ${8 + p / 5}, bytes: 100, errors: ${p > 50 ? 0.04 : 0}, failure: lost, by: { pings: { rate: ${p / 2}, bytes: 100 } } }
+      - { from: customer, to: web, rate: ${o}, p50: 12 }
+`
+}
+
+/** Three sources, two loads each: Alpha and Beta on one line, Beta and Gamma on another. */
+function threeLevel(a: number, b: number, c: number, load = `{ a: ${a}, b: ${b}, c: ${c} }`): string {
+  return `  - load: ${load}
+    overall: { rate: ${a + b + c}, p95: ${100 + a * 5 + b * 2 + c} }
+    objects:
+      db: { util: ${Math.round((0.1 + a * 0.01 + b * 0.02 + c * 0.05) * 1000) / 1000}, queue: ${a} }
+      gateway: { errors: ${c / 100} }
+    connections:
+      - { from: orders, to: gateway, rate: ${a + b}, p50: 30, by: { a: { rate: ${a}, bytes: 100 }, b: { rate: ${b}, p50: 60 } } }
+      - { from: worker, to: gateway, rate: ${b + c}, failure: rejected, by: { b: { rate: ${b} }, c: { rate: ${c}, errors: 0.1 } } }
+`
+}
+const THREE_SOURCES = '  a: { name: Alpha, unit: a/s, color: blue, dot: rate / 10 }\n  b: { name: Beta, unit: b/s, dot: rate / 5, size: bytes / 50 }\n  c: { name: Gamma, unit: c/s, color: orange }\n'
+const THREE_LOADS: [number, number, number][] = [[10, 5, 1], [10, 5, 3], [10, 15, 1], [10, 15, 3], [20, 5, 1], [20, 5, 3], [20, 15, 1], [20, 15, 3]]
+
+/** The text of a run tested together, right or wrong in one way. */
+function GRID_TEXT(variant: string): string {
+  const head = (sources: string) => `name: Dinner rush, both at once\nabout: Made up\nsources:\n${sources}levels:\n`
+  const both = SOURCE_ORDERS + SOURCE_PINGS
+  const all = (loads = GRID_LOADS) => loads.map(([o, p]) => gridLevel(o, p)).join('')
+  const without = (loads: [number, number][], drop: [number, number]) => loads.filter(([o, p]) => o !== drop[0] || p !== drop[1])
+  switch (variant) {
+    case '': return head(both) + all()
+    case 'shuffled': return head(both) + all([[200, 100], [100, 50], [300, 50], [100, 100], [300, 100], [200, 50]])
+    case 'numeric':
+      return head('  "10": { name: Big, unit: u/s, color: teal, dot: rate / 5 }\n  "2": { name: Small, unit: v/s }\n')
+        + '  - load: { "2": 5, "10": 1 }\n    objects: { db: { util: 0.1 } }\n    connections: [{ from: orders, to: db, rate: 6, by: { "2": { rate: 5 }, "10": { rate: 1 } } }]\n'
+        + '  - load: { "10": 1, "2": 9 }\n    objects: { db: { util: 0.2 } }\n    connections: [{ from: orders, to: db, rate: 10, by: { "2": { rate: 9 }, "10": { rate: 1 } } }]\n'
+        + '  - load: { "10": 11, "2": 5 }\n    objects: { db: { util: 0.4 } }\n    connections: [{ from: orders, to: db, rate: 16, by: { "10": { rate: 11 }, "2": { rate: 5 } } }]\n'
+        + '  - load: { "10": 11, "2": 9 }\n    objects: { db: { util: 0.9 } }\n    connections: [{ from: orders, to: db, rate: 20, by: { "2": { rate: 9 }, "10": { rate: 11 } } }]\n'
+    case 'three': return `name: Three at once\nsources:\n${THREE_SOURCES}levels:\n${THREE_LOADS.map(([a, b, c]) => threeLevel(a, b, c)).join('')}`
+    case 'missing': return head(both) + all(without(GRID_LOADS, [200, 100]))
+    case 'missing-three': return `name: Three at once\nsources:\n${THREE_SOURCES}levels:\n${THREE_LOADS.filter(([a, b, c]) => !(a === 20 && b === 15 && c === 1)).map(([a, b, c]) => threeLevel(a, b, c)).join('')}`
+    case 'twice': return head(both) + all(GRID_LOADS.slice(0, 5)) + gridLevel(100, 50)
+    case 'extra-source': return head(both) + all(GRID_LOADS.slice(0, 5)) + gridLevel(300, 100, '{ orders: 300, pings: 100, mail: 5 }')
+    case 'lacks-source': return head(both) + all(GRID_LOADS.slice(0, 5)) + gridLevel(300, 100, '{ orders: 300 }')
+    case 'word': return head(both) + all(GRID_LOADS.slice(0, 5)) + gridLevel(300, 100, '{ orders: many, pings: 100 }')
+    case 'negative': return head(both) + all(GRID_LOADS.slice(0, 5)) + gridLevel(300, 100, '{ orders: -300, pings: 100 }')
+    case 'scalar': return head(both) + all(GRID_LOADS.slice(0, 5)) + gridLevel(300, 100, '300')
+    case 'no-load': return head(both) + all(GRID_LOADS.slice(0, 5)) + '  - objects: { db: { util: 0.5 } }\n'
+    case 'load-list': return head(both) + all(GRID_LOADS.slice(0, 5)) + gridLevel(300, 100, '[300, 100]')
+    case 'one-load': return head(both) + [100, 200, 300].map(o => gridLevel(o, 50)).join('')
+    case 'one-source': return head(SOURCE_ORDERS) + all()
+    case 'four-sources': return head(`${both}  c: { name: C }\n  d: { name: D }\n`) + all()
+    case 'bad-id': return head(both.replace('  pings:', '  Pings:')) + all()
+    case 'sources-list': return head('').replace('sources:\n', 'sources: [orders, pings]\n') + all()
+    case 'source-text': return head(`${SOURCE_ORDERS}  pings: nope\n`) + all()
+    case 'source-blank': return head(`${SOURCE_ORDERS}  pings:\n`) + all()
+    case 'slips':
+      return head(
+        '  orders: { name: [x], entry: [y], unit: { z: 1 }, colour: blue, color: chartreuse, dot: "rate *", size: [1], extra: 1 }\n'
+        + '  pings: { name: "", entry: "", unit: "  ", color: "#12", dot: "((rate)", size: "bytes / 0" }\n',
+      ) + all()
+    case 'colors': return head(both.replace('color: green', 'color: blue')) + all()
+    case 'extras': return `unit: u\nentry: web\nsource: { color: red, dot: rate }\naxis: time\n${head(both)}${all()}`
+    case 'by-slips':
+      return head(both) + gridLevel(100, 50, undefined, 'by: { orders: { rate: x, util: 0.5, p50: -1 }, pings: [1], mail: { rate: 1 }, auth: 5, __proto__: { rate: 1 } }')
+        + all(GRID_LOADS.slice(1))
+    case 'by-text': return head(both) + gridLevel(100, 50, undefined, 'by: [orders]') + all(GRID_LOADS.slice(1))
+    case 'by-empty': return head(both) + gridLevel(100, 50, undefined, 'by: { orders: {}, pings: ~ }') + all(GRID_LOADS.slice(1))
+    case 'proto': return head(both) + gridLevel(100, 50, undefined, 'by: { orders: { rate: 1 } }').replace('      db: {', '      __proto__: { util: 0.3 }\n      db: {') + all(GRID_LOADS.slice(1))
+    case 'wrong-key': return head(both) + all().replace(/- load: /g, '- at: ')
+    default: throw new Error(`no such grid variant: ${variant}`)
+  }
+}
 
 /** Run files as they can be written: good ones, and every kind of wrong one that reads the same way in both libraries. */
 const RAW: [id: string, text: string][] = [
@@ -128,6 +220,58 @@ const RAW: [id: string, text: string][] = [
   ['event-numeric-ids', 'name: T\naxis: time\nevents:\n  - { at: 1, on: b, state: stopped }\n  - { at: 2, on: "10", state: stopped }\n  - { at: 3, on: "2", state: degraded }\n  - { at: 4, on: "007", state: starting }\nlevels:\n  - at: 0\n  - at: 5\n'],
   ['event-resorted', 'name: T\naxis: time\nevents:\n  - { at: 3, on: a, state: stopped }\n  - { at: 1, on: a, state: starting }\n  - { at: 3, on: b, state: stopped }\n  - { at: 2, on: a, state: running }\nlevels:\n  - at: 0\n  - at: 4\n'],
   ['event-unit-default', 'name: T\naxis: time\nevents:\n  - { at: 9, on: web, state: stopped }\nlevels:\n  - at: 0\n  - at: 4\n'],
+  // A run that adds others: the list, and every way it can be wrong. Whether the runs exist is for checkRuns (see SOURCES below).
+  ['adds-good', 'name: Both\nabout: Two at once\nadds: [orders-run, pings-run]\n'],
+  ['adds-padded', 'name: Both\nadds: ["  orders-run ", pings-run]\n'],
+  ['adds-four', 'name: Four\nadds: [a, b, c, d]\n'],
+  ['adds-five', 'name: Five\nadds: [a, b, c, d, e, f]\n'],
+  ['adds-one', 'name: One\nadds: [a]\n'],
+  ['adds-none', 'name: None\nadds: []\n'],
+  ['adds-text', 'name: Text\nadds: a\n'],
+  ['adds-map', 'name: Map\nadds: { a: b }\n'],
+  ['adds-blank', 'name: Blank\nadds:\n'],
+  ['adds-twice', 'name: Twice\nadds: [a, a, b]\n'],
+  ['adds-twice-only', 'name: Twice\nadds: [a, a]\n'],
+  ['adds-self', 'name: Self\nadds: [adds-self, a, b]\n'],
+  ['adds-junk', 'name: Junk\nadds: [a, [x], { y: z }, "", ~, b]\n'],
+  ['adds-long', `name: Long\nadds: [a, ${'x'.repeat(300)}]\n`],
+  ['adds-long-extra', `name: Long\nadds: [a, b, c, d, ${'y'.repeat(300)}]\n`],
+  ['adds-extras', 'name: Extras\nadds: [a, b]\naxis: time\nunit: u\nentry: web\nsource: { color: red }\nsources: {}\nlevels:\n  - load: 1\n  - load: 2\n'],
+  ['adds-unnamed', 'adds: [a, b]\n'],
+  ['adds-proto', 'name: Proto\nadds: [__proto__, constructor, a]\n'],
+  // A run tested together: the grid, and every way it can be wrong.
+  ['grid-good', GRID_TEXT('')],
+  ['grid-shuffled', GRID_TEXT('shuffled')],
+  ['grid-numeric', GRID_TEXT('numeric')],
+  ['grid-three', GRID_TEXT('three')],
+  ['grid-missing', GRID_TEXT('missing')],
+  ['grid-missing-three', GRID_TEXT('missing-three')],
+  ['grid-twice', GRID_TEXT('twice')],
+  ['grid-extra-source', GRID_TEXT('extra-source')],
+  ['grid-lacks-source', GRID_TEXT('lacks-source')],
+  ['grid-word', GRID_TEXT('word')],
+  ['grid-negative', GRID_TEXT('negative')],
+  ['grid-scalar', GRID_TEXT('scalar')],
+  ['grid-no-load', GRID_TEXT('no-load')],
+  ['grid-load-list', GRID_TEXT('load-list')],
+  ['grid-one-load', GRID_TEXT('one-load')],
+  ['grid-one-source', GRID_TEXT('one-source')],
+  ['grid-four-sources', GRID_TEXT('four-sources')],
+  ['grid-bad-id', GRID_TEXT('bad-id')],
+  ['grid-sources-list', GRID_TEXT('sources-list')],
+  ['grid-source-text', GRID_TEXT('source-text')],
+  ['grid-source-blank', GRID_TEXT('source-blank')],
+  ['grid-slips', GRID_TEXT('slips')],
+  ['grid-colors', GRID_TEXT('colors')],
+  ['grid-extras', GRID_TEXT('extras')],
+  ['grid-by-slips', GRID_TEXT('by-slips')],
+  ['grid-by-text', GRID_TEXT('by-text')],
+  ['grid-by-empty', GRID_TEXT('by-empty')],
+  ['grid-proto', GRID_TEXT('proto')],
+  ['grid-wrong-key', GRID_TEXT('wrong-key')],
+  ['by-in-single', 'name: S\nlevels:\n  - load: 1\n    connections:\n      - { from: web, to: db, rate: 1, by: { x: { rate: 1 } } }\n      - { from: orders, to: db, by: ~ }\n  - load: 2\n'],
+  ['load-map-in-single', 'name: S\nlevels:\n  - load: { a: 1 }\n  - load: 2\n'],
+  ['load-map-in-time', 'name: S\naxis: time\nlevels:\n  - at: { a: 1 }\n  - at: 2\n'],
 ]
 
 const METRICS_CASES: Metrics[] = [
@@ -256,9 +400,129 @@ levels:
 `],
 ]
 
+/** A run of one source for the runs below to add: its loads, what db reads at each, and the rate on its lines (one a hundred times busier than a screen can draw). */
+function partRun(name: string, unit: string, source: string, loads: number[], util: number[], rate: number, extra = ''): string {
+  const levels = loads.map((load, i) => `  - load: ${load}
+    overall: { rate: ${rate * (i + 1)}, p50: ${10 * (i + 1)}, p95: ${30 * (i + 1) * (i + 1)}, errors: ${i === 2 ? 0.05 : 0} }
+    objects: { db: { util: ${util[i]}, queue: ${i * 2} }, web: { util: ${0.1 * (i + 1)} } }
+    connections:
+${extra.replaceAll('{i}', String(i)).replaceAll('{rate}', String(rate * (i + 1)))}`).join('')
+  return `name: ${name}\nunit: ${unit}\n${source}levels:\n${levels}`
+}
+
+const SOURCES: [id: string, text: string][] = [
+  ['orders-run', partRun('Customer orders', 'orders/min', 'entry: customer\nsource: { color: blue, dot: rate / 50, size: bytes / 400 }\n', [10, 20, 40], [0.2, 0.4, 0.6], 50,
+    '      - { from: customer, to: web, rate: {rate}, p50: 10, bytes: 400 }\n      - { from: orders, to: db, rate: {rate}, p50: 5, bytes: 400, errors: 0.0{i} }\n      - { from: orders, to: gateway, rate: 3, p50: 90 }\n')],
+  ['pings-run', partRun('Courier pings', 'pings/s', 'entry: auth\nsource: { color: green, dot: rate / 25 }\n', [5, 10, 20], [0.1, 0.3, 0.7], 25,
+    '      - { from: auth, to: db, rate: {rate}, p50: 20, bytes: 100, failure: lost, errors: 0.0{i} }\n      - { from: worker, to: gateway, rate: 2, p50: 90, failure: rejected }\n')],
+  ['plain-run', partRun('Plain', 'x/s', '', [1, 2], [0.1, 0.2], 5, '      - { from: orders, to: db, rate: {rate}, p50: 7 }\n')],
+  ['busy-run', partRun('Busy', 'b/s', 'source: { color: orange, dot: rate / 50 }\n', [1, 2, 3], [0.1, 0.2, 0.3], 60000, '      - { from: orders, to: db, rate: {rate}, p50: 3, bytes: 100 }\n')],
+  ['hot-a', partRun('Hot A', 'a/s', 'source: { color: teal }\n', [1, 2, 3], [0.3, 0.5, 0.7], 5, '      - { from: orders, to: db, rate: {rate}, p50: 5 }\n')],
+  ['hot-b', partRun('Hot B', 'b/s', 'source: { color: indigo }\n', [1, 2, 3], [0.2, 0.5, 0.6], 7, '      - { from: auth, to: db, rate: {rate}, p50: 6 }\n')],
+  ['same-colour', partRun('Orders again', 'orders/min', 'source: { color: blue }\n', [10, 20], [0.1, 0.2], 5, '      - { from: orders, to: db, rate: {rate}, p50: 5 }\n')],
+  ['outage-run', TIMED_TEXT()],
+  ['together', 'name: Orders and pings, added\nadds: [orders-run, pings-run]\n'],
+  ['three-added', 'name: Three added\nadds: [orders-run, pings-run, plain-run]\n'],
+  ['busy-added', 'name: Busy added\nadds: [busy-run, orders-run, pings-run, hot-a]\n'],
+  ['hot', 'name: Past full\nadds: [hot-a, hot-b]\n'],
+  ['adds-time', 'name: With time\nadds: [orders-run, pings-run, outage-run]\n'],
+  ['adds-adder', 'name: Adder of adder\nadds: [together, orders-run, pings-run]\n'],
+  ['adds-grid', 'name: With a grid\nadds: [orders-run, grid-good, pings-run]\n'],
+  ['adds-ghost', 'name: With a ghost\nadds: [orders-run, ghost, pings-run]\n'],
+  ['lonely', 'name: Lonely\nadds: [orders-run, ghost]\n'],
+  ['twins', 'name: Twins\nadds: [orders-run, same-colour]\n'],
+  ['grid-good', GRID_TEXT('')],
+  ['grid-three', GRID_TEXT('three')],
+  ['grid-numeric', GRID_TEXT('numeric')],
+  ['grid-shuffled', GRID_TEXT('shuffled')],
+  ['grid-ghost', GRID_TEXT('').replace('entry: auth', 'entry: ghost')],
+  ['grid-missing', GRID_TEXT('missing')],
+]
+
+/** The made-up outage of the time runs, kept short for the adders to refuse. */
+function TIMED_TEXT(): string {
+  return 'name: Outage\naxis: time\nunit: s\nevents:\n  - { at: 1, on: web, state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n'
+}
+
 const failure = (e: unknown) => {
   if (e instanceof ParseError) return { error: { file: e.file, line: e.line ?? null, message: e.reason } }
   throw e
+}
+
+/** The runs of SOURCES that are played at settings (the others are there for what is said about them, and play like these). */
+const PLAYED = ['orders-run', 'together', 'three-added', 'busy-added', 'hot', 'grid-good', 'grid-three', 'grid-numeric']
+
+/** Where a setting is put to the test: every lockstep step, the middle of everything, each dial alone between its first two loads, past the top and under the bottom, and a setting that names nothing. */
+function settingsOf(dials: Dial[]): Setting[] {
+  const steps = Array.from({ length: lockstepTop(dials) + 1 }, (_, i) => settingAt(dials, lockstepPositions(dials, i)))
+  const lowest = settingAt(dials, dials.map(() => 0))
+  const highest = settingAt(dials, dials.map(d => d.values.length - 1))
+  const out: Setting[] = [...steps, settingAt(dials, dials.map(d => (d.values.length - 1) * 0.3)), {}]
+  for (const d of dials) {
+    out.push({ ...lowest, [d.id]: (d.values[0] + d.values[1]) / 2 })
+    out.push({ ...lowest, [d.id]: d.values[d.values.length - 1] + 5 })
+    out.push({ ...highest, [d.id]: d.values[0] - 5 })
+  }
+  return out
+}
+
+/**
+ * Runs with several sources, read the way the loader reads a folder (a file that can't be played is left out, then the runs that add others are checked against the rest, and an
+ * adder with fewer than two runs it can add is left out too), then played at settings of their dials against the same shop as the folder's: what each dial is, the level at each
+ * setting, the traffic and key in each view, the roll-up with what each source carries, and where everything rising together first struggles.
+ */
+async function dumpSources(model: Model): Promise<unknown> {
+  const files = SOURCES.map(([id, text]) => {
+    try {
+      return { id, text, ...parseRun(id, text) }
+    } catch (e) {
+      return { id, text, ...failure(e) }
+    }
+  })
+  const runs: Record<string, Run> = {}
+  const problems: Problem[] = []
+  for (const f of files) {
+    if ('error' in f) {
+      problems.push({ file: `perf/${f.id}.yaml`, message: f.error.line === null ? f.error.message : `line ${f.error.line}: ${f.error.message}` })
+      continue
+    }
+    runs[f.id] = f.run
+    problems.push(...f.problems, ...checkRun(f.id, f.run, model))
+  }
+  problems.push(...checkRuns(runs))
+  for (const id of Object.keys(runs)) if (runs[id].adds !== undefined && dialsOf(runs, id) === undefined) delete runs[id]
+
+  const views = (id: string) => (id === 'together' || id === 'grid-good' ? [ROOT, 'shop', 'web'] : [ROOT, 'shop'])
+  return {
+    files,
+    loaded: { runs: Object.keys(runs), problems },
+    positions: [[[1, 2, 4], -1], [[1, 2, 4], 0], [[1, 2, 4], 0.5], [[1, 2, 4], 1.5], [[1, 2, 4], 2], [[1, 2, 4], 9], [[10, 20], 0.25], [[10, 20], 1]].map(([values, pos]) => ({ values, pos, load: loadOfPosition(values as number[], pos as number) })),
+    runs: Object.entries(runs).map(([id, run]) => {
+      const found = dialsOf(runs, id)!
+      const found_knee = kneeOf(runs, id)
+      return {
+        id,
+        mode: found.mode,
+        dials: found.dials,
+        lockstep: Array.from({ length: lockstepTop(found.dials) + 1 }, (_, i) => lockstepPositions(found.dials, i)),
+        check: checkRun(id, run, model),
+        knee: found_knee ?? null,
+        text: found_knee ? kneeTextOf(runs, id, found_knee, oid => nameOf(model, oid)) : null,
+        settings: (PLAYED.includes(id) ? settingsOf(found.dials) : []).map(setting => {
+          const level = levelAt(runs, id, setting)
+          return {
+            setting,
+            level,
+            traffic: views(id).map(view => {
+              const t = trafficAt(model, runs, id, setting, view)
+              return { view, ...t, key: sourceKeyAt(runs, id, t.lines) }
+            }),
+            rolled: views(id).map(view => ({ view, ...rollUp(model, level, view) })),
+          }
+        }),
+      }
+    }),
+  }
 }
 
 /**
@@ -340,6 +604,7 @@ export async function dumpPerf(): Promise<unknown> {
     computed,
     scaled,
     timed,
+    sources: await dumpSources(model),
   }
 }
 

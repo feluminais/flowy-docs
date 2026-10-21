@@ -388,10 +388,10 @@ function readAdds(id: string, file: string, list: unknown[], add: (message: stri
     out.push(run)
   })
   if (out.length > MOST_ADDED) {
-    add(`adds: at most ${MOST_ADDED} runs, so ${out.slice(MOST_ADDED).map(brief).join(', ')} left out`)
+    add(`adds: at most four runs, so ${out.slice(MOST_ADDED).map(brief).join(', ')} left out`)
     out.length = MOST_ADDED
   }
-  if (out.length < 2) throw new ParseError(file, `adds needs two to ${MOST_ADDED} runs, not ${out.length}`)
+  if (out.length < 2) throw new ParseError(file, `adds needs two to four runs, not ${out.length}`)
   return out
 }
 
@@ -402,7 +402,7 @@ function readAdds(id: string, file: string, list: unknown[], add: (message: stri
 function readSources(file: string, raw: unknown, add: (message: string) => void): Record<string, SourceInfo> {
   if (!isMap(raw)) throw new ParseError(file, '"sources" must map each source id to its name, unit and entry')
   const ids = Object.keys(raw)
-  if (ids.length < 2 || ids.length > MOST_TESTED) throw new ParseError(file, `sources needs two to ${MOST_TESTED} sources, not ${ids.length}`)
+  if (ids.length < 2 || ids.length > MOST_TESTED) throw new ParseError(file, `sources needs two or three sources, not ${ids.length}`)
   const out: Record<string, SourceInfo> = {}
   for (const sid of ids) {
     if (!isValidId(sid)) throw new ParseError(file, `source "${brief(sid)}" is not a valid id: the id must ${ID_RULE}`)
