@@ -24,6 +24,7 @@ internal sealed class CanvasView : Border
     private readonly MarksLayer _marks = new();
     private readonly TrafficLayer _traffic = new();
     private Traffic? _load; // the load being shown, if the Performance panel is open
+    private FailureOverlay? _failures; // the marks being shown, if the Failures tab is open
     private IReadOnlyDictionary<string, StateMark> _states = new Dictionary<string, StateMark>(); // the states at the stop on show, by shape
     private IDisposable? _step;
     private readonly Avalonia.Controls.Canvas _stage = new() { RenderTransformOrigin = RelativePoint.TopLeft };
@@ -284,6 +285,7 @@ internal sealed class CanvasView : Border
         foreach (var (id, control) in _boxes) control.SetSelected(_selected.Contains(id));
         _back.SetScene(scene, lineStyle);
         if (_load is not null) ApplyLoad();
+        if (_failures is not null) ApplyFailures();
         ApplyStates();
     }
 
@@ -337,6 +339,32 @@ internal sealed class CanvasView : Border
         else _traffic.Set(_load.Lines, PathOf, _scene?.Boxes.Select(b => new TrafficLayer.ShapeCover(b.Id, b.Rect, Look.DefOf(b.Object).Edge)).ToList() ?? [], _back.LabelRects);
     }
 
+    /// <summary>The marks that are showing, or null (for tests).</summary>
+    internal FailureOverlay? FailuresShown => _failures;
+
+    /// <summary>The badge and the light a shape wears now, for tests.</summary>
+    internal (FailureMark? Mark, FailLight Light) FailureOnBox(string id) => _boxes.TryGetValue(id, out var box) ? box.FailureShown : (null, FailLight.None);
+
+    /// <summary>The badge and the light a line wears now, for tests.</summary>
+    internal (FailureMark? Mark, FailLight Light) FailureOnLine(string from, string to) => (_back.FailureOn(from, to), _back.FailLightOf(from, to));
+
+    /// <summary>
+    /// Shows the Failures tab's marks: a badge on each shape and line that carries failure modes and, for a picked mode, what it fails and what it hurts
+    /// outlined and everything else faded. Null takes them all away.
+    /// </summary>
+    public void ShowFailures(FailureOverlay? overlay)
+    {
+        _failures = overlay;
+        ApplyFailures();
+    }
+
+    private void ApplyFailures()
+    {
+        foreach (var (id, box) in _boxes)
+            box.SetFailure(_failures is not null && _failures.Boxes.TryGetValue(id, out var mark) ? mark : null, _failures?.LightOfBox(id) ?? FailLight.None);
+        _back.SetFailures(_failures);
+    }
+
     /// <summary>A traffic line's path, flattened, in the style the lines are drawn in: the same one the line itself takes, so the particles run on it.</summary>
     private FlatLine? PathOf(LineTraffic line)
     {
@@ -366,6 +394,7 @@ internal sealed class CanvasView : Border
         foreach (var box in _scene.Boxes) _boxes[box.Id].Update(box);
         _back.SetScene(_scene, LineStyle);
         if (_load is not null) ApplyLoad();
+        if (_failures is not null) ApplyFailures();
     }
 
     private void EndGesture(PointerEventArgs e)

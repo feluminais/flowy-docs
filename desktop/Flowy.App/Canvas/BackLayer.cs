@@ -19,6 +19,7 @@ internal sealed class BackLayer : Control
     private List<Drawn> _lines = [];
     private List<CoreRect> _labels = [];
     private IReadOnlyDictionary<string, double>? _widths; // how thick each line is drawn while a load shows (by line id), where it differs from the usual
+    private FailureOverlay? _failures; // the Failures tab's badges and the line a picked mode fails, while the tab is open
     private Scene? _scene;
     private Viewport _viewport = new(0, 0, 1);
 
@@ -79,6 +80,20 @@ internal sealed class BackLayer : Control
         InvalidateVisual();
     }
 
+    /// <summary>Draws the Failures tab's marks on the lines: a badge with the count at the label, and for a picked mode its line in red and every other faded. Null takes them away.</summary>
+    public void SetFailures(FailureOverlay? overlay)
+    {
+        _failures = overlay;
+        InvalidateVisual();
+    }
+
+    /// <summary>The badge a line wears now, or null (for tests).</summary>
+    internal FailureMark? FailureOn(string from, string to) =>
+        _failures is not null && _failures.Lines.TryGetValue(Failures.LineKey(from, to), out var mark) ? mark : null;
+
+    /// <summary>How a line is lit for the picked failure mode (for tests).</summary>
+    internal FailLight FailLightOf(string from, string to) => _failures?.LightOfLine(from, to) ?? FailLight.None;
+
     /// <summary>How thick a line is drawn while a load shows, or null when it is drawn as usual (for tests).</summary>
     internal double? WidthOf(string edgeId) => _widths is not null && _widths.TryGetValue(edgeId, out var w) ? w : null;
 
@@ -130,6 +145,7 @@ internal sealed class BackLayer : Control
     }
 
     private double Fade(SceneEdge e) =>
+        _failures?.LightOfLine(e.From, e.To) == FailLight.Dim ? 0.15 :
         e.Flags.HasFlag(EdgeFlags.Dim) ? 0.15 : e.Flags.HasFlag(EdgeFlags.Lane) ? 0.55 : e.Flags.HasFlag(EdgeFlags.Faint) ? 0.25 : e.Flags.HasFlag(EdgeFlags.Active) || e.Flags.HasFlag(EdgeFlags.Step) ? _litFade : 1;
 
     public override void Render(DrawingContext context)
@@ -155,6 +171,27 @@ internal sealed class BackLayer : Control
             DrawLine(context, line, accent);
         foreach (var line in _lines)
             if (line.Edge.Label is { Length: > 0 } label) DrawLabel(context, line, label);
+        if (_failures is { Lines.Count: > 0 })
+            foreach (var line in _lines)
+                if (_failures.Lines.TryGetValue(Failures.LineKey(line.Edge.From, line.Edge.To), out var mark)) DrawFailBadge(context, line, mark);
+    }
+
+    /// <summary>
+    /// The count of failure modes a line carries, in the colour of the worst, as a shape wears it. On the left end of the line's label when it has one,
+    /// else centred on the line's label point.
+    /// </summary>
+    private void DrawFailBadge(DrawingContext context, Drawn line, FailureMark mark)
+    {
+        using var opacity = context.PushOpacity(Fade(line.Edge));
+        var unrated = mark.Band == RiskBand.Unrated;
+        var text = new FormattedText(mark.Count.ToString(CultureInfo.InvariantCulture), CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+            new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.Bold), 11, Brush(unrated ? "FgBrush" : "BgBrush"));
+        var width = Math.Max(20, text.Width + 12);
+        var x = line.Edge.Label is { Length: > 0 } label ? LabelBox(line.Path, Format(line.Edge, label, Brushes.Black)).X - width + 6 : line.Path.Label.X - width / 2;
+        var rect = new Avalonia.Rect(x, line.Path.Label.Y - 10, width, 20);
+        var fill = Brush(mark.Band switch { RiskBand.High => "DangerBrush", RiskBand.Medium => "WarnBrush", RiskBand.Low => "MutedBrush", _ => "BgBrush" });
+        context.DrawRectangle(fill, unrated ? new Pen(Brush("LineBrush"), 1) : null, rect, 10, 10);
+        context.DrawText(text, new Point(rect.X + (width - text.Width) / 2, rect.Y + (20 - text.Height) / 2));
     }
 
     private void DrawLine(DrawingContext context, Drawn line, IBrush accent)
@@ -164,6 +201,11 @@ internal sealed class BackLayer : Control
         var emphasised = lit || e.Selected || e.Flags.HasFlag(EdgeFlags.Hover);
         var brush = e.Flags.HasFlag(EdgeFlags.Problem) && !lit ? Brush("WarnBrush") : emphasised ? accent : Brush("EdgeBrush");
         var thickness = ThicknessOf(lit, e.Selected || e.Flags.HasFlag(EdgeFlags.Hover), WidthOf(e.Id));
+        if (_failures?.LightOfLine(e.From, e.To) == FailLight.Fails) // the line a picked failure mode fails, in the colour of a failing call
+        {
+            brush = Brush("DangerBrush");
+            thickness = 2.5;
+        }
         var dash = e.Flags.HasFlag(EdgeFlags.Step) ? new DashStyle([8 / thickness, 5 / thickness], 0) : e.Flags.HasFlag(EdgeFlags.Lane) ? new DashStyle([4 / thickness, 5 / thickness], 0) : null;
         using var opacity = context.PushOpacity(Fade(e));
         if (lit) // a soft glow under it
