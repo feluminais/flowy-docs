@@ -180,7 +180,6 @@ export function PerfBody({ model, view, runs, runProblems, runId, pos, ramping, 
         <KeyItem swatch={<span className="sw busy" />}>More calls</KeyItem>
         {source && (
           <>
-            <KeyItem swatch={<span className="sw call" />}>{source.name}</KeyItem>
             {source.scale && <KeyItem swatch={<span className="sw call" />}>{source.scale}</KeyItem>}
             {source.bigger && <KeyItem swatch={<span className="sw bigger"><i /><i /></span>}>Bigger call</KeyItem>}
             {source.scaledDown && <KeyItem swatch={<Scaled />}>Scaled down</KeyItem>}

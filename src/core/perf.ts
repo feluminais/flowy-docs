@@ -21,8 +21,11 @@ export const FAILURES: readonly Failure[] = ['lost', 'rejected']
 /** What one connection measured, or one line in a view once connections are rolled up. */
 export type Pair = Metrics & { from: string; to: string; failure?: Failure }
 export type Level = { load: number; overall: Metrics; objects: Record<string, Metrics>; connections: Pair[] }
-/** A formula as the run wrote it and as it was read: the text is what a reader sees, the formula is what is evaluated. */
-export type SourceFormula = { text: string; formula: Formula }
+/**
+ * A formula as the run wrote it. Only the text is kept: a run travels to the browser as JSON, which drops anything but data, so the formula is read
+ * from the text where it is used (see formulaOf). parseRun has already checked that the text reads.
+ */
+export type SourceFormula = { text: string }
 /**
  * Where a run's requests come from, and how to draw them: the dots' colour (a colour name or hex, like a shape's), a formula for how many dots a
  * line shows at once and one for the area of a dot. Every key is optional. Part 3b will make a run hold a list of these; keep it a value of its own.
@@ -96,13 +99,26 @@ function readSource(raw: unknown, add: (message: string) => void): Source | unde
       add(`source: ${key} ${read.problem}`) // a formula that can't be read leaves the default curve in its place
       return undefined
     }
-    return { text, formula: read.formula }
+    return { text }
   }
   const dot = formula('dot', 'rate / 50')
   if (dot) out.dot = dot
   const size = formula('size', 'bytes / 400')
   if (size) out.size = size
   return Object.keys(out).length === 0 ? undefined : out
+}
+
+/** Formulas already read, by their text, so a line that is drawn twenty times a second doesn't read its formula each time. Kept small: a run has two. */
+const READ = new Map<string, Formula | undefined>()
+
+/** The formula a source's text says, or undefined for a text that doesn't read (a run that was not through parseRun). */
+function formulaOf(f: SourceFormula): Formula | undefined {
+  if (!READ.has(f.text)) {
+    if (READ.size >= 64) READ.clear()
+    const read = parseFormula(f.text)
+    READ.set(f.text, 'formula' in read ? read.formula : undefined)
+  }
+  return READ.get(f.text)
 }
 
 /** The `failure:` of a connection: lost or rejected, or nothing. Anything else is a problem. */
@@ -461,7 +477,8 @@ function lineTraffic(l: Pair, rate: number, source: Source | undefined): LineTra
   if (l.failure !== undefined) base.failure = l.failure
   const vars = { rate, bytes: l.bytes, p50: l.p50 }
   // How many dots: the formula's count when it has a value (a missing number or a negative result leaves today's curve for this line).
-  const count = source?.dot ? evalFormula(source.dot.formula, vars) : undefined
+  const dot = source?.dot ? formulaOf(source.dot) : undefined
+  const count = dot ? evalFormula(dot, vars) : undefined
   if (count !== undefined && count >= 0) {
     const { counts, capped } = capCounts([count])
     // The count is dots on the line at once; the speed stays with p50, so dots start as often as they take to cross.
@@ -469,7 +486,8 @@ function lineTraffic(l: Pair, rate: number, source: Source | undefined): LineTra
     base.dots = round2(counts[0])
     if (capped) base.capped = true
   }
-  const area = source?.size ? evalFormula(source.size.formula, vars) : undefined
+  const size = source?.size ? formulaOf(source.size) : undefined
+  const area = size ? evalFormula(size, vars) : undefined
   if (area !== undefined && area >= 0) base.radius = round2(clamp(Math.sqrt(area), RADIUS_MIN, RADIUS_MAX))
   return base
 }
@@ -499,7 +517,8 @@ const plain = (n: number): string => String(Number(n.toPrecision(6)))
  * words that is not true for every line is worse than none. Also undefined for a scale nobody reads (under a thousandth of a call or over a billion).
  */
 export function scaleText(run: Run): string | undefined {
-  const k = run.source?.dot ? linearInRate(run.source.dot.formula) : undefined
+  const dot = run.source?.dot ? formulaOf(run.source.dot) : undefined
+  const k = dot ? linearInRate(dot) : undefined
   if (k === undefined) return undefined
   const calls = 1 / k
   return calls >= 0.001 && calls < 1e9 ? `1 dot = ${plain(calls)} calls/s` : undefined

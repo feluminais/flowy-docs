@@ -48,8 +48,8 @@ public sealed record Pair(string From, string To) : Metrics
 
 public sealed record Level(double Load, Metrics Overall, IdMap<Metrics> Objects, IReadOnlyList<Pair> Connections);
 
-/// <summary>A formula as the run wrote it and as it was read: the text is what a reader sees, the formula is what is evaluated.</summary>
-public sealed record SourceFormula(string Text, Formula Formula);
+/// <summary>A formula as the run wrote it. Only the text is kept, as in perf.ts, where a run travels to the browser as JSON: the formula is read from the text where it is used.</summary>
+public sealed record SourceFormula(string Text);
 
 /// <summary>Where a run's requests come from, and how to draw them: the dots' colour, and formulas for how many dots a line shows at once and for the area of a dot. Every part is optional.</summary>
 public sealed record Source(string? Color = null, SourceFormula? Dot = null, SourceFormula? Size = null);
@@ -191,11 +191,27 @@ public static class Perf
                 add($"source: {key} {read.Problem}"); // a formula that can't be read leaves the default curve in its place
                 return null;
             }
-            return new SourceFormula(text, read.Formula);
+            return new SourceFormula(text);
         }
         var dot = ReadFormula("dot", "rate / 50");
         var size = ReadFormula("size", "bytes / 400");
         return color is null && dot is null && size is null ? null : new Source(color, dot, size);
+    }
+
+    private static readonly Dictionary<string, Formula?> Read = [];
+
+    /// <summary>The formula a source's text says, read once and kept (a line is drawn twenty times a second), or null for a text that doesn't read.</summary>
+    private static Formula? FormulaOf(SourceFormula f)
+    {
+        lock (Read)
+        {
+            if (!Read.TryGetValue(f.Text, out var formula))
+            {
+                if (Read.Count >= 64) Read.Clear();
+                Read[f.Text] = formula = Formulas.Parse(f.Text).Formula;
+            }
+            return formula;
+        }
     }
 
     /// <summary>The <c>failure:</c> of a connection: lost or rejected, or nothing. Anything else is a problem.</summary>
@@ -569,7 +585,7 @@ public static class Perf
         double? radius = null;
         var vars = new FormulaVars(rate, l.Bytes, l.P50);
         // How many dots: the formula's count when it has a value (a missing number or a negative result leaves today's curve for this line).
-        if (source?.Dot is { } dot && Formulas.Eval(dot.Formula, vars) is { } count && count >= 0)
+        if (source?.Dot is { } dot && FormulaOf(dot) is { } dotFormula && Formulas.Eval(dotFormula, vars) is { } count && count >= 0)
         {
             var (counts, wasCapped) = CapCounts([count]);
             // The count is dots on the line at once; the speed stays with p50, so dots start as often as they take to cross.
@@ -577,7 +593,7 @@ public static class Perf
             dots = Round2(counts[0]);
             capped = wasCapped;
         }
-        if (source?.Size is { } size && Formulas.Eval(size.Formula, vars) is { } area && area >= 0) radius = Round2(Clamp(Math.Sqrt(area), RadiusMin, RadiusMax));
+        if (source?.Size is { } size && FormulaOf(size) is { } sizeFormula && Formulas.Eval(sizeFormula, vars) is { } area && area >= 0) radius = Round2(Clamp(Math.Sqrt(area), RadiusMin, RadiusMax));
         return new LineTraffic(l.From, l.To, Round2(Clamp(1.5 + 1.5 * Math.Log10(1 + rate), 1.5, 6)), perSecond, travelMs, errors >= 0.01 ? Math.Max(errors, 0.05) : errors)
         {
             Color = source?.Color,
@@ -597,7 +613,7 @@ public static class Perf
     /// </summary>
     public static string? ScaleText(LoadRun run)
     {
-        if (run.Source?.Dot is not { } dot || Formulas.LinearInRate(dot.Formula) is not { } k) return null;
+        if (run.Source?.Dot is not { } dot || FormulaOf(dot) is not { } formula || Formulas.LinearInRate(formula) is not { } k) return null;
         var calls = 1 / k;
         return calls >= 0.001 && calls < 1e9 ? $"1 dot = {Plain(calls)} calls/s" : null;
     }
