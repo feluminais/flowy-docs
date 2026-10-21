@@ -1,0 +1,12 @@
+name: Outcomes that are written wrong
+view: shop
+steps:
+  - { from: web, to: api, text: Taken by one of its own ends, animation: { kind: send, outcome: intercepted, by: web } }
+  - { from: web, to: api, text: Taken by a shape that is not there, animation: { kind: send, outcome: intercepted, by: ghost } }
+  - { from: web, to: api, text: Taken by nobody, animation: { kind: send, outcome: intercepted } }
+  - { from: web, to: api, text: A share out of range, animation: { kind: send, outcome: lost, share: 101 } }
+  - { from: web, to: api, text: A share with no outcome, animation: { kind: send, share: 30 } }
+  - { from: web, to: api, text: A reason that is far too long, animation: { kind: send, outcome: lost, reason: A reason far too long to read beside a puff } }
+  - { from: web, to: api, text: A place that is off the line, animation: { kind: send, outcome: lost, at: "0.95" } }
+  - { from: web, to: api, text: A callback cannot be lost, animation: { kind: callback, outcome: lost } }
+  - { from: web, to: api, text: A name for a shape, animation: { kind: send, outcome: lost, by: cache } }

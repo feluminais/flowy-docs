@@ -223,6 +223,29 @@
           "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Billing\n  participant n2 as Dispatch\n  participant n3 as Orders DB\n  par Billing\n    n0->>n1: Starts together with Dispatch\n  and Dispatch\n    n0->>n2: Starts together with Billing\n  end\n  n0->>n1: Asks Billing for a total\n  par A\n    n0->>n1: Lane A one\n    n1->>n3: Lane A two\n  and B\n    n0->>n2: Lane B only\n  and C\n    n0->>n3: Lane C one\n    n3->>n0: Lane C two\n    n0->>n3: Lane C three\n  end\n  opt A courier is wanted\n    n0->>n2: Books a courier\n  end\n  loop Until the job is done\n    n0->>n3: Checks the job\n  end\n  loop Up to 2 times\n    n0->>n3: Saves\n    n0->>n3: Saves once more\n  end\n  opt Last\n    n0->>n1: Ends the flow\n  end\n"
         }
       ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/outcomes/flowy",
+      "views": [
+        {
+          "view": "root",
+          "text": "flowchart TB\n  n0([\"Customer<br/>actor\"])\n  n1[\"Shop<br/>system\"]\n  n2[\"Stripe<br/>system\"]\n  n0 -- \"browses\" --> n1\n"
+        },
+        {
+          "view": "shop",
+          "text": "flowchart TB\n  n0[\"Web app<br/>app\"]\n  n1[\"API<br/>app\"]\n  n2[(\"Orders DB<br/>store\")]\n  n3[\"Edge cache<br/>app\"]\n  n4([\"Customer<br/>actor\"])\n  n4 -- \"browses\" --> n0\n  n0 -- \"REST\" --> n1\n  n1 -- \"reads and writes\" --> n2\n  n0 -- \"asks first\" --> n3\n  classDef outsider stroke-dasharray: 4 3\n  class n4 outsider\n"
+        }
+      ],
+      "flows": [
+        {
+          "flow": "ends",
+          "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  participant n2 as Orders DB\n  n0->>n1: A third of the pings are lost\n  Note over n0,n1: 30% lost: Packet dropped\n  n0->>n1: The call is turned away\n  Note over n0,n1: Rejected: Rate limit\n  n0->>n1: A proxy takes the call\n  Note over n0,n1: Taken by Café wifi proxy\n  n0->>n1: The cache takes the call\n  Note over n0,n1: Taken by Edge cache: Serves a stale copy\n  n1->>n2: Saves the order twice\n  Note over n1,n2: Sent twice\n  n1->>n2: The first write is slow\n  Note over n1,n2: Delayed: Cold start\n  n1->>n2: Half of the writes fail\n  Note over n1,n2: 50% fail\n  n1->>n2: The event is lost halfway\n  Note over n1,n2: Lost\n"
+        },
+        {
+          "flow": "wrong",
+          "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  n0->>n1: Taken by one of its own ends\n  Note over n0,n1: Taken by Web app\n  n0->>n1: Taken by a shape that is not there\n  Note over n0,n1: Taken by ghost\n  n0->>n1: Taken by nobody\n  n0->>n1: A share out of range\n  n0->>n1: A share with no outcome\n  n0->>n1: A reason that is far too long\n  n0->>n1: A place that is off the line\n  n0->>n1: A callback cannot be lost\n  n0->>n1: A name for a shape\n"
+        }
+      ]
     }
   ]
 }

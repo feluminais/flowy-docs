@@ -1,13 +1,29 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
+
 namespace Flowy.Core;
 
-/// <summary>A step's animation, read: the kind, who sets a callback off (inside unless the file says outside), the word the blob carries, and how it ends (fail or timeout, or null).</summary>
-public sealed record StepAnimation(string Kind, string Trigger, string? Carries, string? Outcome = null);
+/// <summary>Who takes an intercepted request: a shape of the model (<c>Shape</c>, an id) or a party that is not in it (<c>Name</c>). Exactly one is set.</summary>
+public sealed record Interceptor(string? Shape = null, string? Name = null);
 
 /// <summary>
-/// One thing to draw, in the order beats start. <c>Do</c> is pipe, blob, ring, flash, gulp, wait, drop or fade (the lit line dims and stays dim); <c>On</c> is from, to or line;
-/// times are milliseconds from the start of the step. Dir, Glyph, Tone (reply, or fail for a blob or flash in the danger colour) and Label are set only where they mean something.
+/// A step's animation, read: the kind, who sets a callback off (inside unless the file says outside), the word the blob carries, and how it ends
+/// (an entry of <see cref="Animations.Outcomes"/>, or null). <c>Share</c> is the whole percent of the requests that meet the outcome (a burst plays when it is
+/// set), <c>Reason</c> says why in a few words, <c>By</c> is who takes an intercepted request and <c>At</c> how far along its line a lost one vanishes.
 /// </summary>
-public sealed record Beat(string Do, string On, int At, int Dur, string? Dir = null, string? Glyph = null, string? Tone = null, string? Label = null);
+public sealed record StepAnimation(string Kind, string Trigger, string? Carries, string? Outcome = null, int? Share = null, string? Reason = null, Interceptor? By = null, double? At = null);
+
+/// <summary>
+/// One thing to draw, in the order beats are listed. <c>Do</c> is pipe, blob, ring, flash, gulp, wait, drop or fade (the lit line dims and stays dim), or one of
+/// the five the outcomes added: pop (a puff where a request is lost), bar (a bar at the receiver's door), clock, note (a few words beside where something happens)
+/// and marker (the dashed marker of whoever takes a request). <c>On</c> is from, to, line or by (the one who takes a request);
+/// times are milliseconds from the start of the step. Dir, Glyph, Tone (reply, or fail for a blob or flash in the danger colour) and Label are set only where
+/// they mean something. <c>Start</c> and <c>End</c> are the fractions of the route a blob runs between, <c>Tint</c> a slot of <see cref="Animations.Tints"/>,
+/// <c>Ring</c> a ring around a blob, <c>Along</c> where along the route a pop, bar, clock, note or marker sits, and <c>Text</c> a note's reason or a marker's name.
+/// </summary>
+public sealed record Beat(
+    string Do, string On, int At, int Dur, string? Dir = null, string? Glyph = null, string? Tone = null, string? Label = null,
+    double? Start = null, double? End = null, int? Tint = null, bool? Ring = null, double? Along = null, string? Text = null);
 
 /// <summary>A port of src/core/animation.ts, with the same wording and the same numbers. desktop/fixtures/beats.ts keeps the two equal.</summary>
 public static class Animations
@@ -16,16 +32,88 @@ public static class Animations
 
     public static readonly string[] Triggers = ["inside", "outside"];
 
-    /// <summary>How the exchange a step draws ends: refused, or never answered.</summary>
-    public static readonly string[] Outcomes = ["fail", "timeout"];
+    /// <summary>How the exchange a step draws ends: refused, never answered, gone halfway, turned away at the door, taken by a third party, handled twice or held up.</summary>
+    public static readonly string[] Outcomes = ["fail", "timeout", "lost", "rejected", "intercepted", "duplicated", "delayed"];
 
-    private static readonly string[] Options = ["kind", "trigger", "carries", "outcome"];
+    /// <summary>The outcomes that came after fail and timeout. They are valid on a send, a call and an event, never on a callback.</summary>
+    private static readonly string[] TravelOutcomes = ["lost", "rejected", "intercepted", "duplicated", "delayed"];
+
+    private static readonly string[] Options = ["kind", "trigger", "carries", "outcome", "share", "reason", "by", "at"];
+
+    /// <summary>The longest a reason and an interceptor's name may be, in characters.</summary>
+    public const int ReasonMax = 40;
+    public const int NameMax = 24;
+
+    /// <summary>Where a lost request vanishes along its line, as a fraction of the way, when the step does not say.</summary>
+    public const double LostAt = 0.55;
+
+    /// <summary>The colours a request that meets an outcome in a burst can have, as shape colour names.</summary>
+    public static readonly string[] Tints = ["teal", "pink", "purple", "orange"];
+
+    /// <summary>The most characters of a name a blob shows. A longer word is cut with an ellipsis.</summary>
+    public const int LabelMax = 16;
+
+    public static string ShortLabel(string label) => label.Length > LabelMax ? label[..(LabelMax - 1)] + "…" : label;
 
     /// <summary>After the request lands, how long the sender's waiting dots run when nobody answers, and then how long the line takes to fade.</summary>
     private const int TimeoutWait = 1800;
     private const int TimeoutFade = 600;
 
+    /// <summary>How long a reason stays up, and how long a puff, a bar and the wait of a delayed request last.</summary>
+    private const int NoteMs = 1600;
+    private const int PopMs = 500;
+    private const int BarMs = 900;
+    private const int DelayHold = 1500;
+
+    /// <summary>Where along the route a rejected request stops, where the bar is, where a delayed one waits and an intercepted one leaves, and where a reason sits for the others.</summary>
+    private const double RejectStop = 0.92;
+    private const double BarAt = 0.97;
+    private const double WaitAt = 0.4;
+    private const double LandingNoteAt = 0.88;
+
+    /// <summary>A burst starts a request every BurstStagger ms at most, and spreads its starts over at most BurstSpread ms.</summary>
+    private const int BurstStagger = 300;
+    private const int BurstSpread = 3000;
+
     private static readonly string KindsHint = "use " + string.Join(", ", Kinds);
+
+    private const string ByHint = "animation by must be a shape id or { name: ... }";
+
+    /// <summary>"a, b or c".</summary>
+    private static string OrList(string[] words) => words.Length < 2 ? string.Concat(words) : $"{string.Join(", ", words[..^1])} or {words[^1]}";
+
+    /// <summary>A line of plain text for a label: not blank, with no line break and no control character in it.</summary>
+    private static bool PlainLine(object? v) =>
+        v is string s && !string.IsNullOrWhiteSpace(s)
+        && !s.Any(c => char.IsControl(c) || CharUnicodeInfo.GetUnicodeCategory(c) is UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator);
+
+    /// <summary>The share of requests, 1 to 100 whole percent, or null. A file holds every value as text.</summary>
+    public static int? ShareOf(object? v)
+    {
+        if (v is not string s || s.Length is 0 or > 3 || !s.All(c => c is >= '0' and <= '9')) return null;
+        var n = int.Parse(s, CultureInfo.InvariantCulture);
+        return n is >= 1 and <= 100 ? n : null;
+    }
+
+    private static readonly Regex DecimalText = new(@"^[0-9]*\.?[0-9]+\z", RegexOptions.CultureInvariant);
+
+    /// <summary>How far along its line a lost request vanishes, 0.1 to 0.9, from the text of a number; null when it is anything else.</summary>
+    public static double? LostAtOf(object? v)
+    {
+        if (v is not string s || !DecimalText.IsMatch(s)) return null;
+        var n = double.Parse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture);
+        return n >= 0.1 && n <= 0.9 ? n : null;
+    }
+
+    /// <summary>What is wrong with the shape of <c>by</c>, or null. Whether a shape id exists is <see cref="InterceptorProblem"/>'s to say.</summary>
+    private static string? ByProblem(object? by)
+    {
+        if (by is string s) return PlainLine(s) ? null : ByHint;
+        if (by is not OrderedDictionary<string, object?> map || map.Keys.Any(k => k != "name")) return ByHint;
+        map.TryGetValue("name", out var name);
+        if (!PlainLine(name)) return "animation by name must be plain text on one line";
+        return ((string)name!).Trim().Length > NameMax ? $"animation by name can be at most {NameMax} characters" : null;
+    }
 
     /// <summary>What is wrong with a step's <c>animation</c>, worded to follow "step N: ", or null. A blank tag is no tag; <paramref name="hasTo"/> is whether the step has a "to".</summary>
     public static string? Problem(object? raw, bool hasTo)
@@ -48,11 +136,48 @@ public static class Animations
             if (trigger is not null && !(trigger is string t && Triggers.Contains(t))) return $"animation trigger must be {string.Join(" or ", Triggers)}";
             if (trigger is not null && name != "callback") return "animation trigger only applies to callback";
             if (carries is not null && (carries is not string word || string.IsNullOrWhiteSpace(word))) return "animation carries must be a word";
-            if (outcome is not null && !(outcome is string given && Outcomes.Contains(given))) return $"animation outcome must be {string.Join(" or ", Outcomes)}";
+            if (outcome is not null && !(outcome is string given && Outcomes.Contains(given))) return $"animation outcome must be {OrList(Outcomes)}";
             if (outcome is "timeout" && name != "call") return "animation outcome timeout only applies to call";
             if (outcome is "fail" && name is not ("send" or "call")) return "animation outcome fail only applies to send and call";
+            if (outcome is string travel && TravelOutcomes.Contains(travel) && name == "callback") return $"animation outcome {travel} only applies to send, call and event";
+            if (map.TryGetValue("share", out var share))
+            {
+                if (ShareOf(share) is null) return "animation share must be a whole number from 1 to 100";
+                if (outcome is null) return "animation share needs an outcome";
+            }
+            if (map.TryGetValue("reason", out var reason))
+            {
+                if (!PlainLine(reason)) return "animation reason must be plain text on one line";
+                if (((string)reason!).Trim().Length > ReasonMax) return $"animation reason can be at most {ReasonMax} characters";
+                if (outcome is null) return "animation reason needs an outcome";
+            }
+            if (outcome is "intercepted")
+            {
+                if (!map.TryGetValue("by", out var by)) return "animation outcome intercepted needs a \"by\" (a shape id, or { name: ... })";
+                if (ByProblem(by) is { } why) return why;
+            }
+            else if (map.ContainsKey("by")) return "animation by only applies to outcome intercepted";
+            if (map.TryGetValue("at", out var at))
+            {
+                if (LostAtOf(at) is null) return "animation at must be a number from 0.1 to 0.9";
+                if (outcome is not "lost") return "animation at only applies to outcome lost";
+            }
         }
         return hasTo ? null : $"animation \"{name}\" needs a \"to\"";
+    }
+
+    /// <summary>
+    /// What is wrong with the shape an interception names, or null. It needs the model, so <see cref="Problem"/> leaves it: an unknown shape, or one of the step's
+    /// own ends. A <c>{ name: ... }</c> is never checked against the model.
+    /// </summary>
+    public static string? InterceptorProblem(object? raw, string? from, string? to, Func<string, bool> exists)
+    {
+        if (raw is not OrderedDictionary<string, object?> map || !map.TryGetValue("outcome", out var outcome) || outcome is not "intercepted") return null;
+        if (!map.TryGetValue("by", out var by) || by is not string shape || string.IsNullOrWhiteSpace(shape)) return null;
+        var id = shape.Trim();
+        if (!exists(id)) return $"animation by: unknown object \"{id}\"";
+        if (id == from || id == to) return $"animation by \"{id}\" is an end of the step (name another shape, or use {{ name: ... }})";
+        return null;
     }
 
     /// <summary>The step's animation, or null when it has none or the tag is wrong (the checks report that) or nothing would travel.</summary>
@@ -63,14 +188,26 @@ public static class Animations
         var kind = map is null ? (string)step.Animation : (string)map["kind"]!;
         string? carries = null;
         string? outcome = null;
+        string? reason = null;
+        Interceptor? by = null;
+        int? share = null;
+        double? at = null;
         var trigger = "inside";
         if (map is not null)
         {
             if (map.TryGetValue("carries", out var word) && word is string text) carries = text;
             if (map.TryGetValue("trigger", out var t) && t is "outside") trigger = "outside";
-            if (map.TryGetValue("outcome", out var o) && o is "fail" or "timeout") outcome = (string)o!;
+            if (map.TryGetValue("outcome", out var o) && o is string given && Outcomes.Contains(given)) outcome = given;
+            if (map.TryGetValue("share", out var s)) share = ShareOf(s);
+            if (map.TryGetValue("reason", out var r) && r is string why) reason = why.Trim();
+            if (map.TryGetValue("by", out var b))
+            {
+                if (b is string shape) by = new Interceptor(Shape: shape.Trim());
+                else if (b is OrderedDictionary<string, object?> named && named.TryGetValue("name", out var n) && n is string name) by = new Interceptor(Name: name.Trim());
+            }
+            if (map.TryGetValue("at", out var a)) at = LostAtOf(a);
         }
-        return new StepAnimation(kind, trigger, carries, outcome);
+        return new StepAnimation(kind, trigger, carries, outcome, share, reason, by, at);
     }
 
     /// <summary>How long something takes to run the length of a line: at least 1.2 seconds, so the eye can follow it, and at most 2.2.</summary>
@@ -81,60 +218,224 @@ public static class Animations
     public static bool Follows((string From, string To)? previous, (string From, string To)? current) =>
         previous is { } p && current is { } c && p.To == c.From;
 
-    /// <summary>The step as beats, in the order they start, with the tube first and how long the whole thing lasts.</summary>
+    /// <summary>
+    /// How many requests a share plays, and which of them meet the outcome: 10 when the share is a multiple of 10, 20 for a multiple of 5, otherwise 100.
+    /// Request <c>i</c> is hit when the running total of <c>share</c> percent crosses a whole request, which spreads the hits evenly. Fixed by the numbers, never random.
+    /// </summary>
+    public static (int Count, bool[] Hit) BurstOf(int share)
+    {
+        var count = share % 10 == 0 ? 10 : share % 5 == 0 ? 20 : 100;
+        return (count, Enumerable.Range(0, count).Select(i => (i + 1) * share / 100 > i * share / 100).ToArray());
+    }
+
+    /// <summary>The beats, or none when the condition is false.</summary>
+    private static Beat[] When(bool condition, params Beat[] beats) => condition ? beats : [];
+
+    private static string LowerFirst(string s) => s.Length == 0 ? s : char.ToLowerInvariant(s[0]) + s[1..];
+
+    /// <summary>
+    /// How the step's outcome reads on the step card and in the Mermaid note, as a fragment: "Lost", "30% lost", "Rejected: Rate limit", "Taken by Café wifi proxy",
+    /// "Sent twice", "Delayed: Cold start". <paramref name="nameOf"/> turns the id of an intercepting shape into its name. Null when the step has no outcome.
+    /// </summary>
+    public static string? OutcomeLine(StepAnimation a, Func<string, string>? nameOf = null)
+    {
+        if (a.Outcome is null) return null;
+        var who = a.By is null ? "" : a.By.Name ?? (nameOf is null ? a.By.Shape! : nameOf(a.By.Shape!));
+        var withShare = a.Share is not null;
+        var verb = a.Outcome switch
+        {
+            "fail" => withShare ? "fail" : "Fails",
+            "timeout" => withShare ? "time out" : "Times out",
+            "lost" => "Lost",
+            "rejected" => "Rejected",
+            "intercepted" => $"Taken by {who}",
+            "duplicated" => "Sent twice",
+            _ => "Delayed",
+        };
+        var line = a.Share is { } percent ? $"{percent}% {LowerFirst(verb)}" : verb;
+        return a.Reason is null ? line : $"{line}: {a.Reason}";
+    }
+
+    /// <summary>One request of the step: whether it meets the outcome, the word it carries, and, in a burst, the colour and ring of one that does. <c>Fade</c> is whether a timeout dims the line after it.</summary>
+    private sealed record Req(bool Hit, string? Label = null, int? Tint = null, bool? Ring = null, bool Fade = true);
+
+    /// <summary>
+    /// The step as beats, with the tube first and how long the whole thing lasts. They are listed request by request, and each request in the order its beats start.
+    /// A step with a share plays a burst (see <see cref="BurstOf"/>): the hits are named r1, r2, ... or by carries, coloured and ringed; the rest are ordinary deliveries.
+    /// </summary>
     public static (List<Beat> Beats, int Total) BeatsFor(StepAnimation a, double length, bool afterLanding)
     {
         var t = Travel(length);
+        int Ms(double fraction) => (int)Math.Floor(t * fraction + 0.5);
         Beat Effect(string kind, string on, int at, int dur) => new(kind, on, at, dur);
-        var failed = a.Outcome == "fail";
-        // A refusal is the news, so everything that runs is the danger tone and the receiver flashes in it when it lands.
-        Beat Blob(int at, string glyph) => new("blob", "line", at, t, "fwd", glyph, failed ? "fail" : null, a.Carries);
-        Beat[] Refused(int at) => failed ? [new Beat("flash", "to", at, 450, Tone: "fail")] : [];
-        List<Beat> body;
-        switch (a.Kind)
+        List<Beat> Note(int at, int dur, double? along = null, bool onBy = false) =>
+            a.Reason is null ? [] : [new Beat("note", onBy ? "by" : "line", at, dur, Along: along, Text: a.Reason)];
+
+        // A request that runs into one of the five outcomes after fail and timeout.
+        List<Beat> Travelling(int o, Req r, string outcome)
         {
-            case "send":
-                body = [Effect("gulp", "from", 0, 250), Blob(250, "envelope"), Effect("gulp", "to", 250 + t, 300), .. Refused(250 + t)];
-                break;
-            case "call":
+            var glyph = a.Kind == "event" ? "bolt" : "envelope";
+            var call = a.Kind == "call";
+            var s = o + 250;
+            var squeeze = Effect("gulp", "from", o, 250);
+            Beat Blob(int at, int dur, string on = "line", string dir = "fwd", string? tone = null, double? start = null, double? end = null) =>
+                new("blob", on, at, dur, dir, glyph, tone, r.Label, start, end, r.Tint, r.Ring == true ? true : null);
+            // Where a request lands: a squash, or a flash for an event.
+            List<Beat> Taken(int at) => a.Kind == "event" ? [Effect("flash", "to", at, 450)] : [Effect("gulp", "to", at, 300)];
+            // A call still gets its answer once the request has landed.
+            List<Beat> Reply(int landed) => call
+                ? [Effect("wait", "from", landed, 600), new Beat("blob", "line", landed + 600, t, "back", "envelope", "reply"), Effect("gulp", "from", landed + 600 + t, 300)]
+                : [];
+            switch (outcome)
             {
-                var landed = 250 + t;
-                if (a.Outcome == "timeout")
+                case "lost":
                 {
-                    // Nobody answers: the sender keeps waiting, nothing comes back, and the line dims.
-                    body =
+                    // It runs partway, pops, and nothing arrives: no squash at the receiver, and a caller keeps waiting.
+                    var at = a.At ?? LostAt;
+                    var gone = s + Ms(at);
+                    return
                     [
-                        Effect("gulp", "from", 0, 250), Blob(250, "envelope"), Effect("gulp", "to", landed, 300), Effect("wait", "from", landed, TimeoutWait),
-                        new Beat("fade", "line", landed + TimeoutWait, TimeoutFade),
+                        squeeze, Blob(s, Ms(at), end: at),
+                        new Beat("pop", "line", gone, PopMs, Tint: r.Tint, Along: at),
+                        .. Note(gone, NoteMs, along: at),
+                        .. When(call, Effect("wait", "from", gone, TimeoutWait)),
                     ];
-                    break;
                 }
-                var back = landed + 600;
-                body =
-                [
-                    Effect("gulp", "from", 0, 250), Blob(250, "envelope"), Effect("gulp", "to", landed, 300), .. Refused(landed), Effect("wait", "from", landed, 600),
-                    new Beat("blob", "line", back, t, "back", "envelope", failed ? "fail" : "reply"),
-                    Effect("gulp", "from", back + t, 300),
-                ];
-                break;
+                case "rejected":
+                {
+                    // It stops at the bar by the door, which flashes, and comes back in the danger tone to the sender, who takes it in.
+                    var door = s + Ms(RejectStop);
+                    var back = door + 450;
+                    return
+                    [
+                        squeeze, Blob(s, Ms(RejectStop), end: RejectStop),
+                        new Beat("bar", "line", door, BarMs, Along: BarAt),
+                        .. Note(door, NoteMs, along: RejectStop),
+                        .. When(call, Effect("wait", "from", door, 450)),
+                        Blob(back, Ms(RejectStop), dir: "back", tone: "fail", end: RejectStop),
+                        Effect("gulp", "from", back + Ms(RejectStop), 300),
+                    ];
+                }
+                case "intercepted":
+                {
+                    // It leaves the line for whoever takes it, which flashes. Nothing goes on to the receiver.
+                    var leaves = s + Ms(WaitAt);
+                    var there = leaves + 700;
+                    return
+                    [
+                        squeeze, Blob(s, Ms(WaitAt), end: WaitAt),
+                        Blob(leaves, 700, on: "by", start: WaitAt),
+                        new Beat("flash", "by", there, 450),
+                        .. Note(there, NoteMs, onBy: true),
+                        .. When(call, Effect("wait", "from", there, TimeoutWait)),
+                    ];
+                }
+                case "duplicated":
+                {
+                    // A second copy leaves the first where it passes the split and arrives later, so the receiver takes it in twice.
+                    var second = s + Ms(0.45);
+                    var again = second + Ms(0.9);
+                    return
+                    [
+                        squeeze, Blob(s, t), Blob(second, Ms(0.9), start: WaitAt),
+                        .. Taken(s + t), .. Taken(again),
+                        .. Note(second, NoteMs, along: WaitAt),
+                        .. Reply(again),
+                    ];
+                }
+                default: // delayed
+                {
+                    // It runs to the clock, waits there while it turns, and goes on.
+                    var run = Ms(WaitAt);
+                    var resume = s + run + DelayHold;
+                    var landed = resume + (t - run);
+                    return
+                    [
+                        squeeze, Blob(s, run, end: WaitAt),
+                        Blob(s + run, DelayHold, start: WaitAt, end: WaitAt),
+                        new Beat("clock", "line", s + run, DelayHold, Along: WaitAt),
+                        .. Note(s + run, DelayHold, along: WaitAt),
+                        Blob(resume, t - run, start: WaitAt),
+                        .. Taken(landed),
+                        .. Reply(landed),
+                    ];
+                }
             }
-            case "event":
-                body = [Effect("gulp", "from", 0, 250), Blob(250, "bolt"), Effect("flash", "to", 250 + t, 450)];
-                break;
-            case "callback" when a.Trigger == "inside":
-                body = [Effect("ring", "from", 0, 600), Blob(450, "bell"), Effect("ring", "to", 450 + t, 600)];
-                break;
-            case "callback" when afterLanding:
-                body = [Effect("flash", "from", 0, 450), Blob(300, "bell"), Effect("ring", "to", 300 + t, 600)];
-                break;
-            case "callback":
-                body = [new Beat("drop", "from", 0, 600, Glyph: "bolt"), Effect("flash", "from", 600, 450), Blob(850, "bell"), Effect("ring", "to", 850 + t, 600)];
-                break;
-            default:
-                throw new ArgumentException($"unknown animation kind \"{a.Kind}\"");
         }
+
+        // A request that works, or fails or never gets an answer (the two outcomes there were first).
+        List<Beat> Request(int o, Req r)
+        {
+            var outcome = r.Hit ? a.Outcome : null;
+            if (outcome is not null && TravelOutcomes.Contains(outcome)) return Travelling(o, r, outcome);
+            var failed = outcome == "fail";
+            // A refusal is the news, so everything that runs is the danger tone and the receiver flashes in it when it lands.
+            Beat Blob(int at, string glyph) => new("blob", "line", at, t, "fwd", glyph, failed ? "fail" : null, r.Label, Tint: r.Tint, Ring: r.Ring == true ? true : null);
+            Beat[] Refused(int at) => failed ? [new Beat("flash", "to", at, 450, Tone: "fail")] : [];
+            switch (a.Kind)
+            {
+                case "send":
+                    return [Effect("gulp", "from", o, 250), Blob(o + 250, "envelope"), Effect("gulp", "to", o + 250 + t, 300), .. Refused(o + 250 + t), .. failed ? Note(o + 250 + t, NoteMs, along: LandingNoteAt) : []];
+                case "call":
+                {
+                    var landed = o + 250 + t;
+                    if (outcome == "timeout")
+                    {
+                        // Nobody answers: the sender keeps waiting, nothing comes back, and the line dims.
+                        return
+                        [
+                            Effect("gulp", "from", o, 250), Blob(o + 250, "envelope"), Effect("gulp", "to", landed, 300), Effect("wait", "from", landed, TimeoutWait),
+                            .. When(r.Fade, new Beat("fade", "line", landed + TimeoutWait, TimeoutFade)),
+                            .. Note(landed, NoteMs, along: LandingNoteAt),
+                        ];
+                    }
+                    var back = landed + 600;
+                    return
+                    [
+                        Effect("gulp", "from", o, 250), Blob(o + 250, "envelope"), Effect("gulp", "to", landed, 300), .. Refused(landed), Effect("wait", "from", landed, 600),
+                        new Beat("blob", "line", back, t, "back", "envelope", failed ? "fail" : "reply"),
+                        Effect("gulp", "from", back + t, 300),
+                        .. failed ? Note(landed, NoteMs, along: LandingNoteAt) : [],
+                    ];
+                }
+                case "event":
+                    return [Effect("gulp", "from", o, 250), Blob(o + 250, "bolt"), Effect("flash", "to", o + 250 + t, 450)];
+                case "callback" when a.Trigger == "inside":
+                    return [Effect("ring", "from", 0, 600), Blob(450, "bell"), Effect("ring", "to", 450 + t, 600)];
+                case "callback" when afterLanding:
+                    return [Effect("flash", "from", 0, 450), Blob(300, "bell"), Effect("ring", "to", 300 + t, 600)];
+                case "callback":
+                    return [new Beat("drop", "from", 0, 600, Glyph: "bolt"), Effect("flash", "from", 600, 450), Blob(850, "bell"), Effect("ring", "to", 850 + t, 600)];
+                default:
+                    throw new ArgumentException($"unknown animation kind \"{a.Kind}\"");
+            }
+        }
+
+        // One request, or a burst of them: the share's hits get a name, a colour and a ring, the rest are ordinary.
+        List<Beat> body;
+        if (a.Share is { } share && a.Outcome is not null && a.Kind != "callback")
+        {
+            var (count, hit) = BurstOf(share);
+            var stagger = Math.Min(BurstStagger, BurstSpread / (count - 1));
+            var last = Array.LastIndexOf(hit, true);
+            var nth = 0;
+            body = [];
+            for (var i = 0; i < count; i++)
+            {
+                if (!hit[i])
+                {
+                    body.AddRange(Request(i * stagger, new Req(false)));
+                    continue;
+                }
+                nth++;
+                body.AddRange(Request(i * stagger, new Req(true, a.Carries ?? $"r{nth}", (nth - 1) % Tints.Length, true, i == last)));
+            }
+        }
+        else body = Request(0, new Req(true, a.Carries));
         var total = body.Max(b => b.At + b.Dur);
-        body.Insert(0, new Beat("pipe", "line", 0, total));
-        return (body, total);
+        // Whoever takes an intercepted request is drawn for the whole step, a shape by a dashed outline and a party that is not in the model by a dashed marker with its name.
+        List<Beat> marker = a.Outcome == "intercepted" && a.By is not null ? [new Beat("marker", "by", 0, total, Along: WaitAt, Text: a.By.Name)] : [];
+        List<Beat> all = [new Beat("pipe", "line", 0, total), .. marker, .. body];
+        return (all, total);
     }
 }

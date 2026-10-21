@@ -16,6 +16,10 @@ public class BeatsTests
         var o = new JsonObject { ["kind"] = a.Kind, ["trigger"] = a.Trigger };
         if (a.Carries is not null) o["carries"] = a.Carries;
         if (a.Outcome is not null) o["outcome"] = a.Outcome;
+        if (a.Share is { } share) o["share"] = share;
+        if (a.Reason is not null) o["reason"] = a.Reason;
+        if (a.By is { } by) o["by"] = by.Name is not null ? new JsonObject { ["name"] = by.Name } : new JsonObject { ["shape"] = by.Shape };
+        if (a.At is { } at) o["at"] = at;
         return o;
     }
 
@@ -26,6 +30,12 @@ public class BeatsTests
         if (b.Glyph is not null) o["glyph"] = b.Glyph;
         if (b.Tone is not null) o["tone"] = b.Tone;
         if (b.Label is not null) o["label"] = b.Label;
+        if (b.Start is { } start) o["start"] = start;
+        if (b.End is { } end) o["end"] = end;
+        if (b.Tint is { } tint) o["tint"] = tint;
+        if (b.Ring is { } ring) o["ring"] = ring;
+        if (b.Along is { } along) o["along"] = along;
+        if (b.Text is not null) o["text"] = b.Text;
         return o;
     }
 
@@ -45,7 +55,7 @@ public class BeatsTests
     public void Every_tag_is_judged_as_the_TypeScript_judges_it()
     {
         var problems = Expected()["problems"]!.AsArray();
-        Assert.True(problems.Count > 40);
+        Assert.True(problems.Count > 150);
         foreach (var p in problems)
             Assert.Equal(p!["problem"]?.GetValue<string>(), Animations.Problem(YamlWriterTests.Tree(p["animation"]), p["to"]!.GetValue<bool>()));
     }
@@ -64,7 +74,7 @@ public class BeatsTests
     public void Every_kind_makes_the_same_beats()
     {
         var all = Expected()["beats"]!.AsArray();
-        Assert.True(all.Count > 100);
+        Assert.True(all.Count > 400);
         foreach (var b in all)
         {
             var a = Animations.Read(Tagged(b!["animation"]))!;
@@ -72,6 +82,67 @@ public class BeatsTests
             Assert.Equal(b["total"]!.GetValue<int>(), total);
             Assert.Equal(JsonDump.Pretty(b["beats"]), JsonDump.Pretty(new JsonArray(beats.Select(x => (JsonNode?)Json(x)).ToArray())));
         }
+    }
+
+    [Fact]
+    public void Every_burst_makes_the_same_beats()
+    {
+        var all = Expected()["bursting"]!.AsArray();
+        Assert.True(all.Count >= 12);
+        foreach (var b in all)
+        {
+            var a = Animations.Read(Tagged(b!["animation"]))!;
+            var (beats, total) = Animations.BeatsFor(a, b["length"]!.GetValue<double>(), b["afterLanding"]!.GetValue<bool>());
+            Assert.Equal(b["total"]!.GetValue<int>(), total);
+            Assert.Equal(JsonDump.Pretty(b["beats"]), JsonDump.Pretty(new JsonArray(beats.Select(x => (JsonNode?)Json(x)).ToArray())));
+        }
+    }
+
+    [Fact]
+    public void A_share_plays_the_same_burst_with_the_same_hits()
+    {
+        var bursts = Expected()["bursts"]!.AsArray();
+        Assert.True(bursts.Count > 8);
+        foreach (var b in bursts)
+        {
+            var (count, hit) = Animations.BurstOf(b!["share"]!.GetValue<int>());
+            Assert.Equal(b["count"]!.GetValue<int>(), count);
+            Assert.Equal(b["hit"]!.AsArray().Select(h => h!.GetValue<bool>()), hit);
+        }
+    }
+
+    [Fact]
+    public void The_interceptor_is_checked_against_the_model_as_the_TypeScript_checks_it()
+    {
+        bool Exists(string id) => id is "web" or "api" or "proxy";
+        var all = Expected()["interceptors"]!.AsArray();
+        Assert.True(all.Count > 5);
+        foreach (var i in all)
+            Assert.Equal(i!["problem"]?.GetValue<string>(), Animations.InterceptorProblem(YamlWriterTests.Tree(i["animation"]), "web", "api", Exists));
+        foreach (var i in Expected()["interceptorShapes"]!.AsArray())
+        {
+            var raw = YamlWriterTests.Tree(new JsonObject { ["kind"] = "send", ["outcome"] = "intercepted", ["by"] = i!["by"]!.GetValue<string>() });
+            Assert.Equal(i["problem"]?.GetValue<string>(), Animations.InterceptorProblem(raw, "web", "api", Exists));
+        }
+    }
+
+    [Fact]
+    public void The_card_line_is_the_one_the_browser_shows()
+    {
+        var all = Expected()["lines"]!.AsArray();
+        Assert.True(all.Count > 20);
+        foreach (var l in all)
+        {
+            var a = Animations.Read(Tagged(l!["animation"]))!;
+            Assert.Equal(l["line"]!.GetValue<string>(), Animations.OutcomeLine(a));
+            Assert.Equal(l["named"]!.GetValue<string>(), Animations.OutcomeLine(a, id => id == "proxy" ? "Edge proxy" : id));
+        }
+    }
+
+    [Fact]
+    public void A_long_word_is_cut_the_way_the_browser_cuts_it()
+    {
+        foreach (var l in Expected()["labels"]!.AsArray()) Assert.Equal(l!["short"]!.GetValue<string>(), Animations.ShortLabel(l["label"]!.GetValue<string>()));
     }
 
     [Fact]
