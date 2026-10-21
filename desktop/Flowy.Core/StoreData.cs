@@ -1,3 +1,5 @@
+using static Flowy.Core.YamlTree;
+
 namespace Flowy.Core;
 
 /// <summary>A column of a grid. <c>Key</c> is only ever "primary"; <c>To</c> names the table a foreign key points to.</summary>
@@ -20,18 +22,11 @@ public static class StoreData
     /// <summary>How much the section shows, so it stays a picture of the few tables that matter and never a dump.</summary>
     public const int MaxColumns = 12, MaxRows = 8, MaxDepth = 3, MaxFields = 20;
 
-    /// <summary>What JavaScript's <c>trim()</c> removes, which is not what .NET calls white space: U+FEFF is in, U+0085 is out. The TypeScript side is the oracle.</summary>
-    private static bool IsJsSpace(char c) =>
-        c is '\t' or '\n' or '\v' or '\f' or '\r' or ' ' or (char)0xa0 or (char)0x1680 or (>= (char)0x2000 and <= (char)0x200a)
-            or (char)0x2028 or (char)0x2029 or (char)0x202f or (char)0x205f or (char)0x3000 or (char)0xfeff;
-
-    private static bool JsBlank(string s) => s.All(IsJsSpace);
+    private static bool JsBlank(string s) => s.All(JsCompat.IsSpace);
 
     private static string? Text(object? v) => v is string s && !JsBlank(s) ? s : null;
 
     private static bool Present(object? v) => v is not (null or "");
-
-    private static object? Get(OrderedDictionary<string, object?> map, string key) => map.TryGetValue(key, out var v) ? v : null;
 
     private static string Plural(int n, string word) => $"{n} {word}{(n == 1 ? "" : "s")}";
 
@@ -62,7 +57,7 @@ public static class StoreData
         // prefix is the path of the mapping being walked, "" at the top, and null under a list item.
         void Walk(OrderedDictionary<string, object?> map, int depth, string? prefix)
         {
-            foreach (var key in JsKeys.Order(map.Keys))
+            foreach (var key in JsCompat.OrderKeys(map.Keys))
             {
                 var value = map[key];
                 var path = prefix is null ? null : prefix == "" ? key : $"{prefix}.{key}";
@@ -315,7 +310,7 @@ public static class StoreData
             return;
         }
         var paths = lines.Select(l => l.Path).OfType<string>().ToHashSet();
-        foreach (var key in JsKeys.Order(notes.Keys))
+        foreach (var key in JsCompat.OrderKeys(notes.Keys))
             if (!paths.Contains(key)) output.Add($"{label}: the note on \"{key}\" names no field of the sample");
     }
 

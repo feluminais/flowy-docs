@@ -1,4 +1,4 @@
-import { isMap } from './model.ts'
+import { isMap } from './text.ts'
 import type { FlowyObject } from './model.ts'
 
 /** How much code a shape holds, so the panel stays a picture of a few lines that matter and never a copy of the repo (files belong under Source). */

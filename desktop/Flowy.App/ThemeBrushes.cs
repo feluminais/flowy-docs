@@ -13,7 +13,7 @@ internal static class ThemeBrushes
     private static readonly Dictionary<(string Light, string Dark, double Opacity), SolidColorBrush> Cache = [];
     private static bool _watching;
 
-    private static bool IsDark => Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
+    private static bool IsDark => AppTheme.AppIsDark;
 
     private static Color Pick(string light, string dark) => Color.Parse(IsDark ? dark : light);
 

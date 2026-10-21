@@ -1,10 +1,11 @@
-import type { Problem } from '../../src/core/check.ts'
+import type { Problem } from '../../src/core/problem.ts'
 import { homeView } from '../../src/core/failures.ts'
-import { changedFiles, fileData, getObject, isMap, isValidId, ROOT, serializeLayout } from '../../src/core/model.ts'
+import { changedFiles, fileData, getObject, isValidId, ROOT, serializeLayout } from '../../src/core/model.ts'
 import type { Connection, Model, Step } from '../../src/core/model.ts'
 import { setStepStates } from '../../src/core/ops.ts'
 import { isStateName } from '../../src/core/states.ts'
 import type { StateName } from '../../src/core/states.ts'
+import { isMap, own } from '../../src/core/text.ts'
 import { chain, isView, parentOf, placeEnds } from '../../src/core/views.ts'
 
 /** One write: a file's new content as PUT /api/file takes it, or null to delete the file. */
@@ -48,9 +49,9 @@ export function stateOf(step: Step, shape: string): StateName | undefined {
  * so a pick changes only what it was asked to. Refused, in the checker's words, for a shape or a word the checker would refuse.
  */
 export function pickStepState(model: Model, flow: string, index: number, shape: string, state: StateName | ''): Model {
-  const own = Object.hasOwn(model.flows, flow) ? model.flows[flow].steps[index]?.states : undefined
+  const before = Object.hasOwn(model.flows, flow) ? model.flows[flow].steps[index]?.states : undefined
   const next: Record<string, string> = {}
-  if (isMap(own)) for (const [id, word] of Object.entries(own)) if (id !== shape && typeof word === 'string') Object.defineProperty(next, id, { value: word, enumerable: true, writable: true, configurable: true })
+  if (isMap(before)) for (const [id, word] of Object.entries(before)) if (id !== shape && typeof word === 'string') own(next, id, word)
   if (state !== '') next[shape] = state
   return setStepStates(model, flow, index, next)
 }

@@ -3,8 +3,10 @@ import { colorPair, isColor, isOpacity, fillOpacity, shapeOf, typeColor } from '
 import type { Shape } from './look.ts'
 import { getObject, ROOT } from './model.ts'
 import type { Model } from './model.ts'
+import { repeatWords } from './captions.ts'
 import { readStates, STATE_LABELS } from './states.ts'
-import { blank, runsOf } from './structure.ts'
+import { groupOf, runsOf } from './structure.ts'
+import { blank } from './text.ts'
 import type { Run } from './structure.ts'
 import { computeView, placeStep } from './views.ts'
 
@@ -106,12 +108,8 @@ export function flowToMermaid(model: Model, flowId: string): string {
   const block = (run: Run): string[] => {
     const inside = (from: number[]) => from.flatMap(i => line(i, '    '))
     if (run.kind === 'repeat') {
-      const g = flow.groups?.[run.group] ?? {}
-      const part = (v: unknown) => (blank(v) ? '' : String(v).trim())
-      const times = part(g.times)
-      const until = part(g.until)
-      const head = [times === '' ? '' : `Up to ${times} times`, until === '' ? '' : `${times === '' ? 'Until' : 'until'} ${until}`].filter(w => w !== '').join(', ')
-      const label = [head, part(g.text)].filter(w => w !== '').join(': ')
+      const g = groupOf(flow, run.group)
+      const label = [repeatWords(g, true), g?.text ?? ''].filter(w => w !== '').join(': ')
       return [keyword('loop', mermaidText(label)), ...inside(Array.from({ length: run.end - run.start + 1 }, (_, k) => run.start + k)), '  end']
     }
     const [first, next] = run.kind === 'branch' ? [run.lanes.length > 1 ? 'alt' : 'opt', 'else'] : ['par', 'and']

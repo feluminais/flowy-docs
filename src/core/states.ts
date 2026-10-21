@@ -4,10 +4,11 @@
  * flow's stops into `{ shape id: state }` and rolls a container's inside-state up for the overview. Nothing here draws, and nothing needs
  * a browser. desktop/Flowy.Core/States.cs is a port, and desktop/fixtures/states.ts keeps the two equal.
  */
-import { getObject, isMap, ROOT } from './model.ts'
+import { getObject, ROOT } from './model.ts'
 import type { Flow, Model } from './model.ts'
 import { stopBefore } from './structure.ts'
 import type { Stop } from './structure.ts'
+import { isMap, own } from './text.ts'
 import { chain } from './views.ts'
 
 export const STATE_NAMES = ['running', 'starting', 'stopping', 'stopped', 'restarting', 'degraded'] as const
@@ -21,18 +22,13 @@ export const STATE_LABELS: Record<StateName, string> = {
 /** Shape id to state. A shape not in it is Running. */
 export type States = Record<string, StateName>
 
-/** Sets an own property, so an id like "__proto__" is data and never the prototype. */
-function put(target: States, key: string, value: StateName) {
-  Object.defineProperty(target, key, { value, enumerable: true, writable: true, configurable: true })
-}
-
 /**
  * The well-formed entries of a `states` value: a mapping whose values are state words. Anything else is left out (check() reports it, so a
  * bad file still plays). A shape id is not looked up here; marksOf drops the ones the model does not have.
  */
 export function readStates(raw: unknown): States {
   const out: States = {}
-  if (isMap(raw)) for (const [id, state] of Object.entries(raw)) if (isStateName(state)) put(out, id, state)
+  if (isMap(raw)) for (const [id, state] of Object.entries(raw)) if (isStateName(state)) own(out, id, state)
   return out
 }
 
@@ -99,7 +95,7 @@ export function statesAt(flow: Flow, stops: Stop[], k: number): States {
     for (const i of stops[path[p]].steps) {
       const step = flow.steps[i]
       if (step === undefined) continue
-      for (const [id, state] of Object.entries(readStates(step.states))) put(out, id, state)
+      for (const [id, state] of Object.entries(readStates(step.states))) own(out, id, state)
     }
   }
   return out
@@ -118,7 +114,7 @@ const WORST: readonly StateName[] = ['stopped', 'restarting', 'degraded', 'stopp
  */
 export function marksOf(model: Model, states: States): Record<string, StateMark> {
   const marks: Record<string, StateMark> = {}
-  const set = (id: string, mark: StateMark) => Object.defineProperty(marks, id, { value: mark, enumerable: true, writable: true, configurable: true })
+  const set = (id: string, mark: StateMark) => own(marks, id, mark)
   const entries = Object.entries(states).filter(([id, state]) => state !== 'running' && getObject(model, id) !== undefined)
   for (const [id, state] of entries) set(id, { state, inside: false })
   for (const [id, state] of entries) {

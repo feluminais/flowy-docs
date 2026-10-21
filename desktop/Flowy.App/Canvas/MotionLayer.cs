@@ -120,8 +120,7 @@ internal sealed class MotionLayer : Control
         InvalidateVisual();
     }
 
-    private IBrush Brush(string key) =>
-        this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
+    private IBrush Brush(string key) => AppTheme.Brush(this, key);
 
     /// <summary>The colour of a slot of the tints, which follows the theme.</summary>
     private static IBrush Tint(int slot)

@@ -17,8 +17,6 @@ namespace Flowy.App;
 /// </summary>
 internal static class DataView
 {
-    private static readonly FontFamily Mono = new("Cascadia Mono, Consolas, Menlo, monospace");
-
     /// <summary>
     /// The section for a store with data; null for any other kind of shape and for a store that shows nothing. <paramref name="opened"/> is what the
     /// reader has opened or closed, by box and entry, so a panel drawn again (a changed file, a new theme) keeps it; an entry not in it is open if it is the first.
@@ -161,7 +159,7 @@ internal static class DataView
                 var cell = new TextBlock
                 {
                     Text = text,
-                    FontFamily = Mono,
+                    FontFamily = Fonts.Mono,
                     FontSize = 11.5,
                     MaxWidth = 190,
                     TextTrimming = TextTrimming.CharacterEllipsis,
@@ -183,8 +181,8 @@ internal static class DataView
         foreach (var line in entry.Lines)
         {
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, Margin = new Thickness((line.Depth - 1) * 14, 0, 0, 0) };
-            row.Children.Add(new TextBlock { Text = line.Key, FontFamily = Mono, FontSize = 12, Foreground = resource("MutedBrush") });
-            if (line.Value != "") row.Children.Add(new TextBlock { Text = line.Value, FontFamily = Mono, FontSize = 12 });
+            row.Children.Add(new TextBlock { Text = line.Key, FontFamily = Fonts.Mono, FontSize = 12, Foreground = resource("MutedBrush") });
+            if (line.Value != "") row.Children.Add(new TextBlock { Text = line.Value, FontFamily = Fonts.Mono, FontSize = 12 });
             if (line.Noted) row.Children.Add(Dot());
             doc.Children.Add(row);
         }
@@ -210,7 +208,7 @@ internal static class DataView
         var list = new StackPanel { Spacing = 4 };
         foreach (var n in entry.Notes)
         {
-            var name = new Border { Child = new TextBlock { Text = n.Name, FontFamily = Mono, FontSize = 11.5 }, VerticalAlignment = VerticalAlignment.Top, Classes = { "datacode" } };
+            var name = new Border { Child = new TextBlock { Text = n.Name, FontFamily = Fonts.Mono, FontSize = 11.5 }, VerticalAlignment = VerticalAlignment.Top, Classes = { "datacode" } };
             var text = new TextBlock { Text = n.Text, FontSize = 12.5, Foreground = resource("WarnFgBrush"), TextWrapping = TextWrapping.Wrap };
             var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 6, Children = { name, text } };
             Grid.SetColumn(text, 1);

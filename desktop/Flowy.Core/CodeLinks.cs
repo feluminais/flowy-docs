@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
@@ -29,8 +28,8 @@ public static partial class CodeLinks
         return $"https://{host}/{found.Groups[2].Value}/{(host == "gitlab.com" ? "-/" : "")}tree/{EncodePath(branch)}/{EncodePath(prefix)}";
     }
 
-    // Known limit: worked out once per folder per process, so a branch switch or a new origin shows after a restart.
-    private static readonly ConcurrentDictionary<string, Task<string?>> Bases = new();
+    // Known limit: worked out once per folder and kept for the 64 folders opened last, so a branch switch or a new origin shows after a restart.
+    private static readonly BoundedCache<string, Task<string?>> Bases = new(64);
 
     /// <summary>Where <c>code</c> paths under <paramref name="root"/> link to, or null when git or the remote can't say.</summary>
     public static Task<string?> BaseFor(string root) => Bases.GetOrAdd(root, Work);

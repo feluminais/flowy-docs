@@ -16,8 +16,6 @@ namespace Flowy.App;
 /// </summary>
 internal sealed class SidePanel : Border
 {
-    private static readonly FontFamily Mono = new("Cascadia Mono, Consolas, Menlo, monospace");
-
     private readonly StackPanel _holder = new() { Margin = new Thickness(22, 22, 22, 28) };
     private readonly ScrollViewer _scroll = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
     private string? _shown; // what the holder has in it, by name, so a redraw of the same thing keeps its scroll
@@ -54,8 +52,7 @@ internal sealed class SidePanel : Border
         Child = new Grid { Children = { _scroll, close } };
     }
 
-    internal IBrush Resource(string key) =>
-        this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush b ? b : Brushes.Gray;
+    internal IBrush Resource(string key) => AppTheme.Brush(this, key);
 
     public void Clear()
     {
@@ -113,9 +110,7 @@ internal sealed class SidePanel : Border
 
     internal Control Muted(string text, double size = 14) => new TextBlock { Text = text, FontSize = size, Foreground = Resource("MutedBrush"), TextWrapping = TextWrapping.Wrap };
 
-    private static readonly string[] Kinds = ["actor", "system", "app", "store", "component"];
-
-    private static string KindOf(string? type) => Kinds.Contains(type ?? "") ? type! : "system";
+    private static string KindOf(string? type) => Names.ObjectTypes.Contains(type ?? "") ? type! : "system";
 
     /// <summary>The colour of an object type (or of an outside service), for the rule under a title.</summary>
     private IBrush KindBrush(string kind) => Resource($"{char.ToUpperInvariant(kind[0])}{kind[1..]}Brush");
@@ -139,7 +134,7 @@ internal sealed class SidePanel : Border
 
     internal Button Link(string text, Action click, bool mono = false)
     {
-        var button = new Button { Content = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, FontFamily = mono ? Mono : FontFamily.Default, FontSize = mono ? 13 : 14 } };
+        var button = new Button { Content = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, FontFamily = mono ? Fonts.Mono : FontFamily.Default, FontSize = mono ? 13 : 14 } };
         button.Classes.Add("link");
         button.Click += (_, _) => click();
         return button;
@@ -228,7 +223,7 @@ internal sealed class SidePanel : Border
                 : Link(text, () => _ = context.Run(LinkOpening.Decide(link.Url, context.RepoRoot, context.CustomApp())));
             var body = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { label } };
             if (!web && !string.IsNullOrEmpty(link.Title))
-                body.Children.Add(new TextBlock { Text = link.Url, FontFamily = Mono, FontSize = 12, Foreground = Resource("MutedBrush"), TextWrapping = TextWrapping.Wrap });
+                body.Children.Add(new TextBlock { Text = link.Url, FontFamily = Fonts.Mono, FontSize = 12, Foreground = Resource("MutedBrush"), TextWrapping = TextWrapping.Wrap });
             var icon = Icons.Make(web ? Icons.Link : link.Url.EndsWith('/') ? Icons.Folder : Icons.File, "rowicon", 16);
             icon.VerticalAlignment = VerticalAlignment.Center;
             var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { icon, body } };
@@ -263,7 +258,7 @@ internal sealed class SidePanel : Border
             var address = codeBase is null || !Checks.IsRepoPath(path) ? null : codeBase + CodeLinks.EncodePath(path);
             Control label = address is not null && WebAddress.IsSafe(address)
                 ? Link(path, () => Open(address), mono: true)
-                : new TextBlock { Text = path, FontFamily = Mono, FontSize = 13, TextWrapping = TextWrapping.Wrap };
+                : new TextBlock { Text = path, FontFamily = Fonts.Mono, FontSize = 13, TextWrapping = TextWrapping.Wrap };
             var icon = Icons.Make(path.EndsWith('/') ? Icons.Folder : Icons.File, "rowicon", 16);
             icon.VerticalAlignment = VerticalAlignment.Center;
             var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { icon, label } };

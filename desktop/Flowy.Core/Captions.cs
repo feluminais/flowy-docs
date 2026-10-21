@@ -34,7 +34,7 @@ public static class Captions
     private static string Part(OrderedDictionary<string, object?> group, string key)
     {
         group.TryGetValue(key, out var v);
-        return Structure.Blank(v) ? "" : Structure.JsTrim((string)v!);
+        return JsCompat.Blank(v) ? "" : JsCompat.JsTrim((string)v!);
     }
 
     private static OrderedDictionary<string, object?> GroupOf(Flow flow, string id) =>

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
-import type { Problem } from '../../src/core/check.ts'
+import type { CSSProperties } from 'react'
+import type { Problem } from '../../src/core/problem.ts'
 import type { Model } from '../../src/core/model.ts'
 import { dialsOf, eventText, kneeOf, kneeTextOf, levelAt, loadOfPosition, OTHER_COLOR, sourceKeyAt } from '../../src/core/perf.ts'
 import type { Dial, Level, LineTraffic, Metrics, Run } from '../../src/core/perf.ts'
@@ -14,6 +14,7 @@ import {
   lineAt, lineAtLevel, lineSeries, lineSeriesIn, LINE_KEYS, loadAt, METRICS, modeLabel, openingPositions, overText, pathOf, posAt, scaleOf, settingOf, slideDial, slidePos, sliderRange, sliderValue, sourceCss, tickLabels, top, xAt,
 } from './perfview.ts'
 import type { Area } from './perfview.ts'
+import { KeyItem, KeyRow } from './legend.tsx'
 import { PlainSwatch, StateGlyph, StateKey, Swatch } from './states.tsx'
 
 /** What the Performance tab's body is told: the runs, which is showing and where in it, and what is selected on the canvas. */
@@ -47,15 +48,6 @@ export type PerfProps = {
   onPlace: (positions: number[]) => void
   /** Ramp the dial, or stop the ramp that is running on it. */
   onRamp: (dial: number) => void
-}
-
-/** A row of marks, each drawn as it looks on the chart or the canvas with its name beside it: the way to say what a colour or a shape means. */
-export function KeyRow({ children, style }: { children: ReactNode; style?: CSSProperties }) {
-  return <ul className="keyrow" style={style}>{children}</ul>
-}
-
-export function KeyItem({ swatch, children, style }: { swatch: ReactNode; children: ReactNode; style?: CSSProperties }) {
-  return <li style={style}><span className="swatch" aria-hidden="true">{swatch}</span>{children}</li>
 }
 
 /** Latency against load, one point for each tested level: the expected call and the slowest 5%, a cursor at where the slider is, and a mark where it first struggles. */

@@ -161,31 +161,7 @@ internal sealed class Recorder : StackPanel
     private static string Ends(Model model, string? from, string? to) =>
         string.IsNullOrEmpty(to) || to == from ? $"{Views.NameOf(model, from ?? "")}, on its own" : $"{Views.NameOf(model, from ?? "")} → {Views.NameOf(model, to)}";
 
-    /// <summary>The text the step list shows, to tell whether what an edit will change is still what is on screen.</summary>
-    private static string Sig(Step s) => string.Join('\u0001', s.From, s.To, s.Text, s.Description);
-
-    private static string Sig(OrderedDictionary<string, object?> s) =>
-        string.Join('\u0001', Field(s, "from"), Field(s, "to"), Field(s, "text"), Field(s, "description"));
-
     private static string? Field(OrderedDictionary<string, object?> s, string key) => s.TryGetValue(key, out var v) ? v as string : null;
-
-    /// <summary>The state a step sets a shape to, or "" when it does not say (or says something that is not a state).</summary>
-    private static string StateWord(object? states, string shape) =>
-        states is OrderedDictionary<string, object?> map && map.TryGetValue(shape, out var v) && v is string word && States.Names.Contains(word) ? word : "";
-
-    /// <summary>
-    /// A step's <c>states</c> with <paramref name="shape"/> set to <paramref name="word"/> ("" takes it out). Every other entry is kept as it is, so a pick changes
-    /// only what it was asked to; an entry that is not text can't be kept in a map of text, and is left out. Twin of <c>pickStepState</c> in ui/src/edit.ts.
-    /// </summary>
-    internal static OrderedDictionary<string, string> StatesWith(OrderedDictionary<string, object?> step, string shape, string word)
-    {
-        var next = new OrderedDictionary<string, string>();
-        if (step.TryGetValue("states", out var own) && own is OrderedDictionary<string, object?> map)
-            foreach (var id in JsKeys.Order(map.Keys))
-                if (id != shape && map[id] is string text) next[id] = text;
-        if (word != "") next[shape] = word;
-        return next;
-    }
 
     /// <summary>The steps of a flow in a copy of the document, for an edit to change without touching the one it started from.</summary>
     private static List<OrderedDictionary<string, object?>> StepsOf(EditDoc copy, string id) =>
@@ -203,7 +179,7 @@ internal sealed class Recorder : StackPanel
         }
         var flow = model.Flows.TryGetValue(rec.Id, out var f) ? f : null;
         var steps = flow?.Steps ?? [];
-        _shownSigs = steps.Select(Sig).ToList();
+        _shownSigs = steps.Select(FlowForm.Signature).ToList();
 
         // The head: a field to rename a flow that exists, the name of one that is still being recorded.
         if (_headFor != $"flow:{rec.Id}:{flow is not null}")
@@ -229,12 +205,12 @@ internal sealed class Recorder : StackPanel
         var others = model.Flows.Where(kv => kv.Key != rec.Id).Select(kv => (Id: kv.Key, Name: kv.Value.Name ?? "")).ToList();
         var strange = steps.Select(s =>
         {
-            var g = Structure.JsTrim(s.Group ?? "");
-            var t = Structure.JsTrim(s.FlowId ?? "");
+            var g = JsCompat.JsTrim(s.Group ?? "");
+            var t = JsCompat.JsTrim(s.FlowId ?? "");
             return $"{(g != "" && !declared.ContainsKey(g) ? g : "")}\u0001{(t != "" && !others.Any(o => o.Id == t) ? t : "")}";
         });
         var signature = string.Join('\u0002', steps.Select(s => $"{s.From}\u0001{s.To}")) + '\u0003' + string.Join('\u0002', strange)
-            + '\u0003' + string.Join('\u0002', declared.Select(g => $"{g.Key}\u0001{KindOf(declared, g.Key)}"))
+            + '\u0003' + string.Join('\u0002', declared.Select(g => $"{g.Key}\u0001{FlowForm.KindOf(declared, g.Key)}"))
             + '\u0003' + string.Join('\u0002', others.Select(o => $"{o.Id}\u0001{o.Name}"))
             + '\u0003' + string.Join('\u0002', model.Objects.Select(o => $"{o.Key}\u0001{o.Value.Name}\u0001{o.Value.Type}"));
         if (signature != _signature || _rows.Count != steps.Count)
@@ -248,13 +224,13 @@ internal sealed class Recorder : StackPanel
         {
             _rows[i].Text.Sync(steps[i].Text ?? "");
             _rows[i].Detail.Sync(steps[i].Description ?? "");
-            var group = Structure.JsTrim(steps[i].Group ?? "");
+            var group = JsCompat.JsTrim(steps[i].Group ?? "");
             _rows[i].Group.Sync(group);
-            _rows[i].Flow.Sync(Structure.JsTrim(steps[i].FlowId ?? ""));
+            _rows[i].Flow.Sync(JsCompat.JsTrim(steps[i].FlowId ?? ""));
             _rows[i].Lane.Sync(steps[i].Lane ?? "");
-            _rows[i].Lane.IsVisible = group != "" && HasLanes(KindOf(declared, group));
+            _rows[i].Lane.IsVisible = group != "" && FlowForm.HasLanes(FlowForm.KindOf(declared, group));
             _rows[i].Animation.Sync(steps[i]);
-            foreach (var (shape, tiles) in _rows[i].States) tiles.Show(StateWord(steps[i].States, shape));
+            foreach (var (shape, tiles) in _rows[i].States) tiles.Show(FlowForm.StateWord(steps[i].States, shape));
         }
         if (flow is not null) ShowGroups(rec.Id, steps.Count, declared);
         else
@@ -391,17 +367,12 @@ internal sealed class Recorder : StackPanel
             if (!d.Flows.ContainsKey(rec.Id)) return EditOps.PutFlow(d, rec.Id, rec.Name, view, [EditOps.NewStep(from, to, text)]);
             var copy = d.Clone();
             var steps = StepsOf(copy, rec.Id);
-            if (!steps.Select(Sig).SequenceEqual(_shownSigs)) throw new OpError("The steps just changed. Check them and try again.");
+            FlowForm.RequireShown(steps, _shownSigs);
             steps.Add(EditOps.NewStep(from, to, text));
             return EditOps.UpdateFlow(d, rec.Id, steps: steps);
         });
         if (saved) _change(new Recording(rec.Id, rec.Name));
     }
-
-    private static string? KindOf(OrderedDictionary<string, object?> groups, string id) =>
-        groups.TryGetValue(id, out var g) && g is OrderedDictionary<string, object?> map ? Field(map, "kind") : null;
-
-    private static bool HasLanes(string? kind) => kind is "branch" or "parallel";
 
     private static string KindName(string? kind) => KindNames.FirstOrDefault(k => k.Kind == kind).Name ?? "no kind";
 
@@ -417,7 +388,7 @@ internal sealed class Recorder : StackPanel
     /// <summary>A change that counts steps or groups, refused if the steps are no longer the steps on screen (a quick second click, someone else's edit).</summary>
     private Task<bool> Edit(string flowId, Func<EditDoc, EditDoc> op) => _run(d =>
     {
-        if (!StepsOf(d, flowId).Select(Sig).SequenceEqual(_shownSigs)) throw new OpError("The steps just changed. Check them and try again.");
+        FlowForm.RequireShown(StepsOf(d, flowId), _shownSigs);
         return op(d);
     });
 
@@ -470,7 +441,7 @@ internal sealed class Recorder : StackPanel
         {
             var copy = d.Clone();
             var steps = StepsOf(copy, flowId);
-            if (!steps.Select(Sig).SequenceEqual(_shownSigs)) throw new OpError("The steps just changed. Check them and try again.");
+            FlowForm.RequireShown(steps, _shownSigs);
             edit(steps);
             return EditOps.UpdateFlow(d, flowId, steps: steps);
         });
@@ -516,20 +487,20 @@ internal sealed class Recorder : StackPanel
         };
 
         // The group the step is in, the lane it starts, and the flow it opens: each choice is one edit, which keeps the files valid or says why not.
-        var group = Structure.JsTrim(shown[i].Group ?? "");
-        var target = Structure.JsTrim(shown[i].FlowId ?? "");
+        var group = JsCompat.JsTrim(shown[i].Group ?? "");
+        var target = JsCompat.JsTrim(shown[i].FlowId ?? "");
         var groupChoices = new List<string> { "" };
         groupChoices.AddRange(groups.Keys);
         if (group != "" && !groups.ContainsKey(group)) groupChoices.Add(group);
         var groupChoice = new Choice<string>("Group", groupChoices, group,
-            g => g == "" ? "None" : groups.ContainsKey(g) ? $"{g} · {KindName(KindOf(groups, g))}" : $"{g} · not declared",
+            g => g == "" ? "None" : groups.ContainsKey(g) ? $"{g} · {KindName(FlowForm.KindOf(groups, g))}" : $"{g} · not declared",
             g => Edit(flowId, d => EditOps.SetStepGroup(d, flowId, i, g)));
         var lane = new FieldBox("Lane (a new lane starts here)", "", false, v => Change(steps =>
         {
-            if (Structure.JsTrim(v) == "") steps[i].Remove("lane");
-            else steps[i]["lane"] = Structure.JsTrim(v);
+            if (JsCompat.JsTrim(v) == "") steps[i].Remove("lane");
+            else steps[i]["lane"] = JsCompat.JsTrim(v);
         }));
-        lane.IsVisible = group != "" && HasLanes(KindOf(groups, group));
+        lane.IsVisible = group != "" && FlowForm.HasLanes(FlowForm.KindOf(groups, group));
         var flowNames = others.ToDictionary(o => o.Id, o => o.Name);
         var flowChoices = new List<string> { "" };
         flowChoices.AddRange(others.Select(o => o.Id));
@@ -559,8 +530,8 @@ internal sealed class Recorder : StackPanel
         };
         // A state for each end of the step, as tiles: one edit for a pick, and None takes the state out. A shape the model no longer has is left out; the checks report it.
         var ends = new[] { shown[i].From, shown[i].To ?? shown[i].From }.Where(e => e is not null && model.GetObject(e) is not null).Distinct().Cast<string>().ToList();
-        var tiles = ends.Select(shape => (Shape: shape, Tiles: Pick.StateTiles(Views.NameOf(model, shape), StateWord(shown[i].States, shape),
-            word => Edit(flowId, d => EditOps.SetStepStates(d, flowId, i, StatesWith(StepsOf(d, flowId)[i], shape, word)))))).ToList();
+        var tiles = ends.Select(shape => (Shape: shape, Tiles: Pick.StateTiles(Views.NameOf(model, shape), FlowForm.StateWord(shown[i].States, shape),
+            word => Edit(flowId, d => EditOps.SetStepStates(d, flowId, i, FlowForm.StatesWith(StepsOf(d, flowId)[i], shape, word)))))).ToList();
         var states = new StackPanel { Spacing = 10, IsVisible = tiles.Any(t => t.Tiles.Chosen != ""), Children = { } };
         foreach (var (_, picker) in tiles) states.Children.Add(picker);
         var statesToggle = new Button { Content = states.IsVisible ? "▾ State" : "▸ State", HorizontalAlignment = HorizontalAlignment.Left, IsVisible = tiles.Count > 0 };
@@ -587,15 +558,6 @@ internal sealed class Recorder : StackPanel
         var drawing = new Avalonia.Controls.Shapes.Path { Data = Geometry.Parse(path), Width = 44, Height = 24, HorizontalAlignment = HorizontalAlignment.Center };
         drawing.Classes.Add("sketch");
         return new StackPanel { Spacing = 4, Children = { drawing, new TextBlock { Text = name, FontSize = 10.5, HorizontalAlignment = HorizontalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis } } };
-    }
-
-    /// <summary>What a step's <c>animation</c> says, read for the form: its kind, outcome, share, reason, the shape that takes it and the name that does.</summary>
-    private static (string Kind, string Outcome, string Share, string Reason, string By, string ByName) ReadAnimation(object? raw)
-    {
-        var map = raw as OrderedDictionary<string, object?> ?? (raw is string bare && bare != "" ? new OrderedDictionary<string, object?> { ["kind"] = bare } : []);
-        string Text(string key) => map.TryGetValue(key, out var v) && v is string s ? s : "";
-        var by = map.TryGetValue("by", out var taker) ? taker : null;
-        return (Text("kind"), Text("outcome"), Text("share"), Text("reason"), by as string ?? "", by is OrderedDictionary<string, object?> named && named.TryGetValue("name", out var n) && n is string name ? name : "");
     }
 
     private AnimationRow BuildAnimation(Model model, string flowId, Step first, int i)
@@ -626,25 +588,25 @@ internal sealed class Recorder : StackPanel
         var panel = new StackPanel { Spacing = 10, Children = { kind, outcome, share, reason, takers, takerName } };
         void Sync(Step step)
         {
-            var (k, o, s, r, by, byName) = ReadAnimation(step.Animation);
-            var travels = !string.IsNullOrEmpty(step.To) && step.To != step.From;
+            var (k, o, s, r, by, byName) = FlowForm.ReadAnimation(step.Animation);
+            var travels = FlowForm.Travels(step);
             kind.Show(k);
-            foreach (var id in kind.Ids) kind.Allow(id, id == "" || travels ? null : "Needs two shapes");
+            foreach (var id in kind.Ids) kind.Allow(id, FlowForm.KindBlock(id, travels));
             outcome.Show(o);
             foreach (var id in outcome.Ids) outcome.Allow(id, Animations.OutcomeBlock(k, id));
-            var ended = o != "";
+            var noOutcome = FlowForm.OutcomeFieldsBlock(o);
             share.Sync(s);
-            share.IsEnabled = ended;
-            ToolTip.SetTip(share, ended ? null : "Pick an outcome first");
+            share.IsEnabled = noOutcome is null;
+            ToolTip.SetTip(share, noOutcome);
             reason.Sync(r);
-            reason.IsEnabled = ended;
-            ToolTip.SetTip(reason, ended ? null : "Pick an outcome first");
-            var intercepted = o == "intercepted";
+            reason.IsEnabled = noOutcome is null;
+            ToolTip.SetTip(reason, noOutcome);
             takers.Show(by == "" ? null : by);
-            foreach (var id in takers.Ids) takers.Allow(id, intercepted && id != step.From && id != step.To ? null : intercepted ? "An end of the step" : "Only for Intercepted");
+            foreach (var id in takers.Ids) takers.Allow(id, FlowForm.TakerBlock(o, id, step));
+            var noTakerName = FlowForm.TakerNameBlock(o);
             takerName.Sync(byName);
-            takerName.IsEnabled = intercepted;
-            ToolTip.SetTip(takerName, intercepted ? null : "Only for Intercepted");
+            takerName.IsEnabled = noTakerName is null;
+            ToolTip.SetTip(takerName, noTakerName);
         }
         panel.IsVisible = first.Animation is not null && first.Animation is not "";
         var row = new AnimationRow { Kind = kind, Outcome = outcome, Share = share, Reason = reason, Takers = takers, TakerName = takerName, Panel = panel, Sync = Sync };
@@ -668,14 +630,14 @@ internal sealed class Recorder : StackPanel
     /// </summary>
     private void ShowGroups(string flowId, int stepCount, OrderedDictionary<string, object?> declared)
     {
-        var signature = $"{flowId}\u0003{stepCount}\u0003" + string.Join('\u0002', declared.Select(g => $"{g.Key}\u0001{KindOf(declared, g.Key)}"));
+        var signature = $"{flowId}\u0003{stepCount}\u0003" + string.Join('\u0002', declared.Select(g => $"{g.Key}\u0001{FlowForm.KindOf(declared, g.Key)}"));
         if (signature != _groupSignature)
         {
             _groupSignature = signature;
             _groups.Children.Clear();
             _cards.Clear();
             _groups.Children.Add(Chrome.Section(Icons.Repeat, "Groups", declared.Count));
-            foreach (var id in declared.Keys) _groups.Children.Add(BuildCard(flowId, id, KindOf(declared, id)));
+            foreach (var id in declared.Keys) _groups.Children.Add(BuildCard(flowId, id, FlowForm.KindOf(declared, id)));
             if (stepCount > 0) _groups.Children.Add(BuildAddGroup(flowId, declared, stepCount));
         }
         foreach (var card in _cards)
@@ -720,7 +682,7 @@ internal sealed class Recorder : StackPanel
         var body = new StackPanel { Spacing = 8, Children = { head, kindChoice } };
         if (kind == "repeat")
         {
-            card.Times = new FieldBox("Times (2 to 99)", "", false, v => Option("times", Structure.JsTrim(v)));
+            card.Times = new FieldBox("Times (2 to 99)", "", false, v => Option("times", JsCompat.JsTrim(v)));
             card.Until = new FieldBox("Until (instead of a count)", "", false, v => Option("until", v));
             body.Children.Add(card.Times);
             body.Children.Add(card.Until);

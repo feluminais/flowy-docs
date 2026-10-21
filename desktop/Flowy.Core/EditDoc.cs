@@ -29,7 +29,6 @@ public sealed class EditDoc
     // ---- reading -------------------------------------------------------------------------------------------------
 
     /// <summary>For sections: an empty value, <c>~</c> or <c>null</c> means empty (the same rule as <see cref="ModelFiles"/>).</summary>
-    private static bool IsEmpty(object? v) => v is null or "" or "~" or "null" or "Null" or "NULL";
 
     /// <summary>The trees of a folder's files. A null text is a file that isn't there. Throws <see cref="ParseError"/> for a file whose shape is wrong, as loading does.</summary>
     public static EditDoc Parse(string? modelText, string? layoutText, IEnumerable<KeyValuePair<string, string>> flowTexts)
@@ -42,8 +41,8 @@ public sealed class EditDoc
             {
                 foreach (var (key, value) in top)
                 {
-                    if (key == "objects") { if (!IsEmpty(value)) foreach (var (id, o) in (OrderedDictionary<string, object?>)value!) doc.Objects[id] = o; }
-                    else if (key == "connections") { if (!IsEmpty(value)) doc.Connections.AddRange((List<object?>)value!); }
+                    if (key == "objects") { if (!JsCompat.IsEmpty(value)) foreach (var (id, o) in (OrderedDictionary<string, object?>)value!) doc.Objects[id] = o; }
+                    else if (key == "connections") { if (!JsCompat.IsEmpty(value)) doc.Connections.AddRange((List<object?>)value!); }
                     else doc.Meta[key] = value;
                 }
             }
@@ -53,9 +52,9 @@ public sealed class EditDoc
             ModelFiles.ParseFlow(id, text);
             var flow = YamlText.Parse($"flows/{id}.yaml", text) as OrderedDictionary<string, object?> ?? [];
             // Like parseFlowFile: a missing or empty steps is an empty list, in the key's own place, else last.
-            flow["steps"] = flow.TryGetValue("steps", out var steps) && !IsEmpty(steps) ? steps : new List<object?>();
+            flow["steps"] = flow.TryGetValue("steps", out var steps) && !JsCompat.IsEmpty(steps) ? steps : new List<object?>();
             // Like parseFlowFile: a blank `groups:` is no section.
-            if (flow.TryGetValue("groups", out var groups) && IsEmpty(groups)) flow.Remove("groups");
+            if (flow.TryGetValue("groups", out var groups) && JsCompat.IsEmpty(groups)) flow.Remove("groups");
             doc.Flows[id] = flow;
         }
         if (layoutText is not null)
@@ -66,11 +65,11 @@ public sealed class EditDoc
                 foreach (var (view, boxes) in views)
                 {
                     var saved = new OrderedDictionary<string, object?>();
-                    if (!IsEmpty(boxes))
+                    if (!JsCompat.IsEmpty(boxes))
                         foreach (var (id, p) in (OrderedDictionary<string, object?>)boxes!)
                         {
                             var pair = (List<object?>)p!;
-                            saved[id] = new List<object?> { Number(Parse(pair[0])), Number(Parse(pair[1])) };
+                            saved[id] = new List<object?> { JsCompat.Number(Parse(pair[0])), JsCompat.Number(Parse(pair[1])) };
                         }
                     doc.Layout[view] = saved;
                 }
@@ -80,15 +79,6 @@ public sealed class EditDoc
     }
 
     private static double Parse(object? text) => double.Parse((string)text!, NumberStyles.Float, CultureInfo.InvariantCulture);
-
-    /// <summary>A number as JavaScript prints it: 10 not 10.0, 12.5 as it is. A position is a whole number or a short fraction, so this stays simple.</summary>
-    public static string Number(double d)
-    {
-        if (d == 0) return "0"; // also -0
-        if (d == Math.Floor(d) && Math.Abs(d) < 1e15) return ((long)d).ToString(CultureInfo.InvariantCulture);
-        var s = d.ToString("R", CultureInfo.InvariantCulture);
-        return s.Contains('E') ? d.ToString("0.####################", CultureInfo.InvariantCulture) : s;
-    }
 
     // ---- copying -------------------------------------------------------------------------------------------------
 
@@ -132,7 +122,7 @@ public sealed class EditDoc
     public Dictionary<string, string> ToFiles()
     {
         var files = new Dictionary<string, string> { ["model.yaml"] = YamlWriter.Write(ModelTree()) };
-        foreach (var id in JsKeys.Order(Flows.Keys)) files[$"flows/{id}.yaml"] = YamlWriter.Write(Flows[id]);
+        foreach (var id in JsCompat.OrderKeys(Flows.Keys)) files[$"flows/{id}.yaml"] = YamlWriter.Write(Flows[id]);
         files["layout.yaml"] = YamlWriter.WriteLayout(Layout);
         return files;
     }

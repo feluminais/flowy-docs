@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { savedState, saveState, vscode } from './host.ts'
 
 /**
@@ -18,4 +19,29 @@ export const store = {
     const { [key]: _gone, ...rest } = savedState().prefs ?? {}
     saveState({ prefs: rest })
   },
+}
+
+/** A saved setting, or null when there is none or storage is blocked (private windows, some exported pages). */
+export function readPref(key: string): string | null {
+  try {
+    return store.get(key)
+  } catch {
+    return null
+  }
+}
+
+/** Remember a setting, or forget it with undefined. When storage is blocked there is nothing to do: the choice still holds in this page. */
+export function writePref(key: string, value: string | undefined): void {
+  try {
+    if (value === undefined) store.remove(key)
+    else store.set(key, value)
+  } catch {
+    // not remembered
+  }
+}
+
+/** A setting kept across visits, as state: what was saved last time, else `fallback`; setting it saves it. */
+export function usePref(key: string, fallback: string): [string, (value: string) => void] {
+  const [value, setValue] = useState(() => readPref(key) ?? fallback)
+  return [value, next => { setValue(next); writePref(key, next) }]
 }

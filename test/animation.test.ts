@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { ANIMATION_KINDS, animationOf, DEFAULT_TAKER, animationProblem, animationWith, beatsFor, burstOf, followsLanding, interceptorProblem, KIND_SKETCHES, LABEL_MAX, lostAtOf, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, outcomeLine, shareOf, shortLabel, TINTS, travelMs } from '../src/core/animation.ts'
+import { ANIMATION_KINDS, animationFields, animationOf, DEFAULT_TAKER, animationProblem, animationWith, beatsFor, burstOf, followsLanding, interceptorProblem, KIND_SKETCHES, LABEL_MAX, lostAtOf, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, outcomeLine, shareOf, shortLabel, TINTS, travelMs } from '../src/core/animation.ts'
 import type { Animation, Beat } from '../src/core/animation.ts'
 
 const plain = (kind: Animation['kind'], more: Partial<Animation> = {}): Animation => ({ kind, trigger: 'inside', ...more })
@@ -619,4 +619,21 @@ test('picking in edit mode builds the animation key by key and keeps it valid', 
     current = animationWith(current, key as 'kind', value)
     assert.equal(animationProblem(current, true), undefined, `after ${key} ${value}: ${JSON.stringify(current)}`)
   }
+})
+
+test('animationFields gives the text each form field shows, for a tag, a mapping, a mistake or nothing', () => {
+  const none = { kind: '', outcome: '', share: '', reason: '', by: '', byName: '' }
+  assert.deepEqual(animationFields({}), none)
+  assert.deepEqual(animationFields({ animation: '' }), none)
+  assert.deepEqual(animationFields({ animation: 'call' }), { ...none, kind: 'call' })
+  assert.deepEqual(animationFields({ animation: { kind: 'call', outcome: 'rejected', share: 30, reason: 'Rate limit' } }), { ...none, kind: 'call', outcome: 'rejected', share: '30', reason: 'Rate limit' })
+  assert.deepEqual(animationFields({ animation: { kind: 'call', outcome: 'intercepted', by: 'cdn' } }), { ...none, kind: 'call', outcome: 'intercepted', by: 'cdn' })
+  assert.deepEqual(animationFields({ animation: { kind: 'call', outcome: 'intercepted', by: { name: 'Café wifi proxy' } } }), { ...none, kind: 'call', outcome: 'intercepted', byName: 'Café wifi proxy' })
+})
+
+test('animationFields keeps what is wrong so the form can show it, and ignores what is not text', () => {
+  assert.equal(animationOf({ to: 'api', animation: { kind: 'teleport' } }), undefined)
+  assert.deepEqual(animationFields({ animation: { kind: 'teleport', outcome: 'vanished', share: 'many' } }), { kind: 'teleport', outcome: 'vanished', share: 'many', reason: '', by: '', byName: '' })
+  assert.deepEqual(animationFields({ animation: { kind: ['call'], share: true, by: { name: 4 } } }), { kind: '', outcome: '', share: '', reason: '', by: '', byName: '4' })
+  assert.deepEqual(animationFields({ animation: 7 }), { kind: '', outcome: '', share: '', reason: '', by: '', byName: '' })
 })

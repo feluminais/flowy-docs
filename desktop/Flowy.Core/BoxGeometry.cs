@@ -16,6 +16,11 @@ public enum Side { Top, Right, Bottom, Left }
 /// <summary>Where lines meet boxes, and the frame around a view's boxes. A port of the geometry in ui/src/graph.ts.</summary>
 public static class BoxGeometry
 {
+    /// <summary>Every box has the same size, so boxes can be placed before they are drawn. Keep in step with the box control.</summary>
+    public const double BoxWidth = 200;
+
+    public const double BoxHeight = 72;
+
     /// <summary>
     /// Where a ray from the centre of <paramref name="r"/> towards (<paramref name="dx"/>, <paramref name="dy"/>) meets the shape's outline: the
     /// rectangle's border when <paramref name="edge"/> is empty, else the first side of the polygon it crosses (ShapeDef.Edge, x0, y0, x1, y1, …).

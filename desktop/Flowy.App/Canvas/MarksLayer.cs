@@ -40,8 +40,7 @@ internal sealed class MarksLayer : Control
         InvalidateVisual();
     }
 
-    private IBrush Brush(string key) =>
-        this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
+    private IBrush Brush(string key) => AppTheme.Brush(this, key);
 
     public override void Render(DrawingContext context)
     {

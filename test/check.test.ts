@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { check, isRepoPath, isWebAddress, newProblems, typesIn } from '../src/core/check.ts'
+import { check, newProblems, typesIn } from '../src/core/check.ts'
+import { isRepoPath, isWebAddress } from '../src/core/paths.ts'
 import type { Model } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 
@@ -319,4 +320,11 @@ test('the new outcomes and their keys are checked, and so is the shape that inte
     'step 11: animation reason can be at most 40 characters',
     'step 12: animation at only applies to outcome lost',
   ])
+})
+
+test('a problem on a step keeps its identity when the step moves, and two different problems on one step stay apart', () => {
+  const at = (step: number, message: string) => ({ file: 'flows/f.yaml', message: `step ${step + 1}: ${message}`, step })
+  assert.deepEqual(newProblems([at(1, 'text is missing')], [at(2, 'text is missing')]), [])
+  assert.equal(newProblems([at(1, 'text is missing')], [at(1, 'text is missing'), at(1, 'unknown object "x"')]).length, 1)
+  assert.equal(newProblems([at(1, 'text is missing')], [at(1, 'text is missing'), at(2, 'text is missing')]).length, 1)
 })

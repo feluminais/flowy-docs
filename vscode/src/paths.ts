@@ -1,5 +1,5 @@
 import { isAbsolute, relative, resolve, sep } from 'node:path'
-import { isRepoPath } from '../../src/core/check.ts'
+import { isRepoPath } from '../../src/core/paths.ts'
 
 /** Whether `target` is `root` or somewhere under it. Compared as written: a link inside the repo that points out of it is not looked through. */
 const isInside = (root: string, target: string) => {

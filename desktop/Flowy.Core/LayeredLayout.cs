@@ -17,7 +17,7 @@ public static class LayeredLayout
         public readonly List<int> Up = [];
         public readonly List<int> Down = [];
         public double X; // centre
-        public double Width => Dummy ? 0 : Layout.BoxWidth;
+        public double Width => Dummy ? 0 : BoxGeometry.BoxWidth;
     }
 
     public static OrderedDictionary<string, Pt> Place(IReadOnlyList<string> ids, IReadOnlyList<Ends> edges, double nodeSep, double rankSep)
@@ -50,9 +50,9 @@ public static class LayeredLayout
         var layers = Order(items, n);
         PlaceAcross(items, layers, nodeSep);
 
-        var left = Enumerable.Range(0, n).Min(i => items[i].X - Layout.BoxWidth / 2);
+        var left = Enumerable.Range(0, n).Min(i => items[i].X - BoxGeometry.BoxWidth / 2);
         for (var i = 0; i < n; i++)
-            result[ids[i]] = new Pt(items[i].X - Layout.BoxWidth / 2 - left, items[i].Rank * (Layout.BoxHeight + rankSep));
+            result[ids[i]] = new Pt(items[i].X - BoxGeometry.BoxWidth / 2 - left, items[i].Rank * (BoxGeometry.BoxHeight + rankSep));
         return result;
     }
 

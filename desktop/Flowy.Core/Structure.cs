@@ -22,20 +22,11 @@ public static partial class Structure
     public const int TimesMin = 2;
     public const int TimesMax = 99;
 
-    // What JavaScript's trim() removes: white space and line terminators. .NET's own Trim differs (it takes U+0085 and not U+FEFF).
-    private static readonly char[] JsSpace = new int[]
-    {
-        0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x0020, 0x00A0, 0x1680,
-        0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006, 0x2007,
-        0x2008, 0x2009, 0x200A, 0x2028, 0x2029, 0x202F, 0x205F, 0x3000,
-        0xFEFF,
-    }.Select(c => (char)c).ToArray();
+    // forwards to JsCompat; remove when the other branches land
+    public static string JsTrim(string s) => JsCompat.JsTrim(s);
 
-    /// <summary>The text without the white space JavaScript's <c>trim()</c> removes.</summary>
-    public static string JsTrim(string s) => s.Trim(JsSpace);
-
-    /// <summary>Whether a value says nothing: not text, or only white space. A blank group, lane, flow or option is the same as none.</summary>
-    public static bool Blank(object? v) => v is not string s || JsTrim(s) == "";
+    // forwards to JsCompat; remove when the other branches land
+    public static bool Blank(object? v) => JsCompat.Blank(v);
 
     [GeneratedRegex(@"^[0-9]+\z")]
     private static partial Regex Digits();
@@ -43,9 +34,9 @@ public static partial class Structure
     public static bool TimesOk(object? v) =>
         v is string s && Digits().IsMatch(s) && int.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out var n) && n is >= TimesMin and <= TimesMax;
 
-    private static string StepGroup(Flow flow, int i) => flow.Steps[i].Group is { } g ? JsTrim(g) : "";
+    private static string StepGroup(Flow flow, int i) => flow.Steps[i].Group is { } g ? JsCompat.JsTrim(g) : "";
 
-    private static string LaneOf(Flow flow, int i) => Blank(flow.Steps[i].Lane) ? "" : JsTrim(flow.Steps[i].Lane!);
+    private static string LaneOf(Flow flow, int i) => JsCompat.Blank(flow.Steps[i].Lane) ? "" : JsCompat.JsTrim(flow.Steps[i].Lane!);
 
     /// <summary>The kind of a declared group, or null when <paramref name="id"/> is blank, not declared or of no known kind.</summary>
     private static string? KindOf(Flow flow, string id) =>
@@ -73,7 +64,7 @@ public static partial class Structure
             {
                 for (var j = i; j <= end; j++)
                 {
-                    if (!Blank(flow.Steps[j].Lane)) lanes.Add((JsTrim(flow.Steps[j].Lane!), [j]));
+                    if (!JsCompat.Blank(flow.Steps[j].Lane)) lanes.Add((JsCompat.JsTrim(flow.Steps[j].Lane!), [j]));
                     else if (lanes.Count == 0) lanes.Add(("", [j]));
                     else lanes[^1].Steps.Add(j);
                 }
@@ -170,7 +161,7 @@ public static partial class Structure
     {
         var output = new List<(int? Step, string Message)>();
         var groups = flow.Groups;
-        List<string> ids = groups is null ? [] : JsKeys.Order(groups.Keys);
+        List<string> ids = groups is null ? [] : JsCompat.OrderKeys(groups.Keys);
         var kinds = string.Join(", ", Kinds);
 
         foreach (var id in ids)
@@ -179,22 +170,22 @@ public static partial class Structure
             var body = groups![id] as OrderedDictionary<string, object?> ?? [];
             body.TryGetValue("kind", out var kind);
             if (!Names.IsValidId(id)) Add($"ids {Names.IdRule}");
-            if (Blank(kind)) Add($"kind is missing (use {kinds})");
+            if (JsCompat.Blank(kind)) Add($"kind is missing (use {kinds})");
             else if (kind is not string known || !Kinds.Contains(known)) Add($"unknown kind \"{kind}\" (use {kinds})");
-            var extra = JsKeys.Order(body.Keys).FirstOrDefault(k => !Options.Contains(k));
+            var extra = JsCompat.OrderKeys(body.Keys).FirstOrDefault(k => !Options.Contains(k));
             if (extra is not null) Add($"unknown option \"{extra}\" (use {string.Join(", ", Options)})");
             if (kind is not string name || !Kinds.Contains(name)) continue;
             body.TryGetValue("times", out var times);
             body.TryGetValue("until", out var until);
             if (name != "repeat")
             {
-                if (!Blank(times)) Add("times only applies to repeat");
-                if (!Blank(until)) Add("until only applies to repeat");
+                if (!JsCompat.Blank(times)) Add("times only applies to repeat");
+                if (!JsCompat.Blank(until)) Add("until only applies to repeat");
             }
             else
             {
-                if (!Blank(times) && !TimesOk(times)) Add($"times must be a whole number from {TimesMin} to {TimesMax}");
-                if (Blank(times) && Blank(until)) Add("a repeat needs times or until");
+                if (!JsCompat.Blank(times) && !TimesOk(times)) Add($"times must be a whole number from {TimesMin} to {TimesMax}");
+                if (JsCompat.Blank(times) && JsCompat.Blank(until)) Add("a repeat needs times or until");
             }
         }
 
@@ -229,9 +220,9 @@ public static partial class Structure
                 var m = members.GetValueOrDefault(id) ?? [];
                 if (m.Count >= 2 && i > m[0] && i < m[^1] && gid != id) At($"sits inside the stretch of group \"{id}\" without belonging to it");
             }
-            if (!Blank(flow.Steps[i].FlowId))
+            if (!JsCompat.Blank(flow.Steps[i].FlowId))
             {
-                var to = JsTrim(flow.Steps[i].FlowId!);
+                var to = JsCompat.JsTrim(flow.Steps[i].FlowId!);
                 if (!hasFlow(to)) At($"unknown flow \"{to}\"");
             }
         }
