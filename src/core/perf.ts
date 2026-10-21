@@ -1,8 +1,8 @@
 import type { Problem } from './check.ts'
 import { evalFormula, linearInRate, parseFormula } from './formula.ts'
 import type { Formula } from './formula.ts'
-import { isColor } from './look.ts'
-import { getObject, isMap, orEmpty, ParseError, readYaml, ROOT } from './model.ts'
+import { colorPair, isColor } from './look.ts'
+import { getObject, ID_RULE, isMap, isValidId, orEmpty, ParseError, readYaml, ROOT } from './model.ts'
 import type { Model } from './model.ts'
 import { isStateName, STATE_LABELS, STATE_NAMES } from './states.ts'
 import type { StateName, States } from './states.ts'
@@ -20,9 +20,16 @@ export type Metrics = { util?: number; queue?: number; errors?: number; rate?: n
 /** How the failing share of a line fails, when it is said: a request that is lost on the way, or one that is turned away at the end. Without one, the generic fade. */
 export type Failure = 'lost' | 'rejected'
 export const FAILURES: readonly Failure[] = ['lost', 'rejected']
-/** What one connection measured, or one line in a view once connections are rolled up. */
-export type Pair = Metrics & { from: string; to: string; failure?: Failure }
-export type Level = { load: number; overall: Metrics; objects: Record<string, Metrics>; connections: Pair[] }
+/**
+ * What one connection measured, or one line in a view once connections are rolled up. `by` splits what a line carries between the sources of a run that has
+ * several (see Run.sources): each source's own `rate`, `bytes`, `p50` and `errors`, so its dots can take its colour and scale. Left out of a line that doesn't say.
+ */
+export type Pair = Metrics & { from: string; to: string; failure?: Failure; by?: Record<string, Metrics> }
+/**
+ * What was measured at one load (or one time). A run tested with several sources has no single load: its levels carry `loads`, a load for each source (and `load` is
+ * 0, unused). The levelAt of a run with several sources gives `loads` too, as the setting it was worked out at.
+ */
+export type Level = { load: number; loads?: Record<string, number>; overall: Metrics; objects: Record<string, Metrics>; connections: Pair[] }
 /**
  * A formula as the run wrote it. Only the text is kept: a run travels to the browser as JSON, which drops anything but data, so the formula is read
  * from the text where it is used (see formulaOf). parseRun has already checked that the text reads.
@@ -42,10 +49,20 @@ export const AXES: readonly Axis[] = ['load', 'time']
 /** Something that happens at a time in a time run: a shape goes into a state. `text` is empty when the run doesn't say; eventText then words it. */
 export type RunEvent = { at: number; on: string; state: StateName; text: string }
 /**
- * `axis` and `events` are left out of a run that has none, so a load run is exactly what it was before time runs existed (a time run says its axis;
- * its events are there when it has any). Read them through isTime and eventsOf.
+ * One of the sources of a run that was tested with several at once: a name, the unit of its load, the shape its requests enter at, and how to draw them
+ * (the colour and the two formulas of a single run's `source:`, kept as a Source).
  */
-export type Run = { name: string; about?: string; unit: string; entry?: string; source?: Source; axis?: Axis; events?: RunEvent[]; levels: Level[] }
+export type SourceInfo = { name: string; entry?: string; unit: string; source?: Source }
+/**
+ * `axis` and `events` are left out of a run that has none, so a load run is exactly what it was before time runs existed (a time run says its axis;
+ * its events are there when it has any). Read them through isTime and eventsOf. A run that has several sources of requests is one of two kinds, and a
+ * single run has neither key: `adds` (the ids of the runs it adds, and no levels of its own) or `sources` (tested together: its levels form a grid, one load for
+ * each source). Read what such a run means through dialsOf, never from these keys.
+ */
+export type Run = {
+  name: string; about?: string; unit: string; entry?: string; source?: Source; axis?: Axis; events?: RunEvent[]
+  adds?: string[]; sources?: Record<string, SourceInfo>; levels: Level[]
+}
 
 /** Whether the run is measured over time. */
 export const isTime = (run: Run): boolean => run.axis === 'time'
@@ -60,6 +77,18 @@ const RANGE: Record<keyof Metrics, readonly [number, number]> = {
   util: [0, 1], errors: [0, 1], queue: [0, Infinity], rate: [0, Infinity], bytes: [0, Infinity], p50: [0, Infinity], p95: [0, Infinity],
 }
 const SOURCE_KEYS = ['color', 'dot', 'size'] as const
+/** What a tested-together source may say: its own name, entry and unit, and the three of a single run's `source:`. */
+const SOURCE_INFO_KEYS = ['name', 'entry', 'unit', ...SOURCE_KEYS] as const
+/** The numbers a source may give for one line (`by`). */
+const BY_KEYS = ['rate', 'bytes', 'p50', 'errors'] as const
+/** Most runs one run may add, and most sources a run may be tested with. */
+export const MOST_ADDED = 4
+export const MOST_TESTED = 3
+/**
+ * The colours a source takes when it names none, in the order the sources are listed. Red is left out: it is the colour of a call that fails. A source that
+ * names a colour keeps it, and one that doesn't takes the first of these that no other source draws in (see dialsOf).
+ */
+export const SOURCE_PALETTE: readonly string[] = ['blue', 'green', 'orange', 'indigo']
 /** How much of a name a problem quotes, so a hostile key doesn't fill the problem list. */
 const QUOTED = 40
 const brief = (text: string): string => (text.length > QUOTED ? `${text.slice(0, QUOTED)}…` : text)
@@ -100,23 +129,31 @@ function readSource(raw: unknown, add: (message: string) => void): Source | unde
     add('source must be a mapping of color, dot and size')
     return undefined
   }
-  for (const key of Object.keys(block)) if (!SOURCE_KEYS.some(k => k === key)) add(`source: unknown key "${brief(key)}" (use ${SOURCE_KEYS.join(', ')})`)
+  return readSourceKeys(block, SOURCE_KEYS, 'source', add)
+}
+
+/**
+ * The colour and the two formulas in a mapping: a single run's `source:` block, or one of the sources of a run tested together (which also says its name, entry and
+ * unit, so `allowed` is wider). `label` starts each problem. What is wrong is left out; a block with nothing usable in it is no source.
+ */
+function readSourceKeys(block: Record<string, unknown>, allowed: readonly string[], label: string, add: (message: string) => void): Source | undefined {
+  for (const key of Object.keys(block)) if (!allowed.some(k => k === key)) add(`${label}: unknown key "${brief(key)}" (use ${allowed.join(', ')})`)
   const out: Source = {}
   const color = orEmpty(Object.hasOwn(block, 'color') ? block.color : undefined, undefined)
   if (color !== undefined) {
     if (typeof color === 'string' && isColor(color)) out.color = color
-    else add('source: color must be a colour name or a hex such as #1d9e75')
+    else add(`${label}: color must be a colour name or a hex such as #1d9e75`)
   }
   const formula = (key: 'dot' | 'size', example: string): SourceFormula | undefined => {
     const text = orEmpty(Object.hasOwn(block, key) ? block[key] : undefined, undefined)
     if (text === undefined) return undefined
     if (typeof text !== 'string') {
-      add(`source: ${key} must be a formula such as ${example}`)
+      add(`${label}: ${key} must be a formula such as ${example}`)
       return undefined
     }
     const read = parseFormula(text)
     if ('problem' in read) {
-      add(`source: ${key} ${read.problem}`) // a formula that can't be read leaves the default curve in its place
+      add(`${label}: ${key} ${read.problem}`) // a formula that can't be read leaves the default curve in its place
       return undefined
     }
     return { text }
@@ -126,6 +163,21 @@ function readSource(raw: unknown, add: (message: string) => void): Source | unde
   const size = formula('size', 'bytes / 400')
   if (size) out.size = size
   return Object.keys(out).length === 0 ? undefined : out
+}
+
+/** Whether two colours draw the same: a name and its own hex are one colour. */
+function sameColor(a: string, b: string): boolean {
+  const [pa, pb] = [colorPair(a), colorPair(b)]
+  return pa !== undefined && pb !== undefined && pa[0] === pb[0] && pa[1] === pb[1]
+}
+
+/** A problem for each pair of the colours (in the order they come) that draw the same, naming the sources by `names`. */
+function sharedColors(colors: (string | undefined)[], names: string[], add: (message: string) => void) {
+  colors.forEach((c, i) => {
+    if (c === undefined) return
+    const first = colors.findIndex(d => d !== undefined && sameColor(c, d))
+    if (first !== i) add(`${names[first]} and ${names[i]} both draw in ${brief(c)}: give each its own colour`)
+  })
 }
 
 /** Formulas already read, by their text, so a line that is drawn twenty times a second doesn't read its formula each time. Kept small: a run has two. */
@@ -216,12 +268,31 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
   const name = word('name')
   if (name === undefined) add('name is missing')
   const about = word('about')
+  const axisText = orEmpty(doc.axis, undefined)
+
+  // A run that adds others is a list of runs and nothing else: no levels of its own, no source (each run it adds has its own).
+  const addsText = orEmpty(doc.adds, undefined)
+  if (addsText !== undefined) {
+    if (!Array.isArray(addsText)) throw new ParseError(file, '"adds" must be a list of run ids')
+    const adds = readAdds(id, file, addsText, add)
+    for (const own of ['levels', 'sources', 'source'] as const) if (orEmpty(doc[own], undefined) !== undefined) add(`a run that adds others has no ${own} of its own`)
+    if (axisText === 'time') add('a run that adds others is measured over load, not time')
+    return { run: { name: name ?? id, ...(about === undefined ? {} : { about }), unit: '', adds, levels: [] }, problems }
+  }
+
+  // A run tested with several sources at once: its levels name a load for each.
+  const sourcesText = orEmpty(doc.sources, undefined)
+  const sources = sourcesText === undefined ? undefined : readSources(file, sourcesText, add)
   const unit = word('unit')
   const entry = word('entry')
-  const source = readSource(doc.source, add)
-  const axisText = orEmpty(doc.axis, undefined)
-  const axis: Axis = AXES.find(a => a === axisText) ?? 'load' // a run says what it is measured over, or is a load run
-  if (axisText !== undefined && !AXES.some(a => a === axisText)) add(`axis must be ${AXES.join(' or ')}`)
+  if (sources !== undefined) {
+    if (entry !== undefined) add('entry is for a single run: a run with sources gives each source its own entry')
+    if (orEmpty(doc.source, undefined) !== undefined) add('source is for a single run: a run with sources gives each source its own color, dot and size')
+    if (axisText === 'time') add('a run with sources is measured over load, not time')
+  }
+  const source = sources === undefined ? readSource(doc.source, add) : undefined
+  const axis: Axis = sources === undefined ? AXES.find(a => a === axisText) ?? 'load' : 'load' // a run says what it is measured over, or is a load run
+  if (sources === undefined && axisText !== undefined && !AXES.some(a => a === axisText)) add(`axis must be ${AXES.join(' or ')}`)
   // The key a level carries its number under, and the other one, which is the commonest slip: a time run written with load, or a load run with at.
   const key = axis === 'time' ? 'at' : 'load'
   const other = axis === 'time' ? 'load' : 'at'
@@ -234,9 +305,14 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
     const at = `level ${i + 1}`
     if (!isMap(raw)) throw new ParseError(file, `${at} must be a mapping`)
     if (raw[other] !== undefined) add(`${at}: a ${axis} run uses ${key}, not ${other}`)
-    const load = num(raw[key] ?? raw[other]) // the wrong key is told off above and still gives the number, so the run plays
-    if (load === undefined || load < 0) throw new ParseError(file, `${at}: ${key} must be a number, 0 or more`)
-    const where = (what: string) => `${key} ${load}, ${what}`
+    const loadText = raw[key] ?? raw[other] // the wrong key is told off above and still gives the number, so the run plays
+    // A run with sources names a load for each (and has no single one); any other run has one number.
+    const loads = sources === undefined ? undefined : readLoads(file, at, loadText, sources)
+    const load = loads === undefined ? num(loadText) : 0
+    if (load === undefined || load < 0)
+      throw new ParseError(file, isMap(loadText) ? `${at}: ${key} is a mapping of sources, but the run has no sources` : `${at}: ${key} must be a number, 0 or more`)
+    const lead = loads === undefined ? `${key} ${load}` : describeLoads(loads)
+    const where = (what: string) => `${lead}, ${what}`
 
     const rawOverall = orEmpty(raw.overall, {})
     if (!isMap(rawOverall)) throw new ParseError(file, `${at}: overall must be a mapping of numbers`)
@@ -268,28 +344,253 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
       seen.add(key)
       const label = where(`${from} → ${to}`)
       const failure = readFailure(c.failure, label, add)
-      connections.push({ from, to, ...readMetrics(EDGE_KEYS, c, label, add), ...(failure === undefined ? {} : { failure }) })
+      const by = readBy(c.by, sources, label, add)
+      connections.push({ from, to, ...readMetrics(EDGE_KEYS, c, label, add), ...(failure === undefined ? {} : { failure }), ...(by === undefined ? {} : { by }) })
     })
-    return { load, overall, objects, connections }
+    return { load, ...(loads === undefined ? {} : { loads }), overall, objects, connections }
   }
 
-  const levels = rawLevels.map(readLevel)
-  levels.forEach((l, i) => {
-    if (i > 0 && l.load <= levels[i - 1].load)
-      throw new ParseError(file, `level ${i + 1}: ${key} ${l.load} must be above ${levels[i - 1].load} (levels go up in ${axis})`)
-  })
+  const read = rawLevels.map(readLevel)
+  if (sources === undefined) {
+    read.forEach((l, i) => {
+      if (i > 0 && l.load <= read[i - 1].load)
+        throw new ParseError(file, `level ${i + 1}: ${key} ${l.load} must be above ${read[i - 1].load} (levels go up in ${axis})`)
+    })
+  }
+  const levels = sources === undefined ? read : gridOf(file, sources, read)
   // Events belong to a time run. On a load run they are a problem and are not read.
   const rawEvents = orEmpty(doc.events, undefined)
   if (axis === 'load' && rawEvents !== undefined) add('events are only for a time run (set axis: time)')
-  const runUnit = unit ?? (axis === 'time' ? 's' : 'load')
+  const runUnit = sources === undefined ? unit ?? (axis === 'time' ? 's' : 'load') : '' // a run with sources has no unit of its own: each source has one
   const events = axis === 'time' ? readEvents(rawEvents, [levels[0].load, levels[levels.length - 1].load], runUnit, add) : []
   return {
     run: {
-      name: name ?? id, ...(about === undefined ? {} : { about }), unit: runUnit, ...(entry === undefined ? {} : { entry }), ...(source === undefined ? {} : { source }),
-      ...(axis === 'time' ? { axis } : {}), ...(events.length === 0 ? {} : { events }), levels,
+      name: name ?? id, ...(about === undefined ? {} : { about }), unit: runUnit, ...(entry === undefined || sources !== undefined ? {} : { entry }), ...(source === undefined ? {} : { source }),
+      ...(axis === 'time' ? { axis } : {}), ...(events.length === 0 ? {} : { events }), ...(sources === undefined ? {} : { sources }), levels,
     },
     problems,
   }
+}
+
+/**
+ * The runs a run that adds others lists. A slip is a problem and what is wrong is left out: an item that isn't a run id, the run itself, an id listed twice, more than MOST_ADDED
+ * (the rest are left out). Fewer than two left can't be played, so that is a ParseError. Whether the runs exist is for checkRuns, which sees the other runs.
+ */
+function readAdds(id: string, file: string, list: unknown[], add: (message: string) => void): string[] {
+  const out: string[] = []
+  list.forEach((v, i) => {
+    if (typeof v !== 'string' || v.trim() === '') return add(`adds: item ${i + 1} must be a run id`)
+    const run = v.trim()
+    if (run === id) return add(`adds: ${id} can't add itself`)
+    if (out.includes(run)) return add(`adds: ${brief(run)} is listed twice`)
+    out.push(run)
+  })
+  if (out.length > MOST_ADDED) {
+    add(`adds: at most ${MOST_ADDED} runs, so ${out.slice(MOST_ADDED).map(brief).join(', ')} left out`)
+    out.length = MOST_ADDED
+  }
+  if (out.length < 2) throw new ParseError(file, `adds needs two to ${MOST_ADDED} runs, not ${out.length}`)
+  return out
+}
+
+/**
+ * The `sources:` of a run tested together: 2 to MOST_TESTED, each a mapping with a name, a unit, an entry and the colour and formulas of a single run's source. A slip in one is a
+ * problem and is left out of it. What can't be played is a ParseError: not a mapping, the wrong count, an id that isn't one, a source that isn't a mapping.
+ */
+function readSources(file: string, raw: unknown, add: (message: string) => void): Record<string, SourceInfo> {
+  if (!isMap(raw)) throw new ParseError(file, '"sources" must map each source id to its name, unit and entry')
+  const ids = Object.keys(raw)
+  if (ids.length < 2 || ids.length > MOST_TESTED) throw new ParseError(file, `sources needs two to ${MOST_TESTED} sources, not ${ids.length}`)
+  const out: Record<string, SourceInfo> = {}
+  for (const sid of ids) {
+    if (!isValidId(sid)) throw new ParseError(file, `source "${brief(sid)}" is not a valid id: the id must ${ID_RULE}`)
+    const block = orEmpty(raw[sid], {})
+    if (!isMap(block)) throw new ParseError(file, `source ${sid} must be a mapping of name, unit and entry`)
+    const label = `source ${sid}`
+    const source = readSourceKeys(block, SOURCE_INFO_KEYS, label, add)
+    const text = (key: 'name' | 'unit' | 'entry'): string | undefined => {
+      const v = orEmpty(Object.hasOwn(block, key) ? block[key] : undefined, undefined)
+      if (v === undefined) return undefined
+      if (typeof v !== 'string') {
+        add(`${label}: ${key} must be plain text`)
+        return undefined
+      }
+      return v.trim() === '' ? undefined : v
+    }
+    const name = text('name')
+    if (name === undefined) add(`${label}: name is missing`)
+    const entry = text('entry')
+    put(out, sid, { name: name ?? sid, ...(entry === undefined ? {} : { entry }), unit: text('unit') ?? 'load', ...(source === undefined ? {} : { source }) })
+  }
+  sharedColors(ids.map(sid => out[sid].source?.color), ids.map(sid => out[sid].name), add)
+  return out
+}
+
+/** The load a level of a run tested together names for each source. Anything else is a ParseError: a level that can't be placed on the grid. */
+function readLoads(file: string, at: string, raw: unknown, sources: Record<string, SourceInfo>): Record<string, number> {
+  const ids = Object.keys(sources)
+  if (!isMap(raw)) throw new ParseError(file, `${at}: load must give a number for each source (${ids.join(', ')})`)
+  for (const sid of Object.keys(raw)) if (!Object.hasOwn(sources, sid)) throw new ParseError(file, `${at}: load names "${brief(sid)}", which is not a source (${ids.join(', ')})`)
+  const out: Record<string, number> = {}
+  for (const sid of ids) {
+    const n = num(Object.hasOwn(raw, sid) ? raw[sid] : undefined)
+    if (n === undefined || n < 0) throw new ParseError(file, `${at}: load: ${sid} must be a number, 0 or more`)
+    put(out, sid, n)
+  }
+  return out
+}
+
+/** The loads of a level, in words: "orders 100 and pings 50". */
+const describeLoads = (loads: Record<string, number>): string => Object.entries(loads).map(([sid, n]) => `${sid} ${n}`).join(' and ')
+
+/**
+ * The levels of a run tested together as a full grid: every load that any level names for a source, with every load of the others. Each source needs two loads, a combination may be
+ * listed once, and a combination that is not listed is the one problem, naming the first in grid order (the first source changes slowest). The levels come back in that order.
+ */
+function gridOf(file: string, sources: Record<string, SourceInfo>, levels: Level[]): Level[] {
+  const ids = Object.keys(sources)
+  const loadsOf = (l: Level): Record<string, number> => l.loads ?? {}
+  const values = ids.map(sid => [...new Set(levels.map(l => loadsOf(l)[sid]))].sort((a, b) => a - b))
+  ids.forEach((sid, i) => {
+    if (values[i].length < 2) throw new ParseError(file, `source ${sid} needs at least two loads, so there is something to play between`)
+  })
+  const keyOf = (loads: Record<string, number>): string => JSON.stringify(ids.map(sid => loads[sid]))
+  const listed = new Map<string, number>()
+  levels.forEach((l, i) => {
+    const key = keyOf(loadsOf(l))
+    const first = listed.get(key)
+    if (first !== undefined) throw new ParseError(file, `level ${i + 1}: ${describeLoads(loadsOf(l))} is listed twice (level ${first + 1} has it)`)
+    listed.set(key, i)
+  })
+  const ordered: Level[] = []
+  const walk = (i: number, picked: number[]): void => {
+    if (i === ids.length) {
+      const loads: Record<string, number> = {}
+      ids.forEach((sid, j) => put(loads, sid, picked[j]))
+      const at = listed.get(keyOf(loads))
+      if (at === undefined) throw new ParseError(file, `no level for ${describeLoads(loads)}: a run tested together needs every load of each source with every load of the others`)
+      ordered.push(levels[at])
+      return
+    }
+    for (const v of values[i]) walk(i + 1, [...picked, v])
+  }
+  walk(0, [])
+  return ordered
+}
+
+/**
+ * The `by:` of a connection: what each source of a run with sources carries on that line, as its own rate, bytes, p50 and errors. A slip is a problem and is left out: `by` in a run
+ * without sources, one that isn't a mapping, a source it doesn't have, a key that isn't one of the four. A source with no usable number is left out.
+ */
+function readBy(raw: unknown, sources: Record<string, SourceInfo> | undefined, where: string, add: (message: string) => void): Record<string, Metrics> | undefined {
+  const block = orEmpty(raw, undefined)
+  if (block === undefined) return undefined
+  if (sources === undefined) {
+    add(`${where}: by is for a run with sources`)
+    return undefined
+  }
+  if (!isMap(block)) {
+    add(`${where}: by must map a source to its numbers`)
+    return undefined
+  }
+  const out: Record<string, Metrics> = {}
+  for (const [sid, v] of Object.entries(block)) {
+    if (!Object.hasOwn(sources, sid)) {
+      add(`${where}: by names "${brief(sid)}", which is not a source`)
+      continue
+    }
+    const entry = orEmpty(v, {})
+    if (!isMap(entry)) {
+      add(`${where}: by ${sid} must be a mapping of numbers`)
+      continue
+    }
+    for (const key of Object.keys(entry)) if (!BY_KEYS.some(k => k === key)) add(`${where}: by ${sid}: unknown key "${brief(key)}" (use ${BY_KEYS.join(', ')})`)
+    const m = readMetrics(BY_KEYS, entry, `${where}, ${sid}`, add)
+    if (Object.keys(m).length > 0) put(out, sid, m)
+  }
+  return Object.keys(out).length === 0 ? undefined : out
+}
+
+/**
+ * What a run says about other runs, which one run alone can't see: each run an adder lists must be a load run of its own (not missing, not a run over time, not another
+ * adder, not tested with several sources), and two of them may not draw in one colour. An adder with fewer than two runs it can add can't be played: the loader leaves it out
+ * (see dialsOf). Each problem names the run it is about.
+ */
+export function checkRuns(runs: Record<string, Run>): Problem[] {
+  const problems: Problem[] = []
+  for (const [id, run] of Object.entries(runs)) {
+    if (run.adds === undefined) continue
+    const add = (message: string) => problems.push({ file: `perf/${id}.yaml`, message })
+    const good: string[] = []
+    for (const part of run.adds) {
+      const why = whyNotAdded(runs, part)
+      if (why === undefined) good.push(part)
+      else add(`adds "${brief(part)}", ${why}`)
+    }
+    if (good.length < 2) add("can't be played: fewer than two of the runs it adds can be added")
+    else sharedColors(good.map(part => runs[part].source?.color), good.map(part => runs[part].name), add)
+  }
+  return problems
+}
+
+/** Why a run can't be one of those an adder adds, or undefined when it can: it is a load run with levels of its own, and one source. */
+function whyNotAdded(runs: Record<string, Run>, id: string): string | undefined {
+  if (!Object.hasOwn(runs, id)) return 'which is not a run'
+  const run = runs[id]
+  if (run.adds !== undefined) return 'which adds runs itself'
+  if (run.sources !== undefined) return 'which is tested with several sources'
+  if (isTime(run)) return 'which is a run over time'
+  return undefined
+}
+
+/**
+ * A dial: one thing the load can be turned up on. A run with one source has one (its `id` is ''); a run that adds others has one for each run it adds (the id of that run); a run
+ * tested together has one for each of its sources. `values` are the loads that were tested, going up; `color` is the colour its dots are drawn in, from its source or else from
+ * the palette.
+ */
+export type Dial = { id: string; name: string; unit: string; values: number[]; source?: Source; color: string }
+/** Which kind of run it is: one source, several added from separate runs, or several tested together. */
+export type Mode = 'single' | 'added' | 'tested'
+
+/**
+ * The colour of each source: the one it names, else the first of the palette that no other source draws in, in the order the sources come. (Two sources that name the same colour are
+ * a problem the checks report; they keep it.) A source nobody names a colour for is never red, the colour of a failing call.
+ */
+function colorsOf(sources: (Source | undefined)[]): string[] {
+  const taken: string[] = sources.flatMap(s => (s?.color === undefined ? [] : [s.color]))
+  const free = SOURCE_PALETTE.filter(c => !taken.some(t => sameColor(t, c)))
+  let next = 0
+  return sources.map(s => s?.color ?? free[Math.min(next++, free.length - 1)] ?? SOURCE_PALETTE[0])
+}
+
+/**
+ * What a run is turned up on. A run with one source is one dial; a run that adds others is one dial for each run it can add (at least two, else the run can't be played and this
+ * is undefined); a run tested together is one for each source. Undefined too for an id that isn't a run. The loads of a dial are the tested ones, so a position on it can be
+ * any fraction of an index into them.
+ */
+export function dialsOf(runs: Record<string, Run>, id: string): { mode: Mode; dials: Dial[] } | undefined {
+  if (!Object.hasOwn(runs, id)) return undefined
+  const run = runs[id]
+  const loads = (r: Run): number[] => r.levels.map(l => l.load)
+  if (run.adds !== undefined) {
+    const parts = run.adds.filter(part => whyNotAdded(runs, part) === undefined)
+    if (parts.length < 2) return undefined
+    const colors = colorsOf(parts.map(part => runs[part].source))
+    return { mode: 'added', dials: parts.map((part, i) => ({ id: part, name: runs[part].name, unit: runs[part].unit, values: loads(runs[part]), ...(runs[part].source ? { source: runs[part].source } : {}), color: colors[i] })) }
+  }
+  if (run.sources !== undefined) {
+    const ids = Object.keys(run.sources)
+    const colors = colorsOf(ids.map(sid => run.sources![sid].source))
+    return {
+      mode: 'tested',
+      dials: ids.map((sid, i) => {
+        const info = run.sources![sid]
+        const values = [...new Set(run.levels.map(l => l.loads?.[sid] ?? 0))].sort((a, b) => a - b)
+        return { id: sid, name: info.name, unit: info.unit, values, ...(info.source ? { source: info.source } : {}), color: colors[i] }
+      }),
+    }
+  }
+  return { mode: 'single', dials: [{ id: '', name: run.name, unit: run.unit, values: loads(run), ...(run.source ? { source: run.source } : {}), color: run.source?.color ?? SOURCE_PALETTE[0] }] }
 }
 
 /**
@@ -307,6 +608,7 @@ export function checkRun(id: string, run: Run, model: Model): Problem[] {
     problems.push({ file, message })
   }
   if (run.entry !== undefined && !getObject(model, run.entry)) once(`entry "${run.entry}" is not an object`)
+  for (const [sid, info] of Object.entries(run.sources ?? {})) if (info.entry !== undefined && !getObject(model, info.entry)) once(`source ${sid}: entry "${info.entry}" is not an object`)
   for (const level of run.levels) {
     for (const oid of Object.keys(level.objects)) if (!getObject(model, oid)) once(`unknown object "${oid}"`)
     for (const { from, to } of level.connections) {
