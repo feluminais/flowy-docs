@@ -621,7 +621,7 @@ public static class EditOps
 
     // A step's number is left out: deleting or moving a step renumbers the problems after it, and they're still the same problems.
     private static string Key(Problem p) =>
-        string.Join('\u0001', p.File, p.Id ?? "", p.Step is null ? p.Message : System.Text.RegularExpressions.Regex.Replace(p.Message, @"^step \d+: ", ""));
+        string.Join('\u0001', p.File, p.Id ?? "", Problem.WithoutStep(p));
 
     /// <summary>Problems in <paramref name="after"/> that weren't already in <paramref name="before"/>. Repeats count: a second copy of an old problem is new.</summary>
     public static List<Problem> NewProblems(IEnumerable<Problem> before, IEnumerable<Problem> after)

@@ -24,8 +24,8 @@ public static class ModelFiles
 
     private static OrderedDictionary<string, object?> NewMap() => [];
 
-    /// <summary>For sections: an empty value, <c>~</c> or <c>null</c> means empty.</summary>
-    internal static object? OrEmpty(object? v, object? empty) => v is null or "" or "~" or "null" or "Null" or "NULL" ? empty : v;
+    // forwards to JsCompat.OrEmpty; Perf.cs still calls it, remove once Perf.cs uses JsCompat
+    internal static object? OrEmpty(object? v, object? empty) => JsCompat.OrEmpty(v, empty);
 
     private static string? Text(OrderedDictionary<string, object?> map, string key) => map.TryGetValue(key, out var v) ? v as string : null;
 
@@ -40,13 +40,13 @@ public static class ModelFiles
     public static ParsedModel ParseModel(string text)
     {
         const string file = "model.yaml";
-        if (OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> top)
+        if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> top)
             throw new ParseError(file, "expected a mapping with \"objects\" and \"connections\"");
 
         top.TryGetValue("objects", out var rawObjects);
         top.TryGetValue("connections", out var rawConnections);
-        var objects = OrEmpty(rawObjects, NewMap());
-        var connections = OrEmpty(rawConnections, new List<object?>());
+        var objects = JsCompat.OrEmpty(rawObjects, NewMap());
+        var connections = JsCompat.OrEmpty(rawConnections, new List<object?>());
         if (objects is not OrderedDictionary<string, object?> objectMap) throw new ParseError(file, "\"objects\" must map ids to mappings");
         foreach (var (id, o) in objectMap) CheckEntry(file, $"object \"{id}\"", o, ObjectFields);
         if (connections is not List<object?> connectionList) throw new ParseError(file, "\"connections\" must be a list");
@@ -78,18 +78,18 @@ public static class ModelFiles
     public static Flow ParseFlow(string id, string text)
     {
         var file = $"flows/{id}.yaml";
-        if (OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
+        if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
             throw new ParseError(file, "expected a mapping with \"name\", \"view\" and \"steps\"");
         CheckEntry(file, "flow", doc, FlowFields);
         doc.TryGetValue("steps", out var rawSteps);
-        if (OrEmpty(rawSteps, new List<object?>()) is not List<object?> steps) throw new ParseError(file, "\"steps\" must be a list");
+        if (JsCompat.OrEmpty(rawSteps, new List<object?>()) is not List<object?> steps) throw new ParseError(file, "\"steps\" must be a list");
         for (var i = 0; i < steps.Count; i++) CheckEntry(file, $"step {i + 1}", steps[i], StepFields);
         doc.TryGetValue("groups", out var rawGroups);
         OrderedDictionary<string, object?>? groups = null;
-        if (OrEmpty(rawGroups, null) is { } declared)
+        if (JsCompat.OrEmpty(rawGroups, null) is { } declared)
         {
             if (declared is not OrderedDictionary<string, object?> map) throw new ParseError(file, "\"groups\" must map ids to mappings");
-            foreach (var gid in JsKeys.Order(map.Keys)) CheckEntry(file, $"group \"{gid}\"", map[gid], GroupFields);
+            foreach (var gid in JsCompat.OrderKeys(map.Keys)) CheckEntry(file, $"group \"{gid}\"", map[gid], GroupFields);
             groups = map;
         }
 
@@ -111,13 +111,13 @@ public static class ModelFiles
     public static FailureAnalysis ParseAnalysis(string id, string text)
     {
         var file = $"failures/{id}.yaml";
-        if (OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
+        if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
             throw new ParseError(file, "expected a mapping with \"name\" and \"modes\"");
         CheckEntry(file, "analysis", doc, AnalysisFields);
         doc.TryGetValue("modes", out var rawModes);
-        if (OrEmpty(rawModes, NewMap()) is not OrderedDictionary<string, object?> modeMap) throw new ParseError(file, "\"modes\" must map ids to mappings");
+        if (JsCompat.OrEmpty(rawModes, NewMap()) is not OrderedDictionary<string, object?> modeMap) throw new ParseError(file, "\"modes\" must map ids to mappings");
         var modes = new IdMap<FailureMode>();
-        foreach (var mid in JsKeys.Order(modeMap.Keys))
+        foreach (var mid in JsCompat.OrderKeys(modeMap.Keys))
         {
             var at = $"mode \"{mid}\"";
             var raw = modeMap[mid];
@@ -125,7 +125,7 @@ public static class ModelFiles
             var m = (OrderedDictionary<string, object?>)raw!;
             m.TryGetValue("after", out var rawAfter);
             FailureRatings? after = null;
-            if (OrEmpty(rawAfter, null) is { } declaredAfter)
+            if (JsCompat.OrEmpty(rawAfter, null) is { } declaredAfter)
             {
                 if (declaredAfter is not OrderedDictionary<string, object?> afterMap) throw new ParseError(file, $"{at}: \"after\" must be a mapping of ratings");
                 CheckEntry(file, $"{at} after", afterMap, RatingFields);
@@ -133,7 +133,7 @@ public static class ModelFiles
             }
             m.TryGetValue("affects", out var rawAffects);
             IReadOnlyList<string>? affects = null;
-            if (OrEmpty(rawAffects, null) is { } declaredAffects)
+            if (JsCompat.OrEmpty(rawAffects, null) is { } declaredAffects)
             {
                 if (declaredAffects is not List<object?> items || items.Any(a => a is not string)) throw new ParseError(file, $"{at}: \"affects\" must be a list of ids");
                 affects = items.Cast<string>().ToList();
@@ -144,11 +144,11 @@ public static class ModelFiles
         }
         doc.TryGetValue("scale", out var rawScale);
         OrderedDictionary<string, RatingEnds>? scale = null;
-        if (OrEmpty(rawScale, null) is { } declaredScale)
+        if (JsCompat.OrEmpty(rawScale, null) is { } declaredScale)
         {
             if (declaredScale is not OrderedDictionary<string, object?> scaleMap) throw new ParseError(file, "\"scale\" must map ratings to a low and a high");
             scale = [];
-            foreach (var rating in JsKeys.Order(scaleMap.Keys))
+            foreach (var rating in JsCompat.OrderKeys(scaleMap.Keys))
             {
                 CheckEntry(file, $"scale \"{rating}\"", scaleMap[rating], ScaleFields);
                 var ends = (OrderedDictionary<string, object?>)scaleMap[rating]!;
@@ -176,13 +176,13 @@ public static class ModelFiles
     public static Dictionary<string, IReadOnlyDictionary<string, LayoutPoint>> ParseLayout(string text)
     {
         const string file = "layout.yaml";
-        if (OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
+        if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
             throw new ParseError(file, "expected view → object → [x, y]");
 
         var layout = new Dictionary<string, IReadOnlyDictionary<string, LayoutPoint>>();
         foreach (var (view, rawBoxes) in doc)
         {
-            if (OrEmpty(rawBoxes, NewMap()) is not OrderedDictionary<string, object?> boxes)
+            if (JsCompat.OrEmpty(rawBoxes, NewMap()) is not OrderedDictionary<string, object?> boxes)
                 throw new ParseError(file, $"view \"{view}\" must map object ids to [x, y]");
             var points = new Dictionary<string, LayoutPoint>();
             foreach (var (id, p) in boxes)

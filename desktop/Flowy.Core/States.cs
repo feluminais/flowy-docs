@@ -44,12 +44,12 @@ public static class States
     /// What is wrong with a flow's states and its steps', in this order: the flow's own, then each step's (in file order), then each parallel stop whose lanes set one
     /// shape to different states. A step's problem has its 0-based step number and is worded to follow "step N: "; the others stand alone. <paramref name="exists"/> says whether an id is a shape.
     /// </summary>
-    public static List<(int? Step, string Message)> Problems(Flow flow, IReadOnlyList<Stop> stops, Func<string, bool> exists)
+    public static List<Finding> Problems(Flow flow, IReadOnlyList<Stop> stops, Func<string, bool> exists)
     {
-        var output = new List<(int? Step, string Message)>();
+        var output = new List<Finding>();
         void Check(object? raw, int? step)
         {
-            void Add(string message) => output.Add((step, message));
+            void Add(string message) => output.Add(new Finding(step, message));
             if (raw is null) return;
             if (raw is not OrderedDictionary<string, object?> map)
             {
@@ -79,7 +79,7 @@ public static class States
                 foreach (var (id, state) in Read(flow.Steps[i].States))
                 {
                     if (!first.TryGetValue(id, out var seen)) first[id] = state;
-                    else if (seen != state && told.Add(id)) output.Add((i, $"shape \"{id}\" is set to both {seen} and {state} in one stop"));
+                    else if (seen != state && told.Add(id)) output.Add(new Finding(i, $"shape \"{id}\" is set to both {seen} and {state} in one stop"));
                 }
             }
         }
