@@ -1,4 +1,5 @@
 import type { Problem } from '../problem.ts'
+import { FILE_KINDS, pathOf } from '../filekinds.ts'
 import { getObject } from '../model.ts'
 import type { Model } from '../model.ts'
 import { eventsOf } from './types.ts'
@@ -17,7 +18,7 @@ export function checkRuns(runs: Record<string, Run>): Problem[] {
   const problems: Problem[] = []
   for (const [id, run] of Object.entries(runs)) {
     if (run.adds === undefined) continue
-    const add = (message: string) => problems.push({ file: `perf/${id}.yaml`, message })
+    const add = (message: string) => problems.push({ file: pathOf(FILE_KINDS.run, id), message })
     const good: string[] = []
     for (const part of run.adds) {
       const why = whyNotAdded(runs, part)
@@ -36,7 +37,7 @@ export function checkRuns(runs: Record<string, Run>): Problem[] {
  * point at things that are gone, the rule `code` paths already follow.
  */
 export function checkRun(id: string, run: Run, model: Model): Problem[] {
-  const file = `perf/${id}.yaml`
+  const file = pathOf(FILE_KINDS.run, id)
   const problems: Problem[] = []
   const said = new Set<string>()
   const once = (message: string) => {
