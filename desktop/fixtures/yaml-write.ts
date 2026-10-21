@@ -1,4 +1,4 @@
-import { isAbsolute, join } from 'node:path'
+import { isAbsolute, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { fileData, serializeFile, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
@@ -95,14 +95,16 @@ export async function dumpYamlWrite(): Promise<unknown> {
   // Every file of every fixture folder, as the TypeScript reads and writes it again: the whole path an edit takes.
   const files: { folder: string; rel: string; data: unknown; text: string }[] = []
   for (const dir of [...Object.values(fixtureDirs()), 'docs/demo/flowy', 'example']) {
-    const state = await loadState(isAbsolute(dir) ? dir : join(root, dir)) // fixtureDirs() gives absolute paths, the two shipped folders are relative
+    const abs = isAbsolute(dir) ? dir : join(root, dir) // fixtureDirs() gives absolute paths, the two shipped folders are relative
+    const folder = relative(root, abs).replaceAll('\\', '/') // the label is relative so the fixture doesn't hold this checkout's path
+    const state = await loadState(abs)
     if ('parseError' in state) continue
     const model: Model = modelOf(state)
     const rels = ['model.yaml', ...Object.keys(model.flows).map(id => `flows/${id}.yaml`)]
     for (const rel of rels) {
       // A file with an empty value the failsafe schema reads as null can't be written by the TypeScript either: the editor refuses it.
       try {
-        files.push({ folder: dir, rel, data: fileData(model, rel), text: serializeFile(rel, fileData(model, rel)) })
+        files.push({ folder, rel, data: fileData(model, rel), text: serializeFile(rel, fileData(model, rel)) })
       } catch {
         continue
       }
