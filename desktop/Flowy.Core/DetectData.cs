@@ -14,7 +14,7 @@ public static class DetectData
     public const int MinScore = 3;
 
     /// <summary>A line that ends in a semicolon or an opening brace, or a lone closing brace: code, so it counts against YAML.</summary>
-    public static readonly Regex YamlButCode = Rx(@";\s*$|\{\s*$|^\s*\}", false);
+    public static readonly Regex YamlButCode = Rx(@";[ \t-\r   -     　﻿]*$|\{[ \t-\r   -     　﻿]*$|^[ \t-\r   -     　﻿]*\}", false);
 
     /// <summary>What only C++ has. Code the cues call C++ that has none of these is C.</summary>
     public static readonly Regex CppOnly = Rx(@"std::|\bclass\b|namespace|template|cout|nullptr", false, multiline: false);
@@ -22,60 +22,60 @@ public static class DetectData
     public static readonly (string Language, (Regex Pattern, int Weight)[] Cues)[] Cues =
     [
         ("dockerfile", [
-            (Rx(@"^(RUN|COPY|ADD|ENTRYPOINT|CMD|EXPOSE|WORKDIR|ENV|ARG|USER|HEALTHCHECK|VOLUME|LABEL)\s", false), 4),
-            (Rx(@"^FROM\s+(--platform=\S+\s+)?[\w.\/-]+[:@]\S+", false), 4),
-            (Rx(@"^FROM\s+\S+\s+AS\s+\w+", true), 4),
-            (Rx(@"^FROM\s+scratch\s*$", false), 4),
+            (Rx(@"^(RUN|COPY|ADD|ENTRYPOINT|CMD|EXPOSE|WORKDIR|ENV|ARG|USER|HEALTHCHECK|VOLUME|LABEL)[ \t-\r   -     　﻿]", false), 4),
+            (Rx(@"^FROM[ \t-\r   -     　﻿]+(--platform=[^ \t-\r   -     　﻿]+[ \t-\r   -     　﻿]+)?[\w.\/-]+[:@][^ \t-\r   -     　﻿]+", false), 4),
+            (Rx(@"^FROM[ \t-\r   -     　﻿]+[^ \t-\r   -     　﻿]+[ \t-\r   -     　﻿]+AS[ \t-\r   -     　﻿]+\w+", true), 4),
+            (Rx(@"^FROM[ \t-\r   -     　﻿]+scratch[ \t-\r   -     　﻿]*$", false), 4),
         ]),
         ("bash", [
-            (Rx(@"^#!.*\b(ba|z)?sh\b", false), 9),
-            (Rx(@"^\s*(echo|curl|export|sudo|apt|apt-get|cd|ls|grep|chmod|docker|kubectl|git|npm|cat|set -e)\b", false), 3),
+            (Rx(@"^#![^\n\r  ]*\b(ba|z)?sh\b", false), 9),
+            (Rx(@"^[ \t-\r   -     　﻿]*(echo|curl|export|sudo|apt|apt-get|cd|ls|grep|chmod|docker|kubectl|git|npm|cat|set -e)\b", false), 3),
             (Rx(@"\$\{?\w+\}?", false), 1),
-            (Rx(@"^\s*(fi|done|esac)\s*$", false), 3),
-            (Rx(@"\[\[ .+ \]\]", false), 3),
-            (Rx(@"\|\s*(jq|grep|awk|sed|xargs)\b", false), 3),
-            (Rx(@"^\s*for \w+ in .*; do", false), 4),
+            (Rx(@"^[ \t-\r   -     　﻿]*(fi|done|esac)[ \t-\r   -     　﻿]*$", false), 3),
+            (Rx(@"\[\[ [^\n\r  ]+ \]\]", false), 3),
+            (Rx(@"\|[ \t-\r   -     　﻿]*(jq|grep|awk|sed|xargs)\b", false), 3),
+            (Rx(@"^[ \t-\r   -     　﻿]*for \w+ in [^\n\r  ]*; do", false), 4),
         ]),
         ("powershell", [
             (Rx(@"\b(Get|Set|New|Remove|Write|Invoke|Test|Restart|Expand|Join|Import|Start|Stop)-[A-Z]\w+", false), 4),
-            (Rx(@"\$\w+\s*=", false), 1),
-            (Rx(@"\bparam\s*\(", false), 3),
-            (Rx(@"\s-(eq|ne|not|and|or|gt|lt)\b", false), 3),
+            (Rx(@"\$\w+[ \t-\r   -     　﻿]*=", false), 1),
+            (Rx(@"\bparam[ \t-\r   -     　﻿]*\(", false), 3),
+            (Rx(@"[ \t-\r   -     　﻿]-(eq|ne|not|and|or|gt|lt)\b", false), 3),
             (Rx(@"\[CmdletBinding", false), 5),
             (Rx(@"\$env:\w+", false), 4),
             (Rx(@"\$_\b", false), 2),
         ]),
         ("sql", [
-            (Rx(@"\bSELECT\b[\s\S]*\bFROM\b", true), 5),
+            (Rx(@"\bSELECT\b[ \t-\r   -     　﻿\S]*\bFROM\b", true), 5),
             (Rx(@"\b(INSERT INTO|CREATE TABLE|CREATE INDEX|GROUP BY|ORDER BY|LEFT JOIN|INNER JOIN|DELETE FROM)\b", true), 3),
             (Rx(@"\bWHERE\b", false), 3),
-            (Rx(@"^\s*UPDATE\s+\w+\s+SET\b", true), 5),
+            (Rx(@"^[ \t-\r   -     　﻿]*UPDATE[ \t-\r   -     　﻿]+\w+[ \t-\r   -     　﻿]+SET\b", true), 5),
             (Rx(@"\b(VARCHAR|BIGINT|NUMERIC|TIMESTAMP)\b", false), 2),
         ]),
         ("xml", [
-            (Rx(@"^\s*<\?xml", false), 9),
+            (Rx(@"^[ \t-\r   -     　﻿]*<\?xml", false), 9),
         ]),
         ("html", [
             (Rx(@"<!DOCTYPE html", true), 9),
             (Rx(@"<\/?(div|span|html|body|head|form|input|button|table|tr|td|th|h[1-6]|p|a|ul|li|script|link|meta|label|nav|main|header)\b[^>]*>", true), 3),
             (Rx(@"<\/\w+>", false), 2),
-            (Rx(@"<\w+(\s+[\w:-]+=""[^""]*"")*\s*\/?>", false), 2),
+            (Rx(@"<\w+([ \t-\r   -     　﻿]+[\w:-]+=""[^""]*"")*[ \t-\r   -     　﻿]*\/?>", false), 2),
         ]),
         ("css", [
-            (Rx(@"^\s*[.#:@*\w][^{};\n()=]*\{\s*$", false), 2),
-            (Rx(@"^\s*[\w-]+\s*:\s*[^;{}]+;\s*$", false), 2),
-            (Rx(@"[.#][\w-]+(:[\w-]+)*\s*\{[^}]*:[^}]*\}", false), 5),
+            (Rx(@"^[ \t-\r   -     　﻿]*[.#:@*\w][^{};\n()=]*\{[ \t-\r   -     　﻿]*$", false), 2),
+            (Rx(@"^[ \t-\r   -     　﻿]*[\w-]+[ \t-\r   -     　﻿]*:[ \t-\r   -     　﻿]*[^;{}]+;[ \t-\r   -     　﻿]*$", false), 2),
+            (Rx(@"[.#][\w-]+(:[\w-]+)*[ \t-\r   -     　﻿]*\{[^}]*:[^}]*\}", false), 5),
             (Rx(@"@(media|import|keyframes|font-face)\b", false), 4),
-            (Rx(@"^\s*--[\w-]+\s*:", false), 3),
+            (Rx(@"^[ \t-\r   -     　﻿]*--[\w-]+[ \t-\r   -     　﻿]*:", false), 3),
         ]),
         ("markdown", [
-            (Rx(@"^#{1,6}\s+\S", false), 3),
+            (Rx(@"^#{1,6}[ \t-\r   -     　﻿]+[^ \t-\r   -     　﻿]", false), 3),
             (Rx(@"\*\*[^*\n]+\*\*", false), 3),
             (Rx(@"\[[^\]\n]+\]\([^)\n]+\)", false), 4),
             (Rx(@"^```", false), 4),
-            (Rx(@"^>\s", false), 2),
-            (Rx(@"^\|.*\|\s*$", false), 3),
-            (Rx(@"^\s*(\d+\.|[-*])\s+\S", false), 1),
+            (Rx(@"^>[ \t-\r   -     　﻿]", false), 2),
+            (Rx(@"^\|[^\n\r  ]*\|[ \t-\r   -     　﻿]*$", false), 3),
+            (Rx(@"^[ \t-\r   -     　﻿]*(\d+\.|[-*])[ \t-\r   -     　﻿]+[^ \t-\r   -     　﻿]", false), 1),
         ]),
         ("php", [
             (Rx(@"<\?php", false), 9),
@@ -86,33 +86,33 @@ public static class DetectData
             (Rx(@"\w+::\w+\(", false), 2),
             (Rx(@"^namespace [\w\\]+;", false), 4),
             (Rx(@"\buse [\w\\]+;", false), 2),
-            (Rx(@"\bfunction \w+\(.*\)\s*(:\s*\w+)?\s*$", false), 1),
+            (Rx(@"\bfunction \w+\([^\n\r  ]*\)[ \t-\r   -     　﻿]*(:[ \t-\r   -     　﻿]*\w+)?[ \t-\r   -     　﻿]*$", false), 1),
         ]),
         ("ruby", [
-            (Rx(@"^\s*(def|end|module|attr_\w+|before_action|puts|require)\b", false), 3),
+            (Rx(@"^[ \t-\r   -     　﻿]*(def|end|module|attr_\w+|before_action|puts|require)\b", false), 3),
             (Rx(@"\|\w+(, ?\w+)*\|", false), 3),
-            (Rx(@"\bdo( \|.*\|)?\s*$", false), 3),
-            (Rx(@"@\w+\s*=", false), 2),
+            (Rx(@"\bdo( \|[^\n\r  ]*\|)?[ \t-\r   -     　﻿]*$", false), 3),
+            (Rx(@"@\w+[ \t-\r   -     　﻿]*=", false), 2),
             (Rx(@"&:\w+", false), 4),
-            (Rx(@"^\s*class \w+( < \w+)?\s*$", false), 3),
-            (Rx(@"\.(each|map|select|sum)\s*(\{|do)", false), 3),
+            (Rx(@"^[ \t-\r   -     　﻿]*class \w+( < \w+)?[ \t-\r   -     　﻿]*$", false), 3),
+            (Rx(@"\.(each|map|select|sum)[ \t-\r   -     　﻿]*(\{|do)", false), 3),
         ]),
         ("python", [
-            (Rx(@"^\s*(async )?def \w+\(.*\)( -> [^:]+)?:\s*$", false), 5),
-            (Rx(@"^\s*(import \w+|from [\w.]+ import)", false), 3),
+            (Rx(@"^[ \t-\r   -     　﻿]*(async )?def \w+\([^\n\r  ]*\)( -> [^:]+)?:[ \t-\r   -     　﻿]*$", false), 5),
+            (Rx(@"^[ \t-\r   -     　﻿]*(import \w+|from [\w.]+ import)", false), 3),
             (Rx(@"\bself\b", false), 2),
-            (Rx(@"^\s*(if|for|while|with|try|else|elif|class)\b.*:\s*$", false), 2),
+            (Rx(@"^[ \t-\r   -     　﻿]*(if|for|while|with|try|else|elif|class)\b[^\n\r  ]*:[ \t-\r   -     　﻿]*$", false), 2),
             (Rx(@"\belif\b", false), 4),
             (Rx(@"\bprint\(", false), 1),
             (Rx(@"__name__|__init__", false), 4),
             (Rx(@"\b(None|True|False)\b", false), 2),
-            (Rx(@"^\s*@\w+(\.\w+)*(\(.*\))?\s*$", false), 1),
+            (Rx(@"^[ \t-\r   -     　﻿]*@\w+(\.\w+)*(\([^\n\r  ]*\))?[ \t-\r   -     　﻿]*$", false), 1),
             (Rx(@"\blambda\b", false), 4),
             (Rx(@"\bfor \w+(, ?\w+)* in [^\n]*[\]})]", false), 4),
             (Rx(@"\braise \w+", false), 3),
         ]),
         ("go", [
-            (Rx(@"^package \w+\s*$", false), 4),
+            (Rx(@"^package \w+[ \t-\r   -     　﻿]*$", false), 4),
             (Rx(@"\bfunc\b", false), 3),
             (Rx(@":=", false), 3),
             (Rx(@"\berr != nil\b", false), 5),
@@ -139,7 +139,7 @@ public static class DetectData
             (Rx(@"\bval \w+", false), 3),
             (Rx(@"\bdata class\b", false), 6),
             (Rx(@"\bsuspend\b", false), 5),
-            (Rx(@"\bwhen\b\s*(\(.*\))?\s*\{", false), 4),
+            (Rx(@"\bwhen\b[ \t-\r   -     　﻿]*(\([^\n\r  ]*\))?[ \t-\r   -     　﻿]*\{", false), 4),
             (Rx(@"\?\.|\?:", false), 2),
             (Rx(@"^import (io|kotlinx|androidx|org)\.", false), 2),
             (Rx(@"\bit\.\w+", false), 2),
@@ -153,11 +153,11 @@ public static class DetectData
             (Rx(@"@(State\w*|Published|MainActor|ObservedObject)", false), 5),
             (Rx(@"\bsome View\b", false), 6),
             (Rx(@"\bif let\b", false), 4),
-            (Rx(@"\bstruct \w+\s*:\s*\w+", false), 3),
-            (Rx(@"\bvar \w+\s*:\s*\w+", false), 1),
+            (Rx(@"\bstruct \w+[ \t-\r   -     　﻿]*:[ \t-\r   -     　﻿]*\w+", false), 3),
+            (Rx(@"\bvar \w+[ \t-\r   -     　﻿]*:[ \t-\r   -     　﻿]*\w+", false), 1),
         ]),
         ("java", [
-            (Rx(@"\bpublic (static )?(final )?(class|interface|void|\w+<?\w*>?\s+\w+\()", false), 2),
+            (Rx(@"\bpublic (static )?(final )?(class|interface|void|\w+<?\w*>?[ \t-\r   -     　﻿]+\w+\()", false), 2),
             (Rx(@"\bSystem\.out\b", false), 5),
             (Rx(@"@(Override|Autowired|Service|RestController|GetMapping|Transactional|PathVariable|RequestMapping)", false), 5),
             (Rx(@"^import java", false), 6),
@@ -166,7 +166,7 @@ public static class DetectData
             (Rx(@"\bpublic interface \w+", false), 4),
             (Rx(@"\bLoggerFactory\.getLogger", false), 5),
             (Rx(@"\b(extends|implements)\b", false), 2),
-            (Rx(@"\bnew \w+(<.*>)?\(", false), 1),
+            (Rx(@"\bnew \w+(<[^\n\r  ]*>)?\(", false), 1),
             (Rx(@"\.stream\(\)", false), 3),
             (Rx(@"\bString\b", false), 1),
         ]),
@@ -187,30 +187,30 @@ public static class DetectData
         ]),
         ("cpp", [
             (Rx(@"\bconst auto\b|\bauto&", false), 4),
-            (Rx(@"^#include\s*[<""]", false), 5),
+            (Rx(@"^#include[ \t-\r   -     　﻿]*[<""]", false), 5),
             (Rx(@"\bstd::", false), 5),
             (Rx(@"\bnullptr\b", false), 4),
-            (Rx(@"\btemplate\s*<", false), 5),
+            (Rx(@"\btemplate[ \t-\r   -     　﻿]*<", false), 5),
             (Rx(@"\bcout\b|\bendl\b", false), 4),
-            (Rx(@"\bnamespace \w+\s*\{", false), 4),
-            (Rx(@"\bclass \w+\s*(:|\{)", false), 2),
+            (Rx(@"\bnamespace \w+[ \t-\r   -     　﻿]*\{", false), 4),
+            (Rx(@"\bclass \w+[ \t-\r   -     　﻿]*(:|\{)", false), 2),
             (Rx(@"\bprintf\(|\bmalloc\(|\btypedef\b|\bint main\(", false), 3),
             (Rx(@"\w->\w", false), 1),
             (Rx(@"\b(errno|size_t|ssize_t|uint\d+_t|int\d+_t|NULL|sizeof)\b", false), 4),
-            (Rx(@"\bstruct \w+\s*\{", false), 2),
+            (Rx(@"\bstruct \w+[ \t-\r   -     　﻿]*\{", false), 2),
         ]),
         ("typescript", [
-            (Rx(@"[:,(]\s*(string|number|boolean|any|void|unknown)\b", false), 4),
+            (Rx(@"[:,(][ \t-\r   -     　﻿]*(string|number|boolean|any|void|unknown)\b", false), 4),
             (Rx(@"\binterface \w+", false), 5),
-            (Rx(@"\bfunction\s*\w*\s*\([^)]*\w\??: [A-Za-z]", false), 4),
-            (Rx(@"\(\w+\??: [A-Za-z]\w*(<[^>]*>)?(\[\])?\)\s*=>", false), 4),
-            (Rx(@"\)\s*: [A-Za-z][\w<>\[\]| ]*\s*(\{|=>)", false), 4),
-            (Rx(@"\btype \w+\s*=", false), 5),
+            (Rx(@"\bfunction[ \t-\r   -     　﻿]*\w*[ \t-\r   -     　﻿]*\([^)]*\w\??: [A-Za-z]", false), 4),
+            (Rx(@"\(\w+\??: [A-Za-z]\w*(<[^>]*>)?(\[\])?\)[ \t-\r   -     　﻿]*=>", false), 4),
+            (Rx(@"\)[ \t-\r   -     　﻿]*: [A-Za-z][\w<>\[\]| ]*[ \t-\r   -     　﻿]*(\{|=>)", false), 4),
+            (Rx(@"\btype \w+[ \t-\r   -     　﻿]*=", false), 5),
             (Rx(@"\bas (const|[A-Z]\w+)", false), 3),
             (Rx(@"\breadonly\b", false), 4),
             (Rx(@"\b(private|public|protected) (readonly )?\w+:", false), 4),
             (Rx(@"\bPromise<", false), 4),
-            (Rx(@"\bimport .* from ['""]", false), 2),
+            (Rx(@"\bimport [^\n\r  ]* from ['""]", false), 2),
             (Rx(@"\bexport (interface|type|class|function|const)\b", false), 2),
             (Rx(@"\w<[A-Z]\w*(\[\])?>", false), 2),
         ]),
@@ -219,7 +219,7 @@ public static class DetectData
             (Rx(@"=>", false), 2),
             (Rx(@"\brequire\(", false), 4),
             (Rx(@"module\.exports", false), 5),
-            (Rx(@"\bfunction\s*\w*\s*\(", false), 3),
+            (Rx(@"\bfunction[ \t-\r   -     　﻿]*\w*[ \t-\r   -     　﻿]*\(", false), 3),
             (Rx(@"\bconsole\.\w+", false), 4),
             (Rx(@"\b(document|window)\.\w+", false), 4),
             (Rx(@"\.then\(|\bawait\b", false), 2),
@@ -227,10 +227,10 @@ public static class DetectData
             (Rx(@"===|!==", false), 3),
         ]),
         ("yaml", [
-            (Rx(@"^[ \t]*[\w.-]+:([ \t]+\S.*)?$", false), 2),
-            (Rx(@"^\s*-\s+[\w.-]+:\s", false), 3),
+            (Rx(@"^[ \t]*[\w.-]+:([ \t]+[^ \t-\r   -     　﻿][^\n\r  ]*)?$", false), 2),
+            (Rx(@"^[ \t-\r   -     　﻿]*-[ \t-\r   -     　﻿]+[\w.-]+:[ \t-\r   -     　﻿]", false), 3),
             (Rx(@"^(apiVersion|kind|metadata|spec|version|services|name|on|jobs):", false), 4),
-            (Rx(@"^---\s*$", false), 3),
+            (Rx(@"^---[ \t-\r   -     　﻿]*$", false), 3),
         ]),
     ];
 }

@@ -16,18 +16,21 @@ public static class Detect
         if (i == text.Length || text[i] is not ('{' or '[')) return false;
         try
         {
-            using var _ = JsonDocument.Parse(text);
+            // JavaScript's JSON.parse has no depth limit worth the name, so neither has this one.
+            using var _ = JsonDocument.Parse(text, new JsonDocumentOptions { MaxDepth = 10_000 });
             return true;
         }
-        catch (JsonException)
+        catch (Exception e) when (e is JsonException or ArgumentException)
         {
             return false;
         }
     }
 
     /// <summary>The id of the language the code is most likely written in, or null. Give it the code as <see cref="Snippets.CodeLines"/> joins it.</summary>
-    public static string? Guess(string text)
+    public static string? Guess(string whole)
     {
+        // Only the first part is read, as in guessLanguage: a snippet longer than the limit is a problem to fix, and a huge line must not stall the app.
+        var text = whole.Length > Snippets.MaxChars ? whole[..Snippets.MaxChars] : whole;
         if (IsJson(text)) return "json";
         string? best = null;
         var bestScore = 0;

@@ -15,7 +15,7 @@ public sealed record Snippet(string Text, string? Title, string? Language);
 public static partial class Snippets
 {
     /// <summary>How much code a shape holds, so the panel stays a picture of a few lines that matter and never a copy of the repo.</summary>
-    public const int MaxSnippets = 6, MaxLines = 40;
+    public const int MaxSnippets = 6, MaxLines = 40, MaxChars = 8000;
 
     public static readonly IReadOnlyList<Language> Languages =
     [
@@ -57,14 +57,28 @@ public static partial class Snippets
     [GeneratedRegex(@"^(?:[\t ]*\n)+")]
     private static partial Regex LeadingBlankLines();
 
+    // The line and paragraph separators and NEL: a YAML reader takes them for line breaks, so they are line breaks here too.
+    private const char LineSeparator = (char)0x2028, ParagraphSeparator = (char)0x2029, NextLine = (char)0x85;
+
     /// <summary>
-    /// The lines of some code with the blank lines before and after it taken off, and a carriage return read as a line break. Only spaces, tabs
-    /// and line breaks count as blank, as in <c>codeLines</c> of the TypeScript side.
+    /// The lines of some code: every kind of line break as one, control characters left out, and the blank lines before and after it taken off.
+    /// Only spaces, tabs and line breaks count as blank. The twin of <c>codeLines</c> in src/core/snippets.ts.
     /// </summary>
     public static IReadOnlyList<string> CodeLines(string text)
     {
-        var s = text.Replace("\r\n", "\n").Replace('\r', '\n');
-        s = LeadingBlankLines().Replace(s, "").TrimEnd('\t', ' ', '\n');
+        var plain = new System.Text.StringBuilder(text.Length);
+        for (var i = 0; i < text.Length; i++)
+        {
+            var c = text[i];
+            if (c == '\r')
+            {
+                plain.Append('\n');
+                if (i + 1 < text.Length && text[i + 1] == '\n') i++;
+            }
+            else if (c is LineSeparator or ParagraphSeparator or NextLine) plain.Append('\n');
+            else if (c == '\t' || c == '\n' || (c >= ' ' && c != (char)0x7f)) plain.Append(c);
+        }
+        var s = LeadingBlankLines().Replace(plain.ToString(), "").TrimEnd('\t', ' ', '\n');
         return s.Split('\n');
     }
 
@@ -149,8 +163,10 @@ public static partial class Snippets
             else if (text is not string code) yield return $"{at}: text must be plain text";
             else
             {
-                var lines = CodeLines(code).Count;
-                if (lines > MaxLines) yield return $"{at} is {lines} lines, at most {MaxLines}. Put long code in a file and list it under Source.";
+                var lines = CodeLines(code);
+                if (lines.Count > MaxLines) yield return $"{at} is {lines.Count} lines, at most {MaxLines}. Put long code in a file and list it under Source.";
+                var chars = string.Join('\n', lines).Length;
+                if (chars > MaxChars) yield return $"{at} is {chars} characters, at most {MaxChars}. Put long code in a file and list it under Source.";
             }
             if (s.TryGetValue("title", out var title) && title is not string) yield return $"{at}: title must be plain text";
             if (s.TryGetValue("language", out var language) && language is not "")

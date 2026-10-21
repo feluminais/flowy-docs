@@ -20,7 +20,8 @@ internal static class Hljs
         {
             using var stream = typeof(Hljs).Assembly.GetManifestResourceStream("hljs.js") ?? throw new InvalidOperationException("hljs.js is not in the app");
             using var reader = new StreamReader(stream);
-            var engine = new Engine(o => o.TimeoutInterval(TimeSpan.FromSeconds(2)).LimitMemory(160L * 1024 * 1024));
+            // A slow pattern is stopped by its own timeout, not by the script's: the engine counts the one only between statements.
+            var engine = new Engine(o => o.TimeoutInterval(TimeSpan.FromSeconds(2)).RegexTimeoutInterval(TimeSpan.FromMilliseconds(500)).LimitMemory(160L * 1024 * 1024));
             engine.Execute(Engine.PrepareScript(reader.ReadToEnd()));
             return _engine = engine;
         }

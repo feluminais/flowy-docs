@@ -38,6 +38,11 @@ public class CodePanelTests
                   FROM orders
                   WHERE status = 'placed'
               - text: hello
+          odd:
+            type: system
+            name: Odd
+            snippets:
+              - { language: klingon, text: x = 1 }
         connections: []
         """;
 
@@ -213,6 +218,20 @@ public class CodePanelTests
         await Until(() => reader.Folder!.Model.GetObject("shop")!.Snippets is null);
         Assert.DoesNotContain("language: sql", Model(dir));
         Assert.Contains("name: Guess", Model(dir)); // the other shapes were not touched
+    }
+
+    [AvaloniaFact]
+    public async Task Auto_clears_a_language_Flowy_does_not_know()
+    {
+        var (temp, dir, window, reader) = Open(Source);
+        using var _ = temp;
+        reader.SetEditing(true);
+        reader.OpenObject("odd");
+        Settle(window);
+        var editor = reader.Panel.CurrentObjectEditor!.SnippetsBox;
+        Assert.StartsWith("Auto", editor.LanguageOf(0).Shown);
+        Assert.True(await editor.LanguageOf(0).Choose(""));
+        await Until(() => !Model(dir).Contains("klingon"));
     }
 
     [AvaloniaFact]

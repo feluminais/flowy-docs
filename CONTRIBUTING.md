@@ -376,7 +376,7 @@ Editing (press E):
 - [ ] In edit mode click API. Under Code press Add code: an empty card appears and Add code greys out. Type a title and, in the code box,
       `SELECT id FROM orders WHERE status = 'placed'`, then press Tab: the card reads "Auto: SQL" and `snippets` is in
       `example/model.yaml` as a block of lines. With edit mode off API's panel has a Code section with the SQL in colour and a Copy button.
-      Click Language, pick Go: `language: go` is in the file. Pick Auto: it goes. A fenced block under Description that starts with `` ```ts ``
+      Open the Language row and pick Go: `language: go` is in the file. Pick Auto: it goes. A fenced block under Description that starts with `` ```ts ``
       is coloured, and one with no language stays plain.
 
 `git checkout example` puts the tracked files back. Delete `example/layout.yaml` and the new

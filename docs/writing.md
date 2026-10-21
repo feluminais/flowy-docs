@@ -232,7 +232,7 @@ A failure analysis ranks how the system breaks, for someone deciding what to fix
 `snippets:` holds the few lines that say what a sentence can't: the formula a component applies, the query a store answers, the request or event an app takes. They show in a Code section, in colour.
 
 - **Copy the lines from the repo, never rewrite them.** A snippet you typed from memory is a second source of truth. Take the formula as the code has it.
-- **Three to ten lines, and six snippets at most.** A snippet is a picture of the idea. Anything longer is a file: list it under `code:` and let the code stay the source.
+- **A few lines, never more than 40, and six snippets at most.** A snippet is a picture of the idea. Anything longer is a file: list it under `code:` and let the code stay the source.
 - **Give it a title that says what the lines are:** "Delivery fee", "Accepting an order". The language is worked out for you, and a person who knows better picks one.
 - **Leave out what stays secret or goes stale.** No keys, tokens, real addresses or customer data, and no code that changes with every commit.
 - **A snippet doesn't replace the sentence.** The teaser still says what the shape does. The lines show how, for the one rule that is worth seeing.

@@ -4,7 +4,34 @@ import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { CPP_ONLY, CUES, MIN_SCORE, YAML_BUT_CODE } from '../../src/core/detect.ts'
 
-const verbatim = (s: string) => `@"${s.replaceAll('"', '""')}"`
+/** What `\s` means in JavaScript: the ASCII spaces and line breaks, and the Unicode space separators, the byte order mark and the line and paragraph separators. */
+const JS_SPACE = String.raw` \t-\r   -     　﻿`
+
+/**
+ * The pattern as .NET reads it with the same meaning it has in JavaScript. In ECMAScript mode `\w`, `\d` and `\b` are already JavaScript's, but
+ * `\s` stops at ASCII and `.` takes a carriage return and the separators, so those two are written out. `\S` inside a class (as in `[\s\S]`)
+ * is left as it is, since the class still holds every character.
+ */
+export function withJsMeaning(source: string): string {
+  let out = ''
+  let inClass = false
+  for (let i = 0; i < source.length; i++) {
+    const c = source[i]
+    if (c === '\\') {
+      const next = source[++i]
+      if (next === 's') out += inClass ? JS_SPACE : `[${JS_SPACE}]`
+      else if (next === 'S' && !inClass) out += `[^${JS_SPACE}]`
+      else out += `\\${next}`
+      continue
+    }
+    if (c === '[' && !inClass) inClass = true
+    else if (c === ']' && inClass) inClass = false
+    out += c === '.' && !inClass ? String.raw`[^\n\r  ]` : c
+  }
+  return out
+}
+
+const verbatim = (s: string) => `@"${withJsMeaning(s).replaceAll('"', '""')}"`
 const field = (name: string, re: RegExp) =>
   `    public static readonly Regex ${name} = Rx(${verbatim(re.source)}, ${re.flags.includes('i')}${re.flags.includes('m') ? '' : ', multiline: false'});`
 

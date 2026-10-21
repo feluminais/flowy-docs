@@ -17,11 +17,11 @@ export function languageFor(snippet: Pick<Snippet, 'text' | 'language'>): { lang
 }
 
 /** Code with its colours. `language` is one of our ids, or nothing for plain text. Text and the colours of its stretches only, so nothing in it is ever run. */
-export function CodeBlock({ text, language }: { text: string; language?: string }) {
+export function CodeBlock({ text, language, label }: { text: string; language?: string; label?: string }) {
   const lines = codeLines(text).join('\n')
   const runs = useMemo(() => highlight(lines, language ?? 'text'), [lines, language])
   return (
-    <pre className="code-block" tabIndex={0}>
+    <pre className="code-block" tabIndex={0} role="region" aria-label={label || 'Code'}>
       <code>{runs.map((run, i) => (run.kind ? <span key={i} className={`tok tok-${run.kind}`}>{run.text}</span> : run.text))}</code>
     </pre>
   )
@@ -65,7 +65,7 @@ function SnippetView({ snippet }: { snippet: Snippet }) {
         {language && <span className="code-lang">{language.name}</span>}
         <CopyButton text={snippet.text} />
       </figcaption>
-      <CodeBlock text={snippet.text} language={language?.id} />
+      <CodeBlock text={snippet.text} language={language?.id} label={snippet.title} />
     </figure>
   )
 }
@@ -91,11 +91,13 @@ function LanguagePicker({ snippet, onPick }: { snippet: Snippet; onPick: (langua
   const chosen = languageOf(snippet.language)
   const guess = chosen ? undefined : languageFor(snippet).language
   const shown = chosen ? chosen.name : `Auto: ${guess?.name ?? 'Plain text'}`
-  const pick = (id: string) => { setOpen(false); if (id !== (chosen?.id ?? '')) onPick(id) }
+  // A language the file names that Flowy does not know shows as Auto, and Auto still has to clear it.
+  const raw = snippet.language ?? ''
+  const pick = (id: string) => { setOpen(false); if (id === '' ? raw !== '' : chosen?.id !== id) onPick(id) }
   return (
     <div className="pick-field" onKeyDown={(e: KeyboardEvent) => { if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false) } }}>
       <div className="pick-head"><span>Language</span></div>
-      <button type="button" className="pick lang-open" aria-expanded={open} onClick={() => setOpen(!open)}>
+      <button type="button" className="pick lang-open" aria-expanded={open} aria-label={`Language: ${shown}`} onClick={() => setOpen(!open)}>
         <Code size={16} />
         <span>{shown}</span>
         <ChevronRight size={14} />
@@ -117,7 +119,8 @@ function SnippetFields({ snippet, onChange, onRemove }: { snippet: Snippet; onCh
   const blur = (field: 'title' | 'text') => async (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = e.currentTarget
     if (input.value === (snippet[field] ?? '')) return
-    if (!(await onChange({ ...snippet, [field]: input.value }))) input.value = snippet[field] ?? ''
+    // A refused title goes back to what was saved. Refused code stays in the box, so a slip in a long snippet is fixed where it is, not typed again.
+    if (!(await onChange({ ...snippet, [field]: input.value })) && field === 'title') input.value = snippet.title ?? ''
   }
   return (
     <div className="card code-card">
@@ -146,23 +149,44 @@ export function CodeFields({ object, onSave }: { object: FlowyObject; onSave: (s
   useEffect(() => setDraft(undefined), [saved.length])
   const list = draft ? [...saved, draft] : saved
   const full = saved.length >= SNIPPET_MAX.snippets
+  // The list as the latest edit left it. Leaving a box saves it, and a click on Remove right after is part of the same gesture, so the next edit
+  // builds on what was just sent and not on what the page last drew: otherwise it would send the list without the first edit.
+  const working = useRef<Snippet[]>(saved)
+  const inFlight = useRef(0)
+  const savedNow = useRef(saved)
+  savedNow.current = saved
+  const savedKey = JSON.stringify(saved)
+  useEffect(() => { if (inFlight.current === 0) working.current = savedNow.current }, [savedKey])
+  const send = async (next: Snippet[]): Promise<boolean> => {
+    working.current = next
+    inFlight.current++
+    try {
+      const done = await onSave(next)
+      if (!done) working.current = savedNow.current
+      return done
+    } finally {
+      inFlight.current--
+    }
+  }
   const change = async (i: number, next: Snippet): Promise<boolean> => {
-    if (i < saved.length) return onSave(saved.map((s, j) => (j === i ? next : s)))
+    const base = working.current
+    if (i < base.length) return send(base.map((s, j) => (j === i ? next : s)))
     if (isBlankCode(next.text)) {
       setDraft(next)
       return true
     }
-    return onSave([...saved, next])
+    return send([...base, next])
   }
   const remove = (i: number) => {
-    if (i >= saved.length) setDraft(undefined)
-    else void onSave(saved.filter((_, j) => j !== i))
+    const base = working.current
+    if (i >= base.length) setDraft(undefined)
+    else void send(base.filter((_, j) => j !== i))
   }
   return (
     <>
       {list.map((s, i) => <SnippetFields key={i} snippet={s} onChange={next => change(i, next)} onRemove={() => remove(i)} />)}
       <button type="button" className="add-code" disabled={draft !== undefined || full}
-        title={full ? `At most ${SNIPPET_MAX.snippets}` : undefined}
+        title={full ? `At most ${SNIPPET_MAX.snippets}` : draft ? 'Add the code to the new card first' : undefined}
         onClick={() => setDraft({ text: '' })}><Plus size={16} />Add code</button>
     </>
   )

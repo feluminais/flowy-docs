@@ -21,6 +21,7 @@ internal sealed class LanguagePicker : StackPanel
     private readonly Dictionary<string, Button> _byId = [];
     private readonly Func<string, Task<bool>> _picked;
     private string _chosen = "";
+    private bool _unknown; // the file names a language Flowy does not know: shown as Auto, and Auto still clears it
 
     public LanguagePicker(Func<string, Task<bool>> picked)
     {
@@ -28,7 +29,7 @@ internal sealed class LanguagePicker : StackPanel
         _picked = picked;
         _toggle.Classes.Add("tool");
         _toggle.Content = _chevron;
-        Avalonia.Automation.AutomationProperties.SetName(_toggle, "Languages");
+        Avalonia.Automation.AutomationProperties.SetName(_toggle, "Language");
         _toggle.IsCheckedChanged += (_, _) => Open(_toggle.IsChecked == true);
         Children.Add(Pick.Head("Language", out _value, _toggle));
         Add("", "Auto");
@@ -61,19 +62,22 @@ internal sealed class LanguagePicker : StackPanel
         _chevron.RenderTransform = new RotateTransform(open ? 90 : 0);
     }
 
-    /// <summary>Shows <paramref name="id"/> as the chosen one ("" is Auto); <paramref name="guess"/> is the language worked out, named while Auto is chosen.</summary>
-    public void Show(string id, Language? guess)
+    /// <summary>Shows what the file says (<paramref name="named"/>, "" when it says nothing) as the chosen one; <paramref name="guess"/> is the language worked out, named while Auto is chosen.</summary>
+    public void Show(string named, Language? guess)
     {
-        _chosen = id;
-        _value.Text = id == "" ? $"Auto: {guess?.Name ?? "Plain text"}" : Snippets.LanguageOf(id)?.Name ?? id;
-        foreach (var (key, cell) in _byId) cell.Classes.Set("on", key == id);
+        var language = Snippets.LanguageOf(named);
+        _chosen = language?.Id ?? "";
+        _unknown = named != "" && language is null;
+        _value.Text = language is null ? $"Auto: {guess?.Name ?? "Plain text"}" : language.Name;
+        Avalonia.Automation.AutomationProperties.SetName(_toggle, $"Language: {_value.Text}");
+        foreach (var (key, cell) in _byId) cell.Classes.Set("on", key == _chosen);
     }
 
     /// <summary>What a click does, and what a test does: pick one.</summary>
     internal async Task<bool> Choose(string id)
     {
         Open(false);
-        if (id == _chosen) return true;
+        if (id == _chosen && !(id == "" && _unknown)) return true;
         return await _picked(id);
     }
 }
@@ -100,6 +104,10 @@ internal sealed class SnippetsEditor : StackPanel
     private readonly Button _add = new() { HorizontalAlignment = HorizontalAlignment.Left };
     private readonly List<Card> _shown = [];
     private List<OrderedDictionary<string, object?>> _saved = [];
+    // The list as the latest edit left it. Leaving a box saves it, and a click on Remove right after is part of the same gesture, so the next edit builds
+    // on what was just sent and not on what the page last drew: otherwise it would send the list without the first edit.
+    private List<OrderedDictionary<string, object?>> _working = [];
+    private int _inFlight;
     private OrderedDictionary<string, object?>? _draft;
 
     public SnippetsEditor(string id, EditRun run)
@@ -143,6 +151,7 @@ internal sealed class SnippetsEditor : StackPanel
         var entries = Snippets.Entries(o);
         var rebuilt = entries.Count != _saved.Count;
         _saved = entries;
+        if (_inFlight == 0) _working = Copy(entries);
         if (rebuilt) _draft = null;
         if (rebuilt || _shown.Count != Count) Rebuild();
         else Fill();
@@ -153,7 +162,7 @@ internal sealed class SnippetsEditor : StackPanel
     private void UpdateAdd()
     {
         _add.IsEnabled = _draft is null && _saved.Count < Snippets.MaxSnippets;
-        ToolTip.SetTip(_add, _saved.Count >= Snippets.MaxSnippets ? $"At most {Snippets.MaxSnippets}" : null);
+        ToolTip.SetTip(_add, _saved.Count >= Snippets.MaxSnippets ? $"At most {Snippets.MaxSnippets}" : _draft is not null ? "Add the code to the new card first" : null);
     }
 
     private OrderedDictionary<string, object?> Entry(int i) => i < _saved.Count ? _saved[i] : _draft!;
@@ -190,8 +199,7 @@ internal sealed class SnippetsEditor : StackPanel
             var card = _shown[i];
             card.Title.Sync(Text(entry, "title"));
             card.Code.Sync(Text(entry, "text"));
-            var named = Snippets.LanguageOf(Text(entry, "language"));
-            card.Language.Show(named?.Id ?? "", CodeInk.LanguageFor(Text(entry, "text"), null).Language);
+            card.Language.Show(Text(entry, "language"), CodeInk.LanguageFor(Text(entry, "text"), null).Language);
         }
     }
 
@@ -201,7 +209,7 @@ internal sealed class SnippetsEditor : StackPanel
     /// <summary>Applies a change to one card and saves the whole list. A card with no code yet only keeps what was typed, until it has some.</summary>
     private async Task<bool> Change(int index, Action<OrderedDictionary<string, object?>> apply)
     {
-        var list = _saved.Select(e => new OrderedDictionary<string, object?>(e)).ToList();
+        var list = Copy(_working);
         if (index < list.Count)
         {
             apply(list[index]);
@@ -219,18 +227,33 @@ internal sealed class SnippetsEditor : StackPanel
         return await Save(list);
     }
 
-    private Task<bool> Save(List<OrderedDictionary<string, object?>> list) =>
-        _run(d => EditOps.PutObject(d, new ObjectInput(_id, Snippets: list)));
+    private static List<OrderedDictionary<string, object?>> Copy(IEnumerable<OrderedDictionary<string, object?>> list) => list.Select(e => new OrderedDictionary<string, object?>(e)).ToList();
+
+    private async Task<bool> Save(List<OrderedDictionary<string, object?>> list)
+    {
+        _working = Copy(list);
+        _inFlight++;
+        try
+        {
+            var done = await _run(d => EditOps.PutObject(d, new ObjectInput(_id, Snippets: list)));
+            if (!done) _working = Copy(_saved);
+            return done;
+        }
+        finally
+        {
+            _inFlight--;
+        }
+    }
 
     private async Task Remove(int index)
     {
-        if (index >= _saved.Count)
+        if (index >= _working.Count)
         {
             _draft = null;
             Rebuild();
             UpdateAdd();
             return;
         }
-        await Save(_saved.Where((_, i) => i != index).ToList());
+        await Save(_working.Where((_, i) => i != index).ToList());
     }
 }
