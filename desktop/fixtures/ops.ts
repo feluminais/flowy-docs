@@ -47,6 +47,8 @@ export const STEPS: Spec[] = [
   { op: 'putObject', id: 'api', snippets: [{ language: 'TS', text: '\nconst a = 1\r\nconst b = 2\n\n', title: '  Fee  ', note: 'kept' }, { text: 'SELECT 1', title: '  ', language: ' ' }] },
   { op: 'putObject', id: 'api', snippets: [{ text: '# comment\n  indented\n\tafter a tab\n\nlast   \n' }, { text: 'x', language: 'klingon' }] },
   { op: 'putObject', id: 'api', snippets: [{ text: ' \n ', title: 'Blank' }] },
+  { op: 'putObject', id: 'api', snippets: [{ text: `one${String.fromCharCode(0x2028)}two${String.fromCharCode(0x2029)}three${String.fromCharCode(0x85)}four\u0007\r\n\r\n  five\u007f\n\n`, title: 'Separators' }] },
+  { op: 'putObject', id: 'api', snippets: [{ text: 'x'.repeat(8001) }] },
   { op: 'putObject', id: 'api', tech: 'Fastify' },
   { op: 'putObject', id: 'api', snippets: [] },
   { op: 'putObject', id: 'misplaced', type: 'app', name: 'Loose' },

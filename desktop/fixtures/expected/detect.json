@@ -1178,5 +1178,25 @@
   {
     "text": "line one\n\nline three\n",
     "guess": null
+  },
+  {
+    "text": ".card { display: grid; gap: 8px; }",
+    "guess": "css"
+  },
+  {
+    "text": "FROM node:22\nRUN npm ci",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "SELECT　id　FROM　orders",
+    "guess": "sql"
+  },
+  {
+    "text": "def f(x):\n  return x",
+    "guess": "ruby"
+  },
+  {
+    "text": "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]",
+    "guess": "json"
   }
 ]

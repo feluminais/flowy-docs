@@ -1,5 +1,5 @@
 import { guessLanguage } from '../../src/core/detect.ts'
-import { languageOf } from '../../src/core/snippets.ts'
+import { languageOf, SNIPPET_MAX } from '../../src/core/snippets.ts'
 import type { Language } from '../../src/core/snippets.ts'
 import { highlightHtml } from './hljs.ts'
 
@@ -54,7 +54,7 @@ export function runsFromHtml(html: string): Run[] {
 
 /** The code as runs for the language, or one plain run when the language isn't coloured (plain text, or one that highlight.js has no grammar for). Never throws. */
 export function highlight(text: string, language: string): Run[] {
-  if (language === 'text') return [{ text }]
+  if (language === 'text' || text.length > SNIPPET_MAX.chars) return [{ text }]
   const html = highlightHtml(text, language)
   return html === undefined ? [{ text }] : runsFromHtml(html)
 }

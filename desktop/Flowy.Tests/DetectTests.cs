@@ -35,6 +35,23 @@ public class DetectTests
         Assert.Null(Detect.Guess("[1, 2"));
     }
 
+    [Fact]
+    public void Odd_text_never_throws()
+    {
+        // A lone surrogate cannot ride in the JSON fixtures, so it is tried here. A parser may refuse it; the answer is still an answer.
+        var lone = "{\"a\": \"" + (char)0xD800 + "\"}";
+        _ = Detect.Guess(lone);
+        Assert.Null(Detect.Guess(new string(' ', 200_000)));
+        _ = Detect.Guess("x" + new string((char)97, 400_000) + "(");
+    }
+
+    [Fact]
+    public void Code_longer_than_the_limit_is_read_only_as_far_as_the_limit()
+    {
+        var text = "FROM node:22\nWORKDIR /app\n" + new string(' ', Snippets.MaxChars);
+        Assert.Equal("dockerfile", Detect.Guess(text + "SELECT a FROM b WHERE c = 1 ORDER BY d GROUP BY e"));
+    }
+
     private static string Describe(IEnumerable<CodeRun> runs) => string.Join("|", runs.Select(r => $"{r.Kind?.ToString().ToLowerInvariant() ?? "-"}:{r.Text}"));
 
     [Fact]

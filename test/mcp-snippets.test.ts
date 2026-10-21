@@ -70,3 +70,21 @@ test('the tool takes snippets and the instructions say how to write them', async
   assert.ok('snippets' in (tool.inputSchema.properties as object))
   assert.match(client.getInstructions() ?? '', /Writing code \(put_object's snippets\)/)
 })
+
+test('a key Flowy does not know on a snippet survives a put_object that sends it back', async t => {
+  const { call, snippetsOf } = await setup(t)
+  await call('put_object', { id: 'pricing', snippets: [{ text: 'a = 1', owner: 'pricing-team' }] })
+  const [first] = await snippetsOf()
+  assert.equal(first.owner, 'pricing-team')
+  await call('put_object', { id: 'pricing', snippets: [{ ...first, title: 'Now titled' }] })
+  const [again] = await snippetsOf()
+  assert.deepEqual(again, { title: 'Now titled', text: 'a = 1', owner: 'pricing-team' })
+})
+
+test('code over the character limit is refused with the check\'s words', async t => {
+  const { call, snippetsOf } = await setup(t)
+  const refused = await call('put_object', { id: 'pricing', snippets: [{ text: 'x'.repeat(8001) }] })
+  assert.equal(refused.error, true)
+  assert.match(refused.text, /8001 characters, at most 8000/)
+  assert.equal(await snippetsOf(), undefined)
+})

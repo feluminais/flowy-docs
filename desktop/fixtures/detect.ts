@@ -11,12 +11,19 @@ type Sample = { language: string | null; size: string; text: string }
 
 const read = (name: string): Sample[] => JSON.parse(readFileSync(new URL(`../../test/${name}`, import.meta.url), 'utf8')) as Sample[]
 
+const NBSP = String.fromCharCode(0xa0)
+const IDEOGRAPHIC = String.fromCharCode(0x3000)
+
 /** Every snippet the two sides are asked about: the test sets, then odd input a model file may hold. */
 export function samples(): string[] {
   const odd = [
     '', ' ', '\n\n', 'x', 'hello', 'Total: 5', '[1, 2', '{"a": }', '  [ {"id": 1}, {"id": 2} ]', '{\n  "a": [1, 2],\n  "b": null\n}',
     '<?xml version="1.0"?>\n<Project Sdk="Microsoft.NET.Sdk"></Project>', '<?xml version="1.0"?><!DOCTYPE html><html></html>',
     'tab\there\t=> x', 'ünïcödé = "ß"', 'line one\n\nline three\n',
+    // Other kinds of space, which JavaScript's \s takes and .NET's ECMAScript \s does not.
+    `.card {${NBSP}display: grid;${NBSP}gap: 8px; }`, `FROM${NBSP}node:22\nRUN${NBSP}npm ci`, `SELECT${IDEOGRAPHIC}id${IDEOGRAPHIC}FROM${IDEOGRAPHIC}orders`, `def${NBSP}f(x):\n${NBSP}${NBSP}return x`,
+    // Nesting a parser may refuse.
+    '['.repeat(70) + ']'.repeat(70),
   ]
   return [...read('detect-corpus.json'), ...read('detect-holdout.json'), ...read('detect-blind.json'), ...read('detect-blind2.json')].map(s => s.text).concat(odd)
 }

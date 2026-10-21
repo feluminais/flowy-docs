@@ -11,7 +11,7 @@ internal static class CodeInk
 {
     /// <summary>The code as runs for the language, or one plain run when the language isn't coloured (plain text, or one with no grammar). Never throws.</summary>
     public static IReadOnlyList<CodeRun> Runs(string text, string? languageId) =>
-        languageId is null or "text" || Hljs.Highlight(text, languageId) is not { } html ? [new CodeRun(text)] : CodeRuns.FromHtml(html);
+        languageId is null or "text" || text.Length > Snippets.MaxChars || Hljs.Highlight(text, languageId) is not { } html ? [new CodeRun(text)] : CodeRuns.FromHtml(html);
 
     /// <summary>The language the code is most likely written in, or null when it is too short or too plain to tell, which is drawn as plain text.</summary>
     public static Language? Identify(string text) => Snippets.LanguageOf(Detect.Guess(text));

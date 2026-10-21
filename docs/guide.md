@@ -84,7 +84,7 @@ checks, and write the same text, so a change made in one looks the same in git a
   it. Source takes one file or folder per line, relative to the folder that holds `flowy/`. A path that
   doesn't exist shows up as a problem.
 - Code has a card for each snippet: a title, a language and the code. Add code starts a card, which is only saved once it has code.
-  The language is Auto until you pick one, and Auto names what it worked out. A shape holds at most six snippets of 40 lines.
+  The language is Auto until you pick one, and Auto names what it worked out. A shape holds at most six snippets of 40 lines each.
 - A store's **Data** box holds its data as the lines the file holds ([Data](#data)).
 - Links takes one per line, as `title | address`, or an address alone. An address is a web address
   (http or https) or a path in the repo, relative to the folder that holds `flowy/`. Anything else
@@ -574,7 +574,7 @@ A fenced block in a description is coloured the same way when it names one of th
 The checks keep the section small. They refuse:
 
 - A snippet with no text, and one with a language Flowy doesn't know.
-- A snippet of more than 40 lines, and more than six snippets on one shape. Long code belongs in a file, listed under Source.
+- A snippet of more than 40 lines or 8000 characters, and more than six snippets on one shape. Long code belongs in a file, listed under Source.
 
 Saving writes the code as a block of lines (`text: |-`), so a change to one line is one line in git. What to put in a snippet is in
 [Writing good Flowy docs](writing.md#show-a-few-lines-of-code).
