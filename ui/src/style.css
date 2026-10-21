@@ -716,8 +716,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 
 .perf { flex: 1; min-height: 0; overflow: auto; padding: 14px 18px 26px; display: flex; flex-direction: column; gap: 12px; }
 .perf > * { flex: none; margin-top: 0; margin-bottom: 0; }
-.perfpanel { padding: 0; gap: 0; overflow: hidden; }
-.perfpanel .perf { padding-top: 52px; } /* room for the close button */
+.navbody > .perf { margin: -12px; padding: 14px 16px 26px; } /* the Performance and Failures panels fill the navigator's body */
 .perf h2 { margin: 0; font-size: 18px; }
 .perf select { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--box); color: var(--fg); }
 .perf .about summary { cursor: pointer; color: var(--muted); }
