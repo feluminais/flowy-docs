@@ -300,6 +300,7 @@ internal sealed partial class ReaderView : Grid
     public void Load(Folder folder, string dir)
     {
         _folder = folder;
+        WarmCode(folder);
         _session = new EditSession(dir);
         _editMode = false;
         _navUsed = false;
@@ -335,10 +336,17 @@ internal sealed partial class ReaderView : Grid
         Refresh();
     }
 
+    /// <summary>A model that holds code gets the colouring engine started in the background, so the first panel that shows code does not wait for it.</summary>
+    private static void WarmCode(Folder folder)
+    {
+        if (folder.Model.Objects.Any(o => o.Value.Snippets is List<object?> { Count: > 0 })) Hljs.WarmUp();
+    }
+
     /// <summary>A changed folder arrives: show it, keeping where the reader is as far as it still exists.</summary>
     public void Reload(Folder folder)
     {
         _folder = folder;
+        WarmCode(folder);
         if (_side is { Kind: SideKind.Object, Id: { } id } && folder.Model.GetObject(id) is null) _side = null;
         if (_side is { Kind: SideKind.Objects, Ids: { } picked }) _side = SideOf(picked.Where(p => folder.Model.GetObject(p) is not null).ToList()); // boxes that went are no longer picked
         if (!PerfOpen || LoadTest is null) _ramping = false; // a ramp whose run is gone has nothing to run on, and its loop has already ended

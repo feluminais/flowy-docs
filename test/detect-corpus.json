@@ -1,0 +1,392 @@
+[
+ {
+  "language": "typescript",
+  "lines": 1,
+  "size": "short",
+  "text": "const user = await repo.findById(id) as User | undefined;"
+ },
+ {
+  "language": "typescript",
+  "lines": 12,
+  "size": "medium",
+  "text": "export interface OrderService {\n  create(input: CreateOrderInput): Promise<Order>;\n  cancel(id: string, reason?: string): Promise<void>;\n}\n\nexport class HttpOrderService implements OrderService {\n  constructor(private readonly http: HttpClient) {}\n\n  async create(input: CreateOrderInput): Promise<Order> {\n    return this.http.post<Order>('/orders', input);\n  }\n}"
+ },
+ {
+  "language": "typescript",
+  "lines": 31,
+  "size": "long",
+  "text": "import { Router, Request, Response } from 'express';\nimport { z } from 'zod';\n\ntype Role = 'admin' | 'member' | 'guest';\n\ninterface Session {\n  userId: string;\n  role: Role;\n  expiresAt: Date;\n}\n\nconst CreateOrder = z.object({\n  sku: z.string().min(1),\n  quantity: z.number().int().positive(),\n});\n\nexport function ordersRouter(db: Database): Router {\n  const router = Router();\n\n  router.post('/orders', async (req: Request, res: Response) => {\n    const parsed = CreateOrder.safeParse(req.body);\n    if (!parsed.success) {\n      return res.status(400).json({ errors: parsed.error.flatten() });\n    }\n    const session: Session = res.locals.session;\n    const order = await db.orders.insert({ ...parsed.data, userId: session.userId });\n    res.status(201).json(order);\n  });\n\n  return router;\n}"
+ },
+ {
+  "language": "javascript",
+  "lines": 1,
+  "size": "short",
+  "text": "app.get('/health', (req, res) => res.json({ ok: true }));"
+ },
+ {
+  "language": "javascript",
+  "lines": 10,
+  "size": "medium",
+  "text": "const express = require('express');\nconst app = express();\n\napp.post('/webhooks/stripe', express.raw({ type: 'application/json' }), (req, res) => {\n  const event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], secret);\n  queue.push(event);\n  res.sendStatus(200);\n});\n\nmodule.exports = app;"
+ },
+ {
+  "language": "javascript",
+  "lines": 30,
+  "size": "long",
+  "text": "'use strict';\n\nconst retry = async (fn, attempts = 3) => {\n  let lastError;\n  for (let i = 0; i < attempts; i++) {\n    try {\n      return await fn();\n    } catch (err) {\n      lastError = err;\n      await new Promise((resolve) => setTimeout(resolve, 2 ** i * 100));\n    }\n  }\n  throw lastError;\n};\n\nfunction debounce(fn, wait) {\n  let timer = null;\n  return function (...args) {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn.apply(this, args), wait);\n  };\n}\n\ndocument.querySelector('#search').addEventListener('input', debounce((e) => {\n  fetch(`/api/search?q=${encodeURIComponent(e.target.value)}`)\n    .then((r) => r.json())\n    .then((items) => render(items));\n}, 250));\n\nmodule.exports = { retry, debounce };"
+ },
+ {
+  "language": "json",
+  "lines": 1,
+  "size": "short",
+  "text": "{\"orderId\": \"A-1042\", \"status\": \"paid\", \"total\": 42.5}"
+ },
+ {
+  "language": "json",
+  "lines": 9,
+  "size": "medium",
+  "text": "{\n  \"orderId\": \"A-1042\",\n  \"customer\": { \"id\": 17, \"email\": \"ana@example.com\" },\n  \"lines\": [\n    { \"sku\": \"MUG-01\", \"qty\": 2, \"price\": 9.5 }\n  ],\n  \"paid\": true,\n  \"note\": null\n}"
+ },
+ {
+  "language": "json",
+  "lines": 26,
+  "size": "long",
+  "text": "{\n  \"name\": \"orders-api\",\n  \"version\": \"1.4.2\",\n  \"private\": true,\n  \"scripts\": {\n    \"build\": \"tsc -p .\",\n    \"test\": \"vitest run\",\n    \"start\": \"node dist/index.js\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.19.2\",\n    \"zod\": \"^3.23.8\",\n    \"pg\": \"^8.12.0\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^5.5.4\",\n    \"vitest\": \"^2.0.5\"\n  },\n  \"engines\": { \"node\": \">=20\" },\n  \"config\": {\n    \"retries\": 3,\n    \"timeoutMs\": 2500,\n    \"regions\": [\"eu-west-1\", \"us-east-1\"],\n    \"features\": { \"beta\": false, \"ratio\": 0.25 }\n  }\n}"
+ },
+ {
+  "language": "yaml",
+  "lines": 2,
+  "size": "short",
+  "text": "replicas: 3\nimage: ghcr.io/acme/api:1.4.2"
+ },
+ {
+  "language": "yaml",
+  "lines": 8,
+  "size": "medium",
+  "text": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: orders-config\ndata:\n  LOG_LEVEL: info\n  DB_HOST: postgres.default.svc\n  RETRIES: \"3\""
+ },
+ {
+  "language": "yaml",
+  "lines": 34,
+  "size": "long",
+  "text": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: orders-api\n  labels:\n    app: orders\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: orders\n  template:\n    metadata:\n      labels:\n        app: orders\n    spec:\n      containers:\n        - name: api\n          image: ghcr.io/acme/orders-api:1.4.2\n          ports:\n            - containerPort: 8080\n          env:\n            - name: DB_HOST\n              valueFrom:\n                configMapKeyRef:\n                  name: orders-config\n                  key: DB_HOST\n          readinessProbe:\n            httpGet:\n              path: /health\n              port: 8080\n            periodSeconds: 10\n          resources:\n            limits: { cpu: 500m, memory: 256Mi }"
+ },
+ {
+  "language": "csharp",
+  "lines": 1,
+  "size": "short",
+  "text": "public record Order(Guid Id, decimal Total, DateTime PlacedAt);"
+ },
+ {
+  "language": "csharp",
+  "lines": 11,
+  "size": "medium",
+  "text": "public interface IOrderRepository\n{\n    Task<Order?> FindAsync(Guid id, CancellationToken ct);\n    Task AddAsync(Order order, CancellationToken ct);\n}\n\npublic sealed class OrderService(IOrderRepository repo, ILogger<OrderService> log)\n{\n    public async Task<Order> GetAsync(Guid id) =>\n        await repo.FindAsync(id, default) ?? throw new KeyNotFoundException($\"Order {id}\");\n}"
+ },
+ {
+  "language": "csharp",
+  "lines": 34,
+  "size": "long",
+  "text": "using Microsoft.AspNetCore.Builder;\nusing Microsoft.Extensions.DependencyInjection;\n\nnamespace Orders.Api;\n\n[ApiController]\n[Route(\"api/[controller]\")]\npublic class OrdersController : ControllerBase\n{\n    private readonly IOrderService _orders;\n\n    public OrdersController(IOrderService orders)\n    {\n        _orders = orders;\n    }\n\n    [HttpGet(\"{id:guid}\")]\n    public async Task<ActionResult<OrderDto>> Get(Guid id)\n    {\n        var order = await _orders.GetAsync(id);\n        if (order is null)\n        {\n            return NotFound();\n        }\n        return Ok(new OrderDto(order.Id, order.Total));\n    }\n\n    [HttpPost]\n    public async Task<IActionResult> Create([FromBody] CreateOrder request)\n    {\n        var id = await _orders.CreateAsync(request.Sku, request.Quantity);\n        return CreatedAtAction(nameof(Get), new { id }, null);\n    }\n}"
+ },
+ {
+  "language": "java",
+  "lines": 1,
+  "size": "short",
+  "text": "public interface OrderRepository extends JpaRepository<Order, Long> {}"
+ },
+ {
+  "language": "java",
+  "lines": 14,
+  "size": "medium",
+  "text": "@RestController\n@RequestMapping(\"/orders\")\npublic class OrderController {\n    private final OrderService service;\n\n    public OrderController(OrderService service) {\n        this.service = service;\n    }\n\n    @GetMapping(\"/{id}\")\n    public ResponseEntity<Order> get(@PathVariable Long id) {\n        return ResponseEntity.ok(service.find(id));\n    }\n}"
+ },
+ {
+  "language": "java",
+  "lines": 35,
+  "size": "long",
+  "text": "package com.acme.orders;\n\nimport java.util.List;\nimport java.util.Optional;\nimport org.springframework.stereotype.Service;\n\n@Service\npublic class OrderService {\n    private final OrderRepository repository;\n    private final PaymentClient payments;\n\n    public OrderService(OrderRepository repository, PaymentClient payments) {\n        this.repository = repository;\n        this.payments = payments;\n    }\n\n    public Optional<Order> find(Long id) {\n        return repository.findById(id);\n    }\n\n    public List<Order> findByCustomer(String customerId) {\n        return repository.findAll().stream()\n            .filter(o -> o.getCustomerId().equals(customerId))\n            .toList();\n    }\n\n    @Transactional\n    public Order place(Order order) {\n        if (order.getTotal().compareTo(BigDecimal.ZERO) <= 0) {\n            throw new IllegalArgumentException(\"Total must be positive\");\n        }\n        payments.charge(order.getCustomerId(), order.getTotal());\n        return repository.save(order);\n    }\n}"
+ },
+ {
+  "language": "kotlin",
+  "lines": 1,
+  "size": "short",
+  "text": "data class Order(val id: String, val total: Double, val paid: Boolean = false)"
+ },
+ {
+  "language": "kotlin",
+  "lines": 6,
+  "size": "medium",
+  "text": "class OrderService(private val repo: OrderRepository) {\n    suspend fun find(id: String): Order? = repo.findById(id)\n\n    fun totalFor(customer: String): Double =\n        repo.all().filter { it.customer == customer }.sumOf { it.total }\n}"
+ },
+ {
+  "language": "kotlin",
+  "lines": 32,
+  "size": "long",
+  "text": "package com.acme.orders\n\nimport io.ktor.server.application.*\nimport io.ktor.server.response.*\nimport io.ktor.server.routing.*\nimport kotlinx.serialization.Serializable\n\n@Serializable\ndata class OrderDto(val id: String, val total: Double)\n\nsealed interface Result<out T> {\n    data class Ok<T>(val value: T) : Result<T>\n    data class Err(val message: String) : Result<Nothing>\n}\n\nfun Application.ordersModule(repo: OrderRepository) {\n    routing {\n        get(\"/orders/{id}\") {\n            val id = call.parameters[\"id\"] ?: return@get call.respond(HttpStatusCode.BadRequest)\n            when (val result = repo.find(id)) {\n                is Result.Ok -> call.respond(OrderDto(result.value.id, result.value.total))\n                is Result.Err -> call.respondText(result.message, status = HttpStatusCode.NotFound)\n            }\n        }\n        post(\"/orders\") {\n            val body = call.receive<OrderDto>()\n            val saved = repo.save(body)\n            println(\"Saved order ${saved.id}\")\n            call.respond(HttpStatusCode.Created, saved)\n        }\n    }\n}"
+ },
+ {
+  "language": "python",
+  "lines": 1,
+  "size": "short",
+  "text": "orders = [o for o in db.query(Order) if o.total > 100]"
+ },
+ {
+  "language": "python",
+  "lines": 6,
+  "size": "medium",
+  "text": "@app.route(\"/orders/<int:order_id>\", methods=[\"GET\"])\ndef get_order(order_id: int):\n    order = Order.query.get_or_404(order_id)\n    if not order.paid:\n        abort(402)\n    return jsonify(order.to_dict())"
+ },
+ {
+  "language": "python",
+  "lines": 37,
+  "size": "long",
+  "text": "from dataclasses import dataclass\nfrom typing import Optional\nimport logging\n\nimport requests\n\nlog = logging.getLogger(__name__)\n\n\n@dataclass\nclass Order:\n    id: str\n    total: float\n    paid: bool = False\n\n\nclass OrderClient:\n    def __init__(self, base_url: str, timeout: float = 2.5):\n        self.base_url = base_url\n        self.timeout = timeout\n\n    def fetch(self, order_id: str) -> Optional[Order]:\n        resp = requests.get(f\"{self.base_url}/orders/{order_id}\", timeout=self.timeout)\n        if resp.status_code == 404:\n            return None\n        resp.raise_for_status()\n        data = resp.json()\n        return Order(**data)\n\n    def total_paid(self, ids: list[str]) -> float:\n        orders = [self.fetch(i) for i in ids]\n        return sum(o.total for o in orders if o and o.paid)\n\n\nif __name__ == \"__main__\":\n    client = OrderClient(\"https://api.example.com\")\n    print(client.total_paid([\"a1\", \"a2\"]))"
+ },
+ {
+  "language": "go",
+  "lines": 1,
+  "size": "short",
+  "text": "func (s *Server) Health(w http.ResponseWriter, r *http.Request) {"
+ },
+ {
+  "language": "go",
+  "lines": 9,
+  "size": "medium",
+  "text": "func (s *Server) GetOrder(w http.ResponseWriter, r *http.Request) {\n\tid := chi.URLParam(r, \"id\")\n\torder, err := s.repo.Find(r.Context(), id)\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), http.StatusNotFound)\n\t\treturn\n\t}\n\tjson.NewEncoder(w).Encode(order)\n}"
+ },
+ {
+  "language": "go",
+  "lines": 42,
+  "size": "long",
+  "text": "package orders\n\nimport (\n\t\"context\"\n\t\"database/sql\"\n\t\"errors\"\n\t\"fmt\"\n\t\"time\"\n)\n\ntype Order struct {\n\tID       string\n\tTotal    float64\n\tPlacedAt time.Time\n}\n\ntype Repo struct {\n\tdb *sql.DB\n}\n\nvar ErrNotFound = errors.New(\"order not found\")\n\nfunc NewRepo(db *sql.DB) *Repo {\n\treturn &Repo{db: db}\n}\n\nfunc (r *Repo) Find(ctx context.Context, id string) (*Order, error) {\n\trow := r.db.QueryRowContext(ctx, \"SELECT id, total, placed_at FROM orders WHERE id = $1\", id)\n\tvar o Order\n\tif err := row.Scan(&o.ID, &o.Total, &o.PlacedAt); err != nil {\n\t\tif errors.Is(err, sql.ErrNoRows) {\n\t\t\treturn nil, ErrNotFound\n\t\t}\n\t\treturn nil, fmt.Errorf(\"find order %s: %w\", id, err)\n\t}\n\treturn &o, nil\n}\n\nfunc (r *Repo) Count(ctx context.Context) (n int, err error) {\n\terr = r.db.QueryRowContext(ctx, \"SELECT count(*) FROM orders\").Scan(&n)\n\treturn\n}"
+ },
+ {
+  "language": "rust",
+  "lines": 1,
+  "size": "short",
+  "text": "let conn = pool.get().await.map_err(|e| anyhow!(e))?;"
+ },
+ {
+  "language": "rust",
+  "lines": 13,
+  "size": "medium",
+  "text": "#[derive(Debug, Clone, Serialize)]\npub struct Order {\n    pub id: Uuid,\n    pub total: f64,\n}\n\npub async fn get_order(State(db): State<PgPool>, Path(id): Path<Uuid>) -> Result<Json<Order>, StatusCode> {\n    sqlx::query_as!(Order, \"SELECT id, total FROM orders WHERE id = $1\", id)\n        .fetch_one(&db)\n        .await\n        .map(Json)\n        .map_err(|_| StatusCode::NOT_FOUND)\n}"
+ },
+ {
+  "language": "rust",
+  "lines": 33,
+  "size": "long",
+  "text": "use std::collections::HashMap;\nuse std::sync::{Arc, Mutex};\n\nuse axum::{extract::State, routing::get, Json, Router};\nuse serde::{Deserialize, Serialize};\n\n#[derive(Debug, Clone, Serialize, Deserialize)]\nstruct Order {\n    id: u64,\n    total: f64,\n}\n\ntype Store = Arc<Mutex<HashMap<u64, Order>>>;\n\nasync fn list(State(store): State<Store>) -> Json<Vec<Order>> {\n    let guard = store.lock().unwrap();\n    Json(guard.values().cloned().collect())\n}\n\nimpl Order {\n    fn discounted(&self, pct: f64) -> Order {\n        Order { total: self.total * (1.0 - pct / 100.0), ..self.clone() }\n    }\n}\n\n#[tokio::main]\nasync fn main() {\n    let store: Store = Arc::new(Mutex::new(HashMap::new()));\n    let app = Router::new().route(\"/orders\", get(list)).with_state(store);\n    let listener = tokio::net::TcpListener::bind(\"0.0.0.0:8080\").await.unwrap();\n    println!(\"listening on {}\", listener.local_addr().unwrap());\n    axum::serve(listener, app).await.unwrap();\n}"
+ },
+ {
+  "language": "sql",
+  "lines": 1,
+  "size": "short",
+  "text": "SELECT customer_id, SUM(total) FROM orders GROUP BY customer_id;"
+ },
+ {
+  "language": "sql",
+  "lines": 8,
+  "size": "medium",
+  "text": "SELECT c.name, COUNT(o.id) AS orders, SUM(o.total) AS revenue\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nWHERE o.placed_at >= '2026-01-01'\nGROUP BY c.name\nHAVING SUM(o.total) > 1000\nORDER BY revenue DESC\nLIMIT 10;"
+ },
+ {
+  "language": "sql",
+  "lines": 26,
+  "size": "long",
+  "text": "CREATE TABLE orders (\n    id          BIGSERIAL PRIMARY KEY,\n    customer_id BIGINT NOT NULL REFERENCES customers (id),\n    total       NUMERIC(12, 2) NOT NULL CHECK (total >= 0),\n    status      VARCHAR(20) NOT NULL DEFAULT 'new',\n    placed_at   TIMESTAMP NOT NULL DEFAULT now()\n);\n\nCREATE INDEX idx_orders_customer ON orders (customer_id, placed_at DESC);\n\nWITH recent AS (\n    SELECT customer_id, MAX(placed_at) AS last_order\n    FROM orders\n    GROUP BY customer_id\n)\nSELECT c.id, c.email, r.last_order\nFROM customers c\nJOIN recent r ON r.customer_id = c.id\nWHERE r.last_order < NOW() - INTERVAL '90 days';\n\nUPDATE orders\nSET status = 'archived'\nWHERE placed_at < NOW() - INTERVAL '2 years'\n  AND status = 'shipped';\n\nDELETE FROM sessions WHERE expires_at < NOW();"
+ },
+ {
+  "language": "bash",
+  "lines": 1,
+  "size": "short",
+  "text": "curl -sS -X POST https://api.example.com/orders -H \"Content-Type: application/json\" -d @order.json"
+ },
+ {
+  "language": "bash",
+  "lines": 8,
+  "size": "medium",
+  "text": "#!/usr/bin/env bash\nset -euo pipefail\n\nfor f in logs/*.log; do\n  if grep -q \"ERROR\" \"$f\"; then\n    echo \"errors in $f\"\n  fi\ndone"
+ },
+ {
+  "language": "bash",
+  "lines": 30,
+  "size": "long",
+  "text": "#!/bin/bash\nset -euo pipefail\n\nREGION=\"${REGION:-eu-west-1}\"\nIMAGE=\"ghcr.io/acme/orders-api\"\nTAG=\"$(git rev-parse --short HEAD)\"\n\nusage() {\n  echo \"usage: $0 [--dry-run] <env>\" >&2\n  exit 2\n}\n\n[[ $# -lt 1 ]] && usage\n\nENV=\"$1\"\necho \"Deploying $IMAGE:$TAG to $ENV in $REGION\"\n\ndocker build -t \"$IMAGE:$TAG\" .\ndocker push \"$IMAGE:$TAG\"\n\nkubectl --context \"$ENV\" set image deployment/orders-api api=\"$IMAGE:$TAG\"\nkubectl --context \"$ENV\" rollout status deployment/orders-api --timeout=120s\n\nif ! curl -fsS \"https://$ENV.example.com/health\" | jq -e '.ok == true' > /dev/null; then\n  echo \"health check failed, rolling back\" >&2\n  kubectl --context \"$ENV\" rollout undo deployment/orders-api\n  exit 1\nfi\n\necho \"done\""
+ },
+ {
+  "language": "powershell",
+  "lines": 1,
+  "size": "short",
+  "text": "Get-ChildItem -Path .\\logs -Filter *.log | Remove-Item -Force"
+ },
+ {
+  "language": "powershell",
+  "lines": 8,
+  "size": "medium",
+  "text": "param([string]$Name = 'orders-api', [int]$Replicas = 2)\n\n$svc = Get-Service -Name $Name -ErrorAction SilentlyContinue\nif ($null -eq $svc) {\n    Write-Error \"Service $Name not found\"\n    exit 1\n}\nRestart-Service -Name $Name"
+ },
+ {
+  "language": "powershell",
+  "lines": 30,
+  "size": "long",
+  "text": "[CmdletBinding()]\nparam(\n    [Parameter(Mandatory)][string]$Environment,\n    [string]$Version = 'latest'\n)\n\n$ErrorActionPreference = 'Stop'\n$root = Join-Path $PSScriptRoot 'artifacts'\n\nfunction Test-Health {\n    param([string]$Url)\n    try {\n        $r = Invoke-RestMethod -Uri $Url -TimeoutSec 5\n        return $r.ok -eq $true\n    } catch {\n        Write-Warning \"Health check failed: $_\"\n        return $false\n    }\n}\n\nWrite-Host \"Deploying $Version to $Environment\"\nGet-ChildItem -Path $root -Filter *.zip | ForEach-Object {\n    Expand-Archive -Path $_.FullName -DestinationPath \"C:\\apps\\$Environment\" -Force\n}\n\nif (-not (Test-Health -Url \"https://$Environment.example.com/health\")) {\n    Write-Error 'Rolling back'\n    exit 1\n}\n$hosts = @('web-01', 'web-02') | Where-Object { Test-Connection $_ -Count 1 -Quiet }"
+ },
+ {
+  "language": "html",
+  "lines": 1,
+  "size": "short",
+  "text": "<div class=\"card\"><h2>Orders</h2><p>3 open</p></div>"
+ },
+ {
+  "language": "html",
+  "lines": 5,
+  "size": "medium",
+  "text": "<form action=\"/orders\" method=\"post\">\n  <label for=\"sku\">SKU</label>\n  <input id=\"sku\" name=\"sku\" type=\"text\" required>\n  <button type=\"submit\" class=\"btn btn-primary\">Place order</button>\n</form>"
+ },
+ {
+  "language": "html",
+  "lines": 29,
+  "size": "long",
+  "text": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <title>Orders dashboard</title>\n  <link rel=\"stylesheet\" href=\"/static/app.css\">\n</head>\n<body>\n  <header class=\"topbar\">\n    <nav>\n      <a href=\"/\">Home</a>\n      <a href=\"/orders\" class=\"active\">Orders</a>\n    </nav>\n  </header>\n  <main id=\"app\">\n    <h1>Orders</h1>\n    <table class=\"orders\">\n      <thead>\n        <tr><th>ID</th><th>Total</th></tr>\n      </thead>\n      <tbody>\n        <tr><td>A-1042</td><td>42.50</td></tr>\n        <tr><td>A-1043</td><td>9.00</td></tr>\n      </tbody>\n    </table>\n  </main>\n  <script src=\"/static/app.js\" defer></script>\n</body>\n</html>"
+ },
+ {
+  "language": "xml",
+  "lines": 10,
+  "size": "medium",
+  "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<configuration>\n  <appSettings>\n    <add key=\"RetryCount\" value=\"3\" />\n    <add key=\"Region\" value=\"eu-west-1\" />\n  </appSettings>\n  <connectionStrings>\n    <add name=\"Orders\" connectionString=\"Host=db;Database=orders\" />\n  </connectionStrings>\n</configuration>"
+ },
+ {
+  "language": "css",
+  "lines": 1,
+  "size": "short",
+  "text": ".card { display: grid; gap: 8px; }"
+ },
+ {
+  "language": "css",
+  "lines": 13,
+  "size": "medium",
+  "text": ":root {\n  --accent: #2f6fed;\n  --radius: 6px;\n}\n\n.card {\n  display: grid;\n  gap: 8px;\n  border-radius: var(--radius);\n  background: #fff;\n}\n\n.card:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }"
+ },
+ {
+  "language": "css",
+  "lines": 39,
+  "size": "long",
+  "text": "@import url('https://fonts.googleapis.com/css2?family=Inter');\n\n:root {\n  --bg: #0f1115;\n  --fg: #e6e8ee;\n  --accent: #6ea8fe;\n  --gap: 12px;\n}\n\n* { box-sizing: border-box; }\n\nbody {\n  margin: 0;\n  font: 14px/1.5 'Inter', system-ui, sans-serif;\n  color: var(--fg);\n  background: var(--bg);\n}\n\n.layout {\n  display: grid;\n  grid-template-columns: 240px 1fr;\n  gap: var(--gap);\n}\n\n.sidebar a:hover,\n.sidebar a.active {\n  color: var(--accent);\n  text-decoration: underline;\n}\n\n@media (max-width: 720px) {\n  .layout { grid-template-columns: 1fr; }\n  .sidebar { display: none; }\n}\n\n.btn::after {\n  content: '';\n  transition: transform 0.2s ease-in-out;\n}"
+ },
+ {
+  "language": "dockerfile",
+  "lines": 2,
+  "size": "short",
+  "text": "FROM node:22-alpine\nRUN npm ci --omit=dev"
+ },
+ {
+  "language": "dockerfile",
+  "lines": 6,
+  "size": "medium",
+  "text": "FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build\nWORKDIR /src\nCOPY *.csproj .\nRUN dotnet restore\nCOPY . .\nRUN dotnet publish -c Release -o /app"
+ },
+ {
+  "language": "dockerfile",
+  "lines": 21,
+  "size": "long",
+  "text": "# syntax=docker/dockerfile:1\nFROM node:22-alpine AS deps\nWORKDIR /app\nCOPY package.json package-lock.json ./\nRUN npm ci\n\nFROM deps AS build\nCOPY . .\nRUN npm run build\n\nFROM node:22-alpine AS runtime\nENV NODE_ENV=production\nWORKDIR /app\nCOPY --from=build /app/dist ./dist\nCOPY --from=deps /app/node_modules ./node_modules\nRUN addgroup -S app && adduser -S app -G app\nUSER app\nEXPOSE 8080\nHEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost:8080/health || exit 1\nENTRYPOINT [\"node\", \"dist/index.js\"]\nCMD [\"--port\", \"8080\"]"
+ },
+ {
+  "language": "markdown",
+  "lines": 2,
+  "size": "short",
+  "text": "## Retry policy\n- **Max attempts:** 3"
+ },
+ {
+  "language": "markdown",
+  "lines": 8,
+  "size": "medium",
+  "text": "# Orders API\n\nCalls are retried **three times** with backoff.\n\n- `GET /orders/{id}`: fetch one order\n- `POST /orders`: create an order\n\nSee [the runbook](docs/runbook.md) for details."
+ },
+ {
+  "language": "markdown",
+  "lines": 30,
+  "size": "long",
+  "text": "# Orders service\n\n> Handles checkout and payment capture.\n\n## Endpoints\n\n| Method | Path | Purpose |\n| --- | --- | --- |\n| GET | `/orders/{id}` | Fetch one order |\n| POST | `/orders` | Create an order |\n\n## Failure handling\n\n1. The client retries up to **3 times**.\n2. After that the request goes to the *dead letter* queue.\n3. On-call is paged if the queue is deeper than 100.\n\n#### Notes\n\n- Timeouts are 2.5 s.\n- See [the runbook](docs/runbook.md) for rollback steps.\n- Diagrams live in `docs/diagrams`.\n\n```sh\nmake deploy ENV=staging\n```\n\n## Contact\n\nAsk in #orders-platform."
+ },
+ {
+  "language": "cpp",
+  "lines": 1,
+  "size": "short",
+  "text": "std::vector<int> ids = {1, 2, 3};"
+ },
+ {
+  "language": "cpp",
+  "lines": 10,
+  "size": "medium",
+  "text": "#include <iostream>\n#include <vector>\n\nint main() {\n    std::vector<int> ids = {1, 2, 3};\n    for (const auto& id : ids) {\n        std::cout << id << std::endl;\n    }\n    return 0;\n}"
+ },
+ {
+  "language": "cpp",
+  "lines": 33,
+  "size": "long",
+  "text": "#include <memory>\n#include <string>\n#include <unordered_map>\n\nnamespace orders {\n\nclass Order {\npublic:\n    Order(std::string id, double total) : id_(std::move(id)), total_(total) {}\n    const std::string& id() const { return id_; }\n    double total() const noexcept { return total_; }\n\nprivate:\n    std::string id_;\n    double total_;\n};\n\nclass Repository {\npublic:\n    void add(std::shared_ptr<Order> order) {\n        items_[order->id()] = std::move(order);\n    }\n\n    std::shared_ptr<Order> find(const std::string& id) const {\n        auto it = items_.find(id);\n        return it == items_.end() ? nullptr : it->second;\n    }\n\nprivate:\n    std::unordered_map<std::string, std::shared_ptr<Order>> items_;\n};\n\n}  // namespace orders"
+ },
+ {
+  "language": "c",
+  "lines": 16,
+  "size": "long",
+  "text": "#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct {\n    int id;\n    double total;\n} order_t;\n\nint main(int argc, char **argv) {\n    order_t *o = malloc(sizeof(order_t));\n    o->id = 1;\n    o->total = 42.5;\n    printf(\"order %d: %.2f\\n\", o->id, o->total);\n    free(o);\n    return 0;\n}"
+ },
+ {
+  "language": "php",
+  "lines": 1,
+  "size": "short",
+  "text": "$order = Order::where('id', $id)->firstOrFail();"
+ },
+ {
+  "language": "php",
+  "lines": 15,
+  "size": "long",
+  "text": "<?php\n\nnamespace App\\Http\\Controllers;\n\nuse App\\Models\\Order;\nuse Illuminate\\Http\\Request;\n\nclass OrderController extends Controller\n{\n    public function show(Request $request, int $id)\n    {\n        $order = Order::findOrFail($id);\n        return response()->json($order);\n    }\n}"
+ },
+ {
+  "language": "php",
+  "lines": 37,
+  "size": "long",
+  "text": "<?php\n\ndeclare(strict_types=1);\n\nnamespace App\\Services;\n\nuse App\\Models\\Order;\nuse Illuminate\\Support\\Facades\\DB;\nuse InvalidArgumentException;\n\nfinal class OrderService\n{\n    public function __construct(private readonly PaymentGateway $payments)\n    {\n    }\n\n    public function place(array $data): Order\n    {\n        if (empty($data['sku'])) {\n            throw new InvalidArgumentException('sku is required');\n        }\n\n        return DB::transaction(function () use ($data) {\n            $order = Order::create([\n                'sku' => $data['sku'],\n                'quantity' => $data['quantity'] ?? 1,\n            ]);\n            $this->payments->charge($order->customer_id, $order->total);\n            return $order;\n        });\n    }\n\n    public function totals(): array\n    {\n        return Order::all()->map(fn ($o) => $o->total)->toArray();\n    }\n}"
+ },
+ {
+  "language": "ruby",
+  "lines": 1,
+  "size": "short",
+  "text": "orders.select { |o| o.total > 100 }.map(&:id)"
+ },
+ {
+  "language": "ruby",
+  "lines": 13,
+  "size": "medium",
+  "text": "class OrdersController < ApplicationController\n  before_action :set_order, only: [:show]\n\n  def show\n    render json: @order\n  end\n\n  private\n\n  def set_order\n    @order = Order.find(params[:id])\n  end\nend"
+ },
+ {
+  "language": "ruby",
+  "lines": 32,
+  "size": "long",
+  "text": "require 'sinatra'\nrequire 'json'\n\nmodule Orders\n  class Service\n    attr_reader :repo\n\n    def initialize(repo)\n      @repo = repo\n    end\n\n    def total_for(customer_id)\n      repo.all\n          .select { |o| o.customer_id == customer_id }\n          .sum(&:total)\n    end\n\n    def place(params)\n      raise ArgumentError, 'sku required' unless params[:sku]\n      order = repo.create(sku: params[:sku], quantity: params.fetch(:quantity, 1))\n      puts \"placed #{order.id}\"\n      order\n    end\n  end\nend\n\nget '/orders/:id' do\n  content_type :json\n  order = settings.service.repo.find(params[:id])\n  halt 404, { error: 'not found' }.to_json if order.nil?\n  order.to_h.to_json\nend"
+ },
+ {
+  "language": "swift",
+  "lines": 1,
+  "size": "short",
+  "text": "let order = try await api.fetchOrder(id: orderID)"
+ },
+ {
+  "language": "swift",
+  "lines": 10,
+  "size": "medium",
+  "text": "struct Order: Codable, Identifiable {\n    let id: UUID\n    var total: Decimal\n    var paid = false\n}\n\nfunc loadOrder(id: UUID) async throws -> Order {\n    let (data, _) = try await URLSession.shared.data(from: url(for: id))\n    return try JSONDecoder().decode(Order.self, from: data)\n}"
+ },
+ {
+  "language": "swift",
+  "lines": 36,
+  "size": "long",
+  "text": "import SwiftUI\n\nfinal class OrdersViewModel: ObservableObject {\n    @Published var orders: [Order] = []\n    @Published var error: String?\n\n    private let api: OrdersAPI\n\n    init(api: OrdersAPI) {\n        self.api = api\n    }\n\n    @MainActor\n    func load() async {\n        do {\n            orders = try await api.fetchOrders()\n        } catch {\n            self.error = error.localizedDescription\n        }\n    }\n}\n\nstruct OrdersView: View {\n    @StateObject private var model: OrdersViewModel\n\n    var body: some View {\n        List(model.orders) { order in\n            HStack {\n                Text(order.id.uuidString)\n                Spacer()\n                Text(\"\\(order.total)\")\n            }\n        }\n        .task { await model.load() }\n    }\n}"
+ }
+]

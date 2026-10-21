@@ -1,11 +1,13 @@
 # Third-party notices
 
 Flowy Docs (the desktop app) is MIT licensed. It is built from the packages below, each under its own licence, and ships the box icons
-of [Tabler Icons](https://tabler.io/icons) (MIT, see `TABLER-ICONS-LICENSE.txt`) and the .NET runtime (MIT, © .NET Foundation and contributors).
+of [Tabler Icons](https://tabler.io/icons) (MIT, see `TABLER-ICONS-LICENSE.txt`), [highlight.js](https://highlightjs.org) (BSD-3-Clause, see
+`HIGHLIGHTJS-LICENSE.txt`), which colours code, and the .NET runtime (MIT, © .NET Foundation and contributors).
 This file is written by `node desktop/tools/third-party.mjs` from the packages the app was restored with.
 
 | Package | Version | Licence | Copyright |
 | --- | --- | --- | --- |
+| [Acornima](https://github.com/adams85/acornima) | 1.7.0 | BSD-3-Clause | Adam Simon |
 | [Avalonia.Angle.Windows.Natives](https://avaloniaui.net/) | 2.1.27548.20260419 | its LICENSE file (ANGLE: BSD-3-Clause) | Copyright 2013-2026 © The AvaloniaUI Project |
 | [Avalonia.Desktop](https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link) | 12.1.4 | MIT | Copyright 2013-2026 © The AvaloniaUI Project |
 | [Avalonia.FreeDesktop.AtSpi](https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link) | 12.1.4 | MIT | Copyright 2013-2026 © The AvaloniaUI Project |
@@ -23,6 +25,7 @@ This file is written by `node desktop/tools/third-party.mjs` from the packages t
 | [HarfBuzzSharp.NativeAssets.WebAssembly](https://go.microsoft.com/fwlink/?linkid=868515) | 8.3.1.3 | MIT | © Microsoft Corporation. All rights reserved. |
 | [HarfBuzzSharp.NativeAssets.Win32](https://go.microsoft.com/fwlink/?linkid=868515) | 8.3.1.3 | MIT | © Microsoft Corporation. All rights reserved. |
 | [HarfBuzzSharp](https://go.microsoft.com/fwlink/?linkid=868515) | 8.3.1.3 | MIT | © Microsoft Corporation. All rights reserved. |
+| [Jint](https://github.com/sebastienros/jint) | 4.17.0 | BSD-2-Clause | Sebastien Ros |
 | [Markdig](https://xoofx.github.io/markdig) | 1.4.1 | BSD-2-Clause | Alexandre Mutel |
 | [MicroCom.Runtime](https://www.nuget.org/packages/MicroCom.Runtime) | 0.11.6 | MIT | Copyright 2021 © Nikita Tsukanov |
 | [SkiaSharp.NativeAssets.Linux](https://go.microsoft.com/fwlink/?linkid=868515) | 3.119.4 | MIT | © Microsoft Corporation. All rights reserved. |

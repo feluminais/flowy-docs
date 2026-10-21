@@ -1,0 +1,1202 @@
+[
+  {
+    "text": "const user = await repo.findById(id) as User | undefined;",
+    "guess": "javascript"
+  },
+  {
+    "text": "export interface OrderService {\n  create(input: CreateOrderInput): Promise<Order>;\n  cancel(id: string, reason?: string): Promise<void>;\n}\n\nexport class HttpOrderService implements OrderService {\n  constructor(private readonly http: HttpClient) {}\n\n  async create(input: CreateOrderInput): Promise<Order> {\n    return this.http.post<Order>('/orders', input);\n  }\n}",
+    "guess": "typescript"
+  },
+  {
+    "text": "import { Router, Request, Response } from 'express';\nimport { z } from 'zod';\n\ntype Role = 'admin' | 'member' | 'guest';\n\ninterface Session {\n  userId: string;\n  role: Role;\n  expiresAt: Date;\n}\n\nconst CreateOrder = z.object({\n  sku: z.string().min(1),\n  quantity: z.number().int().positive(),\n});\n\nexport function ordersRouter(db: Database): Router {\n  const router = Router();\n\n  router.post('/orders', async (req: Request, res: Response) => {\n    const parsed = CreateOrder.safeParse(req.body);\n    if (!parsed.success) {\n      return res.status(400).json({ errors: parsed.error.flatten() });\n    }\n    const session: Session = res.locals.session;\n    const order = await db.orders.insert({ ...parsed.data, userId: session.userId });\n    res.status(201).json(order);\n  });\n\n  return router;\n}",
+    "guess": "typescript"
+  },
+  {
+    "text": "app.get('/health', (req, res) => res.json({ ok: true }));",
+    "guess": "javascript"
+  },
+  {
+    "text": "const express = require('express');\nconst app = express();\n\napp.post('/webhooks/stripe', express.raw({ type: 'application/json' }), (req, res) => {\n  const event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], secret);\n  queue.push(event);\n  res.sendStatus(200);\n});\n\nmodule.exports = app;",
+    "guess": "javascript"
+  },
+  {
+    "text": "'use strict';\n\nconst retry = async (fn, attempts = 3) => {\n  let lastError;\n  for (let i = 0; i < attempts; i++) {\n    try {\n      return await fn();\n    } catch (err) {\n      lastError = err;\n      await new Promise((resolve) => setTimeout(resolve, 2 ** i * 100));\n    }\n  }\n  throw lastError;\n};\n\nfunction debounce(fn, wait) {\n  let timer = null;\n  return function (...args) {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn.apply(this, args), wait);\n  };\n}\n\ndocument.querySelector('#search').addEventListener('input', debounce((e) => {\n  fetch(`/api/search?q=${encodeURIComponent(e.target.value)}`)\n    .then((r) => r.json())\n    .then((items) => render(items));\n}, 250));\n\nmodule.exports = { retry, debounce };",
+    "guess": "javascript"
+  },
+  {
+    "text": "{\"orderId\": \"A-1042\", \"status\": \"paid\", \"total\": 42.5}",
+    "guess": "json"
+  },
+  {
+    "text": "{\n  \"orderId\": \"A-1042\",\n  \"customer\": { \"id\": 17, \"email\": \"ana@example.com\" },\n  \"lines\": [\n    { \"sku\": \"MUG-01\", \"qty\": 2, \"price\": 9.5 }\n  ],\n  \"paid\": true,\n  \"note\": null\n}",
+    "guess": "json"
+  },
+  {
+    "text": "{\n  \"name\": \"orders-api\",\n  \"version\": \"1.4.2\",\n  \"private\": true,\n  \"scripts\": {\n    \"build\": \"tsc -p .\",\n    \"test\": \"vitest run\",\n    \"start\": \"node dist/index.js\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.19.2\",\n    \"zod\": \"^3.23.8\",\n    \"pg\": \"^8.12.0\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^5.5.4\",\n    \"vitest\": \"^2.0.5\"\n  },\n  \"engines\": { \"node\": \">=20\" },\n  \"config\": {\n    \"retries\": 3,\n    \"timeoutMs\": 2500,\n    \"regions\": [\"eu-west-1\", \"us-east-1\"],\n    \"features\": { \"beta\": false, \"ratio\": 0.25 }\n  }\n}",
+    "guess": "json"
+  },
+  {
+    "text": "replicas: 3\nimage: ghcr.io/acme/api:1.4.2",
+    "guess": "yaml"
+  },
+  {
+    "text": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: orders-config\ndata:\n  LOG_LEVEL: info\n  DB_HOST: postgres.default.svc\n  RETRIES: \"3\"",
+    "guess": "yaml"
+  },
+  {
+    "text": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: orders-api\n  labels:\n    app: orders\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: orders\n  template:\n    metadata:\n      labels:\n        app: orders\n    spec:\n      containers:\n        - name: api\n          image: ghcr.io/acme/orders-api:1.4.2\n          ports:\n            - containerPort: 8080\n          env:\n            - name: DB_HOST\n              valueFrom:\n                configMapKeyRef:\n                  name: orders-config\n                  key: DB_HOST\n          readinessProbe:\n            httpGet:\n              path: /health\n              port: 8080\n            periodSeconds: 10\n          resources:\n            limits: { cpu: 500m, memory: 256Mi }",
+    "guess": "yaml"
+  },
+  {
+    "text": "public record Order(Guid Id, decimal Total, DateTime PlacedAt);",
+    "guess": "csharp"
+  },
+  {
+    "text": "public interface IOrderRepository\n{\n    Task<Order?> FindAsync(Guid id, CancellationToken ct);\n    Task AddAsync(Order order, CancellationToken ct);\n}\n\npublic sealed class OrderService(IOrderRepository repo, ILogger<OrderService> log)\n{\n    public async Task<Order> GetAsync(Guid id) =>\n        await repo.FindAsync(id, default) ?? throw new KeyNotFoundException($\"Order {id}\");\n}",
+    "guess": "csharp"
+  },
+  {
+    "text": "using Microsoft.AspNetCore.Builder;\nusing Microsoft.Extensions.DependencyInjection;\n\nnamespace Orders.Api;\n\n[ApiController]\n[Route(\"api/[controller]\")]\npublic class OrdersController : ControllerBase\n{\n    private readonly IOrderService _orders;\n\n    public OrdersController(IOrderService orders)\n    {\n        _orders = orders;\n    }\n\n    [HttpGet(\"{id:guid}\")]\n    public async Task<ActionResult<OrderDto>> Get(Guid id)\n    {\n        var order = await _orders.GetAsync(id);\n        if (order is null)\n        {\n            return NotFound();\n        }\n        return Ok(new OrderDto(order.Id, order.Total));\n    }\n\n    [HttpPost]\n    public async Task<IActionResult> Create([FromBody] CreateOrder request)\n    {\n        var id = await _orders.CreateAsync(request.Sku, request.Quantity);\n        return CreatedAtAction(nameof(Get), new { id }, null);\n    }\n}",
+    "guess": "csharp"
+  },
+  {
+    "text": "public interface OrderRepository extends JpaRepository<Order, Long> {}",
+    "guess": "java"
+  },
+  {
+    "text": "@RestController\n@RequestMapping(\"/orders\")\npublic class OrderController {\n    private final OrderService service;\n\n    public OrderController(OrderService service) {\n        this.service = service;\n    }\n\n    @GetMapping(\"/{id}\")\n    public ResponseEntity<Order> get(@PathVariable Long id) {\n        return ResponseEntity.ok(service.find(id));\n    }\n}",
+    "guess": "java"
+  },
+  {
+    "text": "package com.acme.orders;\n\nimport java.util.List;\nimport java.util.Optional;\nimport org.springframework.stereotype.Service;\n\n@Service\npublic class OrderService {\n    private final OrderRepository repository;\n    private final PaymentClient payments;\n\n    public OrderService(OrderRepository repository, PaymentClient payments) {\n        this.repository = repository;\n        this.payments = payments;\n    }\n\n    public Optional<Order> find(Long id) {\n        return repository.findById(id);\n    }\n\n    public List<Order> findByCustomer(String customerId) {\n        return repository.findAll().stream()\n            .filter(o -> o.getCustomerId().equals(customerId))\n            .toList();\n    }\n\n    @Transactional\n    public Order place(Order order) {\n        if (order.getTotal().compareTo(BigDecimal.ZERO) <= 0) {\n            throw new IllegalArgumentException(\"Total must be positive\");\n        }\n        payments.charge(order.getCustomerId(), order.getTotal());\n        return repository.save(order);\n    }\n}",
+    "guess": "java"
+  },
+  {
+    "text": "data class Order(val id: String, val total: Double, val paid: Boolean = false)",
+    "guess": "kotlin"
+  },
+  {
+    "text": "class OrderService(private val repo: OrderRepository) {\n    suspend fun find(id: String): Order? = repo.findById(id)\n\n    fun totalFor(customer: String): Double =\n        repo.all().filter { it.customer == customer }.sumOf { it.total }\n}",
+    "guess": "kotlin"
+  },
+  {
+    "text": "package com.acme.orders\n\nimport io.ktor.server.application.*\nimport io.ktor.server.response.*\nimport io.ktor.server.routing.*\nimport kotlinx.serialization.Serializable\n\n@Serializable\ndata class OrderDto(val id: String, val total: Double)\n\nsealed interface Result<out T> {\n    data class Ok<T>(val value: T) : Result<T>\n    data class Err(val message: String) : Result<Nothing>\n}\n\nfun Application.ordersModule(repo: OrderRepository) {\n    routing {\n        get(\"/orders/{id}\") {\n            val id = call.parameters[\"id\"] ?: return@get call.respond(HttpStatusCode.BadRequest)\n            when (val result = repo.find(id)) {\n                is Result.Ok -> call.respond(OrderDto(result.value.id, result.value.total))\n                is Result.Err -> call.respondText(result.message, status = HttpStatusCode.NotFound)\n            }\n        }\n        post(\"/orders\") {\n            val body = call.receive<OrderDto>()\n            val saved = repo.save(body)\n            println(\"Saved order ${saved.id}\")\n            call.respond(HttpStatusCode.Created, saved)\n        }\n    }\n}",
+    "guess": "kotlin"
+  },
+  {
+    "text": "orders = [o for o in db.query(Order) if o.total > 100]",
+    "guess": "python"
+  },
+  {
+    "text": "@app.route(\"/orders/<int:order_id>\", methods=[\"GET\"])\ndef get_order(order_id: int):\n    order = Order.query.get_or_404(order_id)\n    if not order.paid:\n        abort(402)\n    return jsonify(order.to_dict())",
+    "guess": "python"
+  },
+  {
+    "text": "from dataclasses import dataclass\nfrom typing import Optional\nimport logging\n\nimport requests\n\nlog = logging.getLogger(__name__)\n\n\n@dataclass\nclass Order:\n    id: str\n    total: float\n    paid: bool = False\n\n\nclass OrderClient:\n    def __init__(self, base_url: str, timeout: float = 2.5):\n        self.base_url = base_url\n        self.timeout = timeout\n\n    def fetch(self, order_id: str) -> Optional[Order]:\n        resp = requests.get(f\"{self.base_url}/orders/{order_id}\", timeout=self.timeout)\n        if resp.status_code == 404:\n            return None\n        resp.raise_for_status()\n        data = resp.json()\n        return Order(**data)\n\n    def total_paid(self, ids: list[str]) -> float:\n        orders = [self.fetch(i) for i in ids]\n        return sum(o.total for o in orders if o and o.paid)\n\n\nif __name__ == \"__main__\":\n    client = OrderClient(\"https://api.example.com\")\n    print(client.total_paid([\"a1\", \"a2\"]))",
+    "guess": "python"
+  },
+  {
+    "text": "func (s *Server) Health(w http.ResponseWriter, r *http.Request) {",
+    "guess": "go"
+  },
+  {
+    "text": "func (s *Server) GetOrder(w http.ResponseWriter, r *http.Request) {\n\tid := chi.URLParam(r, \"id\")\n\torder, err := s.repo.Find(r.Context(), id)\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), http.StatusNotFound)\n\t\treturn\n\t}\n\tjson.NewEncoder(w).Encode(order)\n}",
+    "guess": "go"
+  },
+  {
+    "text": "package orders\n\nimport (\n\t\"context\"\n\t\"database/sql\"\n\t\"errors\"\n\t\"fmt\"\n\t\"time\"\n)\n\ntype Order struct {\n\tID       string\n\tTotal    float64\n\tPlacedAt time.Time\n}\n\ntype Repo struct {\n\tdb *sql.DB\n}\n\nvar ErrNotFound = errors.New(\"order not found\")\n\nfunc NewRepo(db *sql.DB) *Repo {\n\treturn &Repo{db: db}\n}\n\nfunc (r *Repo) Find(ctx context.Context, id string) (*Order, error) {\n\trow := r.db.QueryRowContext(ctx, \"SELECT id, total, placed_at FROM orders WHERE id = $1\", id)\n\tvar o Order\n\tif err := row.Scan(&o.ID, &o.Total, &o.PlacedAt); err != nil {\n\t\tif errors.Is(err, sql.ErrNoRows) {\n\t\t\treturn nil, ErrNotFound\n\t\t}\n\t\treturn nil, fmt.Errorf(\"find order %s: %w\", id, err)\n\t}\n\treturn &o, nil\n}\n\nfunc (r *Repo) Count(ctx context.Context) (n int, err error) {\n\terr = r.db.QueryRowContext(ctx, \"SELECT count(*) FROM orders\").Scan(&n)\n\treturn\n}",
+    "guess": "go"
+  },
+  {
+    "text": "let conn = pool.get().await.map_err(|e| anyhow!(e))?;",
+    "guess": "rust"
+  },
+  {
+    "text": "#[derive(Debug, Clone, Serialize)]\npub struct Order {\n    pub id: Uuid,\n    pub total: f64,\n}\n\npub async fn get_order(State(db): State<PgPool>, Path(id): Path<Uuid>) -> Result<Json<Order>, StatusCode> {\n    sqlx::query_as!(Order, \"SELECT id, total FROM orders WHERE id = $1\", id)\n        .fetch_one(&db)\n        .await\n        .map(Json)\n        .map_err(|_| StatusCode::NOT_FOUND)\n}",
+    "guess": "rust"
+  },
+  {
+    "text": "use std::collections::HashMap;\nuse std::sync::{Arc, Mutex};\n\nuse axum::{extract::State, routing::get, Json, Router};\nuse serde::{Deserialize, Serialize};\n\n#[derive(Debug, Clone, Serialize, Deserialize)]\nstruct Order {\n    id: u64,\n    total: f64,\n}\n\ntype Store = Arc<Mutex<HashMap<u64, Order>>>;\n\nasync fn list(State(store): State<Store>) -> Json<Vec<Order>> {\n    let guard = store.lock().unwrap();\n    Json(guard.values().cloned().collect())\n}\n\nimpl Order {\n    fn discounted(&self, pct: f64) -> Order {\n        Order { total: self.total * (1.0 - pct / 100.0), ..self.clone() }\n    }\n}\n\n#[tokio::main]\nasync fn main() {\n    let store: Store = Arc::new(Mutex::new(HashMap::new()));\n    let app = Router::new().route(\"/orders\", get(list)).with_state(store);\n    let listener = tokio::net::TcpListener::bind(\"0.0.0.0:8080\").await.unwrap();\n    println!(\"listening on {}\", listener.local_addr().unwrap());\n    axum::serve(listener, app).await.unwrap();\n}",
+    "guess": "rust"
+  },
+  {
+    "text": "SELECT customer_id, SUM(total) FROM orders GROUP BY customer_id;",
+    "guess": "sql"
+  },
+  {
+    "text": "SELECT c.name, COUNT(o.id) AS orders, SUM(o.total) AS revenue\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nWHERE o.placed_at >= '2026-01-01'\nGROUP BY c.name\nHAVING SUM(o.total) > 1000\nORDER BY revenue DESC\nLIMIT 10;",
+    "guess": "sql"
+  },
+  {
+    "text": "CREATE TABLE orders (\n    id          BIGSERIAL PRIMARY KEY,\n    customer_id BIGINT NOT NULL REFERENCES customers (id),\n    total       NUMERIC(12, 2) NOT NULL CHECK (total >= 0),\n    status      VARCHAR(20) NOT NULL DEFAULT 'new',\n    placed_at   TIMESTAMP NOT NULL DEFAULT now()\n);\n\nCREATE INDEX idx_orders_customer ON orders (customer_id, placed_at DESC);\n\nWITH recent AS (\n    SELECT customer_id, MAX(placed_at) AS last_order\n    FROM orders\n    GROUP BY customer_id\n)\nSELECT c.id, c.email, r.last_order\nFROM customers c\nJOIN recent r ON r.customer_id = c.id\nWHERE r.last_order < NOW() - INTERVAL '90 days';\n\nUPDATE orders\nSET status = 'archived'\nWHERE placed_at < NOW() - INTERVAL '2 years'\n  AND status = 'shipped';\n\nDELETE FROM sessions WHERE expires_at < NOW();",
+    "guess": "sql"
+  },
+  {
+    "text": "curl -sS -X POST https://api.example.com/orders -H \"Content-Type: application/json\" -d @order.json",
+    "guess": "bash"
+  },
+  {
+    "text": "#!/usr/bin/env bash\nset -euo pipefail\n\nfor f in logs/*.log; do\n  if grep -q \"ERROR\" \"$f\"; then\n    echo \"errors in $f\"\n  fi\ndone",
+    "guess": "bash"
+  },
+  {
+    "text": "#!/bin/bash\nset -euo pipefail\n\nREGION=\"${REGION:-eu-west-1}\"\nIMAGE=\"ghcr.io/acme/orders-api\"\nTAG=\"$(git rev-parse --short HEAD)\"\n\nusage() {\n  echo \"usage: $0 [--dry-run] <env>\" >&2\n  exit 2\n}\n\n[[ $# -lt 1 ]] && usage\n\nENV=\"$1\"\necho \"Deploying $IMAGE:$TAG to $ENV in $REGION\"\n\ndocker build -t \"$IMAGE:$TAG\" .\ndocker push \"$IMAGE:$TAG\"\n\nkubectl --context \"$ENV\" set image deployment/orders-api api=\"$IMAGE:$TAG\"\nkubectl --context \"$ENV\" rollout status deployment/orders-api --timeout=120s\n\nif ! curl -fsS \"https://$ENV.example.com/health\" | jq -e '.ok == true' > /dev/null; then\n  echo \"health check failed, rolling back\" >&2\n  kubectl --context \"$ENV\" rollout undo deployment/orders-api\n  exit 1\nfi\n\necho \"done\"",
+    "guess": "bash"
+  },
+  {
+    "text": "Get-ChildItem -Path .\\logs -Filter *.log | Remove-Item -Force",
+    "guess": "powershell"
+  },
+  {
+    "text": "param([string]$Name = 'orders-api', [int]$Replicas = 2)\n\n$svc = Get-Service -Name $Name -ErrorAction SilentlyContinue\nif ($null -eq $svc) {\n    Write-Error \"Service $Name not found\"\n    exit 1\n}\nRestart-Service -Name $Name",
+    "guess": "powershell"
+  },
+  {
+    "text": "[CmdletBinding()]\nparam(\n    [Parameter(Mandatory)][string]$Environment,\n    [string]$Version = 'latest'\n)\n\n$ErrorActionPreference = 'Stop'\n$root = Join-Path $PSScriptRoot 'artifacts'\n\nfunction Test-Health {\n    param([string]$Url)\n    try {\n        $r = Invoke-RestMethod -Uri $Url -TimeoutSec 5\n        return $r.ok -eq $true\n    } catch {\n        Write-Warning \"Health check failed: $_\"\n        return $false\n    }\n}\n\nWrite-Host \"Deploying $Version to $Environment\"\nGet-ChildItem -Path $root -Filter *.zip | ForEach-Object {\n    Expand-Archive -Path $_.FullName -DestinationPath \"C:\\apps\\$Environment\" -Force\n}\n\nif (-not (Test-Health -Url \"https://$Environment.example.com/health\")) {\n    Write-Error 'Rolling back'\n    exit 1\n}\n$hosts = @('web-01', 'web-02') | Where-Object { Test-Connection $_ -Count 1 -Quiet }",
+    "guess": "powershell"
+  },
+  {
+    "text": "<div class=\"card\"><h2>Orders</h2><p>3 open</p></div>",
+    "guess": "html"
+  },
+  {
+    "text": "<form action=\"/orders\" method=\"post\">\n  <label for=\"sku\">SKU</label>\n  <input id=\"sku\" name=\"sku\" type=\"text\" required>\n  <button type=\"submit\" class=\"btn btn-primary\">Place order</button>\n</form>",
+    "guess": "html"
+  },
+  {
+    "text": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <title>Orders dashboard</title>\n  <link rel=\"stylesheet\" href=\"/static/app.css\">\n</head>\n<body>\n  <header class=\"topbar\">\n    <nav>\n      <a href=\"/\">Home</a>\n      <a href=\"/orders\" class=\"active\">Orders</a>\n    </nav>\n  </header>\n  <main id=\"app\">\n    <h1>Orders</h1>\n    <table class=\"orders\">\n      <thead>\n        <tr><th>ID</th><th>Total</th></tr>\n      </thead>\n      <tbody>\n        <tr><td>A-1042</td><td>42.50</td></tr>\n        <tr><td>A-1043</td><td>9.00</td></tr>\n      </tbody>\n    </table>\n  </main>\n  <script src=\"/static/app.js\" defer></script>\n</body>\n</html>",
+    "guess": "html"
+  },
+  {
+    "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<configuration>\n  <appSettings>\n    <add key=\"RetryCount\" value=\"3\" />\n    <add key=\"Region\" value=\"eu-west-1\" />\n  </appSettings>\n  <connectionStrings>\n    <add name=\"Orders\" connectionString=\"Host=db;Database=orders\" />\n  </connectionStrings>\n</configuration>",
+    "guess": "xml"
+  },
+  {
+    "text": ".card { display: grid; gap: 8px; }",
+    "guess": "css"
+  },
+  {
+    "text": ":root {\n  --accent: #2f6fed;\n  --radius: 6px;\n}\n\n.card {\n  display: grid;\n  gap: 8px;\n  border-radius: var(--radius);\n  background: #fff;\n}\n\n.card:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }",
+    "guess": "css"
+  },
+  {
+    "text": "@import url('https://fonts.googleapis.com/css2?family=Inter');\n\n:root {\n  --bg: #0f1115;\n  --fg: #e6e8ee;\n  --accent: #6ea8fe;\n  --gap: 12px;\n}\n\n* { box-sizing: border-box; }\n\nbody {\n  margin: 0;\n  font: 14px/1.5 'Inter', system-ui, sans-serif;\n  color: var(--fg);\n  background: var(--bg);\n}\n\n.layout {\n  display: grid;\n  grid-template-columns: 240px 1fr;\n  gap: var(--gap);\n}\n\n.sidebar a:hover,\n.sidebar a.active {\n  color: var(--accent);\n  text-decoration: underline;\n}\n\n@media (max-width: 720px) {\n  .layout { grid-template-columns: 1fr; }\n  .sidebar { display: none; }\n}\n\n.btn::after {\n  content: '';\n  transition: transform 0.2s ease-in-out;\n}",
+    "guess": "css"
+  },
+  {
+    "text": "FROM node:22-alpine\nRUN npm ci --omit=dev",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build\nWORKDIR /src\nCOPY *.csproj .\nRUN dotnet restore\nCOPY . .\nRUN dotnet publish -c Release -o /app",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "# syntax=docker/dockerfile:1\nFROM node:22-alpine AS deps\nWORKDIR /app\nCOPY package.json package-lock.json ./\nRUN npm ci\n\nFROM deps AS build\nCOPY . .\nRUN npm run build\n\nFROM node:22-alpine AS runtime\nENV NODE_ENV=production\nWORKDIR /app\nCOPY --from=build /app/dist ./dist\nCOPY --from=deps /app/node_modules ./node_modules\nRUN addgroup -S app && adduser -S app -G app\nUSER app\nEXPOSE 8080\nHEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost:8080/health || exit 1\nENTRYPOINT [\"node\", \"dist/index.js\"]\nCMD [\"--port\", \"8080\"]",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "## Retry policy\n- **Max attempts:** 3",
+    "guess": "markdown"
+  },
+  {
+    "text": "# Orders API\n\nCalls are retried **three times** with backoff.\n\n- `GET /orders/{id}`: fetch one order\n- `POST /orders`: create an order\n\nSee [the runbook](docs/runbook.md) for details.",
+    "guess": "markdown"
+  },
+  {
+    "text": "# Orders service\n\n> Handles checkout and payment capture.\n\n## Endpoints\n\n| Method | Path | Purpose |\n| --- | --- | --- |\n| GET | `/orders/{id}` | Fetch one order |\n| POST | `/orders` | Create an order |\n\n## Failure handling\n\n1. The client retries up to **3 times**.\n2. After that the request goes to the *dead letter* queue.\n3. On-call is paged if the queue is deeper than 100.\n\n#### Notes\n\n- Timeouts are 2.5 s.\n- See [the runbook](docs/runbook.md) for rollback steps.\n- Diagrams live in `docs/diagrams`.\n\n```sh\nmake deploy ENV=staging\n```\n\n## Contact\n\nAsk in #orders-platform.",
+    "guess": "markdown"
+  },
+  {
+    "text": "std::vector<int> ids = {1, 2, 3};",
+    "guess": "cpp"
+  },
+  {
+    "text": "#include <iostream>\n#include <vector>\n\nint main() {\n    std::vector<int> ids = {1, 2, 3};\n    for (const auto& id : ids) {\n        std::cout << id << std::endl;\n    }\n    return 0;\n}",
+    "guess": "cpp"
+  },
+  {
+    "text": "#include <memory>\n#include <string>\n#include <unordered_map>\n\nnamespace orders {\n\nclass Order {\npublic:\n    Order(std::string id, double total) : id_(std::move(id)), total_(total) {}\n    const std::string& id() const { return id_; }\n    double total() const noexcept { return total_; }\n\nprivate:\n    std::string id_;\n    double total_;\n};\n\nclass Repository {\npublic:\n    void add(std::shared_ptr<Order> order) {\n        items_[order->id()] = std::move(order);\n    }\n\n    std::shared_ptr<Order> find(const std::string& id) const {\n        auto it = items_.find(id);\n        return it == items_.end() ? nullptr : it->second;\n    }\n\nprivate:\n    std::unordered_map<std::string, std::shared_ptr<Order>> items_;\n};\n\n}  // namespace orders",
+    "guess": "cpp"
+  },
+  {
+    "text": "#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct {\n    int id;\n    double total;\n} order_t;\n\nint main(int argc, char **argv) {\n    order_t *o = malloc(sizeof(order_t));\n    o->id = 1;\n    o->total = 42.5;\n    printf(\"order %d: %.2f\\n\", o->id, o->total);\n    free(o);\n    return 0;\n}",
+    "guess": "c"
+  },
+  {
+    "text": "$order = Order::where('id', $id)->firstOrFail();",
+    "guess": "php"
+  },
+  {
+    "text": "<?php\n\nnamespace App\\Http\\Controllers;\n\nuse App\\Models\\Order;\nuse Illuminate\\Http\\Request;\n\nclass OrderController extends Controller\n{\n    public function show(Request $request, int $id)\n    {\n        $order = Order::findOrFail($id);\n        return response()->json($order);\n    }\n}",
+    "guess": "php"
+  },
+  {
+    "text": "<?php\n\ndeclare(strict_types=1);\n\nnamespace App\\Services;\n\nuse App\\Models\\Order;\nuse Illuminate\\Support\\Facades\\DB;\nuse InvalidArgumentException;\n\nfinal class OrderService\n{\n    public function __construct(private readonly PaymentGateway $payments)\n    {\n    }\n\n    public function place(array $data): Order\n    {\n        if (empty($data['sku'])) {\n            throw new InvalidArgumentException('sku is required');\n        }\n\n        return DB::transaction(function () use ($data) {\n            $order = Order::create([\n                'sku' => $data['sku'],\n                'quantity' => $data['quantity'] ?? 1,\n            ]);\n            $this->payments->charge($order->customer_id, $order->total);\n            return $order;\n        });\n    }\n\n    public function totals(): array\n    {\n        return Order::all()->map(fn ($o) => $o->total)->toArray();\n    }\n}",
+    "guess": "php"
+  },
+  {
+    "text": "orders.select { |o| o.total > 100 }.map(&:id)",
+    "guess": "ruby"
+  },
+  {
+    "text": "class OrdersController < ApplicationController\n  before_action :set_order, only: [:show]\n\n  def show\n    render json: @order\n  end\n\n  private\n\n  def set_order\n    @order = Order.find(params[:id])\n  end\nend",
+    "guess": "ruby"
+  },
+  {
+    "text": "require 'sinatra'\nrequire 'json'\n\nmodule Orders\n  class Service\n    attr_reader :repo\n\n    def initialize(repo)\n      @repo = repo\n    end\n\n    def total_for(customer_id)\n      repo.all\n          .select { |o| o.customer_id == customer_id }\n          .sum(&:total)\n    end\n\n    def place(params)\n      raise ArgumentError, 'sku required' unless params[:sku]\n      order = repo.create(sku: params[:sku], quantity: params.fetch(:quantity, 1))\n      puts \"placed #{order.id}\"\n      order\n    end\n  end\nend\n\nget '/orders/:id' do\n  content_type :json\n  order = settings.service.repo.find(params[:id])\n  halt 404, { error: 'not found' }.to_json if order.nil?\n  order.to_h.to_json\nend",
+    "guess": "ruby"
+  },
+  {
+    "text": "let order = try await api.fetchOrder(id: orderID)",
+    "guess": "swift"
+  },
+  {
+    "text": "struct Order: Codable, Identifiable {\n    let id: UUID\n    var total: Decimal\n    var paid = false\n}\n\nfunc loadOrder(id: UUID) async throws -> Order {\n    let (data, _) = try await URLSession.shared.data(from: url(for: id))\n    return try JSONDecoder().decode(Order.self, from: data)\n}",
+    "guess": "swift"
+  },
+  {
+    "text": "import SwiftUI\n\nfinal class OrdersViewModel: ObservableObject {\n    @Published var orders: [Order] = []\n    @Published var error: String?\n\n    private let api: OrdersAPI\n\n    init(api: OrdersAPI) {\n        self.api = api\n    }\n\n    @MainActor\n    func load() async {\n        do {\n            orders = try await api.fetchOrders()\n        } catch {\n            self.error = error.localizedDescription\n        }\n    }\n}\n\nstruct OrdersView: View {\n    @StateObject private var model: OrdersViewModel\n\n    var body: some View {\n        List(model.orders) { order in\n            HStack {\n                Text(order.id.uuidString)\n                Spacer()\n                Text(\"\\(order.total)\")\n            }\n        }\n        .task { await model.load() }\n    }\n}",
+    "guess": "swift"
+  },
+  {
+    "text": "const unread: Map<string, number> = new Map();",
+    "guess": "typescript"
+  },
+  {
+    "text": "interface TokenClaims {\n  sub: string;\n  scope: string[];\n  exp: number;\n}\n\nexport function isExpired(claims: TokenClaims, now: number = Date.now() / 1000): boolean {\n  return claims.exp <= now;\n}",
+    "guess": "typescript"
+  },
+  {
+    "text": "import { Router, Request, Response, NextFunction } from 'express';\nimport multer from 'multer';\nimport { randomUUID } from 'crypto';\nimport { storage } from './storage';\n\nconst upload = multer({ limits: { fileSize: 10 * 1024 * 1024 } });\nexport const uploadsRouter = Router();\ninterface UploadResult {\n  id: string;\n  size: number;\n  url: string;\n}\n\nuploadsRouter.post(\n  '/uploads',\n  upload.single('file'),\n  async (req: Request, res: Response<UploadResult | { error: string }>, next: NextFunction) => {\n    try {\n      if (!req.file) {\n        return res.status(400).json({ error: 'No file provided' });\n      }\n      const id = randomUUID();\n      const url = await storage.put(`uploads/${id}`, req.file.buffer, req.file.mimetype);\n      res.status(201).json({ id, size: req.file.size, url });\n    } catch (err) {\n      next(err);\n    }\n  }\n);",
+    "guess": "typescript"
+  },
+  {
+    "text": "const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);",
+    "guess": "javascript"
+  },
+  {
+    "text": "async function withRetry(fn, attempts = 3, delayMs = 200) {\n  for (let i = 0; i < attempts; i++) {\n    try {\n      return await fn();\n    } catch (err) {\n      if (i === attempts - 1) throw err;\n      await new Promise((resolve) => setTimeout(resolve, delayMs * 2 ** i));\n    }\n  }\n}",
+    "guess": "javascript"
+  },
+  {
+    "text": "const express = require('express');\nconst Redis = require('ioredis');\n\nconst redis = new Redis(process.env.REDIS_URL);\nconst app = express();\napp.use(express.json());\n\napp.post('/scores', async (req, res) => {\n  const { player, score } = req.body;\n  if (!player || typeof score !== 'number') {\n    return res.status(400).json({ error: 'player and numeric score are required' });\n  }\n  await redis.zadd('leaderboard:weekly', 'GT', score, player);\n  const rank = await redis.zrevrank('leaderboard:weekly', player);\n  res.status(201).json({ player, score, rank: rank + 1 });\n});\n\napp.get('/scores/top', async (req, res) => {\n  const limit = Math.min(parseInt(req.query.limit, 10) || 10, 100);\n  const rows = await redis.zrevrange('leaderboard:weekly', 0, limit - 1, 'WITHSCORES');\n  const top = [];\n  for (let i = 0; i < rows.length; i += 2) {\n    top.push({ player: rows[i], score: Number(rows[i + 1]) });\n  }\n  res.json(top);\n});\n\napp.listen(3000, () => console.log('leaderboard listening on :3000'));",
+    "guess": "javascript"
+  },
+  {
+    "text": "{ \"deviceId\": \"sensor-42\", \"celsius\": 21.5, \"battery\": 0.87 }",
+    "guess": "json"
+  },
+  {
+    "text": "{\n  \"id\": \"msg_01HZX3\",\n  \"channel\": \"#release-planning\",\n  \"author\": { \"id\": 8841, \"name\": \"mira\" },\n  \"text\": \"Staging is green, cutting the build now.\",\n  \"attachments\": [],\n  \"sentAt\": \"2025-03-14T09:26:53Z\"\n}",
+    "guess": "json"
+  },
+  {
+    "text": "{\n  \"invoice\": {\n    \"number\": \"INV-2025-0412\",\n    \"customerId\": \"cus_9f3a1c\",\n    \"currency\": \"EUR\",\n    \"issuedAt\": \"2025-04-01\",\n    \"dueAt\": \"2025-04-30\",\n    \"lines\": [\n      {\n        \"description\": \"Pro plan (25 seats)\",\n        \"quantity\": 25,\n        \"unitAmount\": 1200,\n        \"taxRate\": 0.2\n      },\n      {\n        \"description\": \"Extra storage, 500 GB\",\n        \"quantity\": 1,\n        \"unitAmount\": 4500,\n        \"taxRate\": 0.2\n      }\n    ],\n    \"totals\": {\n      \"subtotal\": 34500,\n      \"tax\": 6900,\n      \"total\": 41400\n    },\n    \"paid\": false\n  }\n}",
+    "guess": "json"
+  },
+  {
+    "text": "image: ghcr.io/acme/indexer:1.8.2\nimagePullPolicy: IfNotPresent",
+    "guess": "yaml"
+  },
+  {
+    "text": "services:\n  search:\n    image: opensearchproject/opensearch:2.13.0\n    environment:\n      - discovery.type=single-node\n      - DISABLE_SECURITY_PLUGIN=true\n    ports:\n      - \"9200:9200\"\n    volumes:\n      - search-data:/usr/share/opensearch/data",
+    "guess": "yaml"
+  },
+  {
+    "text": "name: ci\n\non:\n  push:\n    branches: [main]\n  pull_request:\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    strategy:\n      matrix:\n        node: [18, 20, 22]\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: ${{ matrix.node }}\n          cache: npm\n      - run: npm ci\n      - run: npm run lint\n      - run: npm test -- --coverage\n      - name: Upload coverage\n        if: matrix.node == 20\n        uses: actions/upload-artifact@v4\n        with:\n          name: coverage\n          path: coverage/",
+    "guess": "yaml"
+  },
+  {
+    "text": "var devices = await db.Sensors.Where(s => s.LastSeen > cutoff).ToListAsync();",
+    "guess": "csharp"
+  },
+  {
+    "text": "public record ScoreSubmission(Guid PlayerId, int Points, DateTime AchievedAt);\n\napp.MapPost(\"/scores\", async (ScoreSubmission submission, GameDb db) =>\n{\n    db.Scores.Add(submission.ToEntity());\n    await db.SaveChangesAsync();\n    return Results.Created($\"/scores/{submission.PlayerId}\", submission);\n});",
+    "guess": "csharp"
+  },
+  {
+    "text": "using Microsoft.Extensions.Hosting;\nusing Microsoft.Extensions.Logging;\n\nnamespace Scheduling.Workers;\n\npublic sealed class ReminderWorker(IReminderStore store, ILogger<ReminderWorker> logger) : BackgroundService\n{\n    protected override async Task ExecuteAsync(CancellationToken stoppingToken)\n    {\n        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));\n        while (await timer.WaitForNextTickAsync(stoppingToken))\n        {\n            var due = await store.GetDueAsync(DateTimeOffset.UtcNow, stoppingToken);\n            foreach (var reminder in due)\n            {\n                logger.LogInformation(\"Sending reminder {Id} to {User}\", reminder.Id, reminder.UserId);\n                await store.MarkSentAsync(reminder.Id, stoppingToken);\n            }\n        }\n    }\n}",
+    "guess": "csharp"
+  },
+  {
+    "text": "private static final Logger log = LoggerFactory.getLogger(InventoryService.class);",
+    "guess": "java"
+  },
+  {
+    "text": "@GetMapping(\"/stock/{sku}\")\npublic ResponseEntity<StockLevel> getStock(@PathVariable String sku) {\n    return stockService.find(sku)\n            .map(ResponseEntity::ok)\n            .orElseGet(() -> ResponseEntity.notFound().build());\n}",
+    "guess": "java"
+  },
+  {
+    "text": "package com.example.auth;\n\nimport io.jsonwebtoken.Jwts;\nimport io.jsonwebtoken.security.Keys;\nimport java.time.Duration;\nimport java.time.Instant;\nimport java.util.Date;\nimport javax.crypto.SecretKey;\n\npublic class TokenService {\n    private final SecretKey key;\n    private final Duration ttl;\n\n    public TokenService(String secret, Duration ttl) {\n        this.key = Keys.hmacShaKeyFor(secret.getBytes());\n        this.ttl = ttl;\n    }\n\n    public String issue(String userId, String role) {\n        Instant now = Instant.now();\n        return Jwts.builder()\n                .subject(userId)\n                .claim(\"role\", role)\n                .issuedAt(Date.from(now))\n                .expiration(Date.from(now.plus(ttl)))\n                .signWith(key)\n                .compact();\n    }\n}",
+    "guess": "java"
+  },
+  {
+    "text": "val retryable = setOf(408, 429, 502, 503, 504)",
+    "guess": "kotlin"
+  },
+  {
+    "text": "class SensorRepository(private val dao: SensorDao) {\n\n    fun observeLatest(deviceId: String): Flow<Reading?> =\n        dao.latest(deviceId).map { it?.toDomain() }\n\n    suspend fun save(reading: Reading) = dao.insert(reading.toEntity())\n}",
+    "guess": "kotlin"
+  },
+  {
+    "text": "class UploadViewModel(private val uploader: FileUploader) : ViewModel() {\n\n    private val _state = MutableStateFlow<UploadState>(UploadState.Pending)\n    val state: StateFlow<UploadState> = _state.asStateFlow()\n\n    fun upload(file: File) {\n        viewModelScope.launch {\n            _state.value = UploadState.Uploading(0)\n            try {\n                val url = uploader.send(file) { sent, total ->\n                    _state.value = UploadState.Uploading((sent * 100 / total).toInt())\n                }\n                _state.value = UploadState.Done(url)\n            } catch (e: IOException) {\n                _state.value = UploadState.Failed(e)\n            }\n        }\n    }\n}\n\nsealed interface UploadState {\n    data object Pending : UploadState\n    data class Uploading(val percent: Int) : UploadState\n    data class Done(val url: String) : UploadState\n    data class Failed(val reason: Throwable) : UploadState\n}",
+    "guess": "kotlin"
+  },
+  {
+    "text": "scores = sorted(players, key=lambda p: p.score, reverse=True)[:10]",
+    "guess": "python"
+  },
+  {
+    "text": "@app.get(\"/metrics/{service}\")\nasync def service_metrics(service: str, window: int = 300):\n    points = await store.query(service, since=time.time() - window)\n    if not points:\n        raise HTTPException(status_code=404, detail=\"no data\")\n    return {\"service\": service, \"count\": len(points), \"mean\": statistics.fmean(p.value for p in points)}",
+    "guess": "python"
+  },
+  {
+    "text": "import json\nfrom dataclasses import dataclass, field\nfrom pathlib import Path\n\n\n@dataclass\nclass Document:\n    doc_id: str\n    title: str\n    body: str\n    tags: list[str] = field(default_factory=list)\n\n\nclass InvertedIndex:\n    def __init__(self) -> None:\n        self._postings: dict[str, set[str]] = {}\n\n    def add(self, doc: Document) -> None:\n        for token in set(f\"{doc.title} {doc.body}\".lower().split()):\n            self._postings.setdefault(token, set()).add(doc.doc_id)\n\n    def search(self, query: str) -> set[str]:\n        sets = [self._postings.get(t, set()) for t in query.lower().split()]\n        return set.intersection(*sets) if sets else set()\n\n    def dump(self, path: Path) -> None:\n        payload = {k: sorted(v) for k, v in self._postings.items()}\n        path.write_text(json.dumps(payload))",
+    "guess": "python"
+  },
+  {
+    "text": "ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)",
+    "guess": "go"
+  },
+  {
+    "text": "func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {\n\tif err := s.db.PingContext(r.Context()); err != nil {\n\t\thttp.Error(w, \"database unavailable\", http.StatusServiceUnavailable)\n\t\treturn\n\t}\n\tw.Header().Set(\"Content-Type\", \"application/json\")\n\tjson.NewEncoder(w).Encode(map[string]string{\"status\": \"ok\"})\n}",
+    "guess": "go"
+  },
+  {
+    "text": "package client\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\t\"net/http\"\n\t\"time\"\n)\n\nfunc GetWithRetry(ctx context.Context, url string, attempts int) (*http.Response, error) {\n\tvar lastErr error\n\tfor i := 0; i < attempts; i++ {\n\t\treq, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)\n\t\tif err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t\tresp, err := http.DefaultClient.Do(req)\n\t\tif err == nil && resp.StatusCode < 500 {\n\t\t\treturn resp, nil\n\t\t}\n\t\tif err == nil {\n\t\t\tresp.Body.Close()\n\t\t\terr = fmt.Errorf(\"server returned %s\", resp.Status)\n\t\t}\n\t\tlastErr = err\n\t\ttime.Sleep(time.Duration(1<<i) * 100 * time.Millisecond)\n\t}\n\treturn nil, fmt.Errorf(\"giving up after %d attempts: %w\", attempts, lastErr)\n}",
+    "guess": "go"
+  },
+  {
+    "text": "let readings: Vec<f64> = samples.iter().map(|s| s.celsius).collect();",
+    "guess": "rust"
+  },
+  {
+    "text": "pub fn parse_level(raw: &str) -> Result<u8, ParseError> {\n    let value: u8 = raw.trim().parse().map_err(|_| ParseError::NotANumber)?;\n    if value > 100 {\n        return Err(ParseError::OutOfRange(value));\n    }\n    Ok(value)\n}",
+    "guess": "rust"
+  },
+  {
+    "text": "use std::collections::HashMap;\nuse tokio::sync::{broadcast, RwLock};\n\n#[derive(Clone, Debug)]\npub struct ChatMessage {\n    pub room: String,\n    pub author: String,\n    pub body: String,\n}\n\n#[derive(Default)]\npub struct Hub {\n    rooms: RwLock<HashMap<String, broadcast::Sender<ChatMessage>>>,\n}\n\nimpl Hub {\n    pub async fn subscribe(&self, room: &str) -> broadcast::Receiver<ChatMessage> {\n        let mut rooms = self.rooms.write().await;\n        rooms\n            .entry(room.to_owned())\n            .or_insert_with(|| broadcast::channel(256).0)\n            .subscribe()\n    }\n\n    pub async fn publish(&self, msg: ChatMessage) -> usize {\n        let rooms = self.rooms.read().await;\n        rooms.get(&msg.room).map_or(0, |tx| tx.send(msg).unwrap_or(0))\n    }\n}",
+    "guess": "rust"
+  },
+  {
+    "text": "SELECT sku, quantity FROM stock WHERE quantity < reorder_level ORDER BY quantity;",
+    "guess": "sql"
+  },
+  {
+    "text": "SELECT d.name,\n       AVG(r.celsius) AS avg_temp,\n       MAX(r.celsius) AS max_temp\nFROM readings r\nJOIN devices d ON d.id = r.device_id\nWHERE r.recorded_at >= NOW() - INTERVAL '1 hour'\nGROUP BY d.name\nHAVING AVG(r.celsius) > 30\nORDER BY avg_temp DESC;",
+    "guess": "sql"
+  },
+  {
+    "text": "CREATE TABLE subscriptions (\n    id            BIGSERIAL PRIMARY KEY,\n    customer_id   BIGINT NOT NULL REFERENCES customers (id),\n    plan_code     TEXT NOT NULL,\n    status        TEXT NOT NULL DEFAULT 'active',\n    started_at    TIMESTAMPTZ NOT NULL DEFAULT now(),\n    cancelled_at  TIMESTAMPTZ,\n    CONSTRAINT status_valid CHECK (status IN ('active', 'past_due', 'cancelled'))\n);\n\nCREATE INDEX idx_subscriptions_customer ON subscriptions (customer_id);\n\nWITH monthly AS (\n    SELECT s.plan_code,\n           date_trunc('month', i.issued_at) AS month,\n           SUM(i.amount_cents) AS revenue_cents\n    FROM invoices i\n    JOIN subscriptions s ON s.id = i.subscription_id\n    GROUP BY s.plan_code, date_trunc('month', i.issued_at)\n)\nSELECT plan_code,\n       month,\n       revenue_cents,\n       revenue_cents - LAG(revenue_cents) OVER (PARTITION BY plan_code ORDER BY month) AS change\nFROM monthly\nORDER BY plan_code, month;",
+    "guess": "sql"
+  },
+  {
+    "text": "curl -sS -X POST https://api.example.com/v1/devices/42/reset -H \"Authorization: Bearer $TOKEN\"",
+    "guess": "bash"
+  },
+  {
+    "text": "#!/usr/bin/env bash\nset -euo pipefail\n\nBACKUP_DIR=\"/var/backups/uploads\"\nSTAMP=$(date +%Y%m%d-%H%M)\n\ntar -czf \"$BACKUP_DIR/uploads-$STAMP.tar.gz\" /srv/uploads\nfind \"$BACKUP_DIR\" -name 'uploads-*.tar.gz' -mtime +14 -delete",
+    "guess": "bash"
+  },
+  {
+    "text": "#!/usr/bin/env bash\nset -euo pipefail\n\nSERVICE=\"${1:?usage: deploy.sh <service> <version>}\"\nVERSION=\"${2:?usage: deploy.sh <service> <version>}\"\nIMAGE=\"registry.internal:5000/$SERVICE:$VERSION\"\n\necho \"pulling $IMAGE\"\ndocker pull \"$IMAGE\"\n\nif docker ps --format '{{.Names}}' | grep -qx \"$SERVICE\"; then\n  docker stop \"$SERVICE\" && docker rm \"$SERVICE\"\nfi\n\ndocker run -d --name \"$SERVICE\" --restart unless-stopped -p 8080:8080 \"$IMAGE\"\n\nfor i in {1..10}; do\n  if curl -fsS http://localhost:8080/healthz > /dev/null; then\n    echo \"healthy after ${i}s\"\n    exit 0\n  fi\n  sleep 1\ndone\n\necho \"service did not become healthy\" >&2\nexit 1",
+    "guess": "bash"
+  },
+  {
+    "text": "Get-ChildItem -Path C:\\Uploads -Recurse -File | Where-Object { $_.Length -gt 100MB }",
+    "guess": "powershell"
+  },
+  {
+    "text": "param(\n    [Parameter(Mandatory)][string]$LogPath,\n    [int]$KeepDays = 30\n)\n\nGet-ChildItem -Path $LogPath -Filter *.log |\n    Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-$KeepDays) } |\n    Remove-Item -WhatIf",
+    "guess": "powershell"
+  },
+  {
+    "text": "function Restart-StalledService {\n    [CmdletBinding(SupportsShouldProcess)]\n    param(\n        [Parameter(Mandatory, ValueFromPipeline)]\n        [string[]]$Name,\n\n        [int]$TimeoutSeconds = 30\n    )\n\n    process {\n        foreach ($serviceName in $Name) {\n            $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue\n            if (-not $service) {\n                Write-Warning \"Service '$serviceName' was not found.\"\n                continue\n            }\n\n            if ($service.Status -ne 'Running' -and $PSCmdlet.ShouldProcess($serviceName, 'Restart')) {\n                Restart-Service -Name $serviceName -Force\n                $service.WaitForStatus('Running', [TimeSpan]::FromSeconds($TimeoutSeconds))\n                Write-Verbose \"Restarted $serviceName\"\n            }\n        }\n    }\n}",
+    "guess": "powershell"
+  },
+  {
+    "text": "<button type=\"submit\" class=\"btn btn-primary\" disabled>Upload file</button>",
+    "guess": "html"
+  },
+  {
+    "text": "<form action=\"/uploads\" method=\"post\" enctype=\"multipart/form-data\">\n  <label for=\"avatar\">Choose a profile picture</label>\n  <input type=\"file\" id=\"avatar\" name=\"avatar\" accept=\"image/png, image/jpeg\">\n  <button type=\"submit\">Upload</button>\n</form>",
+    "guess": "html"
+  },
+  {
+    "text": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Sensor dashboard</title>\n  <link rel=\"stylesheet\" href=\"/static/dashboard.css\">\n</head>\n<body>\n  <header class=\"topbar\">\n    <h1>Greenhouse sensors</h1>\n    <nav>\n      <a href=\"/devices\">Devices</a>\n      <a href=\"/alerts\">Alerts</a>\n    </nav>\n  </header>\n  <main>\n    <section id=\"readings\" aria-live=\"polite\">\n      <table>\n        <thead>\n          <tr><th>Device</th><th>Temp (&deg;C)</th><th>Humidity</th></tr>\n        </thead>\n        <tbody></tbody>\n      </table>\n    </section>\n  </main>\n  <script src=\"/static/dashboard.js\" defer></script>\n</body>\n</html>",
+    "guess": "html"
+  },
+  {
+    "text": "<Project Sdk=\"Microsoft.NET.Sdk.Web\">\n  <PropertyGroup>\n    <TargetFramework>net8.0</TargetFramework>\n    <Nullable>enable</Nullable>\n  </PropertyGroup>\n  <ItemGroup>\n    <PackageReference Include=\"Npgsql.EntityFrameworkCore.PostgreSQL\" Version=\"8.0.4\" />\n  </ItemGroup>\n</Project>",
+    "guess": "html"
+  },
+  {
+    "text": ".badge { padding: 0.25rem 0.5rem; border-radius: 9999px; background: #e0f2fe; }",
+    "guess": "css"
+  },
+  {
+    "text": ".chat-bubble {\n  max-width: 70%;\n  padding: 0.5rem 0.75rem;\n  border-radius: 12px;\n  background: var(--bubble-bg, #f1f5f9);\n  overflow-wrap: anywhere;\n}",
+    "guess": "css"
+  },
+  {
+    "text": ".inventory-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));\n  gap: 1rem;\n}\n\n.inventory-card {\n  background: #fff;\n  border: 1px solid #e5e7eb;\n  border-radius: 8px;\n  padding: 1rem;\n  transition: box-shadow 0.15s ease;\n}\n\n.inventory-card:hover {\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);\n}\n\n.inventory-card .qty--low {\n  color: #b91c1c;\n  font-weight: 600;\n}\n\n@media (max-width: 600px) {\n  .inventory-grid {\n    grid-template-columns: 1fr;\n  }\n}",
+    "guess": "css"
+  },
+  {
+    "text": "FROM golang:1.22-alpine AS builder\nWORKDIR /src",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "FROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nEXPOSE 8000\nCMD [\"uvicorn\", \"app.main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "FROM maven:3.9-eclipse-temurin-21 AS build\nWORKDIR /workspace\nCOPY pom.xml .\nRUN mvn -q dependency:go-offline\nCOPY src ./src\nRUN mvn -q package -DskipTests\n\nFROM eclipse-temurin:21-jre-alpine\nRUN addgroup -S app && adduser -S app -G app\nRUN mkdir -p /var/lib/indexer && chown app:app /var/lib/indexer\nWORKDIR /opt/indexer\nCOPY --from=build /workspace/target/indexer-*.jar app.jar\nCOPY config/ ./config/\nENV JAVA_OPTS=\"-Xms256m -Xmx512m\" \\\n    INDEX_DIR=/var/lib/indexer\nVOLUME /var/lib/indexer\nUSER app\nEXPOSE 9300\nHEALTHCHECK --interval=30s --timeout=3s --retries=3 \\\n  CMD wget -qO- http://localhost:9300/health || exit 1\nENTRYPOINT [\"sh\", \"-c\", \"exec java $JAVA_OPTS -jar app.jar\"]",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "> **Warning**\n> Rotating the signing key invalidates every active session.",
+    "guess": "markdown"
+  },
+  {
+    "text": "## Rate limits\n\n| Endpoint | Limit | Window |\n| --- | --- | --- |\n| `POST /messages` | 60 | 1 minute |\n| `GET /channels` | 600 | 1 minute |\n\nRequests over the limit receive `429 Too Many Requests` with a `Retry-After` header.",
+    "guess": "markdown"
+  },
+  {
+    "text": "# Leaderboard Service\n\nA small HTTP service that stores game scores and serves weekly rankings.\n\n## Features\n\n- Submit scores per player\n- Weekly and all-time leaderboards\n- Redis-backed, no schema migrations\n\n## Getting started\n\n1. Clone the repo and run `npm install`.\n2. Set `REDIS_URL` in your environment.\n3. Start the server with `npm start`.\n\n#### Configuration\n\n| Variable | Default | Description |\n| --- | --- | --- |\n| `PORT` | `3000` | HTTP port |\n| `REDIS_URL` | none | Connection string |\n\n## Contributing\n\nOpen an issue first for larger changes. See [CONTRIBUTING.md](CONTRIBUTING.md) for the test workflow.",
+    "guess": "markdown"
+  },
+  {
+    "text": "const auto& [id, level] = *stock.begin();",
+    "guess": "c"
+  },
+  {
+    "text": "class RingBuffer {\npublic:\n    explicit RingBuffer(std::size_t capacity) : data_(capacity) {}\n    void push(double sample) { data_[head_++ % data_.size()] = sample; }\n\nprivate:\n    std::vector<double> data_;\n    std::size_t head_ = 0;\n};",
+    "guess": "cpp"
+  },
+  {
+    "text": "#include <condition_variable>\n#include <functional>\n#include <mutex>\n#include <queue>\n\nclass TaskQueue {\npublic:\n    using Task = std::function<void()>;\n    void push(Task task) {\n        {\n            std::lock_guard<std::mutex> lock(mutex_);\n            tasks_.push(std::move(task));\n        }\n        cv_.notify_one();\n    }\n\n    Task pop() {\n        std::unique_lock<std::mutex> lock(mutex_);\n        cv_.wait(lock, [this] { return !tasks_.empty(); });\n        Task task = std::move(tasks_.front());\n        tasks_.pop();\n        return task;\n    }\n\nprivate:\n    std::queue<Task> tasks_;\n    std::mutex mutex_;\n    std::condition_variable cv_;\n};",
+    "guess": "cpp"
+  },
+  {
+    "text": "#include <stddef.h>\n#include <stdint.h>\n\nuint8_t checksum(const uint8_t *buf, size_t len)\n{\n    uint8_t sum = 0;\n    for (size_t i = 0; i < len; i++)\n        sum ^= buf[i];\n    return sum;\n}",
+    "guess": "c"
+  },
+  {
+    "text": "$user = User::where('email', $request->input('email'))->firstOrFail();",
+    "guess": "php"
+  },
+  {
+    "text": "public function store(StoreInvoiceRequest $request): JsonResponse\n{\n    $invoice = Invoice::create($request->validated());\n\n    return response()->json($invoice, 201);\n}",
+    "guess": "php"
+  },
+  {
+    "text": "<?php\n\ndeclare(strict_types=1);\n\nnamespace App\\Services;\n\nuse Illuminate\\Support\\Facades\\Cache;\nuse Illuminate\\Support\\Str;\n\nfinal class ApiTokenService\n{\n    public function __construct(private readonly int $ttlMinutes = 60)\n    {\n    }\n\n    public function issue(int $userId): string\n    {\n        $token = Str::random(40);\n        Cache::put(\"api_token:{$token}\", $userId, now()->addMinutes($this->ttlMinutes));\n\n        return $token;\n    }\n\n    public function resolve(string $token): ?int\n    {\n        return Cache::get(\"api_token:{$token}\");\n    }\n}",
+    "guess": "php"
+  },
+  {
+    "text": "scores = players.sort_by { |p| -p.score }.first(10)",
+    "guess": "ruby"
+  },
+  {
+    "text": "class ChannelsController < ApplicationController\n  before_action :authenticate_user!\n\n  def index\n    @channels = current_user.channels.order(:name)\n    render json: @channels\n  end\nend",
+    "guess": "ruby"
+  },
+  {
+    "text": "require \"net/http\"\nrequire \"json\"\n\nclass WebhookDispatcher\n  MAX_ATTEMPTS = 4\n\n  def initialize(url)\n    @uri = URI(url)\n  end\n\n  def deliver(payload)\n    attempts = 0\n    begin\n      attempts += 1\n      response = Net::HTTP.post(@uri, payload.to_json, \"Content-Type\" => \"application/json\")\n      raise \"unexpected status #{response.code}\" unless response.is_a?(Net::HTTPSuccess)\n      response\n    rescue StandardError\n      raise if attempts >= MAX_ATTEMPTS\n      sleep(2**attempts)\n      retry\n    end\n  end\nend",
+    "guess": "ruby"
+  },
+  {
+    "text": "guard let url = URL(string: endpoint) else { return }",
+    "guess": "swift"
+  },
+  {
+    "text": "struct ChatMessage: Codable, Identifiable {\n    let id: UUID\n    let author: String\n    let text: String\n    let sentAt: Date\n\n    var isRecent: Bool { sentAt.timeIntervalSinceNow > -60 }\n}",
+    "guess": "swift"
+  },
+  {
+    "text": "import Foundation\n\nenum APIError: Error {\n    case invalidResponse\n    case server(status: Int)\n}\n\nstruct ScoreClient {\n    let baseURL: URL\n    var session: URLSession = .shared\n\n    func topScores(limit: Int = 10) async throws -> [Score] {\n        var components = URLComponents(url: baseURL.appendingPathComponent(\"scores\"), resolvingAgainstBaseURL: false)!\n        components.queryItems = [URLQueryItem(name: \"limit\", value: String(limit))]\n\n        let (data, response) = try await session.data(from: components.url!)\n        guard let http = response as? HTTPURLResponse else {\n            throw APIError.invalidResponse\n        }\n        guard (200..<300).contains(http.statusCode) else {\n            throw APIError.server(status: http.statusCode)\n        }\n\n        let decoder = JSONDecoder()\n        decoder.dateDecodingStrategy = .iso8601\n        return try decoder.decode([Score].self, from: data)\n    }\n}",
+    "guess": "swift"
+  },
+  {
+    "text": "export const capacity = (servers: number, perServer: number): number => servers * perServer * 0.7;",
+    "guess": "typescript"
+  },
+  {
+    "text": "export async function chargeOrder(orderId: string, deps: Deps): Promise<Receipt> {\n  const order = await deps.orders.get(orderId);\n  if (!order) throw new NotFoundError(`order ${orderId}`);\n  const intent = await deps.payments.createIntent({\n    amount: order.total,\n    currency: order.currency,\n    idempotencyKey: order.id,\n  });\n  return { orderId, intentId: intent.id, status: intent.status };\n}",
+    "guess": "typescript"
+  },
+  {
+    "text": "interface RetryOptions {\n  attempts: number;\n  baseDelayMs: number;\n  maxDelayMs?: number;\n}\n\nexport async function withRetry<T>(\n  fn: () => Promise<T>,\n  { attempts, baseDelayMs, maxDelayMs = 10_000 }: RetryOptions,\n): Promise<T> {\n  let lastError: unknown;\n  for (let i = 0; i < attempts; i++) {\n    try {\n      return await fn();\n    } catch (err) {\n      lastError = err;\n      const delay = Math.min(baseDelayMs * 2 ** i, maxDelayMs);\n      await new Promise<void>((resolve) => setTimeout(resolve, delay));\n    }\n  }\n  throw lastError;\n}",
+    "guess": "typescript"
+  },
+  {
+    "text": "Orders are routed to the nearest kitchen that still has a free slot at pick-up time.",
+    "guess": null
+  },
+  {
+    "text": "const { Router } = require(\"express\");\nmodule.exports = Router().get(\"/health\", (req, res) => res.json({ ok: true }));",
+    "guess": "javascript"
+  },
+  {
+    "text": "router.post(\"/webhooks/stripe\", express.raw({ type: \"application/json\" }), (req, res) => {\n  let event;\n  try {\n    event = stripe.webhooks.constructEvent(req.body, req.get(\"stripe-signature\"), secret);\n  } catch (err) {\n    return res.status(400).send(`Webhook error: ${err.message}`);\n  }\n  queue.add(event.type, event.data.object);\n  res.sendStatus(200);\n});",
+    "guess": "javascript"
+  },
+  {
+    "text": "const { Kafka } = require(\"kafkajs\");\n\nconst kafka = new Kafka({ clientId: \"billing\", brokers: process.env.BROKERS.split(\",\") });\nconst consumer = kafka.consumer({ groupId: \"billing-invoices\" });\n\nasync function run() {\n  await consumer.connect();\n  await consumer.subscribe({ topic: \"orders.paid\", fromBeginning: false });\n\n  await consumer.run({\n    eachMessage: async ({ topic, partition, message }) => {\n      const order = JSON.parse(message.value.toString());\n      try {\n        await createInvoice(order);\n      } catch (err) {\n        console.error(`invoice failed for ${order.id}`, err);\n        await deadLetter.send({ topic: \"orders.paid.dlq\", messages: [message] });\n      }\n    },\n  });\n}\n\nrun().catch((e) => {\n  console.error(e);\n  process.exit(1);\n});",
+    "guess": "javascript"
+  },
+  {
+    "text": "{ \"event\": \"order.paid\", \"orderId\": \"ord_8841\", \"amount\": 4250, \"currency\": \"EUR\" }",
+    "guess": "json"
+  },
+  {
+    "text": "The retry queue holds failed payments for up to 24 hours.\nAfter that they move to the dead-letter table and finance is notified.",
+    "guess": null
+  },
+  {
+    "text": "{\n  \"id\": \"evt_01HZX4\",\n  \"type\": \"order.shipped\",\n  \"occurredAt\": \"2026-03-14T09:21:07Z\",\n  \"data\": { \"orderId\": \"ord_8841\", \"carrier\": \"dhl\", \"tracking\": \"JD0146000033\" },\n  \"meta\": { \"version\": 2, \"source\": \"fulfilment\" }\n}",
+    "guess": "json"
+  },
+  {
+    "text": "{\n  \"name\": \"orders-service\",\n  \"version\": \"1.14.2\",\n  \"private\": true,\n  \"scripts\": {\n    \"build\": \"tsc -p tsconfig.build.json\",\n    \"start\": \"node dist/main.js\",\n    \"test\": \"vitest run\",\n    \"lint\": \"eslint src --max-warnings 0\"\n  },\n  \"dependencies\": {\n    \"fastify\": \"^4.26.0\",\n    \"pg\": \"^8.11.3\",\n    \"zod\": \"^3.22.4\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^5.4.2\",\n    \"vitest\": \"^1.4.0\"\n  },\n  \"engines\": { \"node\": \">=20\" }\n}",
+    "guess": "json"
+  },
+  {
+    "text": "resources:\n  limits: { cpu: 500m, memory: 256Mi }",
+    "guess": "yaml"
+  },
+  {
+    "text": "2026-03-14 09:21:07,412 INFO  [http-nio-8080-exec-3] c.a.orders.OrderService - Order ord_8841 accepted in 42 ms",
+    "guess": null
+  },
+  {
+    "text": "services:\n  api:\n    image: ghcr.io/acme/api:1.14.2\n    ports:\n      - \"8080:8080\"\n    environment:\n      DATABASE_URL: postgres://app@db:5432/app\n    depends_on:\n      - db",
+    "guess": "yaml"
+  },
+  {
+    "text": "name: ci\non:\n  push:\n    branches: [main]\n  pull_request:\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    services:\n      postgres:\n        image: postgres:16\n        env:\n          POSTGRES_PASSWORD: postgres\n        ports: [\"5432:5432\"]\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 20\n          cache: npm\n      - run: npm ci\n      - run: npm test\n        env:\n          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test",
+    "guess": "yaml"
+  },
+  {
+    "text": "SELECT customer_id, SUM(total) AS revenue FROM orders\nWHERE created_at >= now() - interval '30 days' GROUP BY customer_id;",
+    "guess": "sql"
+  },
+  {
+    "text": "    at com.acme.orders.OrderService.cancel(OrderService.java:118)",
+    "guess": null
+  },
+  {
+    "text": "WITH recent AS (\n  SELECT customer_id, total\n  FROM orders\n  WHERE created_at >= CURRENT_DATE - INTERVAL '90 days'\n)\nSELECT c.id, c.email, COUNT(*) AS orders, SUM(r.total) AS spend\nFROM recent r\nJOIN customers c ON c.id = r.customer_id\nGROUP BY c.id, c.email\nHAVING SUM(r.total) > 500;",
+    "guess": "sql"
+  },
+  {
+    "text": "CREATE TABLE customers (\n  id          BIGSERIAL PRIMARY KEY,\n  email       TEXT NOT NULL UNIQUE,\n  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()\n);\n\nCREATE TABLE orders (\n  id           BIGSERIAL PRIMARY KEY,\n  customer_id  BIGINT NOT NULL REFERENCES customers (id),\n  status       TEXT NOT NULL DEFAULT 'pending',\n  total_cents  INTEGER NOT NULL CHECK (total_cents >= 0),\n  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()\n);\n\nCREATE INDEX orders_customer_idx ON orders (customer_id, created_at DESC);\n\nCREATE VIEW paid_orders AS\n  SELECT * FROM orders WHERE status = 'paid';",
+    "guess": "sql"
+  },
+  {
+    "text": "curl -sS -X POST https://api.acme.io/v1/orders -H \"Authorization: Bearer $TOKEN\" \\\n  -H \"Content-Type: application/json\" -d @order.json",
+    "guess": "bash"
+  },
+  {
+    "text": "Throughput",
+    "guess": null
+  },
+  {
+    "text": "#!/usr/bin/env bash\nset -euo pipefail\n\nfor f in migrations/*.sql; do\n  echo \"applying $f\"\n  psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f \"$f\"\ndone",
+    "guess": "bash"
+  },
+  {
+    "text": "#!/usr/bin/env bash\nset -euo pipefail\n\nAPP=${1:?usage: deploy.sh <app> <tag>}\nTAG=${2:?usage: deploy.sh <app> <tag>}\nREGISTRY=registry.acme.io\n\nlog() { printf '[%s] %s\\n' \"$(date +%T)\" \"$*\"; }\n\nlog \"building $APP:$TAG\"\ndocker build -t \"$REGISTRY/$APP:$TAG\" .\ndocker push \"$REGISTRY/$APP:$TAG\"\n\nlog \"rolling out\"\nkubectl set image \"deployment/$APP\" \"$APP=$REGISTRY/$APP:$TAG\" -n prod\nif ! kubectl rollout status \"deployment/$APP\" -n prod --timeout=180s; then\n  log \"rollout failed, undoing\"\n  kubectl rollout undo \"deployment/$APP\" -n prod\n  exit 1\nfi\nlog \"done\"",
+    "guess": "bash"
+  },
+  {
+    "text": "var order = await _db.Orders.Include(o => o.Lines).FirstOrDefaultAsync(o => o.Id == id, ct);",
+    "guess": "csharp"
+  },
+  {
+    "text": "• Receives the order from the storefront\n• Checks stock in the warehouse system\n• Confirms the delivery slot with the customer",
+    "guess": null
+  },
+  {
+    "text": "[HttpPost(\"{id:guid}/cancel\")]\npublic async Task<IActionResult> Cancel(Guid id, CancellationToken ct)\n{\n    var order = await _orders.FindAsync(id, ct);\n    if (order is null) return NotFound();\n    order.Cancel(_clock.UtcNow);\n    await _orders.SaveAsync(order, ct);\n    return NoContent();\n}",
+    "guess": "csharp"
+  },
+  {
+    "text": "public sealed class CreateOrderHandler : IRequestHandler<CreateOrder, OrderDto>\n{\n    private readonly AppDbContext _db;\n    private readonly IClock _clock;\n    private readonly ILogger<CreateOrderHandler> _logger;\n\n    public CreateOrderHandler(AppDbContext db, IClock clock, ILogger<CreateOrderHandler> logger)\n    {\n        _db = db;\n        _clock = clock;\n        _logger = logger;\n    }\n\n    public async Task<OrderDto> Handle(CreateOrder request, CancellationToken ct)\n    {\n        var order = Order.Create(request.CustomerId, request.Lines, _clock.UtcNow);\n        _db.Orders.Add(order);\n        await _db.SaveChangesAsync(ct);\n        _logger.LogInformation(\"Order {OrderId} created for {CustomerId}\", order.Id, order.CustomerId);\n        return order.ToDto();\n    }\n}",
+    "guess": "csharp"
+  },
+  {
+    "text": "payload = {k: v for k, v in request.args.items() if k in ALLOWED_FIELDS}",
+    "guess": "python"
+  },
+  {
+    "text": "Browser --> Gateway --> Orders --> Postgres\n                          |\n                          +--> Kafka --> Billing",
+    "guess": null
+  },
+  {
+    "text": "@app.post(\"/orders/{order_id}/refund\")\nasync def refund(order_id: int, body: RefundIn, db: Session = Depends(get_db)):\n    order = db.get(Order, order_id)\n    if order is None:\n        raise HTTPException(status_code=404, detail=\"order not found\")\n    order.refunded_cents += body.amount_cents\n    db.commit()\n    return {\"refunded\": order.refunded_cents}",
+    "guess": "python"
+  },
+  {
+    "text": "from dataclasses import dataclass\nfrom datetime import datetime, timedelta\n\n\n@dataclass\nclass Lease:\n    key: str\n    owner: str\n    expires_at: datetime\n\n    def expired(self, now: datetime) -> bool:\n        return now >= self.expires_at\n\n\nclass LeaseStore:\n    def __init__(self, ttl_seconds: int = 30):\n        self._leases: dict[str, Lease] = {}\n        self._ttl = timedelta(seconds=ttl_seconds)\n\n    def acquire(self, key: str, owner: str) -> bool:\n        now = datetime.utcnow()\n        current = self._leases.get(key)\n        if current and not current.expired(now) and current.owner != owner:\n            return False\n        self._leases[key] = Lease(key, owner, now + self._ttl)\n        return True",
+    "guess": "python"
+  },
+  {
+    "text": "List<String> ids = orders.stream().map(Order::getId).collect(Collectors.toList());",
+    "guess": "java"
+  },
+  {
+    "text": "FATAL: password authentication failed for user \"app\"",
+    "guess": null
+  },
+  {
+    "text": "@Service\npublic class PriceService {\n    private final DiscountRepository discounts;\n\n    public BigDecimal priceFor(Order order) {\n        return discounts.findActive(order.getCustomerId())\n                .map(d -> order.getSubtotal().multiply(BigDecimal.ONE.subtract(d.getRate())))\n                .orElse(order.getSubtotal());\n    }\n}",
+    "guess": "java"
+  },
+  {
+    "text": "@Entity\n@Table(name = \"orders\")\npublic class Order {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    @Column(nullable = false)\n    private String customerId;\n\n    @Enumerated(EnumType.STRING)\n    private OrderStatus status = OrderStatus.PENDING;\n\n    @OneToMany(mappedBy = \"order\", cascade = CascadeType.ALL, orphanRemoval = true)\n    private List<OrderLine> lines = new ArrayList<>();\n\n    public BigDecimal total() {\n        return lines.stream()\n                .map(OrderLine::subtotal)\n                .reduce(BigDecimal.ZERO, BigDecimal::add);\n    }\n}",
+    "guess": "java"
+  },
+  {
+    "text": "let cfg: Config = serde_json::from_str(&raw).map_err(|e| anyhow!(\"bad config: {e}\"))?;",
+    "guess": "rust"
+  },
+  {
+    "text": "https://api.acme.io/v1/orders?status=paid&limit=50",
+    "guess": null
+  },
+  {
+    "text": "use std::collections::HashMap;\nuse std::sync::Arc;\nuse tokio::sync::RwLock;\n\n#[derive(Clone, Default)]\npub struct Cache {\n    inner: Arc<RwLock<HashMap<String, Vec<u8>>>>,\n}\n\nimpl Cache {\n    pub async fn get(&self, key: &str) -> Option<Vec<u8>> {\n        self.inner.read().await.get(key).cloned()\n    }\n\n    pub async fn put(&self, key: impl Into<String>, value: Vec<u8>) {\n        let mut guard = self.inner.write().await;\n        guard.insert(key.into(), value);\n    }\n\n    pub async fn len(&self) -> usize {\n        self.inner.read().await.len()\n    }\n}",
+    "guess": "rust"
+  },
+  {
+    "text": "auto it = std::find_if(jobs.begin(), jobs.end(), [&](const Job& j) { return j.id == id; });",
+    "guess": "cpp"
+  },
+  {
+    "text": "2.14.0-rc.3",
+    "guess": null
+  },
+  {
+    "text": "struct RateLimiter {\n    bool allow(const std::string& key) {\n        std::lock_guard<std::mutex> lock(mu);\n        return ++counts[key] <= limit;\n    }\n    std::size_t limit = 100;\n    std::unordered_map<std::string, std::size_t> counts;\n    std::mutex mu;\n};",
+    "guess": "cpp"
+  },
+  {
+    "text": "$orders = Order::where('status', 'paid')->with('customer')->orderBy('created_at', 'desc')->get();",
+    "guess": "php"
+  },
+  {
+    "text": "level   req/s   p95 ms   errors\n1       100     95       0.0%\n2       200     110      0.1%\n3       400     420      2.4%",
+    "guess": null
+  },
+  {
+    "text": "<?php\n\nnamespace App\\Http\\Controllers;\n\nuse App\\Models\\Order;\nuse Illuminate\\Http\\Request;\n\nclass OrderController extends Controller\n{\n    public function store(Request $request)\n    {\n        $data = $request->validate([\n            'customer_id' => 'required|exists:customers,id',\n            'items' => 'required|array|min:1',\n        ]);\n\n        $order = Order::create([\n            'customer_id' => $data['customer_id'],\n            'status' => 'pending',\n        ]);\n        $order->items()->createMany($data['items']);\n\n        return response()->json($order->load('items'), 201);\n    }\n}",
+    "guess": "php"
+  },
+  {
+    "text": "orders = Order.where(status: \"paid\").includes(:customer).order(created_at: :desc).limit(50)",
+    "guess": null
+  },
+  {
+    "text": "fix: handle an empty cart at checkout (#412)",
+    "guess": null
+  },
+  {
+    "text": "class OrdersController < ApplicationController\n  def create\n    @order = current_user.orders.build(order_params)\n    if @order.save\n      redirect_to @order, notice: \"Order placed\"\n    else\n      render :new, status: :unprocessable_entity\n    end\n  end\nend",
+    "guess": "ruby"
+  },
+  {
+    "text": "func (s *Server) handleOrder(w http.ResponseWriter, r *http.Request) {\n\tid := chi.URLParam(r, \"id\")\n\torder, err := s.store.Get(r.Context(), id)\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), http.StatusNotFound)\n\t\treturn\n\t}\n\tjson.NewEncoder(w).Encode(order)\n}",
+    "guess": "go"
+  },
+  {
+    "text": "/etc/nginx/conf.d/default.conf",
+    "guess": null
+  },
+  {
+    "text": "package main\n\nimport (\n\t\"context\"\n\t\"log\"\n\t\"net/http\"\n\t\"os/signal\"\n\t\"syscall\"\n\t\"time\"\n)\n\nfunc main() {\n\tctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)\n\tdefer stop()\n\n\tsrv := &http.Server{Addr: \":8080\", Handler: routes()}\n\tgo func() {\n\t\tif err := srv.ListenAndServe(); err != http.ErrServerClosed {\n\t\t\tlog.Fatalf(\"listen: %v\", err)\n\t\t}\n\t}()\n\n\t<-ctx.Done()\n\tshutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)\n\tdefer cancel()\n\tif err := srv.Shutdown(shutdownCtx); err != nil {\n\t\tlog.Printf(\"shutdown: %v\", err)\n\t}\n}",
+    "guess": "go"
+  },
+  {
+    "text": "data class Money(val amount: Long, val currency: String)",
+    "guess": "kotlin"
+  },
+  {
+    "text": "Each service owns its own database and other services never read it directly.\nThey ask for data through the owning service's API, or they subscribe to the\nevents it publishes. This keeps schema changes local to one team.",
+    "guess": null
+  },
+  {
+    "text": "class OrderService(private val repo: OrderRepository) {\n    suspend fun cancel(id: UUID): Order {\n        val order = repo.find(id) ?: throw NotFoundException(\"order $id\")\n        check(order.status == Status.PENDING) { \"cannot cancel ${order.status}\" }\n        return repo.save(order.copy(status = Status.CANCELLED))\n    }\n}",
+    "guess": "kotlin"
+  },
+  {
+    "text": "Get-ChildItem -Path .\\logs -Filter *.log | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-14) } | Remove-Item",
+    "guess": "powershell"
+  },
+  {
+    "text": "param([string]$Environment = \"staging\")\n\n$config = Get-Content \".\\config\\$Environment.json\" | ConvertFrom-Json\nforeach ($svc in $config.services) {\n    Write-Host \"Restarting $($svc.name)\"\n    Restart-Service -Name $svc.name -ErrorAction Stop\n}",
+    "guess": "powershell"
+  },
+  {
+    "text": "<form action=\"/subscribe\" method=\"post\" class=\"signup\">\n  <label for=\"email\">Email</label>\n  <input id=\"email\" name=\"email\" type=\"email\" required>\n  <button type=\"submit\" class=\"btn\">Subscribe</button>\n</form>",
+    "guess": "html"
+  },
+  {
+    "text": "09:21:07 order ord_8841 accepted\n09:21:08 payment pi_3Nx authorised\n09:21:09 order ord_8841 sent to kitchen 4",
+    "guess": null
+  },
+  {
+    "text": "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Order status</title>\n  <link rel=\"stylesheet\" href=\"/css/app.css\">\n</head>\n<body>\n  <header class=\"topbar\">\n    <a href=\"/\" class=\"logo\">Acme</a>\n    <nav>\n      <a href=\"/orders\">Orders</a>\n      <a href=\"/account\">Account</a>\n    </nav>\n  </header>\n  <main id=\"app\" data-order-id=\"8841\">\n    <h1>Your order</h1>\n    <p class=\"status\" aria-live=\"polite\">Loading...</p>\n  </main>\n  <script type=\"module\" src=\"/js/order.js\"></script>\n</body>\n</html>",
+    "guess": "html"
+  },
+  {
+    "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<configuration><appSettings><add key=\"BatchSize\" value=\"250\"/></appSettings></configuration>",
+    "guess": "xml"
+  },
+  {
+    "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\">\n  <modelVersion>4.0.0</modelVersion>\n  <groupId>com.acme</groupId>\n  <artifactId>orders-service</artifactId>\n  <version>1.14.2</version>\n</project>",
+    "guess": "xml"
+  },
+  {
+    "text": ".card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgb(0 0 0 / 12%); }",
+    "guess": "css"
+  },
+  {
+    "text": ".toolbar {\n  display: flex;\n  gap: 8px;\n  padding: 0 var(--space-3);\n  border-bottom: 1px solid var(--line);\n}",
+    "guess": "css"
+  },
+  {
+    "text": "FROM gcr.io/distroless/static-debian12\nCOPY --from=build /out/server /server",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "FROM node:20-alpine AS build\nWORKDIR /app\nCOPY package.json package-lock.json ./\nRUN npm ci\nCOPY tsconfig.json ./\nCOPY src ./src\nRUN npm run build && npm prune --omit=dev\n\nFROM node:20-alpine\nENV NODE_ENV=production\nWORKDIR /app\nRUN addgroup -S app && adduser -S app -G app\nCOPY --from=build /app/node_modules ./node_modules\nCOPY --from=build /app/dist ./dist\nUSER app\nEXPOSE 3000\nHEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost:3000/health || exit 1\nCMD [\"node\", \"dist/main.js\"]",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "## Retry policy\nRequests are retried **3 times** with exponential backoff (see [`retry.ts`](./src/retry.ts)).",
+    "guess": "markdown"
+  },
+  {
+    "text": "# Order service\n\n## Endpoints\n\n| Method | Path | Purpose |\n| --- | --- | --- |\n| POST | /orders | Create an order |\n| GET | /orders/:id | Fetch one order |",
+    "guess": "markdown"
+  },
+  {
+    "text": "if ((fd = open(path, O_RDONLY | O_CLOEXEC)) < 0) return -errno;",
+    "guess": "c"
+  },
+  {
+    "text": "static int read_exact(int fd, void *buf, size_t len)\n{\n    size_t done = 0;\n    while (done < len) {\n        ssize_t n = read(fd, (char *)buf + done, len - done);\n        if (n <= 0) return -1;\n        done += (size_t)n;\n    }\n    return 0;\n}",
+    "guess": "c"
+  },
+  {
+    "text": "struct Order: Codable, Identifiable {\n    let id: UUID\n    var lines: [OrderLine]\n    var total: Decimal { lines.reduce(0) { $0 + $1.price * Decimal($1.quantity) } }\n}\n\nfunc load(_ id: UUID) async throws -> Order {\n    let (data, _) = try await URLSession.shared.data(from: url(for: id))\n    return try JSONDecoder().decode(Order.self, from: data)\n}",
+    "guess": "swift"
+  },
+  {
+    "text": "import SwiftUI\n\nstruct OrderListView: View {\n    @StateObject private var model = OrderListModel()\n\n    var body: some View {\n        NavigationStack {\n            List(model.orders) { order in\n                NavigationLink(value: order) {\n                    VStack(alignment: .leading) {\n                        Text(order.number).font(.headline)\n                        Text(order.status.label).foregroundStyle(.secondary)\n                    }\n                }\n            }\n            .navigationTitle(\"Orders\")\n            .navigationDestination(for: Order.self) { OrderDetailView(order: $0) }\n            .task { await model.load() }\n            .refreshable { await model.load() }\n        }\n    }\n}",
+    "guess": "swift"
+  },
+  {
+    "text": "import { Injectable, Logger } from '@nestjs/common';\nimport { Redis } from 'ioredis';\nimport { Transfer, RiskVerdict } from './types';\n\n@Injectable()\nexport class VelocityCheck {\n  private readonly log = new Logger(VelocityCheck.name);\n\n  constructor(private readonly redis: Redis) {}\n\n  async evaluate(transfer: Transfer): Promise<RiskVerdict> {\n    const key = `velocity:${transfer.accountId}`;\n    const count = await this.redis.incr(key);\n    if (count === 1) {\n      await this.redis.expire(key, 600);\n    }\n\n    if (count > 8) {\n      this.log.warn(`account ${transfer.accountId} made ${count} transfers in 10 minutes`);\n      return { action: 'hold', reason: 'velocity' };\n    }\n    return { action: 'allow' };\n  }\n}",
+    "guess": "typescript"
+  },
+  {
+    "text": "The matcher waits up to eight seconds for a nearby driver to accept before it widens the search radius.",
+    "guess": null
+  },
+  {
+    "text": "late = [s for s in shipments if s.eta > s.promised_at and s.status != \"delivered\"]",
+    "guess": "python"
+  },
+  {
+    "text": "func (h *Handler) GetTracking(w http.ResponseWriter, r *http.Request) {\n\tid := chi.URLParam(r, \"trackingID\")\n\tshipment, err := h.store.Find(r.Context(), id)\n\tif err != nil {\n\t\thttp.Error(w, \"shipment not found\", http.StatusNotFound)\n\t\treturn\n\t}\n\tjson.NewEncoder(w).Encode(shipment)\n}",
+    "guess": "go"
+  },
+  {
+    "text": "image: registry.internal/dispatch/api:2.14.3\nimagePullPolicy: IfNotPresent",
+    "guess": "yaml"
+  },
+  {
+    "text": "• Patient checks in at the kiosk\n• Front desk confirms insurance\n• Nurse takes vitals\n• Doctor sees the patient\n• Billing closes the visit",
+    "guess": null
+  },
+  {
+    "text": "SELECT a.id, p.full_name, a.starts_at\nFROM appointments a\nJOIN patients p ON p.id = a.patient_id\nWHERE a.clinician_id = :clinician_id\n  AND a.starts_at BETWEEN :from AND :to\n  AND a.status <> 'cancelled'\nORDER BY a.starts_at;",
+    "guess": "sql"
+  },
+  {
+    "text": "app.use('/api/rides', require('./routes/rides'));",
+    "guess": "javascript"
+  },
+  {
+    "text": "use axum::{extract::{Path, State}, http::StatusCode, Json};\nuse serde::Serialize;\nuse std::sync::Arc;\n\n#[derive(Serialize)]\npub struct Eta {\n    minutes: u32,\n    driver_id: String,\n}\n\npub async fn get_eta(\n    State(app): State<Arc<AppState>>,\n    Path(ride_id): Path<String>,\n) -> Result<Json<Eta>, StatusCode> {\n    let ride = app\n        .rides\n        .get(&ride_id)\n        .await\n        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?\n        .ok_or(StatusCode::NOT_FOUND)?;\n\n    let minutes = app.routing.estimate(&ride.pickup, &ride.driver_position).await;\n    Ok(Json(Eta { minutes, driver_id: ride.driver_id }))\n}",
+    "guess": "rust"
+  },
+  {
+    "text": "2026-03-14 08:42:17,331 INFO  [dispatch-worker-3] Driver 8812 accepted ride r_8Kd2 after 3.4s",
+    "guess": null
+  },
+  {
+    "text": "var overdue = appointments.Where(a => a.StartsAt < DateTime.UtcNow && a.Status == AppointmentStatus.Scheduled).ToList();",
+    "guess": "csharp"
+  },
+  {
+    "text": "FROM node:20-alpine AS build\nWORKDIR /app\nCOPY package.json package-lock.json ./\nRUN npm ci\nCOPY tsconfig.json ./\nCOPY src ./src\nRUN npm run build && npm prune --omit=dev\n\nFROM node:20-alpine\nENV NODE_ENV=production\nWORKDIR /app\nCOPY --from=build /app/node_modules ./node_modules\nCOPY --from=build /app/dist ./dist\nRUN addgroup -S app && adduser -S app -G app\nUSER app\nEXPOSE 3000\nHEALTHCHECK --interval=30s --timeout=3s \\\n  CMD wget -qO- http://localhost:3000/health || exit 1\nCMD [\"node\", \"dist/main.js\"]",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "{\"event\":\"ride.completed\",\"rideId\":\"r_8Kd2\",\"fareCents\":1840,\"currency\":\"EUR\"}",
+    "guess": "json"
+  },
+  {
+    "text": "@router.post(\"/fraud/score\", response_model=ScoreOut)\nasync def score_transaction(payload: TransactionIn, model: Model = Depends(get_model)):\n    features = build_features(payload)\n    score = model.predict_proba([features])[0][1]\n    if score > settings.block_threshold:\n        raise HTTPException(status_code=403, detail=\"transaction blocked\")\n    return ScoreOut(score=score, decision=\"review\" if score > 0.5 else \"allow\")",
+    "guess": "python"
+  },
+  {
+    "text": "val nearest = drivers.filter { it.isAvailable }.minByOrNull { it.distanceTo(pickup) }",
+    "guess": "kotlin"
+  },
+  {
+    "text": "    at com.northbank.fraud.RuleEngine.evaluate(RuleEngine.java:142)",
+    "guess": null
+  },
+  {
+    "text": "#!/usr/bin/env bash\nset -euo pipefail\n\nSERVICE=\"${1:?usage: deploy.sh <service> <version>}\"\nVERSION=\"${2:?usage: deploy.sh <service> <version>}\"\nNAMESPACE=\"logistics\"\n\necho \"Deploying ${SERVICE}:${VERSION} to ${NAMESPACE}\"\n\nkubectl -n \"$NAMESPACE\" set image \"deployment/${SERVICE}\" \"${SERVICE}=registry.internal/${SERVICE}:${VERSION}\"\n\nif ! kubectl -n \"$NAMESPACE\" rollout status \"deployment/${SERVICE}\" --timeout=120s; then\n  echo \"Rollout failed, rolling back\" >&2\n  kubectl -n \"$NAMESPACE\" rollout undo \"deployment/${SERVICE}\"\n  exit 1\nfi\n\ncurl -fsS \"https://tracker.internal/health\" > /dev/null\necho \"Done\"",
+    "guess": "bash"
+  },
+  {
+    "text": ".eta-badge { display: inline-flex; padding: 2px 8px; border-radius: 999px; }\n.eta-badge--late { background: var(--danger-bg); color: var(--danger-fg); }",
+    "guess": "css"
+  },
+  {
+    "text": "@RestController\n@RequestMapping(\"/api/v1/transfers\")\n@RequiredArgsConstructor\npublic class TransferController {\n    private final FraudService fraudService;\n    @PostMapping(\"/screen\")\n    public ResponseEntity<Verdict> screen(@Valid @RequestBody TransferRequest request) {\n        return ResponseEntity.ok(fraudService.screen(request));\n    }\n}",
+    "guess": "java"
+  },
+  {
+    "text": "Rescheduled",
+    "guess": null
+  },
+  {
+    "text": "let nearby = drivers.filter { $0.isAvailable && $0.distance(to: pickup) < 2_000 }",
+    "guess": "css"
+  },
+  {
+    "text": "{\n  \"eventId\": \"9f1c2e0a-5b7d-4c11-8f43-1e6a7c0d2b55\",\n  \"eventType\": \"shipment.exception\",\n  \"occurredAt\": \"2026-03-14T08:42:17Z\",\n  \"shipment\": {\n    \"id\": \"SHP-482910\",\n    \"carrier\": \"northline\",\n    \"service\": \"overnight\",\n    \"origin\": { \"depot\": \"RTM-02\", \"country\": \"NL\" },\n    \"destination\": { \"depot\": \"HAM-05\", \"country\": \"DE\" }\n  },\n  \"exception\": {\n    \"code\": \"TEMP_BREACH\",\n    \"readingC\": 11.4,\n    \"thresholdC\": 8.0,\n    \"sensorId\": \"tmp-77a1\"\n  },\n  \"actions\": [\"quarantine\", \"notify_customer\"],\n  \"attempt\": 1\n}",
+    "guess": "json"
+  },
+  {
+    "text": "Get-Service -Name 'VideoIngest*' | Where-Object Status -eq 'Running' | Restart-Service -Verbose",
+    "guess": "powershell"
+  },
+  {
+    "text": "router.get('/stream/:titleId/manifest', async (req, res, next) => {\n  try {\n    const manifest = await manifests.build(req.params.titleId, req.query.profile);\n    res.set('Cache-Control', 'public, max-age=30').json(manifest);\n  } catch (err) {\n    next(err);\n  }\n});",
+    "guess": "javascript"
+  },
+  {
+    "text": "hour   requests   p95_ms   errors\n08     12,400     182      3\n09     18,950     240      11\n10     21,300     310      27\n11     19,800     255      9",
+    "guess": null
+  },
+  {
+    "text": "auto it = std::find_if(routes.begin(), routes.end(), [&](const Route& r) { return r.depot == depot; });",
+    "guess": "cpp"
+  },
+  {
+    "text": "[ApiController]\n[Route(\"api/riders/{riderId:guid}/trips\")]\npublic class TripsController(ITripService trips) : ControllerBase\n{\n    [HttpGet]\n    public async Task<ActionResult<IReadOnlyList<TripDto>>> List(Guid riderId, CancellationToken ct)\n        => Ok(await trips.ListForRiderAsync(riderId, ct));\n}",
+    "guess": "csharp"
+  },
+  {
+    "text": "CREATE TABLE shipment_events (\n    id            BIGSERIAL PRIMARY KEY,\n    shipment_id   UUID        NOT NULL REFERENCES shipments (id) ON DELETE CASCADE,\n    depot_id      INTEGER     NOT NULL REFERENCES depots (id),\n    kind          TEXT        NOT NULL CHECK (kind IN ('SCANNED', 'LOADED', 'DEPARTED', 'ARRIVED', 'EXCEPTION')),\n    scanned_by    TEXT,\n    lat           NUMERIC(9, 6),\n    lng           NUMERIC(9, 6),\n    occurred_at   TIMESTAMPTZ NOT NULL,\n    recorded_at   TIMESTAMPTZ NOT NULL DEFAULT now()\n);\n\nCREATE INDEX idx_shipment_events_shipment_time\n    ON shipment_events (shipment_id, occurred_at DESC);\n\nCREATE INDEX idx_shipment_events_exceptions\n    ON shipment_events (depot_id, occurred_at)\n    WHERE kind = 'EXCEPTION';\n\nALTER TABLE shipment_events\n    ADD CONSTRAINT chk_event_not_future CHECK (occurred_at <= recorded_at + INTERVAL '5 minutes');",
+    "guess": "sql"
+  },
+  {
+    "text": "Error: connect ECONNREFUSED 10.4.2.17:5432 - could not reach the scheduling database",
+    "guess": null
+  },
+  {
+    "text": "shipments = Shipment.where(status: :in_transit).where('eta < ?', Time.current).includes(:depot)",
+    "guess": null
+  },
+  {
+    "text": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <title>Book an appointment</title>\n  <link rel=\"stylesheet\" href=\"/assets/booking.css\">\n</head>\n<body>\n  <main class=\"booking\">\n    <h1>Book an appointment</h1>\n    <form action=\"/appointments\" method=\"post\">\n      <label for=\"clinic\">Clinic</label>\n      <select id=\"clinic\" name=\"clinic_id\" required>\n        <option value=\"\">Choose a clinic</option>\n        <option value=\"north\">North Campus</option>\n        <option value=\"east\">East Wing</option>\n      </select>\n      <label for=\"date\">Date</label>\n      <input id=\"date\" type=\"date\" name=\"date\" required>\n      <button type=\"submit\">Find slots</button>\n    </form>\n  </main>\n  <script src=\"/assets/booking.js\" defer></script>\n</body>\n</html>",
+    "guess": "html"
+  },
+  {
+    "text": "ctx, cancel := context.WithTimeout(r.Context(), 800*time.Millisecond)",
+    "guess": "go"
+  },
+  {
+    "text": "@Controller('appointments')\nexport class AppointmentsController {\n  constructor(private readonly scheduler: SchedulerService) {}\n\n  @Post(':clinicId/slots')\n  async reserve(@Param('clinicId') clinicId: string, @Body() dto: ReserveSlotDto): Promise<SlotDto> {\n    return this.scheduler.reserve(clinicId, dto.patientId, dto.startsAt);\n  }\n}",
+    "guess": "typescript"
+  },
+  {
+    "text": "https://tracking.northline-freight.example/shipments/SHP-482910?view=timeline",
+    "guess": null
+  },
+  {
+    "text": "import logging\nfrom datetime import timedelta\n\nfrom celery import shared_task\nfrom django.db import transaction\nfrom django.utils import timezone\n\nfrom tracking.models import ScanEvent, Shipment\n\nlogger = logging.getLogger(__name__)\n\n\n@shared_task(bind=True, max_retries=3, default_retry_delay=30)\ndef reconcile_scans(self, depot_id: int) -> int:\n    cutoff = timezone.now() - timedelta(hours=2)\n    stale = Shipment.objects.filter(depot_id=depot_id, status=\"in_transit\", last_scan_at__lt=cutoff)\n    fixed = 0\n    for shipment in stale.select_related(\"route\"):\n        try:\n            with transaction.atomic():\n                ScanEvent.objects.create(shipment=shipment, kind=\"MISSED_SCAN\", at=timezone.now())\n                shipment.flag_exception()\n                fixed += 1\n        except Exception as exc:\n            logger.exception(\"reconcile failed for %s\", shipment.pk)\n            raise self.retry(exc=exc)\n    return fixed",
+    "guess": "python"
+  },
+  {
+    "text": "<PackageReference Include=\"Npgsql.EntityFrameworkCore.PostgreSQL\" Version=\"8.0.4\" />",
+    "guess": null
+  },
+  {
+    "text": "let driver = drivers.iter().find(|d| d.id == id).ok_or(DispatchError::NotFound)?;",
+    "guess": "rust"
+  },
+  {
+    "text": "# Dispatch service\n\n## Running locally\n\n1. Start dependencies: `docker compose up -d redis postgres`\n2. Copy `.env.example` to `.env`\n3. Run `npm run dev`\n\n> The matcher needs Redis 7 or later.",
+    "guess": "markdown"
+  },
+  {
+    "text": "2.14.3-rc.2",
+    "guess": null
+  },
+  {
+    "text": "@Service\npublic class SlotBookingService {\n\n    private static final Logger log = LoggerFactory.getLogger(SlotBookingService.class);\n\n    private final SlotRepository slots;\n    private final ApplicationEventPublisher events;\n\n    public SlotBookingService(SlotRepository slots, ApplicationEventPublisher events) {\n        this.slots = slots;\n        this.events = events;\n    }\n\n    @Transactional\n    public Appointment book(UUID slotId, UUID patientId) {\n        Slot slot = slots.findByIdForUpdate(slotId)\n                .orElseThrow(() -> new SlotNotFoundException(slotId));\n        if (slot.isTaken()) {\n            throw new SlotAlreadyTakenException(slotId);\n        }\n        Appointment appointment = slot.reserveFor(patientId);\n        log.info(\"Slot {} reserved for patient {}\", slotId, patientId);\n        events.publishEvent(new AppointmentBooked(appointment.getId()));\n        return appointment;\n    }\n}",
+    "guess": "java"
+  },
+  {
+    "text": "if (crc16_ccitt(buf, len) != frame->crc) return -EBADMSG;",
+    "guess": null
+  },
+  {
+    "text": "const { Worker } = require('bullmq');\nconst { transcode } = require('./ffmpeg');\nconst logger = require('./logger');\n\nconst worker = new Worker(\n  'transcode',\n  async (job) => {\n    const { assetId, source, ladder } = job.data;\n    logger.info({ assetId }, 'starting transcode');\n    for (const rung of ladder) {\n      await job.updateProgress({ rung: rung.height });\n      await transcode(source, rung);\n    }\n    return { assetId, renditions: ladder.length };\n  },\n  { connection: { host: process.env.REDIS_HOST }, concurrency: 2 }\n);\n\nworker.on('failed', (job, err) => {\n  logger.error({ assetId: job.data.assetId, err }, 'transcode failed');\n});\n\nmodule.exports = worker;",
+    "guess": "javascript"
+  },
+  {
+    "text": "08:02  Shipment scanned at Rotterdam depot\n08:47  Loaded onto truck NL-4471\n09:15  Departed Rotterdam\n13:40  Customs check at Duisburg\n14:22  Cleared customs",
+    "guess": null
+  },
+  {
+    "text": "class FraudAlertJob < ApplicationJob\n  queue_as :critical\n\n  def perform(transfer_id)\n    transfer = Transfer.find(transfer_id)\n    return unless FraudRules.suspicious?(transfer)\n\n    AlertMailer.with(transfer: transfer).review_needed.deliver_later\n  end\nend",
+    "guess": "ruby"
+  },
+  {
+    "text": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: playback-api\n  namespace: streaming\nspec:\n  replicas: 4\n  selector:\n    matchLabels:\n      app: playback-api\n  template:\n    metadata:\n      labels:\n        app: playback-api\n    spec:\n      containers:\n        - name: playback-api\n          image: registry.internal/streaming/playback-api:1.9.2\n          ports:\n            - containerPort: 8080\n          env:\n            - name: CDN_BASE_URL\n              value: https://cdn.example-stream.net\n          readinessProbe:\n            httpGet:\n              path: /healthz\n              port: 8080",
+    "guess": "yaml"
+  },
+  {
+    "text": "$appointments = Appointment::where('clinic_id', $clinicId)->whereDate('starts_at', today())->orderBy('starts_at')->get();",
+    "guess": "php"
+  },
+  {
+    "text": "data class FareQuote(val baseCents: Long, val perKmCents: Long, val surge: Double)\n\nclass FareCalculator(private val rates: RateTable) {\n\n    fun quote(distanceKm: Double, zone: Zone): FareQuote {\n        val rate = rates.forZone(zone) ?: error(\"no rate for ${zone.id}\")\n        return FareQuote(\n            baseCents = rate.base,\n            perKmCents = (rate.perKm * distanceKm).toLong(),\n            surge = if (zone.demandRatio > 1.5) minOf(zone.demandRatio, 3.0) else 1.0,\n        )\n    }\n}\n\nsuspend fun estimate(rideId: String, calculator: FareCalculator, repo: RideRepository): FareQuote {\n    val ride = repo.find(rideId) ?: throw NotFoundException(\"ride $rideId\")\n    return calculator.quote(ride.distanceKm, ride.pickupZone)\n}",
+    "guess": "kotlin"
+  },
+  {
+    "text": "/var/lib/fraud-engine/models/2026-03/gradient_boost_v7.bin",
+    "guess": null
+  },
+  {
+    "text": "curl -s -H \"Authorization: Bearer $TOKEN\" https://api.example-rides.com/v2/drivers/42/status | jq '.online'",
+    "guess": "bash"
+  },
+  {
+    "text": "struct RideRow: View {\n    let ride: Ride\n    var body: some View {\n        HStack {\n            Text(ride.destination).font(.headline)\n            Spacer()\n            Text(ride.fare, format: .currency(code: \"EUR\"))\n        }\n    }\n}",
+    "guess": "swift"
+  },
+  {
+    "text": "export type RideStatus = 'requested' | 'accepted' | 'arriving' | 'in_progress' | 'completed';\nexport interface DriverLocation { driverId: string; lat: number; lng: number; heading?: number }",
+    "guess": "typescript"
+  },
+  {
+    "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<configuration>\n  <appender name=\"CONSOLE\" class=\"ch.qos.logback.core.ConsoleAppender\">\n    <encoder>\n      <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>\n    </encoder>\n  </appender>\n\n  <appender name=\"FRAUD_AUDIT\" class=\"ch.qos.logback.core.rolling.RollingFileAppender\">\n    <file>/var/log/fraud/audit.log</file>\n    <rollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\">\n      <fileNamePattern>/var/log/fraud/audit.%d{yyyy-MM-dd}.log</fileNamePattern>\n      <maxHistory>30</maxHistory>\n    </rollingPolicy>\n    <encoder>\n      <pattern>%d %msg%n</pattern>\n    </encoder>\n  </appender>\n\n  <logger name=\"com.northbank.fraud.audit\" level=\"INFO\" additivity=\"false\">\n    <appender-ref ref=\"FRAUD_AUDIT\"/>\n  </logger>\n\n  <root level=\"WARN\">\n    <appender-ref ref=\"CONSOLE\"/>\n  </root>\n</configuration>",
+    "guess": "xml"
+  },
+  {
+    "text": "fix(dispatch): skip drivers who already declined the ride\n\nDeclined offers were cleared on reconnect, so the same driver got the ride again.",
+    "guess": null
+  },
+  {
+    "text": "SELECT driver_id, COUNT(*) AS trips FROM rides WHERE completed_at >= NOW() - INTERVAL '7 days' GROUP BY driver_id ORDER BY trips DESC LIMIT 10;",
+    "guess": "sql"
+  },
+  {
+    "text": "FROM eclipse-temurin:21-jre-alpine\nCOPY build/libs/dispatch-service.jar /app/service.jar",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "public sealed class CardTestingRule : IFraudRule\n{\n    private readonly IAttemptStore _attempts;\n    private readonly ILogger<CardTestingRule> _logger;\n\n    public CardTestingRule(IAttemptStore attempts, ILogger<CardTestingRule> logger)\n    {\n        _attempts = attempts;\n        _logger = logger;\n    }\n\n    public async Task<RuleResult> EvaluateAsync(PaymentAttempt attempt, CancellationToken ct)\n    {\n        var recent = await _attempts.CountDeclinedAsync(attempt.CardFingerprint, TimeSpan.FromMinutes(15), ct);\n        if (recent >= 5)\n        {\n            _logger.LogWarning(\"Card {Fingerprint} declined {Count} times in 15 minutes\", attempt.CardFingerprint, recent);\n            return RuleResult.Block(\"card_testing\");\n        }\n\n        return RuleResult.Pass();\n    }\n}",
+    "guess": "csharp"
+  },
+  {
+    "text": "#!/usr/bin/env bash\nset -euo pipefail\n\nfor f in /var/spool/transcode/*.mp4; do\n  ffmpeg -i \"$f\" -c:v libx264 -crf 23 \"${f%.mp4}.h264.mp4\"\n  mv \"$f\" /var/spool/transcode/done/\ndone",
+    "guess": "bash"
+  },
+  {
+    "text": "\"My driver went past my building twice and then cancelled. I was still charged the cancellation fee.\"",
+    "guess": null
+  },
+  {
+    "text": "int read_temperature(int fd, float *celsius)\n{\n    uint8_t raw[2];\n    if (read(fd, raw, sizeof raw) != sizeof raw)\n        return -1;\n    *celsius = ((raw[0] << 8) | raw[1]) * 0.0625f;\n    return 0;\n}",
+    "guess": "c"
+  },
+  {
+    "text": "io.on('connection', (socket) => {\n  socket.on('driver:location', ({ driverId, lat, lng }) => {\n    redis.geoadd('drivers:active', lng, lat, driverId);\n    socket.broadcast.to(`zone:${zoneFor(lat, lng)}`).emit('driver:moved', { driverId, lat, lng });\n  });\n});",
+    "guess": "javascript"
+  },
+  {
+    "text": "param([string]$Clinic = 'north')\n\n$logs = Get-ChildItem -Path \"D:\\Scheduler\\logs\\$Clinic\" -Filter *.log |\n    Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) }\n\n$logs | Remove-Item -WhatIf\nWrite-Host \"Would remove $($logs.Count) files\"",
+    "guess": "powershell"
+  },
+  {
+    "text": "{\n  \"type\": \"claim.flagged\",\n  \"claimId\": \"c-20931\",\n  \"score\": 0.87,\n  \"rules\": [\"duplicate_provider\", \"after_hours\"],\n  \"reviewer\": null\n}",
+    "guess": "json"
+  },
+  {
+    "text": "<video controls preload=\"metadata\" poster=\"/posters/doc-4412.jpg\"><source src=\"/stream/4412.m3u8\" type=\"application/x-mpegURL\"></video>",
+    "guess": "html"
+  },
+  {
+    "text": "The player starts at the lowest rendition so playback begins quickly. After the first\nfew segments it measures throughput and moves up the ladder one step at a time. If the\nbuffer drops below four seconds, it steps down again and stays there for thirty seconds\nbefore trying a higher rendition.",
+    "guess": null
+  },
+  {
+    "text": "@dataclass(frozen=True)\nclass Appointment:\n    patient_id: str\n    clinician_id: str\n    starts_at: datetime\n    duration: timedelta = timedelta(minutes=20)\n\n    def overlaps(self, other: \"Appointment\") -> bool:\n        return self.starts_at < other.starts_at + other.duration and other.starts_at < self.starts_at + self.duration",
+    "guess": "python"
+  },
+  {
+    "text": "#include <chrono>\n#include <mutex>\n#include <optional>\n#include <unordered_map>\n\nclass SessionCache {\npublic:\n    explicit SessionCache(std::chrono::seconds ttl) : ttl_(ttl) {}\n\n    std::optional<Session> get(const std::string& id) {\n        std::lock_guard<std::mutex> lock(mutex_);\n        auto it = entries_.find(id);\n        if (it == entries_.end() || it->second.expires < std::chrono::steady_clock::now()) {\n            return std::nullopt;\n        }\n        return it->second.session;\n    }\n\n    void put(const std::string& id, Session session) {\n        std::lock_guard<std::mutex> lock(mutex_);\n        entries_[id] = {std::move(session), std::chrono::steady_clock::now() + ttl_};\n    }\n\nprivate:\n    struct Entry { Session session; std::chrono::steady_clock::time_point expires; };\n    std::chrono::seconds ttl_;\n    std::mutex mutex_;\n    std::unordered_map<std::string, Entry> entries_;\n};",
+    "guess": "cpp"
+  },
+  {
+    "text": "## Retry policy\nFailed payouts are retried **three times** with exponential backoff. See the [runbook](docs/payouts.md).",
+    "guess": "markdown"
+  },
+  {
+    "text": "private static final Duration SLOT_LENGTH = Duration.ofMinutes(15);",
+    "guess": "java"
+  },
+  {
+    "text": ".player-controls {\n  position: absolute;\n  inset: auto 0 0 0;\n  display: flex;\n  gap: 0.75rem;\n  padding: 0.5rem 1rem;\n  background: linear-gradient(transparent, rgb(0 0 0 / 70%));\n}\n@media (max-width: 600px) { .player-controls { padding: 0.25rem 0.5rem; } }",
+    "guess": "css"
+  },
+  {
+    "text": "<?php\n\nRoute::middleware('auth:sanctum')->group(function () {\n    Route::get('/drivers/{driver}/trips', [TripController::class, 'index']);\n    Route::post('/trips/{trip}/cancel', [TripController::class, 'cancel'])\n        ->middleware('throttle:10,1');\n});",
+    "guess": "php"
+  },
+  {
+    "text": "Hi Dana,\n\nThe overnight batch finished at 03:10 and all 412 appointments were reminded. Two clinics reported late confirmations, which I am looking into.\n\nRegards,\nTom",
+    "guess": null
+  },
+  {
+    "text": "WITH recent AS (\n  SELECT account_id, amount_cents, created_at,\n         SUM(amount_cents) OVER (PARTITION BY account_id ORDER BY created_at\n                                 RANGE BETWEEN INTERVAL '1 hour' PRECEDING AND CURRENT ROW) AS hourly_total\n  FROM transfers\n)\nSELECT account_id, created_at, hourly_total\nFROM recent\nWHERE hourly_total > 500000;",
+    "guess": "sql"
+  },
+  {
+    "text": "const TransferEvent = z.object({\n  accountId: z.string().uuid(),\n  amountCents: z.number().int().positive(),\n  currency: z.enum(['EUR', 'GBP', 'USD']),\n  device: z.object({ fingerprint: z.string(), ip: z.string().ip() }),\n});\nexport type TransferEvent = z.infer<typeof TransferEvent>;",
+    "guess": "typescript"
+  },
+  {
+    "text": "name: ci\non:\n  pull_request:\n    branches: [main]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: npm ci && npm test",
+    "guess": "yaml"
+  },
+  {
+    "text": "#[derive(Debug, Deserialize)]\npub struct Reading {\n    pub sensor_id: String,\n    pub celsius: f32,\n}\n\nimpl Reading {\n    pub fn breaches(&self, max: f32) -> bool { self.celsius > max }\n}",
+    "guess": "rust"
+  },
+  {
+    "text": "Each clinic publishes its open slots at midnight. The scheduler merges them with\ncancellations and keeps the result for 24 hours.",
+    "guess": null
+  },
+  {
+    "text": "package fraud\n\nimport (\n\t\"context\"\n\t\"errors\"\n\t\"time\"\n)\n\nvar ErrBlocked = errors.New(\"transaction blocked\")\n\ntype Checker struct {\n\tstore  VelocityStore\n\tlimits Limits\n}\n\nfunc (c *Checker) Check(ctx context.Context, tx Transaction) error {\n\tctx, cancel := context.WithTimeout(ctx, 200*time.Millisecond)\n\tdefer cancel()\n\n\tn, err := c.store.CountSince(ctx, tx.AccountID, time.Now().Add(-10*time.Minute))\n\tif err != nil {\n\t\treturn err\n\t}\n\tif n >= c.limits.MaxPer10Min {\n\t\treturn ErrBlocked\n\t}\n\treturn nil\n}",
+    "guess": "go"
+  },
+  {
+    "text": "@oncall the payout queue is backed up again, 1,800 messages and growing",
+    "guess": null
+  },
+  {
+    "text": "export const surgeMultiplier = (demand: number, supply: number): number => Math.min(3, Math.max(1, demand / supply));",
+    "guess": "typescript"
+  },
+  {
+    "text": "rider app --> API gateway --> dispatch service --> driver app\n                                   |\n                                   v\n                             pricing service",
+    "guess": null
+  },
+  {
+    "text": "",
+    "guess": null
+  },
+  {
+    "text": " ",
+    "guess": null
+  },
+  {
+    "text": "\n\n",
+    "guess": null
+  },
+  {
+    "text": "x",
+    "guess": null
+  },
+  {
+    "text": "hello",
+    "guess": null
+  },
+  {
+    "text": "Total: 5",
+    "guess": null
+  },
+  {
+    "text": "[1, 2",
+    "guess": null
+  },
+  {
+    "text": "{\"a\": }",
+    "guess": null
+  },
+  {
+    "text": "  [ {\"id\": 1}, {\"id\": 2} ]",
+    "guess": "json"
+  },
+  {
+    "text": "{\n  \"a\": [1, 2],\n  \"b\": null\n}",
+    "guess": "json"
+  },
+  {
+    "text": "<?xml version=\"1.0\"?>\n<Project Sdk=\"Microsoft.NET.Sdk\"></Project>",
+    "guess": "xml"
+  },
+  {
+    "text": "<?xml version=\"1.0\"?><!DOCTYPE html><html></html>",
+    "guess": "html"
+  },
+  {
+    "text": "tab\there\t=> x",
+    "guess": null
+  },
+  {
+    "text": "ünïcödé = \"ß\"",
+    "guess": null
+  },
+  {
+    "text": "line one\n\nline three\n",
+    "guess": null
+  },
+  {
+    "text": ".card { display: grid; gap: 8px; }",
+    "guess": "css"
+  },
+  {
+    "text": "FROM node:22\nRUN npm ci",
+    "guess": "dockerfile"
+  },
+  {
+    "text": "SELECT　id　FROM　orders",
+    "guess": "sql"
+  },
+  {
+    "text": "def f(x):\n  return x",
+    "guess": "ruby"
+  },
+  {
+    "text": "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]",
+    "guess": "json"
+  }
+]

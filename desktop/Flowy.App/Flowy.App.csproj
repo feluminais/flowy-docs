@@ -22,11 +22,15 @@
     <PackageReference Include="Avalonia" Version="12.1.4" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+    <PackageReference Include="Jint" Version="4.17.0" />
     <PackageReference Include="Markdig" Version="1.4.1" />
     <PackageReference Include="Velopack" Version="1.2.161" />
     <ProjectReference Include="../Flowy.Core/Flowy.Core.csproj" />
     <AvaloniaResource Include="Assets/icon.png" />
     <Content Include="Assets/TABLER-ICONS-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <!-- highlight.js with our languages, built by desktop/tools/make-hljs-bundle.ts: the script that colours code, which Jint runs. -->
+    <EmbeddedResource Include="Assets/hljs.js" LogicalName="hljs.js" />
+    <Content Include="Assets/HIGHLIGHTJS-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <!-- Plum, the sample model: Help > Open the Demo, and the welcome window's button. Its code paths need the folders beside flowy/. -->
     <Content Include="../../docs/demo/**" Link="Demo/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" />

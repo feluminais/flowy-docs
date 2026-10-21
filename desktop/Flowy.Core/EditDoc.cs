@@ -123,7 +123,7 @@ public sealed class EditDoc
     {
         var tree = new OrderedDictionary<string, object?>();
         foreach (var (key, value) in Meta) tree[key] = value;
-        tree["objects"] = Objects;
+        tree["objects"] = StoreData.Compact(Objects);
         tree["connections"] = Connections;
         return tree;
     }

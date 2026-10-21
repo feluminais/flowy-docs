@@ -23,7 +23,6 @@ objects:
       One shape for each thing a load test can show, named for what it shows.
 
       Open the Performance tab (**T**), pick **Every load effect**, then press **Ramp** or step the levels with the arrow keys.
-
   send-from:
     type: app
     in: steps
@@ -128,7 +127,6 @@ objects:
     name: Timeout · to
     tech: call, timeout
     description: Takes the envelope in and never answers.
-
   repeat-from:
     type: app
     in: structure
@@ -184,7 +182,6 @@ objects:
     in: structure
     name: Flow link · to
     description: Where the other flow carries on.
-
   load:
     type: app
     in: performance
@@ -244,33 +241,85 @@ objects:
     in: rolled-up
     name: Rolled up · B
     description: Waits for 10 calls at every load, and gets less busy as the load goes up, from 50% to 30%.
-
 connections:
-  - { from: send-from, to: send-to, label: send }
-  - { from: call-from, to: call-to, label: call }
-  - { from: event-from, to: event-to, label: event }
-  - { from: callback-from, to: callback-to, label: callback }
-  - { from: after-source, to: after-from, label: hands over }
-  - { from: after-from, to: after-to, label: callback }
-  - { from: cold-from, to: cold-to, label: callback }
-  - { from: fail-from, to: fail-to, label: fail }
-  - { from: timeout-from, to: timeout-to, label: timeout }
-  - { from: repeat-from, to: repeat-to, label: asks and answers }
-  - { from: repeat-to, to: repeat-from }
-  - { from: branch-from, to: branch-a, label: lane A }
-  - { from: branch-from, to: branch-b, label: lane B }
-  - { from: parallel-from, to: parallel-a, label: lane A }
-  - { from: parallel-a, to: parallel-from }
-  - { from: parallel-from, to: parallel-b, label: lane B }
-  - { from: parallel-from, to: parallel-c, label: lane C }
-  - { from: link-from, to: link-to, label: hands over and answers }
-  - { from: link-to, to: link-from }
-  - { from: load, to: traffic, label: calls }
-  - { from: load, to: latency, label: calls }
-  - { from: load, to: failing-calls, label: calls }
-  - { from: load, to: strain, label: calls }
-  - { from: load, to: failing-shape, label: calls }
-  - { from: load, to: queue, label: calls }
-  - { from: load, to: not-measured, label: calls }
-  - { from: load, to: rolled-a, label: calls }
-  - { from: load, to: rolled-b, label: calls }
+  - from: send-from
+    to: send-to
+    label: send
+  - from: call-from
+    to: call-to
+    label: call
+  - from: event-from
+    to: event-to
+    label: event
+  - from: callback-from
+    to: callback-to
+    label: callback
+  - from: after-source
+    to: after-from
+    label: hands over
+  - from: after-from
+    to: after-to
+    label: callback
+  - from: cold-from
+    to: cold-to
+    label: callback
+  - from: fail-from
+    to: fail-to
+    label: fail
+  - from: timeout-from
+    to: timeout-to
+    label: timeout
+  - from: repeat-from
+    to: repeat-to
+    label: asks and answers
+  - from: repeat-to
+    to: repeat-from
+  - from: branch-from
+    to: branch-a
+    label: lane A
+  - from: branch-from
+    to: branch-b
+    label: lane B
+  - from: parallel-from
+    to: parallel-a
+    label: lane A
+  - from: parallel-a
+    to: parallel-from
+  - from: parallel-from
+    to: parallel-b
+    label: lane B
+  - from: parallel-from
+    to: parallel-c
+    label: lane C
+  - from: link-from
+    to: link-to
+    label: hands over and answers
+  - from: link-to
+    to: link-from
+  - from: load
+    to: traffic
+    label: calls
+  - from: load
+    to: latency
+    label: calls
+  - from: load
+    to: failing-calls
+    label: calls
+  - from: load
+    to: strain
+    label: calls
+  - from: load
+    to: failing-shape
+    label: calls
+  - from: load
+    to: queue
+    label: calls
+  - from: load
+    to: not-measured
+    label: calls
+  - from: load
+    to: rolled-a
+    label: calls
+  - from: load
+    to: rolled-b
+    label: calls

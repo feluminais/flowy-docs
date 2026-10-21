@@ -60,6 +60,34 @@ public static class BoxGeometry
         return (Leave(a, edgeA, b), Leave(b, edgeB, a));
     }
 
+    /// <summary>
+    /// How far inside the shape drawn in <paramref name="r"/> the point (<paramref name="x"/>, <paramref name="y"/>) is: positive inside, 0 on the outline, negative
+    /// outside (close to the distance from it). The shape is its outline, or the box itself when <paramref name="edge"/> is empty. A line that runs behind a
+    /// shape is covered by it, and traffic on that line goes dim as its depth grows (<see cref="Particles.HowBehind"/>).
+    /// </summary>
+    public static double DepthIn(Rect r, double[]? edge, double x, double y)
+    {
+        if (edge is null || edge.Length == 0) return Math.Min(Math.Min(x - r.X, r.Right - x), Math.Min(y - r.Y, r.Bottom - y));
+        // The outline is convex, so the depth is the point's distance from the nearest side, on the inner side, whichever way the outline winds.
+        var n = edge.Length / 2;
+        var area = 0.0;
+        for (var i = 0; i < n; i++)
+        {
+            var j = (i + 1) % n;
+            area += edge[2 * i] * edge[2 * j + 1] - edge[2 * j] * edge[2 * i + 1];
+        }
+        var inward = area < 0 ? -1 : 1;
+        var depth = double.PositiveInfinity;
+        for (var i = 0; i < n; i++)
+        {
+            double px = edge[2 * i], py = edge[2 * i + 1];
+            double qx = edge[2 * ((i + 1) % n)], qy = edge[2 * ((i + 1) % n) + 1];
+            var cross = (qx - px) * (y - r.Y - py) - (qy - py) * (x - r.X - px);
+            depth = Math.Min(depth, inward * cross / Math.Sqrt((qx - px) * (qx - px) + (qy - py) * (qy - py)));
+        }
+        return depth;
+    }
+
     /// <summary>The side of <paramref name="from"/> that faces <paramref name="to"/>: the one a line between their centres leaves through.</summary>
     private static Side Facing(Rect from, Rect to)
     {

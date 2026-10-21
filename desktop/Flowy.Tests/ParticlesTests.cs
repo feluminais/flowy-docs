@@ -95,6 +95,27 @@ public class ParticlesTests
         Assert.Equal(0, Particles.Visibility(new Mote { S = 0.6, Fails = 0.5 }));
     }
 
+    [Fact]
+    public void A_particle_goes_from_clear_to_well_behind_over_the_ramp_either_side_of_an_outline_never_in_a_step()
+    {
+        Assert.Equal(0, Particles.HowBehind(-6, 6)); // a ramp outside: clear
+        Assert.Equal(0, Particles.HowBehind(-20, 6));
+        Assert.Equal(0.5, Particles.HowBehind(0, 6)); // on the outline: half way
+        Assert.Equal(1, Particles.HowBehind(6, 6)); // a ramp inside: well behind
+        Assert.Equal(1, Particles.HowBehind(40, 6));
+        Assert.InRange(Particles.HowBehind(-3, 6), double.Epsilon, Particles.HowBehind(3, 6));
+        Assert.True(Particles.HowBehind(3, 6) < 1);
+    }
+
+    [Fact]
+    public void A_particle_behind_something_is_a_fainter_smaller_one_and_in_front_it_is_as_always()
+    {
+        Assert.Equal((1.0, 1.0), Particles.Ghost(0));
+        Assert.Equal((Particles.GhostAlpha, 0.75), Particles.Ghost(1));
+        var (alpha, scale) = Particles.Ghost(0.5);
+        Assert.True(alpha < 1 && alpha > Particles.GhostAlpha && scale < 1 && scale > 0.75);
+    }
+
     // ---- path points ------------------------------------------------------------------------------------------------
 
     [Fact]

@@ -16,6 +16,7 @@ A reader meets your words in four layers, and each should work without the next:
 | Look | On the shape: its outline, colour and icon | What kind of thing it is, at a glance |
 | Teaser | On hover: the first paragraph of the description, up to the first blank line | One sentence on what it does |
 | Panel | On click: the rest of the description | Why it's like this, its limits, its risks |
+| Data | On click, on a store: the Data section | What it holds: the few tables that matter, invented sample rows, how long they are kept, and a note where a choice needs explaining |
 | Step and More | In the flow player | One handover, then why it matters |
 
 Someone who stops at the teaser must not leave with a wrong idea. Anything that prevents one ("Deprecated", "planned") goes in the teaser, not the panel.
@@ -104,6 +105,25 @@ The rest of the description shows when someone clicks. Spend the words where the
 - **Write more for what's surprising or risky** and less for what's plain. The teaser is enough for a plain shape.
 - **Name an owner only on top-level systems,** if at all, and name a team, not a person. Owners change.
 
+## Data
+
+A store's Data section is a picture of what it holds, for a developer who wants to know which data a flow touches. The format is in
+[the guide](guide.md#data).
+
+- **Show the few tables a flow touches,** not all of them. A store with forty tables gets the four a reader meets in the flows. The
+  rest stay in the migrations, which a `links:` entry can point at.
+- **Draw a table as a table.** Columns that tell the reader something (the key, what it points to, the money) and two or three sample
+  rows. Leave out the audit columns. Types, defaults and indexes are left out on purpose: a sample row says more than a type does.
+- **Invent the rows.** Never paste rows from a real database, a dump or a log, and never use a real name, email or id. `o_1042`,
+  `c_77` and `Noodle Bar` are enough to show what a row looks like.
+- **A note says why, in one line.** "Cents, not decimals. Rounding broke the first tax run." explains a choice a reader would
+  question. "The order's total" repeats the column's name, so leave it out. Longer reasoning goes in a design document, linked from the shape.
+- **A limits line says how long or how much,** in the words people use: "Kept 7 years, then archived", "Swept after 24 hours",
+  "Kept 7 days, 6 partitions", "Oldest unused go first at 256 MB". It states a fact the team set, so check it against the config.
+- **Pick the form that matches the store.** A table for a relational database, `Key`, `Value` and `Expires` for a cache, `Key` and `Value`
+  with a message on each row for a topic, a sample document for a document store.
+- **Keep it true.** The section can't notice that a column was renamed. Change it with the code, and put a `code:` path or a link to the schema file on the store.
+
 ## Label connections
 
 A line says that two shapes are connected. Its label says how. Lines show their labels on hover or when a shape is selected, so a label is always read next to the two names. Make it true when read that way.
@@ -174,16 +194,48 @@ steps:
 
 What changed: the sender is the subject in every step, the endpoint moved into More, the hold is something the Order API does to Stripe rather than something Stripe does, the event step says nobody is waited for, and each step says what passes.
 
+## Failure modes
+
+A failure analysis ranks how the system breaks, for someone deciding what to fix first. The format is in
+[the guide](guide.md#failure-modes).
+
+- **State a mode as a fact, one way of failing to a row.** "Stripe doesn't answer within five seconds" is a mode. "Payment problems" is a
+  heading. A part that fails three ways gets three rows.
+- **The effect is what a person or another part sees.** "The order waits on a hold that may or may not exist." says what happens next.
+  "Payment fails" repeats the mode.
+- **Rate what you can defend, and leave the rest out.** A mode with no ratings shows as Not rated and stays in the list. Ratings
+  made up to fill a column make the ranking look sharper than it is. Say in `about` who rated it and what the ratings rest on.
+- **Controls are what exists today, and the next action is what to do.** "Three tries with backoff" is a control. "Page when more than
+  1% of holds time out for five minutes" is an action. Mark a mode `done` once the action is in, with the ratings you now expect in
+  `after`, and `accepted` when the team has decided to live with it.
+- **Name what a failure affects.** `affects` lists the shapes it hurts. You write it, because Flowy can't tell that a failing Stripe
+  stops the kitchen tablet.
+- **Link the story and the evidence.** `flow` and `step` point at the flow that tells the failure, and `run` at a load-test run that
+  shows it. A mode with no flow is still worth writing.
+- **Keep a row to a line each.** More (`description`) is for the why, and a long analysis of one part belongs in a document the shape
+  links to.
+- **Give a severity of 9 or 10 on purpose.** It makes the mode High whatever the other ratings say.
+
 ## Point at code
 
 `code:` lists the files and folders a shape lives in. A path that doesn't exist shows up as a problem, so the model can't quietly point at code that's gone.
 
 - **Two or three paths per shape,** never every file. Folders survive a rename better than files.
 - **Give every app, store and component a path.** Actors and outside services are the exceptions. If you can't point at anything, ask whether the shape is real.
-- **`code:` is for where a shape lives, `links:` is for what to read about it.** A runbook or a decision record goes in `links:`.
+- **`code:` is for where a shape lives (the panel calls it Source), `links:` is for what to read about it.** A runbook or a decision record goes in `links:`.
 - **Link the interface, don't copy it.** Link the OpenAPI file in `links:` instead of listing the endpoints in the panel.
 - **Fix a broken path by pointing it at the new place,** or delete the shape if the code is gone. Removing `code:` to clear the "!" hides the problem.
 - **A path that exists proves little.** It doesn't show the description is still right. When code changes what a shape does, update its text even though no "!" appears.
+
+## Show a few lines of code
+
+`snippets:` holds the few lines that say what a sentence can't: the formula a component applies, the query a store answers, the request or event an app takes. They show in a Code section, in colour.
+
+- **Copy the lines from the repo, never rewrite them.** A snippet you typed from memory is a second source of truth. Take the formula as the code has it.
+- **A few lines, never more than 40, and six snippets at most.** A snippet is a picture of the idea. Anything longer is a file: list it under `code:` and let the code stay the source.
+- **Give it a title that says what the lines are:** "Delivery fee", "Accepting an order". The language is worked out for you, and a person who knows better picks one.
+- **Leave out what stays secret or goes stale.** No keys, tokens, real addresses or customer data, and no code that changes with every commit.
+- **A snippet doesn't replace the sentence.** The teaser still says what the shape does. The lines show how, for the one rule that is worth seeing.
 
 ## What stays outside Flowy
 
@@ -257,6 +309,8 @@ Claude's usual mistakes are shapes at the wrong level (every class a shape), pla
 - Does each level hold a handful of shapes?
 - Does every shape you built have a `code:` path that exists?
 - Does anything long (a procedure, a table, a decision) live in a document the shape links to, rather than in its panel?
+- Does each store show only the tables a flow touches, with invented rows and notes that say why?
+- Does each failure mode name one way of failing, with an effect a reader could see and ratings you can defend or have left out?
 - Is anything planned or deprecated marked in its teaser?
 - Does every shape, colour and icon that isn't the type's default say something, and does each colour mean one thing?
 - Is anything that was guessed marked as an open question?

@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import type { CSSProperties, MouseEvent, PointerEvent } from 'react'
+import { Children, isValidElement, useRef, useState } from 'react'
+import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from 'react'
 import { Handle, NodeToolbar, Position, useConnection } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
 import Markdown from 'react-markdown'
@@ -7,13 +7,31 @@ import { BAND_NAMES } from '../../src/core/failures.ts'
 import type { Mark } from '../../src/core/failures.ts'
 import { fillOpacity, isColor, onFill, SHAPE_DEFS, shapeOf, showsTile } from '../../src/core/look.ts'
 import { isExternal } from '../../src/core/model.ts'
+import { languageOf } from '../../src/core/snippets.ts'
+import { CodeBlock } from './Code.tsx'
 import { lookVars } from './Chrome.tsx'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { PathIcon, ZoomIn } from './icons.tsx'
 
-/** Markdown from the model. react-markdown never renders raw HTML, so a repo can't inject script. Links open in a new tab. */
+/** The language a fence names (```ts), as one of ours, or nothing when it names none we know. */
+const fenceLanguage = (className?: string): string | undefined => languageOf(/(?:^|\s)language-(\S+)/.exec(className ?? '')?.[1])?.id
+
+/**
+ * Markdown from the model. react-markdown never renders raw HTML, so a repo can't inject script. Links open in a new tab. A fenced block
+ * that names a language is drawn with its colours (the same as a snippet's); one that names none stays as it is.
+ */
 export function Description({ text }: { text: string }) {
-  return <Markdown components={{ a: props => <a {...props} target="_blank" rel="noreferrer" /> }}>{text}</Markdown>
+  return (
+    <Markdown components={{
+      a: props => <a {...props} target="_blank" rel="noreferrer" />,
+      pre: ({ children, node: _node, ...rest }) => {
+        const block = Children.toArray(children)[0]
+        const code = isValidElement<{ className?: string; children?: ReactNode }>(block) ? block.props : undefined
+        const language = fenceLanguage(code?.className)
+        return language === undefined ? <pre {...rest}>{children}</pre> : <CodeBlock text={String(code?.children ?? '')} language={language} />
+      },
+    }}>{text}</Markdown>
+  )
 }
 
 /** How many failure modes a shape or line carries, in the colour of the worst one. The count and the band's name are also its label, so the colour is never the only copy. */

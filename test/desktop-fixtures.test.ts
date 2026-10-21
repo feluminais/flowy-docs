@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readdir, readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { dumpBeats } from '../desktop/fixtures/beats.ts'
+import { dumpDetect, dumpHighlight } from '../desktop/fixtures/detect.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from '../desktop/fixtures/dump.ts'
 import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
 import { dumpEditLabels } from '../desktop/fixtures/editlabel.ts'
@@ -59,6 +60,16 @@ for (const [name, dir] of Object.entries(fixtureDirs())) {
     assert.deepEqual(JSON.parse(JSON.stringify(await dumpFolder(dir))), expected, 'run: node desktop/fixtures/generate.ts')
   })
 }
+
+test('desktop language detection still names what the TypeScript cues name', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('detect'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(dumpDetect())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop code colours still match the HTML and runs the canvas gets from highlight.js', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('highlight'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(dumpHighlight())), expected, 'run: node desktop/fixtures/generate.ts')
+})
 
 test('desktop animation beats still match what the TypeScript core says', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('beats'), 'utf8'))
