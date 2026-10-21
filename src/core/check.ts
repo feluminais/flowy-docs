@@ -1,7 +1,7 @@
 import { COLOR_NAMES, iconProblem, isColor, isKnownIcon, isOpacity, isShape, SHAPES } from './look.ts'
 import { getObject, ID_RULE, isValidId, LINE_STYLES, OBJECT_TYPES, ROOT } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
-import { animationProblem } from './animation.ts'
+import { animationProblem, interceptorProblem } from './animation.ts'
 import { dataProblems } from './data.ts'
 import { analysisProblems } from './failures.ts'
 import { snippetProblems } from './snippets.ts'
@@ -152,7 +152,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       else if (missing(s.from)) sp('"from" is missing')
       else if (!getObject(model, s.from)) sp(`unknown object "${s.from}"`)
       if (!nonEmpty(s.text)) sp('text is missing')
-      const animation = animationProblem(s.animation, !alone)
+      const animation = animationProblem(s.animation, !alone) ?? interceptorProblem(s.animation, s, id => getObject(model, id) !== undefined)
       if (animation) sp(animation)
       if (alone) {
         if (viewOk && getObject(model, s.from) && !placeStep(model, f.view, s)) sp(`${s.from} can't be shown in view "${f.view}"`)
