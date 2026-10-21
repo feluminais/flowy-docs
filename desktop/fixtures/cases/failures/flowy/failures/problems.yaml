@@ -1,0 +1,69 @@
+scope: web
+modes:
+  no-part:
+    mode: Has no part
+  both:
+    mode: Has two kinds of part
+    on: db
+    from: api
+    to: db
+  unknown-shape:
+    mode: Names a shape that is not there
+    on: gone
+  half-line:
+    mode: Names half a line
+    from: web
+  no-connection:
+    mode: Names a line the model does not have
+    from: web
+    to: db
+  unknown-end:
+    mode: Names a line with an unknown end
+    from: web
+    to: gone
+  bad-affects:
+    mode: Hurts something that is not there
+    on: db
+    affects: [nope]
+  bad-rating:
+    mode: Rated out of range
+    on: db
+    severity: 11
+    occurrence: 07
+    detection: 5.5
+  bad-after:
+    mode: After rating out of range
+    on: db
+    after: { severity: 0 }
+  bad-status:
+    mode: A status nobody knows
+    on: db
+    status: finished
+  bad-flow:
+    mode: Names a flow that is not there
+    on: db
+    flow: nope
+  step-without-flow:
+    mode: A step with no flow
+    on: db
+    step: 2
+  step-zero:
+    mode: A step that is not from 1
+    on: db
+    flow: checkout
+    step: 0
+  step-beyond:
+    mode: A step past the end
+    on: db
+    flow: checkout
+    step: 9
+  blank-mode:
+    mode: ""
+    on: db
+  Bad-Id:
+    mode: An id that is not an id
+    on: db
+  bad-run:
+    mode: Names a run that is not there
+    on: db
+    run: nope

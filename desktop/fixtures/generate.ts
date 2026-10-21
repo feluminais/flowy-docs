@@ -7,6 +7,7 @@ import { dumpBeats } from './beats.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
 import { dumpDetect, dumpHighlight } from './detect.ts'
 import { dumpEditLabels } from './editlabel.ts'
+import { dumpFailures } from './failures.ts'
 import { dumpFormula } from './formula.ts'
 import { dumpGeometry } from './geometry.ts'
 import { buildTrail, dumpHistory } from './history.ts'
@@ -41,6 +42,7 @@ await write('outline', await dumpOutline())
 await write('formula', dumpFormula())
 await write('perf-runs', await dumpPerf())
 await write('perf-view', await dumpPerfView())
+await write('failures-core', await dumpFailures())
 await write('stops', await dumpStops())
 await write('captions', await dumpCaptions())
 await write('state-folds', await dumpStates())

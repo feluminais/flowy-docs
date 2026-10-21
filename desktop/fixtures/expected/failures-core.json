@@ -1,0 +1,5322 @@
+{
+  "ratingOf": [
+    {
+      "text": "1",
+      "rating": 1
+    },
+    {
+      "text": "5",
+      "rating": 5
+    },
+    {
+      "text": "9",
+      "rating": 9
+    },
+    {
+      "text": "10",
+      "rating": 10
+    },
+    {
+      "text": "0",
+      "rating": null
+    },
+    {
+      "text": "11",
+      "rating": null
+    },
+    {
+      "text": "07",
+      "rating": null
+    },
+    {
+      "text": "5.5",
+      "rating": null
+    },
+    {
+      "text": " 5",
+      "rating": null
+    },
+    {
+      "text": "1e1",
+      "rating": null
+    },
+    {
+      "text": "",
+      "rating": null
+    },
+    {
+      "text": "a",
+      "rating": null
+    },
+    {
+      "text": "-1",
+      "rating": null
+    },
+    {
+      "text": "１",
+      "rating": null
+    }
+  ],
+  "analysesText": [
+    "failure analyses ",
+    "failure analysis a",
+    "failure analyses a, b",
+    "failure analyses a, b, c"
+  ],
+  "shop": {
+    "analyses": [
+      {
+        "id": "empty",
+        "modes": [],
+        "rank": [],
+        "coverage": {
+          "analysed": [],
+          "left": [
+            "web",
+            "db",
+            "auth",
+            "orders",
+            "mail"
+          ]
+        },
+        "coverageText": "Analysed 0 of 5\nNot analysed: Shop > Web app, Shop > Orders DB, Shop > API > Auth, Shop > API > Orders, Mail service",
+        "markdown": "## empty\n\nAnalysed 0 of 5\nNot analysed: Shop > Web app, Shop > Orders DB, Shop > API > Auth, Shop > API > Orders, Mail service\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "csv": "Risk band,Part,Mode,Effect,Cause,Severity,Likelihood,Hard to spot,Risk,Controls,Next action,Owner,Status",
+        "problems": [
+          {
+            "file": "failures/empty.yaml",
+            "message": "name is missing"
+          }
+        ],
+        "runLinks": [],
+        "views": [
+          {
+            "view": "root",
+            "marks": {
+              "boxes": {},
+              "lines": {}
+            },
+            "inView": [],
+            "drawnIn": [],
+            "reach": [],
+            "carried": [
+              {
+                "box": "customer",
+                "ids": []
+              },
+              {
+                "box": "shop",
+                "ids": []
+              },
+              {
+                "box": "mail",
+                "ids": []
+              },
+              {
+                "line": [
+                  "customer",
+                  "shop"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "shop",
+                  "mail"
+                ],
+                "ids": []
+              }
+            ]
+          },
+          {
+            "view": "shop",
+            "marks": {
+              "boxes": {},
+              "lines": {}
+            },
+            "inView": [],
+            "drawnIn": [],
+            "reach": [],
+            "carried": [
+              {
+                "box": "web",
+                "ids": []
+              },
+              {
+                "box": "api",
+                "ids": []
+              },
+              {
+                "box": "db",
+                "ids": []
+              },
+              {
+                "box": "customer",
+                "ids": []
+              },
+              {
+                "box": "mail",
+                "ids": []
+              },
+              {
+                "line": [
+                  "customer",
+                  "web"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "web",
+                  "api"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "api",
+                  "db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "api",
+                  "mail"
+                ],
+                "ids": []
+              }
+            ]
+          },
+          {
+            "view": "api",
+            "marks": {
+              "boxes": {},
+              "lines": {}
+            },
+            "inView": [],
+            "drawnIn": [],
+            "reach": [],
+            "carried": [
+              {
+                "box": "auth",
+                "ids": []
+              },
+              {
+                "box": "orders",
+                "ids": []
+              },
+              {
+                "box": "db",
+                "ids": []
+              },
+              {
+                "box": "mail",
+                "ids": []
+              },
+              {
+                "line": [
+                  "orders",
+                  "db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "auth",
+                  "db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "orders",
+                  "mail"
+                ],
+                "ids": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "ordering",
+        "modes": [
+          {
+            "id": "db-down",
+            "ratings": {
+              "severity": 10,
+              "occurrence": 2,
+              "detection": 2
+            },
+            "after": {
+              "severity": 10,
+              "occurrence": 1,
+              "detection": 2
+            },
+            "risk": 40,
+            "band": "high",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "mail-timeout",
+            "ratings": {
+              "severity": 3,
+              "occurrence": 6,
+              "detection": 7
+            },
+            "after": {
+              "severity": 3,
+              "occurrence": 6,
+              "detection": 7
+            },
+            "risk": 126,
+            "band": "medium",
+            "part": "Orders to Mail service",
+            "home": "api"
+          },
+          {
+            "id": "api-slow",
+            "ratings": {
+              "severity": 4,
+              "occurrence": 5,
+              "detection": 3
+            },
+            "after": {
+              "severity": 2,
+              "occurrence": 2,
+              "detection": 2
+            },
+            "risk": 8,
+            "band": "low",
+            "part": "Shop > API",
+            "home": "shop"
+          },
+          {
+            "id": "auth-lock",
+            "ratings": {
+              "severity": 6,
+              "occurrence": 5,
+              "detection": 5
+            },
+            "after": {
+              "severity": 6,
+              "occurrence": 5,
+              "detection": 5
+            },
+            "risk": 150,
+            "band": "high",
+            "part": "Shop > API > Auth",
+            "home": "api"
+          },
+          {
+            "id": "web-glitch",
+            "ratings": {
+              "severity": 2,
+              "occurrence": 3,
+              "detection": 2
+            },
+            "after": {
+              "severity": 2,
+              "occurrence": 3,
+              "detection": 2
+            },
+            "risk": 12,
+            "band": "low",
+            "part": "Shop > Web app",
+            "home": "shop"
+          },
+          {
+            "id": "orders-unrated",
+            "ratings": {
+              "severity": 5
+            },
+            "after": {
+              "severity": 5
+            },
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > API > Orders",
+            "home": "api"
+          },
+          {
+            "id": "mail-severe",
+            "ratings": {
+              "severity": 9
+            },
+            "after": {
+              "severity": 9
+            },
+            "risk": null,
+            "band": "high",
+            "part": "Mail service",
+            "home": "root"
+          },
+          {
+            "id": "constructor",
+            "ratings": {
+              "severity": 1,
+              "occurrence": 1,
+              "detection": 1
+            },
+            "after": {
+              "severity": 1,
+              "occurrence": 1,
+              "detection": 1
+            },
+            "risk": 1,
+            "band": "low",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          }
+        ],
+        "rank": [
+          {
+            "id": "auth-lock",
+            "risk": 150,
+            "band": "high"
+          },
+          {
+            "id": "db-down",
+            "risk": 40,
+            "band": "high"
+          },
+          {
+            "id": "mail-severe",
+            "risk": null,
+            "band": "high"
+          },
+          {
+            "id": "mail-timeout",
+            "risk": 126,
+            "band": "medium"
+          },
+          {
+            "id": "web-glitch",
+            "risk": 12,
+            "band": "low"
+          },
+          {
+            "id": "api-slow",
+            "risk": 8,
+            "band": "low"
+          },
+          {
+            "id": "constructor",
+            "risk": 1,
+            "band": "low"
+          },
+          {
+            "id": "orders-unrated",
+            "risk": null,
+            "band": "unrated"
+          }
+        ],
+        "coverage": {
+          "analysed": [
+            "web",
+            "db",
+            "auth",
+            "orders"
+          ],
+          "left": []
+        },
+        "coverageText": "Analysed 4 of 4",
+        "markdown": "## Ordering (ordering)\n\nAnalysed 4 of 4\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status | Severity after | Likelihood after | Hard to spot after |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| High | Shop > API > Auth | The login lock is never released | Nobody can sign in. |  | 6 | 5 | 5 | 150 |  |  |  | accepted |  |  |  |\n| High | Shop > Orders DB | The database is unreachable | Orders can't be saved. | The primary fails. | 10 | 2 | 2 | 40 | A standby takes over. | Rehearse the failover. | Platform | planned |  | 1 |  |\n| High | Mail service | Receipts go to the wrong person |  |  | 9 |  |  |  |  |  |  | open |  |  |  |\n| Medium | Orders to Mail service | The mail service doesn't answer | Receipts arrive late. |  | 3 | 6 | 7 | 126 |  |  |  | open |  |  |  |\n| Low | Shop > Web app | The page flickers | A customer is annoyed. |  | 2 | 3 | 2 | 12 |  |  |  | open |  |  |  |\n| Low | Shop > API | The API answers slowly | Pages hang. |  | 4 | 5 | 3 | 8 |  |  |  | done | 2 | 2 | 2 |\n| Low | Shop > Orders DB | A mode named like something on every object |  |  | 1 | 1 | 1 | 1 |  |  |  | constructor |  |  |  |\n| Not rated | Shop > API > Orders | An order is counted twice | A customer is billed twice. |  | 5 |  |  |  |  |  |  | open |  |  |  |",
+        "csv": "Risk band,Part,Mode,Effect,Cause,Severity,Likelihood,Hard to spot,Risk,Controls,Next action,Owner,Status,Severity after,Likelihood after,Hard to spot after\nHigh,Shop > API > Auth,The login lock is never released,Nobody can sign in.,,6,5,5,150,,,,accepted,,,\nHigh,Shop > Orders DB,The database is unreachable,Orders can't be saved.,The primary fails.,10,2,2,40,A standby takes over.,Rehearse the failover.,Platform,planned,,1,\nHigh,Mail service,Receipts go to the wrong person,,,9,,,,,,,open,,,\nMedium,Orders to Mail service,The mail service doesn't answer,Receipts arrive late.,,3,6,7,126,,,,open,,,\nLow,Shop > Web app,The page flickers,A customer is annoyed.,,2,3,2,12,,,,open,,,\nLow,Shop > API,The API answers slowly,Pages hang.,,4,5,3,8,,,,done,2,2,2\nLow,Shop > Orders DB,A mode named like something on every object,,,1,1,1,1,,,,constructor,,,\nNot rated,Shop > API > Orders,An order is counted twice,A customer is billed twice.,,5,,,,,,,open,,,",
+        "problems": [
+          {
+            "file": "failures/ordering.yaml",
+            "message": "constructor: status \"constructor\" must be open, planned, done or accepted"
+          }
+        ],
+        "runLinks": [],
+        "views": [
+          {
+            "view": "root",
+            "marks": {
+              "boxes": {
+                "shop": {
+                  "band": "high",
+                  "count": 6
+                },
+                "mail": {
+                  "band": "high",
+                  "count": 1
+                }
+              },
+              "lines": {
+                "shop mail": {
+                  "band": "medium",
+                  "count": 1
+                }
+              }
+            },
+            "inView": [
+              "db-down",
+              "mail-timeout",
+              "api-slow",
+              "auth-lock",
+              "web-glitch",
+              "orders-unrated",
+              "mail-severe",
+              "constructor"
+            ],
+            "drawnIn": [
+              "db-down",
+              "mail-timeout",
+              "api-slow",
+              "auth-lock",
+              "web-glitch",
+              "orders-unrated",
+              "mail-severe",
+              "constructor"
+            ],
+            "reach": [
+              {
+                "id": "db-down",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "mail-timeout",
+                "reach": {
+                  "fails": [
+                    "shop",
+                    "mail"
+                  ],
+                  "failsLine": "shop mail",
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop",
+                    "mail"
+                  ],
+                  "failsLine": "shop mail",
+                  "affects": []
+                }
+              },
+              {
+                "id": "api-slow",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "auth-lock",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "web-glitch",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "orders-unrated",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "mail-severe",
+                "reach": {
+                  "fails": [
+                    "mail"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "mail"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "constructor",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              }
+            ],
+            "carried": [
+              {
+                "box": "customer",
+                "ids": []
+              },
+              {
+                "box": "shop",
+                "ids": [
+                  "auth-lock",
+                  "db-down",
+                  "web-glitch",
+                  "api-slow",
+                  "constructor",
+                  "orders-unrated"
+                ]
+              },
+              {
+                "box": "mail",
+                "ids": [
+                  "mail-severe"
+                ]
+              },
+              {
+                "line": [
+                  "customer",
+                  "shop"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "shop",
+                  "mail"
+                ],
+                "ids": [
+                  "mail-timeout"
+                ]
+              }
+            ]
+          },
+          {
+            "view": "shop",
+            "marks": {
+              "boxes": {
+                "db": {
+                  "band": "high",
+                  "count": 2
+                },
+                "api": {
+                  "band": "high",
+                  "count": 3
+                },
+                "web": {
+                  "band": "low",
+                  "count": 1
+                }
+              },
+              "lines": {
+                "api mail": {
+                  "band": "medium",
+                  "count": 1
+                }
+              }
+            },
+            "inView": [
+              "db-down",
+              "mail-timeout",
+              "api-slow",
+              "auth-lock",
+              "web-glitch",
+              "orders-unrated",
+              "constructor"
+            ],
+            "drawnIn": [
+              "db-down",
+              "mail-timeout",
+              "api-slow",
+              "auth-lock",
+              "web-glitch",
+              "orders-unrated",
+              "constructor"
+            ],
+            "reach": [
+              {
+                "id": "db-down",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": [
+                    "web",
+                    "api"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": [
+                    "web",
+                    "api"
+                  ]
+                }
+              },
+              {
+                "id": "mail-timeout",
+                "reach": {
+                  "fails": [
+                    "api",
+                    "mail"
+                  ],
+                  "failsLine": "api mail",
+                  "affects": [
+                    "web"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "api",
+                    "mail"
+                  ],
+                  "failsLine": "api mail",
+                  "affects": [
+                    "web"
+                  ]
+                }
+              },
+              {
+                "id": "api-slow",
+                "reach": {
+                  "fails": [
+                    "api"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "api"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "auth-lock",
+                "reach": {
+                  "fails": [
+                    "api"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "api"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "web-glitch",
+                "reach": {
+                  "fails": [
+                    "web"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "web"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "orders-unrated",
+                "reach": {
+                  "fails": [
+                    "api"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "api"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "mail-severe",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "constructor",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              }
+            ],
+            "carried": [
+              {
+                "box": "web",
+                "ids": [
+                  "web-glitch"
+                ]
+              },
+              {
+                "box": "api",
+                "ids": [
+                  "auth-lock",
+                  "api-slow",
+                  "orders-unrated"
+                ]
+              },
+              {
+                "box": "db",
+                "ids": [
+                  "db-down",
+                  "constructor"
+                ]
+              },
+              {
+                "box": "customer",
+                "ids": []
+              },
+              {
+                "box": "mail",
+                "ids": []
+              },
+              {
+                "line": [
+                  "customer",
+                  "web"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "web",
+                  "api"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "api",
+                  "db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "api",
+                  "mail"
+                ],
+                "ids": [
+                  "mail-timeout"
+                ]
+              }
+            ]
+          },
+          {
+            "view": "api",
+            "marks": {
+              "boxes": {
+                "auth": {
+                  "band": "high",
+                  "count": 1
+                },
+                "orders": {
+                  "band": "unrated",
+                  "count": 1
+                }
+              },
+              "lines": {
+                "orders mail": {
+                  "band": "medium",
+                  "count": 1
+                }
+              }
+            },
+            "inView": [
+              "mail-timeout",
+              "api-slow",
+              "auth-lock",
+              "orders-unrated"
+            ],
+            "drawnIn": [
+              "mail-timeout",
+              "auth-lock",
+              "orders-unrated"
+            ],
+            "reach": [
+              {
+                "id": "db-down",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "mail-timeout",
+                "reach": {
+                  "fails": [
+                    "orders",
+                    "mail"
+                  ],
+                  "failsLine": "orders mail",
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "orders",
+                    "mail"
+                  ],
+                  "failsLine": "orders mail",
+                  "affects": []
+                }
+              },
+              {
+                "id": "api-slow",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "auth-lock",
+                "reach": {
+                  "fails": [
+                    "auth"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "auth"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "web-glitch",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "orders-unrated",
+                "reach": {
+                  "fails": [
+                    "orders"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "orders"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "mail-severe",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "constructor",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              }
+            ],
+            "carried": [
+              {
+                "box": "auth",
+                "ids": [
+                  "auth-lock"
+                ]
+              },
+              {
+                "box": "orders",
+                "ids": [
+                  "orders-unrated"
+                ]
+              },
+              {
+                "box": "db",
+                "ids": []
+              },
+              {
+                "box": "mail",
+                "ids": []
+              },
+              {
+                "line": [
+                  "orders",
+                  "db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "auth",
+                  "db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "orders",
+                  "mail"
+                ],
+                "ids": [
+                  "mail-timeout"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "problems",
+        "modes": [
+          {
+            "id": "no-part",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "",
+            "home": "root"
+          },
+          {
+            "id": "both",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "unknown-shape",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "gone",
+            "home": "root"
+          },
+          {
+            "id": "half-line",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "",
+            "home": "root"
+          },
+          {
+            "id": "no-connection",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Web app to Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "unknown-end",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Web app to gone",
+            "home": "root"
+          },
+          {
+            "id": "bad-affects",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "bad-rating",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "bad-after",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "bad-status",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "bad-flow",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "step-without-flow",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "step-zero",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "step-beyond",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "blank-mode",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "Bad-Id",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "bad-run",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          }
+        ],
+        "rank": [
+          {
+            "id": "no-part",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "both",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "unknown-shape",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "half-line",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "no-connection",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "unknown-end",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "bad-affects",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "bad-rating",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "bad-after",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "bad-status",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "bad-flow",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "step-without-flow",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "step-zero",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "step-beyond",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "blank-mode",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "Bad-Id",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "bad-run",
+            "risk": null,
+            "band": "unrated"
+          }
+        ],
+        "coverage": {
+          "analysed": [],
+          "left": []
+        },
+        "coverageText": "Analysed 0 of 0",
+        "markdown": "## problems\n\nAnalysed 0 of 0\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status | Severity after | Likelihood after | Hard to spot after |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| Not rated |  | Has no part |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Has two kinds of part |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | gone | Names a shape that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated |  | Names half a line |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Web app to Orders DB | Names a line the model does not have |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Web app to gone | Names a line with an unknown end |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Hurts something that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Rated out of range |  |  | 11 | 07 | 5.5 |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | After rating out of range |  |  |  |  |  |  |  |  |  | open | 0 |  |  |\n| Not rated | Shop > Orders DB | A status nobody knows |  |  |  |  |  |  |  |  |  | finished |  |  |  |\n| Not rated | Shop > Orders DB | Names a flow that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step with no flow |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step that is not from 1 |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step past the end |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB |  |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | An id that is not an id |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Names a run that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |",
+        "csv": "Risk band,Part,Mode,Effect,Cause,Severity,Likelihood,Hard to spot,Risk,Controls,Next action,Owner,Status,Severity after,Likelihood after,Hard to spot after\nNot rated,,Has no part,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Has two kinds of part,,,,,,,,,,open,,,\nNot rated,gone,Names a shape that is not there,,,,,,,,,,open,,,\nNot rated,,Names half a line,,,,,,,,,,open,,,\nNot rated,Web app to Orders DB,Names a line the model does not have,,,,,,,,,,open,,,\nNot rated,Web app to gone,Names a line with an unknown end,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Hurts something that is not there,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Rated out of range,,,11,07,5.5,,,,,open,,,\nNot rated,Shop > Orders DB,After rating out of range,,,,,,,,,,open,0,,\nNot rated,Shop > Orders DB,A status nobody knows,,,,,,,,,,finished,,,\nNot rated,Shop > Orders DB,Names a flow that is not there,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step with no flow,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step that is not from 1,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step past the end,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,An id that is not an id,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Names a run that is not there,,,,,,,,,,open,,,",
+        "problems": [
+          {
+            "file": "failures/problems.yaml",
+            "message": "name is missing"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "scope \"web\" must be \"root\" or an object with children"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "no-part: needs \"on\" (a shape) or \"from\" and \"to\" (a line)"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "both: has \"on\" and also \"from\" or \"to\"; use one or the other"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "unknown-shape: unknown object \"gone\""
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "half-line: \"from\" and \"to\" go together"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "no-connection: web → db is not a connection in the model"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "unknown-end: unknown object \"gone\""
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "bad-affects: affects: unknown object \"nope\""
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "bad-rating: severity must be a whole number from 1 to 10"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "bad-rating: occurrence must be a whole number from 1 to 10"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "bad-rating: detection must be a whole number from 1 to 10"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "bad-after: after severity must be a whole number from 1 to 10"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "bad-status: status \"finished\" must be open, planned, done or accepted"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "bad-flow: flow \"nope\" doesn't exist"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "step-without-flow: step needs a flow"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "step-zero: step must be a whole number from 1"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "step-beyond: step 9 is outside flow \"checkout\", which has 3 steps"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "blank-mode: \"mode\" is missing"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "Bad-Id: the id must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+          }
+        ],
+        "runLinks": [
+          {
+            "file": "failures/problems.yaml",
+            "message": "bad-run: run \"nope\" doesn't exist"
+          }
+        ],
+        "views": [
+          {
+            "view": "root",
+            "marks": {
+              "boxes": {
+                "shop": {
+                  "band": "unrated",
+                  "count": 13
+                }
+              },
+              "lines": {}
+            },
+            "inView": [
+              "no-part",
+              "both",
+              "unknown-shape",
+              "half-line",
+              "no-connection",
+              "unknown-end",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ],
+            "drawnIn": [
+              "both",
+              "no-connection",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ],
+            "reach": [
+              {
+                "id": "no-part",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "both",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "unknown-shape",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "half-line",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "no-connection",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "unknown-end",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "bad-affects",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bad-rating",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bad-after",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bad-status",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bad-flow",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "step-without-flow",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "step-zero",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "step-beyond",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "blank-mode",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "Bad-Id",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bad-run",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              }
+            ],
+            "carried": [
+              {
+                "box": "customer",
+                "ids": []
+              },
+              {
+                "box": "shop",
+                "ids": [
+                  "both",
+                  "no-connection",
+                  "bad-affects",
+                  "bad-rating",
+                  "bad-after",
+                  "bad-status",
+                  "bad-flow",
+                  "step-without-flow",
+                  "step-zero",
+                  "step-beyond",
+                  "blank-mode",
+                  "Bad-Id",
+                  "bad-run"
+                ]
+              },
+              {
+                "box": "mail",
+                "ids": []
+              },
+              {
+                "line": [
+                  "customer",
+                  "shop"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "shop",
+                  "mail"
+                ],
+                "ids": []
+              }
+            ]
+          },
+          {
+            "view": "shop",
+            "marks": {
+              "boxes": {
+                "db": {
+                  "band": "unrated",
+                  "count": 12
+                }
+              },
+              "lines": {
+                "web db": {
+                  "band": "unrated",
+                  "count": 1
+                }
+              }
+            },
+            "inView": [
+              "both",
+              "half-line",
+              "no-connection",
+              "unknown-end",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ],
+            "drawnIn": [
+              "both",
+              "no-connection",
+              "bad-affects",
+              "bad-rating",
+              "bad-after",
+              "bad-status",
+              "bad-flow",
+              "step-without-flow",
+              "step-zero",
+              "step-beyond",
+              "blank-mode",
+              "Bad-Id",
+              "bad-run"
+            ],
+            "reach": [
+              {
+                "id": "no-part",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "both",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "unknown-shape",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "half-line",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "no-connection",
+                "reach": {
+                  "fails": [
+                    "web",
+                    "db"
+                  ],
+                  "failsLine": "web db",
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "web",
+                    "db"
+                  ],
+                  "failsLine": "web db",
+                  "affects": []
+                }
+              },
+              {
+                "id": "unknown-end",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "bad-affects",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bad-rating",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bad-after",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bad-status",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bad-flow",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "step-without-flow",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "step-zero",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "step-beyond",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "blank-mode",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "Bad-Id",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bad-run",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              }
+            ],
+            "carried": [
+              {
+                "box": "web",
+                "ids": []
+              },
+              {
+                "box": "api",
+                "ids": []
+              },
+              {
+                "box": "db",
+                "ids": [
+                  "both",
+                  "bad-affects",
+                  "bad-rating",
+                  "bad-after",
+                  "bad-status",
+                  "bad-flow",
+                  "step-without-flow",
+                  "step-zero",
+                  "step-beyond",
+                  "blank-mode",
+                  "Bad-Id",
+                  "bad-run"
+                ]
+              },
+              {
+                "box": "customer",
+                "ids": []
+              },
+              {
+                "box": "mail",
+                "ids": []
+              },
+              {
+                "line": [
+                  "customer",
+                  "web"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "web",
+                  "api"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "api",
+                  "db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "api",
+                  "mail"
+                ],
+                "ids": []
+              }
+            ]
+          },
+          {
+            "view": "api",
+            "marks": {
+              "boxes": {},
+              "lines": {}
+            },
+            "inView": [],
+            "drawnIn": [],
+            "reach": [
+              {
+                "id": "no-part",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "both",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "unknown-shape",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "half-line",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "no-connection",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "unknown-end",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "bad-affects",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "bad-rating",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "bad-after",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "bad-status",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "bad-flow",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "step-without-flow",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "step-zero",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "step-beyond",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "blank-mode",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "Bad-Id",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "bad-run",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              }
+            ],
+            "carried": [
+              {
+                "box": "auth",
+                "ids": []
+              },
+              {
+                "box": "orders",
+                "ids": []
+              },
+              {
+                "box": "db",
+                "ids": []
+              },
+              {
+                "box": "mail",
+                "ids": []
+              },
+              {
+                "line": [
+                  "orders",
+                  "db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "auth",
+                  "db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "orders",
+                  "mail"
+                ],
+                "ids": []
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "users": {
+      "objects": [
+        {
+          "id": "customer",
+          "analyses": []
+        },
+        {
+          "id": "shop",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "web",
+          "analyses": [
+            "ordering",
+            "problems"
+          ]
+        },
+        {
+          "id": "api",
+          "analyses": [
+            "ordering",
+            "problems"
+          ]
+        },
+        {
+          "id": "db",
+          "analyses": [
+            "ordering",
+            "problems"
+          ]
+        },
+        {
+          "id": "auth",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "orders",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "mail",
+          "analyses": [
+            "ordering"
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "from": "customer",
+          "to": "web",
+          "analyses": []
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "analyses": []
+        },
+        {
+          "from": "orders",
+          "to": "db",
+          "analyses": []
+        },
+        {
+          "from": "auth",
+          "to": "db",
+          "analyses": []
+        },
+        {
+          "from": "orders",
+          "to": "mail",
+          "analyses": [
+            "ordering"
+          ]
+        }
+      ]
+    }
+  },
+  "plum": {
+    "analyses": [
+      {
+        "id": "ordering",
+        "modes": [
+          {
+            "id": "stripe-timeout",
+            "ratings": {
+              "severity": 8,
+              "occurrence": 4,
+              "detection": 3
+            },
+            "after": {
+              "severity": 8,
+              "occurrence": 4,
+              "detection": 1
+            },
+            "risk": 96,
+            "band": "medium",
+            "part": "Checkout to Stripe",
+            "home": "order-api"
+          },
+          {
+            "id": "card-declined",
+            "ratings": {
+              "severity": 3,
+              "occurrence": 7,
+              "detection": 2
+            },
+            "after": {
+              "severity": 3,
+              "occurrence": 7,
+              "detection": 2
+            },
+            "risk": 42,
+            "band": "low",
+            "part": "Checkout to Stripe",
+            "home": "order-api"
+          },
+          {
+            "id": "refund-not-recorded",
+            "ratings": {
+              "severity": 9,
+              "occurrence": 2,
+              "detection": 7
+            },
+            "after": {
+              "severity": 9,
+              "occurrence": 2,
+              "detection": 7
+            },
+            "risk": 126,
+            "band": "high",
+            "part": "Ordering > Order API > Refunds",
+            "home": "order-api"
+          },
+          {
+            "id": "orders-db-down",
+            "ratings": {
+              "severity": 10,
+              "occurrence": 2,
+              "detection": 1
+            },
+            "after": {
+              "severity": 10,
+              "occurrence": 2,
+              "detection": 1
+            },
+            "risk": 20,
+            "band": "high",
+            "part": "Ordering > Orders DB",
+            "home": "ordering"
+          },
+          {
+            "id": "double-tap",
+            "ratings": {
+              "severity": 6,
+              "occurrence": 5,
+              "detection": 4
+            },
+            "after": {
+              "severity": 6,
+              "occurrence": 1,
+              "detection": 4
+            },
+            "risk": 24,
+            "band": "low",
+            "part": "Ordering > Order API",
+            "home": "ordering"
+          },
+          {
+            "id": "menu-cache-stale",
+            "ratings": {
+              "severity": 2,
+              "occurrence": 8,
+              "detection": 3
+            },
+            "after": {
+              "severity": 2,
+              "occurrence": 8,
+              "detection": 3
+            },
+            "risk": 48,
+            "band": "low",
+            "part": "Ordering > Menu cache",
+            "home": "ordering"
+          },
+          {
+            "id": "eta-mapbox-fails",
+            "ratings": {
+              "severity": 6,
+              "occurrence": 6,
+              "detection": 3
+            },
+            "after": {
+              "severity": 6,
+              "occurrence": 2,
+              "detection": 3
+            },
+            "risk": 108,
+            "band": "medium",
+            "part": "ETA to Mapbox",
+            "home": "dispatch"
+          },
+          {
+            "id": "fleet-position-writes",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Delivery > Fleet DB",
+            "home": "delivery"
+          },
+          {
+            "id": "events-lag",
+            "ratings": {
+              "severity": 5,
+              "occurrence": 5,
+              "detection": 3
+            },
+            "after": {
+              "severity": 5,
+              "occurrence": 2,
+              "detection": 3
+            },
+            "risk": 75,
+            "band": "medium",
+            "part": "Ordering > Order events",
+            "home": "ordering"
+          },
+          {
+            "id": "kitchen-tablet-offline",
+            "ratings": {
+              "severity": 4,
+              "occurrence": 5,
+              "detection": 2
+            },
+            "after": {
+              "severity": 4,
+              "occurrence": 5,
+              "detection": 2
+            },
+            "risk": 40,
+            "band": "low",
+            "part": "Ordering > Kitchen tablet",
+            "home": "ordering"
+          },
+          {
+            "id": "offers-no-answer",
+            "ratings": {
+              "severity": 6,
+              "occurrence": 6,
+              "detection": 3
+            },
+            "after": {
+              "severity": 6,
+              "occurrence": 3,
+              "detection": 3
+            },
+            "risk": 108,
+            "band": "medium",
+            "part": "Delivery > Dispatch > Offers",
+            "home": "dispatch"
+          },
+          {
+            "id": "tracking-signal-lost",
+            "ratings": {
+              "severity": 2,
+              "occurrence": 7,
+              "detection": 2
+            },
+            "after": {
+              "severity": 2,
+              "occurrence": 7,
+              "detection": 2
+            },
+            "risk": 28,
+            "band": "low",
+            "part": "Delivery > Live tracking",
+            "home": "delivery"
+          },
+          {
+            "id": "sms-not-delivered",
+            "ratings": {
+              "severity": 4,
+              "occurrence": 4,
+              "detection": 9
+            },
+            "after": {
+              "severity": 4,
+              "occurrence": 4,
+              "detection": 9
+            },
+            "risk": 144,
+            "band": "medium",
+            "part": "Notifier to Twilio",
+            "home": "notifications"
+          },
+          {
+            "id": "warehouse-down",
+            "ratings": {
+              "severity": 2,
+              "occurrence": 3,
+              "detection": 4
+            },
+            "after": {
+              "severity": 2,
+              "occurrence": 3,
+              "detection": 4
+            },
+            "risk": 24,
+            "band": "low",
+            "part": "Back office > Data warehouse",
+            "home": "backoffice"
+          }
+        ],
+        "rank": [
+          {
+            "id": "refund-not-recorded",
+            "risk": 126,
+            "band": "high"
+          },
+          {
+            "id": "orders-db-down",
+            "risk": 20,
+            "band": "high"
+          },
+          {
+            "id": "sms-not-delivered",
+            "risk": 144,
+            "band": "medium"
+          },
+          {
+            "id": "eta-mapbox-fails",
+            "risk": 108,
+            "band": "medium"
+          },
+          {
+            "id": "offers-no-answer",
+            "risk": 108,
+            "band": "medium"
+          },
+          {
+            "id": "stripe-timeout",
+            "risk": 96,
+            "band": "medium"
+          },
+          {
+            "id": "events-lag",
+            "risk": 75,
+            "band": "medium"
+          },
+          {
+            "id": "menu-cache-stale",
+            "risk": 48,
+            "band": "low"
+          },
+          {
+            "id": "card-declined",
+            "risk": 42,
+            "band": "low"
+          },
+          {
+            "id": "kitchen-tablet-offline",
+            "risk": 40,
+            "band": "low"
+          },
+          {
+            "id": "tracking-signal-lost",
+            "risk": 28,
+            "band": "low"
+          },
+          {
+            "id": "double-tap",
+            "risk": 24,
+            "band": "low"
+          },
+          {
+            "id": "warehouse-down",
+            "risk": 24,
+            "band": "low"
+          },
+          {
+            "id": "fleet-position-writes",
+            "risk": null,
+            "band": "unrated"
+          }
+        ],
+        "coverage": {
+          "analysed": [
+            "stripe",
+            "twilio",
+            "mapbox",
+            "kitchen-tablet",
+            "orders-db",
+            "menu-cache",
+            "events",
+            "checkout",
+            "refunds",
+            "tracking",
+            "fleet-db",
+            "eta",
+            "offers",
+            "notifier",
+            "warehouse"
+          ],
+          "left": [
+            "customer-app",
+            "web",
+            "menu",
+            "basket",
+            "pricing",
+            "status",
+            "courier-app",
+            "matcher",
+            "templates",
+            "admin",
+            "support-console"
+          ]
+        },
+        "coverageText": "Analysed 15 of 26\nNot analysed: Ordering > Customer app, Ordering > Website, Ordering > Order API > Menu, Ordering > Order API > Basket, Ordering > Order API > Pricing, Ordering > Order API > Order status, Delivery > Courier app, Delivery > Dispatch > Matcher, Notifications > Message templates, Back office > Admin dashboard, Back office > Support console",
+        "markdown": "## Plum fail scenario (ordering)\n\nAnalysed 15 of 26\nNot analysed: Ordering > Customer app, Ordering > Website, Ordering > Order API > Menu, Ordering > Order API > Basket, Ordering > Order API > Pricing, Ordering > Order API > Order status, Delivery > Courier app, Delivery > Dispatch > Matcher, Notifications > Message templates, Back office > Admin dashboard, Back office > Support console\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status | Severity after | Likelihood after | Hard to spot after |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| High | Ordering > Order API > Refunds | Stripe refunds the money but the database write fails | The customer has the money back, and Plum still shows the order as paid. | Orders DB is out of reach at the moment the refund is saved. | 9 | 2 | 7 | 126 | Support can see the refund in Stripe. | Compare refunds with Stripe every night. | Support tools | open |  |  |  |\n| High | Ordering > Orders DB | Orders DB is unavailable | No order can be placed or read until it is back. | The primary fails, or a failover takes longer than planned. | 10 | 2 | 1 | 20 | A standby takes over within a minute. | Rehearse the failover every quarter. | Platform | planned |  |  |  |\n| Medium | Notifier to Twilio | Twilio accepts an SMS and the carrier drops it | The customer never gets the confirmation or the courier's arrival message. | The number is wrong, switched off or blocked by the carrier. | 4 | 4 | 9 | 144 | None. Plum does not read Twilio's delivery receipts. | Read the delivery receipts and alert when fewer than 95% arrive. | Notifications | open |  |  |  |\n| Medium | ETA to Mapbox | Mapbox calls fail at dinner rush | Dispatch has no travel times, so couriers are matched on distance alone. | Plum passes Mapbox's rate limit once orders pass 900 a minute. | 6 | 6 | 3 | 108 | Dispatch falls back to straight-line distance. | Batch the travel-time calls, as the second run tries. | Delivery | planned | 6 | 2 | 3 |\n| Medium | Delivery > Dispatch > Offers | No courier answers within 30 seconds | The order waits for a courier, and the arrival time shown keeps growing. | The couriers near the restaurant are busy, out of signal or away from their phones. | 6 | 6 | 3 | 108 | Each offer moves on to the next courier. When the list runs out, the customer is told. | Widen the search when the list runs out. | Delivery | planned | 6 | 3 | 3 |\n| Medium | Checkout to Stripe | Stripe doesn't answer within five seconds | The order waits on a hold that may or may not exist. | Stripe is slow, or the network between Plum and Stripe drops. | 8 | 4 | 3 | 96 | Three tries with backoff. The idempotency key stops a double hold. | Page when more than 1% of holds time out for five minutes. | Payments | planned | 8 | 4 | 1 |\n| Medium | Ordering > Order events | Dispatch reads events slower than they arrive | A courier is matched minutes after the customer paid, and the arrival time shown is wrong. | A burst of orders, such as the dinner rush, outruns the one consumer Dispatch runs. | 5 | 5 | 3 | 75 | A lag alert fires at 30 seconds. | Run a second Dispatch consumer. | Delivery | planned | 5 | 2 | 3 |\n| Low | Ordering > Menu cache | Serves a menu five minutes late | A customer orders a dish the kitchen has just taken off. | The cache refreshes every five minutes. | 2 | 8 | 3 | 48 | The kitchen can refuse an item, and the customer is told. |  | Ordering | accepted |  |  |  |\n| Low | Checkout to Stripe | Stripe declines the card | The order is not placed, and the customer is asked for another card. | The card is short of funds, expired or blocked. | 3 | 7 | 2 | 42 | The hold is released and the app asks again. |  | Payments | accepted |  |  |  |\n| Low | Ordering > Kitchen tablet | The tablet goes offline and nobody accepts within two minutes | The customer waits two minutes and then hears that the order was cancelled. | The tablet loses its Wi-Fi, or its battery runs out. | 4 | 5 | 2 | 40 | The order cancels itself and the card hold is released. |  | Restaurants | accepted |  |  |  |\n| Low | Delivery > Live tracking | The courier loses signal and the map freezes | The customer sees a courier who has stopped moving. | The courier drives through a tunnel or a dead zone. | 2 | 7 | 2 | 28 | A position older than a minute is dropped, so the map holds still and does not jump when the signal returns. |  | Delivery | accepted |  |  |  |\n| Low | Ordering > Order API | A double tap places two orders | The customer is charged twice for one basket. | The app sends the order again when the first reply is slow. | 6 | 5 | 4 | 24 | Every order carries an idempotency key, and a second order with the same key is refused. |  | Ordering | done | 6 | 1 | 4 |\n| Low | Back office > Data warehouse | The warehouse is down | Reports run late. Orders carry on. | The cluster is being upgraded, or its disk is full. | 2 | 3 | 4 | 24 | Events wait on the stream and are replayed when it is back. |  | Data | accepted |  |  |  |\n| Not rated | Delivery > Fleet DB | Position writes fail | Live tracking shows an old position, or none. |  |  |  |  |  |  |  | Delivery | open |  |  |  |",
+        "csv": "Risk band,Part,Mode,Effect,Cause,Severity,Likelihood,Hard to spot,Risk,Controls,Next action,Owner,Status,Severity after,Likelihood after,Hard to spot after\nHigh,Ordering > Order API > Refunds,Stripe refunds the money but the database write fails,\"The customer has the money back, and Plum still shows the order as paid.\",Orders DB is out of reach at the moment the refund is saved.,9,2,7,126,Support can see the refund in Stripe.,Compare refunds with Stripe every night.,Support tools,open,,,\nHigh,Ordering > Orders DB,Orders DB is unavailable,No order can be placed or read until it is back.,\"The primary fails, or a failover takes longer than planned.\",10,2,1,20,A standby takes over within a minute.,Rehearse the failover every quarter.,Platform,planned,,,\nMedium,Notifier to Twilio,Twilio accepts an SMS and the carrier drops it,The customer never gets the confirmation or the courier's arrival message.,\"The number is wrong, switched off or blocked by the carrier.\",4,4,9,144,None. Plum does not read Twilio's delivery receipts.,Read the delivery receipts and alert when fewer than 95% arrive.,Notifications,open,,,\nMedium,ETA to Mapbox,Mapbox calls fail at dinner rush,\"Dispatch has no travel times, so couriers are matched on distance alone.\",Plum passes Mapbox's rate limit once orders pass 900 a minute.,6,6,3,108,Dispatch falls back to straight-line distance.,\"Batch the travel-time calls, as the second run tries.\",Delivery,planned,6,2,3\nMedium,Delivery > Dispatch > Offers,No courier answers within 30 seconds,\"The order waits for a courier, and the arrival time shown keeps growing.\",\"The couriers near the restaurant are busy, out of signal or away from their phones.\",6,6,3,108,\"Each offer moves on to the next courier. When the list runs out, the customer is told.\",Widen the search when the list runs out.,Delivery,planned,6,3,3\nMedium,Checkout to Stripe,Stripe doesn't answer within five seconds,The order waits on a hold that may or may not exist.,\"Stripe is slow, or the network between Plum and Stripe drops.\",8,4,3,96,Three tries with backoff. The idempotency key stops a double hold.,Page when more than 1% of holds time out for five minutes.,Payments,planned,8,4,1\nMedium,Ordering > Order events,Dispatch reads events slower than they arrive,\"A courier is matched minutes after the customer paid, and the arrival time shown is wrong.\",\"A burst of orders, such as the dinner rush, outruns the one consumer Dispatch runs.\",5,5,3,75,A lag alert fires at 30 seconds.,Run a second Dispatch consumer.,Delivery,planned,5,2,3\nLow,Ordering > Menu cache,Serves a menu five minutes late,A customer orders a dish the kitchen has just taken off.,The cache refreshes every five minutes.,2,8,3,48,\"The kitchen can refuse an item, and the customer is told.\",,Ordering,accepted,,,\nLow,Checkout to Stripe,Stripe declines the card,\"The order is not placed, and the customer is asked for another card.\",\"The card is short of funds, expired or blocked.\",3,7,2,42,The hold is released and the app asks again.,,Payments,accepted,,,\nLow,Ordering > Kitchen tablet,The tablet goes offline and nobody accepts within two minutes,The customer waits two minutes and then hears that the order was cancelled.,\"The tablet loses its Wi-Fi, or its battery runs out.\",4,5,2,40,The order cancels itself and the card hold is released.,,Restaurants,accepted,,,\nLow,Delivery > Live tracking,The courier loses signal and the map freezes,The customer sees a courier who has stopped moving.,The courier drives through a tunnel or a dead zone.,2,7,2,28,\"A position older than a minute is dropped, so the map holds still and does not jump when the signal returns.\",,Delivery,accepted,,,\nLow,Ordering > Order API,A double tap places two orders,The customer is charged twice for one basket.,The app sends the order again when the first reply is slow.,6,5,4,24,\"Every order carries an idempotency key, and a second order with the same key is refused.\",,Ordering,done,6,1,4\nLow,Back office > Data warehouse,The warehouse is down,Reports run late. Orders carry on.,\"The cluster is being upgraded, or its disk is full.\",2,3,4,24,Events wait on the stream and are replayed when it is back.,,Data,accepted,,,\nNot rated,Delivery > Fleet DB,Position writes fail,\"Live tracking shows an old position, or none.\",,,,,,,,Delivery,open,,,",
+        "problems": [],
+        "runLinks": [],
+        "views": [
+          {
+            "view": "root",
+            "marks": {
+              "boxes": {
+                "ordering": {
+                  "band": "high",
+                  "count": 6
+                },
+                "delivery": {
+                  "band": "medium",
+                  "count": 3
+                },
+                "backoffice": {
+                  "band": "low",
+                  "count": 1
+                }
+              },
+              "lines": {
+                "ordering stripe": {
+                  "band": "medium",
+                  "count": 2
+                },
+                "delivery mapbox": {
+                  "band": "medium",
+                  "count": 1
+                },
+                "notifications twilio": {
+                  "band": "medium",
+                  "count": 1
+                }
+              }
+            },
+            "inView": [
+              "stripe-timeout",
+              "card-declined",
+              "refund-not-recorded",
+              "orders-db-down",
+              "double-tap",
+              "menu-cache-stale",
+              "eta-mapbox-fails",
+              "fleet-position-writes",
+              "events-lag",
+              "kitchen-tablet-offline",
+              "offers-no-answer",
+              "tracking-signal-lost",
+              "sms-not-delivered",
+              "warehouse-down"
+            ],
+            "drawnIn": [
+              "stripe-timeout",
+              "card-declined",
+              "refund-not-recorded",
+              "orders-db-down",
+              "double-tap",
+              "menu-cache-stale",
+              "eta-mapbox-fails",
+              "fleet-position-writes",
+              "events-lag",
+              "kitchen-tablet-offline",
+              "offers-no-answer",
+              "tracking-signal-lost",
+              "sms-not-delivered",
+              "warehouse-down"
+            ],
+            "reach": [
+              {
+                "id": "stripe-timeout",
+                "reach": {
+                  "fails": [
+                    "ordering",
+                    "stripe"
+                  ],
+                  "failsLine": "ordering stripe",
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "ordering",
+                    "stripe"
+                  ],
+                  "failsLine": "ordering stripe",
+                  "affects": []
+                }
+              },
+              {
+                "id": "card-declined",
+                "reach": {
+                  "fails": [
+                    "ordering",
+                    "stripe"
+                  ],
+                  "failsLine": "ordering stripe",
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "ordering",
+                    "stripe"
+                  ],
+                  "failsLine": "ordering stripe",
+                  "affects": []
+                }
+              },
+              {
+                "id": "refund-not-recorded",
+                "reach": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": [
+                    "backoffice"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": [
+                    "backoffice"
+                  ]
+                }
+              },
+              {
+                "id": "orders-db-down",
+                "reach": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "double-tap",
+                "reach": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "menu-cache-stale",
+                "reach": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "eta-mapbox-fails",
+                "reach": {
+                  "fails": [
+                    "delivery",
+                    "mapbox"
+                  ],
+                  "failsLine": "delivery mapbox",
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "delivery",
+                    "mapbox"
+                  ],
+                  "failsLine": "delivery mapbox",
+                  "affects": []
+                }
+              },
+              {
+                "id": "fleet-position-writes",
+                "reach": {
+                  "fails": [
+                    "delivery"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "delivery"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "events-lag",
+                "reach": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": [
+                    "delivery"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": [
+                    "delivery"
+                  ]
+                }
+              },
+              {
+                "id": "kitchen-tablet-offline",
+                "reach": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "ordering"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "offers-no-answer",
+                "reach": {
+                  "fails": [
+                    "delivery"
+                  ],
+                  "affects": [
+                    "ordering"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "delivery"
+                  ],
+                  "affects": [
+                    "ordering"
+                  ]
+                }
+              },
+              {
+                "id": "tracking-signal-lost",
+                "reach": {
+                  "fails": [
+                    "delivery"
+                  ],
+                  "affects": [
+                    "ordering"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "delivery"
+                  ],
+                  "affects": [
+                    "ordering"
+                  ]
+                }
+              },
+              {
+                "id": "sms-not-delivered",
+                "reach": {
+                  "fails": [
+                    "notifications",
+                    "twilio"
+                  ],
+                  "failsLine": "notifications twilio",
+                  "affects": [
+                    "ordering"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "notifications",
+                    "twilio"
+                  ],
+                  "failsLine": "notifications twilio",
+                  "affects": [
+                    "ordering"
+                  ]
+                }
+              },
+              {
+                "id": "warehouse-down",
+                "reach": {
+                  "fails": [
+                    "backoffice"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "backoffice"
+                  ],
+                  "affects": []
+                }
+              }
+            ],
+            "carried": [
+              {
+                "box": "customer",
+                "ids": []
+              },
+              {
+                "box": "restaurant",
+                "ids": []
+              },
+              {
+                "box": "courier",
+                "ids": []
+              },
+              {
+                "box": "support",
+                "ids": []
+              },
+              {
+                "box": "ordering",
+                "ids": [
+                  "refund-not-recorded",
+                  "orders-db-down",
+                  "events-lag",
+                  "menu-cache-stale",
+                  "kitchen-tablet-offline",
+                  "double-tap"
+                ]
+              },
+              {
+                "box": "delivery",
+                "ids": [
+                  "offers-no-answer",
+                  "tracking-signal-lost",
+                  "fleet-position-writes"
+                ]
+              },
+              {
+                "box": "notifications",
+                "ids": []
+              },
+              {
+                "box": "backoffice",
+                "ids": [
+                  "warehouse-down"
+                ]
+              },
+              {
+                "box": "stripe",
+                "ids": []
+              },
+              {
+                "box": "twilio",
+                "ids": []
+              },
+              {
+                "box": "mapbox",
+                "ids": []
+              },
+              {
+                "line": [
+                  "customer",
+                  "ordering"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "restaurant",
+                  "ordering"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "courier",
+                  "delivery"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "support",
+                  "backoffice"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "ordering",
+                  "mapbox"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "ordering",
+                  "stripe"
+                ],
+                "ids": [
+                  "stripe-timeout",
+                  "card-declined"
+                ]
+              },
+              {
+                "line": [
+                  "ordering",
+                  "notifications"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "delivery",
+                  "ordering"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "delivery",
+                  "mapbox"
+                ],
+                "ids": [
+                  "eta-mapbox-fails"
+                ]
+              },
+              {
+                "line": [
+                  "delivery",
+                  "notifications"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "notifications",
+                  "twilio"
+                ],
+                "ids": [
+                  "sms-not-delivered"
+                ]
+              },
+              {
+                "line": [
+                  "backoffice",
+                  "ordering"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "ordering",
+                  "backoffice"
+                ],
+                "ids": []
+              }
+            ]
+          },
+          {
+            "view": "ordering",
+            "marks": {
+              "boxes": {
+                "order-api": {
+                  "band": "high",
+                  "count": 2
+                },
+                "orders-db": {
+                  "band": "high",
+                  "count": 1
+                },
+                "menu-cache": {
+                  "band": "low",
+                  "count": 1
+                },
+                "events": {
+                  "band": "medium",
+                  "count": 1
+                },
+                "kitchen-tablet": {
+                  "band": "low",
+                  "count": 1
+                }
+              },
+              "lines": {
+                "order-api stripe": {
+                  "band": "medium",
+                  "count": 2
+                }
+              }
+            },
+            "inView": [
+              "stripe-timeout",
+              "card-declined",
+              "refund-not-recorded",
+              "orders-db-down",
+              "double-tap",
+              "menu-cache-stale",
+              "events-lag",
+              "kitchen-tablet-offline"
+            ],
+            "drawnIn": [
+              "stripe-timeout",
+              "card-declined",
+              "refund-not-recorded",
+              "orders-db-down",
+              "double-tap",
+              "menu-cache-stale",
+              "events-lag",
+              "kitchen-tablet-offline"
+            ],
+            "reach": [
+              {
+                "id": "stripe-timeout",
+                "reach": {
+                  "fails": [
+                    "order-api",
+                    "stripe"
+                  ],
+                  "failsLine": "order-api stripe",
+                  "affects": [
+                    "customer-app",
+                    "kitchen-tablet"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "order-api",
+                    "stripe"
+                  ],
+                  "failsLine": "order-api stripe",
+                  "affects": [
+                    "customer-app",
+                    "kitchen-tablet"
+                  ]
+                }
+              },
+              {
+                "id": "card-declined",
+                "reach": {
+                  "fails": [
+                    "order-api",
+                    "stripe"
+                  ],
+                  "failsLine": "order-api stripe",
+                  "affects": [
+                    "customer-app"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "order-api",
+                    "stripe"
+                  ],
+                  "failsLine": "order-api stripe",
+                  "affects": [
+                    "customer-app"
+                  ]
+                }
+              },
+              {
+                "id": "refund-not-recorded",
+                "reach": {
+                  "fails": [
+                    "order-api"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "order-api"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "orders-db-down",
+                "reach": {
+                  "fails": [
+                    "orders-db"
+                  ],
+                  "affects": [
+                    "customer-app",
+                    "web",
+                    "kitchen-tablet",
+                    "order-api"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "orders-db"
+                  ],
+                  "affects": [
+                    "customer-app",
+                    "web",
+                    "kitchen-tablet",
+                    "order-api"
+                  ]
+                }
+              },
+              {
+                "id": "double-tap",
+                "reach": {
+                  "fails": [
+                    "order-api"
+                  ],
+                  "affects": [
+                    "customer-app"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "order-api"
+                  ],
+                  "affects": [
+                    "customer-app"
+                  ]
+                }
+              },
+              {
+                "id": "menu-cache-stale",
+                "reach": {
+                  "fails": [
+                    "menu-cache"
+                  ],
+                  "affects": [
+                    "customer-app",
+                    "web"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "menu-cache"
+                  ],
+                  "affects": [
+                    "customer-app",
+                    "web"
+                  ]
+                }
+              },
+              {
+                "id": "eta-mapbox-fails",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "fleet-position-writes",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "events-lag",
+                "reach": {
+                  "fails": [
+                    "events"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "events"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "kitchen-tablet-offline",
+                "reach": {
+                  "fails": [
+                    "kitchen-tablet"
+                  ],
+                  "affects": [
+                    "customer-app"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "kitchen-tablet"
+                  ],
+                  "affects": [
+                    "customer-app"
+                  ]
+                }
+              },
+              {
+                "id": "offers-no-answer",
+                "reach": {
+                  "fails": [],
+                  "affects": [
+                    "customer-app"
+                  ]
+                },
+                "light": null
+              },
+              {
+                "id": "tracking-signal-lost",
+                "reach": {
+                  "fails": [],
+                  "affects": [
+                    "customer-app",
+                    "web"
+                  ]
+                },
+                "light": null
+              },
+              {
+                "id": "sms-not-delivered",
+                "reach": {
+                  "fails": [],
+                  "affects": [
+                    "customer-app"
+                  ]
+                },
+                "light": null
+              },
+              {
+                "id": "warehouse-down",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              }
+            ],
+            "carried": [
+              {
+                "box": "customer-app",
+                "ids": []
+              },
+              {
+                "box": "web",
+                "ids": []
+              },
+              {
+                "box": "kitchen-tablet",
+                "ids": [
+                  "kitchen-tablet-offline"
+                ]
+              },
+              {
+                "box": "order-api",
+                "ids": [
+                  "refund-not-recorded",
+                  "double-tap"
+                ]
+              },
+              {
+                "box": "orders-db",
+                "ids": [
+                  "orders-db-down"
+                ]
+              },
+              {
+                "box": "menu-cache",
+                "ids": [
+                  "menu-cache-stale"
+                ]
+              },
+              {
+                "box": "events",
+                "ids": [
+                  "events-lag"
+                ]
+              },
+              {
+                "box": "customer",
+                "ids": []
+              },
+              {
+                "box": "restaurant",
+                "ids": []
+              },
+              {
+                "box": "mapbox",
+                "ids": []
+              },
+              {
+                "box": "stripe",
+                "ids": []
+              },
+              {
+                "box": "notifications",
+                "ids": []
+              },
+              {
+                "box": "delivery",
+                "ids": []
+              },
+              {
+                "box": "backoffice",
+                "ids": []
+              },
+              {
+                "line": [
+                  "customer",
+                  "customer-app"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "customer",
+                  "web"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "restaurant",
+                  "kitchen-tablet"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "customer-app",
+                  "order-api"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "web",
+                  "order-api"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "kitchen-tablet",
+                  "order-api"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "order-api",
+                  "menu-cache"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "order-api",
+                  "orders-db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "order-api",
+                  "mapbox"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "order-api",
+                  "stripe"
+                ],
+                "ids": [
+                  "stripe-timeout",
+                  "card-declined"
+                ]
+              },
+              {
+                "line": [
+                  "order-api",
+                  "events"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "order-api",
+                  "notifications"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "delivery",
+                  "events"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "delivery",
+                  "order-api"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "delivery",
+                  "customer-app"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "delivery",
+                  "web"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "backoffice",
+                  "order-api"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "events",
+                  "backoffice"
+                ],
+                "ids": []
+              }
+            ]
+          },
+          {
+            "view": "delivery",
+            "marks": {
+              "boxes": {
+                "fleet-db": {
+                  "band": "unrated",
+                  "count": 1
+                },
+                "dispatch": {
+                  "band": "medium",
+                  "count": 1
+                },
+                "tracking": {
+                  "band": "low",
+                  "count": 1
+                }
+              },
+              "lines": {
+                "dispatch mapbox": {
+                  "band": "medium",
+                  "count": 1
+                }
+              }
+            },
+            "inView": [
+              "eta-mapbox-fails",
+              "fleet-position-writes",
+              "offers-no-answer",
+              "tracking-signal-lost"
+            ],
+            "drawnIn": [
+              "eta-mapbox-fails",
+              "fleet-position-writes",
+              "offers-no-answer",
+              "tracking-signal-lost"
+            ],
+            "reach": [
+              {
+                "id": "stripe-timeout",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "card-declined",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "refund-not-recorded",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "orders-db-down",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "double-tap",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "menu-cache-stale",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "eta-mapbox-fails",
+                "reach": {
+                  "fails": [
+                    "dispatch",
+                    "mapbox"
+                  ],
+                  "failsLine": "dispatch mapbox",
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "dispatch",
+                    "mapbox"
+                  ],
+                  "failsLine": "dispatch mapbox",
+                  "affects": []
+                }
+              },
+              {
+                "id": "fleet-position-writes",
+                "reach": {
+                  "fails": [
+                    "fleet-db"
+                  ],
+                  "affects": [
+                    "tracking"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "fleet-db"
+                  ],
+                  "affects": [
+                    "tracking"
+                  ]
+                }
+              },
+              {
+                "id": "events-lag",
+                "reach": {
+                  "fails": [],
+                  "affects": [
+                    "dispatch"
+                  ]
+                },
+                "light": null
+              },
+              {
+                "id": "kitchen-tablet-offline",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "offers-no-answer",
+                "reach": {
+                  "fails": [
+                    "dispatch"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "dispatch"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "tracking-signal-lost",
+                "reach": {
+                  "fails": [
+                    "tracking"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "tracking"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "sms-not-delivered",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "warehouse-down",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              }
+            ],
+            "carried": [
+              {
+                "box": "courier-app",
+                "ids": []
+              },
+              {
+                "box": "dispatch",
+                "ids": [
+                  "offers-no-answer"
+                ]
+              },
+              {
+                "box": "tracking",
+                "ids": [
+                  "tracking-signal-lost"
+                ]
+              },
+              {
+                "box": "fleet-db",
+                "ids": [
+                  "fleet-position-writes"
+                ]
+              },
+              {
+                "box": "courier",
+                "ids": []
+              },
+              {
+                "box": "ordering",
+                "ids": []
+              },
+              {
+                "box": "mapbox",
+                "ids": []
+              },
+              {
+                "box": "notifications",
+                "ids": []
+              },
+              {
+                "line": [
+                  "courier",
+                  "courier-app"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "dispatch",
+                  "ordering"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "dispatch",
+                  "fleet-db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "dispatch",
+                  "mapbox"
+                ],
+                "ids": [
+                  "eta-mapbox-fails"
+                ]
+              },
+              {
+                "line": [
+                  "dispatch",
+                  "notifications"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "courier-app",
+                  "dispatch"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "courier-app",
+                  "tracking"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "courier-app",
+                  "ordering"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "courier-app",
+                  "mapbox"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "tracking",
+                  "fleet-db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "tracking",
+                  "ordering"
+                ],
+                "ids": []
+              }
+            ]
+          },
+          {
+            "view": "notifications",
+            "marks": {
+              "boxes": {},
+              "lines": {
+                "notifier twilio": {
+                  "band": "medium",
+                  "count": 1
+                }
+              }
+            },
+            "inView": [
+              "sms-not-delivered"
+            ],
+            "drawnIn": [
+              "sms-not-delivered"
+            ],
+            "reach": [
+              {
+                "id": "stripe-timeout",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "card-declined",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "refund-not-recorded",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "orders-db-down",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "double-tap",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "menu-cache-stale",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "eta-mapbox-fails",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "fleet-position-writes",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "events-lag",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "kitchen-tablet-offline",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "offers-no-answer",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "tracking-signal-lost",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "sms-not-delivered",
+                "reach": {
+                  "fails": [
+                    "notifier",
+                    "twilio"
+                  ],
+                  "failsLine": "notifier twilio",
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "notifier",
+                    "twilio"
+                  ],
+                  "failsLine": "notifier twilio",
+                  "affects": []
+                }
+              },
+              {
+                "id": "warehouse-down",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              }
+            ],
+            "carried": [
+              {
+                "box": "notifier",
+                "ids": []
+              },
+              {
+                "box": "templates",
+                "ids": []
+              },
+              {
+                "box": "ordering",
+                "ids": []
+              },
+              {
+                "box": "delivery",
+                "ids": []
+              },
+              {
+                "box": "twilio",
+                "ids": []
+              },
+              {
+                "line": [
+                  "ordering",
+                  "notifier"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "delivery",
+                  "notifier"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "notifier",
+                  "twilio"
+                ],
+                "ids": [
+                  "sms-not-delivered"
+                ]
+              },
+              {
+                "line": [
+                  "notifier",
+                  "templates"
+                ],
+                "ids": []
+              }
+            ]
+          },
+          {
+            "view": "backoffice",
+            "marks": {
+              "boxes": {
+                "warehouse": {
+                  "band": "low",
+                  "count": 1
+                }
+              },
+              "lines": {}
+            },
+            "inView": [
+              "warehouse-down"
+            ],
+            "drawnIn": [
+              "warehouse-down"
+            ],
+            "reach": [
+              {
+                "id": "stripe-timeout",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "card-declined",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "refund-not-recorded",
+                "reach": {
+                  "fails": [],
+                  "affects": [
+                    "support-console"
+                  ]
+                },
+                "light": null
+              },
+              {
+                "id": "orders-db-down",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "double-tap",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "menu-cache-stale",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "eta-mapbox-fails",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "fleet-position-writes",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "events-lag",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "kitchen-tablet-offline",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "offers-no-answer",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "tracking-signal-lost",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "sms-not-delivered",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "warehouse-down",
+                "reach": {
+                  "fails": [
+                    "warehouse"
+                  ],
+                  "affects": [
+                    "admin"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "warehouse"
+                  ],
+                  "affects": [
+                    "admin"
+                  ]
+                }
+              }
+            ],
+            "carried": [
+              {
+                "box": "admin",
+                "ids": []
+              },
+              {
+                "box": "support-console",
+                "ids": []
+              },
+              {
+                "box": "warehouse",
+                "ids": [
+                  "warehouse-down"
+                ]
+              },
+              {
+                "box": "support",
+                "ids": []
+              },
+              {
+                "box": "ordering",
+                "ids": []
+              },
+              {
+                "line": [
+                  "support",
+                  "support-console"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "support",
+                  "admin"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "support-console",
+                  "ordering"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "admin",
+                  "ordering"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "admin",
+                  "warehouse"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "ordering",
+                  "warehouse"
+                ],
+                "ids": []
+              }
+            ]
+          },
+          {
+            "view": "order-api",
+            "marks": {
+              "boxes": {
+                "refunds": {
+                  "band": "high",
+                  "count": 1
+                }
+              },
+              "lines": {
+                "checkout stripe": {
+                  "band": "medium",
+                  "count": 2
+                }
+              }
+            },
+            "inView": [
+              "stripe-timeout",
+              "card-declined",
+              "refund-not-recorded",
+              "double-tap"
+            ],
+            "drawnIn": [
+              "stripe-timeout",
+              "card-declined",
+              "refund-not-recorded"
+            ],
+            "reach": [
+              {
+                "id": "stripe-timeout",
+                "reach": {
+                  "fails": [
+                    "checkout",
+                    "stripe"
+                  ],
+                  "failsLine": "checkout stripe",
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "checkout",
+                    "stripe"
+                  ],
+                  "failsLine": "checkout stripe",
+                  "affects": []
+                }
+              },
+              {
+                "id": "card-declined",
+                "reach": {
+                  "fails": [
+                    "checkout",
+                    "stripe"
+                  ],
+                  "failsLine": "checkout stripe",
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "checkout",
+                    "stripe"
+                  ],
+                  "failsLine": "checkout stripe",
+                  "affects": []
+                }
+              },
+              {
+                "id": "refund-not-recorded",
+                "reach": {
+                  "fails": [
+                    "refunds"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "refunds"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "orders-db-down",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "double-tap",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "menu-cache-stale",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "eta-mapbox-fails",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "fleet-position-writes",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "events-lag",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "kitchen-tablet-offline",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "offers-no-answer",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "tracking-signal-lost",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "sms-not-delivered",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "warehouse-down",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              }
+            ],
+            "carried": [
+              {
+                "box": "menu",
+                "ids": []
+              },
+              {
+                "box": "basket",
+                "ids": []
+              },
+              {
+                "box": "pricing",
+                "ids": []
+              },
+              {
+                "box": "checkout",
+                "ids": []
+              },
+              {
+                "box": "status",
+                "ids": []
+              },
+              {
+                "box": "refunds",
+                "ids": [
+                  "refund-not-recorded"
+                ]
+              },
+              {
+                "box": "menu-cache",
+                "ids": []
+              },
+              {
+                "box": "orders-db",
+                "ids": []
+              },
+              {
+                "box": "mapbox",
+                "ids": []
+              },
+              {
+                "box": "stripe",
+                "ids": []
+              },
+              {
+                "box": "events",
+                "ids": []
+              },
+              {
+                "box": "notifications",
+                "ids": []
+              },
+              {
+                "box": "delivery",
+                "ids": []
+              },
+              {
+                "box": "backoffice",
+                "ids": []
+              },
+              {
+                "line": [
+                  "menu",
+                  "menu-cache"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "menu",
+                  "orders-db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "basket",
+                  "orders-db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "basket",
+                  "pricing"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "pricing",
+                  "mapbox"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "checkout",
+                  "pricing"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "checkout",
+                  "stripe"
+                ],
+                "ids": [
+                  "stripe-timeout",
+                  "card-declined"
+                ]
+              },
+              {
+                "line": [
+                  "checkout",
+                  "orders-db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "checkout",
+                  "events"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "status",
+                  "orders-db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "status",
+                  "events"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "status",
+                  "notifications"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "refunds",
+                  "stripe"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "refunds",
+                  "orders-db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "refunds",
+                  "notifications"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "delivery",
+                  "status"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "backoffice",
+                  "refunds"
+                ],
+                "ids": []
+              }
+            ]
+          },
+          {
+            "view": "dispatch",
+            "marks": {
+              "boxes": {
+                "offers": {
+                  "band": "medium",
+                  "count": 1
+                }
+              },
+              "lines": {
+                "eta mapbox": {
+                  "band": "medium",
+                  "count": 1
+                }
+              }
+            },
+            "inView": [
+              "eta-mapbox-fails",
+              "offers-no-answer"
+            ],
+            "drawnIn": [
+              "eta-mapbox-fails",
+              "offers-no-answer"
+            ],
+            "reach": [
+              {
+                "id": "stripe-timeout",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "card-declined",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "refund-not-recorded",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "orders-db-down",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "double-tap",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "menu-cache-stale",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "eta-mapbox-fails",
+                "reach": {
+                  "fails": [
+                    "eta",
+                    "mapbox"
+                  ],
+                  "failsLine": "eta mapbox",
+                  "affects": [
+                    "offers"
+                  ]
+                },
+                "light": {
+                  "fails": [
+                    "eta",
+                    "mapbox"
+                  ],
+                  "failsLine": "eta mapbox",
+                  "affects": [
+                    "offers"
+                  ]
+                }
+              },
+              {
+                "id": "fleet-position-writes",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "events-lag",
+                "reach": {
+                  "fails": [],
+                  "affects": [
+                    "offers"
+                  ]
+                },
+                "light": null
+              },
+              {
+                "id": "kitchen-tablet-offline",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "offers-no-answer",
+                "reach": {
+                  "fails": [
+                    "offers"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "offers"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "tracking-signal-lost",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "sms-not-delivered",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "warehouse-down",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              }
+            ],
+            "carried": [
+              {
+                "box": "matcher",
+                "ids": []
+              },
+              {
+                "box": "eta",
+                "ids": []
+              },
+              {
+                "box": "offers",
+                "ids": [
+                  "offers-no-answer"
+                ]
+              },
+              {
+                "box": "fleet-db",
+                "ids": []
+              },
+              {
+                "box": "mapbox",
+                "ids": []
+              },
+              {
+                "box": "notifications",
+                "ids": []
+              },
+              {
+                "line": [
+                  "matcher",
+                  "fleet-db"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "matcher",
+                  "eta"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "matcher",
+                  "offers"
+                ],
+                "ids": []
+              },
+              {
+                "line": [
+                  "eta",
+                  "mapbox"
+                ],
+                "ids": [
+                  "eta-mapbox-fails"
+                ]
+              },
+              {
+                "line": [
+                  "offers",
+                  "notifications"
+                ],
+                "ids": []
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "users": {
+      "objects": [
+        {
+          "id": "customer",
+          "analyses": []
+        },
+        {
+          "id": "restaurant",
+          "analyses": []
+        },
+        {
+          "id": "courier",
+          "analyses": []
+        },
+        {
+          "id": "support",
+          "analyses": []
+        },
+        {
+          "id": "ordering",
+          "analyses": []
+        },
+        {
+          "id": "delivery",
+          "analyses": []
+        },
+        {
+          "id": "notifications",
+          "analyses": []
+        },
+        {
+          "id": "backoffice",
+          "analyses": []
+        },
+        {
+          "id": "stripe",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "twilio",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "mapbox",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "customer-app",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "web",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "kitchen-tablet",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "order-api",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "orders-db",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "menu-cache",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "events",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "menu",
+          "analyses": []
+        },
+        {
+          "id": "basket",
+          "analyses": []
+        },
+        {
+          "id": "pricing",
+          "analyses": []
+        },
+        {
+          "id": "checkout",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "status",
+          "analyses": []
+        },
+        {
+          "id": "refunds",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "courier-app",
+          "analyses": []
+        },
+        {
+          "id": "dispatch",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "tracking",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "fleet-db",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "matcher",
+          "analyses": []
+        },
+        {
+          "id": "eta",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "offers",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "notifier",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "templates",
+          "analyses": []
+        },
+        {
+          "id": "admin",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "support-console",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "id": "warehouse",
+          "analyses": [
+            "ordering"
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "from": "customer",
+          "to": "customer-app",
+          "analyses": []
+        },
+        {
+          "from": "customer",
+          "to": "web",
+          "analyses": []
+        },
+        {
+          "from": "restaurant",
+          "to": "kitchen-tablet",
+          "analyses": []
+        },
+        {
+          "from": "courier",
+          "to": "courier-app",
+          "analyses": []
+        },
+        {
+          "from": "support",
+          "to": "support-console",
+          "analyses": []
+        },
+        {
+          "from": "support",
+          "to": "admin",
+          "analyses": []
+        },
+        {
+          "from": "customer-app",
+          "to": "order-api",
+          "analyses": []
+        },
+        {
+          "from": "web",
+          "to": "order-api",
+          "analyses": []
+        },
+        {
+          "from": "kitchen-tablet",
+          "to": "order-api",
+          "analyses": []
+        },
+        {
+          "from": "menu",
+          "to": "menu-cache",
+          "analyses": []
+        },
+        {
+          "from": "menu",
+          "to": "orders-db",
+          "analyses": []
+        },
+        {
+          "from": "basket",
+          "to": "orders-db",
+          "analyses": []
+        },
+        {
+          "from": "basket",
+          "to": "pricing",
+          "analyses": []
+        },
+        {
+          "from": "pricing",
+          "to": "mapbox",
+          "analyses": []
+        },
+        {
+          "from": "checkout",
+          "to": "pricing",
+          "analyses": []
+        },
+        {
+          "from": "checkout",
+          "to": "stripe",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "from": "checkout",
+          "to": "orders-db",
+          "analyses": []
+        },
+        {
+          "from": "checkout",
+          "to": "events",
+          "analyses": []
+        },
+        {
+          "from": "status",
+          "to": "orders-db",
+          "analyses": []
+        },
+        {
+          "from": "status",
+          "to": "events",
+          "analyses": []
+        },
+        {
+          "from": "status",
+          "to": "notifier",
+          "analyses": []
+        },
+        {
+          "from": "refunds",
+          "to": "stripe",
+          "analyses": []
+        },
+        {
+          "from": "refunds",
+          "to": "orders-db",
+          "analyses": []
+        },
+        {
+          "from": "refunds",
+          "to": "notifier",
+          "analyses": []
+        },
+        {
+          "from": "dispatch",
+          "to": "events",
+          "analyses": []
+        },
+        {
+          "from": "matcher",
+          "to": "fleet-db",
+          "analyses": []
+        },
+        {
+          "from": "matcher",
+          "to": "eta",
+          "analyses": []
+        },
+        {
+          "from": "matcher",
+          "to": "offers",
+          "analyses": []
+        },
+        {
+          "from": "eta",
+          "to": "mapbox",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "from": "offers",
+          "to": "notifier",
+          "analyses": []
+        },
+        {
+          "from": "courier-app",
+          "to": "dispatch",
+          "analyses": []
+        },
+        {
+          "from": "courier-app",
+          "to": "tracking",
+          "analyses": []
+        },
+        {
+          "from": "courier-app",
+          "to": "status",
+          "analyses": []
+        },
+        {
+          "from": "courier-app",
+          "to": "mapbox",
+          "analyses": []
+        },
+        {
+          "from": "tracking",
+          "to": "fleet-db",
+          "analyses": []
+        },
+        {
+          "from": "tracking",
+          "to": "customer-app",
+          "analyses": []
+        },
+        {
+          "from": "tracking",
+          "to": "web",
+          "analyses": []
+        },
+        {
+          "from": "notifier",
+          "to": "twilio",
+          "analyses": [
+            "ordering"
+          ]
+        },
+        {
+          "from": "notifier",
+          "to": "templates",
+          "analyses": []
+        },
+        {
+          "from": "support-console",
+          "to": "order-api",
+          "analyses": []
+        },
+        {
+          "from": "support-console",
+          "to": "refunds",
+          "analyses": []
+        },
+        {
+          "from": "admin",
+          "to": "order-api",
+          "analyses": []
+        },
+        {
+          "from": "admin",
+          "to": "warehouse",
+          "analyses": []
+        },
+        {
+          "from": "events",
+          "to": "warehouse",
+          "analyses": []
+        }
+      ]
+    }
+  }
+}
