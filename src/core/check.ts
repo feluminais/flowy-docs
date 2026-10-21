@@ -5,6 +5,7 @@ import { animationProblem, interceptorProblem } from './animation.ts'
 import { dataProblems } from './data.ts'
 import { analysisProblems } from './failures.ts'
 import { isRepoPath, isWebAddress } from './paths.ts'
+import { stepPrefix, withoutStep } from './problem.ts'
 import type { Problem } from './problem.ts'
 import { snippetProblems } from './snippets.ts'
 import { stateProblems } from './states.ts'
@@ -118,7 +119,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
   for (const [fid, f] of Object.entries(model.flows)) {
     const p = (message: string, at?: { step: number }) => add(`flows/${fid}.yaml`, undefined, message, at)
     // A problem that belongs to a step reads "step N: ..." (N counts from 1) and points the canvas at it.
-    const at = (message: string, step?: number) => (step === undefined ? p(message) : p(`step ${step + 1}: ${message}`, { step }))
+    const at = (message: string, step?: number) => (step === undefined ? p(message) : p(stepPrefix(step) + message, { step }))
     if (!isValidId(fid)) p(`"${fid}" is not a valid flow id: the file name must ${ID_RULE}`)
     if (!hasText(f.name)) p('name is missing')
     const viewOk = isView(model, f.view)
@@ -151,7 +152,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
 }
 
 // A step's number is left out: deleting or moving a step renumbers the problems after it, and they're still the same problems.
-const key = (p: Problem) => JSON.stringify([p.file, p.id ?? '', p.step === undefined ? p.message : p.message.replace(/^step \d+: /, '')])
+const key = (p: Problem) => JSON.stringify([p.file, p.id ?? '', withoutStep(p)])
 
 /** Problems in `after` that weren't already in `before`. Repeats count: a second copy of an old problem is new. */
 export function newProblems(before: Problem[], after: Problem[]): Problem[] {

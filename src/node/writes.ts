@@ -1,14 +1,9 @@
-import { isRemovableFile, ParseError, parseFile, serializeFile } from '../core/model.ts'
-import { blockedBy, isAllowedPath, loadDir, saveFile, VersionConflict } from './files.ts'
+import { isRemovableFile, ParseError, serializeFile } from '../core/model.ts'
+import { blockedMessage, firstBlocked, firstUnreadable } from './commit.ts'
+import { isAllowedPath, loadDir, saveFile, VersionConflict } from './files.ts'
 
 /** What to answer a write with: an HTTP status and the JSON that goes with it. */
 export type Answer = { status: number; body: unknown }
-
-/** Why a write to `rel` is refused when `blocking`, a skipped analysis file, is in its way. */
-export const blockedMessage = (blocking: string, rel: string): string =>
-  blocking === rel
-    ? `${rel} can't be read, so it isn't replaced. Fix or delete it by hand.`
-    : `${blocking} is in the way (the same file name in other letters), so ${rel} isn't written. Rename or delete it by hand.`
 
 /**
  * `PUT /api/file/<rel> { version, data }` writes a file; `DELETE /api/file/flows/<id>.yaml { version }` removes a flow, and failures/ likewise an analysis.
@@ -27,8 +22,8 @@ export async function applyWrite(dir: string, method: string, rel: string, body:
   try {
     // Nothing is written while a model or flow file fails to parse, and an analysis file that was skipped is never replaced or deleted.
     const loaded = await loadDir(dir)
-    const blocking = blockedBy(loaded, rel)
-    if (blocking !== undefined) return { status: 409, body: { error: blockedMessage(blocking, rel) } }
+    const blocked = firstBlocked(loaded, [rel])
+    if (blocked) return { status: 409, body: { error: blockedMessage(blocked.blocking, rel) } }
   } catch (e) {
     if (e instanceof ParseError) return { status: 409, body: { error: e.message } }
     throw e
@@ -37,10 +32,11 @@ export async function applyWrite(dir: string, method: string, rel: string, body:
   if (method === 'PUT') {
     try {
       text = serializeFile(rel, data)
-      parseFile(rel, text) // never write what can't be read back
     } catch (e) {
       return { status: 400, body: { error: `not a valid ${rel}: ${e instanceof ParseError ? e.reason : String(e)}` } }
     }
+    const unreadable = firstUnreadable([[rel, text]]) // never write what can't be read back
+    if (unreadable) return { status: 400, body: { error: `not a valid ${rel}: ${unreadable.error instanceof ParseError ? unreadable.error.reason : String(unreadable.error)}` } }
   }
   try {
     await beforeWrite?.() // the files as they are now become a step before this edit changes them
