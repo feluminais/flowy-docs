@@ -38,9 +38,6 @@ export function toLine(model: Model, m: Mode): ModeChanges | undefined {
 /** The changes that put a line's mode on the shape it starts at. */
 export const toShape = (m: Mode): ModeChanges => ({ on: m.from ?? '', from: '', to: '' })
 
-/** The side panel once the Failures tab opens: Add and a flow being recorded are Details' own and go, a picked shape or line stays to narrow the list. */
-export const sideForTab = <T extends { kind: string }>(side: T | undefined): T | undefined => (side?.kind === 'add' || side?.kind === 'flow' ? undefined : side)
-
 /** How many modes the folder holds, all analyses together: the count on the rail. */
 export const modeCount = (model: Model): number => Object.values(model.failures).reduce((n, a) => n + Object.keys(a.modes).length, 0)
 

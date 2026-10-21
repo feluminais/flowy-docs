@@ -204,7 +204,7 @@ export function FailuresBody(p: FailuresProps) {
         </>
       )}
 
-      <span className="hint muted"><kbd>←</kbd><kbd>→</kbd>Step<kbd>Esc</kbd>Close</span>
+      <span className="hint muted"><kbd>←</kbd><kbd>→</kbd>Step</span>
       <Section icon={Info} title="Key" />
       <KeyRow>
         {BAND_ORDER.filter(b => counts[b] > 0).map(b => <KeyItem key={b} swatch={<span className={`sw ${b}`} />}>{BAND_NAMES[b]}</KeyItem>)}

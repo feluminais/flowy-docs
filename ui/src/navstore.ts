@@ -1,4 +1,4 @@
-import { MAX_OPEN, parseNav } from './navstate.ts'
+import { MAX_OPEN, parseNav, rememberedTab } from './navstate.ts'
 import type { NavSaved } from './navstate.ts'
 import { readPref, writePref } from './store.ts'
 
@@ -11,6 +11,7 @@ export function loadNav(): NavSaved {
 }
 
 export function keepNav(saved: NavSaved): void {
-  const { tab, navWidth, detailsWidth } = saved
+  const { navWidth, detailsWidth } = saved
+  const tab = rememberedTab(saved.tab)
   writePref(key(), JSON.stringify({ ...(tab === undefined ? {} : { tab }), expanded: saved.expanded.slice(0, MAX_OPEN), navWidth, detailsWidth }))
 }

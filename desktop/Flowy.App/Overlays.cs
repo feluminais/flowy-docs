@@ -149,7 +149,6 @@ internal sealed class ShortcutsCard : Border
     private static readonly (string, string)[] Failing =
     [
         ("→  ←", "Next and previous failure"),
-        ("Esc", "Close the panel"),
     ];
 
     private static readonly (string, string)[] Editing =

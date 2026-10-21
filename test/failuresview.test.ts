@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { lineKey } from '../src/core/failures.ts'
 import { parseRun } from '../src/core/perf/parse.ts'
-import { activeAnalysis, afterText, bandCounts, firstErrorAt, modeCount, modeIn, neighbour, ratingCells, rowsFor, sideForTab, STATUS_NAMES, toLine, toShape } from '../ui/src/failuresview.ts'
+import { activeAnalysis, afterText, bandCounts, firstErrorAt, modeCount, modeIn, neighbour, ratingCells, rowsFor, STATUS_NAMES, toLine, toShape } from '../ui/src/failuresview.ts'
 import { refuseNewProblems, updateMode } from '../src/core/ops.ts'
 import { lineId } from '../ui/src/graph.ts'
 import { shopWithFailures } from './fixtures.ts'
@@ -123,14 +123,6 @@ test('toLine turns a shape mode into a line on a connection the shape starts, an
   assert.ok(changes)
   assert.doesNotThrow(() => refuseNewProblems(m, updateMode(m, 'ordering', 'web-glitch', changes)))
   assert.doesNotThrow(() => refuseNewProblems(m, updateMode(m, 'ordering', 'mail-timeout', toShape(m.failures.ordering.modes['mail-timeout']))))
-})
-
-test('sideForTab drops the panels that are Details\' own (Add and a flow being recorded) when the tab opens, and keeps a picked shape or line', () => {
-  assert.equal(sideForTab({ kind: 'add' }), undefined)
-  assert.equal(sideForTab({ kind: 'flow', id: 'x' }), undefined)
-  const object = { kind: 'object', id: 'db' }
-  assert.equal(sideForTab(object), object)
-  assert.equal(sideForTab(undefined), undefined)
 })
 
 test('a line is known by the same text in the core and on the canvas', () => {

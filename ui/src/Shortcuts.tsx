@@ -32,7 +32,6 @@ const PERFORMANCE: [string, string][] = [
 ]
 const FAILURES: [string, string][] = [
   ['→  ←', 'Next and previous failure'],
-  ['Esc', 'Close the panel'],
 ]
 const EDITING: [string, string][] = [
   ['E', 'Edit mode on and off'],

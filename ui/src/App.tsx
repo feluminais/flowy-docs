@@ -32,7 +32,7 @@ import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, size
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
 import { alongFailures, readHash, toHash } from './hash.ts'
 import { escapeStep, letter, takesEnter, undoesMove } from './keys.ts'
-import { activeAnalysis, firstErrorAt, modeCount, modeIn, neighbour, rowsFor, sideForTab } from './failuresview.ts'
+import { activeAnalysis, firstErrorAt, modeCount, modeIn, neighbour, rowsFor } from './failuresview.ts'
 import type { Filter } from './failuresview.ts'
 import { FailuresBody } from './Failures.tsx'
 import { Line, LineMarksContext, LineStyleContext, LineWidthsContext } from './Line.tsx'
@@ -148,10 +148,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     return m !== undefined && !drawnIn(model, named.view, m) ? homeView(model, m) : named.view
   })
   const [side, setSide] = useState<Side>()
-  // The left-hand panel's tab (the navigator: Flows or Explorer), and whether the right-hand Details panel was opened from its rail. Details shows
-  // `side`, or the level you are in, so a `side` opens it too.
+  // The left-hand panel's tab (the navigator: Explorer, Flows, Failures or YAML), and whether the right-hand Details panel was opened from its rail. Details shows
+  // `side`, or the level you are in, so a `side` opens it too. An address that names a failure analysis opens on the Failures tab.
   const [remembered] = useState(loadNav)
-  const [tab, setNavTab] = useState<NavTab | undefined>(remembered.tab)
+  const [tab, setNavTab] = useState<NavTab | undefined>(() => (readHash(location.hash).failures !== undefined ? 'failures' : remembered.tab))
   // Whether the navigator is where the reader last clicked or opened something: Escape closes it then, and leaves it alone once they work in
   // the diagram. A navigator that came back with the page has not been used.
   const navUsed = useRef(false)
@@ -180,8 +180,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   })
   const [positions, setPositions] = useState(() => startPositions(runId, readHash(location.hash).perf?.level, readHash(location.hash).perf?.levels))
   const [active, setActive] = useState(0)
-  // The Failures panel takes Details' place too: which analysis, which mode is picked in it, and what the list is narrowed to.
-  const [failures, setFailures] = useState(() => readHash(location.hash).failures !== undefined)
+  // The Failures tab: which analysis, which mode is picked in it, and what the list is narrowed to.
   const [analysisId, setAnalysisId] = useState(() => readHash(location.hash).failures?.analysis ?? '')
   const [modeId, setModeId] = useState<string | undefined>(() => readHash(location.hash).failures?.mode)
   const [filter, setFilter] = useState<Filter>({})
@@ -271,7 +270,17 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const analysis = analysisKey === undefined ? undefined : model.failures[analysisKey]
   const mode = modeIn(model, analysisKey, modeId)
   const showFailures = Object.keys(model.failures).length > 0 || failureProblems.length > 0 || editing
-  const failuresOpen = failures && showFailures
+  const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
+  const showFlows = totals.flows > 0 || editing // the Flows tab is there whenever there is a flow to find
+  // The YAML tab needs a server that keeps the history: not an exported page, not the VS Code webview.
+  const yamlStore = useMemo(() => (live && historyApi ? createHistoryStore(historyApi) : undefined), [live, historyApi])
+  useEffect(() => { void yamlStore?.refresh() }, [yamlStore, changes]) // after every load, whether it worked or not: a change may have left a file broken
+  // A server that answers 404 keeps no history (an older flowy), and then there is nothing for the tab to show.
+  const subscribeYaml = useMemo(() => (listener: () => void) => (yamlStore ? yamlStore.subscribe(listener) : () => undefined), [yamlStore])
+  const yamlGone = useSyncExternalStore(subscribeYaml, () => yamlStore?.get().unavailable === true)
+  const showYaml = yamlStore !== undefined && !yamlGone
+  const nav = openTab(tab, { flows: showFlows, yaml: showYaml, failures: showFailures })
+  const failuresOpen = nav === 'failures' // a tab of the navigator on the left, with Explorer, Flows and YAML
   // A flow that was playing waits behind the Performance and Failures tabs, so a step's motion, the traffic and the risk marks never draw at once.
   const flow = editing || perfOpen || failuresOpen ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
   // The player moves through stops, not steps: a stop is what is on screen at once (see structure.ts). `playing.step` is a stop.
@@ -286,19 +295,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const marksText = timeEvents && loadTest ? JSON.stringify(marksOf(model, runStates(loadTest, load))) : ''
   const runMarks = useMemo(() => (marksText === '' || marksText === '{}' ? NO_MARKS : (JSON.parse(marksText) as Record<string, StateMark>)), [marksText])
   const stateMarks = flow ? flowMarks : runMarks
-  const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
-  const showFlows = totals.flows > 0 || editing // the Flows tab is there whenever there is a flow to find
-  // The YAML tab needs a server that keeps the history: not an exported page, not the VS Code webview.
-  const yamlStore = useMemo(() => (live && historyApi ? createHistoryStore(historyApi) : undefined), [live, historyApi])
-  useEffect(() => { void yamlStore?.refresh() }, [yamlStore, changes]) // after every load, whether it worked or not: a change may have left a file broken
-  // A server that answers 404 keeps no history (an older flowy), and then there is nothing for the tab to show.
-  const subscribeYaml = useMemo(() => (listener: () => void) => (yamlStore ? yamlStore.subscribe(listener) : () => undefined), [yamlStore])
-  const yamlGone = useSyncExternalStore(subscribeYaml, () => yamlStore?.get().unavailable === true)
-  const showYaml = yamlStore !== undefined && !yamlGone
-  const nav = openTab(tab, { flows: showFlows, yaml: showYaml })
   const manyPicked = side?.kind === 'objects' // several shapes picked: a bar at the foot of the canvas, no panel over them
-  const detailsOpen = (details || (side !== undefined && !manyPicked)) && !perfOpen && !failuresOpen // the Performance and Failures panels are in its place while they are open
-  const rightOpen = detailsOpen || perfOpen || failuresOpen // a panel on the right, whichever it is
+  const detailsOpen = (details || (side !== undefined && !manyPicked)) && !perfOpen // the Performance panel is in its place while it is open
+  const rightOpen = detailsOpen || perfOpen // a panel on the right, whichever it is
 
   // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
   // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
@@ -359,7 +358,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const part: Part | undefined = side?.kind === 'object' ? { box: side.id } : side?.kind === 'line' ? { line: [side.from, side.to] } : undefined
   const failMarks = useMemo(() => (failuresOpen && analysis ? rollUp(model, analysis, view) : undefined), [failuresOpen, model, analysis, view])
   const lineMarks = useMemo(() => new Map<string, Mark>(Object.entries(failMarks?.lines ?? {})), [failMarks])
-  const lit = useMemo(() => (failuresOpen && mode ? lightFor(model, view, mode) : undefined), [failuresOpen, model, mode, view])
+  const drawing = side?.kind === 'add' || side?.kind === 'flow' // Add and a flow being recorded are drawn on the canvas: a faded one would hide what they make
+  const lit = useMemo(() => (failuresOpen && mode && !drawing ? lightFor(model, view, mode) : undefined), [failuresOpen, model, mode, view, drawing])
   const partKey = part === undefined ? '' : JSON.stringify(part)
   const rows = useMemo(
     () => (failuresOpen && analysis ? rowsFor(model, analysis, view, { band: filter.band, part }) : { here: [], elsewhere: [] }),
@@ -377,7 +377,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const inner = view === ROOT ? [] : nodes.filter(n => graph.members.includes(n.id))
   // A click on its outline is a click on that shape: its Details open, as the rail's button opens them. While a flow is recorded or a load shows,
   // the panel has its own work, so the outline takes no click.
-  const openLevel = recording || perfOpen || failuresOpen ? undefined : () => {
+  const openLevel = recording || perfOpen ? undefined : () => {
     justMoved.current = false
     clearTimeout(opening.current)
     if (details && side === undefined) return closeDetails() // its Details are already showing: a second click closes them
@@ -420,26 +420,20 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     setDetails(false)
   }
   /** Shows what a click on the canvas, a problem or a button points at, in the Details panel on the right (or, while Performance is open, in its readings). */
-  const show = (s: Side | undefined) => {
-    if (s?.kind === 'add' || s?.kind === 'flow') setFailures(false) // their panels are Details' own, which the Failures tab holds the place of
-    setSide(s)
+  const show = (s: Side | undefined) => setSide(s)
+  // The Failures tab and Performance never show at once: the traffic and the risk marks would draw over each other.
+  const pickTab = (t: NavTab | undefined) => {
+    if (t === 'failures') setPerf(false)
+    setTab(t)
   }
-  const toggleTab = (t: NavTab) => setTab(nav === t ? undefined : t)
+  const toggleTab = (t: NavTab) => pickTab(nav === t ? undefined : t)
   const openPerf = () => {
     setDetails(false) // so that closing it again doesn't leave Details open in its place
-    setFailures(false)
+    setNavTab(t => (t === 'failures' ? undefined : t))
     setPerf(true)
   }
-  const openFailures = () => {
-    setDetails(false)
-    setPerf(false)
-    setSide(sideForTab) // Add and a flow being recorded are Details' own: left behind the tab they would still take the canvas's clicks
-    setFailures(true)
-  }
-  const closeFailures = () => {
-    setFailures(false)
-    setSide(undefined) // what was picked to narrow its list is no reason for Details to open in its place
-  }
+  const openFailures = () => pickTab('failures')
+  const closeFailures = () => setTab(undefined)
   const closePerf = () => {
     setPerf(false)
     setSide(undefined) // what was picked for its readings is no reason for Details to open in its place
@@ -821,7 +815,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         if (m) setSide(undefined) // a picked shape would narrow the list to what it carries, and the mode named here may not be in it
         openFailures()
         if (m && !drawnIn(model, named.view, m)) go(homeView(model, m)) // the mode's part is outside the view the address names
-      } else setFailures(false)
+      } else setNavTab(t => (t === 'failures' ? undefined : t))
     }
     window.addEventListener('popstate', follow)
     window.addEventListener('hashchange', follow)
@@ -850,8 +844,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       const inNavigator = e.target instanceof Element && e.target.closest('.navpanel') !== null
       // A field keeps its keys, except the load slider: its arrows and Home and End are the tab's own, so they work right after it was used.
       // The navigator's filters clear themselves on Escape and stop it, so one that gets here is empty: a click in it lets Escape close the navigator.
+      // A field in the Failures tab's forms keeps its Escape: a half-filled form is not thrown away by it.
       if ((e.target instanceof HTMLInputElement && e.target.type !== 'range') || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
-        if (!(e.key === 'Escape' && inNavigator && e.target instanceof HTMLInputElement)) return
+        if (!(e.key === 'Escape' && inNavigator && e.target instanceof HTMLInputElement && e.target.closest('.navfind') !== null)) return
       }
       // A second press while a zoom out is still leaving goes up from where that one is heading.
       const up = () => zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view))
@@ -867,7 +862,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         else if (layer === 'step' && recording) setSide({ ...recording, from: undefined, to: undefined })
         else if (layer === 'panel') {
           if (perfOpen) closePerf()
-          else if (failuresOpen) closeFailures()
           else closeDetails()
         }
         else if (layer === 'up') up()
@@ -921,7 +915,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
 
   /** What the canvas can give one panel: all of it but a strip to look at, and what the other panel takes. */
   const spare = (other: number) => (canvas.current?.clientWidth ?? Infinity) - 160 - other
-  const navTabs = <NavTabs tab={nav ?? 'explorer'} showFlows={showFlows} showYaml={showYaml} onPick={setTab} />
+  const navTabs = <NavTabs tab={nav ?? 'explorer'} showFlows={showFlows} showYaml={showYaml} showFailures={showFailures} onPick={pickTab} />
   // Putting a version back from the YAML tab: the notice says which, and a shape dragged earlier shows where the file says.
   const restoreVersion = async (id: string, seen: Record<string, string | null>, label: string) => {
     justMoved.current = false
@@ -976,7 +970,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}><Pencil size={16} />Edit</button>}
       </header>
       <div className="stage">
-        <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} showYaml={showYaml} onPick={toggleTab} />
+        <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} modes={modeCount(model)} showFlows={showFlows} showYaml={showYaml} showFailures={showFailures} onPick={toggleTab} />
         <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', ((flow && usesStates(flow)) || timeEvents) && 'states', scrubbing && 'scrubbing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           <LineStyleContext value={lines}>
@@ -1111,20 +1105,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 onActive={setActive} onSlide={(dial, to) => slide(to, dial)} onJump={jumpTo} onPlace={placeAll} onRamp={toggleRamp} />
             </aside>
           )}
-          {failuresOpen && (
-            <aside className="panel perfpanel failpanel">
-              <button className="close" aria-label="Close" onClick={closeFailures}><Close size={16} /></button>
-              <FailuresBody model={model} view={view} runs={runs} problems={problems} failureProblems={failureProblems} analysisId={analysisKey} modeId={mode ? modeId : undefined}
-                rows={rows} filter={filter} part={part}
-                onAnalysis={id => {
-                  setAnalysisId(id)
-                  setModeId(undefined)
-                  setFilter({})
-                }}
-                onMode={selectMode} onFilter={setFilter} onClearPart={() => setSide(undefined)} onPickShape={pickShape}
-                onShowFlow={showFlow} onSeenInRun={seenInRun} onCopy={copyFailures} editing={editing} run={run} />
-            </aside>
-          )}
           {nav === 'flows' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
               <FlowsTab model={model} view={view} editing={editing} current={recording?.id || (flow ? playing?.flow : undefined)} onOpen={f => openFlow(f.id)} />
@@ -1134,6 +1114,19 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
               <Explorer model={model} problems={problems} editing={editing} expanded={expanded} onToggle={toggleOpen} here={view} selected={selectedBox}
                 playing={flow ? playing?.flow : undefined} onPick={pickRow} onOpen={openRow} />
+            </NavPanel>
+          )}
+          {nav === 'failures' && (
+            <NavPanel tabs={navTabs} onClose={closeFailures}>
+              <FailuresBody model={model} view={view} runs={runs} problems={problems} failureProblems={failureProblems} analysisId={analysisKey} modeId={mode ? modeId : undefined}
+                rows={rows} filter={filter} part={part}
+                onAnalysis={id => {
+                  setAnalysisId(id)
+                  setModeId(undefined)
+                  setFilter({})
+                }}
+                onMode={selectMode} onFilter={setFilter} onClearPart={() => setSide(undefined)} onPickShape={pickShape}
+                onShowFlow={showFlow} onSeenInRun={seenInRun} onCopy={copyFailures} editing={editing} run={run} />
             </NavPanel>
           )}
           {nav === 'yaml' && yamlStore && (
@@ -1149,9 +1142,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={() => setReplays(n => n + 1)} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
           )}
         </main>
-        <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else { setPerf(false); setFailures(false); setDetails(true) } }}
-          perf={showPerf ? { open: perfOpen, runs: Object.keys(runs).length, off: editing ? 'not while editing' : undefined, onToggle: () => (perfOpen ? closePerf() : openPerf()) } : undefined}
-          failures={showFailures ? { open: failuresOpen, count: modeCount(model), onToggle: () => (failuresOpen ? closeFailures() : openFailures()) } : undefined} />
+        <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else { setPerf(false); setDetails(true) } }}
+          perf={showPerf ? { open: perfOpen, runs: Object.keys(runs).length, off: editing ? 'not while editing' : undefined, onToggle: () => (perfOpen ? closePerf() : openPerf()) } : undefined} />
       </div>
     </>
   )

@@ -45,9 +45,9 @@ Retake them when the app changes how it looks.
 `docs/images/hero.png`, the picture at the top of the README, is cut from those screenshots. After retaking them, run
 `uv run --with pillow docs/images/hero.py` to build it again.
 
-`docs/images/failures.png` and `docs/images/yaml.png` are the browser version in the light theme at twice the pixel density, in a 1200 by 1000
+`docs/images/failures.png` and `docs/images/yaml.png` are the browser version in the light theme at twice the pixel density, in a 1200 by 800
 and a 1200 by 760 window. Serve a copy of `docs/demo` (`FLOWY_STATE_DIR=<empty folder> node src/cli.ts --dir <copy>/flowy --no-open`, so the
-copy's history stays out of your own and the demo is not written to). For the first, open `#ordering/failures/ordering/stripe-timeout`. For the
+copy's history stays out of your own and the demo is not written to). For the first, open `#ordering/failures/ordering/stripe-timeout` and press F, so the diagram fits beside the tab. For the
 second, press E and change a few things (a shape's Tech, a line of a flow's file in an editor, a `put_object` through `node src/cli.ts mcp`) so
 the list has You, Claude and Outside steps, press Y, and pick the step Claude wrote.
 
@@ -222,7 +222,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       it and a second click puts it away; ← → step down the list and stop at its ends; a click on a shape narrows the list to its modes and the chip clears
       it; a band button filters and "Not analysed (11)" lists the shapes left. Show it plays The payment is captured; Seen in a run on ETA to Mapbox opens
       Performance on its first level with errors; Copy as table and Copy as CSV put the ranked list on the clipboard. Esc closes the tab (until you click
-      the diagram), and the marks go with it. Light and dark both read.
+      the diagram, as with Explorer), and the marks go with it. Light and dark both read.
 - [ ] Click Order API: its panel opens and the view moves it out from under the panel. Click a name in the panel's Out list: the panel
       switches. Open "5 connections": each label shows. Point at a row: its line lights up on the canvas.
 - [ ] Pick "Customer places an order" in Ordering: ← and → step, Home and End jump, Esc stops, and the player card shows "More".
@@ -366,14 +366,15 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
 
 Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
 
-- [ ] The right rail has a Failures button under Performance with a 14 on it, and M opens its panel in Details' place with `#root/failures/ordering` in the
-      address. The key reads High 2, Medium 5, Low 6 and Not rated 1, then "Analysed 15 of 26" and "Not analysed (11)". At the overview Ordering
+- [ ] The left rail has a Failures button under Flows with a 14 on it, and M opens its tab beside Explorer, Flows and YAML with `#root/failures/ordering` in the
+      address. Details stays free on the right: a click on a shape picks it there and narrows the list to its modes, and the chip clears it. Opening Performance (T) closes the tab.
+      The tab is not remembered when the page reloads: the address brings it back. The key reads High 2, Medium 5, Low 6 and Not rated 1, then "Analysed 15 of 26" and "Not analysed (11)". At the overview Ordering
       carries a red 6 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), Notifier to Twilio (144),
       ETA to Mapbox (108) and on down to Fleet DB, which is Not rated.
 - [ ] Open `#ordering/failures/ordering/stripe-timeout`: Order API and the line to Stripe are outlined red, Kitchen tablet and Customer app in a lighter outline,
       and the rest fades. The panel reads Risk 96 Medium, "After: 96 to 32". Show it plays The payment is captured. Open `#delivery/failures/ordering/eta-mapbox-fails`:
-      Seen in a run opens `#dispatch/perf/dinner-rush/3`. ← → move down the list, and Esc closes the panel.
-- [ ] Press E with the panel open: it stays, and gains New analysis, Add failure mode and a form for the mode picked. Copy as table and Copy as CSV put the ranked
+      Seen in a run opens `#dispatch/perf/dinner-rush/3`. ← → move down the list, and Esc closes the tab while the last click was in it.
+- [ ] Press E with the tab open: it stays, beside Details, and gains New analysis, Add failure mode and a form for the mode picked. Copy as table and Copy as CSV put the ranked
       list on the clipboard. `node src/cli.ts failures --dir docs/demo/flowy` prints the same table and exits with 0. Light and dark both read.
 
 Shape states (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):

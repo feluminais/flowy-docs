@@ -22,7 +22,7 @@ export const undoesMove = (e: { key: string }, s: { editing: boolean; justMoved:
 export type EscapeStep = 'shortcuts' | 'navigator' | 'flow' | 'step' | 'panel' | 'up'
 
 /**
- * Escape peels one layer per press: the shortcut list, the navigator (Flows and Explorer) when it is the last thing used, a flow playing,
+ * Escape peels one layer per press: the shortcut list, the navigator (Explorer, Flows, Failures or YAML) when it is the last thing used, a flow playing,
  * a step half recorded, the Details or Performance panel, and then the box you're inside, back up to the level above. At the top, with
  * nothing open, nothing. `navigator` is true only when the navigator is open and the last click or key was in it: Escape in the diagram
  * leaves it alone.
