@@ -343,7 +343,7 @@ export async function dumpPerf(): Promise<unknown> {
   }
 }
 
-const NUMBERS = [0, 0.00005, 0.00125, 0.0004, 0.034, 0.045, 0.0625, 1.005, 7.35, 7.45, 0.05, 0.096, 0.1, 0.4, 0.996, 1, 4.2, 4.25, 9.99, 10, 12.5, 98, 180, 999, 1000, 2400, 2500, 12345.678, 999999, 1000000, 2400000, 48000000]
+const NUMBERS = [0, 0.00005, 0.00125, 0.0004, 0.034, 0.045, 0.0625, 1.005, 7.35, 7.45, 0.05, 0.096, 0.1, 0.4, 0.996, 1, 4.2, 4.25, 9.99, 10, 12.5, 98, 180, 999, 999.4, 999.5, 1000, 2400, 2500, 12345.678, 99949, 999499, 999500, 999999, 1000000, 2400000, 48000000]
 /** Which kinds of failing call the key draws, for lines as the traffic makes them. */
 const MARKS: { failed: number; failure?: 'lost' | 'rejected' }[][] = [
   [], [{ failed: 0 }], [{ failed: 0, failure: 'lost' }], [{ failed: 0.1 }], [{ failed: 0.1, failure: 'lost' }], [{ failed: 0.1, failure: 'rejected' }, { failed: 0.05 }],

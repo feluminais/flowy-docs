@@ -280,7 +280,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
   const shown = useMemo<Playing | undefined>(() => {
     const placeSteps = (steps: Step[]) => steps.map(s => placeStep(model, view, s))
-    if (flow && stops[stopIndex]) return { ends: placeSteps(flow.steps), steps: stops[stopIndex].steps, faint: otherLaneSteps(stops, stopIndex) }
+    if (flow && stops[stopIndex]) {
+      // A shape that takes a request off the line (`by`) is lit with the step, so it does not sit at the faint level while it flashes.
+      const also = stops[stopIndex].steps.flatMap(i => {
+        const taker = animationOf(flow.steps[i])?.by
+        const at = taker && 'shape' in taker ? placeStep(model, view, { from: taker.shape }) : null
+        return at ? [at[0]] : []
+      })
+      return { ends: placeSteps(flow.steps), steps: stops[stopIndex].steps, faint: otherLaneSteps(stops, stopIndex), ...(also.length > 0 ? { also } : {}) }
+    }
     if (!recording) return undefined
     const done = placeSteps(Object.hasOwn(model.flows, recording.id) ? model.flows[recording.id].steps : [])
     return recording.from && recording.to

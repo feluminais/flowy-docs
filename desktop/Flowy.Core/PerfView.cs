@@ -135,8 +135,8 @@ public static class PerfView
     /// <summary>The size of a call: "400 B", "1.5 KB", "2.4 MB" (a thousand to the step, like the numbers a formula is written in).</summary>
     public static string FmtBytes(double bytes) => bytes switch
     {
-        >= 1_000_000 => $"{Trim(bytes / 1_000_000, bytes < 10_000_000 ? 1 : 0)} MB",
-        >= 1000 => $"{Trim(bytes / 1000, bytes < 10_000 ? 1 : 0)} KB",
+        >= 999_500 => $"{Trim(bytes / 1_000_000, bytes < 10_000_000 ? 1 : 0)} MB", // the unit changes where the value rounds up to the next one
+        >= 999.5 => $"{Trim(bytes / 1000, bytes < 10_000 ? 1 : 0)} KB",
         _ => $"{Trim(bytes, bytes < 10 ? 1 : 0)} B",
     };
 

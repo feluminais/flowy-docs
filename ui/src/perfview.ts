@@ -112,8 +112,9 @@ export const fmtPct = (share: number): string => `${trim(share * 100, share < 0.
 export const fmtRate = (rate: number): string => `${trim(rate, rate < 10 ? 1 : 0)} calls a second`
 /** The size of a call: "400 B", "1.5 KB", "2.4 MB" (a thousand to the step, like the numbers a formula is written in). */
 export function fmtBytes(bytes: number): string {
-  if (bytes >= 1_000_000) return `${trim(bytes / 1_000_000, bytes < 10_000_000 ? 1 : 0)} MB`
-  if (bytes >= 1000) return `${trim(bytes / 1000, bytes < 10_000 ? 1 : 0)} KB`
+  // The unit is picked at the value that rounds up to the next one, so 999.5 B is 1 KB and 999,500 B is 1 MB, never "1000 KB".
+  if (bytes >= 999_500) return `${trim(bytes / 1_000_000, bytes < 10_000_000 ? 1 : 0)} MB`
+  if (bytes >= 999.5) return `${trim(bytes / 1000, bytes < 10_000 ? 1 : 0)} KB`
   return `${trim(bytes, bytes < 10 ? 1 : 0)} B`
 }
 /** A load with its unit: "200 req/s". */

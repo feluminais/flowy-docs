@@ -54,6 +54,14 @@ public class SceneTests
     }
 
     [Fact]
+    public void A_shape_that_takes_a_request_off_the_line_is_lit_with_the_step()
+    {
+        var scene = SceneBuilder.Build(TestModels.Shop(), "shop", new Playing(new (string, string)?[] { ("web", "api") }, 0, Also: ["db"]));
+        Assert.Equal(BoxMode.Lit, Box(scene, "db").Mode);
+        Assert.Equal(BoxMode.Lit, Box(scene, "web").Mode);
+    }
+
+    [Fact]
     public void Playing_a_step_lights_its_boxes_and_its_line_and_dims_the_rest()
     {
         var m = TestModels.Shop();

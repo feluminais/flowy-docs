@@ -552,6 +552,8 @@ test('a count at exactly the cap is not scaled down', () => {
 test('the sources on one line are scaled by one factor so their ratio stays true', () => {
   assert.deepEqual(capCounts([10, 5]), { counts: [10, 5], capped: false })
   assert.deepEqual(capCounts([24, 12]), { counts: [24, 12], capped: false })
+  const huge = capCounts([1e307, 5e306]) // a count times AT_ONCE would overflow to Infinity: divide first
+  assert.deepEqual(huge, { counts: [24, 12], capped: true })
   assert.deepEqual(capCounts([48, 12]), { counts: [24, 6], capped: true })
   assert.deepEqual(capCounts([6, 120]), { counts: [1.2, 24], capped: true })
   assert.deepEqual(capCounts([0, 0]), { counts: [0, 0], capped: false })
@@ -866,4 +868,13 @@ test('a time run plays through interpolate and knee like any run', () => {
   assert.equal(interpolate(run, 200).load, 120) // clamped to the last time, as ever
   assert.equal(knee(run)?.load, 45) // api is failing at 45 s
   assert.equal(kneeText(run, knee(run)!, id => id), 'First struggles at 45 s: api failing 60% of calls')
+})
+
+test('a size that overflows when weighted by the rate is no number, not Infinity', () => {
+  const m = shop()
+  const { from, to } = m.connections[0]
+  const level = { load: 1, overall: {}, objects: {}, connections: [{ from, to, rate: 1e308, bytes: 1e308 }, { from, to, rate: 1e308, bytes: 1e308 }] }
+  const lines = rollUp(m, level, 'root').lines
+  assert.ok(lines.length > 0)
+  assert.equal(lines[0].bytes, undefined)
 })
