@@ -44,11 +44,11 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   level's by name: first those in the level you're in, then all the others under the level they play in,
   and a click goes there and plays it. In the browser version a YAML tab (Y) beside them shows the files
   as text, with every change to them ([YAML and history](#yaml-and-history)). The numbers on the icons are how many shapes and flows there are
-  in all. Details, on the right (its own icon, or a click on a shape or a line), is what the
-  click picked. Where the folder has load-test runs, a Performance icon below it (T) puts a run's panel
-  in Details' place: see [Performance](#performance). Where it has failure analyses, a Failures icon (M) does the same: see
-  [Failure modes](#failure-modes). Drag the inner edge of either panel to resize it,
-  and double-click it to put the width back.
+  in all. A Performance icon (T) and a Failures icon (M) sit with them, whether or not the folder has a load-test run or a failure
+  analysis: with none, their panels offer to **Create** one. See [Performance](#performance) and [Failure modes](#failure-modes).
+  Details, on the right (its own icon, or a click on a shape or a line), is what the
+  click picked, and it is all the right-hand side holds. Drag the inner edge of either panel to resize it,
+  and double-click it to put the width back. (The desktop app still puts Performance and Failures on the right, in Details' place.)
 - Pick a flow in the Flows tab to play it step by step: ← and → move, Home and End jump to the first
   and last step, Esc stops. A step can be one shape doing something on its own, and a step with more
   to say has a More you can open. When a step lands on a shape that stands for a part inside it, the
@@ -543,7 +543,7 @@ Flowy checks a run the way it checks `code:` paths: a shape or connection it nam
 isn't one, is a problem. A run it can't read at all is a problem too, listed in the Performance tab, and it never stops the model
 from loading. Flowy only reads runs. Tools write them, and nothing in Flowy changes a run file.
 
-**Reading it.** Open the Performance tab on the right edge, or press **T**. Pick a run if there are several. The slider has a stop
+**Reading it.** Open the Performance tab on the left edge, or press **T**. Pick a run if there are several. The slider has a stop
 for each tested load; ← and → move between them, and **Ramp** (**P**) sweeps up to the highest, at a pace that would cover the whole run in half a minute. Between two
 tested loads the numbers are blended from the two, and the tab says so. Click a shape or a line to read its numbers at this load,
 with a small curve of each across all of them. A shape that holds others takes the worst of what is inside it, so at the overview
@@ -791,7 +791,7 @@ counts by its `after` ratings, and the panel shows both ("96 to 32").
 part or as an end of a line. Actors are left out, because nothing of ours fails there. Outside services count, since a failing Stripe is
 a failure you design for. Lines don't count. **Not analysed** lists the shapes left.
 
-**Reading it.** Open the Failures tab on the right edge, or press **M**. Pick an analysis if there are several. A shape or a line that
+**Reading it.** Open the Failures tab on the left edge, or press **M**. Pick an analysis if there are several. A shape or a line that
 has modes carries a badge: the colour of its worst band and how many. A shape that holds others adds up what is inside it, so at the
 overview you see which system holds the risk and zoom in to find where, as in Performance. Four items count the modes by band, and a
 click on one filters the list. The list has two groups: **This view**, the modes whose part is inside the level on screen, and **Other
@@ -930,7 +930,7 @@ them. The sample model that ships with the app can't be edited.
 What it has, as the canvas does: zoom into a shape (double-click it, or select it and press Enter; Esc and Backspace go back up, and
 the breadcrumb works too), a frame around the shape you're inside, shapes that belong to another level faded and dashed, wheel to
 zoom and drag to pan, **F** to fit, the side panel with the description, its code, what a store holds (its [Data](#data) section), its links, the files a shape lives in (as links when the repo's
-origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one) and the one on the right (**T** for load-test runs), flows that play with ← and → (Home and End go to the first and last
+origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one, **T** replays load-test runs, **M** lists failure modes) and the one on the right for Details, flows that play with ← and → (Home and End go to the first and last
 step) with a step's animation, **R** to play it again and **P** to let the flow run on its own, **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a shape that sits
 beside the one you're in slides across instead of zooming in.** It doesn't have the browser's YAML tab (**Y**) or Failures tab (**M**) yet.

@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseRun } from '../src/core/perf.ts'
 import {
-  activeRun, boxAt, boxSeries, clampPos, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, levelLabels, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, RAMP_MS, rampFrom, rampPos, scaleOf, snap, sourceCss, top, xAt, yAt,
+  activeRun, boxAt, boxSeries, clampPos, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, levelLabels, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, RAMP_MS, rampFrom, rampPos, scaleOf, snap, sourceCss, starterRun, top, xAt, yAt,
 } from '../ui/src/perfview.ts'
 import { shop } from './fixtures.ts'
 
@@ -161,4 +161,24 @@ test('the key draws the fade while no line fails and for a line that fails witho
   assert.deepEqual(failureMarks([{ failed: 0.1, failure: 'lost' }]), { fade: false, lost: true, rejected: false })
   assert.deepEqual(failureMarks([{ failed: 0.1, failure: 'rejected' }, { failed: 0.05 }]), { fade: true, lost: false, rejected: true })
   assert.deepEqual(failureMarks([{ failed: 0.1, failure: 'rejected' }, { failed: 0.2, failure: 'lost' }]), { fade: false, lost: true, rejected: true })
+})
+
+test('the starter run names the shapes and connections of the view, and is a run Flowy reads without a problem', () => {
+  const model = shop()
+  const text = starterRun(model, 'root')
+  const { run, problems } = parseRun('starter', text)
+  assert.deepEqual(problems, [])
+  assert.equal(run.levels.length, 2)
+  const named = Object.keys(run.levels[0].objects ?? {})
+  assert.ok(named.length > 0 && named.every(id => Object.hasOwn(model.objects, id)))
+  assert.ok((run.levels[0].connections ?? []).every(c => model.connections.some(x => x.from === c.from && x.to === c.to)))
+})
+
+test('the starter run for a view with nothing in it still has two levels', () => {
+  const model = shop()
+  model.objects = {}
+  model.connections = []
+  const { run, problems } = parseRun('starter', starterRun(model, 'root'))
+  assert.deepEqual(problems, [])
+  assert.equal(run.levels.length, 2)
 })
