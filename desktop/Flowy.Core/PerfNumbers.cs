@@ -1,7 +1,7 @@
 namespace Flowy.Core;
 
 /// <summary>
-/// Load-test runs, read and played back. A port of src/core/perf.ts, kept equal to it by the fixtures in desktop/fixtures/perf.ts: a run
+/// Load-test runs, read and played back. A port of src/core/perf/, kept equal to it by the fixtures in desktop/fixtures/perf.ts: a run
 /// is parsed the same way (and its problems worded the same), and between two tested levels the numbers are interpolated and never predicted.
 /// This part holds the small number helpers the others share; the rest is in PerfParse, PerfCheck, PerfAnalyse, PerfRollUp, PerfKnee, PerfText, PerfTraffic and PerfSources.
 /// </summary>
