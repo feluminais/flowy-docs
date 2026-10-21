@@ -1,0 +1,15 @@
+name: No courier answers
+view: delivery
+groups:
+  offer:
+    kind: repeat
+    until: a courier accepts, or the list runs out
+    text: One courier at a time, nearest first. Each has 30 seconds.
+  result:
+    kind: branch
+steps:
+  - { from: offers, to: notifier, text: Offers the job to the nearest courier, group: offer }
+  - { from: offers, text: Hears nothing within 30 seconds and moves on to the next courier, group: offer }
+  - { from: courier-app, to: dispatch, text: Accepts, and the offers stop, group: result, lane: A courier accepts }
+  - { from: offers, to: notifier, text: Tells the customer that no courier is free yet, group: result, lane: The list runs out }
+  - { from: dispatch, text: Searches again in a minute, group: result }

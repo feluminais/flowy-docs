@@ -50,6 +50,8 @@ modes:
     owner: Support tools
     status: open
     affects: [support-console]
+    flow: refund-not-recorded
+    step: 2
     description: |
       The refund and the write are two steps, so one can happen without the other.
       The nightly comparison finds the gap. It does not close it.
@@ -114,3 +116,87 @@ modes:
     owner: Delivery
     status: open
     affects: [tracking]
+  events-lag:
+    on: events
+    mode: Dispatch reads events slower than they arrive
+    effect: A courier is matched minutes after the customer paid, and the arrival time shown is wrong.
+    cause: A burst of orders, such as dinner rush, outruns the one consumer Dispatch runs.
+    severity: 5
+    occurrence: 5
+    detection: 3
+    controls: A lag alert fires at 30 seconds.
+    action: Run a second Dispatch consumer.
+    owner: Delivery
+    status: planned
+    after: { severity: 5, occurrence: 2, detection: 3 }
+    affects: [dispatch, offers]
+  kitchen-tablet-offline:
+    on: kitchen-tablet
+    mode: The tablet goes offline and nobody accepts within two minutes
+    effect: The order is cancelled, the hold is released and the customer is told.
+    cause: The tablet loses its Wi-Fi, or its battery runs out.
+    severity: 4
+    occurrence: 5
+    detection: 2
+    controls: After two minutes the order cancels itself and the card hold is released.
+    owner: Restaurants
+    status: accepted
+    affects: [customer-app]
+    flow: place-order
+    step: 7
+  offers-no-answer:
+    on: offers
+    mode: No courier answers within 30 seconds
+    effect: The order waits for a courier, and the arrival time shown keeps growing.
+    cause: The couriers near the restaurant are busy, out of signal or away from their phones.
+    severity: 6
+    occurrence: 6
+    detection: 3
+    controls: Each offer moves on to the next courier. When the list runs out, the customer is told.
+    action: Widen the search when the list runs out.
+    owner: Delivery
+    status: planned
+    after: { severity: 6, occurrence: 3, detection: 3 }
+    affects: [customer-app, dispatch]
+    flow: no-courier-answers
+    step: 2
+  tracking-signal-lost:
+    on: tracking
+    mode: The courier loses signal and the map freezes
+    effect: The customer sees a courier who has stopped moving.
+    cause: The courier drives through a tunnel or a dead zone.
+    severity: 2
+    occurrence: 7
+    detection: 2
+    controls: A position older than a minute is dropped, so the map holds still and does not jump when the signal returns.
+    owner: Delivery
+    status: accepted
+    affects: [customer-app, web]
+    flow: deliver-order
+    step: 6
+  sms-not-delivered:
+    from: notifier
+    to: twilio
+    mode: Twilio accepts an SMS and the carrier drops it
+    effect: The customer never gets the confirmation or the courier's arrival message.
+    cause: The number is wrong, switched off or blocked by the carrier.
+    severity: 4
+    occurrence: 4
+    detection: 9
+    controls: None. Plum does not read Twilio's delivery receipts.
+    action: Read the delivery receipts and alert when fewer than 95% arrive.
+    owner: Notifications
+    status: open
+    affects: [customer-app]
+  warehouse-down:
+    on: warehouse
+    mode: The warehouse is down
+    effect: Reports run late. Orders carry on.
+    cause: The cluster is being upgraded, or its disk is full.
+    severity: 2
+    occurrence: 3
+    detection: 4
+    controls: Events wait on the stream and are replayed when it is back.
+    owner: Data
+    status: accepted
+    affects: [admin]

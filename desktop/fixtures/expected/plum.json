@@ -1120,6 +1120,78 @@
       ]
     },
     {
+      "id": "no-courier-answers",
+      "name": "No courier answers",
+      "view": "delivery",
+      "steps": [
+        {
+          "from": "offers",
+          "to": "notifier",
+          "text": "Offers the job to the nearest courier",
+          "group": "offer",
+          "placed": [
+            "dispatch",
+            "notifications"
+          ],
+          "ends": "Offers in Dispatch → Notifier in Notifications"
+        },
+        {
+          "from": "offers",
+          "text": "Hears nothing within 30 seconds and moves on to the next courier",
+          "group": "offer",
+          "placed": [
+            "dispatch",
+            "dispatch"
+          ],
+          "ends": "Offers in Dispatch"
+        },
+        {
+          "from": "courier-app",
+          "to": "dispatch",
+          "text": "Accepts",
+          "group": "result",
+          "lane": "A courier accepts",
+          "placed": [
+            "courier-app",
+            "dispatch"
+          ],
+          "ends": "Courier app → Dispatch"
+        },
+        {
+          "from": "offers",
+          "to": "notifier",
+          "text": "Tells the customer that no courier is free yet",
+          "group": "result",
+          "lane": "The list runs out",
+          "placed": [
+            "dispatch",
+            "notifications"
+          ],
+          "ends": "Offers in Dispatch → Notifier in Notifications"
+        },
+        {
+          "from": "dispatch",
+          "text": "Searches again in a minute",
+          "group": "result",
+          "placed": [
+            "dispatch",
+            "dispatch"
+          ],
+          "ends": "Dispatch"
+        }
+      ],
+      "groups": {
+        "offer": {
+          "kind": "repeat",
+          "until": "a courier accepts, or the list runs out",
+          "text": "One courier at a time, nearest first. Each has 30 seconds."
+        },
+        "result": {
+          "kind": "branch"
+        }
+      }
+    },
+    {
       "id": "place-order",
       "name": "Customer places an order",
       "view": "ordering",
@@ -1196,6 +1268,59 @@
             "kitchen-tablet"
           ],
           "ends": "Order API → Kitchen tablet"
+        }
+      ]
+    },
+    {
+      "id": "refund-not-recorded",
+      "name": "The refund is not recorded",
+      "view": "ordering",
+      "steps": [
+        {
+          "from": "refunds",
+          "to": "stripe",
+          "text": "Stripe has refunded the charge",
+          "description": "The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.\n",
+          "animation": "call",
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Refunds in Order API → Stripe"
+        },
+        {
+          "from": "refunds",
+          "to": "orders-db",
+          "text": "Can't mark the order refunded, because Orders DB doesn't answer",
+          "description": "The refund and the write are two steps, so one can happen without the other.\n",
+          "animation": {
+            "kind": "call",
+            "outcome": "timeout"
+          },
+          "placed": [
+            "order-api",
+            "orders-db"
+          ],
+          "ends": "Refunds in Order API → Orders DB"
+        },
+        {
+          "from": "refunds",
+          "text": "Leaves the order marked paid",
+          "placed": [
+            "order-api",
+            "order-api"
+          ],
+          "ends": "Refunds in Order API"
+        },
+        {
+          "from": "refunds",
+          "to": "notifier",
+          "text": "Still sends the customer a refund confirmation",
+          "placed": [
+            "order-api",
+            "notifications"
+          ],
+          "ends": "Refunds in Order API → Notifier in Notifications"
         }
       ]
     },
