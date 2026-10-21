@@ -160,19 +160,6 @@ internal sealed partial class ReaderView
         if (Editing) EditFlow(id);
     }
 
-    /// <summary>
-    /// Right after a box was dragged, Esc or Backspace take the drag back, which is what someone who just moved a box and got it wrong reaches for.
-    /// It is only that one move: once anything else is done (a click, another edit, a move to another level), they go up a level again.
-    /// </summary>
-    private bool UndoMoveKey(KeyEventArgs e)
-    {
-        if (!_undoMove || !Editing || _shortcuts is not null) return false;
-        if (e.Key != Key.Escape && !(e.Key == Key.Back && e.KeyModifiers == KeyModifiers.None)) return false;
-        DidSomethingElse();
-        _ = UndoAsync();
-        return true;
-    }
-
     private void OpenAdd()
     {
         if (!Editing) return;
@@ -329,48 +316,6 @@ internal sealed partial class ReaderView
             var c = merged[0].Connection;
             if (await RunAsync(d => EditOps.RemoveConnection(d, new ConnectionInput(c.From ?? "", c.To ?? "", c.Label ?? "")))) CloseSide();
         }
-    }
-
-    // ---- keys --------------------------------------------------------------------------------------------------
-
-    /// <summary>E turns edit mode on and off; in edit mode N adds, Delete deletes, Ctrl+Z and Ctrl+Y undo and redo. True when the key was one of these.</summary>
-    private bool EditKey(KeyEventArgs e)
-    {
-        var plain = e.KeyModifiers == KeyModifiers.None;
-        if (e.PhysicalKey == PhysicalKey.E && plain && !ReadOnly)
-        {
-            SetEditing(!Editing);
-            return true;
-        }
-        if (!Editing) return false;
-        if (e.PhysicalKey == PhysicalKey.N && plain)
-        {
-            OpenAdd();
-            return true;
-        }
-        if (e.Key == Key.Delete && plain)
-        {
-            _ = DeleteSelectedAsync();
-            return true;
-        }
-        var command = (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0;
-        var shift = (e.KeyModifiers & KeyModifiers.Shift) != 0;
-        if (command && !shift && e.PhysicalKey == PhysicalKey.A)
-        {
-            PickAll();
-            return true;
-        }
-        if (command && e.PhysicalKey == PhysicalKey.Y)
-        {
-            _ = RedoAsync();
-            return true;
-        }
-        if (command && e.PhysicalKey == PhysicalKey.Z)
-        {
-            _ = shift ? RedoAsync() : UndoAsync();
-            return true;
-        }
-        return false;
     }
 
     // What a test can look at.

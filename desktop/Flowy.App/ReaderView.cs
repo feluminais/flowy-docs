@@ -727,7 +727,7 @@ internal sealed partial class ReaderView : Grid
         }
         _moving = true;
         // Laying out a big view takes a moment: do it now, behind the old view flying off, so the new one doesn't wait for it.
-        if (_folder is { } folder) _ = Task.Run(() => SceneBuilder.Build(folder.Model, view, null, folder.Problems));
+        if (_folder is { } folder) _ = Task.Run(() => SceneBuilder.Prewarm(folder.Model, view));
         var size = _canvas.Bounds.Size;
         var (ux, uy) = (origin.X - size.Width / 2, origin.Y - size.Height / 2);
         var length = Math.Sqrt(ux * ux + uy * uy);
@@ -957,7 +957,7 @@ internal sealed partial class ReaderView : Grid
             _shortcuts = null;
             return;
         }
-        _shortcuts = new ShortcutsCard(() => ShowShortcuts(false), CanPerf, CanFailures);
+        _shortcuts = new ShortcutsCard(() => ShowShortcuts(false), KeyStateNow(false));
         _overlay.Children.Add(_shortcuts);
     }
 
@@ -993,97 +993,5 @@ internal sealed partial class ReaderView : Grid
             if (folder.Model.Flows[flow] is { Steps.Count: > 0 } f && f.View == spot.View) Play(flow, spot.Step ?? 0);
             else ShowNotice($"This flow can't play yet. Fix {problem.File} first.");
         }
-    }
-
-    // ---- keys --------------------------------------------------------------------------------------------------
-
-    private bool InNavigator(object? source) => _nav.IsVisible && source is Visual v && (ReferenceEquals(v, _nav) || v.GetVisualAncestors().Contains(_nav));
-
-    /// <summary>A click in the navigator makes Escape close it. A click anywhere else (the diagram, Details) makes Escape leave it alone, and takes the keyboard out of it.</summary>
-    private void OnPointerDown(object? sender, PointerPressedEventArgs e)
-    {
-        var inside = InNavigator(e.Source);
-        _navUsed = inside;
-        if (!inside && InNavigator(TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement())) Focus();
-    }
-
-    private void OnKeyDown(object? sender, KeyEventArgs e)
-    {
-        if (_folder is not { } folder) return;
-        var inNavigator = InNavigator(e.Source);
-        if (e.Source is TextBox field)
-        {
-            // A field keeps its keys. The navigator's filters give up Escape once they are empty, so it closes with a click in one.
-            if (e.Key != Key.Escape || !inNavigator) return;
-            if (!string.IsNullOrEmpty(field.Text))
-            {
-                field.Text = "";
-                e.Handled = true;
-                return;
-            }
-        }
-        if (_nav.Explorer.Holds(e.Source) && e.Key != Key.Escape) return; // the tree has its own keys, and a letter typed in it goes to its filter
-        var view = CurrentView();
-        var plain = e.KeyModifiers == KeyModifiers.None;
-        var flow = PlayingFlow();
-        void Up() => ZoomOut(Views.ParentOf(folder.Model, view));
-
-        if (e.Key == Key.Escape && _search is not null)
-        {
-            // The search field closes itself on Escape; this is for when the focus has slipped out of it.
-            CloseSearch(true);
-        }
-        else if (e.Key == Key.Escape && _canvas.CancelGesture()) { }
-        else if (UndoMoveKey(e)) { }
-        else if (e.Key == Key.Escape && ResetPick()) { }
-        else if (e.Key == Key.Escape && _shortcuts is null && _side is Side.Boxes) ClearPicked();
-        else if (e.Key == Key.Escape)
-        {
-            var navigator = ShownTab is not null && (_navUsed || inNavigator);
-            switch (Navigation.Escape(_shortcuts is not null, navigator, flow is not null, RightOpen, view != Names.Root))
-            {
-                case EscapeStep.Shortcuts: ShowShortcuts(false); break;
-                case EscapeStep.Navigator: CloseNav(); break;
-                case EscapeStep.Flow: Stop(); break;
-                case EscapeStep.Panel:
-                    if (PerfOpen) ClosePerf();
-                    else CloseDetails();
-                    break;
-                case EscapeStep.Up: Up(); break;
-                default: return;
-            }
-        }
-        else if (EditKey(e)) { }
-        else if (PerfOpen && e.Key == Key.Right) _perf.StepLevel(PerfView.StepFrom(_perf.ActivePos, 1));
-        else if (PerfOpen && e.Key == Key.Left) _perf.StepLevel(PerfView.StepFrom(_perf.ActivePos, -1));
-        else if (PerfOpen && e.Key == Key.Home) _perf.StepLevel(0);
-        else if (PerfOpen && LoadTest is { } top && e.Key == Key.End) _perf.StepLevel(_perf.ActiveTop(top));
-        else if (PerfOpen && e.PhysicalKey == PhysicalKey.P && plain) _perf.ToggleRamp();
-        else if (FailuresOpen && e.Key is Key.Right or Key.Left && StepFailures(e.Key)) { }
-        else if (flow is not null && e.Key == Key.Right) StepTo(StopIndex() + 1);
-        else if (flow is not null && e.Key == Key.Left) StepTo(StopIndex() - 1);
-        else if (flow is not null && e.Key == Key.Home) StepTo(0);
-        else if (flow is not null && e.Key == Key.End) StepTo(StopsOf(flow.Value.Flow).Count - 1);
-        else if (flow is not null && e.PhysicalKey == PhysicalKey.P && plain) _playback.ToggleAuto();
-        else if (flow is not null && e.PhysicalKey == PhysicalKey.R && plain) _playback.Replay();
-        else if (e.Key == Key.Enter && Recording is null)
-        {
-            // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
-            var id = (TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() as BoxControl)?.Id ?? SelectedBox;
-            if (id is null) return;
-            if (CanOpen(id)) ZoomInto(id);
-            else OpenObject(id);
-        }
-        else if (e.KeySymbol == "?") ToggleShortcuts();
-        else if ((e.PhysicalKey == PhysicalKey.K && e.KeyModifiers == KeyModifiers.Control) || e.KeySymbol == "/" || (e.PhysicalKey == PhysicalKey.Slash && e.KeyModifiers == KeyModifiers.None)) OpenSearch();
-        else if (e.PhysicalKey == PhysicalKey.F && plain) FitNow();
-        else if (e.PhysicalKey == PhysicalKey.L && plain && ShowFlows) ToggleTab(PanelTab.Flows);
-        else if (e.PhysicalKey == PhysicalKey.O && plain) ToggleTab(PanelTab.Explorer);
-        else if (e.PhysicalKey == PhysicalKey.T && plain && CanPerf) TogglePerf();
-        else if (e.PhysicalKey == PhysicalKey.M && plain && CanFailures) ToggleFailures();
-        // Z zooms out, always: in edit mode Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
-        else if ((e.Key == Key.Back || e.PhysicalKey == PhysicalKey.Z) && plain && view != Names.Root && Recording is null) Up();
-        else return;
-        e.Handled = true;
     }
 }

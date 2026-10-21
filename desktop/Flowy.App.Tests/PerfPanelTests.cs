@@ -22,7 +22,7 @@ public class PerfPanelTests
     }
 
     private static void Show(PerfPanel panel, Folder folder, string run, double pos, bool ramping = false, bool still = false, PerfSelection? selection = null, string view = "shop") =>
-        panel.Show(folder.Model, view, folder.Runs!, folder.RunProblems!, run, pos, ramping, still, selection);
+        panel.Show(new PerfPanelModel(folder.Model, view, folder.Runs!, folder.RunProblems!, run, pos, ramping, still, selection));
 
     /// <summary>Every piece of text in the panel. A button's label is only in the visual tree once its template is applied, so the window lays itself out first.</summary>
     private static string Text(PerfPanel panel)
@@ -194,7 +194,7 @@ public class PerfPanelTests
     public void With_no_run_it_says_so_and_lists_what_is_wrong()
     {
         var (panel, folder) = Open();
-        panel.Show(folder.Model, "shop", new IdMap<LoadRun>(), folder.RunProblems!, "", 0, false, false, null);
+        panel.Show(new PerfPanelModel(folder.Model, "shop", new IdMap<LoadRun>(), folder.RunProblems!, "", 0, false, false, null));
         var text = Text(panel);
         Assert.Contains("No run could be read.", text);
         Assert.Contains("perf/merge.yaml", text);
@@ -253,7 +253,7 @@ public class PerfPanelTests
     {
         var (panel, folder, temp) = OpenScaled();
         using var _ = temp;
-        panel.Show(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null);
+        panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
         Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|Lost call|Rejected call|More calls|1 dot = 50 calls/s|Bigger call", KeyOf(panel));
     }
 
@@ -262,7 +262,7 @@ public class PerfPanelTests
     {
         var (panel, folder, temp) = OpenScaled();
         using var _ = temp;
-        panel.Show(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null);
+        panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
         var slider = panel.Slider;
         panel.SetPos(1, false);
         Assert.Equal(1, panel.SliderValue);
@@ -276,7 +276,7 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled();
         using var _ = temp;
         var selection = new PerfSelection(null, "customer", "web");
-        panel.Show(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, selection);
+        panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, selection));
         Assert.False(panel.ScaledDownShown);
         Assert.Contains(panel.Readings, r => r.Label == "Size of a call" && r.Value == "800 B");
         panel.SetPos(1, false);
@@ -290,7 +290,7 @@ public class PerfPanelTests
     {
         var (panel, folder, temp) = OpenScaled();
         using var _ = temp;
-        panel.Show(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 1, false, true, new PerfSelection(null, "customer", "web"));
+        panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 1, false, true, new PerfSelection(null, "customer", "web")));
         Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|A call that fails|More calls", KeyOf(panel));
         Assert.False(panel.ScaledDownShown);
     }
@@ -300,7 +300,7 @@ public class PerfPanelTests
     {
         var (panel, folder, temp) = OpenScaled("source: { color: teal }");
         using var _ = temp;
-        panel.Show(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null);
+        panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
         Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|Lost call|Rejected call|More calls", KeyOf(panel));
     }
 }

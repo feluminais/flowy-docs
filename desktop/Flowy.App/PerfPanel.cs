@@ -119,123 +119,6 @@ internal sealed class LatencyStrip : Control
     }
 }
 
-// <summary>A gradient from green through amber to red, in the colours the canvas outlines a shape with in the theme that is showing.</summary>
-internal sealed class HeatSwatch : Border
-{
-    public HeatSwatch()
-    {
-        Classes.Add("sw");
-        Classes.Add("heat");
-        ActualThemeVariantChanged += (_, _) => Fill();
-    }
-
-    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        base.OnAttachedToVisualTree(e);
-        Fill();
-    }
-
-    private void Fill()
-    {
-        var dark = AppTheme.IsDark(this);
-        var brush = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0.5, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 0.5, RelativeUnit.Relative) };
-        foreach (var strain in new[] { 0.0, 0.5, 1.0 }) brush.GradientStops.Add(new GradientStop(Color.Parse(PerfColors.Hex(strain, dark)), strain));
-        Background = brush;
-    }
-}
-
-/// <summary>A row of marks, each drawn as it looks on the chart or the canvas with its name beside it: how the panel says what a colour or a shape means.</summary>
-internal static class KeyRow
-{
-    public static Control Of(params (Control Swatch, string Label)?[] items)
-    {
-        var row = new WrapPanel();
-        foreach (var item in items)
-        {
-            if (item is not { } entry) continue;
-            var label = new TextBlock { Text = entry.Label, Classes = { "muted" }, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
-            row.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 0, 16, 6), Children = { entry.Swatch, label } });
-        }
-        return row;
-    }
-
-    /// <summary>A mark the styles draw: a line (<c>p50</c>, <c>p95</c>, <c>busy</c>), a dot (<c>call</c>, and <c>bad</c> as well for one that fails) or an outline (<c>none</c>).</summary>
-    public static Control Mark(params string[] classes)
-    {
-        var mark = new Border();
-        mark.Classes.Add("sw");
-        foreach (var c in classes) mark.Classes.Add(c);
-        return mark;
-    }
-
-    /// <summary>The red dashes that mark where a run first struggles.</summary>
-    public static Control Dashes()
-    {
-        var dashes = new Avalonia.Controls.Shapes.Line { StartPoint = new Point(0, 0), EndPoint = new Point(0, 14), StrokeThickness = 2, StrokeDashArray = [1.5, 1.5], VerticalAlignment = VerticalAlignment.Center };
-        dashes.Classes.Add("knee");
-        return dashes;
-    }
-
-    /// <summary>A dot in a source's colour (the real dot, for the theme that is showing); without a colour, the accent the styles give a dot.</summary>
-    public static Control Dot(string? color, bool dark, double size = 8, double opacity = 1)
-    {
-        var dot = new Border { Width = size, Height = size, CornerRadius = new CornerRadius(size / 2), Opacity = opacity };
-        dot.Classes.Add("sw");
-        if (PerfView.SourceHex(color, dark) is { } hex) dot.Background = new SolidColorBrush(Color.Parse(hex));
-        else dot.Classes.Add("accent");
-        return dot;
-    }
-
-    /// <summary>A small dot beside a big one: the dots of calls of different sizes.</summary>
-    public static Control Bigger(string? color, bool dark) =>
-        new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, VerticalAlignment = VerticalAlignment.Center, Children = { Dot(color, dark, 5), Dot(color, dark, 11) } };
-
-    /// <summary>Dots that thin out: a line that is scaled down to fit the screen.</summary>
-    public static Control Scaled(string? color, bool dark) =>
-        new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, VerticalAlignment = VerticalAlignment.Center, Children = { Dot(color, dark, 6), Dot(color, dark, 6, 0.55), Dot(color, dark, 6, 0.25) } };
-
-    /// <summary>A call that is turned away: a dot, and the bar it stops at.</summary>
-    public static Control Rejected()
-    {
-        var bar = new Border();
-        bar.Classes.Add("sw");
-        bar.Classes.Add("bar");
-        return new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { Mark("call", "bad"), bar } };
-    }
-
-    /// <summary>The badge that says how many are waiting.</summary>
-    public static Control Count(string number)
-    {
-        var badge = new Border { Child = new TextBlock { Text = number } };
-        badge.Classes.Add("sw");
-        badge.Classes.Add("queue");
-        return badge;
-    }
-}
-
-/// <summary>Keys and what they do, a cap or two and a word each: the hint under the slider.</summary>
-internal static class KeyHint
-{
-    public static Control Of(params (string Keys, string What)[] hints)
-    {
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
-        foreach (var (keys, what) in hints)
-        {
-            var hint = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
-            // Keys that do the same thing are written with a space between: each is its own cap.
-            foreach (var key in keys.Split(' '))
-            {
-                var cap = new Border { Child = new TextBlock { Text = key, FontSize = 12, FontFamily = Fonts.Mono } };
-                cap.Classes.Add("kbd");
-                hint.Children.Add(cap);
-            }
-            hint.Children.Add(new TextBlock { Text = what, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center });
-            row.Children.Add(hint);
-        }
-        return row;
-    }
-}
-
 //// <summary>
 /// A small curve of one number across the tested levels, with a cursor where the slider is. Drawn in a 120 by 28 space. For a run with several sources it
 /// is drawn along one dial (the others held), evenly, and its series is given again whenever another dial is moved (<see cref="SetSeries"/>).
@@ -429,7 +312,7 @@ internal sealed class PerfPanel : StackPanel
     private bool _ramping;
     private bool _still;
     private bool _syncing;
-    private string _key = "";
+    private PerfPanelModel? _shown; // what the panel was last built for
 
     /// <summary>The reader picked another run.</summary>
     public event Action<string>? RunPicked;
@@ -566,23 +449,21 @@ internal sealed class PerfPanel : StackPanel
     /// Shows the run at a position. When only the position or the ramp changed it is updated in place; anything else (another run, another level of the
     /// diagram, another pick) builds the panel again.
     /// </summary>
-    public void Show(Model model, string view, IdMap<LoadRun> runs, IReadOnlyList<Problem> runProblems, string runId, double pos, bool ramping, bool still, PerfSelection? selection, IReadOnlyList<double>? places = null, int active = 0)
+    public void Show(PerfPanelModel next)
     {
-        var key = $"{Identity(model)}|{Identity(runs)}|{runProblems.Count}|{runId}|{view}|{still}|{selection}";
-        if (key == _key && _run is not null)
+        if (_shown is { } shown && next.SameBuild(shown) && _run is not null)
         {
-            if (_dials is { Mode: not Perf.ModeSingle }) SetPlaces(places ?? _places, active, ramping);
-            else SetPos(pos, ramping);
+            if (_dials is { Mode: not Perf.ModeSingle }) SetPlaces(next.Places ?? _places, next.Active, next.Ramping);
+            else SetPos(next.Pos, next.Ramping);
             return;
         }
-        _key = key;
-        Build(model, view, runs, runProblems, runId, pos, ramping, still, selection, places, active);
+        _shown = next;
+        Build(next);
     }
 
-    private static int Identity(object o) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(o);
-
-    private void Build(Model model, string view, IdMap<LoadRun> runs, IReadOnlyList<Problem> runProblems, string runId, double pos, bool ramping, bool still, PerfSelection? selection, IReadOnlyList<double>? places, int active)
+    private void Build(PerfPanelModel next)
     {
+        var (model, view, runs, runProblems, runId, pos, ramping, still, selection, places, active) = next;
         Children.Clear();
         _dialViews.Clear();
         _alongs.Clear();
@@ -915,13 +796,7 @@ internal sealed class PerfPanel : StackPanel
         if (states is not null) _states = states;
         var load = PerfView.LoadAt(run, pos);
         _loadNumber.Text = PerfView.FmtLoad(load, run.Unit);
-        if (PerfView.IsTested(pos)) _loadNote.Text = "Tested";
-        else
-        {
-            var lower = run.Levels[Math.Min(PerfView.Top(run) - 1, (int)Math.Floor(pos))];
-            var upper = run.Levels[Math.Min(PerfView.Top(run), (int)Math.Floor(pos) + 1)];
-            _loadNote.Text = $"Between {lower.Load.ToString("R", CultureInfo.InvariantCulture)} and {upper.Load.ToString("R", CultureInfo.InvariantCulture)}, estimated";
-        }
+        _loadNote.Text = PerfView.LoadNote(run, pos);
         _syncing = true;
         _slider.Value = PerfView.SliderValue(run, pos);
         _syncing = false;
@@ -1066,9 +941,8 @@ internal sealed class PerfPanel : StackPanel
         {
             var view = _dialViews[i];
             var here = i == _active;
-            var (lower, upper, tested) = PerfView.BracketOf(view.Dial, _places[i]);
             view.Number.Text = PerfView.FmtLoad(Perf.LoadOfPosition(view.Dial.Values, _places[i]), view.Dial.Unit);
-            view.Note.Text = tested ? "Tested" : $"Between {lower.ToString("R", CultureInfo.InvariantCulture)} and {upper.ToString("R", CultureInfo.InvariantCulture)}, estimated";
+            view.Note.Text = PerfView.LoadNote(view.Dial, _places[i]);
             view.Slider.Value = _places[i];
             var running = ramping && here;
             Chrome.Fill(view.Ramp, running ? Icons.Pause : Icons.Play, running ? "Pause" : "Ramp");

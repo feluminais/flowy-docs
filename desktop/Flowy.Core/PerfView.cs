@@ -413,6 +413,20 @@ public static class PerfView
         return (d.Values[Math.Min(top - 1, (int)Math.Floor(p))], d.Values[Math.Min(top, (int)Math.Floor(p) + 1)], IsTested(p));
     }
 
+    /// <summary>The note beside a load number: "Tested" on one of the tested levels, otherwise "Between 600 and 900, estimated".</summary>
+    public static string LoadNote(LoadRun run, double pos) =>
+        IsTested(pos) ? "Tested" : Between(run.Levels[Math.Min(Top(run) - 1, (int)Math.Floor(pos))].Load, run.Levels[Math.Min(Top(run), (int)Math.Floor(pos) + 1)].Load);
+
+    /// <summary>The same note for one dial of a run with several sources.</summary>
+    public static string LoadNote(Dial d, double pos)
+    {
+        var (lower, upper, tested) = BracketOf(d, pos);
+        return tested ? "Tested" : Between(lower, upper);
+    }
+
+    private static string Between(double lower, double upper) =>
+        $"Between {lower.ToString("R", CultureInfo.InvariantCulture)} and {upper.ToString("R", CultureInfo.InvariantCulture)}, estimated";
+
     /// <summary>What the panel says once, near the top, about how the sources were measured: nothing for a single run.</summary>
     public static string? ModeLabel(string mode) => mode switch { Perf.ModeAdded => "Added from separate runs", Perf.ModeTested => "Tested together", _ => null };
 
