@@ -643,7 +643,7 @@ group. Otherwise Not rated when a rating is missing, then High from a risk of 15
 High, Medium, Low, then Not rated, and inside a band by risk, highest first, with ties in the order of the file. A mode that is `done`
 counts by its `after` ratings, and the panel shows both ("96 to 32").
 
-**Coverage.** "Analysed 8 of 26" counts the shapes that hold nothing, inside the analysis's scope, that have at least one mode, as the
+**Coverage.** "Analysed 15 of 26" counts the shapes that hold nothing, inside the analysis's scope, that have at least one mode, as the
 part or as an end of a line. Actors are left out, because nothing of ours fails there. Outside services count, since a failing Stripe is
 a failure you design for. Lines don't count. **Not analysed** lists the shapes left.
 
