@@ -9,7 +9,7 @@ import { runLinkProblems } from '../core/failures.ts'
 import { FILE_KINDS, isAllowedPath, kindOfPath } from '../core/filekinds.ts'
 import type { FolderKind } from '../core/filekinds.ts'
 import { emptyModel, ID_RULE, isValidId, linksOf, ParseError } from '../core/model.ts'
-import { parseAnalysisFile, parseFlowFile, parseLayoutFile, parseModelFile } from '../core/modelfiles.ts'
+import { fileData, parseAnalysisFile, parseFile, parseFlowFile, parseLayoutFile, parseModelFile, serializeFile } from '../core/modelfiles.ts'
 import type { Model } from '../core/model.ts'
 import { isRepoPath } from '../core/paths.ts'
 import { checkRun, checkRuns } from '../core/perf/check.ts'
@@ -204,6 +204,39 @@ export async function loadState(dir: string): Promise<State> {
     if (e instanceof ParseError) return { parseError: { file: e.file, line: e.line, message: e.reason } }
     throw e
   }
+}
+
+/** The files of a model that can't be written back: saving takes the model as data, writes it as text and reads that text again, and this is where that fails. */
+export function saveProblems(model: Model): Problem[] {
+  const files = ['model.yaml', ...Object.keys(model.flows).map(id => `flows/${id}.yaml`), ...Object.keys(model.failures).map(id => `failures/${id}.yaml`)]
+  return files.flatMap(rel => {
+    try {
+      parseFile(rel, serializeFile(rel, fileData(model, rel)))
+      return []
+    } catch (e) {
+      return [{ file: rel, message: `can't be saved again: ${e instanceof ParseError ? e.reason : e instanceof Error ? e.message : String(e)}` }]
+    }
+  })
+}
+
+/** What `flowy check` and get_problems know about a folder: the model, the load-test runs, and everything wrong with any of them. */
+export type Report = { model: Model; runs: Record<string, Run>; problems: Problem[] }
+
+/**
+ * Every problem in the folder, in one list: what check() finds in the model, a flow file Flowy skips, a failure analysis that can't be read,
+ * a mode whose run doesn't exist, a run that can't be used, and a file that could be read but not written back (reported only for a file with
+ * no other problem, since the others already say why). Throws a ParseError for a model or flow file that can't be read at all.
+ */
+export async function loadReport(dir: string): Promise<Report> {
+  const { model, ignored, failureProblems: unread } = await loadDir(dir)
+  const { runs, problems: runProblems } = await loadRuns(dir, model)
+  const skipped = ignored.map(file => ignoredYml(FILE_KINDS.flow, file))
+  const others = [
+    ...check(model, missingPaths(dir, model)), ...skipped, ...unread,
+    ...Object.entries(model.failures).flatMap(([aid, a]) => runLinkProblems(aid, a, runs)), ...runProblems,
+  ]
+  const named = new Set(others.map(p => p.file))
+  return { model, runs, problems: [...others, ...saveProblems(model).filter(p => !named.has(p.file))] }
 }
 
 const queues = new Map<string, Promise<unknown>>()

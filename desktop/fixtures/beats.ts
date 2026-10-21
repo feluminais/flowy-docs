@@ -1,7 +1,7 @@
-import { ANIMATION_KINDS, animationOf, animationProblem, animationWith, beatsFor, burstOf, followsLanding, interceptorProblem, KIND_SKETCHES, leavesMarks, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, outcomeLine, shortLabel, TINTS, travelMs } from '../../src/core/animation.ts'
+import { ANIMATION_KINDS, animationOf, animationProblem, animationWith, beatsFor, burstOf, EFFECTS, followsLanding, interceptorProblem, KIND_SKETCHES, leavesMarks, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, outcomeLine, shortLabel, TINTS, travelMs } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
 import { colorPair } from '../../src/core/look.ts'
-import { active, bump, distance, DWELL, ease, entryPoint, GAP, labelOffset, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, progress, tubeOpacity } from '../../ui/src/motion.ts'
+import { active, bump, distance, DWELL, ease, entryPoint, GAP, labelOffset, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, effectPose, progress, tubeOpacity } from '../../ui/src/motion.ts'
 
 /** Tags as the files can hold them: good ones, and every kind of wrong one. */
 const RAW: unknown[] = [
@@ -39,6 +39,10 @@ const RAW: unknown[] = [
   { kind: 'send', outcome: 'intercepted', by: { name: 'Tap', color: 'red' } }, { kind: 'send', outcome: 'intercepted', by: {} }, { kind: 'send', outcome: 'lost', by: 'proxy' }, { kind: 'send', by: 'proxy' },
   { kind: 'send', outcome: 'lost', at: 0.1 }, { kind: 'send', outcome: 'lost', at: 0.05 }, { kind: 'send', outcome: 'lost', at: 0.95 }, { kind: 'send', outcome: 'lost', at: 'half' },
   { kind: 'send', outcome: 'lost', at: '.5' }, { kind: 'send', outcome: 'lost', at: '' }, { kind: 'send', outcome: 'delayed', at: 0.5 }, { kind: 'send', at: 0.5 },
+  // What a blob does on its way: the four effects on each way of travelling, with what else a step can hold, and the wrong ones.
+  { kind: 'send', effect: 'squish' }, { kind: 'call', effect: 'bounce', carries: 'order' }, { kind: 'event', effect: 'pulse' }, { kind: 'callback', effect: 'wiggle', trigger: 'outside' },
+  { kind: 'call', effect: 'bounce', outcome: 'timeout' }, { kind: 'send', effect: 'pulse', outcome: 'lost', share: 30 },
+  { kind: 'send', effect: 'spin' }, { kind: 'send', effect: '' }, { kind: 'send', effect: ['bounce'] }, { kind: 'send', effect: 'Bounce' }, { kind: 'send', effect: 'bounce', speed: 'fast' },
 ]
 /** A tag that gives a share plays a burst of 10, 20 or 100 requests, so those are dumped at two lengths only, under "bursting", and not at every length like the rest. */
 const hasShare = (animation: unknown): boolean => typeof animation === 'object' && animation !== null && 'share' in animation
@@ -131,6 +135,8 @@ export function dumpBeats(): unknown {
         dx, dy, label: labelOffset(dx, dy, 6), lower: lowerSide(dx, dy), note: noteSpot(dx, dy, 10),
         marker: markerSpot(dx, dy, markerSize('Café wifi proxy')),
       })),
+      // What each effect does to a blob at each moment of its run, on lines at each angle: a dot or a label, which the squish treats differently.
+      effects: [undefined, ...EFFECTS, 'spin'].flatMap(effect => [true, false].flatMap(label => [0, 20, 90, 200, -70].flatMap(angle => [0, 0.1, 0.25, 0.5, 0.8, 1].map(p => ({ effect: effect ?? null, label, angle, p, pose: effectPose(effect as Parameters<typeof effectPose>[0], label, angle, p) }))))),
       markers: ['', 'Tap', 'Café wifi proxy', 'x'.repeat(24)].map(name => ({ name, size: markerSize(name) })),
       // Where a blob that is taken in by a box stops.
       entries: [[200, 0], [0, 136], [200, 400], [400, 136], [150, 120], [0, 0], [400, 400], [200, 136]].map(([x, y]) => ({ from: { x, y }, box: BOX, point: entryPoint({ x, y }, BOX) })),

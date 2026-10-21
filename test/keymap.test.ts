@@ -10,7 +10,7 @@ const press = (key: string, more: Partial<KeyEvent> = {}): KeyEvent => ({
 
 const nothing: KeyState = {
   editing: false, justMoved: false, shortcuts: false, navigatorOpen: false, navigatorUsed: false, flow: false, halfStep: false, panel: false, inside: false, recording: false,
-  perfOpen: false, failuresOpen: false, analysis: false, readOnly: false, showFlows: false, showYaml: false, canPerf: false, showFailures: false,
+  perfOpen: false, failuresOpen: false, analysis: false, readOnly: false, showFlows: false, showYaml: false, canPerf: false,
 }
 
 /** Actions that only write down their name (and what they were asked), so a test can say which one a key reached. */
@@ -59,8 +59,7 @@ test('a tab key only works where the tab is', () => {
   assert.equal(idOf(press('y'), { showYaml: true }), 'yaml')
   assert.equal(idOf(press('t')), undefined)
   assert.equal(idOf(press('t'), { canPerf: true }), 'perf')
-  assert.equal(idOf(press('m')), undefined)
-  assert.equal(idOf(press('m'), { showFailures: true }), 'failures')
+  assert.equal(idOf(press('m')), 'failures') // always there: with no analysis its panel offers to make one
 })
 
 test('a key on another layout means the Latin letter on the same key', () => {
@@ -229,7 +228,7 @@ test('the keys reach the actions they name', () => {
   assert.deepEqual(reach(press('o')).calls, ['toggleTab(explorer)'])
   assert.deepEqual(reach(press('y'), { showYaml: true }).calls, ['toggleTab(yaml)'])
   assert.deepEqual(reach(press('t'), { canPerf: true }).calls, ['togglePerf'])
-  assert.deepEqual(reach(press('m'), { showFailures: true }).calls, ['toggleFailures'])
+  assert.deepEqual(reach(press('m')).calls, ['toggleFailures'])
   assert.deepEqual(reach(press('e')).calls, ['toggleEdit'])
   const edit = { editing: true }
   assert.deepEqual(reach(press('n'), edit).calls, ['add'])

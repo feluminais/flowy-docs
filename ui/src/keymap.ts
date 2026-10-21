@@ -30,7 +30,6 @@ export type KeyState = {
   showFlows: boolean
   showYaml: boolean
   canPerf: boolean
-  showFailures: boolean
 }
 
 /** What a key can do. The reader supplies them; each one does what its name says, on the screen as it is now. */
@@ -232,7 +231,7 @@ export const KEYMAP: readonly Entry[] = [
   },
   {
     id: 'failures', keys: 'M',
-    when: c => tap(c, 'm') && c.s.showFailures,
+    when: c => tap(c, 'm'),
     run: c => c.act.toggleFailures(),
     help: { reading: { text: 'Show how things fail, worst first' } },
   },

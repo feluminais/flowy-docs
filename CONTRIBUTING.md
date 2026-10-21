@@ -10,7 +10,10 @@ canvas is in `ui/` (React and React Flow). Tests are in `test/` and use Node's o
 npm install
 npm test
 npm run typecheck
+node src/cli.ts check
 ```
+
+`check` lists every problem in `flowy/`, this repo's own model, and exits 1 if there is any. Run it after changing the model, a `code:` path or the checks.
 
 Commit messages follow the existing style: `feat(ui): ...`, `fix: ...`, `docs: ...`.
 
@@ -50,6 +53,19 @@ and a 1200 by 760 window. Serve a copy of `docs/demo` (`FLOWY_STATE_DIR=<empty f
 copy's history stays out of your own and the demo is not written to). For the first, open `#ordering/failures/ordering/stripe-timeout` and press F, so the diagram fits beside the tab. For the
 second, press E and change a few things (a shape's Tech, a line of a flow's file in an editor, a `put_object` through `node src/cli.ts mcp`) so
 the list has You, Claude and Outside steps, press Y, and pick the step Claude wrote.
+
+## Line labels
+
+A line's label shows only for the lines of a selected shape, the line pointed at and the line a flow has lit (`focusEdges` in `ui/src/graph.ts`). The lines of one shape meet at it, so
+their middles are close and long labels land on top of each other. `ui/src/labels.ts` keeps them apart. The rules, for the next overlap that turns up:
+
+- Move the labels, never the lines or boxes: the layout stays as the reader left it. A label stays at the middle of its line unless something is there.
+- A label slides along its line, nearest the middle first, to the first place clear of every box and of the labels placed before it. Only when no place along it is
+  clear does it stack above or below the middle. It never leaves its line to hide a collision.
+- A lit line's label is pinned: step marks and the pipe are placed by it, and the other labels go round it.
+- No place can hold a label wider than the gap, so a label is cut short past `MAX_LABEL` characters with an ellipsis. Its whole text is in the line's panel.
+- `placeLabels` has no DOM in it and `test/labels.test.ts` runs it: a new case of overlap is a new test there, with the boxes and lines as numbers.
+- The desktop app draws its own labels (`desktop/Flowy.Core/LinePaths.cs`) and does not use this yet.
 
 ## The Conductor analysis
 
@@ -247,6 +263,12 @@ Before merging a change to the app, look at what it could affect, in a real wind
       comment and the numbers in their own colours, and a Copy button that puts the lines on the clipboard. In edit mode press Add code, type
       a title and some SQL, pick nothing: the card reads "Auto: SQL" once there is code. Pick Go: the colours change and `language: go` is in
       the file. Pick Auto: the line goes. Remove the snippet: `snippets:` is gone.
+- [ ] On a copy of `docs/demo`, open Orders DB: its panel has a Data section, the orders table open with PK on id, FK customers on customer_id and a dot on
+      total whose note is under the table, and the other three tables closed to a line each ("4 columns", and how long they are kept). Click a closed line: it
+      opens. Open Menu cache (a key set with Key, Value and Expires) and Order events (a topic with Key and Value). For a document, paste the Restaurant profiles
+      example from the guide's Data section under another store's `data:`: it shows its fields one to a line, indented, with the note under them. In edit mode the
+      form has a Data box holding the same lines as the file: delete a column from `columns` but not from the rows and click elsewhere, and a notice says a row has
+      too many cells and the box keeps what you typed. Clear the box: `data:` is gone.
 - [ ] While the app has a model open, change it in the browser (or save from an editor): the app shows it without a reload, and an edit
       made in the app after that starts from what is on disk.
 - [ ] Light and dark: change the system's theme while the app is open.
@@ -322,6 +344,10 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       comes back while dots wait over the caller, Event runs a bolt and flashes the receiver, Callback sends a ring, then a bell, then a ring, a callback
       after a step flashes its publisher first, one from outside drops a bolt on it, and the next Send carries the words "order 42". Fail runs an envelope in the danger colour and flashes its receiver in it. Timeout sends the envelope, keeps the dots waiting over the caller with no reply, and then dims the line, which stays dim until you move on. Lost pops the envelope partway and leaves a red cross with the reason under it, and the receiver never squashes. Rejected stops it at a red bar by the receiver, which flashes, and sends it back red. Intercepted leaves the line for a dashed outline round a third shape (or a dashed marker named Café wifi proxy) that lights. Duplicated runs a second copy that trails the first, and the receiver squashes twice. Delayed waits beside a turning dashed clock with the reason beside it, then goes on and is answered. Share of requests sends ten, and the three that are lost are named r1, r2 and r3, each with its own colour and a ring, and leave their crosses where they vanished. Every shape
       squashes or flashes where the animation says it does, on the queue, the cylinder and the hexagon too. With the system's animation effects off, nothing moves.
+- [ ] Open *Effects* (`#steps/effects`) and press P: the label of each of four steps runs from Effects · from to Effects · to, down a slope, doing what its word says. squish stretches
+      along the line, bounce hops, pulse swells and settles, and wiggle rocks from side to side. Whatever it does, the pill stays level and whole: never sheared, one end up and
+      one end down, and its words are never stretched. A step with no `effect` (Send with a word) keeps its shape. In the desktop app the same. The `effect` key is for fun
+      and is deliberately left out of the guide and the README.
 - [ ] Open Repeat, Branch, Parallel and Flow link in Flow structure. Repeat says it repeats up to 3 times, Branch says One of 2 and dashes the
       lane you are not in, Parallel lights three lanes together with a bolt each, and Flow link has an Open flow that lands on the other flow and a bar to come back.
 - [ ] Open Every state in Shape states (`#states/states`) and press P: Service starts out dotted and circling (Starting), settles with nothing drawn (Running), pulses amber with a
@@ -338,14 +364,14 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
 
 Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
 
-- [ ] The right rail has a Performance button under Details with a 2 on it, and T opens its panel (in Details' place) on the load where the Fulfilment worker first struggles (200
+- [ ] The left rail has a Performance button under Flows with a 2 on it, and T opens its panel (on the left, with Details free on the right) on the load where the Fulfilment worker first struggles (200
       req/s on the ramp), with `#shop/perf/ramp/4` in the address. In Shop lab, shapes that carry numbers are outlined from green to red
       along their own outline (SQLite's cylinder, Upload folder's folder, the boxes of Web API and the worker), Order queue carries a
       number but no colour, busy lines are thicker and carry more dots, and Catalog cache (a hexagon with no numbers) and Payment gateway
       stay plain. Under the chart, a blue line reads Expected call, an amber one Slowest 5% and red dashes First struggles; the Key at the
       bottom draws each mark it names. ← → move between loads, Home and End jump (Home gives `#shop/perf/ramp/0`), and the address follows. Esc closes the
-      panel; Back closes it too if you opened it with T (after Esc, Back opens it again). With Explorer open on the left as well, both
-      panels show and the diagram still fits; the Details button swaps Details back in, and Esc closes whichever is showing.
+      panel; Back closes it too if you opened it with T (after Esc, Back opens it again). Click a shape and its Details open on the right, beside
+      the panel, and the diagram still fits; Esc closes whichever is showing.
 - [ ] On Plum (`--dir docs/demo/flowy`, Delivery at 900 orders/min) the line from Dispatch to Order events runs behind Live tracking: its dots go faint and a little
       smaller as they reach the box, run across it as ghosts, and come back as they leave, with no jump at either edge, in the browser and in the desktop app. Click Dispatch:
       the dots on its lines do the same under a label ("accepts or refuses", "travel times"), which stays readable, and in the browser under the card that appears when you
@@ -360,15 +386,15 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
       worst outline inside is the same colour. Pick each style in the Lines picker: the dots follow every line. To check a moved shape
       without writing into `perf-lab/`, copy it (`node -e "require('node:fs').cpSync('perf-lab', require('node:os').tmpdir() + '/lab-copy', { recursive: true })"`),
       serve its `flowy` folder (`--dir "$TEMP/lab-copy/flowy"`), press E, drag Web API, press E again and T: the dots follow the moved lines.
-- [ ] Press E with the Performance panel open: it closes and the button leaves the rail; E again brings the button back. Open
+- [ ] Press E with the Performance panel open: it closes and the button is greyed out; E again brings it back. On a folder with no runs the button is there too, and its panel says so and offers Create, which copies a starter run. Open
       `#shop/perf/ramp/2` in a new tab: it opens on that load. With the system's reduce-motion setting on there are no dots, no Ramp
       button and no easing between loads, and the outlines, thickness, badges and numbers still show. Light and dark both read.
 
 Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
 
-- [ ] The left rail has a Failures button under Flows with a 14 on it, and M opens its tab beside Explorer, Flows and YAML with `#root/failures/ordering` in the
-      address. Details stays free on the right: a click on a shape picks it there and narrows the list to its modes, and the chip clears it. Opening Performance (T) closes the tab.
-      The tab is not remembered when the page reloads: the address brings it back. The key reads High 2, Medium 5, Low 6 and Not rated 1, then "Analysed 15 of 26" and "Not analysed (11)". At the overview Ordering
+- [ ] The left rail has a Failures button under Performance with a 14 on it, and M opens its panel on the left with `#root/failures/ordering` in the
+      address. Details stays free on the right: a click on a shape picks it there and narrows the list to its modes, and the chip clears it. Opening Performance (T) takes the panel's place.
+      The panel is not remembered when the page reloads: the address brings it back. The key reads High 2, Medium 5, Low 6 and Not rated 1, then "Analysed 15 of 26" and "Not analysed (11)". At the overview Ordering
       carries a red 6 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), Notifier to Twilio (144),
       ETA to Mapbox (108) and on down to Fleet DB, which is Not rated.
 - [ ] Open `#ordering/failures/ordering/stripe-timeout`: Order API and the line to Stripe are outlined red, Kitchen tablet and Customer app in a lighter outline,

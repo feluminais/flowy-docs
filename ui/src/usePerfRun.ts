@@ -10,7 +10,7 @@ const SCRUB_MS = 250 // ms after the slider of a run was last dragged that the s
 
 /**
  * The run the Performance panel shows and where along it: which run, a position for each of its dials (one for a run of one source), and `active`, the dial the keys and
- * Ramp act on, the one that was moved last. A whole number is a tested level; a ramp goes between them. Whether the panel is open is not in here (see rightpanel.ts), but a
+ * Ramp act on, the one that was moved last. A whole number is a tested level; a ramp goes between them. Whether the panel is open is not in here (it is the Performance tab of the navigator), but a
  * ramp stops when it closes: the reader calls `stopRamp` then.
  *
  * `still` is the reader's wish for no motion: there is no ramp then. `named` is the run the page's address names, read once when the page opens.

@@ -1,17 +1,20 @@
-/** Which tab of the left-hand panel is showing: the Explorer tree, the flows list, the files as YAML with their history, or how things fail. Details, on the right, has no tabs. */
-export type NavTab = 'flows' | 'explorer' | 'yaml' | 'failures'
+/**
+ * Which tab of the left-hand panel is showing: the Explorer tree, the flows list, the files as YAML with their history, the Performance panel of a
+ * load-test run, or the Failures panel of an analysis. Details, on the right, has no tabs.
+ */
+export type NavTab = 'flows' | 'explorer' | 'yaml' | 'performance' | 'failures'
 
 /**
- * The tab that opens: the one asked for, unless it is not there to show (no flows to list, no server that keeps the history for the YAML tab, or no failure
- * analysis, nor a file of one to complain about, for the Failures tab).
+ * The tab that opens: the one asked for, unless it is not there to show (no flows to list, no server that keeps the history for the YAML tab, or a
+ * Performance panel while editing). Performance and Failures are there unless `shows` says they are not.
  */
-export const openTab = (tab: NavTab | undefined, shows: { flows: boolean; yaml: boolean; failures: boolean }): NavTab | undefined =>
-  (tab === 'flows' && !shows.flows) || (tab === 'yaml' && !shows.yaml) || (tab === 'failures' && !shows.failures) ? undefined : tab
+export const openTab = (tab: NavTab | undefined, shows: { flows: boolean; yaml: boolean; performance?: boolean }): NavTab | undefined =>
+  (tab === 'flows' && !shows.flows) || (tab === 'yaml' && !shows.yaml) || (tab === 'performance' && shows.performance === false) ? undefined : tab
 
-/** The tab that comes back with the page. Failures does not: the address says which analysis and mode were open, and brings the tab back with them. */
-export const rememberedTab = (tab: NavTab | undefined): NavTab | undefined => (tab === 'failures' ? undefined : tab)
+/** The tab that comes back with the page. Performance and Failures do not: the address says which run, analysis and mode were open, and brings the tab back with them. */
+export const rememberedTab = (tab: NavTab | undefined): NavTab | undefined => (tab === 'failures' || tab === 'performance' ? undefined : tab)
 
-/** What the navigator remembers for this project: the list or tree that was open, which shapes were open in the tree, and how wide the two side panels are. */
+/** What the navigator remembers for this project: the list or tree that was open (Performance and Failures are not remembered: the address says whether they are open), which shapes were open in the tree, and how wide the two side panels are. */
 export type NavSaved = { tab?: NavTab; expanded: string[]; navWidth?: number; detailsWidth?: number }
 
 export const MAX_OPEN = 2000 // a hand-edited or runaway entry never grows the stored text without bound

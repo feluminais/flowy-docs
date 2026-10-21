@@ -64,6 +64,8 @@ public static class Checks
         if (model.Meta.TryGetValue("lines", out var lines) && !(lines is string style && Names.LineStyles.Contains(style)))
             Add(FolderLayout.ModelFile, null, "lines must be straight, curved or angled");
 
+        foreach (var path in EmptyKeys.Of(model.Meta)) Add("model.yaml", null, EmptyKeys.Message(path));
+
         if (model.Meta.TryGetValue("icons", out var icons) && !(icons is ""))
         {
             if (icons is not OrderedDictionary<string, object?> iconMap) Add(FolderLayout.ModelFile, null, "icons must map names to SVG path data");
@@ -77,6 +79,7 @@ public static class Checks
             void P(string message) => Add(FolderLayout.ModelFile, id, $"{id}: {message}");
             if (!Names.IsValidId(id)) P($"ids {Names.IdRule}");
             if (!NonEmpty(o.Name)) P("name is missing");
+            foreach (var path in o.NoValue) P(EmptyKeys.Message(path));
             if (o.External is not null && o.External != "true" && o.External != "false") P("external must be true or false");
             if (!Missing(o.Shape) && !Look.IsShape(o.Shape)) P($"unknown shape \"{o.Shape}\" (use {string.Join(", ", Look.ShapeNames)})");
             if (!Missing(o.Color) && !Look.IsColor(o.Color)) P($"color \"{o.Color}\" must be a name ({string.Join(", ", Look.ColorNames)}) or a hex like #3b82f6");
@@ -139,6 +142,7 @@ public static class Checks
             string End(string? v) => Missing(v) ? "?" : v!;
             void P(string message) => Add(FolderLayout.ModelFile, null, $"connection {End(c.From)} → {End(c.To)}: {message}", connection: index);
             CheckEnds(P, c.From, c.To);
+            foreach (var path in c.NoValue) P(EmptyKeys.Message(path));
             if (!Missing(c.From) && c.From == c.To) P("connects an object to itself");
             if (!seen.Add((c.From, c.To, c.Label ?? ""))) P($"duplicate{(string.IsNullOrEmpty(c.Label) ? "" : $" \"{c.Label}\"")}");
         }
@@ -152,11 +156,13 @@ public static class Checks
             if (Missing(f.View)) P("view is missing");
             else if (!viewOk) P($"view \"{f.View}\" must be \"root\" or an object with children");
             if (f.Steps.Count == 0) P("has no steps");
+            foreach (var path in f.NoValue) P(EmptyKeys.Message(path)); // the steps are read one at a time below, so each says its own number
             for (var i = 0; i < f.Steps.Count; i++)
             {
                 var s = f.Steps[i];
                 var index = i;
                 void Sp(string message) => P($"{Problem.StepPrefix(index)}{message}", index);
+                foreach (var path in s.NoValue) Sp(EmptyKeys.Message(path));
                 var alone = s.To is null; // one box doing something on its own; a blank "to:" is still a missing end
                 if (!alone) CheckEnds(Sp, s.From, s.To);
                 else if (Missing(s.From)) Sp("\"from\" is missing");

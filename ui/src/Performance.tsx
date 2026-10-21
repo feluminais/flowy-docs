@@ -12,7 +12,7 @@ import { STATE_LABELS } from '../../src/core/states.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { Section } from './Chrome.tsx'
-import { Activity, Alert, Bolt, Clock, Info, Pause, Play } from './icons.tsx'
+import { Activity, Alert, Bolt, Clock, Info, Pause, Play, Plus } from './icons.tsx'
 import {
   activeSeries, boxAt, boxAtLevel, boxSeries, boxSeriesIn, BOX_KEYS, bracketOf, cursorX, dialTicks, dialTop, eventFractions, eventRows, failureMarks, fmtLoad, gridOf, heldText, isTested, isTime, levelLabels, levelX,
   lineAt, lineAtLevel, lineSeries, lineSeriesIn, LINE_KEYS, loadAt, METRICS, modeLabel, openingPositions, overText, pathOf, posAt, scaleOf, settingOf, slideDial, slidePos, sliderRange, sliderValue, sourceCss, tickLabels, top, xAt,
@@ -52,6 +52,8 @@ export type PerfProps = {
   onPlace: (positions: number[]) => void
   /** Ramp the dial, or stop the ramp that is running on it. */
   onRamp: (dial: number) => void
+  /** Where there is a folder to put a run in: makes the start of one. */
+  onCreate?: () => void
 }
 
 /** Latency against load, one point for each tested level: the expected call and the slowest 5%, a cursor at where the slider is, and a mark where it first struggles. */
@@ -172,7 +174,7 @@ function Along({ dials, positions, active }: { dials: readonly Dial[]; positions
 }
 
 /** The Performance tab's body: which run and where in it, what it says about where things first struggle, and the numbers of what is selected. */
-export function PerfBody({ model, view, runs, runProblems, runId, positions, active, lines, ramping, still, states, selection, onRun, onActive, onSlide, onJump, onPlace, onRamp }: PerfProps) {
+export function PerfBody({ model, view, runs, runProblems, runId, positions, active, lines, ramping, still, states, selection, onRun, onActive, onSlide, onJump, onPlace, onRamp, onCreate }: PerfProps) {
   const run: Run | undefined = Object.hasOwn(runs, runId) ? runs[runId] : undefined
   const found = useMemo(() => dialsOf(runs, runId), [runs, runId])
   const struggle = useMemo(() => (found ? kneeOf(runs, runId) : undefined), [runs, runId, found])
@@ -191,6 +193,15 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
       </>
     )
   )
+  if (ids.length === 0 && runProblems.length === 0) {
+    return (
+      <div className="perf">
+        <p className="muted">No load-test runs yet. A run holds what each shape and connection measured at each tested load, and this panel replays it on the diagram.</p>
+        {onCreate && <div className="perf-buttons"><button className="primary" onClick={onCreate}><Plus size={16} />Create</button></div>}
+        {onCreate && <p className="muted">Copies a starter run for this view to fill in and save in <code>flowy/perf/</code>.</p>}
+      </div>
+    )
+  }
   if (!run || !found) return <div className="perf"><p className="muted">No run could be read.</p>{problems}</div>
 
   // A run of one source: its load, the levels either side of it, its slider and its events. A run with several has none of these of its own (an adder has no levels at all).
