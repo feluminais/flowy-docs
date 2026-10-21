@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { check } from '../src/core/check.ts'
-import { parseModelFile, serializeModelFile } from '../src/core/model.ts'
+import { parseModelFile, serializeModelFile } from '../src/core/modelfiles.ts'
 import { describeEdit } from '../src/core/editlabel.ts'
 import { putObject } from '../src/core/ops.ts'
 import { codeLines, isBlankCode, LANGUAGES, languageOf, SNIPPET_MAX, snippetProblems, snippetsOf, tidySnippets } from '../src/core/snippets.ts'

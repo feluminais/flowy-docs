@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseFlowFile, serializeFlow } from '../src/core/model.ts'
+import { parseFlowFile, serializeFlow } from '../src/core/modelfiles.ts'
 import { putFlow, updateFlow } from '../src/core/ops.ts'
 import { shop } from './fixtures.ts'
 

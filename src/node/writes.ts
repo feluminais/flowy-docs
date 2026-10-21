@@ -1,4 +1,5 @@
-import { isRemovableFile, ParseError, serializeFile } from '../core/model.ts'
+import { ParseError } from '../core/model.ts'
+import { isRemovableFile, serializeFile } from '../core/modelfiles.ts'
 import { blockedMessage, firstBlocked, firstUnreadable } from './commit.ts'
 import { isAllowedPath, loadDir, saveFile, VersionConflict } from './files.ts'
 

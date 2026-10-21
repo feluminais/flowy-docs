@@ -1,4 +1,4 @@
-import { parseFile } from '../core/model.ts'
+import { parseFile } from '../core/modelfiles.ts'
 import { blockedBy } from './files.ts'
 import type { Loaded } from './files.ts'
 

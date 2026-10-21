@@ -1,6 +1,7 @@
 import type { Problem } from '../../src/core/problem.ts'
 import { homeView } from '../../src/core/failures.ts'
-import { changedFiles, fileData, getObject, isValidId, ROOT, serializeLayout } from '../../src/core/model.ts'
+import { getObject, isValidId, ROOT } from '../../src/core/model.ts'
+import { changedFiles, fileData, serializeLayout } from '../../src/core/modelfiles.ts'
 import type { Connection, Model, Step } from '../../src/core/model.ts'
 import { setStepStates } from '../../src/core/ops.ts'
 import { isStateName } from '../../src/core/states.ts'

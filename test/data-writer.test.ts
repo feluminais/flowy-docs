@@ -1,7 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { stringify } from 'yaml'
-import { fileData, parseData, parseModelFile, serializeData, serializeFile, serializeModelFile } from '../src/core/model.ts'
+import { fileData, parseModelFile, serializeFile, serializeModelFile } from '../src/core/modelfiles.ts'
+import { parseData, serializeData } from '../src/core/data.ts'
 import type { Model } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 

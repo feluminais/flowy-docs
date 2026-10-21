@@ -1,4 +1,4 @@
-import { modelFiles, serializeLayout } from '../../src/core/model.ts'
+import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import type { Layout, Model } from '../../src/core/model.ts'
 import { shop } from '../../test/fixtures.ts'
 

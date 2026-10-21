@@ -6,7 +6,7 @@ import { AT_ONCE, eventsOf, isTime, knee, runStates, scaleText, sourceKey, traff
 import type { Metrics } from '../src/core/perf.ts'
 import { marksOf, readStates, STATE_NAMES, statesAt } from '../src/core/states.ts'
 import { GROUP_KINDS, runsOf, stopsOf } from '../src/core/structure.ts'
-import { fileData, serializeFile } from '../src/core/model.ts'
+import { fileData, serializeFile } from '../src/core/modelfiles.ts'
 import { modelOf } from '../src/core/state.ts'
 import { loadState } from '../src/node/files.ts'
 
