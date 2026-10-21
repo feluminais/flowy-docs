@@ -13,7 +13,8 @@ import { captionOf, progressOf } from '../../src/core/captions.ts'
 import { marksOf, statesAt, usesStates } from '../../src/core/states.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { otherLaneSteps, stopIndexOf, stopsOf } from '../../src/core/structure.ts'
-import { eventsOf, knee, runStates, traffic as trafficOf } from '../../src/core/perf.ts'
+import { dialsOf, eventsOf, kneeOf, runStates, trafficAt } from '../../src/core/perf.ts'
+import type { Dial, LineTraffic, Setting } from '../../src/core/perf.ts'
 import { drawnIn, homeView, lightFor, rollUp, table } from '../../src/core/failures.ts'
 import type { Mark, Part } from '../../src/core/failures.ts'
 import { expandTo, outline } from '../../src/core/outline.ts'
@@ -41,7 +42,7 @@ import { keepNav, loadNav } from './navstore.ts'
 import { store } from './store.ts'
 import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, Sash } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
-import { activeRun, clampPos, loadAt, rampFrom, rampPos, RAMP_STEP_MS, snap, top } from './perfview.ts'
+import { activeRun, clampDial, clampPos, dialTop, loadAt, openingPositions, placeActive, rampActive, rampFrom, rampFromActive, rampPos, RAMP_STEP_MS, settingOf, snap, stepFrom, top } from './perfview.ts'
 import { AddPanel, LinePanel, ObjectPanel, OverviewPanel, Recorder } from './Panel.tsx'
 import { PickedBar } from './PickedBar.tsx'
 import { addsToSelection, banded, keepsSelection, toggled } from './selection.ts'
@@ -65,6 +66,8 @@ import { Yaml } from './Yaml.tsx'
 
 const nodeTypes = { box: Box, frame: Frame }
 const NO_MARKS: Record<string, StateMark> = {} // the same object every time, so a flow with no states never rebuilds the graph for them
+const NO_DIALS: Dial[] = [] // and no dials, for a run that is not there
+const NO_LINES: LineTraffic[] = [] // and no traffic, so the Performance panel's key is not rebuilt for it
 const edgeTypes = { line: Line }
 const SCRUB_MS = 250 // ms after the slider of a run was last dragged that the shapes still change their state at once, with no fade
 const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is the first half of a double-click
@@ -155,13 +158,23 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const [navWidth, setNavWidth] = useState(remembered.navWidth ?? NAV) // dragged by the sashes on the panels' edges
   const [detailsWidth, setDetailsWidth] = useState(remembered.detailsWidth ?? PANEL)
   // The Performance panel, which takes Details' place on the right: which run, and where along its tested levels. A whole number is a tested level; a ramp goes between them.
+  // A run has a position for each of its dials (one for a run of one source), and `active` is the dial the keys and Ramp act on, the one that was moved last.
   const [perf, setPerf] = useState(() => readHash(location.hash).perf !== undefined)
-  const startPos = (id: string, level?: number) => (Object.hasOwn(runs, id) ? clampPos(runs[id], level ?? knee(runs[id])?.index ?? top(runs[id])) : 0)
+  // Where a run opens: a single run at the level its address names, else at its first struggle, else at the top. A run with several sources at the places its address names when it
+  // names one for each dial, else together at the first struggle (each dial along its own loads), else every dial at its top.
+  const startPositions = (id: string, level?: number, levels?: number[]): number[] => {
+    const dialled = dialsOf(runs, id)
+    if (!dialled) return [0]
+    if (dialled.mode === 'single') return [clampPos(runs[id], (levels === undefined ? level : undefined) ?? kneeOf(runs, id)?.index ?? top(runs[id]))]
+    if (levels !== undefined && levels.length === dialled.dials.length) return dialled.dials.map((d, i) => clampDial(d, levels[i]))
+    return openingPositions(dialled.dials, kneeOf(runs, id))
+  }
   const [runId, setRunId] = useState(() => {
     const named = readHash(location.hash).perf?.run
     return named !== undefined && Object.hasOwn(runs, named) ? named : Object.keys(runs)[0] ?? ''
   })
-  const [pos, setPos] = useState(() => startPos(runId, readHash(location.hash).perf?.level))
+  const [positions, setPositions] = useState(() => startPositions(runId, readHash(location.hash).perf?.level, readHash(location.hash).perf?.levels))
+  const [active, setActive] = useState(0)
   // The Failures panel takes Details' place too: which analysis, which mode is picked in it, and what the list is narrowed to.
   const [failures, setFailures] = useState(() => readHash(location.hash).failures !== undefined)
   const [analysisId, setAnalysisId] = useState(() => readHash(location.hash).failures?.analysis ?? '')
@@ -171,7 +184,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const [scrubbing, setScrubbing] = useState(false) // the slider of a run is being dragged: the states of shapes snap instead of moving
   const scrubTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(scrubTimer.current), [])
-  const posNow = useRef(pos) // the ramp reads where it is from here, so a render in between never makes it start over
+  const posNow = useRef(positions) // the ramp reads where it is from here, so a render in between never makes it start over
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set([ROOT, ...remembered.expanded])) // the project's own row starts open
   const [playing, setPlaying] = useState<{ flow: string; step: number; auto?: boolean; trail?: Spot[] } | undefined>(() => {
     const { flow } = readHash(location.hash)
@@ -236,12 +249,18 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // The run on show and where along it: a run that was renamed, deleted or cut short under a live reload falls back to one that is there.
   const runKey = activeRun(runs, runId)
   const loadTest = runKey ? runs[runKey] : undefined
-  const here = loadTest ? clampPos(loadTest, pos) : 0
+  // What the run is turned up on: one dial for a run of one source, one for each source of a run with several.
+  const found = useMemo(() => (runKey ? dialsOf(runs, runKey) : undefined), [runs, runKey])
+  const dials = found?.dials ?? NO_DIALS
+  const multi = found !== undefined && found.mode !== 'single'
+  const activeDial = Math.min(active, Math.max(0, dials.length - 1))
+  const here = multi ? dials.map((d, i) => clampDial(d, positions[i] ?? 0)) : [loadTest ? clampPos(loadTest, positions[0] ?? 0) : 0]
+  const hereKey = here.join(',')
   if (!ramping) posNow.current = here // while it ramps, the ramp is ahead of what the screen shows
   const showPerf = Object.keys(runs).length > 0 || runProblems.length > 0 // the tab is there whenever there is a run, or a run file to complain about
   const canPerf = showPerf && !editing // while editing the tab is greyed out: the numbers would sit on a model that is changing
   const perfOpen = perf && canPerf && loadTest !== undefined
-  const load = loadTest ? loadAt(loadTest, here) : 0 // the load at the position on show, or for a run over time the time
+  const load = loadTest && !multi ? loadAt(loadTest, here[0]) : 0 // the load at the position on show, or for a run over time the time (a run with several sources has none of its own)
   // The Failures tab is there whenever there is an analysis or a file of one to complain about, and always in edit mode, so the first analysis can be made.
   const analysisKey = activeAnalysis(model.failures, analysisId)
   const analysis = analysisKey === undefined ? undefined : model.failures[analysisKey]
@@ -316,9 +335,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const graph = useMemo(() => toGraph(model, view, shown, problems, stateMarks), [model, view, shown, problems, stateMarks])
   // The states on the canvas now, for the key: a shape on another view that is in one is not drawn here.
   const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
-  const loadTraffic = useMemo(() => (perfOpen && loadTest ? trafficOf(model, loadTest, load, view) : undefined), [perfOpen, model, loadTest, load, view])
+  const setting = useMemo<Setting>(() => (multi ? settingOf(dials, here) : { '': load }), [multi, dials, hereKey, load])
+  const loadTraffic = useMemo(() => (perfOpen && loadTest ? trafficAt(model, runs, runKey, setting, view) : undefined), [perfOpen, model, runs, runKey, loadTest, setting, view])
   const widths = useMemo(() => new Map(loadTraffic?.lines.map(l => [lineId(l.from, l.to), l.width])), [loadTraffic])
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches // no ramp and no traffic: the colours, thickness, badges and numbers say it all
+  const drawnLines = useMemo(() => (still ? NO_LINES : loadTraffic?.lines ?? NO_LINES), [still, loadTraffic]) // what the panel's key is told, so the tab makes no traffic of its own
   const chosen = side?.kind === 'objects' ? side.ids : side?.kind === 'object' ? [side.id] : [] // the shapes picked for editing, one or several
   const picked = recording ? [recording.from, recording.to] : chosen
   // What the Failures tab draws: the badges (rolled up to what this view draws), and for a picked mode its part, what it affects, and the rest faded.
@@ -518,7 +539,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     go(homeView(model, m))
     setRamping(false)
     setRunId(name)
-    setPos(clampPos(runs[name], at))
+    setPositions([clampPos(runs[name], at)])
+    setActive(0)
     openPerf()
   }
   // VS Code asks to show a shape (the one a file belongs to, or a pick from its list) or a flow.
@@ -595,52 +617,69 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     let shown = last // when the screen last got a position
     let frame = 0
     const tick = (t: number) => {
-      const next = rampPos(loadTest, posNow.current, Math.min(100, t - last)) // a tab that was asleep doesn't jump
+      const ms = Math.min(100, t - last) // a tab that was asleep doesn't jump
+      const next = multi ? rampActive(dials, posNow.current, activeDial, ms) : [rampPos(loadTest, posNow.current[0], ms)]
       last = t
       posNow.current = next
-      const done = next >= top(loadTest)
+      const done = multi ? next[activeDial] >= dialTop(dials[activeDial]) : next[0] >= top(loadTest)
       if (done || t - shown >= RAMP_STEP_MS) {
         shown = t
-        setPos(next)
+        setPositions(next)
       }
       if (done) setRamping(false)
       else frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [ramping, loadTest])
+  }, [ramping, loadTest, multi, dials, activeDial])
   useEffect(() => {
     if (!perfOpen) setRamping(false)
   }, [perfOpen])
-  const toggleRamp = () => {
+  // Ramp a dial (the active one when none is named), or stop the ramp that runs on it. Pressing another dial's button moves the ramp there.
+  const toggleRamp = (dial = activeDial) => {
     if (!loadTest || still) return
-    if (ramping) {
-      setPos(posNow.current) // where it has got to, not where the screen last was
+    if (ramping && dial === activeDial) {
+      setPositions(posNow.current) // where it has got to, not where the screen last was
       return setRamping(false)
     }
-    const from = rampFrom(loadTest, posNow.current) // at the top, a ramp starts again from the bottom
+    setActive(dial) // a ramp is of the dial it was started on
+    const from = multi ? rampFromActive(dials, posNow.current, dial) : [rampFrom(loadTest, posNow.current[0])] // at the top, a ramp starts again from the bottom
     posNow.current = from // the ramp reads it before the next render
-    setPos(from)
+    setPositions(from)
     setRamping(true)
   }
-  const stepLevel = (to: number) => {
+  // To a tested level of the active dial (or of the dial named): the arrow keys and Home and End.
+  const stepLevel = (to: number, dial = activeDial) => {
     if (!loadTest) return
     setRamping(false)
-    setPos(snap(loadTest, to))
+    if (multi) {
+      setActive(dial)
+      setPositions(placeActive(dials, here, dial, Math.round(clampDial(dials[dial], to))))
+    } else setPositions([snap(loadTest, to)])
+  }
+  // Go to a place with every dial at its position (Go there), at tested levels.
+  const placeAll = (to: number[]) => {
+    if (!loadTest) return
+    setRamping(false)
+    setPositions(multi ? dials.map((d, i) => clampDial(d, to[i] ?? 0)) : [snap(loadTest, to[0] ?? 0)])
   }
   // Anywhere along the run, not only at a level: a click on an event. The states move to it, as they do for a step.
   const jumpTo = (to: number) => {
     if (!loadTest) return
     setRamping(false)
-    setPos(clampPos(loadTest, to))
+    setPositions([clampPos(loadTest, to)])
   }
-  // The slider is being dragged: the states follow at once, and for a moment after the last move (a drag is many moves), so the shapes don't fade behind the thumb.
-  const slide = (to: number) => {
+  // The slider of a dial is being dragged: the states follow at once, and for a moment after the last move (a drag is many moves), so the shapes don't fade behind the thumb.
+  const slide = (to: number, dial = activeDial) => {
     if (!loadTest) return
     setScrubbing(true)
     clearTimeout(scrubTimer.current)
     scrubTimer.current = setTimeout(() => setScrubbing(false), SCRUB_MS)
-    jumpTo(to)
+    if (multi) {
+      setRamping(false)
+      setActive(dial)
+      setPositions(placeActive(dials, here, dial, to))
+    } else jumpTo(to)
   }
   const pickLines = (value: string) => {
     const style = LINE_STYLES.find(s => s === value)
@@ -727,7 +766,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // opening (which also drops a part that named nothing), Back or a typed address, E, or a live reload that
   // falls back to another view.
   const failuresAt = failuresOpen && analysisKey !== undefined ? { analysis: analysisKey, ...(mode ? { mode: modeId } : {}) } : undefined
-  const address = toHash(view, flow ? playing?.flow : undefined, perfOpen ? { run: runKey, level: Math.round(here) } : undefined, failuresAt)
+  const perfAt = perfOpen ? (multi ? { run: runKey, level: Math.round(here[0]), levels: here.map(Math.round) } : { run: runKey, level: Math.round(here[0]) }) : undefined
+  const address = toHash(view, flow ? playing?.flow : undefined, perfAt, failuresAt)
   useEffect(() => {
     if (quiet.current || address !== location.hash) {
       const was = readHash(location.hash)
@@ -756,7 +796,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       setRamping(false)
       if (named.perf !== undefined && Object.hasOwn(runs, named.perf.run)) {
         setRunId(named.perf.run)
-        setPos(startPos(named.perf.run, named.perf.level))
+        setPositions(startPositions(named.perf.run, named.perf.level, named.perf.levels))
+        setActive(0)
         openPerf()
       } else setPerf(false)
       if (named.failures !== undefined && Object.hasOwn(model.failures, named.failures.analysis)) {
@@ -818,10 +859,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         else if (layer === 'up') up()
         else return
       }
-      else if (perfOpen && e.key === 'ArrowRight') stepLevel(Math.floor(here + 1e-6) + 1)
-      else if (perfOpen && e.key === 'ArrowLeft') stepLevel(Math.ceil(here - 1e-6) - 1)
+      else if (perfOpen && e.key === 'ArrowRight') stepLevel(stepFrom(here[activeDial], 1))
+      else if (perfOpen && e.key === 'ArrowLeft') stepLevel(stepFrom(here[activeDial], -1))
       else if (perfOpen && e.key === 'Home') stepLevel(0)
-      else if (perfOpen && loadTest && e.key === 'End') stepLevel(top(loadTest))
+      else if (perfOpen && loadTest && e.key === 'End') stepLevel(multi ? dialTop(dials[activeDial]) : top(loadTest))
       else if (perfOpen && key === 'p' && plain && !e.repeat) toggleRamp()
       // In edit mode the arrow keys nudge a picked shape, so the list is stepped with them only outside it.
       else if (failuresOpen && !editing && analysis && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
@@ -1045,14 +1086,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {perfOpen && (
             <aside className="panel perfpanel">
               <button className="close" aria-label="Close" onClick={closePerf}><Close size={16} /></button>
-              <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runKey} pos={here} ramping={ramping} still={still} states={marksHere}
+              <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runKey} positions={here} active={activeDial} lines={drawnLines} ramping={ramping} still={still} states={marksHere}
                 selection={side?.kind === 'object' || side?.kind === 'line' ? side : undefined}
                 onRun={id => {
                   setRamping(false)
                   setRunId(id)
-                  setPos(startPos(id))
+                  setPositions(startPositions(id))
+                  setActive(0)
                 }}
-                onPos={stepLevel} onSlide={slide} onJump={jumpTo} onRamp={toggleRamp} />
+                onActive={setActive} onSlide={(dial, to) => slide(to, dial)} onJump={jumpTo} onPlace={placeAll} onRamp={toggleRamp} />
             </aside>
           )}
           {failuresOpen && (

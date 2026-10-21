@@ -1,7 +1,7 @@
 import { colorPair } from '../../src/core/look.ts'
 import type { Model } from '../../src/core/model.ts'
 import { eventsOf, interpolate, isTime, levelAt, loadOfPosition, lockstepPositions, rollUp, settingAt } from '../../src/core/perf.ts'
-import type { Dial, Knee, Level, LineTraffic, Metrics, Mode, Run, RunEvent, Setting } from '../../src/core/perf.ts'
+import type { Dial, Knee, Level, LineTraffic, Metrics, Mode, Pair, Run, RunEvent, Setting } from '../../src/core/perf.ts'
 
 export { isTime }
 
@@ -249,13 +249,23 @@ export function lineSeriesIn(model: Model, levels: readonly Level[], view: strin
 
 /** An object's numbers at a load, or undefined when nothing was measured on it. */
 export function boxAt(model: Model, run: Run, view: string, id: string, load: number): Metrics | undefined {
-  const { objects } = rollUp(model, interpolate(run, load), view)
-  return Object.hasOwn(objects, id) ? objects[id] : undefined
+  return boxAtLevel(model, interpolate(run, load), view, id)
 }
 
 /** A line's numbers at a load. */
 export function lineAt(model: Model, run: Run, view: string, from: string, to: string, load: number): Metrics | undefined {
-  return rollUp(model, interpolate(run, load), view).lines.find(p => p.from === from && p.to === to)
+  return lineAtLevel(model, interpolate(run, load), view, from, to)
+}
+
+/** An object's numbers in a level (what a run says at a load, or what runs with several sources say at a setting: see levelAt). */
+export function boxAtLevel(model: Model, level: Level, view: string, id: string): Metrics | undefined {
+  const { objects } = rollUp(model, level, view)
+  return Object.hasOwn(objects, id) ? objects[id] : undefined
+}
+
+/** A line's numbers in a level. */
+export function lineAtLevel(model: Model, level: Level, view: string, from: string, to: string): Pair | undefined {
+  return rollUp(model, level, view).lines.find(p => p.from === from && p.to === to)
 }
 
 // ---- Colour and key
@@ -314,6 +324,9 @@ export const positionsOf = (dials: readonly Dial[], setting: Setting): Positions
 export function openingPositions(dials: readonly Dial[], knee?: Pick<Knee, 'index'>): Positions {
   return knee === undefined ? dials.map(dialTop) : lockstepPositions(dials, knee.index)
 }
+
+/** The position a dragged slider of a dial stands for: it snaps to a tested load, as a single load run's does. */
+export const slideDial = (d: Dial, value: number): number => Math.round(clampDial(d, value))
 
 /** `positions` with the dial `active` at `pos` (kept inside the dial); the others stay where they are. */
 export const placeActive = (dials: readonly Dial[], positions: Positions, active: number, pos: number): Positions =>
