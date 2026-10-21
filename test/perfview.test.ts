@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseRun } from '../src/core/perf/parse.ts'
 import {
-  activeRun, boxAt, boxSeries, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, isTime, levelLabels, levelX, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, posAt, RAMP_MS, rampFrom, rampPos, scaleOf, sliderFraction, slidePos, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
+  activeRun, boxAt, boxSeries, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, isTime, levelLabels, levelX, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, posAt, RAMP_MS, rampFrom, rampPos, scaleOf, sliderFraction, slidePos, sliderRange, sliderValue, snap, sourceCss, starterRun, tickLabels, top, xAt, xOfPos, yAt,
 } from '../ui/src/perfview.ts'
 import { shop } from './fixtures.ts'
 
@@ -292,4 +292,24 @@ test('levels close in time do not pile their labels up: the last is always named
   assert.deepEqual(tickLabels(close).map(t => t.label), ['0', '101']) // the last level takes the place of the one it would cover
   assert.deepEqual(tickLabels(run).map(t => [t.fraction, t.label]), [[0, '100'], [0.5, '200'], [1, '400']])
   assert.deepEqual(tickLabels(outage).map(t => [t.fraction, t.label]), [[0, '0'], [0.375, '45'], [1, '120']])
+})
+
+test('the starter run names the shapes and connections of the view, and is a run Flowy reads without a problem', () => {
+  const model = shop()
+  const text = starterRun(model, 'root')
+  const { run, problems } = parseRun('starter', text)
+  assert.deepEqual(problems, [])
+  assert.equal(run.levels.length, 2)
+  const named = Object.keys(run.levels[0].objects ?? {})
+  assert.ok(named.length > 0 && named.every(id => Object.hasOwn(model.objects, id)))
+  assert.ok((run.levels[0].connections ?? []).every(c => model.connections.some(x => x.from === c.from && x.to === c.to)))
+})
+
+test('the starter run for a view with nothing in it still has two levels', () => {
+  const model = shop()
+  model.objects = {}
+  model.connections = []
+  const { run, problems } = parseRun('starter', starterRun(model, 'root'))
+  assert.deepEqual(problems, [])
+  assert.equal(run.levels.length, 2)
 })

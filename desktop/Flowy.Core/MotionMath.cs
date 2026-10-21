@@ -24,6 +24,47 @@ public static class MotionMath
     /// <summary>0 at the ends of a beat and 1 in the middle: a squash, or a blob stretched at full speed.</summary>
     public static double Bump(double p) => Math.Sin(Math.PI * p);
 
+    /// <summary>How much longer a squishing blob gets along the way it runs, and how much thinner across it, at full strength.</summary>
+    public const double SquishAlong = 0.3, SquishAcross = -0.15;
+
+    /// <summary>
+    /// How a blob squishes at <paramref name="s"/> (0 to 1, see <see cref="Bump"/>) while it runs at <paramref name="angle"/> radians: a scale of
+    /// <c>Sx</c> by <c>Sy</c> along the axes turned by <c>Rotation</c>. A dot is stretched along its way. A label's pill gets the same stretch along its own edges (no turn),
+    /// since along a slanted way it would shear. Twin of <c>squishParts</c> in ui/src/motion.ts, with the angle in radians.
+    /// </summary>
+    public static (double Rotation, double Sx, double Sy) Squish(bool label, double angle, double s)
+    {
+        var (along, across) = (1 + SquishAlong * s, 1 + SquishAcross * s);
+        if (!label) return (angle, along, across);
+        var (cos, sin) = (Math.Cos(angle) * Math.Cos(angle), Math.Sin(angle) * Math.Sin(angle));
+        return (0, 1 + (along - 1) * cos + (across - 1) * sin, 1 + (along - 1) * sin + (across - 1) * cos);
+    }
+
+    /// <summary>How high a bouncing blob hops, in pixels, how much a pulsing one swells, how far a wiggling one rocks, in degrees, and how many times each runs along the line.</summary>
+    public const double Hop = 10, Swell = 0.2, Rock = 12, Beats = 3;
+
+    /// <summary>
+    /// Where a blob is and how it is drawn <paramref name="p"/> of the way through its run (0 to 1) along a line that runs at <paramref name="angle"/> radians, for the step's
+    /// <paramref name="effect"/>: lifted by <c>Dy</c>, the whole of it turned by <c>Turn</c> radians, its shape grown by <c>Grow</c> and scaled <c>Sx</c> by <c>Sy</c> along axes turned by
+    /// <c>Rotation</c> radians. No effect is <see cref="Still"/>. Every effect is zero at both ends of the run and none bends the shape. Twin of <c>effectPose</c> in ui/src/motion.ts.
+    /// </summary>
+    public static Pose PoseOf(string? effect, bool label, double angle, double p)
+    {
+        switch (effect)
+        {
+            case "squish":
+                var (rotation, sx, sy) = Squish(label, angle, Bump(p));
+                return Still with { Rotation = rotation, Sx = sx, Sy = sy };
+            case "bounce": return Still with { Dy = -Hop * Math.Abs(Math.Sin(Beats * Math.PI * p)) };
+            case "pulse": return Still with { Grow = 1 + Swell * (1 - Math.Cos(2 * Beats * Math.PI * p)) / 2 };
+            case "wiggle": return Still with { Turn = Rock * Math.PI / 180 * Math.Sin(2 * Beats * Math.PI * p) };
+            default: return Still;
+        }
+    }
+
+    /// <summary>A blob as it is, with no effect.</summary>
+    public static readonly Pose Still = new(0, 0, 1, 0, 1, 1);
+
     /// <summary>The tube fades in over the first 150 ms of its beat and out over the last 250.</summary>
     public static double TubeOpacity(Beat b, double t) => Math.Min(1, Math.Max(0, Math.Min((t - b.At) / 150, (b.At + b.Dur - t) / 250)));
 
@@ -141,3 +182,6 @@ public static class MotionMath
         return (from, to);
     }
 }
+
+/// <summary>How a blob is placed and drawn at a moment of its run. See <see cref="MotionMath.PoseOf"/>.</summary>
+public sealed record Pose(double Dy, double Turn, double Grow, double Rotation, double Sx, double Sy);

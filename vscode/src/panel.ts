@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { basename, dirname, join } from 'node:path'
 import * as vscode from 'vscode'
-import { changedMessage, pathToOpen, requestOf, responseMessage, revealMessage, textToCopy } from '../../src/core/host.ts'
+import { changedMessage, pathToOpen, requestOf, responseMessage, revealMessage, textToCopy, urlToOpen } from '../../src/core/host.ts'
 import type { Request, Target } from '../../src/core/host.ts'
 import { applyWrite } from '../../src/node/writes.ts'
 import { webviewPage } from './page.ts'
@@ -71,12 +71,14 @@ function attach(panel: vscode.WebviewPanel, dir: string, canvas: { media: vscode
   const docs: Docs = { reveal: target => (ready ? send(target) : void waiting.push(target)) }
   open.set(dir, { panel, docs })
 
-  // What the canvas asks of the editor: the folder's State, a write (its edits), a path to open, and text to copy (its Mermaid button).
+  // What the canvas asks of the editor: the folder's State, a write (its edits), a path to open, a web address to open, and text to copy (its Mermaid button).
   panel.webview.onDidReceiveMessage(async (message: unknown) => {
     const text = textToCopy(message)
     if (text !== undefined) return void vscode.env.clipboard.writeText(text)
     const path = pathToOpen(message)
     if (path !== undefined) return void openPath(dir, path)
+    const url = urlToOpen(message)
+    if (url !== undefined) return void vscode.env.openExternal(vscode.Uri.parse(url))
     const asked = requestOf(message)
     if (!asked) return
     try {

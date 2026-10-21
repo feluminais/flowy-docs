@@ -21,9 +21,16 @@ public sealed record FlowyObject(string? Type, string? Name, string? In, string?
 
     /// <summary>The <c>snippets</c> as the file held them: a list if it is well formed, which <see cref="Snippets"/> reads and the checks report on.</summary>
     public object? Snippets { get; init; }
+
+    /// <summary>The paths to the keys the file left with no value (see <see cref="EmptyKeys"/>), which the checks report. Any key counts, known or not.</summary>
+    public IReadOnlyList<string[]> NoValue { get; init; } = EmptyKeys.Of(null);
 }
 
-public sealed record Connection(string? From, string? To, string? Label);
+public sealed record Connection(string? From, string? To, string? Label)
+{
+    /// <summary>The paths to the keys the file left with no value (see <see cref="EmptyKeys"/>).</summary>
+    public IReadOnlyList<string[]> NoValue { get; init; } = EmptyKeys.Of(null);
+}
 
 /// <summary>
 /// One step of a flow. Without <c>To</c>, the <c>From</c> box does something on its own. <c>Animation</c> is what the file
@@ -31,14 +38,22 @@ public sealed record Connection(string? From, string? To, string? Label);
 /// <c>Group</c>, <c>Lane</c> and <c>FlowId</c> are the step's <c>group</c>, <c>lane</c> and <c>flow</c> keys, text when present (see Structure.cs).
 /// <c>States</c> is what the file held under <c>states</c>: a mapping of shape id to state word if it is well formed, which <see cref="States"/> reads and the checks report on; null when the key is not there.
 /// </summary>
-public sealed record Step(string? From, string? To, string? Text, string? Description, object? Animation = null, string? Group = null, string? Lane = null, string? FlowId = null, object? States = null);
+public sealed record Step(string? From, string? To, string? Text, string? Description, object? Animation = null, string? Group = null, string? Lane = null, string? FlowId = null, object? States = null)
+{
+    /// <summary>The paths to the keys the file left with no value (see <see cref="EmptyKeys"/>), this step's own, down into its animation and states.</summary>
+    public IReadOnlyList<string[]> NoValue { get; init; } = EmptyKeys.Of(null);
+}
 
 /// <summary>
 /// A flow. <c>Groups</c> is the flow's <c>groups:</c> as the file held it: each id's mapping, whose known options
 /// (<c>kind</c>, <c>text</c>, <c>times</c>, <c>until</c>) are text and whose other keys may hold anything; null when there is none.
 /// <c>States</c> is the flow's <c>states:</c> as the file held it (where shapes stand before step 1), read by <see cref="States"/>; null when there is none.
 /// </summary>
-public sealed record Flow(string? Name, string? View, IReadOnlyList<Step> Steps, OrderedDictionary<string, object?>? Groups = null, object? States = null);
+public sealed record Flow(string? Name, string? View, IReadOnlyList<Step> Steps, OrderedDictionary<string, object?>? Groups = null, object? States = null)
+{
+    /// <summary>The paths to the keys the file left with no value in everything but the steps (the name, the groups, the states and any other key), which say their own.</summary>
+    public IReadOnlyList<string[]> NoValue { get; init; } = EmptyKeys.Of(null);
+}
 
 /// <summary>The three ratings a failure mode keeps under <c>after</c>, as the text of a whole number from 1 to 10 (every file value is text).</summary>
 public sealed record FailureRatings(string? Severity, string? Occurrence, string? Detection);

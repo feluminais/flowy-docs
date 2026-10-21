@@ -18,6 +18,14 @@ export type Trigger = (typeof TRIGGERS)[number]
 export const OUTCOMES = ['fail', 'timeout', 'lost', 'rejected', 'intercepted', 'duplicated', 'delayed'] as const
 export type Outcome = (typeof OUTCOMES)[number]
 const OPTIONS = ['kind', 'trigger', 'carries', 'outcome', 'share', 'reason', 'by', 'at'] as const
+/**
+ * What the blob does on its way besides travelling, for the fun of it: nothing unless a step asks. Every one keeps its shape whole, with no distortion:
+ * `squish` stretches it along its way, `bounce` hops it like a ball, `pulse` swells it and lets it settle, `wiggle` rocks it from side to side.
+ * It is an extra key, so unknown-option messages still list only OPTIONS.
+ */
+export const EFFECTS = ['squish', 'bounce', 'pulse', 'wiggle'] as const
+export type Effect = (typeof EFFECTS)[number]
+const isEffect = (v: unknown): v is Effect => EFFECTS.some(e => e === v)
 /** The outcomes that came after fail and timeout. They are valid on a send, a call and an event, never on a callback. */
 const TRAVEL_OUTCOMES = ['lost', 'rejected', 'intercepted', 'duplicated', 'delayed'] as const
 const isOutcome = (v: unknown): v is Outcome => OUTCOMES.some(o => o === v)
@@ -89,6 +97,7 @@ export type Animation = {
   reason?: string
   by?: Interceptor
   at?: number
+  effect?: Effect
 }
 
 export type Glyph = 'envelope' | 'bolt' | 'bell'
@@ -176,13 +185,14 @@ export function animationProblem(raw: unknown, hasTo: boolean): string | undefin
   if (typeof kind !== 'string') return 'animation kind must be text'
   if (!isKind(kind)) return `unknown animation "${kind}" (${KINDS_HINT})`
   if (isMap(raw)) {
-    const extra = Object.keys(raw).find(k => !OPTIONS.some(o => o === k))
+    const extra = Object.keys(raw).find(k => k !== 'effect' && !OPTIONS.some(o => o === k))
     if (extra !== undefined) return `unknown animation option "${extra}" (use ${OPTIONS.join(', ')})`
     const { trigger, carries, outcome, share, reason, by, at } = raw
     if (trigger !== undefined && !TRIGGERS.some(t => t === trigger)) return `animation trigger must be ${TRIGGERS.join(' or ')}`
     let out = misplaced('trigger', trigger, kind, outcome)
     if (out) return `animation ${out}`
     if (carries !== undefined && (typeof carries !== 'string' || carries.trim() === '')) return 'animation carries must be a word'
+    if (raw.effect !== undefined && !isEffect(raw.effect)) return `animation effect must be ${orList(EFFECTS)}`
     if (outcome !== undefined && !isOutcome(outcome)) return `animation outcome must be ${orList(OUTCOMES)}`
     if (isOutcome(outcome) && !OUTCOME_RULES[outcome].kinds.some(k => k === kind)) return `animation outcome ${outcome} only applies to ${OUTCOME_RULES[outcome].only}`
     if (share !== undefined && shareOf(share) === undefined) return 'animation share must be a whole number from 1 to 100'
@@ -242,6 +252,7 @@ export function animationOf(step: { to?: string; animation?: unknown }): Animati
     ...(typeof map.reason === 'string' ? { reason: map.reason.trim() } : {}),
     ...(by === undefined ? {} : { by }),
     ...(at === undefined ? {} : { at }),
+    ...(isEffect(map.effect) ? { effect: map.effect } : {}),
   }
 }
 
