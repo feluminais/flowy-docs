@@ -1,0 +1,4 @@
+name: Delayed
+view: steps
+steps:
+  - { from: delayed-from, to: delayed-to, text: Calls and the request waits on the way, animation: { kind: call, outcome: delayed, reason: Cold start } }

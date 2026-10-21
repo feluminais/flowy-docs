@@ -1,0 +1,4 @@
+name: Lost
+view: steps
+steps:
+  - { from: lost-from, to: lost-to, text: Sends and the request is lost on the way, animation: { kind: send, outcome: lost, reason: Packet dropped } }

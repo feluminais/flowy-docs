@@ -1,0 +1,4 @@
+name: Duplicated
+view: steps
+steps:
+  - { from: duplicated-from, to: duplicated-to, text: Sends and it is delivered twice, animation: { kind: send, outcome: duplicated, reason: Retried } }

@@ -1270,7 +1270,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1279,7 +1279,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -1299,7 +1299,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1331,7 +1331,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1500,7 +1500,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -1521,7 +1521,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1553,7 +1553,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1882,7 +1882,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -1938,7 +1938,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2018,7 +2018,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2147,6 +2147,22 @@
               "shapes": 0,
               "flows": 0,
               "steps": 8,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:courier-pings-lost",
+              "kind": "flow",
+              "id": "courier-pings-lost",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "Courier pings are lost",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -2603,7 +2619,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -2659,7 +2675,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2739,7 +2755,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2868,6 +2884,22 @@
               "shapes": 0,
               "flows": 0,
               "steps": 8,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:courier-pings-lost",
+              "kind": "flow",
+              "id": "courier-pings-lost",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "Courier pings are lost",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -3324,7 +3356,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -3342,7 +3374,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3406,7 +3438,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3503,6 +3535,22 @@
               "shapes": 0,
               "flows": 0,
               "steps": 8,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:courier-pings-lost",
+              "kind": "flow",
+              "id": "courier-pings-lost",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "Courier pings are lost",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -3767,7 +3815,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -3787,7 +3835,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3828,7 +3876,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -3848,7 +3896,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3880,7 +3928,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -4049,7 +4097,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         }
@@ -4079,6 +4127,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
+                  "steps": 3,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4110,7 +4164,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "root",
@@ -4136,6 +4190,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
+                  "steps": 3,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4167,7 +4227,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "ordering",
@@ -4218,11 +4278,17 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
+                  "steps": 3,
+                  "view": "delivery"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "ordering",
@@ -4273,11 +4339,17 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
+                  "steps": 3,
+                  "view": "delivery"
                 }
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "delivery",
@@ -4287,6 +4359,12 @@
               "id": "deliver-order",
               "name": "A courier delivers it",
               "steps": 8,
+              "view": "delivery"
+            },
+            {
+              "id": "courier-pings-lost",
+              "name": "Courier pings are lost",
+              "steps": 3,
               "view": "delivery"
             }
           ],
@@ -4332,7 +4410,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "delivery",
@@ -4342,6 +4420,12 @@
               "id": "deliver-order",
               "name": "A courier delivers it",
               "steps": 8,
+              "view": "delivery"
+            },
+            {
+              "id": "courier-pings-lost",
+              "name": "Courier pings are lost",
+              "steps": 3,
               "view": "delivery"
             }
           ],
@@ -4387,7 +4471,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "notifications",
@@ -4419,6 +4503,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
+                  "steps": 3,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4450,7 +4540,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "notifications",
@@ -4482,6 +4572,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
+                  "steps": 3,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4513,7 +4609,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "backoffice",
@@ -4545,6 +4641,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
+                  "steps": 3,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4576,7 +4678,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "backoffice",
@@ -4608,6 +4710,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
+                  "steps": 3,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4639,7 +4747,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "order-api",
@@ -4671,6 +4779,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
+                  "steps": 3,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4702,7 +4816,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "order-api",
@@ -4734,6 +4848,12 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
+                },
+                {
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
+                  "steps": 3,
+                  "view": "delivery"
                 }
               ]
             },
@@ -4765,7 +4885,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "dispatch",
@@ -4797,68 +4917,11 @@
                   "name": "A courier delivers it",
                   "steps": 8,
                   "view": "delivery"
-                }
-              ]
-            },
-            {
-              "view": "ordering",
-              "name": "Ordering",
-              "path": [
-                "Ordering"
-              ],
-              "flows": [
+                },
                 {
-                  "id": "announce-order",
-                  "name": "A paid order is announced",
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
                   "steps": 3,
-                  "view": "ordering"
-                },
-                {
-                  "id": "place-order",
-                  "name": "Customer places an order",
-                  "steps": 7,
-                  "view": "ordering"
-                },
-                {
-                  "id": "capture-payment",
-                  "name": "The payment is captured",
-                  "steps": 6,
-                  "view": "ordering"
-                }
-              ]
-            }
-          ],
-          "total": 5
-        },
-        {
-          "view": "dispatch",
-          "editing": true,
-          "here": [],
-          "elsewhere": [
-            {
-              "view": "root",
-              "name": "Overview",
-              "path": [],
-              "flows": [
-                {
-                  "id": "refund",
-                  "name": "Support refunds an order",
-                  "steps": 5,
-                  "view": "root"
-                }
-              ]
-            },
-            {
-              "view": "delivery",
-              "name": "Delivery",
-              "path": [
-                "Delivery"
-              ],
-              "flows": [
-                {
-                  "id": "deliver-order",
-                  "name": "A courier delivers it",
-                  "steps": 8,
                   "view": "delivery"
                 }
               ]
@@ -4891,7 +4954,76 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
+        },
+        {
+          "view": "dispatch",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "root",
+              "name": "Overview",
+              "path": [],
+              "flows": [
+                {
+                  "id": "refund",
+                  "name": "Support refunds an order",
+                  "steps": 5,
+                  "view": "root"
+                }
+              ]
+            },
+            {
+              "view": "delivery",
+              "name": "Delivery",
+              "path": [
+                "Delivery"
+              ],
+              "flows": [
+                {
+                  "id": "deliver-order",
+                  "name": "A courier delivers it",
+                  "steps": 8,
+                  "view": "delivery"
+                },
+                {
+                  "id": "courier-pings-lost",
+                  "name": "Courier pings are lost",
+                  "steps": 3,
+                  "view": "delivery"
+                }
+              ]
+            },
+            {
+              "view": "ordering",
+              "name": "Ordering",
+              "path": [
+                "Ordering"
+              ],
+              "flows": [
+                {
+                  "id": "announce-order",
+                  "name": "A paid order is announced",
+                  "steps": 3,
+                  "view": "ordering"
+                },
+                {
+                  "id": "place-order",
+                  "name": "Customer places an order",
+                  "steps": 7,
+                  "view": "ordering"
+                },
+                {
+                  "id": "capture-payment",
+                  "name": "The payment is captured",
+                  "steps": 6,
+                  "view": "ordering"
+                }
+              ]
+            }
+          ],
+          "total": 6
         }
       ],
       "expandTo": [
@@ -5547,8 +5679,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 57,
+              "flows": 22,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -5556,8 +5688,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 57,
+            "flows": 22,
             "problems": 0
           }
         },
@@ -5576,8 +5708,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 57,
+              "flows": 22,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5624,8 +5756,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 17,
-              "flows": 10,
+              "shapes": 32,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -5633,8 +5765,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 57,
+            "flows": 22,
             "problems": 0
           }
         },
@@ -5654,8 +5786,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 57,
+              "flows": 22,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5702,8 +5834,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 17,
-              "flows": 10,
+              "shapes": 32,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5796,6 +5928,70 @@
               "parent": "steps",
               "depth": 2,
               "name": "Callback · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:delayed-from",
+              "kind": "shape",
+              "id": "delayed-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:delayed-to",
+              "kind": "shape",
+              "id": "delayed-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:duplicated-from",
+              "kind": "shape",
+              "id": "duplicated-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:duplicated-to",
+              "kind": "shape",
+              "id": "duplicated-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated · to",
               "type": "app",
               "external": false,
               "shapes": 0,
@@ -5918,6 +6114,150 @@
               "match": true
             },
             {
+              "key": "shape:named-from",
+              "kind": "shape",
+              "id": "named-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:named-to",
+              "kind": "shape",
+              "id": "named-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:intercepted-from",
+              "kind": "shape",
+              "id": "intercepted-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:intercepted-by",
+              "kind": "shape",
+              "id": "intercepted-by",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted · taken by",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:intercepted-to",
+              "kind": "shape",
+              "id": "intercepted-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:lost-from",
+              "kind": "shape",
+              "id": "lost-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Lost · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:lost-to",
+              "kind": "shape",
+              "id": "lost-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Lost · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:rejected-from",
+              "kind": "shape",
+              "id": "rejected-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Rejected · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:rejected-to",
+              "kind": "shape",
+              "id": "rejected-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Rejected · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:send-from",
               "kind": "shape",
               "id": "send-from",
@@ -5941,6 +6281,38 @@
               "depth": 2,
               "name": "Send · to",
               "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:share-from",
+              "kind": "shape",
+              "id": "share-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:share-to",
+              "kind": "shape",
+              "id": "share-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests · to",
+              "type": "app",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -6030,6 +6402,38 @@
               "match": true
             },
             {
+              "key": "flow:delayed",
+              "kind": "flow",
+              "id": "delayed",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:duplicated",
+              "kind": "flow",
+              "id": "duplicated",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:event",
               "kind": "flow",
               "id": "event",
@@ -6055,7 +6459,7 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
-              "steps": 10,
+              "steps": 17,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -6094,6 +6498,70 @@
               "match": true
             },
             {
+              "key": "flow:intercepted",
+              "kind": "flow",
+              "id": "intercepted",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:intercepted-by-name",
+              "kind": "flow",
+              "id": "intercepted-by-name",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:lost",
+              "kind": "flow",
+              "id": "lost",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Lost",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:rejected",
+              "kind": "flow",
+              "id": "rejected",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Rejected",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:send",
               "kind": "flow",
               "id": "send",
@@ -6126,6 +6594,22 @@
               "match": true
             },
             {
+              "key": "flow:share",
+              "kind": "flow",
+              "id": "share",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:timeout",
               "kind": "flow",
               "id": "timeout",
@@ -6143,8 +6627,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 57,
+            "flows": 22,
             "problems": 0
           }
         },
@@ -6172,6 +6656,21 @@
             "fail-to",
             "timeout-from",
             "timeout-to",
+            "lost-from",
+            "lost-to",
+            "rejected-from",
+            "rejected-to",
+            "intercepted-from",
+            "intercepted-to",
+            "intercepted-by",
+            "named-from",
+            "named-to",
+            "duplicated-from",
+            "duplicated-to",
+            "delayed-from",
+            "delayed-to",
+            "share-from",
+            "share-to",
             "repeat-from",
             "repeat-to",
             "branch-from",
@@ -6205,8 +6704,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 57,
+              "flows": 22,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6685,8 +7184,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 17,
-              "flows": 10,
+              "shapes": 32,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6779,6 +7278,70 @@
               "parent": "steps",
               "depth": 2,
               "name": "Callback · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:delayed-from",
+              "kind": "shape",
+              "id": "delayed-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:delayed-to",
+              "kind": "shape",
+              "id": "delayed-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:duplicated-from",
+              "kind": "shape",
+              "id": "duplicated-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:duplicated-to",
+              "kind": "shape",
+              "id": "duplicated-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated · to",
               "type": "app",
               "external": false,
               "shapes": 0,
@@ -6901,6 +7464,150 @@
               "match": true
             },
             {
+              "key": "shape:named-from",
+              "kind": "shape",
+              "id": "named-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:named-to",
+              "kind": "shape",
+              "id": "named-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:intercepted-from",
+              "kind": "shape",
+              "id": "intercepted-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:intercepted-by",
+              "kind": "shape",
+              "id": "intercepted-by",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted · taken by",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:intercepted-to",
+              "kind": "shape",
+              "id": "intercepted-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:lost-from",
+              "kind": "shape",
+              "id": "lost-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Lost · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:lost-to",
+              "kind": "shape",
+              "id": "lost-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Lost · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:rejected-from",
+              "kind": "shape",
+              "id": "rejected-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Rejected · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:rejected-to",
+              "kind": "shape",
+              "id": "rejected-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Rejected · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:send-from",
               "kind": "shape",
               "id": "send-from",
@@ -6924,6 +7631,38 @@
               "depth": 2,
               "name": "Send · to",
               "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:share-from",
+              "kind": "shape",
+              "id": "share-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:share-to",
+              "kind": "shape",
+              "id": "share-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests · to",
+              "type": "app",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -7013,6 +7752,38 @@
               "match": true
             },
             {
+              "key": "flow:delayed",
+              "kind": "flow",
+              "id": "delayed",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:duplicated",
+              "kind": "flow",
+              "id": "duplicated",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:event",
               "kind": "flow",
               "id": "event",
@@ -7038,7 +7809,7 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
-              "steps": 10,
+              "steps": 17,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -7077,6 +7848,70 @@
               "match": true
             },
             {
+              "key": "flow:intercepted",
+              "kind": "flow",
+              "id": "intercepted",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:intercepted-by-name",
+              "kind": "flow",
+              "id": "intercepted-by-name",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:lost",
+              "kind": "flow",
+              "id": "lost",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Lost",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:rejected",
+              "kind": "flow",
+              "id": "rejected",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Rejected",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:send",
               "kind": "flow",
               "id": "send",
@@ -7109,6 +7944,22 @@
               "match": true
             },
             {
+              "key": "flow:share",
+              "kind": "flow",
+              "id": "share",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:timeout",
               "kind": "flow",
               "id": "timeout",
@@ -7126,8 +7977,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 57,
+            "flows": 22,
             "problems": 0
           }
         },
@@ -7155,6 +8006,21 @@
             "fail-to",
             "timeout-from",
             "timeout-to",
+            "lost-from",
+            "lost-to",
+            "rejected-from",
+            "rejected-to",
+            "intercepted-from",
+            "intercepted-to",
+            "intercepted-by",
+            "named-from",
+            "named-to",
+            "duplicated-from",
+            "duplicated-to",
+            "delayed-from",
+            "delayed-to",
+            "share-from",
+            "share-to",
             "repeat-from",
             "repeat-to",
             "branch-from",
@@ -7188,8 +8054,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 57,
+              "flows": 22,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -7668,8 +8534,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 17,
-              "flows": 10,
+              "shapes": 32,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -7762,6 +8628,70 @@
               "parent": "steps",
               "depth": 2,
               "name": "Callback · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:delayed-from",
+              "kind": "shape",
+              "id": "delayed-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:delayed-to",
+              "kind": "shape",
+              "id": "delayed-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:duplicated-from",
+              "kind": "shape",
+              "id": "duplicated-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:duplicated-to",
+              "kind": "shape",
+              "id": "duplicated-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated · to",
               "type": "app",
               "external": false,
               "shapes": 0,
@@ -7884,6 +8814,150 @@
               "match": true
             },
             {
+              "key": "shape:named-from",
+              "kind": "shape",
+              "id": "named-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:named-to",
+              "kind": "shape",
+              "id": "named-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:intercepted-from",
+              "kind": "shape",
+              "id": "intercepted-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:intercepted-by",
+              "kind": "shape",
+              "id": "intercepted-by",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted · taken by",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:intercepted-to",
+              "kind": "shape",
+              "id": "intercepted-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:lost-from",
+              "kind": "shape",
+              "id": "lost-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Lost · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:lost-to",
+              "kind": "shape",
+              "id": "lost-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Lost · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:rejected-from",
+              "kind": "shape",
+              "id": "rejected-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Rejected · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:rejected-to",
+              "kind": "shape",
+              "id": "rejected-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Rejected · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:send-from",
               "kind": "shape",
               "id": "send-from",
@@ -7907,6 +8981,38 @@
               "depth": 2,
               "name": "Send · to",
               "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:share-from",
+              "kind": "shape",
+              "id": "share-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:share-to",
+              "kind": "shape",
+              "id": "share-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests · to",
+              "type": "app",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -7996,6 +9102,38 @@
               "match": true
             },
             {
+              "key": "flow:delayed",
+              "kind": "flow",
+              "id": "delayed",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:duplicated",
+              "kind": "flow",
+              "id": "duplicated",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:event",
               "kind": "flow",
               "id": "event",
@@ -8021,7 +9159,7 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
-              "steps": 10,
+              "steps": 17,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -8060,6 +9198,70 @@
               "match": true
             },
             {
+              "key": "flow:intercepted",
+              "kind": "flow",
+              "id": "intercepted",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:intercepted-by-name",
+              "kind": "flow",
+              "id": "intercepted-by-name",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:lost",
+              "kind": "flow",
+              "id": "lost",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Lost",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:rejected",
+              "kind": "flow",
+              "id": "rejected",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Rejected",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:send",
               "kind": "flow",
               "id": "send",
@@ -8092,6 +9294,22 @@
               "match": true
             },
             {
+              "key": "flow:share",
+              "kind": "flow",
+              "id": "share",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:timeout",
               "kind": "flow",
               "id": "timeout",
@@ -8109,8 +9327,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 57,
+            "flows": 22,
             "problems": 0
           }
         },
@@ -8127,8 +9345,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 57,
+              "flows": 22,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8511,8 +9729,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 17,
-              "flows": 10,
+              "shapes": 32,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8573,6 +9791,70 @@
               "parent": "steps",
               "depth": 2,
               "name": "Callback · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:delayed-from",
+              "kind": "shape",
+              "id": "delayed-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:delayed-to",
+              "kind": "shape",
+              "id": "delayed-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:duplicated-from",
+              "kind": "shape",
+              "id": "duplicated-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:duplicated-to",
+              "kind": "shape",
+              "id": "duplicated-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated · to",
               "type": "app",
               "external": false,
               "shapes": 0,
@@ -8663,6 +9945,86 @@
               "match": true
             },
             {
+              "key": "shape:named-from",
+              "kind": "shape",
+              "id": "named-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:named-to",
+              "kind": "shape",
+              "id": "named-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:intercepted-by",
+              "kind": "shape",
+              "id": "intercepted-by",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted · taken by",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:share-from",
+              "kind": "shape",
+              "id": "share-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:share-to",
+              "kind": "shape",
+              "id": "share-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests · to",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:call",
               "kind": "flow",
               "id": "call",
@@ -8695,6 +10057,38 @@
               "match": true
             },
             {
+              "key": "flow:delayed",
+              "kind": "flow",
+              "id": "delayed",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Delayed",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:duplicated",
+              "kind": "flow",
+              "id": "duplicated",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Duplicated",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:every-step-animation",
               "kind": "flow",
               "id": "every-step-animation",
@@ -8704,7 +10098,7 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
-              "steps": 10,
+              "steps": 17,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -8743,6 +10137,22 @@
               "match": true
             },
             {
+              "key": "flow:intercepted-by-name",
+              "kind": "flow",
+              "id": "intercepted-by-name",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Intercepted by a name",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:send-with-a-word",
               "kind": "flow",
               "id": "send-with-a-word",
@@ -8757,11 +10167,27 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:share",
+              "kind": "flow",
+              "id": "share",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Share of requests",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 57,
+            "flows": 22,
             "problems": 0
           }
         },
@@ -8774,8 +10200,8 @@
           "editing": false,
           "rows": [],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 57,
+            "flows": 22,
             "problems": 0
           }
         },
@@ -8794,8 +10220,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 57,
+              "flows": 22,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8842,8 +10268,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 17,
-              "flows": 10,
+              "shapes": 32,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -8851,8 +10277,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 57,
+            "flows": 22,
             "problems": 0
           }
         }
@@ -8928,6 +10354,18 @@
                   "view": "steps"
                 },
                 {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -8936,7 +10374,7 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 10,
+                  "steps": 17,
                   "view": "steps"
                 },
                 {
@@ -8952,6 +10390,30 @@
                   "view": "steps"
                 },
                 {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "send",
                   "name": "Send",
                   "steps": 1,
@@ -8964,6 +10426,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "timeout",
                   "name": "Timeout",
                   "steps": 1,
@@ -8972,7 +10440,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 22
         },
         {
           "view": "root",
@@ -9044,6 +10512,18 @@
                   "view": "steps"
                 },
                 {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -9052,7 +10532,7 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 10,
+                  "steps": 17,
                   "view": "steps"
                 },
                 {
@@ -9068,6 +10548,30 @@
                   "view": "steps"
                 },
                 {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "send",
                   "name": "Send",
                   "steps": 1,
@@ -9080,6 +10584,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "timeout",
                   "name": "Timeout",
                   "steps": 1,
@@ -9088,7 +10598,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 22
         },
         {
           "view": "steps",
@@ -9113,6 +10623,18 @@
               "view": "steps"
             },
             {
+              "id": "delayed",
+              "name": "Delayed",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "duplicated",
+              "name": "Duplicated",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
               "id": "event",
               "name": "Event",
               "steps": 1,
@@ -9121,7 +10643,7 @@
             {
               "id": "every-step-animation",
               "name": "Every step animation",
-              "steps": 10,
+              "steps": 17,
               "view": "steps"
             },
             {
@@ -9137,6 +10659,30 @@
               "view": "steps"
             },
             {
+              "id": "intercepted",
+              "name": "Intercepted",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "intercepted-by-name",
+              "name": "Intercepted by a name",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "lost",
+              "name": "Lost",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "rejected",
+              "name": "Rejected",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
               "id": "send",
               "name": "Send",
               "steps": 1,
@@ -9145,6 +10691,12 @@
             {
               "id": "send-with-a-word",
               "name": "Send with a word",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "share",
+              "name": "Share of requests",
               "steps": 1,
               "view": "steps"
             },
@@ -9196,7 +10748,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 22
         },
         {
           "view": "steps",
@@ -9221,6 +10773,18 @@
               "view": "steps"
             },
             {
+              "id": "delayed",
+              "name": "Delayed",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "duplicated",
+              "name": "Duplicated",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
               "id": "event",
               "name": "Event",
               "steps": 1,
@@ -9229,7 +10793,7 @@
             {
               "id": "every-step-animation",
               "name": "Every step animation",
-              "steps": 10,
+              "steps": 17,
               "view": "steps"
             },
             {
@@ -9245,6 +10809,30 @@
               "view": "steps"
             },
             {
+              "id": "intercepted",
+              "name": "Intercepted",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "intercepted-by-name",
+              "name": "Intercepted by a name",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "lost",
+              "name": "Lost",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "rejected",
+              "name": "Rejected",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
               "id": "send",
               "name": "Send",
               "steps": 1,
@@ -9253,6 +10841,12 @@
             {
               "id": "send-with-a-word",
               "name": "Send with a word",
+              "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "share",
+              "name": "Share of requests",
               "steps": 1,
               "view": "steps"
             },
@@ -9304,7 +10898,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 22
         },
         {
           "view": "structure",
@@ -9368,6 +10962,18 @@
                   "view": "steps"
                 },
                 {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -9376,7 +10982,7 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 10,
+                  "steps": 17,
                   "view": "steps"
                 },
                 {
@@ -9392,6 +10998,30 @@
                   "view": "steps"
                 },
                 {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "send",
                   "name": "Send",
                   "steps": 1,
@@ -9404,6 +11034,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "timeout",
                   "name": "Timeout",
                   "steps": 1,
@@ -9412,7 +11048,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 22
         },
         {
           "view": "structure",
@@ -9476,6 +11112,18 @@
                   "view": "steps"
                 },
                 {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -9484,7 +11132,7 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 10,
+                  "steps": 17,
                   "view": "steps"
                 },
                 {
@@ -9500,6 +11148,30 @@
                   "view": "steps"
                 },
                 {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "send",
                   "name": "Send",
                   "steps": 1,
@@ -9512,6 +11184,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "timeout",
                   "name": "Timeout",
                   "steps": 1,
@@ -9520,7 +11198,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 22
         },
         {
           "view": "performance",
@@ -9592,6 +11270,18 @@
                   "view": "steps"
                 },
                 {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -9600,7 +11290,7 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 10,
+                  "steps": 17,
                   "view": "steps"
                 },
                 {
@@ -9616,6 +11306,30 @@
                   "view": "steps"
                 },
                 {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "send",
                   "name": "Send",
                   "steps": 1,
@@ -9628,6 +11342,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "timeout",
                   "name": "Timeout",
                   "steps": 1,
@@ -9636,7 +11356,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 22
         },
         {
           "view": "performance",
@@ -9708,6 +11428,18 @@
                   "view": "steps"
                 },
                 {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -9716,7 +11448,7 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 10,
+                  "steps": 17,
                   "view": "steps"
                 },
                 {
@@ -9732,6 +11464,30 @@
                   "view": "steps"
                 },
                 {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "send",
                   "name": "Send",
                   "steps": 1,
@@ -9744,6 +11500,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "timeout",
                   "name": "Timeout",
                   "steps": 1,
@@ -9752,7 +11514,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 22
         },
         {
           "view": "rolled-up",
@@ -9824,6 +11586,18 @@
                   "view": "steps"
                 },
                 {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -9832,7 +11606,7 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 10,
+                  "steps": 17,
                   "view": "steps"
                 },
                 {
@@ -9848,6 +11622,30 @@
                   "view": "steps"
                 },
                 {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "send",
                   "name": "Send",
                   "steps": 1,
@@ -9860,6 +11658,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "timeout",
                   "name": "Timeout",
                   "steps": 1,
@@ -9868,7 +11672,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 22
         },
         {
           "view": "rolled-up",
@@ -9940,6 +11744,18 @@
                   "view": "steps"
                 },
                 {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -9948,7 +11764,7 @@
                 {
                   "id": "every-step-animation",
                   "name": "Every step animation",
-                  "steps": 10,
+                  "steps": 17,
                   "view": "steps"
                 },
                 {
@@ -9964,6 +11780,30 @@
                   "view": "steps"
                 },
                 {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "send",
                   "name": "Send",
                   "steps": 1,
@@ -9976,6 +11816,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
                   "id": "timeout",
                   "name": "Timeout",
                   "steps": 1,
@@ -9984,7 +11830,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 22
         }
       ],
       "expandTo": [
@@ -10332,6 +12178,261 @@
             "root",
             "steps",
             "timeout-to"
+          ]
+        },
+        {
+          "id": "lost-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "lost-from",
+          "self": true,
+          "opened": [
+            "lost-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "lost-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "lost-to",
+          "self": true,
+          "opened": [
+            "lost-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "rejected-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "rejected-from",
+          "self": true,
+          "opened": [
+            "rejected-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "rejected-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "rejected-to",
+          "self": true,
+          "opened": [
+            "rejected-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "intercepted-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "intercepted-from",
+          "self": true,
+          "opened": [
+            "intercepted-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "intercepted-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "intercepted-to",
+          "self": true,
+          "opened": [
+            "intercepted-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "intercepted-by",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "intercepted-by",
+          "self": true,
+          "opened": [
+            "intercepted-by",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "named-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "named-from",
+          "self": true,
+          "opened": [
+            "named-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "named-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "named-to",
+          "self": true,
+          "opened": [
+            "named-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "duplicated-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "duplicated-from",
+          "self": true,
+          "opened": [
+            "duplicated-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "duplicated-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "duplicated-to",
+          "self": true,
+          "opened": [
+            "duplicated-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "delayed-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "delayed-from",
+          "self": true,
+          "opened": [
+            "delayed-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "delayed-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "delayed-to",
+          "self": true,
+          "opened": [
+            "delayed-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "share-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "share-from",
+          "self": true,
+          "opened": [
+            "root",
+            "share-from",
+            "steps"
+          ]
+        },
+        {
+          "id": "share-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "share-to",
+          "self": true,
+          "opened": [
+            "root",
+            "share-to",
+            "steps"
           ]
         },
         {

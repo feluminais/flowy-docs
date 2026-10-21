@@ -57,7 +57,7 @@ in the desktop app. `node src/cli.ts --dir docs/showcase/flowy` opens it, and so
 `dotnet run --project desktop/Flowy.App -- docs/showcase`. Each shape is named for the animation it plays (Send · from, Flash · to), and its second line holds the tag that sets it off.
 It has three views:
 
-- Step animations: a flow of one step for each way a step can travel (Send, Call, Event, Callback, Flash, Bolt drop, Send with a word, Fail, Timeout), so you can click through them, and Every step animation, which plays them all: press **P** to watch them one after the other, or **R** to play a step again.
+- Step animations: a flow of one step for each way a step can travel (Send, Call, Event, Callback, Flash, Bolt drop, Send with a word, Fail, Timeout, Lost, Rejected, Intercepted twice, Duplicated, Delayed, Share of requests), so you can click through them, and Every step animation, which plays them all: press **P** to watch them one after the other, or **R** to play a step again.
 - Flow structure: a flow each for Repeat, Branch, Parallel and Flow link.
 - Performance: the run Every load effect (**T**) gives each shape one effect of load, and **Ramp** sweeps all of them.
 
@@ -285,10 +285,10 @@ Reading:
 
 Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flowy`, then the same folder in the desktop app):
 
-- [ ] Open *Every step animation* (`#steps/every-step-animation`) and press P: ten steps play in turn, each taking two to four seconds. In the browser a step plays again two and a half seconds after it ends until you move on, the Repeat button on the card turns that off (and is
+- [ ] Open *Every step animation* (`#steps/every-step-animation`) and press P: seventeen steps play in turn, each taking two to four seconds. In the browser a step plays again two and a half seconds after it ends until you move on, the Repeat button on the card turns that off (and is
       remembered), and the line's label sits beside the line while it runs. Send runs an envelope one way, Call goes and
       comes back while dots wait over the caller, Event runs a bolt and flashes the receiver, Callback sends a ring, then a bell, then a ring, a callback
-      after a step flashes its publisher first, one from outside drops a bolt on it, and the next Send carries the words "order 42". Fail runs an envelope in the danger colour and flashes its receiver in it. Timeout sends the envelope, keeps the dots waiting over the caller with no reply, and then dims the line, which stays dim until you move on. Every shape
+      after a step flashes its publisher first, one from outside drops a bolt on it, and the next Send carries the words "order 42". Fail runs an envelope in the danger colour and flashes its receiver in it. Timeout sends the envelope, keeps the dots waiting over the caller with no reply, and then dims the line, which stays dim until you move on. Lost pops the envelope partway and leaves a red cross with the reason under it, and the receiver never squashes. Rejected stops it at a red bar by the receiver, which flashes, and sends it back red. Intercepted leaves the line for a dashed outline round a third shape (or a dashed marker named Café wifi proxy) that lights. Duplicated runs a second copy that trails the first, and the receiver squashes twice. Delayed waits beside a turning dashed clock with the reason beside it, then goes on and is answered. Share of requests sends ten, and the three that are lost are named r1, r2 and r3, each with its own colour and a ring, and leave their crosses where they vanished. Every shape
       squashes or flashes where the animation says it does, on the queue, the cylinder and the hexagon too. With the system's animation effects off, nothing moves.
 - [ ] Open Repeat, Branch, Parallel and Flow link in Flow structure. Repeat says it repeats up to 3 times, Branch says One of 2 and dashes the
       lane you are not in, Parallel lights three lanes together with a bolt each, and Flow link has an Open flow that lands on the other flow and a bar to come back.
