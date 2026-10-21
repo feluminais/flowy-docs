@@ -62,13 +62,13 @@ public static class ModelFiles
             m.TryGetValue("snippets", out var snippets);
             map.Add(id, new FlowyObject(Text(m, "type"), Text(m, "name"), Text(m, "in"), Text(m, "external"), Text(m, "tech"), Text(m, "description"), code, links)
             {
-                Shape = Text(m, "shape"), Color = Text(m, "color"), Opacity = Text(m, "opacity"), Icon = Text(m, "icon"), Data = data, Snippets = snippets,
+                Shape = Text(m, "shape"), Color = Text(m, "color"), Opacity = Text(m, "opacity"), Icon = Text(m, "icon"), Data = data, Snippets = snippets, NoValue = EmptyKeys.Of(m),
             });
         }
         var list = connectionList.Select(c =>
         {
             var m = (OrderedDictionary<string, object?>)c!;
-            return new Connection(Text(m, "from"), Text(m, "to"), Text(m, "label"));
+            return new Connection(Text(m, "from"), Text(m, "to"), Text(m, "label")) { NoValue = EmptyKeys.Of(m) };
         }).ToList();
         var meta = top.Where(kv => kv.Key is not ("objects" or "connections")).ToDictionary(kv => kv.Key, kv => kv.Value);
         return new ParsedModel(map, list, meta);
@@ -98,10 +98,11 @@ public static class ModelFiles
             var m = (OrderedDictionary<string, object?>)s!;
             m.TryGetValue("animation", out var animation);
             m.TryGetValue("states", out var states);
-            return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"), animation, Text(m, "group"), Text(m, "lane"), Text(m, "flow"), states);
+            return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"), animation, Text(m, "group"), Text(m, "lane"), Text(m, "flow"), states) { NoValue = EmptyKeys.Of(m) };
         }).ToList();
         doc.TryGetValue("states", out var flowStates);
-        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups, flowStates);
+        var head = new OrderedDictionary<string, object?>(doc.Where(kv => kv.Key != "steps")); // the steps say their own
+        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups, flowStates) { NoValue = EmptyKeys.Of(head) };
     }
 
     /// <summary>

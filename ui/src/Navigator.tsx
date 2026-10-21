@@ -17,16 +17,24 @@ const ROW = 30 // px: every row of the tree is this tall, which is what lets it 
 const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-export function NavTabs({ tab, showFlows, showYaml, showFailures, onPick }: { tab: NavTab; showFlows: boolean; showYaml: boolean; showFailures: boolean; onPick: (tab: NavTab) => void }) {
+export function NavTabs({ tab, showFlows, showYaml, onPick }: { tab: NavTab; showFlows: boolean; showYaml: boolean; onPick: (tab: NavTab) => void }) {
   const tabs: [NavTab, string][] = [
     ['explorer', 'Explorer'],
     ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []),
-    ...(showFailures ? [['failures', 'Failures'] as [NavTab, string]] : []),
     ...(showYaml ? [['yaml', 'YAML'] as [NavTab, string]] : []),
   ]
   return (
     <div className="navtabs" role="tablist" aria-label="Panel">
       {tabs.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => onPick(id)}>{label}</button>)}
+    </div>
+  )
+}
+
+/** The head of the Performance and Failures panels: one tab, set like the navigator's, with the rail on the left to move between panels. */
+export function NavTitle({ title }: { title: string }) {
+  return (
+    <div className="navtabs" role="tablist" aria-label="Panel">
+      <button role="tab" aria-selected="true">{title}</button>
     </div>
   )
 }
@@ -41,31 +49,30 @@ function RailButton({ label, hint, Icon, pressed, count, off, onClick }: { label
 }
 
 /**
- * The slim column of icons on the left edge for the Explorer tree, the Flows list, how things fail and the YAML. It is always there, and the counts on it say how much the
- * documentation holds: the shapes, the flows and the failure modes.
+ * The slim column of icons on the left edge for the Explorer tree, the Flows list, the Performance panel, the Failures panel and the YAML. It is always there, and the counts
+ * on it say how much the documentation holds. Performance and Failures are there whether or not there is a run or an analysis: their panels offer to make one.
+ * `perf.off` greys the Performance button out and says why in its tooltip: the tab stays where it is while the panel can't be used.
  */
-export function NavRail({ tab, flows, shapes, modes, showFlows, showYaml, showFailures, onPick }: {
-  tab: NavTab | undefined; flows: number; shapes: number; modes: number; showFlows: boolean; showYaml: boolean; showFailures: boolean; onPick: (tab: NavTab) => void
+export function NavRail({ tab, flows, shapes, showFlows, showYaml, perf, failures, onPick }: {
+  tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean; showYaml: boolean
+  perf: { runs: number; off?: string }; failures: { count: number }; onPick: (tab: NavTab) => void
 }) {
   return (
     <nav className="rail left" aria-label="Navigator">
       <RailButton label="Explorer" hint="O" Icon={ExplorerIcon} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
       {showFlows && <RailButton label="Flows" hint="L" Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
-      {showFailures && <RailButton label="Failures" hint="M" Icon={Bolt} count={modes} pressed={tab === 'failures'} onClick={() => onPick('failures')} />}
+      <RailButton label="Performance" hint="T" Icon={Activity} count={perf.runs > 0 ? perf.runs : undefined} pressed={tab === 'performance'} off={perf.off} onClick={() => onPick('performance')} />
+      <RailButton label="Failures" hint="M" Icon={Bolt} count={failures.count > 0 ? failures.count : undefined} pressed={tab === 'failures'} onClick={() => onPick('failures')} />
       {showYaml && <RailButton label="YAML" hint="Y" Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />}
     </nav>
   )
 }
 
-/**
- * The slim column on the right edge: a button for the Details panel, and below it one for Performance where there is a load-test run to show (it takes Details' place).
- * `perf.off` greys that button out and says why in its tooltip: the tab stays where it is while the panel can't be used.
- */
-export function DetailsRail({ open, onToggle, perf }: { open: boolean; onToggle: () => void; perf?: { open: boolean; runs: number; off?: string; onToggle: () => void } }) {
+/** The slim column on the right edge: a button for the Details panel, which is all the right-hand side holds. */
+export function DetailsRail({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   return (
-    <nav className="rail" aria-label={perf ? 'Details and performance' : 'Details'}>
+    <nav className="rail" aria-label="Details">
       <RailButton label="Details" Icon={Info} pressed={open} onClick={onToggle} />
-      {perf && <RailButton label="Performance" hint="T" Icon={Activity} count={perf.runs} pressed={perf.open} off={perf.off} onClick={perf.onToggle} />}
     </nav>
   )
 }
@@ -99,7 +106,7 @@ export function Sash({ side, width, onResize, onReset }: { side: 'nav' | 'detail
   )
 }
 
-/** The panel of the Explorer, Flows, Failures and YAML tabs, on the left. It has no scrolling of its own: each tab scrolls what it holds. */
+/** The panel of the tabs on the left (Explorer, Flows, Performance, Failures and YAML). It has no scrolling of its own: each tab scrolls what it holds. */
 export function NavPanel({ tabs, onClose, children }: { tabs: ReactNode; onClose: () => void; children: ReactNode }) {
   return (
     <aside className="panel navpanel">

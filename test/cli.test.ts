@@ -161,3 +161,62 @@ test('--analysis and --format belong to flowy failures, and anywhere else print 
     assert.match(run.stderr, /flowy failures \[--analysis <id>\] \[--format markdown\|csv\]/, args.join(' '))
   }
 })
+
+test('flowy check says a sound model has no problems, and exits 0', () => {
+  for (const dir of ['example', 'docs/demo/flowy', 'flowy']) {
+    const run = spawnSync(process.execPath, ['src/cli.ts', 'check', '--dir', dir], { encoding: 'utf8' })
+    assert.equal(run.status, 0, `${dir}: ${run.stderr}`)
+    assert.match(run.stdout, /^No problems in \d+ shapes?, \d+ flows?, \d+ failure analys[ie]s?e? and \d+ load-test runs? in /, dir)
+    assert.equal(run.stderr, '', dir)
+  }
+})
+
+test('flowy check lists every problem, a file that loads but cannot be saved included, and exits 1', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'flowy-cli-check-'))
+  t.after(() => rm(dir, { recursive: true, force: true }))
+  await mkdir(join(dir, 'flows'))
+  await mkdir(join(dir, 'failures'))
+  await writeFile(join(dir, 'model.yaml'), 'objects:\n  a: { type: actor, name: A }\n  s: { type: system, name: S }\nconnections:\n  - { from: a, to: s, label: reads }\n')
+  // A comma in unquoted flow text leaves a key with no value: the file loads, and saving it again would throw.
+  await writeFile(join(dir, 'flows', 'comma.yaml'), 'name: Comma\nview: root\nsteps:\n  - { from: a, to: s, text: Sets the time zone, if asked }\n')
+  await writeFile(join(dir, 'flows', 'ghost.yaml'), 'name: Ghost\nview: root\nsteps:\n  - { from: a, to: nope, text: Calls }\n')
+  await writeFile(join(dir, 'flows', 'old.yml'), 'name: Old\nview: root\nsteps: []\n')
+  await writeFile(join(dir, 'failures', 'f.yaml'), 'name: F\nmodes:\n  m:\n    mode: It breaks\n    on: s\n    run: no-such-run\n')
+  const run = spawnSync(process.execPath, ['src/cli.ts', 'check', '--dir', dir], { encoding: 'utf8' })
+  assert.equal(run.status, 1)
+  assert.equal(run.stdout, '')
+  const lines = run.stderr.trim().split('\n')
+  assert.deepEqual(lines.slice(0, -1).sort(), [
+    'failures/f.yaml: m: run "no-such-run" doesn\'t exist',
+    'flows/comma.yaml: step 1: "if asked" has no value (a comma ends unquoted text: put text that has a comma in double quotes)',
+    'flows/ghost.yaml: step 1: unknown object "nope"',
+    'flows/old.yml: Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to flows/old.yaml.',
+  ])
+  assert.match(lines.at(-1)!, /^4 problems in 2 shapes, 2 flows, 1 failure analysis and 0 load-test runs in /)
+})
+
+test('flowy check reports a file that cannot be saved again only when nothing else says why', async t => {
+  const { saveProblems } = await import('../src/node/files.ts')
+  const { emptyModel } = await import('../src/core/model.ts')
+  const { parseFlowFile } = await import('../src/core/modelfiles.ts')
+  const model = { ...emptyModel(), flows: { x: parseFlowFile('x', 'name: X\nview: root\nsteps: []\n') } }
+  assert.deepEqual(saveProblems(model), [])
+  // A model the parser never makes: a number where only text is written.
+  ;(model.flows.x as unknown as { name: unknown }).name = 5
+  assert.deepEqual(saveProblems(model).map(p => p.file), ['flows/x.yaml'])
+  assert.match(saveProblems(model)[0].message, /^can't be saved again: /)
+})
+
+test('flowy check names the file it cannot read, and belongs to no flags of the other commands', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'flowy-cli-check-'))
+  t.after(() => rm(dir, { recursive: true, force: true }))
+  await writeFile(join(dir, 'model.yaml'), 'objects: [\n')
+  const broken = spawnSync(process.execPath, ['src/cli.ts', 'check', '--dir', dir], { encoding: 'utf8' })
+  assert.equal(broken.status, 1)
+  assert.match(broken.stderr, /^model\.yaml(:\d+)?: /)
+  for (const args of [['check', 'more'], ['check', '--flow', 'x'], ['check', '--format', 'csv']]) {
+    const run = spawnSync(process.execPath, ['src/cli.ts', ...args], { encoding: 'utf8' })
+    assert.equal(run.status, 1, args.join(' '))
+    assert.match(run.stderr, /^Usage: flowy[^]*flowy check \[--dir flowy\]/, args.join(' '))
+  }
+})
