@@ -1,0 +1,284 @@
+import { useState } from 'react'
+import type { FormEvent } from 'react'
+import { getObject } from '../../src/core/model.ts'
+import type { Group, Model, Step } from '../../src/core/model.ts'
+import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
+import type { AnimationKey } from '../../src/core/animation.ts'
+import { deleteFlow, groupSteps, OpError, putFlow, putGroup, removeGroup, removeStep, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import type { StateName } from '../../src/core/states.ts'
+import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.ts'
+import { nameOf } from '../../src/core/views.ts'
+import { newId, pickStepState, stateOf, stepStateShapes, withKey } from './edit.ts'
+import { Field, Panel } from './forms.tsx'
+import type { Common, SaveEdit } from './forms.tsx'
+import { Section, TypeTile } from './Chrome.tsx'
+import { KindPicker, SketchPicker, StatePicker } from './Pickers.tsx'
+import type { Sketch } from './Pickers.tsx'
+import { ArrowDown, ArrowUp, ArrowsSplit, Check, GitFork, Play, Plus, Repeat, Route, Text, Trash } from './icons.tsx'
+
+/** The flow being recorded. While `id` is "", it still needs a name. `from` and `to` are the step being picked. */
+export type Recording = { id: string; name: string; from?: string; to?: string }
+
+/** The step with this detail, or with none when it's blank. */
+function withDescription(step: Step, description: string): Step {
+  const { description: _, ...rest } = step
+  return description.trim() ? { ...rest, description } : rest
+}
+
+const cap = (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+/** How a step travels and how its request ends, as sketches to pick from. A step on one shape does not travel, so nothing but None is open to it. */
+const KIND_CHOICES: Sketch[] = [{ id: '', name: 'None', sketch: KIND_SKETCHES.none }, ...ANIMATION_KINDS.map(k => ({ id: k, name: cap(k), sketch: KIND_SKETCHES[k] }))]
+const OUTCOME_CHOICES: Sketch[] = [{ id: '', name: 'Arrives', sketch: OUTCOME_SKETCHES.none }, ...OUTCOMES.map(o => ({ id: o, name: cap(o), sketch: OUTCOME_SKETCHES[o] }))]
+
+/**
+ * How a step plays: the way it travels, the way its request ends, and what goes with an outcome (a share of the requests, a reason, and for an interception
+ * who takes it). Each pick or field is one edit. What the step cannot have is greyed out with the reason in its tooltip, so the form never changes shape.
+ */
+function StepAnimation({ step, takers, onSet }: { step: Step; takers: { id: string; type: string; name: string; end: boolean }[]; onSet: (key: AnimationKey, value: string) => Promise<boolean> }) {
+  const { kind, outcome, share, reason, by: taken, byName: named } = animationFields(step)
+  const travels = typeof step.to === 'string' && step.to !== '' && step.to !== step.from
+  const kinds = KIND_CHOICES.map(c => ({ ...c, block: c.id !== '' && !travels ? 'Needs two shapes' : undefined }))
+  const outcomes = OUTCOME_CHOICES.map(c => ({ ...c, block: outcomeBlock(kind, c.id) }))
+  const ended = outcome !== ''
+  const intercepted = outcome === 'intercepted'
+  const off = (why: string, on: boolean) => (on ? undefined : why)
+  return (
+    <details className="more" open={kind !== '' || undefined}>
+      <summary>Animation</summary>
+      <div className="form">
+        <SketchPicker label="Travels as" choices={kinds} value={kind} onPick={id => void onSet('kind', id)} />
+        <SketchPicker label="Ends as" choices={outcomes} value={outcome} onPick={id => void onSet('outcome', id)} />
+        <Field label="Share of requests (1 to 100)" value={share} placeholder="e.g. 30" disabled={!ended} title={off('Pick an outcome first', ended)} onSave={v => onSet('share', v)} />
+        <Field label={`Reason (${REASON_MAX} characters)`} value={reason} placeholder="e.g. Rate limit" disabled={!ended} title={off('Pick an outcome first', ended)} onSave={v => onSet('reason', v)} />
+        <div className="pick-field" title={off('Only for Intercepted', intercepted)}>
+          <div className="pick-head"><span>Taken by</span><span className="pick-value">{named !== '' ? named : takers.find(t => t.id === taken)?.name ?? (taken !== '' ? `${taken} · no such shape` : '')}</span></div>
+          <div className="pick-grid shapes-list" role="radiogroup" aria-label="Taken by a shape">
+            {takers.map(t => (
+              <button key={t.id} type="button" role="radio" aria-checked={t.id === taken} disabled={!intercepted || t.end} className="pick taker" title={!intercepted ? 'Only for Intercepted' : t.end ? 'An end of the step' : t.name} onClick={() => t.id !== taken && void onSet('by', t.id)}>
+                <TypeTile type={t.type} size={22} />
+                <span>{t.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <Field label={`Or a name (${NAME_MAX} characters)`} value={named} placeholder="e.g. Café wifi proxy" disabled={!intercepted} title={off('Only for Intercepted', intercepted)} onSave={v => onSet('byName', v)} />
+      </div>
+    </details>
+  )
+}
+
+const KIND_NAMES: Record<string, string> = { repeat: 'Repeat', branch: 'Branch', parallel: 'Parallel' }
+const KIND_ICONS: Record<string, typeof Repeat> = { repeat: Repeat, branch: GitFork, parallel: ArrowsSplit }
+const KINDS = Object.entries(KIND_NAMES).map(([id, name]) => ({ id, name, Icon: KIND_ICONS[id] }))
+/** A value of a table by a key from a file: only the table's own keys count, so a kind called "constructor" is not on it. */
+const own = <T,>(table: Record<string, T>, key: unknown): T | undefined => (typeof key === 'string' && Object.hasOwn(table, key) ? table[key] : undefined)
+
+/** The group a step is in, the lane it starts and the flow that tells the rest of its story. Each choice is one edit, which keeps the file valid or says why not. */
+function StepStructure({ step, self, groups, others, onGroup, onLane, onFlow }: {
+  step: Step; self: string; groups: Record<string, Group>; others: [string, string][]
+  onGroup: (group: string) => Promise<boolean>; onLane: (lane: string) => Promise<boolean>; onFlow: (flow: string) => Promise<boolean>
+}) {
+  const gid = typeof step.group === 'string' ? step.group.trim() : ''
+  const target = typeof step.flow === 'string' ? step.flow.trim() : ''
+  const ids = Object.keys(groups)
+  return (
+    <details className="more" open={gid !== '' || target !== '' || undefined}>
+      <summary>Group and flow</summary>
+      <div className="form">
+        <label>
+          Group
+          <select value={gid} onChange={e => void onGroup(e.target.value)}>
+            <option value="">None</option>
+            {ids.map(g => <option key={g} value={g}>{g} · {own(KIND_NAMES, groups[g]?.kind) ?? 'no kind'}</option>)}
+            {gid !== '' && !ids.includes(gid) && <option value={gid}>{gid} · not declared</option>}
+          </select>
+        </label>
+        {hasLanes(groups[gid]?.kind) && <Field label="Lane (a new lane starts here)" value={String(step.lane ?? '')} placeholder="e.g. The card is declined" onSave={onLane} />}
+        <label>
+          Opens flow
+          <select value={target} onChange={e => void onFlow(e.target.value)}>
+            <option value="">None</option>
+            {others.map(([id, name]) => <option key={id} value={id}>{name || id}</option>)}
+            {target !== '' && !others.some(([id]) => id === target) && <option value={target}>{target === self ? 'This flow' : `${target} · no such flow`}</option>}
+          </select>
+        </label>
+      </div>
+    </details>
+  )
+}
+
+/** A state for each end of a step, as drawn tiles. A pick is one edit, and None takes the state out. A shape the model no longer has is left out; the checks report it. */
+function StepStates({ model, step, onPick }: { model: Model; step: Step; onPick: (shape: string, state: StateName | '') => Promise<boolean> }) {
+  const shapes = stepStateShapes(step).filter(id => getObject(model, id) !== undefined)
+  if (shapes.length === 0) return null
+  return (
+    <details className="more" open={shapes.some(id => stateOf(step, id) !== undefined) || undefined}>
+      <summary>State</summary>
+      <div className="form">
+        {shapes.map(id => <StatePicker key={id} label={nameOf(model, id)} value={stateOf(step, id)} onPick={state => void onPick(id, state)} />)}
+      </div>
+    </details>
+  )
+}
+
+/** The groups of the flow being recorded: how each one behaves, and a form that puts a stretch of its steps in a new one. */
+function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps: Step[]; groups: Record<string, Group>; edit: SaveEdit }) {
+  const ids = Object.keys(groups)
+  const [kind, setKind] = useState('repeat')
+  const add = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const form = e.currentTarget
+    const data = new FormData(form)
+    const text = String(data.get('text')).trim()
+    const id = newId(text || kind, ids, 'group')
+    const saved = await edit(m => {
+      const grouped = groupSteps(m, flowId, id, kind, Number(data.get('first')), Number(data.get('last')))
+      return text ? putGroup(grouped, flowId, id, { ...grouped.flows[flowId].groups![id], text }) : grouped
+    })
+    if (saved) {
+      form.reset()
+      setKind('repeat')
+    }
+  }
+  const range = (name: string) => (
+    <select name={name} defaultValue={steps.length - 1}>{steps.map((_, i) => <option key={i} value={i}>{i + 1}</option>)}</select>
+  )
+  return (
+    <>
+      <Section icon={Repeat} title="Groups" count={ids.length} />
+      {ids.length > 0 && (
+        <ul className="groups">
+          {ids.map(gid => {
+            const g = groups[gid]
+            const KindIcon = own(KIND_ICONS, g.kind) ?? Repeat
+            // The group as it is saved now, not as it was drawn: another edit may have changed it since.
+            const save = (key: 'times' | 'until' | 'text', value: string) => edit(m => putGroup(m, flowId, gid, { ...(m.flows[flowId]?.groups?.[gid] ?? g), [key]: value }))
+            return (
+              <li key={gid} className="form">
+                <div className="group-head">
+                  <KindIcon size={16} />
+                  <strong>{gid}</strong>
+                  <button className="danger" aria-label={`Remove group ${gid}`} title="Remove the group. Its steps stay" onClick={() => void edit(m => removeGroup(m, flowId, gid))}><Trash size={16} /></button>
+                </div>
+                <KindPicker kinds={KINDS} value={own(KIND_NAMES, g.kind) === undefined ? '' : String(g.kind)} onPick={kind => void edit(m => setGroupKind(m, flowId, gid, kind))} />
+                {takesOption(g.kind, 'times') && (
+                  <>
+                    <Field label="Times (2 to 99)" value={String(g.times ?? '')} onSave={value => save('times', value.trim())} />
+                    <Field label="Until (instead of a count)" value={String(g.until ?? '')} onSave={value => save('until', value)} />
+                  </>
+                )}
+                <Field label="Text the player shows" value={String(g.text ?? '')} onSave={value => save('text', value)} />
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      {steps.length > 0 && (
+        <form className="form" key={steps.length} onSubmit={add}>
+          <label>Put steps in a new group<input name="text" placeholder="What it is, e.g. Retry the charge" /></label>
+          <KindPicker kinds={KINDS} value={kind} onPick={setKind} />
+          <div className="pair"><label>From step{range('first')}</label><label>To step{range('last')}</label></div>
+          <button className="primary"><Plus size={16} />Group these steps</button>
+        </form>
+      )}
+    </>
+  )
+}
+
+/** The step list beside the canvas while recording a flow: click two boxes, type what happens, press Enter. */
+export function Recorder({ model, view, rec, onChange, run, onClose }: Common & { view: string; rec: Recording; onChange: (rec: Recording) => void }) {
+  if (!rec.id) return (
+    <Panel onClose={onClose}>
+      <h2 className="iconhead"><span className="badge"><Route size={14} /></span>New flow</h2>
+      <form className="form" onSubmit={e => {
+        e.preventDefault()
+        const name = String(new FormData(e.currentTarget).get('name')).trim()
+        if (name) onChange({ id: newId(name, Object.keys(model.flows), 'flow'), name })
+      }}>
+        <label>Name<input name="name" autoFocus placeholder="e.g. Customer checks out" /></label>
+        <button className="primary"><Play size={16} />Start recording</button>
+      </form>
+    </Panel>
+  )
+  const flow = Object.hasOwn(model.flows, rec.id) ? model.flows[rec.id] : undefined
+  const stepsIn = (m: Model) => (Object.hasOwn(m.flows, rec.id) ? m.flows[rec.id].steps : [])
+  const steps = stepsIn(model)
+  // Step numbers come from the list on screen. If the saved steps differ from it (a quick second
+  // click, or someone else's edit), refuse rather than change the step that moved into that place.
+  const onScreen = (m: Model) => {
+    if (JSON.stringify(stepsIn(m)) !== JSON.stringify(steps)) throw new OpError('The steps just changed. Check them and try again.')
+    return stepsIn(m)
+  }
+  const change = (edit: (steps: Step[]) => Step[]) => run(m => updateFlow(m, rec.id, { steps: edit(onScreen(m)) }))
+  // An edit that counts steps (put one in a group, delete one) is checked against the list on screen as well.
+  const edit: SaveEdit = op => run(m => { onScreen(m); return op(m) })
+  const groups = declaredGroups(flow)
+  const others = Object.entries(model.flows).filter(([id]) => id !== rec.id).map(([id, f]): [string, string] => [id, f.name])
+  // A step with no "to", or one recorded by clicking the same box twice, is that box acting on its own.
+  const ends = (from: string, to?: string) => (to === undefined || to === from ? `${nameOf(model, from)}, on its own` : `${nameOf(model, from)} → ${nameOf(model, to)}`)
+  const addStep = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const text = String(new FormData(e.currentTarget).get('text')).trim()
+    if (!text || !rec.from || !rec.to) return
+    const step: Step = rec.to === rec.from ? { from: rec.from, text } : { from: rec.from, to: rec.to, text }
+    // The first step creates the file: a flow with no steps is a problem, so it can't be saved before.
+    const saved = await run(m => (Object.hasOwn(m.flows, rec.id)
+      ? updateFlow(m, rec.id, { steps: [...onScreen(m), step] })
+      : putFlow(m, { id: rec.id, name: rec.name, view, steps: [step] })))
+    if (saved) onChange({ id: rec.id, name: rec.name })
+  }
+  return (
+    <Panel onClose={onClose}>
+      {flow
+        ? <form className="form" onSubmit={e => e.preventDefault()}><Section icon={Route} title="Flow" /><Field label="Flow" value={flow.name} onSave={name => run(m => updateFlow(m, rec.id, { name }))} /></form>
+        : <h2 className="iconhead"><span className="badge"><Route size={14} /></span>{rec.name}</h2>}
+      <ol className="steps form">
+        {steps.map((s, i) => (
+          <li key={i}>
+            <Field label={ends(s.from, s.to)} value={s.text} onSave={text => change(all => all.with(i, { ...all[i], text }))} />
+            <details className="more" open={Boolean(s.description) || undefined}>
+              <summary>More</summary>
+              {/* An empty field removes the detail, so the step's file stays as short as it can be. */}
+              <Field label="More (Markdown)" value={String(s.description ?? '')} multiline onSave={description => change(all => all.with(i, withDescription(all[i], description)))} />
+            </details>
+            <StepAnimation
+              step={s} takers={Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name || id, end: id === s.from || id === s.to }))}
+              onSet={(key, value) => run(m => {
+                const now = stepsIn(m)[i]
+                onScreen(m)
+                return setStepAnimation(m, rec.id, i, animationWith(now.animation, key, value))
+              })}
+            />
+            <StepStructure
+              step={s} self={rec.id} groups={groups} others={others}
+              onGroup={group => edit(m => setStepGroup(m, rec.id, i, group))}
+              onLane={lane => change(all => all.with(i, withKey(all[i], 'lane', lane)))}
+              onFlow={target => change(all => all.with(i, withKey(all[i], 'flow', target)))}
+            />
+            <StepStates model={model} step={s} onPick={(shape, state) => edit(m => pickStepState(m, rec.id, i, shape, state))} />
+            <div className="step-buttons">
+              <button aria-label="Move up" disabled={i === 0} onClick={() => void change(all => all.with(i - 1, all[i]).with(i, all[i - 1]))}><ArrowUp size={16} /></button>
+              <button aria-label="Move down" disabled={i === steps.length - 1} onClick={() => void change(all => all.with(i + 1, all[i]).with(i, all[i + 1]))}><ArrowDown size={16} /></button>
+              <button className="danger" aria-label="Delete step" onClick={() => void edit(m => removeStep(m, rec.id, i))}><Trash size={16} /></button>
+            </div>
+          </li>
+        ))}
+      </ol>
+      {rec.from && rec.to ? (
+        <form className="form" onSubmit={addStep}>
+          <label>
+            {ends(rec.from, rec.to)}
+            <input name="text" autoFocus placeholder="What happens? Press Enter" onKeyDown={e => e.key === 'Escape' && onChange({ id: rec.id, name: rec.name })} />
+          </label>
+        </form>
+      ) : (
+        <p className="muted card">{rec.from ? `From ${nameOf(model, rec.from)}. Click where it goes, or the same shape if it acts alone.` : 'Click the shape where the next step starts.'}</p>
+      )}
+      {flow && <GroupsSection flowId={rec.id} steps={steps} groups={groups} edit={edit} />}
+      <div className="panel-buttons">
+        {flow && <button className="danger" onClick={() => void run(m => deleteFlow(m, rec.id)).then(saved => saved && onClose())}><Trash size={16} />Delete flow</button>}
+        <button className="primary" onClick={onClose}><Check size={16} />Done</button>
+      </div>
+    </Panel>
+  )
+}
