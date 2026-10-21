@@ -1,0 +1,27 @@
+name: Feature request
+description: Something Flowy Docs should do or show.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What you are trying to document or check
+      description: The system or situation, and where the canvas falls short today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you would like it to do
+      description: A sketch of the YAML or the screen is enough.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - Desktop app
+        - Browser version
+        - VS Code extension
+        - MCP server (Claude)
+        - File format
+        - Docs

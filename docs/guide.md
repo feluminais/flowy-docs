@@ -1,6 +1,6 @@
 # Flowy Docs guide
 
-The full detail behind the [README](../README.md): what every part of the canvas does, how editing and undo work, what Claude can change, and how sharing behaves. [The file format](format.md) lists every key of the files, and [Writing good Flowy docs](writing.md) says what to put in them. The examples come from Plum, a made-up delivery service whose model is in [`docs/demo/flowy`](demo/flowy).
+The full detail behind the [README](../README.md): what every part of the canvas does, how editing and undo work, what Claude can change, and how sharing behaves. [Install](install.md) says how to get each version, [Shortcuts](shortcuts.md) lists the keys, [the file format](format.md) lists every key of the files, and [Writing good Flowy docs](writing.md) says what to put in them. The examples come from Plum, a made-up delivery service whose model is in [`docs/demo/flowy`](demo/flowy).
 
 What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md).
 
@@ -717,7 +717,7 @@ objects:
           - {name: id, key: primary}
           - {name: customer_id, to: customers}
           - status
-          - {name: total, note: "Cents, not decimals. Rounding broke the first tax run."}
+          - {name: total, note: "Stored in cents because rounding broke the first tax run."}
         rows:
           - [o_1042, c_77, placed, 2490]
           - [o_1043, c_12, accepted, 1380]
@@ -934,8 +934,8 @@ analysis, [Order to door](demo/flowy/failures/ordering.yaml), and `node dist/cli
 
 ## Let Claude build it
 
-From the root of the repo you want to document, once the clone is built as the
-[README](../README.md#the-browser-version) says:
+From the root of the repo you want to document, once the clone is built as
+[Install](install.md#the-browser-version) says:
 
 ```bash
 claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
@@ -1055,7 +1055,28 @@ node /path/to/flowy-docs/dist/cli.js mermaid --view ordering
 ```
 
 `--flow <id>` prints a flow as a sequence diagram instead. A flow's repeats, branches and parallel lanes come out as `loop`, `alt` and
-`par` blocks ([above](#repeats-branches-and-parallel-steps)).
+`par` blocks ([above](#repeats-branches-and-parallel-steps)). This is Customer places an order, from `mermaid --flow place-order`:
+
+```mermaid
+sequenceDiagram
+  actor n0 as Customer
+  participant n1 as Customer app
+  participant n2 as Order API
+  participant n3 as Stripe
+  participant n4 as Orders DB
+  participant n5 as Order events
+  participant n6 as Delivery
+  participant n7 as Kitchen tablet
+  n0->>n1: Fills a basket and taps Place order
+  n1->>n2: POST /orders with the basket
+  n2->>n3: Holds the amount on the card
+  n2->>n4: Saves the order as placed
+  n2->>n5: Announces the order
+  n5->>n6: Dispatch starts looking for a courier
+  n2->>n7: The restaurant's tablet rings
+```
+
+The desktop app does the same from **View › Copy as Mermaid**, and **View › Save Picture** saves the diagram as a PNG.
 
 The address follows what's on screen. `#ordering` is the inside of Ordering, and `#ordering/place-order` plays
 the flow `place-order` there. Copy it to send someone straight to a level or a flow. The local canvas

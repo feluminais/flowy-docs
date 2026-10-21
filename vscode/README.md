@@ -1,6 +1,6 @@
 # Flowy Docs for VS Code
 
-Architecture docs you zoom through instead of scrolling through. This extension opens a repo's `flowy/` folder as a
+Architecture docs you zoom into, kept in your repo. This extension opens a repo's `flowy/` folder as a
 diagram inside VS Code: people, systems, apps, stores and components, how they connect, and step-by-step flows. The model
 is plain YAML that sits in git next to the code it describes.
 
@@ -32,7 +32,7 @@ is plain YAML that sits in git next to the code it describes.
 
 A model is a `flowy/` folder at the root of your repo: `model.yaml` for the shapes and connections, and `flows/*.yaml` for
 walkthroughs. The quickest way to get one is to ask Claude. From the root of the repo, with the Flowy Docs clone built once
-(the [README](https://github.com/feluminais/flowy-docs#let-claude-build-it) says how):
+([Install](https://github.com/feluminais/flowy-docs/blob/main/docs/install.md#let-claude-write-the-model) says how):
 
 ```bash
 claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
