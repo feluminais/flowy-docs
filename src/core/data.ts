@@ -1,5 +1,7 @@
+import { Document, isMap as isYamlMap, isScalar, isSeq } from 'yaml'
 import { isMap } from './text.ts'
 import type { FlowyObject } from './model.ts'
+import { flowMap, flowSeq, flowTextLists, readYaml } from './yamltext.ts'
 
 /** How much of a store's data the section shows, so it stays a picture of the few tables that matter and never a dump. */
 export const DATA_MAX = { columns: 12, rows: 8, depth: 3, fields: 20 } as const
@@ -274,4 +276,37 @@ export function dataShown(o: FlowyObject): DataShown[] {
     }
   }
   return shown
+}
+
+/**
+ * Marks what a store's `data` writes on one line, so a table of eight rows stays eight lines and a diff stays readable: each row, each column
+ * that is a mapping, a `columns` list of only bare names, and a list of text inside a sample. Everything else stays block style. Only acts on
+ * nodes of the expected kind, so a hand-written `data` of the wrong shape is written as it is, never rejected here (check() reports it).
+ */
+export function compactEntries(data: unknown) {
+  if (!isSeq(data)) return
+  for (const entry of data.items) {
+    if (!isYamlMap(entry)) continue
+    const columns = entry.get('columns', true)
+    if (isSeq(columns)) {
+      if (columns.items.every(item => isScalar(item))) flowSeq(columns)
+      else for (const column of columns.items) if (isYamlMap(column)) flowMap(column)
+    }
+    const rows = entry.get('rows', true)
+    if (isSeq(rows)) for (const row of rows.items) if (isSeq(row)) flowSeq(row)
+    flowTextLists(entry.get('sample', true))
+  }
+}
+
+/** A store's `data` as the text of the edit box: the same one-line forms the file uses, with no wrapper. Empty text for none. */
+export function serializeData(data: unknown): string {
+  if (data === undefined || data === '' || (Array.isArray(data) && data.length === 0)) return ''
+  const doc = new Document(data, { schema: 'failsafe', aliasDuplicateObjects: false })
+  compactEntries(doc.contents)
+  return doc.toString({ lineWidth: 0, flowCollectionPadding: false })
+}
+
+/** The edit box's text as data, read as the files are (failsafe, so every value is text). Blank text is an empty list. Throws a ParseError for text that is not YAML. */
+export function parseData(text: string): unknown {
+  return text.trim() === '' ? [] : readYaml('data', text)
 }

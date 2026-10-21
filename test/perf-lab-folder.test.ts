@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
-import { modelFiles } from '../src/core/model.ts'
+import { modelFiles } from '../src/core/modelfiles.ts'
 import { modelOf } from '../src/core/state.ts'
 import { knee, scaleText } from '../src/core/perf.ts'
 import { loadState } from '../src/node/files.ts'

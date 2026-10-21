@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { getObject, parseFlowFile } from '../src/core/model.ts'
+import { getObject } from '../src/core/model.ts'
+import { parseFlowFile } from '../src/core/modelfiles.ts'
 import type { Flow, Step } from '../src/core/model.ts'
 import { isStateName, marksOf, readStates, STATE_LABELS, STATE_NAMES, stateProblems, statesAt, usesStates } from '../src/core/states.ts'
 import { stopBefore, stopsOf } from '../src/core/structure.ts'

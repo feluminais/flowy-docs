@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { emptyModel, serializeFile } from '../src/core/model.ts'
+import { emptyModel } from '../src/core/model.ts'
+import { serializeFile } from '../src/core/modelfiles.ts'
 import { blockedMessage, firstBlocked, firstUnreadable } from '../src/node/commit.ts'
 import type { Loaded } from '../src/node/files.ts'
 

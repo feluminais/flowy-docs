@@ -1,9 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import {
-  changedFiles, emptyModel, fileData, getObject, linksOf, modelFiles, ParseError, parseFile, parseFlowFile, parseLayoutFile,
-  parseModelFile, readYaml, serializeFile, serializeFlow, serializeLayout, serializeModelFile,
-} from '../src/core/model.ts'
+import { emptyModel, getObject, linksOf, ParseError } from '../src/core/model.ts'
+import { changedFiles, fileData, modelFiles, parseFile, parseFlowFile, parseLayoutFile, parseModelFile, serializeFile, serializeFlow, serializeLayout, serializeModelFile } from '../src/core/modelfiles.ts'
+import { readYaml } from '../src/core/yamltext.ts'
 import type { FlowyObject, Layout } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 

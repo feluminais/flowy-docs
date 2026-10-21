@@ -1,6 +1,6 @@
 import { dataShown } from '../../src/core/data.ts'
 import type { DataShown } from '../../src/core/data.ts'
-import { serializeData } from '../../src/core/model.ts'
+import { serializeData } from '../../src/core/data.ts'
 import type { FlowyObject } from '../../src/core/model.ts'
 import { Section } from './Chrome.tsx'
 import { Clock, Table } from './icons.tsx'

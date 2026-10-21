@@ -1,6 +1,6 @@
 import { isAbsolute, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { fileData, serializeFile, serializeLayout } from '../../src/core/model.ts'
+import { fileData, serializeFile, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
 import { loadState } from '../../src/node/files.ts'

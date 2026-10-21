@@ -1,7 +1,7 @@
 import type { Problem } from '../../src/core/problem.ts'
 import { describeEdit } from '../../src/core/editlabel.ts'
 import { fallbackLabel } from '../../src/core/history.ts'
-import { fileData, isRemovableFile } from '../../src/core/model.ts'
+import { fileData, isRemovableFile } from '../../src/core/modelfiles.ts'
 import type { Model } from '../../src/core/model.ts'
 import { refuseNewProblems } from '../../src/core/ops.ts'
 import type { Run } from '../../src/core/perf.ts'

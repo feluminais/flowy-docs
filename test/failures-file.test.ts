@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { changedFiles, emptyModel, fileData, isRemovableFile, modelFiles, ParseError, parseAnalysisFile, parseFile, serializeAnalysis } from '../src/core/model.ts'
+import { emptyModel, ParseError } from '../src/core/model.ts'
+import { changedFiles, fileData, isRemovableFile, modelFiles, parseAnalysisFile, parseFile, serializeAnalysis } from '../src/core/modelfiles.ts'
 import { shop, shopWithFailures } from './fixtures.ts'
 
 const CANONICAL = `name: Ordering
