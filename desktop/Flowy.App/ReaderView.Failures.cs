@@ -7,15 +7,15 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>
-/// The Failures panel: the analysis on show and the mode picked in it, what the list is narrowed to, and the failures drawn on the canvas (a badge on each
-/// shape and line that carries a mode, and for the mode picked its part outlined and the rest faded). It takes Details' place on the right while it is open.
-/// A port of what App.tsx does for the Failures tab, with the same rules: it is there only where the folder has an analysis (or a file of one to complain about)
-/// and not while editing; a flow that was playing waits behind it; a click on the canvas picks what narrows its list.
+/// The Failures tab of the navigator, on the left with Explorer and Flows: the analysis on show and the mode picked in it, what the list is narrowed to, and the
+/// failures drawn on the canvas (a badge on each shape and line that carries a mode, and for the mode picked its part outlined and the rest faded). Details
+/// stays free on the right, so a shape picked on the canvas reads out there while it also narrows the list. A port of what App.tsx does for the Failures tab,
+/// with the same rules: it is there only where the folder has an analysis (or a file of one to complain about) and not while editing; a flow that was
+/// playing waits behind it; the Performance panel and it never show at once, because load and risk would draw over each other.
 /// </summary>
 internal sealed partial class ReaderView
 {
-    private readonly FailuresPanel _failuresPanel = new();
-    private bool _failures; // the Failures panel was opened (by its rail button or M)
+    private FailuresPanel _failuresPanel => _nav.Failures;
     private string _analysisId = "";
     private string? _modeId;
     private RiskBand? _band; // the list is narrowed to this band
@@ -27,7 +27,8 @@ internal sealed partial class ReaderView
     /// <summary>While editing the tab is greyed out: the analyses have no forms here yet, and the marks would sit on a model that is changing.</summary>
     private bool CanFailures => !Editing && ShowFailures;
 
-    private bool FailuresOpen => _failures && CanFailures;
+    /// <summary>The navigator's tab is Failures (chosen on its rail or its strip, or by M) and the folder has an analysis to show.</summary>
+    private bool FailuresOpen => _tab == PanelTab.Failures && CanFailures;
 
     private string? AnalysisKey => _folder is { } f ? FailuresView.ActiveAnalysis(f.Model.Failures, _analysisId) : null;
 
@@ -43,24 +44,10 @@ internal sealed partial class ReaderView
         _ => null,
     };
 
-    private void OpenFailures()
-    {
-        if (!CanFailures) return;
-        _details = false; // so that closing it again doesn't leave Details open in its place
-        _perf = false;
-        _ramping = false;
-        if (_side is { Kind: SideKind.Add or SideKind.Flow }) _side = null; // Details' own
-        _failures = true;
-        Refresh();
-    }
+    /// <summary>Opens the tab beside Explorer and Flows. It closes the Performance panel on the right: its traffic and the failure marks would draw over each other.</summary>
+    private void OpenFailures() => SetTab(PanelTab.Failures);
 
-    private void CloseFailures()
-    {
-        _failures = false;
-        _side = null; // what was picked to narrow its list is no reason for Details to open in its place
-        Refresh();
-        Focus();
-    }
+    private void CloseFailures() => CloseNav();
 
     private void ToggleFailures()
     {
@@ -101,7 +88,7 @@ internal sealed partial class ReaderView
         _failuresPanel.FlowShown += ShowFlow;
         _failuresPanel.SeenInRun += SeenInRun;
         _failuresPanel.Copied += format => _ = CopyAnalysisAsync(format);
-        _failuresPanel.Used += () => Focus(); // a control in the panel took the keyboard: give it back, so the keys work
+        _failuresPanel.Used += () => Focus(); // a control in the panel took the keyboard: give it back, so the keys work (and its tab stays the one Esc closes)
     }
 
     /// <summary>Picks a mode in the list (or, picked again, none); when its part is outside this view, the canvas goes to the view that draws it.</summary>
@@ -110,6 +97,14 @@ internal sealed partial class ReaderView
         _modeId = id;
         if (PickedMode is { } mode && _folder is { } folder && !Failures.DrawnIn(folder.Model, CurrentView(), mode)) GoTo(Failures.HomeView(folder.Model, mode));
         else Refresh();
+        RevealPicked();
+    }
+
+    /// <summary>Pans the canvas just far enough that the picked mode's part is not hidden under the navigator, where the list is, or under Details.</summary>
+    private void RevealPicked()
+    {
+        if (PickedMode is not { } mode || _folder is not { } folder || Failures.LightFor(folder.Model, CurrentView(), mode) is not { Fails.Count: > 0 } lit) return;
+        _canvas.RevealAll(lit.Fails, RightOpen ? _detailsWidth : 0, ShownTab is not null ? _navWidth : 0);
     }
 
     /// <summary>A click on a shape in the list of those no mode names yet: go to it and pick it.</summary>
@@ -141,7 +136,7 @@ internal sealed partial class ReaderView
         if (_folder is not { } folder || FailuresView.ModeIn(folder.Model, AnalysisKey, id) is not { } mode) return;
         if (mode.Run is not { } name || folder.Runs is not { } runs || !runs.TryGetValue(name, out var run)) return;
         if (FailuresView.FirstErrorAt(folder.Model, run, mode) is not { } at) return;
-        _failures = false;
+        if (_tab == PanelTab.Failures) _tab = null;
         _side = null;
         GoTo(Failures.HomeView(folder.Model, mode));
         _ramping = false;
@@ -189,7 +184,6 @@ internal sealed partial class ReaderView
     {
         var folder = _folder!;
         _failuresPanel.Show(new FailuresShown(model, view, AnalysisKey, PickedMode is null ? null : _modeId, _band, _left, PickedPart, folder.Runs ?? new IdMap<LoadRun>(), folder.Problems, folder.FailureProblems ?? []));
-        _panel.ShowControl(_failuresPanel, "failures");
     }
 
     /// <summary>The Left and Right keys step through the list as it is drawn: the rows of this view, then the others.</summary>
