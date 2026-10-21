@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ParseError } from '../src/core/model.ts'
-import { AT_ONCE, capCounts, checkRun, interpolate, knee, kneeText, parseRun, RADIUS_MAX, RADIUS_MIN, rollUp, scaleText, sourceKey, strain, traffic } from '../src/core/perf.ts'
+import { AT_ONCE, capCounts, checkRun, eventsPassed, eventText, interpolate, knee, kneeText, parseRun, RADIUS_MAX, RADIUS_MIN, rollUp, runStates, scaleText, sourceKey, strain, traffic } from '../src/core/perf.ts'
 import { shop } from './fixtures.ts'
 
 /** Three levels of a run against the shop fixture (test/fixtures.ts): api and db are measured, and orders inside api. */
@@ -689,4 +689,181 @@ test('a run that went through JSON, as one does on its way to the browser, draws
   assert.deepEqual(traffic(shop(), sent, 1, 'shop'), traffic(shop(), run, 1, 'shop'))
   assert.equal(scaleText(sent), '1 dot = 50 calls/s')
   assert.deepEqual(sourceKey(sent, traffic(shop(), sent, 1, 'shop').lines), sourceKey(run, traffic(shop(), run, 1, 'shop').lines))
+})
+
+// ---- Runs over time
+
+/** The spec's outage: levels at 0, 45 and 120 seconds, and Stripe killed, restarted and answering again at 40, 70 and 85 (written out of order on purpose). */
+const OUTAGE = `name: Payments killed at 40 s
+axis: time
+unit: s
+events:
+  - { at: 85, on: stripe, state: running, text: Answers again }
+  - { at: 40, on: stripe, state: stopped, text: Payments killed }
+  - { at: 70, on: stripe, state: starting, text: Restart begins }
+levels:
+  - at: 0
+    overall: { rate: 98, p50: 60, p95: 140, errors: 0 }
+    objects:
+      stripe: { util: 0.4 }
+  - at: 45
+    objects:
+      stripe: { util: 0 }
+      api: { util: 0.9, errors: 0.6 }
+  - at: 120
+`
+const outage = () => parseRun('outage', OUTAGE).run
+/** The shop with a Stripe shape, which the outage's events name. */
+const withStripe = () => ({ ...shop(), objects: { ...shop().objects, stripe: { type: 'system' as const, name: 'Stripe' } } })
+
+test('a time run reads its axis, its times and its events, in time order', () => {
+  const { run, problems } = parseRun('outage', OUTAGE)
+  assert.deepEqual(problems, [])
+  assert.equal(run.axis, 'time')
+  assert.equal(run.unit, 's')
+  assert.deepEqual(run.levels.map(l => l.load), [0, 45, 120]) // a time run's levels keep their time in `load`
+  assert.deepEqual(run.events, [
+    { at: 40, on: 'stripe', state: 'stopped', text: 'Payments killed' },
+    { at: 70, on: 'stripe', state: 'starting', text: 'Restart begins' },
+    { at: 85, on: 'stripe', state: 'running', text: 'Answers again' },
+  ])
+  assert.deepEqual(run.levels[1].objects.stripe, { util: 0 })
+})
+
+test('a time run with no unit counts seconds, and a load run still counts plain "load"', () => {
+  assert.equal(parseRun('r', 'name: R\naxis: time\nlevels:\n  - at: 0\n  - at: 5\n').run.unit, 's')
+  assert.equal(parseRun('r', 'name: R\nlevels:\n  - load: 1\n  - load: 2\n').run.unit, 'load')
+})
+
+test('the state at a time is the latest event at or before it, and Running stays an entry of its own', () => {
+  const run = outage()
+  assert.deepEqual(runStates(run, -1), {})
+  assert.deepEqual(runStates(run, 0), {})
+  assert.deepEqual(runStates(run, 39), {})
+  assert.deepEqual(runStates(run, 39.999), {})
+  assert.deepEqual(runStates(run, 40), { stripe: 'stopped' })
+  assert.deepEqual(runStates(run, 60), { stripe: 'stopped' })
+  assert.deepEqual(runStates(run, 70), { stripe: 'starting' })
+  assert.deepEqual(runStates(run, 85), { stripe: 'running' })
+  assert.deepEqual(runStates(run, 120), { stripe: 'running' })
+  assert.deepEqual(runStates(run, Number.NaN), {})
+})
+
+test('eventsPassed gives the events at or before a time, in time order', () => {
+  const run = outage()
+  assert.deepEqual(eventsPassed(run, 39).map(e => e.at), [])
+  assert.deepEqual(eventsPassed(run, 40).map(e => e.at), [40])
+  assert.deepEqual(eventsPassed(run, 84.9).map(e => e.at), [40, 70])
+  assert.deepEqual(eventsPassed(run, 1000).map(e => e.at), [40, 70, 85])
+  assert.deepEqual(eventsPassed(run, Number.NaN), [])
+})
+
+test('two events for one shape at one time: the later one in the file wins', () => {
+  const { run } = parseRun('r', 'name: R\naxis: time\nevents:\n  - { at: 5, on: a, state: stopped }\n  - { at: 5, on: a, state: degraded }\n  - { at: 5, on: b, state: starting }\n  - { at: 9, on: a, state: running }\n  - { at: 9, on: a, state: stopping }\nlevels:\n  - at: 0\n  - at: 10\n')
+  assert.deepEqual(runStates(run, 5), { a: 'degraded', b: 'starting' })
+  assert.deepEqual(runStates(run, 9), { a: 'stopping', b: 'starting' })
+})
+
+test('an event at exactly the first or last time is kept, and one a millisecond outside is a problem', () => {
+  const text = (first: string, last: string) => `name: R\naxis: time\nunit: s\nevents:\n  - { at: ${first}, on: a, state: stopped }\n  - { at: ${last}, on: a, state: running }\nlevels:\n  - at: 0\n  - at: 150\n`
+  const edges = parseRun('r', text('0', '150'))
+  assert.deepEqual(edges.problems, [])
+  assert.deepEqual(edges.run.events?.map(e => e.at), [0, 150])
+  assert.deepEqual(runStates(edges.run, 0), { a: 'stopped' })
+  const out = parseRun('r', text('-0.001', '150.001'))
+  assert.equal(out.run.events, undefined)
+  assert.deepEqual(out.problems.map(p => p.message), [
+    'event 1: at -0.001 is outside the run (0 to 150 s)',
+    'event 2: at 150.001 is outside the run (0 to 150 s)',
+  ])
+})
+
+/** What a run can get wrong about its axis and events, and the one problem that tells the author. Each run still loads. */
+const slips: [what: string, text: string, said: string[]][] = [
+  ['a level with load where the run is over time', 'name: R\naxis: time\nlevels:\n  - at: 0\n  - load: 5\n', ['level 2: a time run uses at, not load']],
+  ['a level with at where the run is over load', 'name: R\nlevels:\n  - load: 1\n  - at: 5\n', ['level 2: a load run uses load, not at']],
+  ['both keys on a level', 'name: R\naxis: time\nlevels:\n  - at: 0\n  - at: 5\n    load: 9\n', ['level 2: a time run uses at, not load']],
+  ['an axis that is neither', 'name: R\naxis: weird\nlevels:\n  - load: 1\n  - load: 2\n', ['axis must be load or time']],
+  ['an axis that is a number', 'name: R\naxis: 5\nlevels:\n  - load: 1\n  - load: 2\n', ['axis must be load or time']],
+  ['an axis that is a list', 'name: R\naxis: [time]\nlevels:\n  - load: 1\n  - load: 2\n', ['axis must be load or time']],
+  ['events on a load run', 'name: R\nevents:\n  - { at: 1, on: a, state: stopped }\nlevels:\n  - load: 1\n  - load: 2\n', ['events are only for a time run (set axis: time)']],
+  ['events that are not a list', 'name: R\naxis: time\nevents: { at: 1 }\nlevels:\n  - at: 0\n  - at: 2\n', ['events must be a list']],
+  ['an event that is not a mapping', 'name: R\naxis: time\nevents: [soon]\nlevels:\n  - at: 0\n  - at: 2\n', ['event 1 must be a mapping of at, on, state and text']],
+  ['an event with no time', 'name: R\naxis: time\nevents:\n  - { on: a, state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n', ['event 1: at must be a number']],
+  ['an event with a time that is a word', 'name: R\naxis: time\nevents:\n  - { at: soon, on: a, state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n', ['event 1: at must be a number']],
+  ['an event with no shape', 'name: R\naxis: time\nevents:\n  - { at: 1, state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n', ['event 1: on must name a shape']],
+  ['an event with an unknown state', 'name: R\naxis: time\nevents:\n  - { at: 1, on: a, state: asleep }\nlevels:\n  - at: 0\n  - at: 2\n', ['event 1: unknown state "asleep" (use running, starting, stopping, stopped, restarting, degraded)']],
+  ['an event with no state', 'name: R\naxis: time\nevents:\n  - { at: 1, on: a }\nlevels:\n  - at: 0\n  - at: 2\n', ['event 1: state needs a state word (use running, starting, stopping, stopped, restarting, degraded)']],
+  ['an event with text that is a list', 'name: R\naxis: time\nevents:\n  - { at: 1, on: a, state: stopped, text: [x] }\nlevels:\n  - at: 0\n  - at: 2\n', ['event 1: text must be plain text']],
+]
+for (const [what, text, said] of slips) {
+  test(`${what} is a problem for the author, and the run still loads`, () => {
+    const { run, problems } = parseRun('r', text)
+    assert.deepEqual(problems.map(p => p.message), said)
+    assert.ok(problems.every(p => p.file === 'perf/r.yaml'))
+    assert.ok(run.levels.length >= 2)
+  })
+}
+
+test('a slip in an event leaves that event out and keeps the others; a slip in the text only keeps the event', () => {
+  const { run } = parseRun('r', 'name: R\naxis: time\nevents:\n  - { at: 1, on: a, state: asleep }\n  - { at: 2, on: a, state: stopped }\n  - { at: 3, on: a, state: running, text: [x] }\n  - nope\nlevels:\n  - at: 0\n  - at: 4\n')
+  assert.deepEqual(run.events, [{ at: 2, on: 'a', state: 'stopped', text: '' }, { at: 3, on: 'a', state: 'running', text: '' }])
+})
+
+test('a wrong key still gives the level its number, so a time run with load levels still plays', () => {
+  const { run } = parseRun('r', 'name: R\naxis: time\nlevels:\n  - load: 0\n  - load: 5\n')
+  assert.deepEqual(run.levels.map(l => l.load), [0, 5])
+})
+
+test('a time run is as strict as a load run about the time of a level', () => {
+  assert.equal(parseRun('r', 'name: R\naxis: time\nlevels:\n  - at: 0\n  - at: 5\n').run.events, undefined)
+  assert.throws(() => parseRun('r', 'name: R\naxis: time\nlevels:\n  - at: 0\n  - objects: {}\n'), (e: unknown) => e instanceof ParseError && e.reason.includes('level 2: at must be a number, 0 or more'))
+  assert.throws(() => parseRun('r', 'name: R\naxis: time\nlevels:\n  - at: 5\n  - at: 5\n'), (e: unknown) => e instanceof ParseError && e.reason.includes('level 2: at 5 must be above 5 (levels go up in time)'))
+})
+
+test('a run that says axis: load reads to the run it always did, and a time run adds only its axis and events', () => {
+  assert.deepEqual(parseRun('ramp', `axis: load\n${RAMP}`).run, ramp())
+  assert.deepEqual(Object.keys(parseRun('r', 'name: R\naxis: time\nlevels:\n  - at: 0\n  - at: 5\n').run), ['name', 'unit', 'axis', 'levels'])
+})
+
+test('a shape called __proto__ in an event is data, never the prototype', () => {
+  const { run } = parseRun('r', 'name: R\naxis: time\nevents:\n  - { at: 1, on: __proto__, state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n')
+  const states = runStates(run, 1)
+  assert.deepEqual(Object.keys(states), ['__proto__'])
+  assert.equal(Object.getPrototypeOf(states), Object.prototype)
+  assert.equal(({} as Record<string, unknown>).state, undefined)
+})
+
+test('checkRun reports an event that names a shape the model does not have, once', () => {
+  const { run } = parseRun('r', 'name: R\naxis: time\nevents:\n  - { at: 1, on: ghost, state: stopped }\n  - { at: 2, on: ghost, state: running }\n  - { at: 3, on: stripe, state: stopped }\nlevels:\n  - at: 0\n  - at: 4\n')
+  assert.deepEqual(checkRun('r', run, withStripe()).map(p => p.message), ['unknown object "ghost"'])
+  assert.deepEqual(checkRun('outage', outage(), withStripe()), [])
+})
+
+test('an event says what it wrote, or the shape and the state', () => {
+  const [stopped, , running] = outage().events ?? []
+  const name = (id: string) => (id === 'stripe' ? 'Stripe' : id)
+  assert.equal(eventText(stopped, name), 'Payments killed')
+  assert.equal(eventText(running, name), 'Answers again')
+  const bare = parseRun('r', 'name: R\naxis: time\nevents:\n  - { at: 1, on: stripe, state: restarting }\n  - { at: 2, on: stripe, state: degraded, text: "  " }\nlevels:\n  - at: 0\n  - at: 3\n').run.events ?? []
+  assert.deepEqual(bare.map(e => eventText(e, name)), ['Stripe: Restarting', 'Stripe: Degraded'])
+})
+
+test('a time run that went through JSON, as one does on its way to the browser, says the same states', () => {
+  const sent: ReturnType<typeof outage> = JSON.parse(JSON.stringify(outage()))
+  assert.deepEqual(runStates(sent, 70), runStates(outage(), 70))
+  assert.deepEqual(eventsPassed(sent, 70), eventsPassed(outage(), 70))
+})
+
+test('a load run has no events and no states', () => {
+  assert.deepEqual(eventsPassed(ramp(), 200), [])
+  assert.deepEqual(runStates(ramp(), 200), {})
+})
+
+test('a time run plays through interpolate and knee like any run', () => {
+  const run = outage()
+  assert.equal(interpolate(run, 22.5).objects.stripe.util, 0.2)
+  assert.equal(interpolate(run, 200).load, 120) // clamped to the last time, as ever
+  assert.equal(knee(run)?.load, 45) // api is failing at 45 s
+  assert.equal(kneeText(run, knee(run)!, id => id), 'First struggles at 45 s: api failing 60% of calls')
 })

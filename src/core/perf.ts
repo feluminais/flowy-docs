@@ -4,6 +4,8 @@ import type { Formula } from './formula.ts'
 import { isColor } from './look.ts'
 import { getObject, isMap, orEmpty, ParseError, readYaml, ROOT } from './model.ts'
 import type { Model } from './model.ts'
+import { isStateName, STATE_LABELS, STATE_NAMES } from './states.ts'
+import type { StateName, States } from './states.ts'
 import { chain, placeEnds } from './views.ts'
 
 /**
@@ -31,7 +33,25 @@ export type SourceFormula = { text: string }
  * line shows at once and one for the area of a dot. Every key is optional. Part 3b will make a run hold a list of these; keep it a value of its own.
  */
 export type Source = { color?: string; dot?: SourceFormula; size?: SourceFormula }
-export type Run = { name: string; about?: string; unit: string; entry?: string; source?: Source; levels: Level[] }
+/**
+ * What a run is measured over: the load put on the system (the default), or time. A time run's levels are points in time and its `events`
+ * (a shape stopped, a restart begun) change shapes' states along the way. The number a level stands at is `load` in both, whatever the axis.
+ */
+export type Axis = 'load' | 'time'
+export const AXES: readonly Axis[] = ['load', 'time']
+/** Something that happens at a time in a time run: a shape goes into a state. `text` is empty when the run doesn't say; eventText then words it. */
+export type RunEvent = { at: number; on: string; state: StateName; text: string }
+/**
+ * `axis` and `events` are left out of a run that has none, so a load run is exactly what it was before time runs existed (a time run says its axis;
+ * its events are there when it has any). Read them through isTime and eventsOf.
+ */
+export type Run = { name: string; about?: string; unit: string; entry?: string; source?: Source; axis?: Axis; events?: RunEvent[]; levels: Level[] }
+
+/** Whether the run is measured over time. */
+export const isTime = (run: Run): boolean => run.axis === 'time'
+const NO_EVENTS: readonly RunEvent[] = []
+/** A run's events in time order (later in the file last among those at one time); none for a load run. */
+export const eventsOf = (run: Run): readonly RunEvent[] => run.events ?? NO_EVENTS
 
 const OBJECT_KEYS = ['util', 'queue', 'errors'] as const
 const EDGE_KEYS = ['rate', 'bytes', 'p50', 'p95', 'errors'] as const
@@ -130,6 +150,52 @@ function readFailure(raw: unknown, where: string, add: (message: string) => void
   return found
 }
 
+const USE_STATE = `use ${STATE_NAMES.join(', ')}`
+
+/**
+ * The `events:` of a time run, in time order (a stable sort, so of two at one time the later in the file stays later). A problem is reported through `add`
+ * and the event it is about is left out: one with no time inside the run (`range` is the first and last time), no shape or no state word. A text that is not
+ * plain text only loses the text. The shape is not looked up here (checkRun does, once the model is known).
+ */
+function readEvents(raw: unknown, range: readonly [number, number], unit: string, add: (message: string) => void): RunEvent[] {
+  const list = orEmpty(raw, [])
+  if (!Array.isArray(list)) {
+    add('events must be a list')
+    return []
+  }
+  const out: RunEvent[] = []
+  list.forEach((e: unknown, i) => {
+    const where = `event ${i + 1}`
+    if (!isMap(e)) return add(`${where} must be a mapping of at, on, state and text`)
+    let ok = true
+    const at = num(e.at)
+    if (at === undefined) {
+      add(`${where}: at must be a number`)
+      ok = false
+    } else if (at < range[0] || at > range[1]) {
+      add(`${where}: at ${at} is outside the run (${range[0]} to ${range[1]} ${unit})`)
+      ok = false
+    }
+    const on = e.on
+    if (typeof on !== 'string' || on === '') {
+      add(`${where}: on must name a shape`)
+      ok = false
+    }
+    const state = e.state
+    if (typeof state !== 'string') {
+      add(`${where}: state needs a state word (${USE_STATE})`)
+      ok = false
+    } else if (!isStateName(state)) {
+      add(`${where}: unknown state "${brief(state)}" (${USE_STATE})`)
+      ok = false
+    }
+    const said = orEmpty(e.text, undefined)
+    if (said !== undefined && typeof said !== 'string') add(`${where}: text must be plain text`)
+    if (ok && at !== undefined && typeof on === 'string' && isStateName(state)) out.push({ at, on, state, text: typeof said === 'string' ? said.trim() : '' })
+  })
+  return out.sort((a, b) => a.at - b.at)
+}
+
 /**
  * Read one run file (`perf/<id>.yaml`). Throws a ParseError for a file that can't be played: bad YAML, the wrong shape,
  * fewer than two levels, loads that don't go up. A number that is wrong is a problem instead, and is left out of the run.
@@ -153,6 +219,12 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
   const unit = word('unit')
   const entry = word('entry')
   const source = readSource(doc.source, add)
+  const axisText = orEmpty(doc.axis, undefined)
+  const axis: Axis = AXES.find(a => a === axisText) ?? 'load' // a run says what it is measured over, or is a load run
+  if (axisText !== undefined && !AXES.some(a => a === axisText)) add(`axis must be ${AXES.join(' or ')}`)
+  // The key a level carries its number under, and the other one, which is the commonest slip: a time run written with load, or a load run with at.
+  const key = axis === 'time' ? 'at' : 'load'
+  const other = axis === 'time' ? 'load' : 'at'
 
   const rawLevels = orEmpty(doc.levels, [])
   if (!Array.isArray(rawLevels)) throw new ParseError(file, '"levels" must be a list')
@@ -161,9 +233,10 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
   const readLevel = (raw: unknown, i: number): Level => {
     const at = `level ${i + 1}`
     if (!isMap(raw)) throw new ParseError(file, `${at} must be a mapping`)
-    const load = num(raw.load)
-    if (load === undefined || load < 0) throw new ParseError(file, `${at}: load must be a number, 0 or more`)
-    const where = (what: string) => `load ${load}, ${what}`
+    if (raw[other] !== undefined) add(`${at}: a ${axis} run uses ${key}, not ${other}`)
+    const load = num(raw[key] ?? raw[other]) // the wrong key is told off above and still gives the number, so the run plays
+    if (load === undefined || load < 0) throw new ParseError(file, `${at}: ${key} must be a number, 0 or more`)
+    const where = (what: string) => `${key} ${load}, ${what}`
 
     const rawOverall = orEmpty(raw.overall, {})
     if (!isMap(rawOverall)) throw new ParseError(file, `${at}: overall must be a mapping of numbers`)
@@ -203,9 +276,20 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
   const levels = rawLevels.map(readLevel)
   levels.forEach((l, i) => {
     if (i > 0 && l.load <= levels[i - 1].load)
-      throw new ParseError(file, `level ${i + 1}: load ${l.load} must be above ${levels[i - 1].load} (levels go up in load)`)
+      throw new ParseError(file, `level ${i + 1}: ${key} ${l.load} must be above ${levels[i - 1].load} (levels go up in ${axis})`)
   })
-  return { run: { name: name ?? id, ...(about === undefined ? {} : { about }), unit: unit ?? 'load', ...(entry === undefined ? {} : { entry }), ...(source === undefined ? {} : { source }), levels }, problems }
+  // Events belong to a time run. On a load run they are a problem and are not read.
+  const rawEvents = orEmpty(doc.events, undefined)
+  if (axis === 'load' && rawEvents !== undefined) add('events are only for a time run (set axis: time)')
+  const runUnit = unit ?? (axis === 'time' ? 's' : 'load')
+  const events = axis === 'time' ? readEvents(rawEvents, [levels[0].load, levels[levels.length - 1].load], runUnit, add) : []
+  return {
+    run: {
+      name: name ?? id, ...(about === undefined ? {} : { about }), unit: runUnit, ...(entry === undefined ? {} : { entry }), ...(source === undefined ? {} : { source }),
+      ...(axis === 'time' ? { axis } : {}), ...(events.length === 0 ? {} : { events }), levels,
+    },
+    problems,
+  }
 }
 
 /**
@@ -231,8 +315,29 @@ export function checkRun(id: string, run: Run, model: Model): Problem[] {
       if (unknown.length === 0 && !model.connections.some(c => c.from === from && c.to === to)) once(`${from} → ${to} is not a connection in the model`)
     }
   }
+  // A shape deleted after the run was written shows up here at the next load, never as a crash: runs are outside the edit pipeline.
+  for (const e of eventsOf(run)) if (!getObject(model, e.on)) once(`unknown object "${e.on}"`)
   return problems
 }
+
+/** The events at or before time `x`, in time order. None for a load run, and for a time that is not a number. */
+export function eventsPassed(run: Run, x: number): RunEvent[] {
+  return eventsOf(run).filter(e => e.at <= x)
+}
+
+/**
+ * Where each shape a time run has an event for stands at time `x`: the latest event at or before it, and of two at one time the later in the file.
+ * Running is an entry like the others, so the shape shows itself and not what is inside it (see marksOf). A shape with no event yet is not in it.
+ * Nothing is stored between times, so any time can be asked for in any order.
+ */
+export function runStates(run: Run, x: number): States {
+  const out: States = {}
+  for (const e of eventsPassed(run, x)) Object.defineProperty(out, e.on, { value: e.state, enumerable: true, writable: true, configurable: true })
+  return out
+}
+
+/** What an event says: its own text, else the shape and the state the way a person reads them ("Stripe: Stopped"). `nameOf` turns a shape id into the name a reader sees. */
+export const eventText = (e: RunEvent, nameOf: (id: string) => string): string => (e.text !== '' ? e.text : `${nameOf(e.on)}: ${STATE_LABELS[e.state]}`)
 
 type Series = [load: number, value: number][]
 
