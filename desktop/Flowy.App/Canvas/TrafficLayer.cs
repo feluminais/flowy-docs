@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Flowy.Core;
+using CoreRect = Flowy.Core.Rect;
 
 namespace Flowy.App.Canvas;
 
@@ -9,17 +10,18 @@ namespace Flowy.App.Canvas;
 /// The traffic on the lines: small particles running from one shape to the other, as many and as fast as the load says (see <see cref="Perf.TrafficFor"/>),
 /// and the ones that fail dying away short of the end. It sits over the boxes in the same camera, takes no pointer, and runs its own clock: a frame at a
 /// time on the window's animation frames, for as long as it has a line to draw. Each line's path is flattened once (<see cref="PathPoints"/>), so a
-/// particle's place is a lookup. A particle is not drawn where its line runs behind a shape that is not one of its ends, as the line itself isn't.
-/// Reduced motion draws none: the canvas leaves this empty then.
+/// particle's place is a lookup. A particle is not drawn where its line runs behind a shape that is not one of its ends, as the line itself isn't,
+/// or under a label. Reduced motion draws none: the canvas leaves this empty then.
 /// </summary>
 internal sealed class TrafficLayer : Control
 {
     /// <summary>A shape a line may run behind: where it is and its outline (null: the box itself).</summary>
-    internal readonly record struct ShapeCover(string Id, Flowy.Core.Rect Rect, double[]? Edge);
+    internal readonly record struct ShapeCover(string Id, CoreRect Rect, double[]? Edge);
 
     private sealed record Drawn(LineTraffic Line, FlatLine Path, ParticleStream Stream, IReadOnlyList<ShapeCover> Behind);
 
     private List<Drawn> _lines = [];
+    private IReadOnlyList<CoreRect> _labels = [];
     private readonly Dictionary<(string, string), ParticleStream> _streams = [];
     private Viewport _viewport = new(0, 0, 1);
     private bool _running;
@@ -54,8 +56,9 @@ internal sealed class TrafficLayer : Control
     /// The lines to draw traffic on, and where each is (null: its path isn't known, so nothing is drawn on it). What is already on a line keeps going
     /// when the load changes; a line that is new starts with its particles already spread along it, as they would be had the load always been this.
     /// </summary>
-    public void Set(IReadOnlyList<LineTraffic> lines, Func<LineTraffic, FlatLine?> pathOf, IReadOnlyList<ShapeCover> shapes)
+    public void Set(IReadOnlyList<LineTraffic> lines, Func<LineTraffic, FlatLine?> pathOf, IReadOnlyList<ShapeCover> shapes, IReadOnlyList<CoreRect> labels)
     {
+        _labels = labels;
         var drawn = new List<Drawn>();
         foreach (var line in lines)
         {
@@ -117,11 +120,16 @@ internal sealed class TrafficLayer : Control
         base.OnDetachedFromVisualTree(e);
     }
 
-    /// <summary>Whether a particle at (x, y) is under a shape its line runs behind: the line is hidden there, so the particle is too.</summary>
-    internal static bool Hidden(IReadOnlyList<ShapeCover> behind, double x, double y, double radius)
+    /// <summary>
+    /// Whether a particle at (x, y) is under a shape its line runs behind, where the line is hidden so the particle is too, or under a label, which sits
+    /// on its line and has the same background as the canvas.
+    /// </summary>
+    internal static bool Hidden(IReadOnlyList<ShapeCover> behind, IReadOnlyList<CoreRect> labels, double x, double y, double radius)
     {
         foreach (var s in behind)
             if (BoxGeometry.Covers(s.Rect, s.Edge, x, y, radius)) return true;
+        foreach (var l in labels)
+            if (BoxGeometry.Covers(l, null, x, y, radius)) return true;
         return false;
     }
 
@@ -142,7 +150,7 @@ internal sealed class TrafficLayer : Control
             foreach (var m in d.Stream.Motes)
             {
                 var (x, y) = PathPoints.PointAt(d.Path, m.S);
-                if (Hidden(d.Behind, x, y, radius)) continue;
+                if (Hidden(d.Behind, _labels, x, y, radius)) continue;
                 if (m.Fails == 0)
                 {
                     context.DrawEllipse(ok, null, new Point(x, y), radius, radius);
