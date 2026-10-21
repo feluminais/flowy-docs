@@ -1006,10 +1006,10 @@ internal sealed partial class ReaderView : Grid
             }
         }
         else if (EditKey(e)) { }
-        else if (PerfOpen && e.Key == Key.Right) StepLevel(Math.Floor(_pos + 1e-6) + 1);
-        else if (PerfOpen && e.Key == Key.Left) StepLevel(Math.Ceiling(_pos - 1e-6) - 1);
+        else if (PerfOpen && e.Key == Key.Right) StepLevel(PerfView.StepFrom(ActivePos, 1));
+        else if (PerfOpen && e.Key == Key.Left) StepLevel(PerfView.StepFrom(ActivePos, -1));
         else if (PerfOpen && e.Key == Key.Home) StepLevel(0);
-        else if (PerfOpen && LoadTest is { } top && e.Key == Key.End) StepLevel(PerfView.Top(top));
+        else if (PerfOpen && LoadTest is { } top && e.Key == Key.End) StepLevel(ActiveTop(top));
         else if (PerfOpen && e.PhysicalKey == PhysicalKey.P && plain) ToggleRamp();
         else if (flow is not null && e.Key == Key.Right) StepTo(StopIndex() + 1);
         else if (flow is not null && e.Key == Key.Left) StepTo(StopIndex() - 1);

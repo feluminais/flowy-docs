@@ -332,7 +332,7 @@ internal sealed class CanvasView : Border
     private void ApplyLoad()
     {
         foreach (var (id, box) in _boxes) box.SetPerf(_load is not null && _load.Boxes.TryGetValue(id, out var perf) ? perf : null);
-        _back.SetWidths(_load?.Lines.ToDictionary(l => SceneBuilder.LineId(l.From, l.To), l => l.Width));
+        _back.SetWidths(_load?.Lines.GroupBy(l => SceneBuilder.LineId(l.From, l.To)).ToDictionary(g => g.Key, g => g.First().Width)); // sources that share a line are as thick as the whole line, each
         if (_load is null || MotionSettings.Reduced) _traffic.Clear();
         else _traffic.Set(_load.Lines, PathOf, _scene?.Boxes.Select(b => new TrafficLayer.ShapeCover(b.Id, b.Rect, Look.DefOf(b.Object).Edge)).ToList() ?? [], _back.LabelRects);
     }

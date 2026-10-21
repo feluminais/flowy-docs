@@ -278,12 +278,18 @@ public static class PerfView
         levels.Select(l => Perf.RollUp(model, l, view).Lines.FirstOrDefault(p => p.From == from && p.To == to)?[key]).ToList();
 
     /// <summary>An object's numbers at a load, or null when nothing was measured on it.</summary>
-    public static Metrics? BoxAt(Model model, LoadRun run, string view, string id, double load) =>
-        Perf.RollUp(model, Perf.Interpolate(run, load), view).Objects is var o && o.TryGetValue(id, out var m) ? m : null;
+    public static Metrics? BoxAt(Model model, LoadRun run, string view, string id, double load) => BoxAtLevel(model, Perf.Interpolate(run, load), view, id);
 
     /// <summary>A line's numbers at a load.</summary>
-    public static Metrics? LineAt(Model model, LoadRun run, string view, string from, string to, double load) =>
-        Perf.RollUp(model, Perf.Interpolate(run, load), view).Lines.FirstOrDefault(p => p.From == from && p.To == to);
+    public static Metrics? LineAt(Model model, LoadRun run, string view, string from, string to, double load) => LineAtLevel(model, Perf.Interpolate(run, load), view, from, to);
+
+    /// <summary>An object's numbers in a level (what a run says at a load, or what runs with several sources say at a setting: see <see cref="Perf.LevelAt"/>).</summary>
+    public static Metrics? BoxAtLevel(Model model, Level level, string view, string id) =>
+        Perf.RollUp(model, level, view).Objects is var o && o.TryGetValue(id, out var m) ? m : null;
+
+    /// <summary>A line's numbers in a level.</summary>
+    public static Pair? LineAtLevel(Model model, Level level, string view, string from, string to) =>
+        Perf.RollUp(model, level, view).Lines.FirstOrDefault(p => p.From == from && p.To == to);
 
     // ---- colour and key -----------------------------------------------------------------------------------------
 
@@ -337,6 +343,9 @@ public static class PerfView
     /// </summary>
     public static List<double> OpeningPositions(IReadOnlyList<Dial> dials, Knee? knee) =>
         knee is null ? [.. dials.Select(d => (double)DialTop(d))] : Perf.LockstepPositions(dials, knee.Index);
+
+    /// <summary>The position a dragged slider of a dial stands for: it snaps to a tested load, as a single load run's does.</summary>
+    public static double SlideDial(Dial d, double value) => Perf.JsRound(ClampDial(d, value));
 
     /// <summary>The positions with the dial <paramref name="active"/> at <paramref name="pos"/> (kept inside the dial); the others stay where they are.</summary>
     public static List<double> PlaceActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active, double pos) =>
