@@ -145,8 +145,8 @@ A shape can also be Starting, Stopping, Stopped, Restarting or Degraded. A step'
 
 ![The Delivery view at 900 orders a minute: Dispatch is outlined red and Live tracking yellow-green, dots run along the lines, and the Performance panel on the right has the load slider, where it first struggles, a latency curve and Dispatch's numbers](docs/images/desktop-performance.png)
 
-Flowy can also play back how a system behaved under load. Put a load test's results in `flowy/perf/<name>.yaml`, and a Performance
-tab joins the icons on the right edge (or press **T**). The diagram then shows the load: dots run along the lines as often, and as
+Flowy can also play back how a system behaved under load. Put a load test's results in `flowy/perf/<name>.yaml` and open the Performance
+tab among the icons on the left edge (or press **T**; the desktop app keeps it on the right). Without a run, the tab offers to **Create** a starter to fill in. The diagram then shows the load: dots run along the lines as often, and as
 slowly, as the calls were, a line gets thicker with traffic, a shape's outline goes from green to red as it fills up, and a number
 on it says how many are waiting. A run can also set the colour of its dots and a small formula for how many there are, so that ten times the calls
 is ten times the dots ("1 dot = 50 calls/s" in the key) until the screen limit says it is scaled down. Move the slider (← →) to another tested load, or press **Ramp** (**P**) to sweep up through them.
@@ -165,7 +165,7 @@ small shop that really runs, with a load generator that writes these files (`npm
 
 Flowy can hold how a system breaks, too. A failure analysis lives in `flowy/failures/<name>.yaml`. For a shape, or a line between two,
 it says how the part fails, what that causes, what exists to deal with it and what to do next, and rates it from 1 to 10 on
-Severity, Likelihood and Hard to spot (10 means nobody would notice). A Failures tab joins the icons on the right edge, or press **M**.
+Severity, Likelihood and Hard to spot (10 means nobody would notice). The Failures tab is among the icons on the left edge, or press **M** (the desktop app keeps it on the right). With no analysis yet, its **Create** button turns edit mode on, where the first one is made.
 
 - The list runs from High to Low, then Not rated for a mode with no ratings. A severity of 9 or 10 is High whatever else is missing.
 - **Analysed 15 of 26** counts the shapes that have a mode, and **Not analysed** lists the rest.

@@ -1,0 +1,9 @@
+name: Customer checks out
+view: shop
+groups:
+  retry: { kind: repeat, until: it stops, or gives up }
+steps:
+  - { from: web, to: api, text: Clicks Buy, then waits }
+  - { from: api, to: web, text: Sets the time zone, if the request has one, group: retry }
+  - { from: web, to: api, text: Answers, animation: { kind: call, reason: Rate limit, packet dropped } }
+  - { from: api, to: web, text: "Shows the receipt, with the total" }
