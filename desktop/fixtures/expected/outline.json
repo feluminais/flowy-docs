@@ -1270,7 +1270,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1279,7 +1279,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -1299,7 +1299,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1363,7 +1363,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1500,7 +1500,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -1521,7 +1521,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1585,7 +1585,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1730,6 +1730,22 @@
               "shapes": 0,
               "flows": 0,
               "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:stripe-outage",
+              "kind": "flow",
+              "id": "stripe-outage",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Stripe goes down and comes back",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -1882,7 +1898,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -1938,7 +1954,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2210,7 +2226,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2457,6 +2473,22 @@
               "match": true
             },
             {
+              "key": "flow:stripe-outage",
+              "kind": "flow",
+              "id": "stripe-outage",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Stripe goes down and comes back",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:capture-payment",
               "kind": "flow",
               "id": "capture-payment",
@@ -2603,7 +2635,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -2659,7 +2691,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2931,7 +2963,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3178,6 +3210,22 @@
               "match": true
             },
             {
+              "key": "flow:stripe-outage",
+              "kind": "flow",
+              "id": "stripe-outage",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Stripe goes down and comes back",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:capture-payment",
               "kind": "flow",
               "id": "capture-payment",
@@ -3324,7 +3372,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -3342,7 +3390,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3550,7 +3598,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3685,6 +3733,22 @@
               "match": true
             },
             {
+              "key": "flow:stripe-outage",
+              "kind": "flow",
+              "id": "stripe-outage",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Stripe goes down and comes back",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:capture-payment",
               "kind": "flow",
               "id": "capture-payment",
@@ -3767,7 +3831,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -3787,7 +3851,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3803,7 +3867,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3828,7 +3892,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         },
@@ -3848,7 +3912,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3912,7 +3976,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 4,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -4049,7 +4113,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 5,
+            "flows": 6,
             "problems": 0
           }
         }
@@ -4102,6 +4166,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4110,7 +4180,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "root",
@@ -4159,6 +4229,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4167,7 +4243,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "ordering",
@@ -4186,6 +4262,12 @@
               "view": "ordering"
             },
             {
+              "id": "stripe-outage",
+              "name": "Stripe goes down and comes back",
+              "steps": 6,
+              "view": "ordering"
+            },
+            {
               "id": "capture-payment",
               "name": "The payment is captured",
               "steps": 6,
@@ -4222,7 +4304,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "ordering",
@@ -4241,6 +4323,12 @@
               "view": "ordering"
             },
             {
+              "id": "stripe-outage",
+              "name": "Stripe goes down and comes back",
+              "steps": 6,
+              "view": "ordering"
+            },
+            {
               "id": "capture-payment",
               "name": "The payment is captured",
               "steps": 6,
@@ -4277,7 +4365,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "delivery",
@@ -4324,6 +4412,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4332,7 +4426,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "delivery",
@@ -4379,6 +4473,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4387,7 +4487,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "notifications",
@@ -4442,6 +4542,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4450,7 +4556,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "notifications",
@@ -4505,6 +4611,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4513,7 +4625,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "backoffice",
@@ -4568,6 +4680,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4576,7 +4694,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "backoffice",
@@ -4631,6 +4749,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4639,7 +4763,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "order-api",
@@ -4694,6 +4818,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4702,7 +4832,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "order-api",
@@ -4757,6 +4887,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4765,7 +4901,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "dispatch",
@@ -4820,6 +4956,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4828,7 +4970,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         },
         {
           "view": "dispatch",
@@ -4883,6 +5025,12 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
@@ -4891,7 +5039,7 @@
               ]
             }
           ],
-          "total": 5
+          "total": 6
         }
       ],
       "expandTo": [
@@ -5547,8 +5695,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 47,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -5556,8 +5704,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 47,
+            "flows": 17,
             "problems": 0
           }
         },
@@ -5576,8 +5724,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 47,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5616,6 +5764,22 @@
               "match": true
             },
             {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:steps",
               "kind": "shape",
               "id": "steps",
@@ -5633,8 +5797,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 47,
+            "flows": 17,
             "problems": 0
           }
         },
@@ -5654,8 +5818,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 47,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5688,6 +5852,22 @@
               "external": false,
               "shapes": 11,
               "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -6143,8 +6323,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 47,
+            "flows": 17,
             "problems": 0
           }
         },
@@ -6155,6 +6335,7 @@
             "steps",
             "structure",
             "performance",
+            "states",
             "send-from",
             "send-to",
             "call-from",
@@ -6193,7 +6374,11 @@
             "not-measured",
             "rolled-up",
             "rolled-a",
-            "rolled-b"
+            "rolled-b",
+            "states-caller",
+            "states-service",
+            "states-holder",
+            "states-part"
           ],
           "filter": "",
           "editing": false,
@@ -6205,8 +6390,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 47,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6677,6 +6862,118 @@
               "match": true
             },
             {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-holder",
+              "kind": "shape",
+              "id": "states-holder",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · holder",
+              "type": "app",
+              "external": false,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-part",
+              "kind": "shape",
+              "id": "states-part",
+              "parent": "states-holder",
+              "depth": 3,
+              "name": "State · part",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-caller",
+              "kind": "shape",
+              "id": "states-caller",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · caller",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-service",
+              "kind": "shape",
+              "id": "states-service",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · service",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:states",
+              "kind": "flow",
+              "id": "states",
+              "parent": "states",
+              "depth": 2,
+              "name": "Every state",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:state-inside",
+              "kind": "flow",
+              "id": "state-inside",
+              "parent": "states",
+              "depth": 2,
+              "name": "State inside a shape",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:steps",
               "kind": "shape",
               "id": "steps",
@@ -7126,8 +7423,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 47,
+            "flows": 17,
             "problems": 0
           }
         },
@@ -7138,6 +7435,7 @@
             "steps",
             "structure",
             "performance",
+            "states",
             "send-from",
             "send-to",
             "call-from",
@@ -7176,7 +7474,11 @@
             "not-measured",
             "rolled-up",
             "rolled-a",
-            "rolled-b"
+            "rolled-b",
+            "states-caller",
+            "states-service",
+            "states-holder",
+            "states-part"
           ],
           "filter": "",
           "editing": true,
@@ -7188,8 +7490,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 47,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -7660,6 +7962,118 @@
               "match": true
             },
             {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-holder",
+              "kind": "shape",
+              "id": "states-holder",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · holder",
+              "type": "app",
+              "external": false,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-part",
+              "kind": "shape",
+              "id": "states-part",
+              "parent": "states-holder",
+              "depth": 3,
+              "name": "State · part",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-caller",
+              "kind": "shape",
+              "id": "states-caller",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · caller",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-service",
+              "kind": "shape",
+              "id": "states-service",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · service",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:states",
+              "kind": "flow",
+              "id": "states",
+              "parent": "states",
+              "depth": 2,
+              "name": "Every state",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:state-inside",
+              "kind": "flow",
+              "id": "state-inside",
+              "parent": "states",
+              "depth": 2,
+              "name": "State inside a shape",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:steps",
               "kind": "shape",
               "id": "steps",
@@ -8109,8 +8523,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 47,
+            "flows": 17,
             "problems": 0
           }
         },
@@ -8127,8 +8541,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 47,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8503,6 +8917,118 @@
               "match": true
             },
             {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-holder",
+              "kind": "shape",
+              "id": "states-holder",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · holder",
+              "type": "app",
+              "external": false,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-part",
+              "kind": "shape",
+              "id": "states-part",
+              "parent": "states-holder",
+              "depth": 3,
+              "name": "State · part",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-caller",
+              "kind": "shape",
+              "id": "states-caller",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · caller",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-service",
+              "kind": "shape",
+              "id": "states-service",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · service",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:states",
+              "kind": "flow",
+              "id": "states",
+              "parent": "states",
+              "depth": 2,
+              "name": "Every state",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:state-inside",
+              "kind": "flow",
+              "id": "state-inside",
+              "parent": "states",
+              "depth": 2,
+              "name": "State inside a shape",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:steps",
               "kind": "shape",
               "id": "steps",
@@ -8760,8 +9286,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 47,
+            "flows": 17,
             "problems": 0
           }
         },
@@ -8774,8 +9300,8 @@
           "editing": false,
           "rows": [],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 47,
+            "flows": 17,
             "problems": 0
           }
         },
@@ -8794,8 +9320,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 42,
-              "flows": 15,
+              "shapes": 47,
+              "flows": 17,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8834,6 +9360,22 @@
               "match": true
             },
             {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:steps",
               "kind": "shape",
               "id": "steps",
@@ -8851,8 +9393,8 @@
             }
           ],
           "totals": {
-            "shapes": 42,
-            "flows": 15,
+            "shapes": 47,
+            "flows": 17,
             "problems": 0
           }
         }
@@ -8903,6 +9445,27 @@
               ]
             },
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -8972,7 +9535,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 17
         },
         {
           "view": "root",
@@ -9019,6 +9582,27 @@
               ]
             },
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -9088,7 +9672,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 17
         },
         {
           "view": "steps",
@@ -9194,9 +9778,30 @@
                   "view": "structure"
                 }
               ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
             }
           ],
-          "total": 15
+          "total": 17
         },
         {
           "view": "steps",
@@ -9302,9 +9907,30 @@
                   "view": "structure"
                 }
               ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
             }
           ],
-          "total": 15
+          "total": 17
         },
         {
           "view": "structure",
@@ -9343,6 +9969,27 @@
           ],
           "elsewhere": [
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -9412,7 +10059,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 17
         },
         {
           "view": "structure",
@@ -9451,6 +10098,27 @@
           ],
           "elsewhere": [
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -9520,7 +10188,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 17
         },
         {
           "view": "performance",
@@ -9567,6 +10235,27 @@
               ]
             },
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -9636,7 +10325,7 @@
               ]
             }
           ],
-          "total": 15
+          "total": 17
         },
         {
           "view": "performance",
@@ -9683,6 +10372,27 @@
               ]
             },
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -9752,7 +10462,265 @@
               ]
             }
           ],
-          "total": 15
+          "total": 17
+        },
+        {
+          "view": "states",
+          "editing": false,
+          "here": [
+            {
+              "id": "states",
+              "name": "Every state",
+              "steps": 7,
+              "view": "states"
+            },
+            {
+              "id": "state-inside",
+              "name": "State inside a shape",
+              "steps": 4,
+              "view": "states"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 17
+        },
+        {
+          "view": "states",
+          "editing": true,
+          "here": [
+            {
+              "id": "states",
+              "name": "Every state",
+              "steps": 7,
+              "view": "states"
+            },
+            {
+              "id": "state-inside",
+              "name": "State inside a shape",
+              "steps": 4,
+              "view": "states"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 17
         },
         {
           "view": "rolled-up",
@@ -9799,118 +10767,23 @@
               ]
             },
             {
-              "view": "steps",
-              "name": "Step animations",
+              "view": "states",
+              "name": "Shape states",
               "path": [
-                "Step animations"
+                "Shape states"
               ],
               "flows": [
                 {
-                  "id": "bolt-drop",
-                  "name": "Bolt drop",
-                  "steps": 1,
-                  "view": "steps"
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
                 },
                 {
-                  "id": "call",
-                  "name": "Call",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "callback",
-                  "name": "Callback",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "event",
-                  "name": "Event",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "every-step-animation",
-                  "name": "Every step animation",
-                  "steps": 10,
-                  "view": "steps"
-                },
-                {
-                  "id": "fail",
-                  "name": "Fail",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "flash",
-                  "name": "Flash",
-                  "steps": 2,
-                  "view": "steps"
-                },
-                {
-                  "id": "send",
-                  "name": "Send",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "send-with-a-word",
-                  "name": "Send with a word",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "timeout",
-                  "name": "Timeout",
-                  "steps": 1,
-                  "view": "steps"
-                }
-              ]
-            }
-          ],
-          "total": 15
-        },
-        {
-          "view": "rolled-up",
-          "editing": true,
-          "here": [],
-          "elsewhere": [
-            {
-              "view": "structure",
-              "name": "Flow structure",
-              "path": [
-                "Flow structure"
-              ],
-              "flows": [
-                {
-                  "id": "branch",
-                  "name": "Branch",
+                  "id": "state-inside",
+                  "name": "State inside a shape",
                   "steps": 4,
-                  "view": "structure"
-                },
-                {
-                  "id": "flow-link",
-                  "name": "Flow link",
-                  "steps": 2,
-                  "view": "structure"
-                },
-                {
-                  "id": "flow-link-next",
-                  "name": "Flow link, the other flow",
-                  "steps": 2,
-                  "view": "structure"
-                },
-                {
-                  "id": "parallel",
-                  "name": "Parallel",
-                  "steps": 5,
-                  "view": "structure"
-                },
-                {
-                  "id": "repeat",
-                  "name": "Repeat",
-                  "steps": 3,
-                  "view": "structure"
+                  "view": "states"
                 }
               ]
             },
@@ -9984,7 +10857,418 @@
               ]
             }
           ],
-          "total": 15
+          "total": 17
+        },
+        {
+          "view": "rolled-up",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 17
+        },
+        {
+          "view": "states-holder",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 17
+        },
+        {
+          "view": "states-holder",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 10,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 17
         }
       ],
       "expandTo": [
@@ -10043,6 +11327,21 @@
           "opened": [
             "performance",
             "root"
+          ]
+        },
+        {
+          "id": "states",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "states",
+          "self": true,
+          "opened": [
+            "root",
+            "states"
           ]
         },
         {
@@ -10710,6 +12009,76 @@
             "rolled-b",
             "rolled-up",
             "root"
+          ]
+        },
+        {
+          "id": "states-caller",
+          "self": false,
+          "opened": [
+            "root",
+            "states"
+          ]
+        },
+        {
+          "id": "states-caller",
+          "self": true,
+          "opened": [
+            "root",
+            "states",
+            "states-caller"
+          ]
+        },
+        {
+          "id": "states-service",
+          "self": false,
+          "opened": [
+            "root",
+            "states"
+          ]
+        },
+        {
+          "id": "states-service",
+          "self": true,
+          "opened": [
+            "root",
+            "states",
+            "states-service"
+          ]
+        },
+        {
+          "id": "states-holder",
+          "self": false,
+          "opened": [
+            "root",
+            "states"
+          ]
+        },
+        {
+          "id": "states-holder",
+          "self": true,
+          "opened": [
+            "root",
+            "states",
+            "states-holder"
+          ]
+        },
+        {
+          "id": "states-part",
+          "self": false,
+          "opened": [
+            "root",
+            "states",
+            "states-holder"
+          ]
+        },
+        {
+          "id": "states-part",
+          "self": true,
+          "opened": [
+            "root",
+            "states",
+            "states-holder",
+            "states-part"
           ]
         },
         {

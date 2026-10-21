@@ -118,7 +118,7 @@ objects:
     in: desktop
     name: Canvas and reader
     tech: Avalonia
-    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs, desktop/Flowy.App/Navigator.cs, desktop/Flowy.App/ExplorerView.cs, desktop/Flowy.App/FlowsView.cs, desktop/Flowy.App/PerfPanel.cs, desktop/Flowy.App/ReaderView.Performance.cs]
+    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs, desktop/Flowy.App/Navigator.cs, desktop/Flowy.App/ExplorerView.cs, desktop/Flowy.App/FlowsView.cs, desktop/Flowy.App/PerfPanel.cs, desktop/Flowy.App/ReaderView.Performance.cs, desktop/Flowy.App/StateMarks.cs]
     description: |
       Shapes are controls on a stage that moves with the camera, with one layer behind them for the
       frame and the lines. The reader holds what you've chosen: the view, the open panel, the flow
@@ -141,6 +141,9 @@ objects:
       An animated flow step plays over the shapes: a pipe along its line, something running through it,
       and the shapes ringing, flashing or squashing. The same frame-driven clock runs it and Autoplay's
       waits, and nothing moves when the system asks for less motion.
+
+      A shape in a state (Starting, Stopped, Degraded and the rest) dims, draws a second outline in the state's dash and carries a
+      glyph on a ring. The loops of Starting, Restarting and Degraded run on the same clock, and only while one of them is on screen.
 
       A rail of icons on the left edge opens the navigator, as on the canvas: the whole documentation
       as a tree drawn a window of rows at a time, shapes that hold others first and then by name, and
@@ -205,7 +208,8 @@ objects:
       step by step, and edit mode behind E.
 
       A step with an `animation:` plays as a pipe with a blob running through it, and Autoplay
-      steps through a flow on its own. A Performance tab plays a load-test run back over the diagram.
+      steps through a flow on its own. A step's `states` dim a shape and draw a second outline and a glyph on it until another step
+      changes them. A Performance tab plays a load-test run back over the diagram.
 
       A rail of icons on the left edge opens a panel with two tabs: the whole documentation as a
       tree, and every flow in it. Details opens on the right, from its own rail or by
@@ -321,7 +325,7 @@ objects:
     type: component
     in: canvas
     name: Layout
-    code: [ui/src/graph.ts, ui/src/Box.tsx, ui/src/Line.tsx]
+    code: [ui/src/graph.ts, ui/src/Box.tsx, ui/src/Line.tsx, ui/src/states.tsx]
     description: |
       Turns a view into shapes and lines: dagre places what hasn't been dragged, and the shapes that
       live elsewhere wait around the edges, each on the side that crosses fewest lines.
@@ -430,6 +434,15 @@ objects:
 
       Nothing here draws. The checker reports a wrong group, and Mermaid turns a good one into a
       loop, alt or par block, so the rules live here once for the browser and the desktop app.
+  states:
+    type: component
+    in: core
+    name: Shape states
+    code: [src/core/states.ts, desktop/Flowy.Core/States.cs]
+    description: |
+      Where a shape stands: Running, Starting, Stopping, Stopped, Restarting or Degraded. A flow says where shapes stand before step 1 and a step changes some of them. This works out the state at any stop by following the stops in order, so stepping back needs no undo, and rolls a container's state up from what it holds.
+
+      Nothing here draws. The canvas and the desktop app each draw the result (a second outline, a glyph, a dimmed shape), and the desktop app's port (`States.cs`) is kept equal by fixtures.
   store-data:
     type: component
     in: core
@@ -563,6 +576,10 @@ connections:
   - { from: check, to: views, label: can this view show it }
   - { from: check, to: animation, label: asks if a step's animation is right }
   - { from: check, to: structure, label: asks if a flow's groups and links are right }
+  - { from: check, to: states, label: asks if a flow's states are right }
+  - { from: graph, to: states, label: which shapes are in a state at this step }
+  - { from: mermaid, to: states, label: draws a state as a note }
+  - { from: ops, to: states, label: refuses a state that is not one }
   - { from: check, to: store-data, label: asks if a store's data is right }
   - { from: panel, to: store-data, label: what a store holds }
   - { from: ops, to: store-data, label: puts an entry's keys in order }

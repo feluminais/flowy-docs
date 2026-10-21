@@ -106,6 +106,10 @@
         {
           "flow": "refund",
           "text": "sequenceDiagram\n  actor n0 as Support agent\n  participant n1 as Back office\n  participant n2 as Ordering\n  participant n3 as Stripe\n  participant n4 as Notifications\n  participant n5 as Twilio\n  n0->>n1: Finds the order in the support console\n  n1->>n2: Asks for a refund, in full or by line\n  n2->>n3: The money goes back to the card\n  n2->>n4: Asks for a confirmation to be sent\n  n4->>n5: The customer gets an SMS\n"
+        },
+        {
+          "flow": "stripe-outage",
+          "text": "sequenceDiagram\n  participant n0 as Order API\n  participant n1 as Stripe\n  participant n2 as Customer app\n  participant n3 as Checkout\n  n0->>n1: The hold is slow while Stripe shuts down\n  Note over n1: Stopping\n  n0->>n1: The hold times out\n  Note over n1: Stopped\n  n0->>n2: Offers pay at the door\n  Note over n3: Degraded\n  n0->>n1: The status page says Stripe is restarting\n  Note over n1: Restarting\n  n0->>n1: The next check finds it coming back up\n  Note over n1: Starting\n  n0->>n1: The hold goes through\n  Note over n1: Running\n  Note over n3: Running\n"
         }
       ]
     },

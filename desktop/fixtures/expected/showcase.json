@@ -20,6 +20,12 @@
       "description": "One shape for each thing a load test can show, named for what it shows.\n\nOpen the Performance tab (**T**), pick **Every load effect**, then press **Ramp** or step the levels with the arrow keys.\n"
     },
     {
+      "id": "states",
+      "type": "system",
+      "name": "Shape states",
+      "description": "One shape that goes through every state, and one that holds another shape in a state.\n\nPlay **Every state** to watch a shape start, run, degrade, stop, restart and run again, and **State inside a shape** to see a shape show that something inside it is not running.\n"
+    },
+    {
       "id": "send-from",
       "type": "app",
       "name": "Send · from",
@@ -311,6 +317,34 @@
       "name": "Rolled up · B",
       "in": "rolled-up",
       "description": "Waits for 10 calls at every load, and gets less busy as the load goes up, from 50% to 30%."
+    },
+    {
+      "id": "states-caller",
+      "type": "app",
+      "name": "State · caller",
+      "in": "states",
+      "description": "Calls the other shapes. It is always running."
+    },
+    {
+      "id": "states-service",
+      "type": "app",
+      "name": "State · service",
+      "in": "states",
+      "description": "Goes through every state, one step at a time."
+    },
+    {
+      "id": "states-holder",
+      "type": "app",
+      "name": "State · holder",
+      "in": "states",
+      "description": "Holds a part. Shows a ring with a dashed edge while the part is in a state and it has none of its own."
+    },
+    {
+      "id": "states-part",
+      "type": "component",
+      "name": "State · part",
+      "in": "states-holder",
+      "description": "The part. Its state shows on the holder at the overview."
     }
   ],
   "connections": [
@@ -449,6 +483,16 @@
     {
       "from": "load",
       "to": "rolled-b",
+      "label": "calls"
+    },
+    {
+      "from": "states-caller",
+      "to": "states-service",
+      "label": "calls"
+    },
+    {
+      "from": "states-caller",
+      "to": "states-holder",
       "label": "calls"
     }
   ],
@@ -1150,6 +1194,156 @@
       ]
     },
     {
+      "id": "state-inside",
+      "name": "State inside a shape",
+      "view": "states",
+      "steps": [
+        {
+          "from": "states-caller",
+          "to": "states-holder",
+          "text": "Calls the holder",
+          "animation": "call",
+          "placed": [
+            "states-caller",
+            "states-holder"
+          ],
+          "ends": "State · caller → State · holder"
+        },
+        {
+          "from": "states-part",
+          "text": "The part stops",
+          "states": {
+            "states-part": "stopped"
+          },
+          "placed": [
+            "states-holder",
+            "states-holder"
+          ],
+          "ends": "State · part in State · holder"
+        },
+        {
+          "from": "states-holder",
+          "text": "The holder itself is not well",
+          "states": {
+            "states-holder": "degraded"
+          },
+          "placed": [
+            "states-holder",
+            "states-holder"
+          ],
+          "ends": "State · holder"
+        },
+        {
+          "from": "states-part",
+          "text": "The part is running again",
+          "states": {
+            "states-part": "running",
+            "states-holder": "running"
+          },
+          "placed": [
+            "states-holder",
+            "states-holder"
+          ],
+          "ends": "State · part in State · holder"
+        }
+      ]
+    },
+    {
+      "id": "states",
+      "name": "Every state",
+      "view": "states",
+      "steps": [
+        {
+          "from": "states-caller",
+          "to": "states-service",
+          "text": "Calls while the service is coming up",
+          "animation": "call",
+          "placed": [
+            "states-caller",
+            "states-service"
+          ],
+          "ends": "State · caller → State · service"
+        },
+        {
+          "from": "states-service",
+          "text": "It is ready",
+          "states": {
+            "states-service": "running"
+          },
+          "placed": [
+            "states-service",
+            "states-service"
+          ],
+          "ends": "State · service"
+        },
+        {
+          "from": "states-caller",
+          "to": "states-service",
+          "text": "Calls it again and it is slow",
+          "animation": "call",
+          "states": {
+            "states-service": "degraded"
+          },
+          "placed": [
+            "states-caller",
+            "states-service"
+          ],
+          "ends": "State · caller → State · service"
+        },
+        {
+          "from": "states-service",
+          "text": "It begins to shut down",
+          "states": {
+            "states-service": "stopping"
+          },
+          "placed": [
+            "states-service",
+            "states-service"
+          ],
+          "ends": "State · service"
+        },
+        {
+          "from": "states-service",
+          "text": "It is off",
+          "states": {
+            "states-service": "stopped"
+          },
+          "placed": [
+            "states-service",
+            "states-service"
+          ],
+          "ends": "State · service"
+        },
+        {
+          "from": "states-service",
+          "text": "It starts again",
+          "states": {
+            "states-service": "restarting"
+          },
+          "placed": [
+            "states-service",
+            "states-service"
+          ],
+          "ends": "State · service"
+        },
+        {
+          "from": "states-service",
+          "text": "It is running again",
+          "states": {
+            "states-service": "running"
+          },
+          "placed": [
+            "states-service",
+            "states-service"
+          ],
+          "ends": "State · service"
+        }
+      ],
+      "states": {
+        "states-service": "starting"
+      }
+    },
+    {
       "id": "timeout",
       "name": "Timeout",
       "view": "steps",
@@ -1178,7 +1372,8 @@
       "members": [
         "steps",
         "structure",
-        "performance"
+        "performance",
+        "states"
       ],
       "outsiders": [],
       "edges": []
@@ -1406,6 +1601,29 @@
         }
       ]
     },
+    "states": {
+      "id": "states",
+      "members": [
+        "states-caller",
+        "states-service",
+        "states-holder"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "states-caller",
+          "to": "states-service",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "states-caller",
+          "to": "states-holder",
+          "label": "calls",
+          "count": 1
+        }
+      ]
+    },
     "rolled-up": {
       "id": "rolled-up",
       "members": [
@@ -1429,6 +1647,14 @@
           "count": 1
         }
       ]
+    },
+    "states-holder": {
+      "id": "states-holder",
+      "members": [
+        "states-part"
+      ],
+      "outsiders": [],
+      "edges": []
     }
   }
 }

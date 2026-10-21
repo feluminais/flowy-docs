@@ -878,11 +878,321 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "flows": []
+      "flows": [
+        {
+          "id": "stripe-outage",
+          "problems": [],
+          "at": [
+            {
+              "stripe": "stopping"
+            },
+            {
+              "stripe": "stopped"
+            },
+            {
+              "stripe": "stopped",
+              "checkout": "degraded"
+            },
+            {
+              "stripe": "restarting",
+              "checkout": "degraded"
+            },
+            {
+              "stripe": "starting",
+              "checkout": "degraded"
+            },
+            {
+              "stripe": "running",
+              "checkout": "running"
+            }
+          ],
+          "marks": [
+            {
+              "stripe": {
+                "state": "stopping",
+                "inside": false
+              }
+            },
+            {
+              "stripe": {
+                "state": "stopped",
+                "inside": false
+              }
+            },
+            {
+              "stripe": {
+                "state": "stopped",
+                "inside": false
+              },
+              "checkout": {
+                "state": "degraded",
+                "inside": false
+              },
+              "order-api": {
+                "state": "degraded",
+                "inside": true
+              },
+              "ordering": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {
+              "stripe": {
+                "state": "restarting",
+                "inside": false
+              },
+              "checkout": {
+                "state": "degraded",
+                "inside": false
+              },
+              "order-api": {
+                "state": "degraded",
+                "inside": true
+              },
+              "ordering": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {
+              "stripe": {
+                "state": "starting",
+                "inside": false
+              },
+              "checkout": {
+                "state": "degraded",
+                "inside": false
+              },
+              "order-api": {
+                "state": "degraded",
+                "inside": true
+              },
+              "ordering": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {}
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 6,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 11,
+              "states": {},
+              "before": null
+            }
+          ]
+        }
+      ]
     },
     {
       "folder": "docs/showcase/flowy",
-      "flows": []
+      "flows": [
+        {
+          "id": "state-inside",
+          "problems": [],
+          "at": [
+            {},
+            {
+              "states-part": "stopped"
+            },
+            {
+              "states-part": "stopped",
+              "states-holder": "degraded"
+            },
+            {
+              "states-part": "running",
+              "states-holder": "running"
+            }
+          ],
+          "marks": [
+            {},
+            {
+              "states-part": {
+                "state": "stopped",
+                "inside": false
+              },
+              "states-holder": {
+                "state": "stopped",
+                "inside": true
+              },
+              "states": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "states-part": {
+                "state": "stopped",
+                "inside": false
+              },
+              "states-holder": {
+                "state": "degraded",
+                "inside": false
+              },
+              "states": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {}
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 4,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 9,
+              "states": {},
+              "before": null
+            }
+          ]
+        },
+        {
+          "id": "states",
+          "problems": [],
+          "at": [
+            {
+              "states-service": "starting"
+            },
+            {
+              "states-service": "running"
+            },
+            {
+              "states-service": "degraded"
+            },
+            {
+              "states-service": "stopping"
+            },
+            {
+              "states-service": "stopped"
+            },
+            {
+              "states-service": "restarting"
+            },
+            {
+              "states-service": "running"
+            }
+          ],
+          "marks": [
+            {
+              "states-service": {
+                "state": "starting",
+                "inside": false
+              },
+              "states": {
+                "state": "starting",
+                "inside": true
+              }
+            },
+            {},
+            {
+              "states-service": {
+                "state": "degraded",
+                "inside": false
+              },
+              "states": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {
+              "states-service": {
+                "state": "stopping",
+                "inside": false
+              },
+              "states": {
+                "state": "stopping",
+                "inside": true
+              }
+            },
+            {
+              "states-service": {
+                "state": "stopped",
+                "inside": false
+              },
+              "states": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "states-service": {
+                "state": "restarting",
+                "inside": false
+              },
+              "states": {
+                "state": "restarting",
+                "inside": true
+              }
+            },
+            {}
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {
+                "states-service": "starting"
+              },
+              "before": null
+            },
+            {
+              "k": 7,
+              "states": {
+                "states-service": "starting"
+              },
+              "before": null
+            },
+            {
+              "k": 12,
+              "states": {
+                "states-service": "starting"
+              },
+              "before": null
+            }
+          ]
+        }
+      ]
     }
   ]
 }

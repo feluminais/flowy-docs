@@ -1,0 +1,7 @@
+name: State inside a shape
+view: states
+steps:
+  - { from: states-caller, to: states-holder, text: Calls the holder, animation: call }
+  - { from: states-part, text: The part stops, states: { states-part: stopped } }
+  - { from: states-holder, text: The holder itself is not well, states: { states-holder: degraded } }
+  - { from: states-part, text: The part is running again, states: { states-part: running, states-holder: running } }

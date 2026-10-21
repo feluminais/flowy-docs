@@ -1,0 +1,11 @@
+name: Every state
+view: states
+states: { states-service: starting }
+steps:
+  - { from: states-caller, to: states-service, text: Calls while the service is coming up, animation: call }
+  - { from: states-service, text: It is ready, states: { states-service: running } }
+  - { from: states-caller, to: states-service, text: Calls it again and it is slow, animation: call, states: { states-service: degraded } }
+  - { from: states-service, text: It begins to shut down, states: { states-service: stopping } }
+  - { from: states-service, text: It is off, states: { states-service: stopped } }
+  - { from: states-service, text: It starts again, states: { states-service: restarting } }
+  - { from: states-service, text: It is running again, states: { states-service: running } }

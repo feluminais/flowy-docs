@@ -37,7 +37,7 @@ the same test after a fix); they name shapes and connections of the model, so a 
 is an eight-mode failure analysis with made-up ratings, and it names shapes, connections, a flow and a run in the same way. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
-`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
+`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups, `--view ordering --flow stripe-outage --step 3` for `desktop-states.png`,
 `--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
 Retake them when the app changes how it looks.
 
@@ -292,6 +292,10 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       squashes or flashes where the animation says it does, on the queue, the cylinder and the hexagon too. With the system's animation effects off, nothing moves.
 - [ ] Open Repeat, Branch, Parallel and Flow link in Flow structure. Repeat says it repeats up to 3 times, Branch says One of 2 and dashes the
       lane you are not in, Parallel lights three lanes together with a bolt each, and Flow link has an Open flow that lands on the other flow and a bar to come back.
+- [ ] Open Every state in Shape states (`#states/states`) and press P: Service starts out dotted and circling (Starting), settles with nothing drawn (Running), pulses amber with a
+      triangle on its corner (Degraded), drains its outline with an hourglass (Stopping), goes grey and dashed with a power symbol (Stopped), shows a short arc circling it (Restarting) and
+      is plain again. The key under the progress bar names only the states on screen. Open State inside a shape: at step 2 the Holder has a dashed ring with a power symbol that reads "Stopped inside" in the key,
+      and at step 3 it shows its own amber state instead. With the system's animation effects off the dimming, outlines and symbols stay and nothing moves.
 - [ ] In Performance, press T and then Home: the lines are thin and no outline is red. Press Ramp: Traffic's line thickens, Latency's dots slow down,
       Failing calls sends red dots, Strain and Failing shape run from green to red, Queue and Rolled up grow a number, and Not measured stays plain at every load.
 
@@ -334,6 +338,15 @@ Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
       Seen in a run opens `#dispatch/perf/dinner-rush/3`. ← → move down the list, and Esc closes the panel.
 - [ ] Press E with the panel open: it stays, and gains New analysis, Add failure mode and a form for the mode picked. Copy as table and Copy as CSV put the ranked
       list on the clipboard. `node src/cli.ts failures --dir docs/demo/flowy` prints the same table and exits with 0. Light and dark both read.
+
+Shape states (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
+
+- [ ] Play Stripe goes down and comes back (`#ordering/stripe-outage`). Step 1: Stripe's outline drains and an hourglass sits on its corner. Step 2: Stripe goes grey and dashed with a power symbol.
+      Step 3: Order API has a dashed ring with a triangle, and the key says Stopped and Degraded inside. Step 4: a short arc circles Stripe. Step 5: dots circle it. Step 6: nothing is drawn
+      and the key is gone. ← steps back and each stop shows what it showed on the way forward. A shape that is dimmed because the step does not light it is still easier to see than the others.
+- [ ] Pick Stripe at step 4: Details has a State line that reads Restarting. Pick Order API: it reads "Degraded inside". Light and dark both read, and the same flow in the desktop app looks the same.
+- [ ] Press E on a copy of `docs/demo` and open that flow: each step has a State section with a row of tiles for each end of it, None first. Pick Stopped for Stripe on step 5: the file gets
+      `states` on that step and nothing else changes. Pick None: the key goes again. Ctrl+Z walks both back.
 
 YAML (press Y, in a copy of `docs/demo` served with `FLOWY_STATE_DIR` pointing at an empty folder, so the history stays out of your own):
 
