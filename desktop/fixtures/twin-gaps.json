@@ -1,0 +1,132 @@
+{
+  "animation": [
+    "DEFAULT_TAKER",
+    "LABEL_MAX",
+    "LOST_AT",
+    "NAME_MAX",
+    "REASON_MAX",
+    "TRIGGERS",
+    "animationFields",
+    "lostAtOf",
+    "shareOf"
+  ],
+  "captions": [
+    "repeatWords"
+  ],
+  "check": [
+    "check",
+    "newProblems"
+  ],
+  "data": [
+    "DATA_MAX",
+    "compactEntries",
+    "dataProblems",
+    "parseData",
+    "serializeData",
+    "tidyData",
+    "tidyData",
+    "tidyData"
+  ],
+  "detect": [
+    "CPP_ONLY",
+    "CUES",
+    "MIN_SCORE",
+    "YAML_BUT_CODE"
+  ],
+  "failures": [
+    "BAND_NAMES",
+    "RATING_KEYS",
+    "STATUSES",
+    "lineKey",
+    "risk",
+    "table"
+  ],
+  "formula": [
+    "FORMULA_MAX",
+    "FORMULA_NAMES",
+    "Formula"
+  ],
+  "look": [
+    "COLOR_NAMES",
+    "ICON_NAME_RULE",
+    "OBJECT_TYPE_INFO",
+    "SHAPES",
+    "iconProblem",
+    "isColor",
+    "isColorName",
+    "isIconName",
+    "isKnownIcon",
+    "isOpacity",
+    "isPathData",
+    "isShape"
+  ],
+  "model": [
+    "ID_RULE",
+    "LINE_STYLES",
+    "OBJECT_TYPES",
+    "emptyModel",
+    "isExternal",
+    "isValidId",
+    "linksOf",
+    "orEmpty"
+  ],
+  "ops": [
+    "deleteAnalysis",
+    "deleteIcon",
+    "deleteMode",
+    "disconnect",
+    "putAnalysis",
+    "putIcon",
+    "putMode",
+    "updateAnalysis",
+    "updateMode"
+  ],
+  "perf": [
+    "AT_ONCE",
+    "AXES",
+    "FAILURES",
+    "KNEE_LATENCY",
+    "KNEE_STRAIN",
+    "RADIUS_MAX",
+    "RADIUS_MIN",
+    "capCounts",
+    "eventsOf",
+    "isTime"
+  ],
+  "snippets": [
+    "SNIPPET_MAX",
+    "codeLines",
+    "isBlankCode",
+    "languageOf",
+    "snippetProblems",
+    "snippetsOf",
+    "tidySnippets",
+    "tidySnippets",
+    "tidySnippets"
+  ],
+  "states": [
+    "isStateName",
+    "readStates"
+  ],
+  "structure": [
+    "GROUP_INFO",
+    "GROUP_KINDS",
+    "TIMES_MAX",
+    "TIMES_MIN",
+    "declaredGroups",
+    "groupOf",
+    "hasLanes",
+    "isGroupKind",
+    "stepGroup",
+    "structureProblems",
+    "takesOption",
+    "timesOk"
+  ],
+  "views": [
+    "chain",
+    "hasChildren",
+    "memberIds",
+    "parentOf",
+    "placeEnds"
+  ]
+}
