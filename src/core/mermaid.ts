@@ -3,6 +3,7 @@ import { colorPair, isColor, isOpacity, fillOpacity, shapeOf, typeColor } from '
 import type { Shape } from './look.ts'
 import { getObject, ROOT } from './model.ts'
 import type { Model } from './model.ts'
+import { readStates, STATE_LABELS } from './states.ts'
 import { blank, runsOf } from './structure.ts'
 import type { Run } from './structure.ts'
 import { computeView, placeStep } from './views.ts'
@@ -72,7 +73,7 @@ export function viewToMermaid(model: Model, view: string): string {
   return lines.join('\n') + '\n'
 }
 
-/** A flow as a Mermaid sequence diagram, with each step's ends as the boxes its view shows. */
+/** A flow as a Mermaid sequence diagram, with each step's ends as the boxes its view shows. A state a step sets is a note over that shape. */
 export function flowToMermaid(model: Model, flowId: string): string {
   const flow = Object.hasOwn(model.flows, flowId) ? model.flows[flowId] : undefined
   if (!flow) throw new Error(`unknown flow "${flowId}"`)
@@ -84,7 +85,11 @@ export function flowToMermaid(model: Model, flowId: string): string {
     return line === undefined ? undefined : mermaidText(line)
   }
   const steps = flow.steps.map(s => ({ ends: placeStep(model, flow.view, s) ?? [s.from, s.to || s.from], text: mermaidText(String(s.text ?? '')), outcome: outcome(s) }))
-  const n = ids([...new Set(steps.flatMap(s => s.ends))])
+  // A shape that is only named in a states is a participant too, after the ones the steps use. The checker reports one the model does not have.
+  const set = (raw: unknown) => Object.entries(readStates(raw)).filter(([id]) => getObject(model, id) !== undefined)
+  const n = ids([...new Set([...steps.flatMap(s => s.ends), ...set(flow.states).map(([id]) => id), ...flow.steps.flatMap(s => set(s.states).map(([id]) => id))])])
+  const stateNotes = (raw: unknown, indent: string, skipRunning = false) =>
+    set(raw).filter(([, state]) => !skipRunning || state !== 'running').map(([id, state]) => `${indent}Note over ${n.get(id)}: ${STATE_LABELS[state]}`)
   // A step one box does on its own is a note over it. A step that continues in another flow says so in a note over its end.
   const line = (i: number, indent: string): string[] => {
     const { ends: [a, b], text, outcome: ended } = steps[i]
@@ -93,6 +98,7 @@ export function flowToMermaid(model: Model, flowId: string): string {
     const link = blank(flow.steps[i].flow) ? undefined : String(flow.steps[i].flow).trim()
     if (link !== undefined && Object.hasOwn(model.flows, link))
       out.push(`${indent}Note over ${n.get(b)}: ${mermaidText(`Continues in "${String(model.flows[link].name || link)}"`)}`)
+    out.push(...stateNotes(flow.steps[i].states, indent))
     return out
   }
   const keyword = (word: string, label: string) => `  ${word}${label === '' ? '' : ` ${label}`}`
@@ -124,6 +130,8 @@ export function flowToMermaid(model: Model, flowId: string): string {
   return [
     'sequenceDiagram',
     ...[...n].map(([id, m]) => `  ${getObject(model, id)?.type === 'actor' ? 'actor' : 'participant'} ${m} as ${nameOf(model, id)}`),
+    // Where shapes stand before step 1: only the ones that are not Running say anything.
+    ...stateNotes(flow.states, '  ', true),
     ...body,
   ].join('\n') + '\n'
 }

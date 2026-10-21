@@ -27,6 +27,7 @@ public class PerfTests
         Put(o, "queue", m.Queue);
         Put(o, "errors", m.Errors);
         Put(o, "rate", m.Rate);
+        Put(o, "bytes", m.Bytes);
         Put(o, "p50", m.P50);
         Put(o, "p95", m.P95);
         return o;
@@ -36,10 +37,22 @@ public class PerfTests
     {
         var o = new JsonObject { ["from"] = p.From, ["to"] = p.To };
         foreach (var (key, value) in Json((Metrics)p)) o[key] = value!.DeepClone();
+        if (p.Failure is not null) o["failure"] = p.Failure;
         return o;
     }
 
     private static JsonObject Json(IdMap<Metrics> objects) => new(objects.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)Json(kv.Value))));
+
+    private static JsonObject Json(SourceFormula f) => new() { ["text"] = f.Text };
+
+    private static JsonObject Json(Source s)
+    {
+        var o = new JsonObject();
+        if (s.Color is not null) o["color"] = s.Color;
+        if (s.Dot is { } dot) o["dot"] = Json(dot);
+        if (s.Size is { } size) o["size"] = Json(size);
+        return o;
+    }
 
     private static JsonObject Json(Level l) => new()
     {
@@ -55,6 +68,7 @@ public class PerfTests
         if (r.About is not null) o["about"] = r.About;
         o["unit"] = r.Unit;
         if (r.Entry is not null) o["entry"] = r.Entry;
+        if (r.Source is { } source) o["source"] = Json(source);
         o["levels"] = new JsonArray(r.Levels.Select(l => (JsonNode?)Json(l)).ToArray());
         return o;
     }
@@ -85,11 +99,34 @@ public class PerfTests
         {
             ["view"] = view,
             ["boxes"] = boxes,
-            ["lines"] = new JsonArray(t.Lines.Select(l => (JsonNode?)new JsonObject
-            {
-                ["from"] = l.From, ["to"] = l.To, ["width"] = l.Width, ["perSecond"] = l.PerSecond, ["travelMs"] = l.TravelMs, ["failed"] = l.Failed,
-            }).ToArray()),
+            ["lines"] = new JsonArray(t.Lines.Select(l => (JsonNode?)Json(l)).ToArray()),
         };
+    }
+
+    /// <summary>A line of traffic as perf.ts writes it: what a source adds is left out when it adds nothing.</summary>
+    private static JsonObject Json(LineTraffic l)
+    {
+        var o = new JsonObject
+        {
+            ["from"] = l.From, ["to"] = l.To, ["width"] = l.Width, ["perSecond"] = l.PerSecond, ["travelMs"] = l.TravelMs, ["failed"] = l.Failed,
+        };
+        if (l.Color is not null) o["color"] = l.Color;
+        if (l.Radius is { } radius) o["radius"] = radius;
+        if (l.Capped) o["capped"] = true;
+        if (l.Failure is not null) o["failure"] = l.Failure;
+        if (l.Dots is { } dots) o["dots"] = dots;
+        return o;
+    }
+
+    private static JsonNode? Json(SourceKey? k)
+    {
+        if (k is null) return null;
+        var o = new JsonObject { ["name"] = k.Name };
+        if (k.Color is not null) o["color"] = k.Color;
+        if (k.Scale is not null) o["scale"] = k.Scale;
+        o["bigger"] = k.Bigger;
+        o["scaledDown"] = k.ScaledDown;
+        return o;
     }
 
     private static void Same(JsonNode? expected, JsonNode? actual, string what) => Assert.True(
@@ -190,6 +227,61 @@ public class PerfTests
             Same(c["knee"], knee is null ? null : Json(knee), $"{id}: the knee");
             Assert.Equal(c["text"]?.GetValue<string>(), knee is null ? null : Perf.KneeText(run, knee, oid => Views.NameOf(Loaded.Model, oid)));
         }
+    }
+
+    [Fact]
+    public void Runs_with_a_source_read_roll_up_and_draw_as_the_TypeScript_has_them()
+    {
+        var all = Expected()["scaled"]!.AsArray();
+        Assert.True(all.Count >= 7);
+        foreach (var item in all)
+        {
+            var id = item!["id"]!.GetValue<string>();
+            var (run, problems) = Perf.ParseRun(id, item["text"]!.GetValue<string>());
+            Same(item["run"], Json(run), $"{id}: the run");
+            Same(item["problems"], Json(problems), $"{id}: its problems");
+            Assert.Equal(item["scale"]?.GetValue<string>(), Perf.ScaleText(run));
+            foreach (var at in item["loads"]!.AsArray())
+            {
+                var load = at!["load"]!.GetValue<double>();
+                Same(at["level"], Json(Perf.Interpolate(run, load)), $"{id} at {load}: the numbers between levels");
+                foreach (var t in at["traffic"]!.AsArray())
+                {
+                    var view = t!["view"]!.GetValue<string>();
+                    var drawn = Perf.TrafficFor(Loaded.Model, run, load, view);
+                    var expected = t.DeepClone().AsObject();
+                    expected.Remove("key");
+                    Same(expected, Json(drawn, view), $"{id} at {load} in {view}: the traffic");
+                    Same(t["key"], Json(Perf.SourceKeyOf(run, drawn.Lines)), $"{id} at {load} in {view}: the key");
+                }
+                foreach (var r in at["rolled"]!.AsArray())
+                {
+                    var view = r!["view"]!.GetValue<string>();
+                    var (objects, lines) = Perf.RollUp(Loaded.Model, Perf.Interpolate(run, load), view);
+                    var actual = Json(lines, objects);
+                    actual["view"] = view;
+                    Same(r, actual, $"{id} at {load} in {view}: the roll-up");
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void Dots_are_scaled_down_by_one_factor_past_the_cap()
+    {
+        Assert.Equal(24, Perf.AtOnce);
+        void Case(double[] input, double[] expected, bool capped)
+        {
+            var (counts, wasCapped) = Perf.CapCounts(input);
+            Assert.Equal(expected, counts);
+            Assert.Equal(capped, wasCapped);
+        }
+        Case([10, 5], [10, 5], false);
+        Case([24, 12], [24, 12], false);
+        Case([48, 12], [24, 6], true);
+        Case([6, 120], [1.2, 24], true);
+        Case([0, 0], [0, 0], false);
+        Case([], [], false);
     }
 
     [Fact]

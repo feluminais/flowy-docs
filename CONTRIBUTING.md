@@ -32,12 +32,12 @@ npm run dev:ui
 
 `docs/demo/` is Plum, the made-up delivery service in the README's screenshots. `node src/cli.ts --dir docs/demo/flowy`
 opens it. Its `code:` paths point at placeholder files beside it, so the canvas shows no problems. Its `flowy/perf/` holds
-two load-test runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute, and
-the same test after a fix); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
-is an eight-mode failure analysis with made-up ratings, and it names shapes, connections, a flow and a run in the same way. The screenshots in
+three load-test runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute,
+the same test after a fix, and courier pings with a `source` that sets a colour and a dot scale; its file name sorts last so the demo still opens on the dinner rush); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
+is a fourteen-mode failure analysis with made-up ratings, and it names shapes, connections, flows and a run in the same way. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
-`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
+`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups, `--view ordering --flow stripe-outage --step 3` for `desktop-states.png`,
 `--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
 Retake them when the app changes how it looks.
 
@@ -50,16 +50,33 @@ copy's history stays out of your own and the demo is not written to). For the fi
 second, press E and change a few things (a shape's Tech, a line of a flow's file in an editor, a `put_object` through `node src/cli.ts mcp`) so
 the list has You, Claude and Outside steps, press Y, and pick the step Claude wrote.
 
+## The Conductor analysis
+
+A second, real analysis reads parts of [Conductor OSS](https://github.com/conductor-oss/conductor), the workflow engine, from its code. It models the server (its executor, decider, sweeper, lock and HTTP task) and the four stores beside it, two flows, and `failures/conductor.yaml`: seventeen rows, each written from the code, with the files and lines in its More. Its `about` pins the commit it was read at and says the ratings are an outsider's guesses. It is a demonstration of Flowy, and no assessment of Conductor. A row that could not be confirmed in the code was left out, and two ratings are left empty on purpose.
+
+The model, the flows and the analysis are kept in the `flowy/` folder of the maintainer's clone of Conductor. They are not part of this repo and are not published. To make an analysis of the same kind, build a clone like this (partial, shallow and sparse, about 6 MB of download, with its push address switched off) and have Claude model and read it through the MCP server:
+
+```bash
+git clone --depth 1 --filter=blob:none --no-checkout https://github.com/conductor-oss/conductor.git conductor-oss
+git -C conductor-oss remote set-url --push origin DISABLED
+git -C conductor-oss sparse-checkout set --no-cone /core/ /common/ /common-persistence/ /rest/ /server/ /docker/server/ /redis-persistence/ /redis-lock/ /redis-api/ /redis-configuration/ /postgres-persistence/ /mysql-persistence/ /sqlite-persistence/ /es7-persistence/ /es8-persistence/ /os-persistence/ /os-persistence-v2/ /os-persistence-v3/ /awss3-storage/ /gcs-storage/ /azureblob-storage/ /file-storage/ /postgres-external-storage/ /http-task/ /task-status-listener/ /workflow-event-listener/ /docs/architecture/ /docs/devguide/ /docs/documentation/ /LICENSE /README.md
+git -C conductor-oss fetch --depth 1 origin 4ed6f796b1530f0587ede8f2d1fd898de170a914
+git -C conductor-oss checkout 4ed6f796b1530f0587ede8f2d1fd898de170a914
+```
+
+Put the folder in `conductor-oss/flowy`, open it with `node src/cli.ts --dir conductor-oss/flowy` and press **M**. Nothing in the clone is ever run, and what its files say is read as data.
+
 ## The animation showcase
 
 `docs/showcase/` plays every animation Flowy has, so you can open it and see that each one works and looks right, in the browser and
 in the desktop app. `node src/cli.ts --dir docs/showcase/flowy` opens it, and so does
 `dotnet run --project desktop/Flowy.App -- docs/showcase`. Each shape is named for the animation it plays (Send · from, Flash · to), and its second line holds the tag that sets it off.
-It has three views:
+It has four views:
 
 - Step animations: a flow of one step for each way a step can travel (Send, Call, Event, Callback, Flash, Bolt drop, Send with a word, Fail, Timeout, Lost, Rejected, Intercepted twice, Duplicated, Delayed, Share of requests), so you can click through them, and Every step animation, which plays them all: press **P** to watch them one after the other, or **R** to play a step again.
 - Flow structure: a flow each for Repeat, Branch, Parallel and Flow link.
 - Performance: the run Every load effect (**T**) gives each shape one effect of load, and **Ramp** sweeps all of them.
+- Colour and scale: the run Colour and scale gives each shape one thing a run's `source` does (dots in proportion to the calls, the same dots at another pace, bigger calls, a line scaled down, lost calls, rejected calls).
 
 `test/showcase.test.ts` fails when an animation kind, an outcome, a kind of group or a load effect has no place there. When you add one, add a
 pair of shapes named for it, a step or a flow, and (for a load effect) numbers in `docs/showcase/flowy/perf/every-load-effect.yaml`, then add the check to that test.
@@ -292,6 +309,15 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       squashes or flashes where the animation says it does, on the queue, the cylinder and the hexagon too. With the system's animation effects off, nothing moves.
 - [ ] Open Repeat, Branch, Parallel and Flow link in Flow structure. Repeat says it repeats up to 3 times, Branch says One of 2 and dashes the
       lane you are not in, Parallel lights three lanes together with a bolt each, and Flow link has an Open flow that lands on the other flow and a bar to come back.
+- [ ] Open Every state in Shape states (`#states/states`) and press P: Service starts out dotted and circling (Starting), settles with nothing drawn (Running), pulses amber with a
+      triangle on its corner (Degraded), drains its outline with an hourglass (Stopping), goes grey and dashed with a power symbol (Stopped), shows a short arc circling it (Restarting) and
+      is plain again. The key under the progress bar names only the states on screen. Open State inside a shape: at step 2 the Holder has a dashed ring with a power symbol that reads "Stopped inside" in the key,
+      and at step 3 it shows its own amber state instead. With the system's animation effects off the dimming, outlines and symbols stay and nothing moves.
+- [ ] In Colour and scale, press T and then Home: every line carries blue dots, Few calls 1, Ten times the calls 10, Same calls, slower 1 (moving slower than
+      Few calls), and Bigger calls has dots smaller than the usual. The Key says "1 dot = 50 calls/s" and "Bigger call". Press End: Few calls shows 16 dots and
+      Ten times the calls 24, and the Key adds "Scaled down" (click that line: its numbers say it too). Bigger calls has dots twice as wide, Lost calls pops a ring where each failing dot dies
+      ("Lost call" in the Key), and Rejected calls runs its failing dots to the end of the line, stops them at a red bar and sends them back red ("Rejected call").
+      Change `color: blue` in `perf/scale.yaml` to `"#e8590c"`: the dots and the Key's dots turn orange, in both themes. With reduced motion there are no dots and the Key says nothing of the source.
 - [ ] In Performance, press T and then Home: the lines are thin and no outline is red. Press Ramp: Traffic's line thickens, Latency's dots slow down,
       Failing calls sends red dots, Strain and Failing shape run from green to red, Queue and Rolled up grow a number, and Not measured stays plain at every load.
 
@@ -325,15 +351,24 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
 
 Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
 
-- [ ] The right rail has a Failures button under Performance with an 8 on it, and M opens its panel in Details' place with `#root/failures/ordering` in the
-      address. The key reads High 2, Medium 2, Low 3 and Not rated 1, then "Analysed 8 of 26" and "Not analysed (18)". At the overview Ordering
-      carries a red 4 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), ETA to Mapbox (108),
-      Checkout to Stripe (96) and on down to Fleet DB, which is Not rated.
+- [ ] The right rail has a Failures button under Performance with a 14 on it, and M opens its panel in Details' place with `#root/failures/ordering` in the
+      address. The key reads High 2, Medium 5, Low 6 and Not rated 1, then "Analysed 15 of 26" and "Not analysed (11)". At the overview Ordering
+      carries a red 6 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), Notifier to Twilio (144),
+      ETA to Mapbox (108) and on down to Fleet DB, which is Not rated.
 - [ ] Open `#ordering/failures/ordering/stripe-timeout`: Order API and the line to Stripe are outlined red, Kitchen tablet and Customer app in a lighter outline,
       and the rest fades. The panel reads Risk 96 Medium, "After: 96 to 32". Show it plays The payment is captured. Open `#delivery/failures/ordering/eta-mapbox-fails`:
       Seen in a run opens `#dispatch/perf/dinner-rush/3`. ← → move down the list, and Esc closes the panel.
 - [ ] Press E with the panel open: it stays, and gains New analysis, Add failure mode and a form for the mode picked. Copy as table and Copy as CSV put the ranked
       list on the clipboard. `node src/cli.ts failures --dir docs/demo/flowy` prints the same table and exits with 0. Light and dark both read.
+
+Shape states (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
+
+- [ ] Play Stripe goes down and comes back (`#ordering/stripe-outage`). Step 1: Stripe's outline drains and an hourglass sits on its corner. Step 2: Stripe goes grey and dashed with a power symbol.
+      Step 3: Order API has a dashed ring with a triangle, and the key says Stopped and Degraded inside. Step 4: a short arc circles Stripe. Step 5: dots circle it. Step 6: nothing is drawn
+      and the key is gone. ← steps back and each stop shows what it showed on the way forward. A shape that is dimmed because the step does not light it is still easier to see than the others.
+- [ ] Pick Stripe at step 4: Details has a State line that reads Restarting. Pick Order API: it reads "Degraded inside". Light and dark both read, and the same flow in the desktop app looks the same.
+- [ ] Press E on a copy of `docs/demo` and open that flow: each step has a State section with a row of tiles for each end of it, None first. Pick Stopped for Stripe on step 5: the file gets
+      `states` on that step and nothing else changes. Pick None: the key goes again. Ctrl+Z walks both back.
 
 YAML (press Y, in a copy of `docs/demo` served with `FLOWY_STATE_DIR` pointing at an empty folder, so the history stays out of your own):
 

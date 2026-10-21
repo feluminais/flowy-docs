@@ -93,9 +93,11 @@ public static class ModelFiles
         {
             var m = (OrderedDictionary<string, object?>)s!;
             m.TryGetValue("animation", out var animation);
-            return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"), animation, Text(m, "group"), Text(m, "lane"), Text(m, "flow"));
+            m.TryGetValue("states", out var states);
+            return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"), animation, Text(m, "group"), Text(m, "lane"), Text(m, "flow"), states);
         }).ToList();
-        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups);
+        doc.TryGetValue("states", out var flowStates);
+        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups, flowStates);
     }
 
     // ponytail: plain decimal numbers only. JavaScript's Number() also takes 0x10 and 0b11; layout.yaml is written

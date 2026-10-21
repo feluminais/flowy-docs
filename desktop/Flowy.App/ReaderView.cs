@@ -497,6 +497,8 @@ internal sealed partial class ReaderView : Grid
         var line = _side is { Kind: SideKind.Line } l ? SceneBuilder.LineId(l.From!, l.To!) : null;
         var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover));
         _canvas.SetScene(scene, LineStyle, SelectedBoxes);
+        // Where shapes stand at this stop, folded from the flow's start and the steps up to it: nothing is stored, so stepping back needs no undo.
+        _canvas.ShowStates(flow is { } playing ? States.Marks(model, States.At(playing.Flow, StopsOf(playing.Flow), index)) : null);
         return shown;
     }
 
@@ -568,7 +570,7 @@ internal sealed partial class ReaderView : Grid
                 _panel.ShowObjectEditor(model, id, _folder!.Problems, RunAsync, OpenObject, SetHover, CloseSide);
                 break;
             case { Kind: SideKind.Object, Id: { } id }:
-                _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover);
+                _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover, StateHere(id));
                 break;
             case { Kind: SideKind.Line, From: { } from, To: { } to } when Editing:
                 _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide);
@@ -588,6 +590,9 @@ internal sealed partial class ReaderView : Grid
                 break;
         }
     }
+
+    /// <summary>The state a shape is in at the stop on show, for Details: null when it is Running or no flow plays.</summary>
+    private StateMark? StateHere(string id) => _canvas.StatesShown.GetValueOrDefault(id);
 
     /// <summary>Details with nothing picked, while its rail button is pressed: the level you are inside, or the project's Overview at the top.</summary>
     private void ShowViewDetails(Model model, string view)
@@ -619,7 +624,7 @@ internal sealed partial class ReaderView : Grid
         }).ToList();
         var moves = stop.Steps.Any(i => Animations.Read(f.Flow.Steps[i]) is not null && shown?.Ends[i] is not null);
         (string Name, int Step)? trail = _playing is { Trail.Count: > 0 } here ? TrailBar(model, here.Trail[^1]) : null;
-        _player.Show(new PlayerView(string.IsNullOrEmpty(f.Flow.Name) ? f.Id : f.Flow.Name, index, stops.Count, stop.Kind, caption, Captions.ProgressOf(f.Flow, stops), _auto, moves, trail, steps));
+        _player.Show(new PlayerView(string.IsNullOrEmpty(f.Flow.Name) ? f.Id : f.Flow.Name, index, stops.Count, stop.Kind, caption, Captions.ProgressOf(f.Flow, stops), _auto, moves, trail, steps, _canvas.StatesShown.Values.ToList()));
         _canvas.SetMarks(stop.Steps
             .Select((i, n) => (Placed: shown?.Ends[i], Text: n < caption.Marks.Count ? caption.Marks[n] : ""))
             .Where(x => x.Placed is not null && x.Text != "" && stop.Kind is not null)

@@ -1270,7 +1270,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 9,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1279,7 +1279,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 9,
             "problems": 0
           }
         },
@@ -1299,7 +1299,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 9,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1331,7 +1331,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 2,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1363,7 +1363,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1500,7 +1500,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 9,
             "problems": 0
           }
         },
@@ -1521,7 +1521,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 9,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1553,7 +1553,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 2,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1585,7 +1585,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1736,6 +1736,22 @@
               "match": true
             },
             {
+              "key": "flow:stripe-outage",
+              "kind": "flow",
+              "id": "stripe-outage",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Stripe goes down and comes back",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:capture-payment",
               "kind": "flow",
               "id": "capture-payment",
@@ -1746,6 +1762,22 @@
               "shapes": 0,
               "flows": 0,
               "steps": 6,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:refund-not-recorded",
+              "kind": "flow",
+              "id": "refund-not-recorded",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The refund is not recorded",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -1882,7 +1914,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 9,
             "problems": 0
           }
         },
@@ -1938,7 +1970,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 9,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2018,7 +2050,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 2,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2153,6 +2185,22 @@
               "match": true
             },
             {
+              "key": "flow:no-courier-answers",
+              "kind": "flow",
+              "id": "no-courier-answers",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "An offer goes unanswered",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:courier-pings-lost",
               "kind": "flow",
               "id": "courier-pings-lost",
@@ -2226,7 +2274,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2473,6 +2521,22 @@
               "match": true
             },
             {
+              "key": "flow:stripe-outage",
+              "kind": "flow",
+              "id": "stripe-outage",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Stripe goes down and comes back",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:capture-payment",
               "kind": "flow",
               "id": "capture-payment",
@@ -2483,6 +2547,22 @@
               "shapes": 0,
               "flows": 0,
               "steps": 6,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:refund-not-recorded",
+              "kind": "flow",
+              "id": "refund-not-recorded",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The refund is not recorded",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -2619,7 +2699,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 9,
             "problems": 0
           }
         },
@@ -2675,7 +2755,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 9,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2755,7 +2835,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 2,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2890,6 +2970,22 @@
               "match": true
             },
             {
+              "key": "flow:no-courier-answers",
+              "kind": "flow",
+              "id": "no-courier-answers",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "An offer goes unanswered",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:courier-pings-lost",
               "kind": "flow",
               "id": "courier-pings-lost",
@@ -2963,7 +3059,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3210,6 +3306,22 @@
               "match": true
             },
             {
+              "key": "flow:stripe-outage",
+              "kind": "flow",
+              "id": "stripe-outage",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Stripe goes down and comes back",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:capture-payment",
               "kind": "flow",
               "id": "capture-payment",
@@ -3220,6 +3332,22 @@
               "shapes": 0,
               "flows": 0,
               "steps": 6,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:refund-not-recorded",
+              "kind": "flow",
+              "id": "refund-not-recorded",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The refund is not recorded",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -3356,7 +3484,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 9,
             "problems": 0
           }
         },
@@ -3374,7 +3502,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 9,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3438,7 +3566,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 2,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3541,6 +3669,22 @@
               "match": true
             },
             {
+              "key": "flow:no-courier-answers",
+              "kind": "flow",
+              "id": "no-courier-answers",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "An offer goes unanswered",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:courier-pings-lost",
               "kind": "flow",
               "id": "courier-pings-lost",
@@ -3598,7 +3742,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3733,6 +3877,22 @@
               "match": true
             },
             {
+              "key": "flow:stripe-outage",
+              "kind": "flow",
+              "id": "stripe-outage",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Stripe goes down and comes back",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:capture-payment",
               "kind": "flow",
               "id": "capture-payment",
@@ -3815,7 +3975,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 9,
             "problems": 0
           }
         },
@@ -3835,7 +3995,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 9,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3851,7 +4011,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3876,7 +4036,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 9,
             "problems": 0
           }
         },
@@ -3896,7 +4056,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 6,
+              "flows": 9,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3928,7 +4088,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 2,
+              "flows": 3,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -3960,7 +4120,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 3,
+              "flows": 5,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -4097,7 +4257,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 6,
+            "flows": 9,
             "problems": 0
           }
         }
@@ -4129,6 +4289,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -4156,15 +4322,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "root",
@@ -4192,6 +4370,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -4219,15 +4403,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "ordering",
@@ -4246,9 +4442,21 @@
               "view": "ordering"
             },
             {
+              "id": "stripe-outage",
+              "name": "Stripe goes down and comes back",
+              "steps": 6,
+              "view": "ordering"
+            },
+            {
               "id": "capture-payment",
               "name": "The payment is captured",
               "steps": 6,
+              "view": "ordering"
+            },
+            {
+              "id": "refund-not-recorded",
+              "name": "The refund is not recorded",
+              "steps": 4,
               "view": "ordering"
             }
           ],
@@ -4280,6 +4488,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -4288,7 +4502,7 @@
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "ordering",
@@ -4307,9 +4521,21 @@
               "view": "ordering"
             },
             {
+              "id": "stripe-outage",
+              "name": "Stripe goes down and comes back",
+              "steps": 6,
+              "view": "ordering"
+            },
+            {
               "id": "capture-payment",
               "name": "The payment is captured",
               "steps": 6,
+              "view": "ordering"
+            },
+            {
+              "id": "refund-not-recorded",
+              "name": "The refund is not recorded",
+              "steps": 4,
               "view": "ordering"
             }
           ],
@@ -4341,6 +4567,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -4349,7 +4581,7 @@
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "delivery",
@@ -4359,6 +4591,12 @@
               "id": "deliver-order",
               "name": "A courier delivers it",
               "steps": 8,
+              "view": "delivery"
+            },
+            {
+              "id": "no-courier-answers",
+              "name": "An offer goes unanswered",
+              "steps": 5,
               "view": "delivery"
             },
             {
@@ -4402,15 +4640,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "delivery",
@@ -4420,6 +4670,12 @@
               "id": "deliver-order",
               "name": "A courier delivers it",
               "steps": 8,
+              "view": "delivery"
+            },
+            {
+              "id": "no-courier-answers",
+              "name": "An offer goes unanswered",
+              "steps": 5,
               "view": "delivery"
             },
             {
@@ -4463,15 +4719,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "notifications",
@@ -4505,6 +4773,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -4532,15 +4806,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "notifications",
@@ -4574,6 +4860,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -4601,15 +4893,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "backoffice",
@@ -4643,6 +4947,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -4670,15 +4980,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "backoffice",
@@ -4712,6 +5034,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -4739,15 +5067,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "order-api",
@@ -4781,6 +5121,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -4808,15 +5154,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "order-api",
@@ -4850,6 +5208,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -4877,15 +5241,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "dispatch",
@@ -4919,6 +5295,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -4946,15 +5328,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         },
         {
           "view": "dispatch",
@@ -4988,6 +5382,12 @@
                   "view": "delivery"
                 },
                 {
+                  "id": "no-courier-answers",
+                  "name": "An offer goes unanswered",
+                  "steps": 5,
+                  "view": "delivery"
+                },
+                {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
                   "steps": 3,
@@ -5015,15 +5415,27 @@
                   "view": "ordering"
                 },
                 {
+                  "id": "stripe-outage",
+                  "name": "Stripe goes down and comes back",
+                  "steps": 6,
+                  "view": "ordering"
+                },
+                {
                   "id": "capture-payment",
                   "name": "The payment is captured",
                   "steps": 6,
+                  "view": "ordering"
+                },
+                {
+                  "id": "refund-not-recorded",
+                  "name": "The refund is not recorded",
+                  "steps": 4,
                   "view": "ordering"
                 }
               ]
             }
           ],
-          "total": 6
+          "total": 9
         }
       ],
       "expandTo": [
@@ -5679,8 +6091,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 57,
-              "flows": 22,
+              "shapes": 70,
+              "flows": 24,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -5688,8 +6100,8 @@
             }
           ],
           "totals": {
-            "shapes": 57,
-            "flows": 22,
+            "shapes": 70,
+            "flows": 24,
             "problems": 0
           }
         },
@@ -5708,11 +6120,27 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 57,
-              "flows": 22,
+              "shapes": 70,
+              "flows": 24,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
               "match": true
             },
             {
@@ -5748,6 +6176,22 @@
               "match": true
             },
             {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:steps",
               "kind": "shape",
               "id": "steps",
@@ -5765,8 +6209,8 @@
             }
           ],
           "totals": {
-            "shapes": 57,
-            "flows": 22,
+            "shapes": 70,
+            "flows": 24,
             "problems": 0
           }
         },
@@ -5786,11 +6230,27 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 57,
-              "flows": 22,
+              "shapes": 70,
+              "flows": 24,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
               "match": true
             },
             {
@@ -5820,6 +6280,22 @@
               "external": false,
               "shapes": 11,
               "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -6627,8 +7103,8 @@
             }
           ],
           "totals": {
-            "shapes": 57,
-            "flows": 22,
+            "shapes": 70,
+            "flows": 24,
             "problems": 0
           }
         },
@@ -6639,6 +7115,7 @@
             "steps",
             "structure",
             "performance",
+            "states",
             "send-from",
             "send-to",
             "call-from",
@@ -6692,7 +7169,19 @@
             "not-measured",
             "rolled-up",
             "rolled-a",
-            "rolled-b"
+            "rolled-b",
+            "states-caller",
+            "states-service",
+            "states-holder",
+            "states-part",
+            "scale",
+            "source",
+            "dots-few",
+            "dots-many",
+            "dots-slow",
+            "dots-big",
+            "calls-lost",
+            "calls-rejected"
           ],
           "filter": "",
           "editing": false,
@@ -6704,11 +7193,139 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 57,
-              "flows": 22,
+              "shapes": 70,
+              "flows": 24,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:dots-big",
+              "kind": "shape",
+              "id": "dots-big",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Bigger calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-few",
+              "kind": "shape",
+              "id": "dots-few",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Few calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-lost",
+              "kind": "shape",
+              "id": "calls-lost",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Lost calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-rejected",
+              "kind": "shape",
+              "id": "calls-rejected",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Rejected calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-slow",
+              "kind": "shape",
+              "id": "dots-slow",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Same calls, slower",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:source",
+              "kind": "shape",
+              "id": "source",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Source",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-many",
+              "kind": "shape",
+              "id": "dots-many",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Ten times the calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
               "match": true
             },
             {
@@ -7170,6 +7787,118 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-holder",
+              "kind": "shape",
+              "id": "states-holder",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · holder",
+              "type": "app",
+              "external": false,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-part",
+              "kind": "shape",
+              "id": "states-part",
+              "parent": "states-holder",
+              "depth": 3,
+              "name": "State · part",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-caller",
+              "kind": "shape",
+              "id": "states-caller",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · caller",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-service",
+              "kind": "shape",
+              "id": "states-service",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · service",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:states",
+              "kind": "flow",
+              "id": "states",
+              "parent": "states",
+              "depth": 2,
+              "name": "Every state",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:state-inside",
+              "kind": "flow",
+              "id": "state-inside",
+              "parent": "states",
+              "depth": 2,
+              "name": "State inside a shape",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -7977,8 +8706,8 @@
             }
           ],
           "totals": {
-            "shapes": 57,
-            "flows": 22,
+            "shapes": 70,
+            "flows": 24,
             "problems": 0
           }
         },
@@ -7989,6 +8718,7 @@
             "steps",
             "structure",
             "performance",
+            "states",
             "send-from",
             "send-to",
             "call-from",
@@ -8042,7 +8772,19 @@
             "not-measured",
             "rolled-up",
             "rolled-a",
-            "rolled-b"
+            "rolled-b",
+            "states-caller",
+            "states-service",
+            "states-holder",
+            "states-part",
+            "scale",
+            "source",
+            "dots-few",
+            "dots-many",
+            "dots-slow",
+            "dots-big",
+            "calls-lost",
+            "calls-rejected"
           ],
           "filter": "",
           "editing": true,
@@ -8054,11 +8796,139 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 57,
-              "flows": 22,
+              "shapes": 70,
+              "flows": 24,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:dots-big",
+              "kind": "shape",
+              "id": "dots-big",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Bigger calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-few",
+              "kind": "shape",
+              "id": "dots-few",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Few calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-lost",
+              "kind": "shape",
+              "id": "calls-lost",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Lost calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-rejected",
+              "kind": "shape",
+              "id": "calls-rejected",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Rejected calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-slow",
+              "kind": "shape",
+              "id": "dots-slow",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Same calls, slower",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:source",
+              "kind": "shape",
+              "id": "source",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Source",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-many",
+              "kind": "shape",
+              "id": "dots-many",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Ten times the calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
               "match": true
             },
             {
@@ -8520,6 +9390,118 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-holder",
+              "kind": "shape",
+              "id": "states-holder",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · holder",
+              "type": "app",
+              "external": false,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-part",
+              "kind": "shape",
+              "id": "states-part",
+              "parent": "states-holder",
+              "depth": 3,
+              "name": "State · part",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-caller",
+              "kind": "shape",
+              "id": "states-caller",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · caller",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-service",
+              "kind": "shape",
+              "id": "states-service",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · service",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:states",
+              "kind": "flow",
+              "id": "states",
+              "parent": "states",
+              "depth": 2,
+              "name": "Every state",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:state-inside",
+              "kind": "flow",
+              "id": "state-inside",
+              "parent": "states",
+              "depth": 2,
+              "name": "State inside a shape",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -9327,8 +10309,8 @@
             }
           ],
           "totals": {
-            "shapes": 57,
-            "flows": 22,
+            "shapes": 70,
+            "flows": 24,
             "problems": 0
           }
         },
@@ -9345,12 +10327,124 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 57,
-              "flows": 22,
+              "shapes": 70,
+              "flows": 24,
               "problem": false,
               "expandable": true,
               "expanded": true,
               "match": false
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:dots-big",
+              "kind": "shape",
+              "id": "dots-big",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Bigger calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-few",
+              "kind": "shape",
+              "id": "dots-few",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Few calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-lost",
+              "kind": "shape",
+              "id": "calls-lost",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Lost calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:calls-rejected",
+              "kind": "shape",
+              "id": "calls-rejected",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Rejected calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-slow",
+              "kind": "shape",
+              "id": "dots-slow",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Same calls, slower",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:dots-many",
+              "kind": "shape",
+              "id": "dots-many",
+              "parent": "scale",
+              "depth": 2,
+              "name": "Ten times the calls",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             },
             {
               "key": "shape:structure",
@@ -9715,6 +10809,118 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-holder",
+              "kind": "shape",
+              "id": "states-holder",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · holder",
+              "type": "app",
+              "external": false,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:states-part",
+              "kind": "shape",
+              "id": "states-part",
+              "parent": "states-holder",
+              "depth": 3,
+              "name": "State · part",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-caller",
+              "kind": "shape",
+              "id": "states-caller",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · caller",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:states-service",
+              "kind": "shape",
+              "id": "states-service",
+              "parent": "states",
+              "depth": 2,
+              "name": "State · service",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:states",
+              "kind": "flow",
+              "id": "states",
+              "parent": "states",
+              "depth": 2,
+              "name": "Every state",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:state-inside",
+              "kind": "flow",
+              "id": "state-inside",
+              "parent": "states",
+              "depth": 2,
+              "name": "State inside a shape",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -10186,8 +11392,8 @@
             }
           ],
           "totals": {
-            "shapes": 57,
-            "flows": 22,
+            "shapes": 70,
+            "flows": 24,
             "problems": 0
           }
         },
@@ -10200,8 +11406,8 @@
           "editing": false,
           "rows": [],
           "totals": {
-            "shapes": 57,
-            "flows": 22,
+            "shapes": 70,
+            "flows": 24,
             "problems": 0
           }
         },
@@ -10220,11 +11426,27 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 57,
-              "flows": 22,
+              "shapes": 70,
+              "flows": 24,
               "problem": false,
               "expandable": true,
               "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:scale",
+              "kind": "shape",
+              "id": "scale",
+              "parent": "root",
+              "depth": 1,
+              "name": "Colour and scale",
+              "type": "system",
+              "external": false,
+              "shapes": 7,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
               "match": true
             },
             {
@@ -10260,6 +11482,22 @@
               "match": true
             },
             {
+              "key": "shape:states",
+              "kind": "shape",
+              "id": "states",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shape states",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:steps",
               "kind": "shape",
               "id": "steps",
@@ -10277,8 +11515,8 @@
             }
           ],
           "totals": {
-            "shapes": 57,
-            "flows": 22,
+            "shapes": 70,
+            "flows": 24,
             "problems": 0
           }
         }
@@ -10329,6 +11567,27 @@
               ]
             },
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -10440,7 +11699,7 @@
               ]
             }
           ],
-          "total": 22
+          "total": 24
         },
         {
           "view": "root",
@@ -10487,6 +11746,27 @@
               ]
             },
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -10598,7 +11878,7 @@
               ]
             }
           ],
-          "total": 22
+          "total": 24
         },
         {
           "view": "steps",
@@ -10746,9 +12026,30 @@
                   "view": "structure"
                 }
               ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
             }
           ],
-          "total": 22
+          "total": 24
         },
         {
           "view": "steps",
@@ -10896,9 +12197,30 @@
                   "view": "structure"
                 }
               ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
             }
           ],
-          "total": 22
+          "total": 24
         },
         {
           "view": "structure",
@@ -10937,6 +12259,27 @@
           ],
           "elsewhere": [
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -11048,7 +12391,7 @@
               ]
             }
           ],
-          "total": 22
+          "total": 24
         },
         {
           "view": "structure",
@@ -11087,6 +12430,27 @@
           ],
           "elsewhere": [
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -11198,7 +12562,7 @@
               ]
             }
           ],
-          "total": 22
+          "total": 24
         },
         {
           "view": "performance",
@@ -11245,6 +12609,27 @@
               ]
             },
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -11356,7 +12741,7 @@
               ]
             }
           ],
-          "total": 22
+          "total": 24
         },
         {
           "view": "performance",
@@ -11403,6 +12788,27 @@
               ]
             },
             {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
               "view": "steps",
               "name": "Step animations",
               "path": [
@@ -11514,7 +12920,349 @@
               ]
             }
           ],
-          "total": 22
+          "total": 24
+        },
+        {
+          "view": "states",
+          "editing": false,
+          "here": [
+            {
+              "id": "states",
+              "name": "Every state",
+              "steps": 7,
+              "view": "states"
+            },
+            {
+              "id": "state-inside",
+              "name": "State inside a shape",
+              "steps": 4,
+              "view": "states"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 17,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 24
+        },
+        {
+          "view": "states",
+          "editing": true,
+          "here": [
+            {
+              "id": "states",
+              "name": "Every state",
+              "steps": 7,
+              "view": "states"
+            },
+            {
+              "id": "state-inside",
+              "name": "State inside a shape",
+              "steps": 4,
+              "view": "states"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 17,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 24
         },
         {
           "view": "rolled-up",
@@ -11561,160 +13309,23 @@
               ]
             },
             {
-              "view": "steps",
-              "name": "Step animations",
+              "view": "states",
+              "name": "Shape states",
               "path": [
-                "Step animations"
+                "Shape states"
               ],
               "flows": [
                 {
-                  "id": "bolt-drop",
-                  "name": "Bolt drop",
-                  "steps": 1,
-                  "view": "steps"
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
                 },
                 {
-                  "id": "call",
-                  "name": "Call",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "callback",
-                  "name": "Callback",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "delayed",
-                  "name": "Delayed",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "duplicated",
-                  "name": "Duplicated",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "event",
-                  "name": "Event",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "every-step-animation",
-                  "name": "Every step animation",
-                  "steps": 17,
-                  "view": "steps"
-                },
-                {
-                  "id": "fail",
-                  "name": "Fail",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "flash",
-                  "name": "Flash",
-                  "steps": 2,
-                  "view": "steps"
-                },
-                {
-                  "id": "intercepted",
-                  "name": "Intercepted",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "intercepted-by-name",
-                  "name": "Intercepted by a name",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "lost",
-                  "name": "Lost",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "rejected",
-                  "name": "Rejected",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "send",
-                  "name": "Send",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "send-with-a-word",
-                  "name": "Send with a word",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "share",
-                  "name": "Share of requests",
-                  "steps": 1,
-                  "view": "steps"
-                },
-                {
-                  "id": "timeout",
-                  "name": "Timeout",
-                  "steps": 1,
-                  "view": "steps"
-                }
-              ]
-            }
-          ],
-          "total": 22
-        },
-        {
-          "view": "rolled-up",
-          "editing": true,
-          "here": [],
-          "elsewhere": [
-            {
-              "view": "structure",
-              "name": "Flow structure",
-              "path": [
-                "Flow structure"
-              ],
-              "flows": [
-                {
-                  "id": "branch",
-                  "name": "Branch",
+                  "id": "state-inside",
+                  "name": "State inside a shape",
                   "steps": 4,
-                  "view": "structure"
-                },
-                {
-                  "id": "flow-link",
-                  "name": "Flow link",
-                  "steps": 2,
-                  "view": "structure"
-                },
-                {
-                  "id": "flow-link-next",
-                  "name": "Flow link, the other flow",
-                  "steps": 2,
-                  "view": "structure"
-                },
-                {
-                  "id": "parallel",
-                  "name": "Parallel",
-                  "steps": 5,
-                  "view": "structure"
-                },
-                {
-                  "id": "repeat",
-                  "name": "Repeat",
-                  "steps": 3,
-                  "view": "structure"
+                  "view": "states"
                 }
               ]
             },
@@ -11830,7 +13441,902 @@
               ]
             }
           ],
-          "total": 22
+          "total": 24
+        },
+        {
+          "view": "rolled-up",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 17,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 24
+        },
+        {
+          "view": "states-holder",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 17,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 24
+        },
+        {
+          "view": "states-holder",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 17,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 24
+        },
+        {
+          "view": "scale",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 17,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 24
+        },
+        {
+          "view": "scale",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure"
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure"
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure"
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states"
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states"
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 17,
+                  "view": "steps"
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps"
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps"
+                }
+              ]
+            }
+          ],
+          "total": 24
         }
       ],
       "expandTo": [
@@ -11889,6 +14395,21 @@
           "opened": [
             "performance",
             "root"
+          ]
+        },
+        {
+          "id": "states",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "states",
+          "self": true,
+          "opened": [
+            "root",
+            "states"
           ]
         },
         {
@@ -12811,6 +15332,210 @@
             "rolled-b",
             "rolled-up",
             "root"
+          ]
+        },
+        {
+          "id": "states-caller",
+          "self": false,
+          "opened": [
+            "root",
+            "states"
+          ]
+        },
+        {
+          "id": "states-caller",
+          "self": true,
+          "opened": [
+            "root",
+            "states",
+            "states-caller"
+          ]
+        },
+        {
+          "id": "states-service",
+          "self": false,
+          "opened": [
+            "root",
+            "states"
+          ]
+        },
+        {
+          "id": "states-service",
+          "self": true,
+          "opened": [
+            "root",
+            "states",
+            "states-service"
+          ]
+        },
+        {
+          "id": "states-holder",
+          "self": false,
+          "opened": [
+            "root",
+            "states"
+          ]
+        },
+        {
+          "id": "states-holder",
+          "self": true,
+          "opened": [
+            "root",
+            "states",
+            "states-holder"
+          ]
+        },
+        {
+          "id": "states-part",
+          "self": false,
+          "opened": [
+            "root",
+            "states",
+            "states-holder"
+          ]
+        },
+        {
+          "id": "states-part",
+          "self": true,
+          "opened": [
+            "root",
+            "states",
+            "states-holder",
+            "states-part"
+          ]
+        },
+        {
+          "id": "scale",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "scale",
+          "self": true,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "source",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "source",
+          "self": true,
+          "opened": [
+            "root",
+            "scale",
+            "source"
+          ]
+        },
+        {
+          "id": "dots-few",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-few",
+          "self": true,
+          "opened": [
+            "dots-few",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-many",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-many",
+          "self": true,
+          "opened": [
+            "dots-many",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-slow",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-slow",
+          "self": true,
+          "opened": [
+            "dots-slow",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-big",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "dots-big",
+          "self": true,
+          "opened": [
+            "dots-big",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-lost",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-lost",
+          "self": true,
+          "opened": [
+            "calls-lost",
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-rejected",
+          "self": false,
+          "opened": [
+            "root",
+            "scale"
+          ]
+        },
+        {
+          "id": "calls-rejected",
+          "self": true,
+          "opened": [
+            "calls-rejected",
+            "root",
+            "scale"
           ]
         },
         {
@@ -28807,6 +31532,2190 @@
           "opened": [
             "root",
             "toomany"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
+    },
+    "states": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "root",
+              "depth": 1,
+              "name": "Numeric ids list first",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "shop"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hold",
+              "kind": "flow",
+              "id": "hold",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A change holds until another step changes it",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A states that is not a mapping",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Each lane starts from the state before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-ok",
+              "kind": "flow",
+              "id": "parallel-ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every lane of a parallel stop applies",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hostile",
+              "kind": "flow",
+              "id": "hostile",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Ids that Object has",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-clash",
+              "kind": "flow",
+              "id": "parallel-clash",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Two lanes that disagree",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Words the checks refuse",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "root",
+              "depth": 1,
+              "name": "Numeric ids list first",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "2",
+            "10",
+            "customer",
+            "shop",
+            "web",
+            "api",
+            "orders",
+            "auth",
+            "db",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "api",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:orders",
+              "kind": "shape",
+              "id": "orders",
+              "parent": "api",
+              "depth": 3,
+              "name": "Orders",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hold",
+              "kind": "flow",
+              "id": "hold",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A change holds until another step changes it",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A states that is not a mapping",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Each lane starts from the state before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-ok",
+              "kind": "flow",
+              "id": "parallel-ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every lane of a parallel stop applies",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hostile",
+              "kind": "flow",
+              "id": "hostile",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Ids that Object has",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-clash",
+              "kind": "flow",
+              "id": "parallel-clash",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Two lanes that disagree",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Words the checks refuse",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "root",
+              "depth": 1,
+              "name": "Numeric ids list first",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "2",
+            "10",
+            "customer",
+            "shop",
+            "web",
+            "api",
+            "orders",
+            "auth",
+            "db",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "api",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:orders",
+              "kind": "shape",
+              "id": "orders",
+              "parent": "api",
+              "depth": 3,
+              "name": "Orders",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hold",
+              "kind": "flow",
+              "id": "hold",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A change holds until another step changes it",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A states that is not a mapping",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Each lane starts from the state before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-ok",
+              "kind": "flow",
+              "id": "parallel-ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every lane of a parallel stop applies",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hostile",
+              "kind": "flow",
+              "id": "hostile",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Ids that Object has",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-clash",
+              "kind": "flow",
+              "id": "parallel-clash",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Two lanes that disagree",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Words the checks refuse",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "root",
+              "depth": 1,
+              "name": "Numeric ids list first",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "api",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hold",
+              "kind": "flow",
+              "id": "hold",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A change holds until another step changes it",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:shapes",
+              "kind": "flow",
+              "id": "shapes",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A states that is not a mapping",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Each lane starts from the state before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-ok",
+              "kind": "flow",
+              "id": "parallel-ok",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every lane of a parallel stop applies",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:hostile",
+              "kind": "flow",
+              "id": "hostile",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Ids that Object has",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel-clash",
+              "kind": "flow",
+              "id": "parallel-clash",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Two lanes that disagree",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Words the checks refuse",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 8,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:numbered",
+              "kind": "flow",
+              "id": "numbered",
+              "parent": "root",
+              "depth": 1,
+              "name": "Numeric ids list first",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 9,
+            "problems": 18
+          }
+        }
+      ],
+      "groups": [
+        {
+          "view": "root",
+          "editing": false,
+          "here": [
+            {
+              "id": "numbered",
+              "name": "Numeric ids list first",
+              "steps": 3,
+              "view": "root"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "hold",
+                  "name": "A change holds until another step changes it",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop"
+                },
+                {
+                  "id": "shapes",
+                  "name": "A states that is not a mapping",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "branching",
+                  "name": "Each lane starts from the state before the branch",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-ok",
+                  "name": "Every lane of a parallel stop applies",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "hostile",
+                  "name": "Ids that Object has",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-clash",
+                  "name": "Two lanes that disagree",
+                  "steps": 4,
+                  "view": "shop"
+                },
+                {
+                  "id": "bad",
+                  "name": "Words the checks refuse",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "root",
+          "editing": true,
+          "here": [
+            {
+              "id": "numbered",
+              "name": "Numeric ids list first",
+              "steps": 3,
+              "view": "root"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "hold",
+                  "name": "A change holds until another step changes it",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop"
+                },
+                {
+                  "id": "shapes",
+                  "name": "A states that is not a mapping",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "branching",
+                  "name": "Each lane starts from the state before the branch",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-ok",
+                  "name": "Every lane of a parallel stop applies",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "hostile",
+                  "name": "Ids that Object has",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-clash",
+                  "name": "Two lanes that disagree",
+                  "steps": 4,
+                  "view": "shop"
+                },
+                {
+                  "id": "bad",
+                  "name": "Words the checks refuse",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "shop",
+          "editing": false,
+          "here": [
+            {
+              "id": "hold",
+              "name": "A change holds until another step changes it",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "repeat",
+              "name": "A repeat plays its steps in turn",
+              "steps": 3,
+              "view": "shop"
+            },
+            {
+              "id": "shapes",
+              "name": "A states that is not a mapping",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "branching",
+              "name": "Each lane starts from the state before the branch",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "parallel-ok",
+              "name": "Every lane of a parallel stop applies",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "hostile",
+              "name": "Ids that Object has",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "parallel-clash",
+              "name": "Two lanes that disagree",
+              "steps": 4,
+              "view": "shop"
+            },
+            {
+              "id": "bad",
+              "name": "Words the checks refuse",
+              "steps": 4,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "root",
+              "name": "Overview",
+              "path": [],
+              "flows": [
+                {
+                  "id": "numbered",
+                  "name": "Numeric ids list first",
+                  "steps": 3,
+                  "view": "root"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "shop",
+          "editing": true,
+          "here": [
+            {
+              "id": "hold",
+              "name": "A change holds until another step changes it",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "repeat",
+              "name": "A repeat plays its steps in turn",
+              "steps": 3,
+              "view": "shop"
+            },
+            {
+              "id": "shapes",
+              "name": "A states that is not a mapping",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "branching",
+              "name": "Each lane starts from the state before the branch",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "parallel-ok",
+              "name": "Every lane of a parallel stop applies",
+              "steps": 5,
+              "view": "shop"
+            },
+            {
+              "id": "hostile",
+              "name": "Ids that Object has",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "parallel-clash",
+              "name": "Two lanes that disagree",
+              "steps": 4,
+              "view": "shop"
+            },
+            {
+              "id": "bad",
+              "name": "Words the checks refuse",
+              "steps": 4,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "root",
+              "name": "Overview",
+              "path": [],
+              "flows": [
+                {
+                  "id": "numbered",
+                  "name": "Numeric ids list first",
+                  "steps": 3,
+                  "view": "root"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "api",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "root",
+              "name": "Overview",
+              "path": [],
+              "flows": [
+                {
+                  "id": "numbered",
+                  "name": "Numeric ids list first",
+                  "steps": 3,
+                  "view": "root"
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "hold",
+                  "name": "A change holds until another step changes it",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop"
+                },
+                {
+                  "id": "shapes",
+                  "name": "A states that is not a mapping",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "branching",
+                  "name": "Each lane starts from the state before the branch",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-ok",
+                  "name": "Every lane of a parallel stop applies",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "hostile",
+                  "name": "Ids that Object has",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-clash",
+                  "name": "Two lanes that disagree",
+                  "steps": 4,
+                  "view": "shop"
+                },
+                {
+                  "id": "bad",
+                  "name": "Words the checks refuse",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "api",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "root",
+              "name": "Overview",
+              "path": [],
+              "flows": [
+                {
+                  "id": "numbered",
+                  "name": "Numeric ids list first",
+                  "steps": 3,
+                  "view": "root"
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "hold",
+                  "name": "A change holds until another step changes it",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop"
+                },
+                {
+                  "id": "shapes",
+                  "name": "A states that is not a mapping",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "branching",
+                  "name": "Each lane starts from the state before the branch",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-ok",
+                  "name": "Every lane of a parallel stop applies",
+                  "steps": 5,
+                  "view": "shop"
+                },
+                {
+                  "id": "hostile",
+                  "name": "Ids that Object has",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "parallel-clash",
+                  "name": "Two lanes that disagree",
+                  "steps": 4,
+                  "view": "shop"
+                },
+                {
+                  "id": "bad",
+                  "name": "Words the checks refuse",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "2",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "2",
+          "self": true,
+          "opened": [
+            "2",
+            "root"
+          ]
+        },
+        {
+          "id": "10",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "10",
+          "self": true,
+          "opened": [
+            "10",
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": true,
+          "opened": [
+            "customer",
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": true,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": true,
+          "opened": [
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "api",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "api",
+          "self": true,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "orders",
+          "self": false,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "orders",
+          "self": true,
+          "opened": [
+            "api",
+            "orders",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "auth",
+          "self": false,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "auth",
+          "self": true,
+          "opened": [
+            "api",
+            "auth",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": true,
+          "opened": [
+            "db",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": true,
+          "opened": [
+            "root",
+            "stripe"
           ]
         },
         {

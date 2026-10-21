@@ -10,6 +10,8 @@ import { connect, deleteObjects, forgetLayout, placeBoxes, removeConnection, set
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { animationOf, followsLanding, leavesMarks } from '../../src/core/animation.ts'
 import { captionOf, progressOf } from '../../src/core/captions.ts'
+import { marksOf, statesAt, usesStates } from '../../src/core/states.ts'
+import type { StateMark } from '../../src/core/states.ts'
 import { otherLaneSteps, stopIndexOf, stopsOf } from '../../src/core/structure.ts'
 import { knee, traffic as trafficOf } from '../../src/core/perf.ts'
 import { drawnIn, homeView, lightFor, rollUp, table } from '../../src/core/failures.ts'
@@ -62,6 +64,7 @@ import type { Edit, Loaded, Restore } from './useModel.ts'
 import { Yaml } from './Yaml.tsx'
 
 const nodeTypes = { box: Box, frame: Frame }
+const NO_MARKS: Record<string, StateMark> = {} // the same object every time, so a flow with no states never rebuilds the graph for them
 const edgeTypes = { line: Line }
 const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is the first half of a double-click
 const LEAVE = 220 // ms the old view takes to fly off; keep in sync with the leave-* keyframes in style.css
@@ -246,6 +249,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const stops = useMemo(() => (flow ? stopsOf(flow) : []), [flow])
   const stopIndex = flow && playing ? Math.max(0, Math.min(playing.step, stops.length - 1)) : 0
   const stop = flow ? stops[stopIndex] : undefined
+  // Where shapes stand at this stop: the flow's start and each step's changes up to it (nothing is stored, so stepping back needs no undo).
+  const stateMarks = useMemo(() => (flow && stop ? marksOf(model, statesAt(flow, stops, stopIndex)) : NO_MARKS), [model, flow, stop, stops, stopIndex])
   const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
   const showFlows = totals.flows > 0 || editing // the Flows tab is there whenever there is a flow to find
   // The YAML tab needs a server that keeps the history: not an exported page, not the VS Code webview.
@@ -297,7 +302,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const lastLeft = playing?.trail?.at(-1)
   const leftFlow = lastLeft && Object.hasOwn(model.flows, lastLeft.flow) ? model.flows[lastLeft.flow] : undefined
   const trail = flow && lastLeft ? { name: leftFlow?.name ?? lastLeft.flow, step: Math.min(lastLeft.step, leftFlow ? stopsOf(leftFlow).length - 1 : lastLeft.step) + 1 } : undefined
-  const graph = useMemo(() => toGraph(model, view, shown, problems), [model, view, shown, problems])
+  const graph = useMemo(() => toGraph(model, view, shown, problems, stateMarks), [model, view, shown, problems, stateMarks])
+  // The states on the canvas now, for the key: a shape on another view that is in one is not drawn here.
+  const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
   const load = loadTest ? loadAt(loadTest, here) : 0
   const loadTraffic = useMemo(() => (perfOpen && loadTest ? trafficOf(model, loadTest, load, view) : undefined), [perfOpen, model, loadTest, load, view])
   const widths = useMemo(() => new Map(loadTraffic?.lines.map(l => [lineId(l.from, l.to), l.width])), [loadTraffic])
@@ -891,7 +898,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       </header>
       <div className="stage">
         <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} showYaml={showYaml} onPick={toggleTab} />
-        <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
+        <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', flow && usesStates(flow) && 'states', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           <LineStyleContext value={lines}>
             <LineWidthsContext value={widths}>
@@ -997,7 +1004,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             </div>
           )}
           {detailsOpen && (side?.kind === 'object' || (side === undefined && view !== ROOT)) && (
-            <ObjectPanel model={model} id={side?.kind === 'object' ? side.id : view} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={closeDetails}
+            <ObjectPanel model={model} id={side?.kind === 'object' ? side.id : view} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={closeDetails} state={side?.kind === 'object' && Object.hasOwn(stateMarks, side.id) ? stateMarks[side.id] : undefined}
               onPick={id => setSide({ kind: 'object', id })} onHover={setHovered} />
           )}
           {detailsOpen && side === undefined && view === ROOT && <OverviewPanel totals={totals} onClose={closeDetails} />}
@@ -1058,7 +1065,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {nav && <Sash side="nav" width={navWidth} onResize={w => setNavWidth(clampWidth(w, spare(rightOpen ? detailsWidth : 0)))} onReset={() => setNavWidth(NAV)} />}
           {rightOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && stop && caption && progress && (
-            <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} auto={playing?.auto === true} moving={moving}
+            <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
               trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={() => setReplays(n => n + 1)} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
           )}
         </main>

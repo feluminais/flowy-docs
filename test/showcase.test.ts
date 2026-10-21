@@ -2,8 +2,9 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
 import { ANIMATION_KINDS, animationOf, OUTCOMES } from '../src/core/animation.ts'
-import { knee, traffic } from '../src/core/perf.ts'
+import { AT_ONCE, knee, scaleText, sourceKey, traffic } from '../src/core/perf.ts'
 import type { Metrics } from '../src/core/perf.ts'
+import { marksOf, readStates, STATE_NAMES, statesAt } from '../src/core/states.ts'
 import { GROUP_KINDS, runsOf, stopsOf } from '../src/core/structure.ts'
 import { fileData, serializeFile } from '../src/core/model.ts'
 import { modelOf } from '../src/core/state.ts'
@@ -99,6 +100,21 @@ test('every kind of group is drawn by a flow, and a step can hand its story to a
   assert.ok(flowList.some(([, flow]) => flow.steps.some(s => s.to === undefined)), 'no step where a shape acts on its own')
 })
 
+test('every state is shown by a flow, and a shape that holds one in a state shows that at the overview', () => {
+  const whole = modelOf(state)
+  const shown = new Set<string>()
+  let inside = 0
+  for (const [, flow] of flowList) {
+    for (const raw of [flow.states, ...flow.steps.map(s => s.states)]) for (const state of Object.values(readStates(raw))) shown.add(state)
+    const stops = stopsOf(flow)
+    stops.forEach((_, k) => {
+      for (const mark of Object.values(marksOf(whole, statesAt(flow, stops, k)))) if (mark.inside) inside++
+    })
+  }
+  for (const name of STATE_NAMES) assert.ok(shown.has(name), `no flow puts a shape in "${name}": add a step to docs/showcase`)
+  assert.ok(inside > 0, 'no stop shows a shape that only holds a shape in a state')
+})
+
 test('the run has every load effect, and the strongest level shows each one', () => {
   assert.ok(run)
   const levels = run.levels
@@ -134,4 +150,46 @@ test('at the strongest load the canvas shows strain, waiting, failing calls and 
   const parts = Object.entries(model.objects).filter(([, o]) => o.in === 'rolled-up').map(([id]) => id)
   assert.ok(parts.length >= 2, 'rolled-up needs at least two parts')
   assert.equal(t.boxes['rolled-up'].queue, parts.reduce((n, id) => n + (t.boxes[id]?.queue ?? 0), 0), 'the holder should show the waiting of its parts added up')
+})
+
+test('the Colour and scale run sets a colour, a dot formula and a size formula, and its lines use bytes, lost and rejected', () => {
+  const scale = state.runs?.scale
+  assert.ok(scale, 'perf/scale.yaml is missing')
+  assert.ok(scale.source?.color && scale.source.dot && scale.source.size, 'the source should set color, dot and size')
+  assert.equal(scaleText(scale), '1 dot = 50 calls/s')
+  const lines = scale.levels.flatMap(l => l.connections)
+  assert.ok(lines.some(c => c.bytes !== undefined), 'no line has a size of a call (bytes)')
+  assert.ok(lines.some(c => c.failure === 'lost' && (c.errors ?? 0) > 0), 'no line fails by losing calls')
+  assert.ok(lines.some(c => c.failure === 'rejected' && (c.errors ?? 0) > 0), 'no line fails by rejecting calls')
+  const bytes = new Set(lines.filter(c => c.to === 'dots-big').map(c => c.bytes))
+  assert.ok(bytes.size >= 4, 'the size of a call should change across the levels')
+})
+
+test('at the strongest level the canvas shows dots in proportion to the calls, a line scaled down, a bigger dot and both ways to fail', () => {
+  const scale = state.runs?.scale
+  assert.ok(scale)
+  const top = scale.levels[scale.levels.length - 1].load
+  const whole = { ...model, flows, failures: {}, layout: state.layout }
+  const t = traffic(whole, scale, top, 'scale')
+  const line = (to: string) => t.lines.find(l => l.to === to)
+  assert.equal(line('dots-few')?.dots, 16)
+  assert.equal(line('dots-many')?.dots, AT_ONCE, 'the busy line should pass the cap')
+  assert.equal(line('dots-many')?.capped, true)
+  assert.equal(line('dots-few')?.capped, undefined)
+  assert.equal(line('dots-slow')?.dots, line('dots-few')?.dots, 'equal calls should be equal dots, whatever the speed')
+  assert.ok(line('dots-slow')!.travelMs > line('dots-few')!.travelMs * 2, 'the slow line should take longer to cross')
+  assert.ok((line('dots-big')?.radius ?? 0) >= 2, 'the bigger calls should draw bigger dots')
+  assert.equal(line('calls-lost')?.failure, 'lost')
+  assert.equal(line('calls-rejected')?.failure, 'rejected')
+  assert.ok(t.lines.every(l => l.color === 'blue'))
+  const key = sourceKey(scale, t.lines)
+  assert.deepEqual(key, { name: 'Colour and scale', color: 'blue', scale: '1 dot = 50 calls/s', bigger: true, scaledDown: true })
+  const lowest = traffic(whole, scale, scale.levels[0].load, 'scale')
+  assert.equal(sourceKey(scale, lowest.lines)?.scaledDown, false, 'nothing is scaled down at the lowest level')
+})
+
+test('the Colour and scale shapes are all named and each one has a line from the source', () => {
+  const inside = Object.entries(model.objects).filter(([, o]) => o.in === 'scale').map(([id]) => id)
+  assert.ok(inside.length >= 7)
+  for (const id of inside.filter(i => i !== 'source')) assert.ok(model.connections.some(c => c.from === 'source' && c.to === id), `${id} has no line from the source`)
 })

@@ -44,9 +44,10 @@ export async function dumpFolder(dir: string): Promise<unknown> {
       view: f.view,
       steps: f.steps.map(s => {
         const placed = placeStep(model, f.view, s)
-        return { from: s.from, to: s.to, text: s.text, description: s.description, animation: s.animation, group: s.group, lane: s.lane, flow: s.flow, placed, ends: typeof s.from === 'string' ? stepEnds(model, s, placed) : null }
+        return { from: s.from, to: s.to, text: s.text, description: s.description, animation: s.animation, group: s.group, lane: s.lane, flow: s.flow, states: s.states, placed, ends: typeof s.from === 'string' ? stepEnds(model, s, placed) : null }
       }),
       groups: f.groups,
+      states: f.states,
     })),
     problems: state.problems,
     views: Object.fromEntries([ROOT, ...Object.keys(model.objects)].filter(id => isView(model, id)).map(id => [id, computeView(model, id)])),

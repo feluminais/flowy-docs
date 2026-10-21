@@ -1,0 +1,12 @@
+name: A states that is not a mapping
+view: shop
+states: stopped
+steps:
+  - { from: web, to: api, text: A list, states: [api] }
+  - from: web
+    to: api
+    text: A blank key
+    states:
+  - { from: web, to: api, text: A tilde, states: ~ }
+  - { from: web, to: api, text: Empty, states: {} }
+  - { from: web, to: api, text: Fine, states: { api: stopped } }

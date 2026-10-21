@@ -1,0 +1,54 @@
+name: Colour and scale
+about: Made-up numbers for the showcase. The source sets blue dots, one dot for every 50 calls a second, and a dot area that follows the size of a call. Each shape under Colour and scale shows one thing it does.
+unit: requests/s
+entry: source
+source:
+  color: blue
+  dot: rate / 50
+  size: bytes / 400
+levels:
+  - load: 10
+    overall: { rate: 750, p50: 40, p95: 90, errors: 0.0125 }
+    connections:
+      - { from: source, to: dots-few, rate: 50, p50: 20, bytes: 400 }
+      - { from: source, to: dots-many, rate: 500, p50: 20, bytes: 400 }
+      - { from: source, to: dots-slow, rate: 50, p50: 900, bytes: 400 }
+      - { from: source, to: dots-big, rate: 200, p50: 20, bytes: 100 }
+      - { from: source, to: calls-lost, rate: 200, p50: 20, bytes: 400, errors: 0.05, failure: lost }
+      - { from: source, to: calls-rejected, rate: 200, p50: 20, bytes: 400, errors: 0.05, failure: rejected }
+  - load: 20
+    overall: { rate: 900, p50: 50, p95: 110, errors: 0.025 }
+    connections:
+      - { from: source, to: dots-few, rate: 100, p50: 20, bytes: 400 }
+      - { from: source, to: dots-many, rate: 1000, p50: 20, bytes: 400 }
+      - { from: source, to: dots-slow, rate: 100, p50: 900, bytes: 400 }
+      - { from: source, to: dots-big, rate: 200, p50: 20, bytes: 200 }
+      - { from: source, to: calls-lost, rate: 200, p50: 20, bytes: 400, errors: 0.1, failure: lost }
+      - { from: source, to: calls-rejected, rate: 200, p50: 20, bytes: 400, errors: 0.1, failure: rejected }
+  - load: 40
+    overall: { rate: 1200, p50: 60, p95: 130, errors: 0.05 }
+    connections:
+      - { from: source, to: dots-few, rate: 200, p50: 20, bytes: 400 }
+      - { from: source, to: dots-many, rate: 2000, p50: 20, bytes: 400 }
+      - { from: source, to: dots-slow, rate: 200, p50: 900, bytes: 400 }
+      - { from: source, to: dots-big, rate: 200, p50: 20, bytes: 400 }
+      - { from: source, to: calls-lost, rate: 200, p50: 20, bytes: 400, errors: 0.2, failure: lost }
+      - { from: source, to: calls-rejected, rate: 200, p50: 20, bytes: 400, errors: 0.2, failure: rejected }
+  - load: 80
+    overall: { rate: 1800, p50: 70, p95: 150, errors: 0.075 }
+    connections:
+      - { from: source, to: dots-few, rate: 400, p50: 20, bytes: 400 }
+      - { from: source, to: dots-many, rate: 4000, p50: 20, bytes: 400 }
+      - { from: source, to: dots-slow, rate: 400, p50: 900, bytes: 400 }
+      - { from: source, to: dots-big, rate: 200, p50: 20, bytes: 800 }
+      - { from: source, to: calls-lost, rate: 200, p50: 20, bytes: 400, errors: 0.3, failure: lost }
+      - { from: source, to: calls-rejected, rate: 200, p50: 20, bytes: 400, errors: 0.3, failure: rejected }
+  - load: 160
+    overall: { rate: 3000, p50: 80, p95: 170, errors: 0.1 }
+    connections:
+      - { from: source, to: dots-few, rate: 800, p50: 20, bytes: 400 }
+      - { from: source, to: dots-many, rate: 8000, p50: 20, bytes: 400 }
+      - { from: source, to: dots-slow, rate: 800, p50: 900, bytes: 400 }
+      - { from: source, to: dots-big, rate: 200, p50: 20, bytes: 1600 }
+      - { from: source, to: calls-lost, rate: 200, p50: 20, bytes: 400, errors: 0.4, failure: lost }
+      - { from: source, to: calls-rejected, rate: 200, p50: 20, bytes: 400, errors: 0.4, failure: rejected }

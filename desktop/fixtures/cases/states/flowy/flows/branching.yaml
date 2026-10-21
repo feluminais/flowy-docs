@@ -1,0 +1,11 @@
+name: Each lane starts from the state before the branch
+view: shop
+states: { db: degraded }
+groups:
+  outcome: { kind: branch }
+steps:
+  - { from: web, to: api, text: Asks, states: { api: degraded } }
+  - { from: api, text: Restarts it, group: outcome, lane: Retry, states: { api: restarting } }
+  - { from: api, text: Writes it down, group: outcome }
+  - { from: db, text: Gives up, group: outcome, lane: Give up, states: { db: stopped, orders: stopping } }
+  - { from: web, to: api, text: Carries on }

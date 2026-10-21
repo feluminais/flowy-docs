@@ -1,0 +1,7 @@
+name: Numeric ids list first
+view: root
+states: { stripe: stopped, "10": degraded, "2": starting }
+steps:
+  - { from: customer, to: shop, text: Visits }
+  - { from: shop, to: "2", text: Calls, states: { "10": stopping, shop: running } }
+  - { from: "2", to: "10", text: Then, states: { "2": running } }

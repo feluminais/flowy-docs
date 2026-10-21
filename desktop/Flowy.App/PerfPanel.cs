@@ -4,6 +4,7 @@ using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
 
@@ -146,6 +147,33 @@ internal static class KeyRow
         return dashes;
     }
 
+    /// <summary>A dot in a source's colour (the real dot, for the theme that is showing); without a colour, the accent the styles give a dot.</summary>
+    public static Control Dot(string? color, bool dark, double size = 8, double opacity = 1)
+    {
+        var dot = new Border { Width = size, Height = size, CornerRadius = new CornerRadius(size / 2), Opacity = opacity };
+        dot.Classes.Add("sw");
+        if (PerfView.SourceHex(color, dark) is { } hex) dot.Background = new SolidColorBrush(Color.Parse(hex));
+        else dot.Classes.Add("accent");
+        return dot;
+    }
+
+    /// <summary>A small dot beside a big one: the dots of calls of different sizes.</summary>
+    public static Control Bigger(string? color, bool dark) =>
+        new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, VerticalAlignment = VerticalAlignment.Center, Children = { Dot(color, dark, 5), Dot(color, dark, 11) } };
+
+    /// <summary>Dots that thin out: a line that is scaled down to fit the screen.</summary>
+    public static Control Scaled(string? color, bool dark) =>
+        new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, VerticalAlignment = VerticalAlignment.Center, Children = { Dot(color, dark, 6), Dot(color, dark, 6, 0.55), Dot(color, dark, 6, 0.25) } };
+
+    /// <summary>A call that is turned away: a dot, and the bar it stops at.</summary>
+    public static Control Rejected()
+    {
+        var bar = new Border();
+        bar.Classes.Add("sw");
+        bar.Classes.Add("bar");
+        return new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { Mark("call", "bad"), bar } };
+    }
+
     /// <summary>The badge that says how many are waiting.</summary>
     public static Control Count(string number)
     {
@@ -262,6 +290,10 @@ internal sealed class PerfPanel : StackPanel
     private readonly TextBlock _loadNote = new() { TextWrapping = TextWrapping.Wrap, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Bottom };
     private readonly Button _ramp = new();
     private readonly List<Reading> _readings = [];
+    private readonly StackPanel _keyRows = new();
+    private string _keyShape = "";
+    private StackPanel? _scaledRow;
+    private (string From, string To)? _scaledLine;
     private LatencyStrip? _strip;
     private ComboBox? _picker;
     private LoadRun? _run;
@@ -294,7 +326,12 @@ internal sealed class PerfPanel : StackPanel
             LevelPicked?.Invoke(PerfView.Snap(_run, e.NewValue));
             Used?.Invoke();
         };
-        ActualThemeVariantChanged += (_, _) => ThemeSlider();
+        ActualThemeVariantChanged += (_, _) =>
+        {
+            ThemeSlider();
+            _keyShape = ""; // the dots of the key are in a colour for the theme, so they are drawn again
+            SetPos(_pos, _ramping);
+        };
         _ramp.Classes.Add("tool");
         _ramp.Classes.Add("primary");
         _ramp.Click += (_, _) =>
@@ -316,6 +353,12 @@ internal sealed class PerfPanel : StackPanel
     internal Button RampButton => _ramp;
 
     internal Slider Slider => _slider;
+
+    /// <summary>The words of the key, in the order it lists them.</summary>
+    internal IReadOnlyList<string> KeyLabels => _keyRows.GetVisualDescendants().OfType<TextBlock>().Where(t => !t.GetVisualAncestors().OfType<Border>().Any(b => b.Classes.Contains("sw"))).Select(t => t.Text ?? "").ToList();
+
+    /// <summary>Whether the selected line says it is scaled down.</summary>
+    internal bool ScaledDownShown => _scaledRow is { IsVisible: true };
 
     internal ComboBox? Picker => _picker;
 
@@ -363,9 +406,11 @@ internal sealed class PerfPanel : StackPanel
     {
         Children.Clear();
         // The number, the note, the slider and the button live as long as the panel does, so the rows that held them last time let go of them first.
-        foreach (Control kept in new Control[] { _loadNumber, _loadNote, _slider, _ramp })
+        foreach (Control kept in new Control[] { _loadNumber, _loadNote, _slider, _ramp, _keyRows })
             if (kept.Parent is Panel holder) holder.Children.Remove(kept);
         _readings.Clear();
+        _scaledRow = null;
+        _scaledLine = null;
         _picker = null;
         _strip = null;
         _still = still;
@@ -453,13 +498,8 @@ internal sealed class PerfPanel : StackPanel
         BuildSelection(model, view, run, selection);
 
         Children.Add(Chrome.Section(Icons.Info, "Key"));
-        Children.Add(KeyRow.Of(
-            (new HeatSwatch(), "Busy"),
-            (KeyRow.Count("3"), "Waiting"),
-            (KeyRow.Mark("none"), "Not measured"),
-            (KeyRow.Mark("call"), "A call (slower dots, slower calls)"),
-            (KeyRow.Mark("call", "bad"), "A call that fails"),
-            (KeyRow.Mark("busy"), "More calls")));
+        _keyShape = ""; // what the key holds depends on the lines on screen, so SetPos fills it
+        Children.Add(_keyRows);
         Children.Add(problems);
         SetPos(pos, ramping);
     }
@@ -507,6 +547,42 @@ internal sealed class PerfPanel : StackPanel
             _readings.Add(new Reading(key, frame => at!(frame, key), value, curve, info));
         }
         if (!any) Children.Add(Muted(selection is { Id: not null } ? "Nothing measured here or inside it." : "Nothing measured here."));
+        if (selection is { From: { } scaledFrom, To: { } scaledTo })
+        {
+            // Hidden until the line is scaled down to fit the screen; SetPos shows it.
+            var dark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+            _scaledLine = (scaledFrom, scaledTo);
+            _scaledRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, IsVisible = false, Children = { KeyRow.Scaled(run.Source?.Color, dark), new TextBlock { Text = "Scaled down", Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center } } };
+            Children.Add(_scaledRow);
+        }
+    }
+
+    /// <summary>
+    /// The key: the marks of the panel that are always there, and what the lines on screen now add: the kinds of failing call, and what a run's source puts
+    /// on screen (the scale in words, a bigger dot, a line scaled down). Drawn again only when what it shows changes, which a ramp does a few times.
+    /// </summary>
+    private void UpdateKey(LoadRun run, LoadFrame frame)
+    {
+        IReadOnlyList<LineTraffic> drawn = _still ? [] : frame.Traffic.Lines; // reduced motion draws no traffic, so the key says nothing of it
+        var marks = PerfView.FailureMarksOf(drawn);
+        var source = Perf.SourceKeyOf(run, drawn);
+        var shape = $"{marks}|{source}";
+        if (shape == _keyShape) return;
+        _keyShape = shape;
+        var dark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+        _keyRows.Children.Clear();
+        _keyRows.Children.Add(KeyRow.Of(
+            (new HeatSwatch(), "Busy"),
+            (KeyRow.Count("3"), "Waiting"),
+            (KeyRow.Mark("none"), "Not measured"),
+            (KeyRow.Dot(source?.Color, dark), "A call (slower dots, slower calls)"),
+            marks.Fade ? (KeyRow.Mark("call", "bad"), "A call that fails") : null,
+            marks.Lost ? (KeyRow.Mark("lost"), "Lost call") : null,
+            marks.Rejected ? (KeyRow.Rejected(), "Rejected call") : null,
+            (KeyRow.Mark("busy"), "More calls"),
+            source?.Scale is { } scale ? (KeyRow.Dot(source.Color, dark), scale) : null,
+            source is { Bigger: true } ? (KeyRow.Bigger(source.Color, dark), "Bigger call") : null,
+            source is { ScaledDown: true } ? (KeyRow.Scaled(source.Color, dark), "Scaled down") : null));
     }
 
     /// <summary>Puts the thumb back on the level the panel is at, after a drag that took it somewhere between levels without reaching another.</summary>
@@ -549,6 +625,8 @@ internal sealed class PerfPanel : StackPanel
         Chrome.Fill(_ramp, ramping ? Icons.Pause : Icons.Play, ramping ? "Pause" : "Ramp");
         _ramp.Classes.Set("pressed", ramping);
         _strip?.SetPos(pos);
+        UpdateKey(run, frame);
+        if (_scaledRow is not null && _scaledLine is { } line) _scaledRow.IsVisible = !_still && frame.Traffic.Lines.Any(l => l.From == line.From && l.To == line.To && l.Capped);
         foreach (var r in _readings)
         {
             r.Value.Text = r.At(frame) is { } v ? r.Info.Show(v) : "–";

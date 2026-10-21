@@ -1,0 +1,1198 @@
+{
+  "names": [
+    "running",
+    "starting",
+    "stopping",
+    "stopped",
+    "restarting",
+    "degraded"
+  ],
+  "labels": [
+    "Running",
+    "Starting",
+    "Stopping",
+    "Stopped",
+    "Restarting",
+    "Degraded"
+  ],
+  "folders": [
+    {
+      "folder": "desktop/fixtures/cases/states/flowy",
+      "flows": [
+        {
+          "id": "bad",
+          "problems": [
+            {
+              "message": "states: unknown shape \"ghost\""
+            },
+            {
+              "message": "states: unknown state \"sleepy\" for \"db\" (use running, starting, stopping, stopped, restarting, degraded)"
+            },
+            {
+              "step": 0,
+              "message": "states: unknown shape \"nope\""
+            },
+            {
+              "step": 0,
+              "message": "states: unknown state \"asleep\" for \"api\" (use running, starting, stopping, stopped, restarting, degraded)"
+            },
+            {
+              "step": 1,
+              "message": "states: unknown state \"Stopped\" for \"web\" (use running, starting, stopping, stopped, restarting, degraded)"
+            },
+            {
+              "step": 2,
+              "message": "states: \"api\" needs a state word (use running, starting, stopping, stopped, restarting, degraded)"
+            },
+            {
+              "step": 2,
+              "message": "states: \"web\" needs a state word (use running, starting, stopping, stopped, restarting, degraded)"
+            },
+            {
+              "step": 3,
+              "message": "states: unknown shape \"root\""
+            }
+          ],
+          "at": [
+            {
+              "ghost": "running",
+              "nope": "stopped"
+            },
+            {
+              "ghost": "running",
+              "nope": "stopped"
+            },
+            {
+              "ghost": "running",
+              "nope": "stopped"
+            },
+            {
+              "ghost": "running",
+              "nope": "stopped",
+              "root": "stopped",
+              "auth": "degraded"
+            }
+          ],
+          "marks": [
+            {},
+            {},
+            {},
+            {
+              "auth": {
+                "state": "degraded",
+                "inside": false
+              },
+              "api": {
+                "state": "degraded",
+                "inside": true
+              },
+              "shop": {
+                "state": "degraded",
+                "inside": true
+              }
+            }
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {
+                "ghost": "running"
+              },
+              "before": null
+            },
+            {
+              "k": 4,
+              "states": {
+                "ghost": "running"
+              },
+              "before": null
+            },
+            {
+              "k": 9,
+              "states": {
+                "ghost": "running"
+              },
+              "before": null
+            }
+          ]
+        },
+        {
+          "id": "branching",
+          "problems": [],
+          "at": [
+            {
+              "db": "degraded",
+              "api": "degraded"
+            },
+            {
+              "db": "degraded",
+              "api": "restarting"
+            },
+            {
+              "db": "degraded",
+              "api": "restarting"
+            },
+            {
+              "db": "stopped",
+              "api": "degraded",
+              "orders": "stopping"
+            },
+            {
+              "db": "stopped",
+              "api": "degraded",
+              "orders": "stopping"
+            }
+          ],
+          "marks": [
+            {
+              "db": {
+                "state": "degraded",
+                "inside": false
+              },
+              "api": {
+                "state": "degraded",
+                "inside": false
+              },
+              "shop": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {
+              "db": {
+                "state": "degraded",
+                "inside": false
+              },
+              "api": {
+                "state": "restarting",
+                "inside": false
+              },
+              "shop": {
+                "state": "restarting",
+                "inside": true
+              }
+            },
+            {
+              "db": {
+                "state": "degraded",
+                "inside": false
+              },
+              "api": {
+                "state": "restarting",
+                "inside": false
+              },
+              "shop": {
+                "state": "restarting",
+                "inside": true
+              }
+            },
+            {
+              "db": {
+                "state": "stopped",
+                "inside": false
+              },
+              "api": {
+                "state": "degraded",
+                "inside": false
+              },
+              "orders": {
+                "state": "stopping",
+                "inside": false
+              },
+              "shop": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "db": {
+                "state": "stopped",
+                "inside": false
+              },
+              "api": {
+                "state": "degraded",
+                "inside": false
+              },
+              "orders": {
+                "state": "stopping",
+                "inside": false
+              },
+              "shop": {
+                "state": "stopped",
+                "inside": true
+              }
+            }
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            0,
+            3
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {
+                "db": "degraded"
+              },
+              "before": null
+            },
+            {
+              "k": 5,
+              "states": {
+                "db": "degraded"
+              },
+              "before": null
+            },
+            {
+              "k": 10,
+              "states": {
+                "db": "degraded"
+              },
+              "before": null
+            }
+          ]
+        },
+        {
+          "id": "hold",
+          "problems": [],
+          "at": [
+            {
+              "stripe": "starting"
+            },
+            {
+              "stripe": "starting",
+              "orders": "stopped"
+            },
+            {
+              "stripe": "starting",
+              "orders": "stopped"
+            },
+            {
+              "stripe": "starting",
+              "orders": "running",
+              "api": "restarting",
+              "web": "degraded"
+            },
+            {
+              "stripe": "running",
+              "orders": "running",
+              "api": "running",
+              "web": "degraded"
+            }
+          ],
+          "marks": [
+            {
+              "stripe": {
+                "state": "starting",
+                "inside": false
+              }
+            },
+            {
+              "stripe": {
+                "state": "starting",
+                "inside": false
+              },
+              "orders": {
+                "state": "stopped",
+                "inside": false
+              },
+              "api": {
+                "state": "stopped",
+                "inside": true
+              },
+              "shop": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "stripe": {
+                "state": "starting",
+                "inside": false
+              },
+              "orders": {
+                "state": "stopped",
+                "inside": false
+              },
+              "api": {
+                "state": "stopped",
+                "inside": true
+              },
+              "shop": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "stripe": {
+                "state": "starting",
+                "inside": false
+              },
+              "api": {
+                "state": "restarting",
+                "inside": false
+              },
+              "web": {
+                "state": "degraded",
+                "inside": false
+              },
+              "shop": {
+                "state": "restarting",
+                "inside": true
+              }
+            },
+            {
+              "web": {
+                "state": "degraded",
+                "inside": false
+              },
+              "shop": {
+                "state": "degraded",
+                "inside": true
+              }
+            }
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {
+                "stripe": "starting"
+              },
+              "before": null
+            },
+            {
+              "k": 5,
+              "states": {
+                "stripe": "starting"
+              },
+              "before": null
+            },
+            {
+              "k": 10,
+              "states": {
+                "stripe": "starting"
+              },
+              "before": null
+            }
+          ]
+        },
+        {
+          "id": "hostile",
+          "problems": [
+            {
+              "message": "states: unknown shape \"__proto__\""
+            },
+            {
+              "message": "states: unknown shape \"constructor\""
+            },
+            {
+              "message": "states: unknown shape \"toString\""
+            },
+            {
+              "step": 0,
+              "message": "states: unknown shape \"__proto__\""
+            },
+            {
+              "step": 0,
+              "message": "states: unknown shape \"hasOwnProperty\""
+            }
+          ],
+          "at": [
+            {
+              "__proto__": "degraded",
+              "constructor": "stopped",
+              "toString": "degraded",
+              "hasOwnProperty": "starting",
+              "api": "stopped"
+            },
+            {
+              "__proto__": "degraded",
+              "constructor": "stopped",
+              "toString": "degraded",
+              "hasOwnProperty": "starting",
+              "api": "stopped"
+            }
+          ],
+          "marks": [
+            {
+              "api": {
+                "state": "stopped",
+                "inside": false
+              },
+              "shop": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "api": {
+                "state": "stopped",
+                "inside": false
+              },
+              "shop": {
+                "state": "stopped",
+                "inside": true
+              }
+            }
+          ],
+          "before": [
+            null,
+            0
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {
+                "__proto__": "stopped",
+                "constructor": "stopped",
+                "toString": "degraded"
+              },
+              "before": null
+            },
+            {
+              "k": 2,
+              "states": {
+                "__proto__": "stopped",
+                "constructor": "stopped",
+                "toString": "degraded"
+              },
+              "before": null
+            },
+            {
+              "k": 7,
+              "states": {
+                "__proto__": "stopped",
+                "constructor": "stopped",
+                "toString": "degraded"
+              },
+              "before": null
+            }
+          ]
+        },
+        {
+          "id": "numbered",
+          "problems": [],
+          "at": [
+            {
+              "2": "starting",
+              "10": "degraded",
+              "stripe": "stopped"
+            },
+            {
+              "2": "starting",
+              "10": "stopping",
+              "stripe": "stopped",
+              "shop": "running"
+            },
+            {
+              "2": "running",
+              "10": "stopping",
+              "stripe": "stopped",
+              "shop": "running"
+            }
+          ],
+          "marks": [
+            {
+              "2": {
+                "state": "starting",
+                "inside": false
+              },
+              "10": {
+                "state": "degraded",
+                "inside": false
+              },
+              "stripe": {
+                "state": "stopped",
+                "inside": false
+              }
+            },
+            {
+              "2": {
+                "state": "starting",
+                "inside": false
+              },
+              "10": {
+                "state": "stopping",
+                "inside": false
+              },
+              "stripe": {
+                "state": "stopped",
+                "inside": false
+              }
+            },
+            {
+              "10": {
+                "state": "stopping",
+                "inside": false
+              },
+              "stripe": {
+                "state": "stopped",
+                "inside": false
+              }
+            }
+          ],
+          "before": [
+            null,
+            0,
+            1
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {
+                "2": "starting",
+                "10": "degraded",
+                "stripe": "stopped"
+              },
+              "before": null
+            },
+            {
+              "k": 3,
+              "states": {
+                "2": "starting",
+                "10": "degraded",
+                "stripe": "stopped"
+              },
+              "before": null
+            },
+            {
+              "k": 8,
+              "states": {
+                "2": "starting",
+                "10": "degraded",
+                "stripe": "stopped"
+              },
+              "before": null
+            }
+          ]
+        },
+        {
+          "id": "parallel-clash",
+          "problems": [
+            {
+              "step": 1,
+              "message": "shape \"db\" is set to both stopped and degraded in one stop"
+            }
+          ],
+          "at": [
+            {
+              "db": "starting",
+              "web": "degraded"
+            },
+            {
+              "db": "starting",
+              "web": "degraded"
+            }
+          ],
+          "marks": [
+            {
+              "db": {
+                "state": "starting",
+                "inside": false
+              },
+              "web": {
+                "state": "degraded",
+                "inside": false
+              },
+              "shop": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {
+              "db": {
+                "state": "starting",
+                "inside": false
+              },
+              "web": {
+                "state": "degraded",
+                "inside": false
+              },
+              "shop": {
+                "state": "degraded",
+                "inside": true
+              }
+            }
+          ],
+          "before": [
+            null,
+            0
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 2,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 7,
+              "states": {},
+              "before": null
+            }
+          ]
+        },
+        {
+          "id": "parallel-ok",
+          "problems": [],
+          "at": [
+            {},
+            {
+              "api": "degraded",
+              "db": "stopped",
+              "auth": "starting"
+            },
+            {
+              "api": "running",
+              "db": "stopped",
+              "auth": "starting"
+            },
+            {
+              "api": "running",
+              "db": "stopped",
+              "auth": "starting"
+            }
+          ],
+          "marks": [
+            {},
+            {
+              "api": {
+                "state": "degraded",
+                "inside": false
+              },
+              "db": {
+                "state": "stopped",
+                "inside": false
+              },
+              "auth": {
+                "state": "starting",
+                "inside": false
+              },
+              "shop": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "db": {
+                "state": "stopped",
+                "inside": false
+              },
+              "auth": {
+                "state": "starting",
+                "inside": false
+              },
+              "shop": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "db": {
+                "state": "stopped",
+                "inside": false
+              },
+              "auth": {
+                "state": "starting",
+                "inside": false
+              },
+              "shop": {
+                "state": "stopped",
+                "inside": true
+              }
+            }
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 4,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 9,
+              "states": {},
+              "before": null
+            }
+          ]
+        },
+        {
+          "id": "repeat",
+          "problems": [],
+          "at": [
+            {
+              "api": "starting"
+            },
+            {
+              "api": "degraded"
+            },
+            {
+              "api": "running"
+            }
+          ],
+          "marks": [
+            {
+              "api": {
+                "state": "starting",
+                "inside": false
+              },
+              "shop": {
+                "state": "starting",
+                "inside": true
+              }
+            },
+            {
+              "api": {
+                "state": "degraded",
+                "inside": false
+              },
+              "shop": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {}
+          ],
+          "before": [
+            null,
+            0,
+            1
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 3,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 8,
+              "states": {},
+              "before": null
+            }
+          ]
+        },
+        {
+          "id": "shapes",
+          "problems": [
+            {
+              "message": "states must map shape ids to states"
+            },
+            {
+              "step": 0,
+              "message": "states must map shape ids to states"
+            },
+            {
+              "step": 1,
+              "message": "states must map shape ids to states"
+            },
+            {
+              "step": 2,
+              "message": "states must map shape ids to states"
+            }
+          ],
+          "at": [
+            {},
+            {},
+            {},
+            {},
+            {
+              "api": "stopped"
+            }
+          ],
+          "marks": [
+            {},
+            {},
+            {},
+            {},
+            {
+              "api": {
+                "state": "stopped",
+                "inside": false
+              },
+              "shop": {
+                "state": "stopped",
+                "inside": true
+              }
+            }
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 5,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 10,
+              "states": {},
+              "before": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "flows": [
+        {
+          "id": "stripe-outage",
+          "problems": [],
+          "at": [
+            {
+              "stripe": "stopping"
+            },
+            {
+              "stripe": "stopped"
+            },
+            {
+              "stripe": "stopped",
+              "checkout": "degraded"
+            },
+            {
+              "stripe": "restarting",
+              "checkout": "degraded"
+            },
+            {
+              "stripe": "starting",
+              "checkout": "degraded"
+            },
+            {
+              "stripe": "running",
+              "checkout": "running"
+            }
+          ],
+          "marks": [
+            {
+              "stripe": {
+                "state": "stopping",
+                "inside": false
+              }
+            },
+            {
+              "stripe": {
+                "state": "stopped",
+                "inside": false
+              }
+            },
+            {
+              "stripe": {
+                "state": "stopped",
+                "inside": false
+              },
+              "checkout": {
+                "state": "degraded",
+                "inside": false
+              },
+              "order-api": {
+                "state": "degraded",
+                "inside": true
+              },
+              "ordering": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {
+              "stripe": {
+                "state": "restarting",
+                "inside": false
+              },
+              "checkout": {
+                "state": "degraded",
+                "inside": false
+              },
+              "order-api": {
+                "state": "degraded",
+                "inside": true
+              },
+              "ordering": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {
+              "stripe": {
+                "state": "starting",
+                "inside": false
+              },
+              "checkout": {
+                "state": "degraded",
+                "inside": false
+              },
+              "order-api": {
+                "state": "degraded",
+                "inside": true
+              },
+              "ordering": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {}
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 6,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 11,
+              "states": {},
+              "before": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "folder": "docs/showcase/flowy",
+      "flows": [
+        {
+          "id": "state-inside",
+          "problems": [],
+          "at": [
+            {},
+            {
+              "states-part": "stopped"
+            },
+            {
+              "states-part": "stopped",
+              "states-holder": "degraded"
+            },
+            {
+              "states-part": "running",
+              "states-holder": "running"
+            }
+          ],
+          "marks": [
+            {},
+            {
+              "states-part": {
+                "state": "stopped",
+                "inside": false
+              },
+              "states-holder": {
+                "state": "stopped",
+                "inside": true
+              },
+              "states": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "states-part": {
+                "state": "stopped",
+                "inside": false
+              },
+              "states-holder": {
+                "state": "degraded",
+                "inside": false
+              },
+              "states": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {}
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 4,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 9,
+              "states": {},
+              "before": null
+            }
+          ]
+        },
+        {
+          "id": "states",
+          "problems": [],
+          "at": [
+            {
+              "states-service": "starting"
+            },
+            {
+              "states-service": "running"
+            },
+            {
+              "states-service": "degraded"
+            },
+            {
+              "states-service": "stopping"
+            },
+            {
+              "states-service": "stopped"
+            },
+            {
+              "states-service": "restarting"
+            },
+            {
+              "states-service": "running"
+            }
+          ],
+          "marks": [
+            {
+              "states-service": {
+                "state": "starting",
+                "inside": false
+              },
+              "states": {
+                "state": "starting",
+                "inside": true
+              }
+            },
+            {},
+            {
+              "states-service": {
+                "state": "degraded",
+                "inside": false
+              },
+              "states": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {
+              "states-service": {
+                "state": "stopping",
+                "inside": false
+              },
+              "states": {
+                "state": "stopping",
+                "inside": true
+              }
+            },
+            {
+              "states-service": {
+                "state": "stopped",
+                "inside": false
+              },
+              "states": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "states-service": {
+                "state": "restarting",
+                "inside": false
+              },
+              "states": {
+                "state": "restarting",
+                "inside": true
+              }
+            },
+            {}
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {
+                "states-service": "starting"
+              },
+              "before": null
+            },
+            {
+              "k": 7,
+              "states": {
+                "states-service": "starting"
+              },
+              "before": null
+            },
+            {
+              "k": 12,
+              "states": {
+                "states-service": "starting"
+              },
+              "before": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
