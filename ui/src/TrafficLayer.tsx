@@ -2,30 +2,43 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useStore, useStoreApi } from '@xyflow/react'
 import type { LineTraffic } from '../../src/core/perf.ts'
 import type { LineStyle } from '../../src/core/model.ts'
-import { pathBetween } from './Line.tsx'
+import { covers } from './graph.ts'
+import type { Outline } from './graph.ts'
+import { outline, pathBetween, rect } from './Line.tsx'
 import { flatten, pointAt } from './pathpoints.ts'
 import { advance, newStream, visibility } from './traffic.ts'
 import type { Stream } from './traffic.ts'
+
+/** A shape a line runs behind: where it is and its outline. */
+type Behind = { rect: ReturnType<typeof rect>; edge: Outline }
+
+/** Whether a particle at (x, y) is under a shape the line runs behind: the line is hidden there, so the particle is too. */
+const hidden = (behind: Behind[], x: number, y: number, radius: number) => {
+  for (const s of behind) if (covers(s.rect, s.edge, x, y, radius)) return true
+  return false
+}
 
 /**
  * The traffic on the lines: small particles running from one shape to the other, as many and as fast as the load says (see
  * traffic() in core/perf.ts), and the ones that fail dying away short of the end. One canvas over the diagram, drawn with
  * the same camera as the shapes. Each line's path is flattened once, because asking the browser for a point on a path takes
- * about 28 µs and a busy view has thousands of particles a frame. Reduced motion draws none: the caller leaves this out.
+ * about 28 µs and a busy view has thousands of particles a frame. A particle is not drawn where its line runs behind a shape
+ * that is not one of its ends, as the line itself isn't. Reduced motion draws none: the caller leaves this out.
  */
 export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: LineStyle }) {
   const store = useStoreApi()
   // Where every shape is and how big it is, as text: it changes exactly when a line's path would, and only then does the layer draw itself again.
   const where = useStore(s => [...s.nodeLookup.values()].map(n => `${n.id} ${n.internals.positionAbsolute.x} ${n.internals.positionAbsolute.y} ${n.measured.width} ${n.measured.height}`).join(','))
   const canvas = useRef<HTMLCanvasElement>(null)
-  // One polyline per line, made again when a shape moves or the style of lines changes.
+  // One polyline per line, made again when a shape moves or the style of lines changes, with the shapes it runs behind: every shape but its own two ends.
   const paths = useMemo(
     () => {
       const boxes = store.getState().nodeLookup
+      const shapes = [...boxes.values()].filter(n => n.type === 'box').map(n => ({ id: n.id, rect: rect(n), edge: outline(n) }))
       return lines.map(l => {
         const a = boxes.get(l.from)
         const b = boxes.get(l.to)
-        return a && b ? flatten(pathBetween(style, a, b)) : undefined
+        return a && b ? { path: flatten(pathBetween(style, a, b)), behind: shapes.filter(s => s.id !== l.from && s.id !== l.to) } : undefined
       })
     },
     [lines, where, style, store],
@@ -62,8 +75,8 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
       const { lines, paths } = now.current
       const alive = new Set<string>()
       lines.forEach((line, i) => {
-        const path = paths[i]
-        if (!path) return
+        if (!paths[i]) return
+        const { path, behind } = paths[i]!
         const key = `${line.from} ${line.to}`
         alive.add(key)
         let stream = streams.current.get(key)
@@ -75,6 +88,7 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
         for (const m of stream.motes) {
           if (m.fails) continue
           const [x, y] = pointAt(path, m.s)
+          if (hidden(behind, x, y, radius)) continue
           ctx.moveTo(x + radius, y)
           ctx.arc(x, y, radius, 0, Math.PI * 2)
         }
@@ -83,6 +97,7 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
         for (const m of stream.motes) {
           if (!m.fails) continue
           const [x, y] = pointAt(path, m.s)
+          if (hidden(behind, x, y, radius)) continue
           ctx.globalAlpha = visibility(m)
           ctx.beginPath()
           ctx.arc(x, y, radius, 0, Math.PI * 2)
