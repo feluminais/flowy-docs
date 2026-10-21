@@ -2,9 +2,10 @@
  * Which language some code is written in, from cues alone: a list of patterns for each language, each with a weight, and the language with
  * the most weight wins. No library, so it is quick, it never throws, and the desktop app (Detect.cs, generated from this table) says the same.
  * It answers undefined when nothing stands out (a word, a log line, prose), which is drawn as plain text.
- * Right for about nine snippets in ten on a test set of 130 (test/detect-corpus.json); the usual slips are a single line of C#, Java, Python,
- * C++ or Rust, which a reader fixes by picking the language.
+ * Right for 94% of the code on a set of snippets written blind (test/detect-blind2.json) and for about nine in ten on the other sets in
+ * test/detect-*.json; the usual slips are a single line of C#, Java, Python, C++ or Rust, which a reader fixes by picking the language.
  */
+import { SNIPPET_MAX } from './snippets.ts'
 
 /** One cue: a pattern (multi-line, as written) and what a match is worth. A pattern that matches again is worth one more, up to two more. */
 export type Cue = readonly [pattern: RegExp, weight: number]
@@ -252,7 +253,9 @@ function isJson(text: string): boolean {
 }
 
 /** The id of the language the code is most likely written in, or undefined. Give it the code as `codeLines` joins it. */
-export function guessLanguage(text: string): string | undefined {
+export function guessLanguage(whole: string): string | undefined {
+  // Only the first part is read: a snippet longer than the limit is a problem to fix, and a line of hundreds of thousands of characters must not stall the page.
+  const text = whole.length > SNIPPET_MAX.chars ? whole.slice(0, SNIPPET_MAX.chars) : whole
   if (isJson(text)) return 'json'
   let best: string | undefined
   let bestScore = 0

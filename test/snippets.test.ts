@@ -141,3 +141,29 @@ test('code is blank when it holds nothing but spaces, tabs and line breaks, and 
   assert.deepEqual(codeLines('a  \n \t\n'), ['a'])
   assert.deepEqual(codeLines('\n \t\n  a\n'), ['  a'])
 })
+
+const LS = String.fromCharCode(0x2028)
+const PS = String.fromCharCode(0x2029)
+const NEL = String.fromCharCode(0x85)
+
+test('the line and paragraph separators and NEL are line breaks, and control characters are left out', () => {
+  assert.deepEqual(codeLines(`a${LS}b${PS}c${NEL}d\u0007e\u007f`), ['a', 'b', 'c', 'de'])
+  assert.deepEqual(codeLines('x\ty'), ['x\ty'])
+})
+
+test('code that holds those characters is written as plain lines and reads back the same', () => {
+  const text = `const a = 1${LS}const b = 2\n  indented\u0007\n\n`
+  const m = putObject(shop(), { id: 'orders', snippets: [{ text }] })
+  assert.equal((m.objects.orders.snippets as { text: string }[])[0].text, 'const a = 1\nconst b = 2\n  indented')
+  const back = parseModelFile(serializeModelFile(m)).objects.orders.snippets as { text: string }[]
+  assert.equal(back[0].text, 'const a = 1\nconst b = 2\n  indented')
+})
+
+test('a snippet over the character limit is a problem, and a very long line is trimmed in no time', () => {
+  const long = 'x'.repeat(SNIPPET_MAX.chars + 1)
+  assert.deepEqual(snippetProblems({ type: 'component', name: 'A', snippets: [{ text: long }] }), [`snippet 1 is ${SNIPPET_MAX.chars + 1} characters, at most ${SNIPPET_MAX.chars}. Put long code in a file and list it under Source.`])
+  assert.deepEqual(snippetProblems({ type: 'component', name: 'A', snippets: [{ text: 'x'.repeat(SNIPPET_MAX.chars) }] }), [])
+  const clock = Date.now()
+  assert.equal(codeLines(`a${' '.repeat(400_000)}`).length, 1)
+  assert.ok(Date.now() - clock < 1000, 'trimming 400,000 spaces took too long')
+})

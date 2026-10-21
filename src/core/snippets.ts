@@ -2,7 +2,7 @@ import { isMap } from './model.ts'
 import type { FlowyObject } from './model.ts'
 
 /** How much code a shape holds, so the panel stays a picture of a few lines that matter and never a copy of the repo (files belong under Source). */
-export const SNIPPET_MAX = { snippets: 6, lines: 40 } as const
+export const SNIPPET_MAX = { snippets: 6, lines: 40, chars: 8000 } as const
 
 /**
  * A language a snippet can be coloured as. `id` is what the file holds, `name` is what a reader sees, and `aliases` are the other names people
@@ -59,12 +59,21 @@ export function snippetsOf(o: FlowyObject): Snippet[] {
   return Array.isArray(o.snippets) ? o.snippets.filter(isSnippet) : []
 }
 
+/** What a YAML reader may take for a line break: a carriage return (alone or before a line feed) and the line and paragraph separators. */
+const BREAKS = new RegExp(`\r\n?|[${String.fromCharCode(0x2028, 0x2029, 0x85)}]`, 'g')
+
+/** Control characters other than tab and line break: a file cannot hold them in a block of lines, so they never reach one. */
+const CONTROLS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g
+
 /**
- * The lines of some code with the blank lines before and after it taken off, and a carriage return read as a line break. Only spaces, tabs
- * and line breaks count as blank, so the desktop app (Snippets.CodeLines) agrees with this to the character.
+ * The lines of some code: every kind of line break as one, control characters left out, and the blank lines before and after it taken off.
+ * Only spaces, tabs and line breaks count as blank, so the desktop app (Snippets.CodeLines) agrees with this to the character.
  */
 export function codeLines(text: string): string[] {
-  return text.replace(/\r\n?/g, '\n').replace(/^(?:[\t ]*\n)+/, '').replace(/[\t \n]+$/, '').split('\n')
+  const s = text.replace(BREAKS, '\n').replace(CONTROLS, '').replace(/^(?:[\t ]*\n)+/, '')
+  let end = s.length
+  while (end > 0 && (s[end - 1] === ' ' || s[end - 1] === '\t' || s[end - 1] === '\n')) end--
+  return s.slice(0, end).split('\n')
 }
 
 /** Whether some code is nothing but blank lines. */
@@ -103,8 +112,10 @@ export function snippetProblems(o: FlowyObject): string[] {
     if (s.text === undefined || (typeof s.text === 'string' && isBlankCode(s.text))) out.push(`${at} has no text`)
     else if (typeof s.text !== 'string') out.push(`${at}: text must be plain text`)
     else {
-      const lines = codeLines(s.text).length
-      if (lines > SNIPPET_MAX.lines) out.push(`${at} is ${lines} lines, at most ${SNIPPET_MAX.lines}. Put long code in a file and list it under Source.`)
+      const code = codeLines(s.text)
+      if (code.length > SNIPPET_MAX.lines) out.push(`${at} is ${code.length} lines, at most ${SNIPPET_MAX.lines}. Put long code in a file and list it under Source.`)
+      const chars = code.join('\n').length
+      if (chars > SNIPPET_MAX.chars) out.push(`${at} is ${chars} characters, at most ${SNIPPET_MAX.chars}. Put long code in a file and list it under Source.`)
     }
     if (s.title !== undefined && typeof s.title !== 'string') out.push(`${at}: title must be plain text`)
     if (s.language !== undefined && s.language !== '') {
