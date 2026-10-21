@@ -1,7 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { animationOf, animationProblem, beatsFor, burstOf, followsLanding, interceptorProblem, lostAtOf, outcomeLine, shareOf, travelMs } from '../src/core/animation.ts'
-import type { Animation } from '../src/core/animation.ts'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { animationOf, animationProblem, beatsFor, burstOf, followsLanding, interceptorProblem, LABEL_MAX, lostAtOf, outcomeLine, shareOf, shortLabel, TINTS, travelMs } from '../src/core/animation.ts'
+import type { Animation, Beat } from '../src/core/animation.ts'
 
 const plain = (kind: Animation['kind'], more: Partial<Animation> = {}): Animation => ({ kind, trigger: 'inside', ...more })
 
@@ -344,4 +346,193 @@ test('the card line says the outcome in a fragment: the share first, then the ve
   // A shape that takes the request is named by its name, which only the model knows.
   assert.equal(line({ outcome: 'intercepted', by: { shape: 'cdn' } }), 'Taken by cdn')
   assert.equal(outcomeLine(plain('send', { outcome: 'intercepted', by: { shape: 'cdn' } }), id => (id === 'cdn' ? 'Edge cache' : id)), 'Taken by Edge cache')
+})
+
+// A line of 250 takes the shortest time to cross, 1200 ms, so the numbers below read without arithmetic.
+const play = (kind: Animation['kind'], more: Partial<Animation>, length = 250) => beatsFor(plain(kind, more), { length, afterLanding: false })
+const kinds = (beats: Beat[]) => beats.map(b => `${b.do}:${b.on}`)
+
+test('a plain animation keeps every beat it had before the outcomes were added', () => {
+  const expected = JSON.parse(readFileSync(join(import.meta.dirname, '../desktop/fixtures/expected/beats.json'), 'utf8')) as {
+    beats: { animation: unknown; length: number; afterLanding: boolean; beats: unknown; total: number }[]
+  }
+  const old = expected.beats.filter(b => {
+    const keys = typeof b.animation === 'string' ? [] : Object.keys(b.animation as object)
+    return keys.every(k => ['kind', 'trigger', 'carries', 'outcome'].includes(k)) && ['fail', 'timeout', undefined].includes((b.animation as { outcome?: string }).outcome)
+  })
+  assert.ok(old.length > 100)
+  for (const b of old) {
+    const a = animationOf({ to: 'x', animation: b.animation })!
+    const played = beatsFor(a, { length: b.length, afterLanding: b.afterLanding })
+    assert.deepEqual({ beats: played.beats, total: played.total }, { beats: b.beats, total: b.total }, JSON.stringify(b.animation))
+  }
+})
+
+test('lost: it runs partway, pops, and nothing lands; a call keeps waiting', () => {
+  const { beats, total } = play('send', { outcome: 'lost' })
+  assert.equal(total, 1410)
+  assert.deepEqual(beats, [
+    { do: 'pipe', on: 'line', at: 0, dur: 1410 },
+    { do: 'gulp', on: 'from', at: 0, dur: 250 },
+    { do: 'blob', on: 'line', at: 250, dur: 660, dir: 'fwd', glyph: 'envelope', end: 0.55 },
+    { do: 'pop', on: 'line', at: 910, dur: 500, along: 0.55 },
+  ])
+  assert.equal(beats.some(b => b.on === 'to'), false, 'nothing lands, so the receiver does not squash')
+  const call = play('call', { outcome: 'lost', at: 0.4, reason: 'Packet dropped' })
+  assert.deepEqual(call.beats.slice(2), [
+    { do: 'blob', on: 'line', at: 250, dur: 480, dir: 'fwd', glyph: 'envelope', end: 0.4 },
+    { do: 'pop', on: 'line', at: 730, dur: 500, along: 0.4 },
+    { do: 'note', on: 'line', at: 730, dur: 1600, along: 0.4, text: 'Packet dropped' },
+    { do: 'wait', on: 'from', at: 730, dur: 1800 },
+  ])
+  assert.equal(call.beats.some(b => b.dir === 'back'), false, 'no answer comes back')
+  assert.equal(play('event', { outcome: 'lost' }).beats.find(b => b.do === 'blob')!.glyph, 'bolt')
+})
+
+test('rejected: it stops at the bar by the door, comes back in the danger tone, and the sender takes it in', () => {
+  const { beats, total } = play('send', { outcome: 'rejected', reason: 'Rate limit' })
+  assert.equal(total, 3208)
+  assert.deepEqual(beats, [
+    { do: 'pipe', on: 'line', at: 0, dur: 3208 },
+    { do: 'gulp', on: 'from', at: 0, dur: 250 },
+    { do: 'blob', on: 'line', at: 250, dur: 1104, dir: 'fwd', glyph: 'envelope', end: 0.92 },
+    { do: 'bar', on: 'line', at: 1354, dur: 900, along: 0.97 },
+    { do: 'note', on: 'line', at: 1354, dur: 1600, along: 0.92, text: 'Rate limit' },
+    { do: 'blob', on: 'line', at: 1804, dur: 1104, dir: 'back', glyph: 'envelope', tone: 'fail', end: 0.92 },
+    { do: 'gulp', on: 'from', at: 2908, dur: 300 },
+  ])
+  assert.equal(beats.some(b => b.on === 'to'), false, 'the receiver never takes it in')
+  const call = play('call', { outcome: 'rejected' })
+  assert.ok(call.beats.some(b => b.do === 'wait' && b.on === 'from'))
+  assert.equal(call.beats.filter(b => b.do === 'blob' && b.dir === 'back').length, 1)
+})
+
+test('intercepted: it leaves the line for the one who takes it, which flashes; a named party is marked for the whole step', () => {
+  const named = play('call', { outcome: 'intercepted', by: { name: 'Proxy' }, reason: 'Reads the call' })
+  assert.deepEqual(kinds(named.beats), [
+    'pipe:line', 'marker:by', 'gulp:from', 'blob:line', 'blob:by', 'flash:by', 'note:by', 'wait:from',
+  ])
+  assert.deepEqual(named.beats[1], { do: 'marker', on: 'by', at: 0, dur: named.total, along: 0.4, text: 'Proxy' })
+  assert.deepEqual(named.beats[4], { do: 'blob', on: 'by', at: 730, dur: 700, dir: 'fwd', glyph: 'envelope', start: 0.4 })
+  assert.deepEqual(named.beats[5], { do: 'flash', on: 'by', at: 1430, dur: 450 })
+  assert.equal(named.beats.some(b => b.on === 'to'), false)
+  // A shape that takes it is marked too, with no text, because its own name is already on it.
+  const shape = play('send', { outcome: 'intercepted', by: { shape: 'proxy' } })
+  assert.deepEqual(shape.beats[1], { do: 'marker', on: 'by', at: 0, dur: shape.total, along: 0.4 })
+  assert.equal(play('send', { outcome: 'lost' }).beats.some(b => b.do === 'marker'), false)
+})
+
+test('duplicated: a second copy leaves the first and the receiver takes it in twice, a call answers once', () => {
+  const { beats, total } = play('send', { outcome: 'duplicated', carries: 'order' })
+  assert.equal(total, 2170)
+  const blobs = beats.filter(b => b.do === 'blob')
+  assert.equal(blobs.length, 2)
+  assert.deepEqual(blobs.map(b => [b.label, b.start]), [['order', undefined], ['order', 0.4]])
+  const gulps = beats.filter(b => b.do === 'gulp' && b.on === 'to')
+  assert.deepEqual(gulps.map(b => b.at), [1450, 1870])
+  // An event is lit twice instead.
+  assert.equal(play('event', { outcome: 'duplicated' }).beats.filter(b => b.do === 'flash' && b.on === 'to').length, 2)
+  const call = play('call', { outcome: 'duplicated' })
+  assert.equal(call.beats.filter(b => b.do === 'gulp' && b.on === 'to').length, 2)
+  const reply = call.beats.filter(b => b.do === 'blob' && b.dir === 'back')
+  assert.equal(reply.length, 1)
+  assert.ok(reply[0].at >= 1870 + 600, 'the answer starts after the second copy has landed')
+})
+
+test('delayed: it runs to the clock, waits there while the reason shows, then goes on and lands', () => {
+  const { beats, total } = play('send', { outcome: 'delayed', reason: 'Cold start' })
+  assert.equal(total, 250 + 480 + 1500 + 720 + 300)
+  assert.deepEqual(beats.slice(1), [
+    { do: 'gulp', on: 'from', at: 0, dur: 250 },
+    { do: 'blob', on: 'line', at: 250, dur: 480, dir: 'fwd', glyph: 'envelope', end: 0.4 },
+    { do: 'blob', on: 'line', at: 730, dur: 1500, dir: 'fwd', glyph: 'envelope', start: 0.4, end: 0.4 },
+    { do: 'clock', on: 'line', at: 730, dur: 1500, along: 0.4 },
+    { do: 'note', on: 'line', at: 730, dur: 1500, along: 0.4, text: 'Cold start' },
+    { do: 'blob', on: 'line', at: 2230, dur: 720, dir: 'fwd', glyph: 'envelope', start: 0.4 },
+    { do: 'gulp', on: 'to', at: 2950, dur: 300 },
+  ])
+  // A call still gets its answer after the delay.
+  const call = play('call', { outcome: 'delayed' })
+  assert.deepEqual(kinds(call.beats).slice(-3), ['wait:from', 'blob:line', 'gulp:from'])
+  assert.equal(call.beats.at(-2)!.dir, 'back')
+})
+
+test('the beats of a step have the same kinds and order at any length of line', () => {
+  for (const outcome of ['fail', 'timeout', 'lost', 'rejected', 'intercepted', 'duplicated', 'delayed'] as const) {
+    const more = { outcome, reason: 'Why', ...(outcome === 'intercepted' ? { by: { name: 'Proxy' } } : {}) }
+    const shapes = [0, 100, 600, 5000].map(length => kinds(beatsFor(plain('call', more), { length, afterLanding: false }).beats))
+    for (const s of shapes) assert.deepEqual(s, shapes[0], outcome)
+  }
+})
+
+test('a share plays a burst: the hits are named r1, r2, ... and the ordinary requests carry no name', () => {
+  const { beats, total } = play('send', { outcome: 'lost', share: 30 })
+  const blobs = beats.filter(b => b.do === 'blob')
+  assert.equal(blobs.length, 10, 'ten requests')
+  assert.deepEqual(blobs.map(b => b.label), [undefined, undefined, undefined, 'r1', undefined, undefined, 'r2', undefined, undefined, 'r3'])
+  assert.deepEqual(blobs.map(b => b.at), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => 250 + i * 300))
+  // The ordinary ones are deliveries with a squash where they land; the hits pop and nothing lands.
+  assert.equal(beats.filter(b => b.do === 'gulp' && b.on === 'to').length, 7)
+  assert.equal(beats.filter(b => b.do === 'pop').length, 3)
+  // A hit has a colour of its own and a ring, and an ordinary request has neither.
+  assert.deepEqual(blobs.filter(b => b.label !== undefined).map(b => [b.tint, b.ring]), [[0, true], [1, true], [2, true]])
+  assert.ok(blobs.filter(b => b.label === undefined).every(b => b.tint === undefined && b.ring === undefined && b.end === undefined))
+  assert.equal(beats[0].dur, total)
+  assert.equal(total, Math.max(...beats.map(b => b.at + b.dur)))
+})
+
+test('carries names every hit, and a long run of tints starts over', () => {
+  const named = play('send', { outcome: 'fail', share: 50, carries: 'order' }).beats.filter(b => b.do === 'blob')
+  assert.deepEqual(named.map(b => b.label), [undefined, 'order', undefined, 'order', undefined, 'order', undefined, 'order', undefined, 'order'])
+  assert.deepEqual(named.filter(b => b.tone === 'fail').length, 5, 'only the hits fail')
+  // A word that looks like a request name is still just the word.
+  assert.equal(play('send', { outcome: 'lost', share: 100, carries: 'r2' }).beats.filter(b => b.do === 'blob').every(b => b.label === 'r2'), true)
+  const tints = play('send', { outcome: 'lost', share: 100 }).beats.filter(b => b.do === 'blob').map(b => b.tint)
+  assert.deepEqual(tints, [0, 1, 2, 3, 0, 1, 2, 3, 0, 1])
+  assert.ok(TINTS.length >= 4)
+})
+
+test('a duplicated pair is one request: both copies carry the same name and tint, unlike the ordinary requests', () => {
+  const blobs = play('send', { outcome: 'duplicated', share: 10 }).beats.filter(b => b.do === 'blob')
+  assert.equal(blobs.length, 11, 'nine ordinary requests and a hit sent twice')
+  const copies = blobs.filter(b => b.label !== undefined)
+  assert.equal(copies.length, 2)
+  assert.deepEqual(copies.map(b => [b.label, b.tint, b.ring]), [['r1', 0, true], ['r1', 0, true]])
+  assert.ok(blobs.filter(b => b.label === undefined).every(b => b.tint === undefined))
+  assert.equal(play('send', { outcome: 'duplicated', share: 10 }).beats.filter(b => b.do === 'gulp' && b.on === 'to').length, 9 + 2)
+})
+
+test('a burst stays short: 100 requests start within three seconds, and a call answers every one of them', () => {
+  for (const kind of ['send', 'call', 'event'] as const) {
+    for (const length of [0, 250, 5000]) {
+      const longest = Math.max(...[{ outcome: 'lost' as const }, {}].map(more => beatsFor(plain(kind, more), { length, afterLanding: false }).total))
+      const { beats, total } = beatsFor(plain(kind, { outcome: 'lost', share: 1 }), { length, afterLanding: false })
+      assert.equal(beats.filter(b => b.do === 'blob' && b.dir === 'fwd').length, 100)
+      assert.ok(total <= longest + 3000, `${kind} ${length}: ${total}`)
+    }
+  }
+  const call = beatsFor(plain('call', { outcome: 'lost', share: 1 }), { length: 5000, afterLanding: false })
+  assert.ok(call.total < 6000 + 2 * travelMs(5000) + 1800, String(call.total))
+  const answered = beatsFor(plain('call', { outcome: 'lost', share: 30 }), { length: 250, afterLanding: false }).beats
+  assert.equal(answered.filter(b => b.do === 'blob' && b.dir === 'back').length, 7, 'every request that arrives is answered')
+  assert.equal(answered.filter(b => b.do === 'wait').length, 10)
+})
+
+test('a burst of timeouts dims the line once, after the last of them', () => {
+  const { beats } = play('call', { outcome: 'timeout', share: 30 })
+  assert.equal(beats.filter(b => b.do === 'fade').length, 1)
+  const last = beats.filter(b => b.do === 'wait').at(-1)!
+  assert.equal(beats.find(b => b.do === 'fade')!.at, last.at + last.dur)
+})
+
+test('a share without an outcome plays one ordinary request, and a callback never plays a burst', () => {
+  assert.deepEqual(play('send', { share: 30 }), play('send', {}))
+  assert.deepEqual(play('callback', { share: 30 }), play('callback', {}))
+})
+
+test('a long carried word is cut for display, and the beat keeps the whole word', () => {
+  assert.equal(shortLabel('order'), 'order')
+  assert.equal(shortLabel('a'.repeat(LABEL_MAX)), 'a'.repeat(LABEL_MAX))
+  assert.equal(shortLabel('a'.repeat(LABEL_MAX + 1)), `${'a'.repeat(LABEL_MAX - 1)}…`)
+  assert.equal(play('send', { carries: 'x'.repeat(80) }).beats.find(b => b.do === 'blob')!.label, 'x'.repeat(80))
 })
