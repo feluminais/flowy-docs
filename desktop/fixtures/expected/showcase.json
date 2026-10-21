@@ -5,7 +5,7 @@
       "id": "steps",
       "type": "system",
       "name": "Step animations",
-      "description": "One pair of shapes for each way a step can travel, named for the animation they play.\n\nEach animation has a flow of its own with a single step to click through: Send, Call, Event, Callback, Flash, Bolt drop,\nSend with a word, Fail and Timeout (Flash has two, because the step before sets it off).\n\n**Every step animation** plays them all: press **P** to watch them one after the other.\n"
+      "description": "One pair of shapes for each way a step can travel, named for the animation they play.\n\nEach animation has a flow of its own with a single step to click through: Send, Call, Event, Callback, Flash, Bolt drop,\nSend with a word, Fail, Timeout, Lost, Rejected, Intercepted (twice: by a shape and by a name), Duplicated, Delayed and Share\n(Flash has two, because the step before sets it off).\n\n**Every step animation** plays them all: press **P** to watch them one after the other.\n"
     },
     {
       "id": "structure",
@@ -156,6 +156,126 @@
       "in": "steps",
       "tech": "call, timeout",
       "description": "Takes the envelope in and never answers."
+    },
+    {
+      "id": "lost-from",
+      "type": "app",
+      "name": "Lost · from",
+      "in": "steps",
+      "tech": "send, lost",
+      "description": "`animation: {kind: send, outcome: lost, reason: Packet dropped}`. The envelope runs part of the way, pops, and leaves a cross where it went."
+    },
+    {
+      "id": "lost-to",
+      "type": "app",
+      "name": "Lost · to",
+      "in": "steps",
+      "tech": "send, lost",
+      "description": "Never hears of it, so it never squashes or flashes."
+    },
+    {
+      "id": "rejected-from",
+      "type": "app",
+      "name": "Rejected · from",
+      "in": "steps",
+      "tech": "call, rejected",
+      "description": "`animation: {kind: call, outcome: rejected, reason: Rate limit}`. The envelope stops at the bar by the receiver and comes back red."
+    },
+    {
+      "id": "rejected-to",
+      "type": "app",
+      "name": "Rejected · to",
+      "in": "steps",
+      "tech": "call, rejected",
+      "description": "Turns the call away at the door. The bar flashes."
+    },
+    {
+      "id": "intercepted-from",
+      "type": "app",
+      "name": "Intercepted · from",
+      "in": "steps",
+      "tech": "call, intercepted by a shape",
+      "description": "`animation: {kind: call, outcome: intercepted, by: intercepted-by}`. The envelope leaves the line for a third shape, which takes it and lights."
+    },
+    {
+      "id": "intercepted-to",
+      "type": "app",
+      "name": "Intercepted · to",
+      "in": "steps",
+      "tech": "call, intercepted by a shape",
+      "description": "Never gets the call."
+    },
+    {
+      "id": "intercepted-by",
+      "type": "app",
+      "name": "Intercepted · taken by",
+      "in": "steps",
+      "tech": "not an end of the step",
+      "description": "The third shape. It gets a dashed outline for the whole step and lights when the envelope arrives."
+    },
+    {
+      "id": "named-from",
+      "type": "app",
+      "name": "Intercepted by a name · from",
+      "in": "steps",
+      "tech": "call, intercepted by a name",
+      "description": "`animation: {kind: call, outcome: intercepted, by: {name: Café wifi proxy}}`. The party is not in the model, so a dashed marker with its name hangs below the line."
+    },
+    {
+      "id": "named-to",
+      "type": "app",
+      "name": "Intercepted by a name · to",
+      "in": "steps",
+      "tech": "call, intercepted by a name",
+      "description": "Never gets the call."
+    },
+    {
+      "id": "duplicated-from",
+      "type": "app",
+      "name": "Duplicated · from",
+      "in": "steps",
+      "tech": "send, duplicated",
+      "description": "`animation: {kind: send, outcome: duplicated, reason: Retried}`. A second copy leaves the first part of the way along and arrives later."
+    },
+    {
+      "id": "duplicated-to",
+      "type": "app",
+      "name": "Duplicated · to",
+      "in": "steps",
+      "tech": "send, duplicated",
+      "description": "Takes the envelope in twice, with a squash each time."
+    },
+    {
+      "id": "delayed-from",
+      "type": "app",
+      "name": "Delayed · from",
+      "in": "steps",
+      "tech": "call, delayed",
+      "description": "`animation: {kind: call, outcome: delayed, reason: Cold start}`. The envelope waits partway beside a turning dashed clock, then goes on."
+    },
+    {
+      "id": "delayed-to",
+      "type": "app",
+      "name": "Delayed · to",
+      "in": "steps",
+      "tech": "call, delayed",
+      "description": "Takes the envelope in late, then answers."
+    },
+    {
+      "id": "share-from",
+      "type": "app",
+      "name": "Share of requests · from",
+      "in": "steps",
+      "tech": "send, lost, share 30",
+      "description": "`animation: {kind: send, outcome: lost, share: 30, at: 0.7}`. Ten requests go one after another and three of them are lost 70 percent of the way along: r1, r2 and r3, each with its own colour and a ring."
+    },
+    {
+      "id": "share-to",
+      "type": "app",
+      "name": "Share of requests · to",
+      "in": "steps",
+      "tech": "send, lost, share 30",
+      "description": "Takes in the seven that arrive."
     },
     {
       "id": "repeat-from",
@@ -360,6 +480,41 @@
       "label": "timeout"
     },
     {
+      "from": "lost-from",
+      "to": "lost-to",
+      "label": "lost"
+    },
+    {
+      "from": "rejected-from",
+      "to": "rejected-to",
+      "label": "rejected"
+    },
+    {
+      "from": "intercepted-from",
+      "to": "intercepted-to",
+      "label": "intercepted"
+    },
+    {
+      "from": "named-from",
+      "to": "named-to",
+      "label": "intercepted by a name"
+    },
+    {
+      "from": "duplicated-from",
+      "to": "duplicated-to",
+      "label": "duplicated"
+    },
+    {
+      "from": "delayed-from",
+      "to": "delayed-to",
+      "label": "delayed"
+    },
+    {
+      "from": "share-from",
+      "to": "share-to",
+      "label": "share"
+    },
+    {
       "from": "repeat-from",
       "to": "repeat-to",
       "label": "asks and answers"
@@ -521,6 +676,66 @@
       "timeout-to": [
         1360,
         600
+      ],
+      "lost-from": [
+        0,
+        800
+      ],
+      "lost-to": [
+        360,
+        800
+      ],
+      "rejected-from": [
+        1000,
+        800
+      ],
+      "rejected-to": [
+        1360,
+        800
+      ],
+      "intercepted-from": [
+        0,
+        1000
+      ],
+      "intercepted-to": [
+        360,
+        1000
+      ],
+      "intercepted-by": [
+        180,
+        1130
+      ],
+      "named-from": [
+        1000,
+        1000
+      ],
+      "named-to": [
+        1360,
+        1000
+      ],
+      "duplicated-from": [
+        0,
+        1250
+      ],
+      "duplicated-to": [
+        360,
+        1250
+      ],
+      "delayed-from": [
+        1000,
+        1250
+      ],
+      "delayed-to": [
+        1360,
+        1250
+      ],
+      "share-from": [
+        0,
+        1450
+      ],
+      "share-to": [
+        360,
+        1450
       ]
     },
     "structure": {
@@ -724,6 +939,50 @@
       ]
     },
     {
+      "id": "delayed",
+      "name": "Delayed",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "delayed-from",
+          "to": "delayed-to",
+          "text": "Calls and the request waits on the way",
+          "animation": {
+            "kind": "call",
+            "outcome": "delayed",
+            "reason": "Cold start"
+          },
+          "placed": [
+            "delayed-from",
+            "delayed-to"
+          ],
+          "ends": "Delayed · from → Delayed · to"
+        }
+      ]
+    },
+    {
+      "id": "duplicated",
+      "name": "Duplicated",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "duplicated-from",
+          "to": "duplicated-to",
+          "text": "Sends and it is delivered twice",
+          "animation": {
+            "kind": "send",
+            "outcome": "duplicated",
+            "reason": "Retried"
+          },
+          "placed": [
+            "duplicated-from",
+            "duplicated-to"
+          ],
+          "ends": "Duplicated · from → Duplicated · to"
+        }
+      ]
+    },
+    {
       "id": "event",
       "name": "Event",
       "view": "steps",
@@ -878,6 +1137,122 @@
             "timeout-to"
           ],
           "ends": "Timeout · from → Timeout · to"
+        },
+        {
+          "from": "lost-from",
+          "to": "lost-to",
+          "text": "Sends and the request is lost on the way",
+          "description": "The envelope pops partway along the line and leaves a cross. Nothing arrives.",
+          "animation": {
+            "kind": "send",
+            "outcome": "lost",
+            "reason": "Packet dropped"
+          },
+          "placed": [
+            "lost-from",
+            "lost-to"
+          ],
+          "ends": "Lost · from → Lost · to"
+        },
+        {
+          "from": "rejected-from",
+          "to": "rejected-to",
+          "text": "Calls and is turned away at the door",
+          "description": "The envelope stops at a bar by the receiver and comes back red.",
+          "animation": {
+            "kind": "call",
+            "outcome": "rejected",
+            "reason": "Rate limit"
+          },
+          "placed": [
+            "rejected-from",
+            "rejected-to"
+          ],
+          "ends": "Rejected · from → Rejected · to"
+        },
+        {
+          "from": "intercepted-from",
+          "to": "intercepted-to",
+          "text": "Calls and a third shape takes the call",
+          "description": "The envelope leaves the line for the shape that takes it, which lights.",
+          "animation": {
+            "kind": "call",
+            "outcome": "intercepted",
+            "by": "intercepted-by"
+          },
+          "placed": [
+            "intercepted-from",
+            "intercepted-to"
+          ],
+          "ends": "Intercepted · from → Intercepted · to"
+        },
+        {
+          "from": "named-from",
+          "to": "named-to",
+          "text": "Calls and a proxy outside the model reads the call",
+          "description": "The envelope leaves the line for a dashed marker with the proxy's name.",
+          "animation": {
+            "kind": "call",
+            "outcome": "intercepted",
+            "by": {
+              "name": "Café wifi proxy"
+            }
+          },
+          "placed": [
+            "named-from",
+            "named-to"
+          ],
+          "ends": "Intercepted by a name · from → Intercepted by a name · to"
+        },
+        {
+          "from": "duplicated-from",
+          "to": "duplicated-to",
+          "text": "Sends and it is delivered twice",
+          "description": "A second copy leaves the first, and the receiver takes both in.",
+          "animation": {
+            "kind": "send",
+            "outcome": "duplicated",
+            "reason": "Retried"
+          },
+          "placed": [
+            "duplicated-from",
+            "duplicated-to"
+          ],
+          "ends": "Duplicated · from → Duplicated · to"
+        },
+        {
+          "from": "delayed-from",
+          "to": "delayed-to",
+          "text": "Calls and the request waits on the way",
+          "description": "The envelope waits beside a turning dashed clock, then goes on and is answered.",
+          "animation": {
+            "kind": "call",
+            "outcome": "delayed",
+            "reason": "Cold start"
+          },
+          "placed": [
+            "delayed-from",
+            "delayed-to"
+          ],
+          "ends": "Delayed · from → Delayed · to"
+        },
+        {
+          "from": "share-from",
+          "to": "share-to",
+          "text": "Sends ten requests and three are lost",
+          "description": "A burst of ten, one after another. The lost ones are named r1, r2 and r3, each with its own colour and a ring, and they vanish 70 percent of the way along.",
+          "animation": {
+            "kind": "send",
+            "outcome": "lost",
+            "share": "30",
+            "reason": "Packet dropped",
+            "at": "0.7"
+          },
+          "placed": [
+            "share-from",
+            "share-to"
+          ],
+          "ends": "Share of requests · from → Share of requests · to"
         }
       ]
     },
@@ -991,6 +1366,74 @@
       ]
     },
     {
+      "id": "intercepted-by-name",
+      "name": "Intercepted by a name",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "named-from",
+          "to": "named-to",
+          "text": "Calls and a proxy outside the model reads the call",
+          "animation": {
+            "kind": "call",
+            "outcome": "intercepted",
+            "by": {
+              "name": "Café wifi proxy"
+            }
+          },
+          "placed": [
+            "named-from",
+            "named-to"
+          ],
+          "ends": "Intercepted by a name · from → Intercepted by a name · to"
+        }
+      ]
+    },
+    {
+      "id": "intercepted",
+      "name": "Intercepted",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "intercepted-from",
+          "to": "intercepted-to",
+          "text": "Calls and a third shape takes the call",
+          "animation": {
+            "kind": "call",
+            "outcome": "intercepted",
+            "by": "intercepted-by"
+          },
+          "placed": [
+            "intercepted-from",
+            "intercepted-to"
+          ],
+          "ends": "Intercepted · from → Intercepted · to"
+        }
+      ]
+    },
+    {
+      "id": "lost",
+      "name": "Lost",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "lost-from",
+          "to": "lost-to",
+          "text": "Sends and the request is lost on the way",
+          "animation": {
+            "kind": "send",
+            "outcome": "lost",
+            "reason": "Packet dropped"
+          },
+          "placed": [
+            "lost-from",
+            "lost-to"
+          ],
+          "ends": "Lost · from → Lost · to"
+        }
+      ]
+    },
+    {
       "id": "parallel",
       "name": "Parallel",
       "view": "structure",
@@ -1062,6 +1505,28 @@
           "text": "Lane A has two steps, so it carries on after B and C have finished."
         }
       }
+    },
+    {
+      "id": "rejected",
+      "name": "Rejected",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "rejected-from",
+          "to": "rejected-to",
+          "text": "Calls and is turned away at the door",
+          "animation": {
+            "kind": "call",
+            "outcome": "rejected",
+            "reason": "Rate limit"
+          },
+          "placed": [
+            "rejected-from",
+            "rejected-to"
+          ],
+          "ends": "Rejected · from → Rejected · to"
+        }
+      ]
     },
     {
       "id": "repeat",
@@ -1150,6 +1615,30 @@
       ]
     },
     {
+      "id": "share",
+      "name": "Share of requests",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "share-from",
+          "to": "share-to",
+          "text": "Sends ten requests and three are lost",
+          "animation": {
+            "kind": "send",
+            "outcome": "lost",
+            "share": "30",
+            "reason": "Packet dropped",
+            "at": "0.7"
+          },
+          "placed": [
+            "share-from",
+            "share-to"
+          ],
+          "ends": "Share of requests · from → Share of requests · to"
+        }
+      ]
+    },
+    {
       "id": "timeout",
       "name": "Timeout",
       "view": "steps",
@@ -1202,7 +1691,22 @@
         "fail-from",
         "fail-to",
         "timeout-from",
-        "timeout-to"
+        "timeout-to",
+        "lost-from",
+        "lost-to",
+        "rejected-from",
+        "rejected-to",
+        "intercepted-from",
+        "intercepted-to",
+        "intercepted-by",
+        "named-from",
+        "named-to",
+        "duplicated-from",
+        "duplicated-to",
+        "delayed-from",
+        "delayed-to",
+        "share-from",
+        "share-to"
       ],
       "outsiders": [],
       "edges": [
@@ -1258,6 +1762,48 @@
           "from": "timeout-from",
           "to": "timeout-to",
           "label": "timeout",
+          "count": 1
+        },
+        {
+          "from": "lost-from",
+          "to": "lost-to",
+          "label": "lost",
+          "count": 1
+        },
+        {
+          "from": "rejected-from",
+          "to": "rejected-to",
+          "label": "rejected",
+          "count": 1
+        },
+        {
+          "from": "intercepted-from",
+          "to": "intercepted-to",
+          "label": "intercepted",
+          "count": 1
+        },
+        {
+          "from": "named-from",
+          "to": "named-to",
+          "label": "intercepted by a name",
+          "count": 1
+        },
+        {
+          "from": "duplicated-from",
+          "to": "duplicated-to",
+          "label": "duplicated",
+          "count": 1
+        },
+        {
+          "from": "delayed-from",
+          "to": "delayed-to",
+          "label": "delayed",
+          "count": 1
+        },
+        {
+          "from": "share-from",
+          "to": "share-to",
+          "label": "share",
           "count": 1
         }
       ]

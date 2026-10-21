@@ -75,6 +75,20 @@ test('every step animation kind has a flow of one step to click through, and so 
   assert.ok(single.some(a => a?.carries !== undefined), 'no flow of one step carries a word')
 })
 
+test('the new keys of an outcome are all played: a share, a reason, a place, and a shape and a name that take a request', () => {
+  const all = flowList.flatMap(([, flow]) => flow.steps.flatMap(step => animationOf(step) ?? []))
+  assert.ok(all.some(a => a.share !== undefined && a.share < 100), 'no step plays only a share of its requests')
+  assert.ok(all.some(a => a.reason !== undefined), 'no step gives a reason')
+  assert.ok(all.some(a => a.at !== undefined), 'no step says where along its line a request is lost')
+  assert.ok(all.some(a => a.by !== undefined && 'name' in a.by), 'no step is intercepted by a party that is not in the model')
+  const shapes = all.flatMap(a => (a.by !== undefined && 'shape' in a.by ? [a.by.shape] : []))
+  assert.ok(shapes.length > 0, 'no step is intercepted by a shape')
+  for (const id of shapes) assert.ok(model.objects[id], `intercepted by "${id}", which is not a shape of the showcase`)
+  // A share plays a burst, so the showcase has one that loses part of it and one more that is a single request to compare with.
+  assert.ok(all.some(a => a.outcome === 'lost' && a.share === undefined), 'no step loses a single request')
+  assert.ok(all.some(a => a.outcome === 'lost' && a.share !== undefined), 'no step loses a share of a burst')
+})
+
 test('every kind of group is drawn by a flow, and a step can hand its story to another flow and can act on its own', () => {
   for (const kind of GROUP_KINDS) {
     assert.ok(flowList.some(([, flow]) => runsOf(flow).some(r => r.kind === kind)), `no flow has a "${kind}" group: add one to docs/showcase`)

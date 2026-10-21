@@ -1,0 +1,4 @@
+name: Intercepted
+view: steps
+steps:
+  - { from: intercepted-from, to: intercepted-to, text: Calls and a third shape takes the call, animation: { kind: call, outcome: intercepted, by: intercepted-by } }

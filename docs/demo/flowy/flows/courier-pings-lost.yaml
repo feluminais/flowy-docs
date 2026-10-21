@@ -1,0 +1,16 @@
+name: Courier pings are lost
+view: delivery
+steps:
+  - from: courier-app
+    to: tracking
+    text: About a third of the pings are lost on the way
+    animation: { kind: send, outcome: lost, share: 30, reason: Packet dropped }
+    description: |
+      On a weak signal the app's position pings never reach **Live tracking**. The app does not
+      retry them: a newer ping is coming in five seconds.
+  - { from: tracking, to: customer-app, text: The customer's map moves in jumps }
+  - from: fleet-db
+    text: Keeps the last position it got
+    description: |
+      Nothing was written for the lost pings, so the courier can look parked for ten seconds or more
+      to anything that reads **Fleet DB**, such as the matcher ranking couriers for the next offer.
