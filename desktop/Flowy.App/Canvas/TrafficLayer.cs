@@ -10,8 +10,9 @@ namespace Flowy.App.Canvas;
 /// The traffic on the lines: small particles running from one shape to the other, as many and as fast as the load says (see <see cref="Perf.TrafficFor"/>),
 /// and the ones that fail dying away short of the end. It sits over the boxes in the same camera, takes no pointer, and runs its own clock: a frame at a
 /// time on the window's animation frames, for as long as it has a line to draw. Each line's path is flattened once (<see cref="PathPoints"/>), so a
-/// particle's place is a lookup. A particle is not drawn where its line runs behind a shape that is not one of its ends, as the line itself isn't,
-/// or under a label. Reduced motion draws none: the canvas leaves this empty then.
+/// particle's place is a lookup. Where its line runs behind a shape that is not one of its ends, or under a label, a particle is still drawn, going faint
+/// and a little smaller as it goes behind and back as it comes out, so the flow reads through what covers it. Reduced motion draws none: the canvas
+/// leaves this empty then.
 /// </summary>
 internal sealed class TrafficLayer : Control
 {
@@ -121,16 +122,18 @@ internal sealed class TrafficLayer : Control
     }
 
     /// <summary>
-    /// Whether a particle at (x, y) is under a shape its line runs behind, where the line is hidden so the particle is too, or under a label, which sits
-    /// on its line and has the same background as the canvas.
+    /// How far behind something the particle at (x, y) is, 0 to 1: the most of any shape its line runs behind, or label, which sits on its line with the
+    /// canvas's own background. 0 when it is clear of them all, so most particles cost a bounds check or two.
     /// </summary>
-    internal static bool Hidden(IReadOnlyList<ShapeCover> behind, IReadOnlyList<CoreRect> labels, double x, double y, double radius)
+    internal static double BehindOf(IReadOnlyList<ShapeCover> shapes, IReadOnlyList<CoreRect> labels, double x, double y, double ramp)
     {
-        foreach (var s in behind)
-            if (BoxGeometry.Covers(s.Rect, s.Edge, x, y, radius)) return true;
+        static bool Near(CoreRect r, double x, double y, double ramp) => x > r.X - ramp && x < r.Right + ramp && y > r.Y - ramp && y < r.Bottom + ramp;
+        var most = 0.0;
+        foreach (var s in shapes)
+            if (Near(s.Rect, x, y, ramp)) most = Math.Max(most, Flowy.Core.Particles.HowBehind(BoxGeometry.DepthIn(s.Rect, s.Edge, x, y), ramp));
         foreach (var l in labels)
-            if (BoxGeometry.Covers(l, null, x, y, radius)) return true;
-        return false;
+            if (Near(l, x, y, ramp)) most = Math.Max(most, Flowy.Core.Particles.HowBehind(BoxGeometry.DepthIn(l, null, x, y), ramp));
+        return most;
     }
 
     private IBrush Brush(string key) =>
@@ -147,17 +150,25 @@ internal sealed class TrafficLayer : Control
         foreach (var d in _lines)
         {
             var radius = (2.2 + d.Line.Width / 2) / _viewport.Zoom; // a few pixels on screen, whatever the zoom
+            var ramp = radius * 2; // how far either side of an outline a particle takes to go from clear to well behind
             foreach (var m in d.Stream.Motes)
             {
                 var (x, y) = PathPoints.PointAt(d.Path, m.S);
-                if (Hidden(d.Behind, _labels, x, y, radius)) continue;
+                var (alpha, scale) = Flowy.Core.Particles.Ghost(BehindOf(d.Behind, _labels, x, y, ramp));
+                var r = radius * scale;
                 if (m.Fails == 0)
                 {
-                    context.DrawEllipse(ok, null, new Point(x, y), radius, radius);
+                    if (alpha >= 1)
+                    {
+                        context.DrawEllipse(ok, null, new Point(x, y), r, r);
+                        continue;
+                    }
+                    using var dim = context.PushOpacity(alpha);
+                    context.DrawEllipse(ok, null, new Point(x, y), r, r);
                     continue;
                 }
-                using var fade = context.PushOpacity(Flowy.Core.Particles.Visibility(m));
-                context.DrawEllipse(bad, null, new Point(x, y), radius, radius);
+                using var fade = context.PushOpacity(Flowy.Core.Particles.Visibility(m) * alpha);
+                context.DrawEllipse(bad, null, new Point(x, y), r, r);
             }
         }
     }

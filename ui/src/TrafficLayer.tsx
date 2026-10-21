@@ -2,24 +2,26 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useStore, useStoreApi } from '@xyflow/react'
 import type { LineTraffic } from '../../src/core/perf.ts'
 import type { LineStyle } from '../../src/core/model.ts'
-import { covers } from './graph.ts'
+import { depthIn } from './graph.ts'
 import type { Outline, Rect } from './graph.ts'
 import { outline, pathBetween, rect } from './Line.tsx'
 import { flatten, pointAt } from './pathpoints.ts'
-import { advance, newStream, visibility } from './traffic.ts'
+import { advance, ghost, howBehind, newStream, visibility } from './traffic.ts'
 import type { Stream } from './traffic.ts'
 
 /** A shape a line runs behind: where it is and its outline. */
-type Behind = { rect: Rect; edge: Outline }
+type Shape = { rect: Rect; edge: Outline }
 
 /**
- * Whether a particle at (x, y) is under a shape the line runs behind, where the line is hidden so the particle is too, or under a label, which
- * sits on its line with the canvas's own background.
+ * How far behind something the particle at (x, y) is, 0 to 1: the most of any shape its line runs behind, or label, which sits on its line with
+ * the canvas's own background. 0 when it is clear of them all, so most particles cost a bounds check or two.
  */
-const hidden = (behind: Behind[], labels: Rect[], x: number, y: number, radius: number) => {
-  for (const s of behind) if (covers(s.rect, s.edge, x, y, radius)) return true
-  for (const l of labels) if (covers(l, [], x, y, radius)) return true
-  return false
+const behindOf = (shapes: Shape[], labels: Rect[], x: number, y: number, ramp: number): number => {
+  let most = 0
+  const near = (r: Rect) => x > r.x - ramp && x < r.x + r.width + ramp && y > r.y - ramp && y < r.y + r.height + ramp
+  for (const s of shapes) if (near(s.rect)) most = Math.max(most, howBehind(depthIn(s.rect, s.edge, x, y), ramp))
+  for (const l of labels) if (near(l)) most = Math.max(most, howBehind(depthIn(l, [], x, y), ramp))
+  return most
 }
 
 /**
@@ -39,8 +41,9 @@ const labelsIn = (el: HTMLElement, [tx, ty, zoom]: [number, number, number]): Re
  * The traffic on the lines: small particles running from one shape to the other, as many and as fast as the load says (see
  * traffic() in core/perf.ts), and the ones that fail dying away short of the end. One canvas over the diagram, drawn with
  * the same camera as the shapes. Each line's path is flattened once, because asking the browser for a point on a path takes
- * about 28 µs and a busy view has thousands of particles a frame. A particle is not drawn where its line runs behind a shape
- * that is not one of its ends, as the line itself isn't, or under a label. Reduced motion draws none: the caller leaves this out.
+ * about 28 µs and a busy view has thousands of particles a frame. Where its line runs behind a shape that is not one of its ends,
+ * or under a label, a particle is still drawn, going faint and a little smaller as it goes behind and back as it comes out, so the
+ * flow reads through what covers it. Reduced motion draws none: the caller leaves this out.
  */
 export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: LineStyle }) {
   const store = useStoreApi()
@@ -55,7 +58,7 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
       return lines.map(l => {
         const a = boxes.get(l.from)
         const b = boxes.get(l.to)
-        return a && b ? { path: flatten(pathBetween(style, a, b)), behind: shapes.filter(s => s.id !== l.from && s.id !== l.to) } : undefined
+        return a && b ? { path: flatten(pathBetween(style, a, b)), shapes: shapes.filter(s => s.id !== l.from && s.id !== l.to) } : undefined
       })
     },
     [lines, where, style, store],
@@ -95,31 +98,44 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
       const alive = new Set<string>()
       lines.forEach((line, i) => {
         if (!paths[i]) return
-        const { path, behind } = paths[i]!
+        const { path, shapes } = paths[i]!
         const key = `${line.from} ${line.to}`
         alive.add(key)
         let stream = streams.current.get(key)
         if (!stream) streams.current.set(key, (stream = newStream()))
         advance(stream, line, ms, Math.random)
         const radius = (2.2 + line.width / 2) / zoom // a few pixels on screen, whatever the zoom
+        const ramp = radius * 2 // how far either side of an outline a particle takes to go from clear to well behind
         ctx.fillStyle = colours.ok
         ctx.beginPath()
+        const faint: [number, number, number][] = [] // the ones behind something, drawn after the rest one at a time
         for (const m of stream.motes) {
           if (m.fails) continue
           const [x, y] = pointAt(path, m.s)
-          if (hidden(behind, labels, x, y, radius)) continue
+          const b = behindOf(shapes, labels, x, y, ramp)
+          if (b > 0) {
+            faint.push([x, y, b])
+            continue
+          }
           ctx.moveTo(x + radius, y)
           ctx.arc(x, y, radius, 0, Math.PI * 2)
         }
         ctx.fill()
+        for (const [x, y, b] of faint) {
+          const g = ghost(b)
+          ctx.globalAlpha = g.alpha
+          ctx.beginPath()
+          ctx.arc(x, y, radius * g.scale, 0, Math.PI * 2)
+          ctx.fill()
+        }
         ctx.fillStyle = colours.bad
         for (const m of stream.motes) {
           if (!m.fails) continue
           const [x, y] = pointAt(path, m.s)
-          if (hidden(behind, labels, x, y, radius)) continue
-          ctx.globalAlpha = visibility(m)
+          const g = ghost(behindOf(shapes, labels, x, y, ramp))
+          ctx.globalAlpha = visibility(m) * g.alpha
           ctx.beginPath()
-          ctx.arc(x, y, radius, 0, Math.PI * 2)
+          ctx.arc(x, y, radius * g.scale, 0, Math.PI * 2)
           ctx.fill()
         }
         ctx.globalAlpha = 1

@@ -436,7 +436,8 @@ does, and **Go there** gets back to it.
 
 **What to remember.** This is a replay. Flowy never predicts a load nobody tested, so the slider stops at the highest one. How
 strained a shape looks is its `util`, or its failure rate counted twenty times (5% failing is as bad as full), whichever is
-worse. Nothing moves when the system asks for less motion; the colours, thickness, badges and numbers stay. An exported page
+worse. A line can pass behind a shape that isn't one of its ends, or under a label, and its dots keep going there as faint, smaller
+ghosts. Nothing moves when the system asks for less motion; the colours, thickness, badges and numbers stay. An exported page
 carries the runs, so its Performance tab works too. The desktop app reads runs too, with the same panel and keys. In edit mode the
 tab is greyed out and **T** does nothing.
 

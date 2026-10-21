@@ -75,16 +75,19 @@ public class CanvasLoadTests
     }
 
     [AvaloniaFact]
-    public void Particles_hide_under_a_label_and_behind_a_shape_their_line_does_not_end_at()
+    public void Particles_go_faint_under_a_label_and_behind_a_shape_their_line_does_not_end_at()
     {
         var label = new Flowy.Core.Rect(100, 50, 40, 16);
         IReadOnlyList<Flowy.Core.Rect> labels = [label];
-        Assert.True(TrafficLayer.Hidden([], labels, 120, 58, 3)); // on the label
-        Assert.True(TrafficLayer.Hidden([], labels, 98, 58, 3)); // a dot's width from it: it would overlap
-        Assert.False(TrafficLayer.Hidden([], labels, 90, 58, 3));
+        Assert.Equal(1, TrafficLayer.BehindOf([], labels, 120, 58, 3)); // well inside the label
+        Assert.Equal(0, TrafficLayer.BehindOf([], labels, 90, 58, 3)); // clear of it
+        var edge = TrafficLayer.BehindOf([], labels, 100, 58, 3); // on its edge: half way, and it grows as the particle goes in
+        Assert.Equal(0.5, edge, 9);
+        Assert.True(TrafficLayer.BehindOf([], labels, 102, 58, 3) > edge);
         var shape = new TrafficLayer.ShapeCover("a", new Flowy.Core.Rect(0, 0, 80, 40), null);
-        Assert.True(TrafficLayer.Hidden([shape], [], 40, 20, 3));
-        Assert.False(TrafficLayer.Hidden([shape], [], 120, 20, 3));
+        Assert.Equal(1, TrafficLayer.BehindOf([shape], [], 40, 20, 3));
+        Assert.Equal(0, TrafficLayer.BehindOf([shape], [], 120, 20, 3));
+        Assert.Equal(1, TrafficLayer.BehindOf([shape], labels, 120, 58, 3)); // the most of any
     }
 
     [AvaloniaFact]

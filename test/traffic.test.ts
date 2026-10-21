@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { advance, MOST, newStream, visibility } from '../ui/src/traffic.ts'
+import { advance, ghost, GHOST, howBehind, MOST, newStream, visibility } from '../ui/src/traffic.ts'
 
 /** Run a stream for `ms` in frames of 16 ms, like a screen would. */
 function run(stream: ReturnType<typeof newStream>, line: { perSecond: number; travelMs: number; failed: number }, ms: number, rand: () => number = () => 0.99) {
@@ -67,4 +67,20 @@ test('a particle is fully visible until it is nearly out, then fades, and one th
   assert.equal(visibility({ s: 0.1, fails: 0.5 }), 1)
   assert.ok(Math.abs(visibility({ s: 0.45, fails: 0.5 }) - 1 / 3) < 1e-9)
   assert.equal(visibility({ s: 0.6, fails: 0.5 }), 0)
+})
+
+test('a particle goes from clear to well behind over the ramp either side of an outline, never in a step', () => {
+  assert.equal(howBehind(-6, 6), 0) // a ramp outside: clear
+  assert.equal(howBehind(-20, 6), 0)
+  assert.equal(howBehind(0, 6), 0.5) // on the outline: half way
+  assert.equal(howBehind(6, 6), 1) // a ramp inside: well behind
+  assert.equal(howBehind(40, 6), 1)
+  assert.ok(howBehind(-3, 6) > 0 && howBehind(-3, 6) < howBehind(3, 6) && howBehind(3, 6) < 1)
+})
+
+test('a particle behind something is a fainter, smaller one, and in front it is as always', () => {
+  assert.deepEqual(ghost(0), { alpha: 1, scale: 1 })
+  assert.deepEqual(ghost(1), { alpha: GHOST, scale: 0.75 })
+  const half = ghost(0.5)
+  assert.ok(half.alpha < 1 && half.alpha > GHOST && half.scale < 1 && half.scale > 0.75)
 })

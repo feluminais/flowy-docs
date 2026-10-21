@@ -26,24 +26,24 @@ public class GeometryTests
     }
 
     [Fact]
-    public void A_point_is_covered_when_it_is_on_the_shape_drawn_in_a_box_or_within_a_margin_of_it()
+    public void A_point_is_as_deep_inside_the_shape_drawn_in_a_box_as_it_is_far_from_its_outline()
     {
-        // A box with no outline is the rectangle.
-        Assert.True(BoxGeometry.Covers(Top, null, 100, 36));
-        Assert.False(BoxGeometry.Covers(Top, null, -1, 36));
-        Assert.True(BoxGeometry.Covers(Top, [], -1, 36, 2));
-        Assert.False(BoxGeometry.Covers(Top, null, -3, 36, 2));
-        // A diamond leaves the corners of its box bare, so a line passing there is not hidden.
+        // A box with no outline is the rectangle: the depth is the distance from the nearest side, negative outside.
+        Assert.Equal(36, BoxGeometry.DepthIn(Top, null, 100, 36));
+        Assert.Equal(10, BoxGeometry.DepthIn(Top, [], 10, 36));
+        Assert.Equal(0, BoxGeometry.DepthIn(Top, null, 0, 36));
+        Assert.Equal(-4, BoxGeometry.DepthIn(Top, null, -4, 36));
+        // A diamond leaves the corners of its box bare, so a point there is outside it.
         double[] diamond = [100, 1, 199, 36, 100, 71, 1, 36];
-        Assert.True(BoxGeometry.Covers(Top, diamond, 100, 36));
-        Assert.False(BoxGeometry.Covers(Top, diamond, 5, 5));
-        Assert.True(BoxGeometry.Covers(Top, diamond, 100, -2, 4));
-        Assert.False(BoxGeometry.Covers(Top, diamond, 100, -2, 2));
+        var toSide = 99.0 * 35 / Math.Sqrt(99.0 * 99 + 35 * 35);
+        Assert.Equal(toSide, BoxGeometry.DepthIn(Top, diamond, 100, 36), 9);
+        Assert.True(BoxGeometry.DepthIn(Top, diamond, 5, 5) < 0);
+        Assert.Equal(0, BoxGeometry.DepthIn(Top, diamond, 100, 1), 9); // the tip is on the outline
         // It does not matter which way the outline is listed, or where the box is.
         double[] reversed = [1, 36, 100, 71, 199, 36, 100, 1];
         var moved = new Rect(300, 50, 200, 72);
-        Assert.True(BoxGeometry.Covers(moved, reversed, 400, 86));
-        Assert.False(BoxGeometry.Covers(moved, reversed, 305, 55));
+        Assert.Equal(toSide, BoxGeometry.DepthIn(moved, reversed, 400, 86), 9);
+        Assert.True(BoxGeometry.DepthIn(moved, reversed, 305, 55) < 0);
     }
 
     [Fact]
