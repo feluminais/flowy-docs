@@ -10,7 +10,7 @@ using Xunit;
 namespace Flowy.App.Tests;
 
 /// <summary>
-/// The rail, the Flows list and the Explorer tree, on the Plum demo (36 shapes, 3 flows: one at the top, one in Ordering, one in Delivery):
+/// The rail, the Flows list and the Explorer tree, on the Plum demo (36 shapes, 7 flows: one at the top, four in Ordering, two in Delivery):
 /// what is on them, what a click on a row does, the keys, the filter, and what is remembered.
 /// </summary>
 public class NavigatorTests

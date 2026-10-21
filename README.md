@@ -133,9 +133,10 @@ The player steps through what is on screen at once, so the lanes of a parallel g
 A chip names the group, a branch shows its lanes as tabs while the other lanes are dashed on the canvas, the progress bar has a
 bracket under each group, a label on the line says how often it repeats or which lane it is, and **Open flow** plays the other
 flow with a bar to come back. A **?** on the card says what each of these means. Flowy checks all of it, and the Mermaid copy draws
-it as `loop`, `alt` and `par` blocks. The format is in [the guide](docs/guide.md#repeats-branches-and-parallel-steps), and Plum has two:
-[capture-payment](docs/demo/flowy/flows/capture-payment.yaml) retries a charge and branches on the outcome, and
-[announce-order](docs/demo/flowy/flows/announce-order.yaml) tells two readers at once and opens Delivery's flow.
+it as `loop`, `alt` and `par` blocks. The format is in [the guide](docs/guide.md#repeats-branches-and-parallel-steps), and Plum has three:
+[capture-payment](docs/demo/flowy/flows/capture-payment.yaml) retries a charge and branches on the outcome,
+[announce-order](docs/demo/flowy/flows/announce-order.yaml) tells two readers at once and opens Delivery's flow, and
+[no-courier-answers](docs/demo/flowy/flows/no-courier-answers.yaml) offers a job to one courier after another and branches when the list runs out.
 
 ## Performance
 
@@ -196,7 +197,7 @@ Plum has an analysis with made-up ratings, [Order to door](docs/demo/flowy/failu
 an error when a file has a problem, so a CI job can use it. The format, the ranking and the names are in
 [the guide](docs/guide.md#failure-modes).
 
-A second analysis reads parts of the workflow engine [Conductor OSS](https://github.com/conductor-oss/conductor) from its code: seventeen modes, each with the files it came from. It lives with a clone of Conductor, not in this repo, and [CONTRIBUTING](CONTRIBUTING.md#the-conductor-analysis) says how to rebuild it.
+A second analysis reads parts of the workflow engine [Conductor OSS](https://github.com/conductor-oss/conductor) from its code: seventeen modes, each with the files it came from. It is kept in the maintainer's clone of Conductor and is not published. [CONTRIBUTING](CONTRIBUTING.md#the-conductor-analysis) says how to build a clone like it. Flowy's own folder has an analysis too, [How Flowy fails](flowy/failures/flowy.yaml).
 
 Failure modes show in the browser version and in an exported page. The desktop app doesn't draw them yet.
 

@@ -120,7 +120,7 @@ modes:
     on: events
     mode: Dispatch reads events slower than they arrive
     effect: A courier is matched minutes after the customer paid, and the arrival time shown is wrong.
-    cause: A burst of orders, such as dinner rush, outruns the one consumer Dispatch runs.
+    cause: A burst of orders, such as the dinner rush, outruns the one consumer Dispatch runs.
     severity: 5
     occurrence: 5
     detection: 3
@@ -133,12 +133,12 @@ modes:
   kitchen-tablet-offline:
     on: kitchen-tablet
     mode: The tablet goes offline and nobody accepts within two minutes
-    effect: The order is cancelled, the hold is released and the customer is told.
+    effect: The customer waits two minutes and then hears that the order was cancelled.
     cause: The tablet loses its Wi-Fi, or its battery runs out.
     severity: 4
     occurrence: 5
     detection: 2
-    controls: After two minutes the order cancels itself and the card hold is released.
+    controls: The order cancels itself and the card hold is released.
     owner: Restaurants
     status: accepted
     affects: [customer-app]
@@ -159,7 +159,7 @@ modes:
     after: { severity: 6, occurrence: 3, detection: 3 }
     affects: [customer-app, dispatch]
     flow: no-courier-answers
-    step: 2
+    step: 1
   tracking-signal-lost:
     on: tracking
     mode: The courier loses signal and the map freezes

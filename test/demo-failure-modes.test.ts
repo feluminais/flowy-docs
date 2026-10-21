@@ -1,7 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
-import { bandOf } from '../src/core/failures.ts'
+import { bandOf, coverage, rank, rollUp } from '../src/core/failures.ts'
+import { modelOf } from '../src/core/state.ts'
 import { loadState } from '../src/node/files.ts'
 
 /** Plum's analysis is the worked example the guide, the README and the screenshots use, so it has to show every feature once and point only at things that exist. */
@@ -43,4 +44,18 @@ test('every flow and step a mode names is there, counting steps from 1', () => {
       assert.ok(Number.isInteger(step) && step >= 1 && step <= state.flows[m.flow!].steps.length, `${id}: step ${m.step} of ${m.flow}`)
     }
   }
+})
+
+test('the numbers the README, the guide and CONTRIBUTING quote come out of the analysis', () => {
+  const counts = { high: 0, medium: 0, low: 0, unrated: 0 }
+  for (const [, m] of modes) counts[bandOf(m)]++
+  assert.deepEqual(counts, { high: 2, medium: 5, low: 6, unrated: 1 })
+  const whole = modelOf(state)
+  const covered = coverage(whole, analysis)
+  assert.equal(covered.analysed.length, 15)
+  assert.equal(covered.left.length, 11)
+  const marks = rollUp(whole, analysis, 'root')
+  assert.deepEqual(marks.boxes.ordering, { band: 'high', count: 6 })
+  assert.deepEqual(marks.lines['ordering stripe'], { band: 'medium', count: 2 })
+  assert.deepEqual(rank(analysis).slice(0, 4).map(r => r.id), ['refund-not-recorded', 'orders-db-down', 'sms-not-delivered', 'eta-mapbox-fails'])
 })
