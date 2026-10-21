@@ -8,7 +8,9 @@ namespace Flowy.Core;
 /// Reads YAML the way Flowy's other readers do: every value stays the text that was typed, so an id like
 /// <c>007</c> or a version like <c>3.10</c> is never turned into a number. A mapping comes back as an
 /// <see cref="OrderedDictionary{TKey,TValue}"/> in file order, a list as a <see cref="List{T}"/> of objects,
-/// and anything else as a string. An empty file gives null.
+/// and anything else as a string. An empty file gives null. A key in a one-line mapping with no colon after it
+/// (<c>{ text: Sets the time zone, if it has one }</c> leaves <c>if it has one</c> that way) has the value null, as the
+/// TypeScript reader says; a key with a colon and nothing after it (<c>text:</c>) is "".
 /// </summary>
 public static class YamlText
 {
@@ -32,7 +34,7 @@ public static class YamlText
             parser.Consume<StreamStart>();
             if (parser.TryConsume<StreamEnd>(out _)) return null;
             parser.Consume<DocumentStart>();
-            var value = Read(parser, file, 0);
+            var value = Read(parser, file, text, 0);
             parser.Consume<DocumentEnd>();
             if (!parser.Accept<StreamEnd>(out _)) throw new ParseError(file, "source contains multiple documents");
             return value;
@@ -48,7 +50,18 @@ public static class YamlText
     // could expand into billions of values, so the app says so instead.
     private static ParseError Aliases(string file, Mark at) => new(file, "anchors and aliases are not supported", (int)at.Line);
 
-    private static object Read(IParser parser, string file, int depth)
+    /// <summary>
+    /// Whether this value is the empty one the parser makes up for a key with no colon: plain, empty, and with only blanks between the end of the key
+    /// and where the value would start. After a colon, even one with nothing after it, the colon sits between them.
+    /// </summary>
+    private static bool NoColon(string text, Scalar key, Scalar? value)
+    {
+        if (value is null || value.Value.Length > 0 || value.Style != ScalarStyle.Plain) return false;
+        long from = key.End.Index, to = value.Start.Index;
+        return from >= 0 && from <= to && to <= text.Length && string.IsNullOrWhiteSpace(text.Substring((int)from, (int)(to - from)));
+    }
+
+    private static object Read(IParser parser, string file, string text, int depth)
     {
         if (depth > MaxDepth) throw new ParseError(file, "nested too deeply");
         if (parser.Accept<AnchorAlias>(out var alias)) throw Aliases(file, alias.Start);
@@ -62,7 +75,7 @@ public static class YamlText
         {
             if (!sequence.Anchor.IsEmpty) throw Aliases(file, sequence.Start);
             var list = new List<object?>();
-            while (!parser.TryConsume<SequenceEnd>(out _)) list.Add(Read(parser, file, depth + 1));
+            while (!parser.TryConsume<SequenceEnd>(out _)) list.Add(Read(parser, file, text, depth + 1));
             return list;
         }
         if (parser.TryConsume<MappingStart>(out var mapping))
@@ -72,8 +85,10 @@ public static class YamlText
             while (!parser.TryConsume<MappingEnd>(out _))
             {
                 if (!parser.Accept<Scalar>(out var keyEvent)) throw new ParseError(file, "mapping keys must be plain text", (int)mapping.Start.Line);
-                var key = (string)Read(parser, file, depth + 1);
-                var value = Read(parser, file, depth + 1);
+                var key = (string)Read(parser, file, text, depth + 1);
+                var valueEvent = parser.Accept<Scalar>(out var found) ? found : null;
+                object? value = Read(parser, file, text, depth + 1);
+                if (mapping.Style == MappingStyle.Flow && NoColon(text, keyEvent, valueEvent)) value = null;
                 if (!map.TryAdd(key, value)) throw new ParseError(file, "Map keys must be unique", (int)keyEvent.Start.Line);
             }
             return map;

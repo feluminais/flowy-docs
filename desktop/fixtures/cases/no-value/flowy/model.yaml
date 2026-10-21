@@ -1,0 +1,10 @@
+# A comma ends unquoted text in a one-line mapping: what comes after it is a key with no value.
+notes: { owner: Sam, on call }
+objects:
+  customer: { type: actor, name: Customer }
+  shop: { type: system, name: Shop }
+  web: { type: app, in: shop, name: Web app, tech: React, Vite }
+  api: { type: app, in: shop, name: "API, public" }
+connections:
+  - { from: customer, to: web, label: browses, then buys }
+  - { from: web, to: api, label: "calls, quickly" }
