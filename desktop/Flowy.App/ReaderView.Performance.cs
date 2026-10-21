@@ -33,7 +33,7 @@ internal sealed partial class ReaderView
     private bool PerfOpen => _perf && CanPerf; // with only a broken run file there is no load to show, but the panel can say what is wrong
 
     /// <summary>A panel on the right, whichever it is.</summary>
-    private bool RightOpen => DetailsOpen || PerfOpen;
+    private bool RightOpen => DetailsOpen || PerfOpen || FailuresOpen;
 
     private static bool Still => MotionSettings.Reduced;
 
@@ -56,6 +56,7 @@ internal sealed partial class ReaderView
         _runId = PerfView.ActiveRun(runs, _runId);
         if (LoadTest is { } run) _pos = _posNow = StartPos(run);
         _details = false; // so that closing it again doesn't leave Details open in its place
+        _failures = false;
         _perf = true;
         _ramping = false;
         Refresh();

@@ -9,8 +9,8 @@ using Flowy.Core;
 
 namespace Flowy.App;
 
-/// <summary>What a rail button opens: the Details panel on the right (or, beside it, the Performance panel that takes its place), or one tab of the navigator on the left (every flow, or the whole documentation as a tree).</summary>
-internal enum PanelTab { Details, Flows, Explorer, Performance }
+/// <summary>What a rail button opens: the Details panel on the right (or, beside it, the Performance or Failures panel that takes its place), or one tab of the navigator on the left (every flow, or the whole documentation as a tree).</summary>
+internal enum PanelTab { Details, Flows, Explorer, Performance, Failures }
 
 /// <summary>
 /// A slim column of icons on an edge, always there. The left one holds Flows and Explorer, and the counts on it say how much the documentation
@@ -49,6 +49,8 @@ internal sealed class NavRail : Border
             Add(column, PanelTab.Details, Icons.Info, "Details", null);
             Add(column, PanelTab.Performance, Icons.Activity, "Performance", "T");
             _entries[PanelTab.Performance].Show(false); // there only where the folder has load-test runs
+            Add(column, PanelTab.Failures, Icons.Bolt, "Failures", "M");
+            _entries[PanelTab.Failures].Show(false); // there only where the folder has a failure analysis
         }
         Child = column;
     }
@@ -96,6 +98,18 @@ internal sealed class NavRail : Border
         ToolTip.SetTip(entry.Button, editing ? "Performance (not while editing)" : "Performance (T)");
         ToolTip.SetShowOnDisabled(entry.Button, true);
         SetCount(PanelTab.Performance, "Performance", runs);
+    }
+
+    /// <summary>The right rail's Failures button: there only when the folder has an analysis (the number on it is how many failure modes), and greyed out while the reader is editing.</summary>
+    public void UpdateFailures(bool show, int modes, bool open, bool editing)
+    {
+        if (!_entries.TryGetValue(PanelTab.Failures, out var entry)) return;
+        entry.Show(show);
+        entry.Activate(open);
+        entry.Button.IsEnabled = !editing;
+        ToolTip.SetTip(entry.Button, editing ? "Failures (not while editing)" : "Failures (M)");
+        ToolTip.SetShowOnDisabled(entry.Button, true);
+        SetCount(PanelTab.Failures, "Failures", modes);
     }
 
     private void SetCount(PanelTab tab, string name, int n)
