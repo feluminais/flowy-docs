@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { evalFormula } from '../src/core/formula.ts'
 import { ParseError } from '../src/core/model.ts'
-import { checkRun, interpolate, knee, kneeText, parseRun, rollUp, strain, traffic } from '../src/core/perf.ts'
+import { AT_ONCE, capCounts, checkRun, interpolate, knee, kneeText, parseRun, RADIUS_MAX, RADIUS_MIN, rollUp, scaleText, sourceKey, strain, traffic } from '../src/core/perf.ts'
 import { shop } from './fixtures.ts'
 
 /** Three levels of a run against the shop fixture (test/fixtures.ts): api and db are measured, and orders inside api. */
@@ -478,4 +478,210 @@ test('rollUp keeps a failure style the connections on a line agree on, and drops
 
 test('rollUp of an old run adds nothing to a line', () => {
   assert.deepEqual(Object.keys(rollUp(shop(), ramp().levels[2], 'shop').lines[0]), ['from', 'to', 'rate', 'p50', 'p95', 'errors'])
+})
+
+// ---- Traffic from a source: how many dots a line shows, how big each is, what colour, and when the screen says it is scaled down
+
+/** Two lines in the shop view (web → api, and api → db with orders → db landing on it), at two loads, with `source` written between the unit and the levels. */
+const scaled = (source: string, web = 'rate: 100, p50: 10', db = 'rate: 100, p50: 400') => parseRun('scaled', `name: Scaled
+unit: req/s
+${source}
+levels:
+  - load: 1
+    connections: [{ from: web, to: api, ${web} }, { from: orders, to: db, ${db} }]
+  - load: 2
+    connections: [{ from: web, to: api, ${web} }, { from: orders, to: db, ${db} }]
+`).run
+const lineOf = (run: ReturnType<typeof scaled>, from: string, to: string, load = 1) => traffic(shop(), run, load, 'shop').lines.find(l => l.from === from && l.to === to)!
+
+test('a dot formula says how many dots are on the line at once: rate / 50 is 2 at 100 calls a second and 20 at 1,000', () => {
+  const run = parseRun('r', `name: R
+source: { dot: rate / 50 }
+levels:
+  - { load: 1, connections: [{ from: web, to: api, rate: 100, p50: 100 }] }
+  - { load: 2, connections: [{ from: web, to: api, rate: 1000, p50: 100 }] }
+`).run
+  const low = traffic(shop(), run, 1, 'shop').lines[0]
+  const high = traffic(shop(), run, 2, 'shop').lines[0]
+  assert.equal(low.dots, 2)
+  assert.equal(high.dots, 20)
+  assert.equal(low.capped, undefined)
+  assert.ok(Math.abs(low.perSecond * (low.travelMs / 1000) - 2) < 0.02) // emitted so that, over the time a dot takes to cross, 2 are on the line
+  assert.ok(Math.abs(high.perSecond * (high.travelMs / 1000) - 20) < 0.05)
+})
+
+test('two lines with equal rate but different p50 show the same number of dots, at different speeds', () => {
+  const run = scaled('source: { dot: rate / 50 }')
+  const fast = lineOf(run, 'web', 'api')
+  const slow = lineOf(run, 'api', 'db')
+  assert.equal(fast.dots, 2)
+  assert.equal(slow.dots, 2)
+  assert.ok(slow.travelMs > fast.travelMs * 2)
+  assert.ok(fast.perSecond > slow.perSecond * 2) // the same dots cross faster, so more start each second
+})
+
+test('ten times the calls is ten times the dots, up to the cap', () => {
+  const run = parseRun('r', `name: R
+source: { dot: rate / 50 }
+levels:
+  - { load: 1, connections: [{ from: web, to: api, rate: 50, p50: 100 }, { from: orders, to: db, rate: 500, p50: 100 }] }
+  - { load: 2, connections: [{ from: web, to: api, rate: 50, p50: 100 }, { from: orders, to: db, rate: 500, p50: 100 }] }
+`).run
+  const [a, b] = traffic(shop(), run, 1, 'shop').lines
+  assert.equal(a.dots, 1)
+  assert.equal(b.dots, 10)
+})
+
+test('past the cap a line is scaled down to AT_ONCE dots and says so, and a line under it is untouched', () => {
+  assert.equal(AT_ONCE, 24)
+  const run = scaled('source: { dot: rate / 50 }', 'rate: 1000000, p50: 100', 'rate: 600, p50: 100')
+  const busy = lineOf(run, 'web', 'api')
+  const calm = lineOf(run, 'api', 'db')
+  assert.equal(busy.dots, AT_ONCE)
+  assert.equal(busy.capped, true)
+  assert.ok(Math.abs(busy.perSecond * (busy.travelMs / 1000) - AT_ONCE) < 0.05)
+  assert.equal(calm.dots, 12)
+  assert.equal(calm.capped, undefined)
+})
+
+test('a count at exactly the cap is not scaled down', () => {
+  const run = scaled('source: { dot: rate / 50 }', 'rate: 1200, p50: 100', 'rate: 1250, p50: 100')
+  assert.equal(lineOf(run, 'web', 'api').capped, undefined)
+  assert.equal(lineOf(run, 'web', 'api').dots, 24)
+  assert.equal(lineOf(run, 'api', 'db').capped, true)
+  assert.equal(lineOf(run, 'api', 'db').dots, 24)
+})
+
+test('the sources on one line are scaled by one factor so their ratio stays true', () => {
+  assert.deepEqual(capCounts([10, 5]), { counts: [10, 5], capped: false })
+  assert.deepEqual(capCounts([24, 12]), { counts: [24, 12], capped: false })
+  assert.deepEqual(capCounts([48, 12]), { counts: [24, 6], capped: true })
+  assert.deepEqual(capCounts([6, 120]), { counts: [1.2, 24], capped: true })
+  assert.deepEqual(capCounts([0, 0]), { counts: [0, 0], capped: false })
+  assert.deepEqual(capCounts([]), { counts: [], capped: false })
+})
+
+test('a formula that asks for a huge count is capped, and the numbers stay finite', () => {
+  const run = scaled('source: { dot: rate * 1000000 }', 'rate: 100000000, p50: 100', 'rate: 5, p50: 3000')
+  for (const l of traffic(shop(), run, 1, 'shop').lines) {
+    assert.equal(l.dots, AT_ONCE)
+    assert.equal(l.capped, true)
+    assert.ok(Number.isFinite(l.perSecond) && l.perSecond > 0 && l.perSecond <= AT_ONCE / 0.5) // at most the cap in the shortest crossing, 500 ms
+  }
+})
+
+test('a dot formula with a missing input, a negative result or no value falls back to the default curve for that line', () => {
+  const plain = traffic(shop(), scaled(''), 1, 'shop').lines
+  for (const dot of ['bytes / 100', '-rate', 'rate / 0', 'rate * 0 - 1']) {
+    const lines = traffic(shop(), scaled(`source: { dot: "${dot}" }`), 1, 'shop').lines
+    assert.deepEqual(lines, plain, dot) // the same numbers as a run with no source at all
+  }
+})
+
+test('one line can fall back while another follows the formula', () => {
+  const run = scaled('source: { dot: bytes / 100 }', 'rate: 100, p50: 10, bytes: 500', 'rate: 100, p50: 10')
+  const plain = traffic(shop(), scaled('', 'rate: 100, p50: 10, bytes: 500', 'rate: 100, p50: 10'), 1, 'shop').lines
+  const lines = traffic(shop(), run, 1, 'shop').lines
+  assert.equal(lines[0].dots, 5)
+  assert.deepEqual(lines[1], plain[1]) // no bytes on this one
+})
+
+test('a line with no rate at some level has no traffic, not zero dots', () => {
+  const run = parseRun('r', `name: R
+source: { dot: rate / 50 }
+levels:
+  - { load: 1, connections: [{ from: web, to: api, p50: 10 }, { from: orders, to: db, rate: 100 }] }
+  - { load: 2, connections: [{ from: web, to: api, p50: 10 }, { from: orders, to: db, rate: 100 }] }
+`).run
+  assert.deepEqual(traffic(shop(), run, 1, 'shop').lines.map(l => `${l.from} ${l.to}`), ['api db'])
+})
+
+test('a line that was measured at zero calls has zero dots', () => {
+  const line = lineOf(scaled('source: { dot: rate / 50 }', 'rate: 0, p50: 10'), 'web', 'api')
+  assert.equal(line.dots, 0)
+  assert.equal(line.perSecond, 0)
+})
+
+test('a size formula is a dot area: the radius is its square root, between a small dot and a big one', () => {
+  const run = (bytes: number) => scaled('source: { size: bytes / 400 }', `rate: 100, p50: 10, bytes: ${bytes}`)
+  assert.equal(lineOf(run(400), 'web', 'api').radius, 1)
+  assert.equal(lineOf(run(1600), 'web', 'api').radius, 2) // twice the radius, four times the area
+  assert.equal(lineOf(run(100), 'web', 'api').radius, 0.5)
+  assert.equal(lineOf(run(10), 'web', 'api').radius, RADIUS_MIN) // 0.158: no smaller than a small dot
+  assert.equal(lineOf(run(100_000_000), 'web', 'api').radius, RADIUS_MAX)
+  assert.equal(RADIUS_MIN, 0.5)
+  assert.equal(RADIUS_MAX, 2.5)
+})
+
+test('a size with no bytes, or no value, leaves the dot at its usual size', () => {
+  assert.equal(Object.hasOwn(lineOf(scaled('source: { size: bytes / 400 }'), 'web', 'api'), 'radius'), false)
+  assert.equal(Object.hasOwn(lineOf(scaled('source: { size: "-bytes" }', 'rate: 5, bytes: 9'), 'web', 'api'), 'radius'), false)
+  assert.equal(Object.hasOwn(lineOf(scaled('source: { size: bytes / 0 }', 'rate: 5, bytes: 9'), 'web', 'api'), 'radius'), false)
+})
+
+test('size and dots work together, and size does not change how many dots there are', () => {
+  const run = scaled('source: { dot: rate / 50, size: bytes / 400 }', 'rate: 100, p50: 10, bytes: 1600')
+  const line = lineOf(run, 'web', 'api')
+  assert.equal(line.dots, 2)
+  assert.equal(line.radius, 2)
+})
+
+test('the colour is the one written, on every line, whether or not a formula applies', () => {
+  for (const line of traffic(shop(), scaled('source: { color: blue }'), 1, 'shop').lines) assert.equal(line.color, 'blue')
+  for (const line of traffic(shop(), scaled('source: { color: "#1D9E75", dot: bytes / 100 }'), 1, 'shop').lines) assert.equal(line.color, '#1D9E75')
+  for (const line of traffic(shop(), scaled('source: { dot: rate / 50 }'), 1, 'shop').lines) assert.equal(Object.hasOwn(line, 'color'), false)
+})
+
+test('a source with only a colour keeps the default curve: the numbers are those of a run with no source', () => {
+  const withColor = traffic(shop(), scaled('source: { color: blue }'), 1, 'shop').lines
+  const plain = traffic(shop(), scaled(''), 1, 'shop').lines
+  assert.deepEqual(withColor.map(({ color, ...rest }) => rest), plain)
+})
+
+test('a line says how it fails when its connections do', () => {
+  const run = parseRun('r', `name: R
+levels:
+  - { load: 1, connections: [{ from: web, to: api, rate: 10, errors: 0.2, failure: lost }, { from: orders, to: db, rate: 10, errors: 0.2 }] }
+  - { load: 2, connections: [{ from: web, to: api, rate: 10, errors: 0.2, failure: lost }, { from: orders, to: db, rate: 10, errors: 0.2 }] }
+`).run
+  const [web, db] = traffic(shop(), run, 1, 'shop').lines
+  assert.equal(web.failure, 'lost')
+  assert.equal(web.failed, 0.2)
+  assert.equal(Object.hasOwn(db, 'failure'), false)
+})
+
+test('an old run draws exactly what it did: no new key on a line', () => {
+  for (const line of traffic(shop(), ramp(), 250, 'shop').lines) assert.deepEqual(Object.keys(line), ['from', 'to', 'width', 'perSecond', 'travelMs', 'failed'])
+})
+
+test('the scale in words is said only for a formula that is a constant times rate', () => {
+  assert.equal(scaleText(scaled('source: { dot: rate / 50 }')), '1 dot = 50 calls/s')
+  assert.equal(scaleText(scaled('source: { dot: rate * 2 }')), '1 dot = 0.5 calls/s')
+  assert.equal(scaleText(scaled('source: { dot: rate / 3 }')), '1 dot = 3 calls/s')
+  assert.equal(scaleText(scaled('source: { dot: rate / 12.5 }')), '1 dot = 12.5 calls/s')
+  assert.equal(scaleText(scaled('source: { dot: "rate / 50 + 1" }')), undefined)
+  assert.equal(scaleText(scaled('source: { dot: bytes / 400 }')), undefined)
+  assert.equal(scaleText(scaled('source: { dot: "rate / 1000000000000" }')), undefined) // not a scale anyone reads
+  assert.equal(scaleText(scaled('source: { color: red }')), undefined)
+  assert.equal(scaleText(scaled('')), undefined)
+})
+
+test('the key has the pieces the source puts on screen, and only those', () => {
+  const run = scaled('source: { color: blue, dot: rate / 50, size: bytes / 400 }', 'rate: 100, p50: 10, bytes: 800')
+  const lines = traffic(shop(), run, 1, 'shop').lines
+  assert.deepEqual(sourceKey(run, lines), { name: 'Scaled', color: 'blue', scale: '1 dot = 50 calls/s', bigger: true, scaledDown: false })
+  const capped = traffic(shop(), scaled('source: { color: blue, dot: rate / 50 }', 'rate: 99999'), 1, 'shop').lines
+  assert.deepEqual(sourceKey(scaled('source: { color: blue, dot: rate / 50 }'), capped), { name: 'Scaled', color: 'blue', scale: '1 dot = 50 calls/s', bigger: false, scaledDown: true })
+})
+
+test('the key says nothing of a source that has nothing on screen, or no source at all', () => {
+  assert.equal(sourceKey(scaled(''), traffic(shop(), scaled(''), 1, 'shop').lines), undefined)
+  const run = scaled('source: { color: blue, dot: rate / 50 }')
+  assert.equal(sourceKey(run, []), undefined)
+  assert.equal(sourceKey(run, traffic(shop(), run, 1, 'root').lines), undefined) // the overview folds the lines into one box
+})
+
+test('a key with a colour only is a dot and a name', () => {
+  const run = scaled('source: { color: teal }')
+  assert.deepEqual(sourceKey(run, traffic(shop(), run, 1, 'shop').lines), { name: 'Scaled', color: 'teal', bigger: false, scaledDown: false })
 })

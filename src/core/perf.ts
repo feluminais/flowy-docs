@@ -1,5 +1,5 @@
 import type { Problem } from './check.ts'
-import { parseFormula } from './formula.ts'
+import { evalFormula, linearInRate, parseFormula } from './formula.ts'
 import type { Formula } from './formula.ts'
 import { isColor } from './look.ts'
 import { getObject, isMap, orEmpty, ParseError, readYaml, ROOT } from './model.ts'
@@ -409,24 +409,69 @@ export function kneeText(run: Run, k: Knee, nameOf: (id: string) => string): str
 }
 
 export type BoxTraffic = { strain?: number; queue: number }
-/** How a line looks: how thick, how many particles a second, how long one takes to cross (ms), and the share of them that fail. */
-export type LineTraffic = { from: string; to: string; width: number; perSecond: number; travelMs: number; failed: number }
+/**
+ * How a line looks: how thick, how many particles a second, how long one takes to cross (ms), and the share of them that fail.
+ * What a run's source adds is left out when it adds nothing, so a run without one is described as it always was: `color` (as written),
+ * `radius` (times the usual dot's radius), `capped` (the count was scaled down to fit the screen), `failure` (how the failing share fails)
+ * and `dots` (how many are on the line at once, once the `dot` formula has decided and the cap has had its say).
+ */
+export type LineTraffic = {
+  from: string; to: string; width: number; perSecond: number; travelMs: number; failed: number
+  color?: string; radius?: number; capped?: true; failure?: Failure; dots?: number
+}
 export type Traffic = { boxes: Record<string, BoxTraffic>; lines: LineTraffic[] }
+
+/**
+ * Most dots a source puts on a line at once. A screen line is a hundred to three hundred pixels long and a dot is a few pixels across, so
+ * past about this many they run together and stop being countable. Past it a line is scaled down and says so (see capCounts).
+ */
+export const AT_ONCE = 24
+/** The radius of a dot, as a multiple of the usual one, is the square root of the `size` formula's area, kept between these: small enough to see, big enough not to cover a line. */
+export const RADIUS_MIN = 0.5
+export const RADIUS_MAX = 2.5
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
 const round2 = (n: number) => Math.round(n * 100) / 100
 
+/**
+ * The dot counts of the sources on one line, scaled down by one common factor when the busiest passes AT_ONCE, so their ratio stays true.
+ * Part 3a has one source on a line; the list is here for the several of Part 3b.
+ */
+export function capCounts(counts: number[]): { counts: number[]; capped: boolean } {
+  const most = Math.max(0, ...counts)
+  if (most <= AT_ONCE) return { counts, capped: false }
+  return { counts: counts.map(c => (c * AT_ONCE) / most), capped: true }
+}
+
+/** The crossing time of a line in ms: what its expected call says, in steps from half a second to four. A line with no p50 is a middling trip. */
+const travelOf = (p50: number | undefined): number => (p50 === undefined ? 1000 : Math.round(clamp(500 + 1000 * Math.log10(1 + p50 / 10), 500, 4000)))
+
 /** A line that carried `rate` calls a second. Starting values, tuned on the lab's run in phase 3; a screen can't draw 1000 particles a second, so these are logarithmic and capped. */
-function lineTraffic(l: Pair, rate: number): LineTraffic {
+function lineTraffic(l: Pair, rate: number, source: Source | undefined): LineTraffic {
   const errors = round2(l.errors ?? 0)
-  return {
+  const base: LineTraffic = {
     from: l.from,
     to: l.to,
     width: round2(clamp(1.5 + 1.5 * Math.log10(1 + rate), 1.5, 6)),
     perSecond: rate > 0 ? round2(clamp(1.5 + 4 * Math.log10(1 + rate), 1.5, 14)) : 0,
-    travelMs: l.p50 === undefined ? 1000 : Math.round(clamp(500 + 1000 * Math.log10(1 + l.p50 / 10), 500, 4000)),
+    travelMs: travelOf(l.p50),
     failed: errors >= 0.01 ? Math.max(errors, 0.05) : errors,
   }
+  if (source?.color !== undefined) base.color = source.color
+  if (l.failure !== undefined) base.failure = l.failure
+  const vars = { rate, bytes: l.bytes, p50: l.p50 }
+  // How many dots: the formula's count when it has a value (a missing number or a negative result leaves today's curve for this line).
+  const count = source?.dot ? evalFormula(source.dot.formula, vars) : undefined
+  if (count !== undefined && count >= 0) {
+    const { counts, capped } = capCounts([count])
+    // The count is dots on the line at once; the speed stays with p50, so dots start as often as they take to cross.
+    base.perSecond = round2(counts[0] / (base.travelMs / 1000))
+    base.dots = round2(counts[0])
+    if (capped) base.capped = true
+  }
+  const area = source?.size ? evalFormula(source.size.formula, vars) : undefined
+  if (area !== undefined && area >= 0) base.radius = round2(clamp(Math.sqrt(area), RADIUS_MIN, RADIUS_MAX))
+  return base
 }
 
 /**
@@ -443,5 +488,36 @@ export function traffic(model: Model, run: Run, load: number, view: string): Tra
     if (s === undefined && m.queue === undefined) continue
     put(boxes, id, { ...(s === undefined ? {} : { strain: round2(s) }), queue: Math.round(m.queue ?? 0) })
   }
-  return { boxes, lines: lines.flatMap(l => (l.rate === undefined ? [] : [lineTraffic(l, l.rate)])) }
+  return { boxes, lines: lines.flatMap(l => (l.rate === undefined ? [] : [lineTraffic(l, l.rate, run.source)])) }
+}
+
+/** The number in a scale, as short as it reads: 50, 0.5, 12.5, with the float noise of a division (3.0000000000000004) rounded off. */
+const plain = (n: number): string => String(Number(n.toPrecision(6)))
+
+/**
+ * "1 dot = 50 calls/s" for a run whose `dot` formula is a constant times the rate and nothing else; undefined for any other, because a scale in
+ * words that is not true for every line is worse than none. Also undefined for a scale nobody reads (under a thousandth of a call or over a billion).
+ */
+export function scaleText(run: Run): string | undefined {
+  const k = run.source?.dot ? linearInRate(run.source.dot.formula) : undefined
+  if (k === undefined) return undefined
+  const calls = 1 / k
+  return calls >= 0.001 && calls < 1e9 ? `1 dot = ${plain(calls)} calls/s` : undefined
+}
+
+/**
+ * The pieces the Performance key draws for a run's source, from the lines on screen now: its name and the colour of its dots; the scale in words when
+ * the formula is a plain ratio of the rate and a line follows it; whether any dot is bigger or smaller than usual; whether any line is scaled down to
+ * fit. Undefined when the run sets no source or no line is on screen, so the key shows only what the picture shows.
+ */
+export function sourceKey(run: Run, lines: LineTraffic[]): { name: string; color?: string; scale?: string; bigger: boolean; scaledDown: boolean } | undefined {
+  if (!run.source || lines.length === 0) return undefined
+  const scale = lines.some(l => l.dots !== undefined) ? scaleText(run) : undefined
+  return {
+    name: run.name,
+    ...(run.source.color === undefined ? {} : { color: run.source.color }),
+    ...(scale === undefined ? {} : { scale }),
+    bigger: lines.some(l => l.radius !== undefined),
+    scaledDown: lines.some(l => l.capped === true),
+  }
 }
