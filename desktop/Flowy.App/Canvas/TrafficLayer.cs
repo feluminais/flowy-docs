@@ -137,8 +137,7 @@ internal sealed class TrafficLayer : Control
         return most;
     }
 
-    private IBrush Brush(string key) =>
-        this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
+    private IBrush Brush(string key) => AppTheme.Brush(this, key);
 
     private readonly Dictionary<(string, bool), IBrush> _tints = [];
 
@@ -146,7 +145,7 @@ internal sealed class TrafficLayer : Control
     private IBrush Tint(string? color, IBrush fallback)
     {
         if (color is null) return fallback;
-        var dark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+        var dark = AppTheme.IsDark(this);
         if (_tints.TryGetValue((color, dark), out var kept)) return kept;
         if (PerfView.SourceHex(color, dark) is not { } hex) return fallback;
         return _tints[(color, dark)] = new SolidColorBrush(Color.Parse(hex)).ToImmutable();

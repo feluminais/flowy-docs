@@ -61,7 +61,7 @@ public static partial class YamlWriter
     private static string Map(OrderedDictionary<string, object?> map, string indent, bool flowLists)
     {
         if (map.Count == 0) return "{}";
-        var lines = JsKeys.Order(map.Keys).Select(key => Pair(key, map[key], indent, flowLists)).ToList();
+        var lines = JsCompat.OrderKeys(map.Keys).Select(key => Pair(key, map[key], indent, flowLists)).ToList();
         return string.Join("\n" + indent, lines);
     }
 
@@ -86,7 +86,7 @@ public static partial class YamlWriter
     private static string FlowItems(IReadOnlyList<object?> items) => items.Count == 0 ? "[]" : "[" + string.Join(", ", items.Select(FlowNode)) + "]";
 
     private static string FlowPairs(OrderedDictionary<string, object?> map) =>
-        map.Count == 0 ? "{}" : "{" + string.Join(", ", JsKeys.Order(map.Keys).Select(key => Scalar(key, FlowIndent, true, true) + ": " + FlowNode(map[key]))) + "}";
+        map.Count == 0 ? "{}" : "{" + string.Join(", ", JsCompat.OrderKeys(map.Keys).Select(key => Scalar(key, FlowIndent, true, true) + ": " + FlowNode(map[key]))) + "}";
 
     /// <summary>Inside a flow collection everything is flow: text, then lists and maps on the same line.</summary>
     private static string FlowNode(object? node) => node switch
@@ -328,22 +328,9 @@ public sealed record FlowSeq(IReadOnlyList<object?> Items);
 /// <summary>A mapping the writer puts on one line, as a flow mapping: <c>{name: id, key: primary}</c>.</summary>
 public sealed record FlowMap(OrderedDictionary<string, object?> Map);
 
-/// <summary>Keys in the order JavaScript lists an object's: ids that look like array indexes ("2", "10") first, ascending, then the rest as given.</summary>
+/// <summary>Keys in the order JavaScript lists an object's. See <see cref="JsCompat.OrderKeys"/>.</summary>
 public static class JsKeys
 {
-    private static bool IsIndex(string s, out uint n) =>
-        uint.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out n) && n != uint.MaxValue && (s.Length == 1 || s[0] != '0');
-
-    public static List<string> Order(IEnumerable<string> keys)
-    {
-        var indexes = new List<(uint N, string Key)>();
-        var rest = new List<string>();
-        foreach (var key in keys)
-        {
-            if (IsIndex(key, out var n)) indexes.Add((n, key));
-            else rest.Add(key);
-        }
-        indexes.Sort((a, b) => a.N.CompareTo(b.N));
-        return [.. indexes.Select(i => i.Key), .. rest];
-    }
+    // forwards to JsCompat; remove when the other branches land
+    public static List<string> Order(IEnumerable<string> keys) => JsCompat.OrderKeys(keys);
 }

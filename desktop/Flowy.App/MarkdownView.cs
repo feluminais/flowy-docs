@@ -18,8 +18,6 @@ namespace Flowy.App;
 internal sealed class MarkdownView : StackPanel
 {
     private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder().Build();
-    private static readonly FontFamily Mono = new("Cascadia Mono, Consolas, Menlo, monospace");
-
     // A description this long is a document, and drawing it all would stall the window.
     private const int MaxLength = 20_000;
 
@@ -44,8 +42,7 @@ internal sealed class MarkdownView : StackPanel
         foreach (var block in document) Add(Children, block);
     }
 
-    private IBrush Resource(string key) =>
-        Application.Current is { } app && app.TryFindResource(key, app.ActualThemeVariant, out var found) && found is IBrush b ? b : Brushes.Gray;
+    private IBrush Resource(string key) => AppTheme.AppBrush(key);
 
     private void Add(Avalonia.Controls.Controls target, Block block)
     {
@@ -107,7 +104,7 @@ internal sealed class MarkdownView : StackPanel
             Child = new ScrollViewer
             {
                 HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
-                Content = new SelectableTextBlock { Text = text, FontFamily = Mono, FontSize = _size - 1 },
+                Content = new SelectableTextBlock { Text = text, FontFamily = Fonts.Mono, FontSize = _size - 1 },
             },
         };
     }
@@ -147,7 +144,7 @@ internal sealed class MarkdownView : StackPanel
                     break;
                 case CodeInline code:
                 {
-                    var run = new Run(code.Content) { FontFamily = Mono, FontSize = _size - 1 };
+                    var run = new Run(code.Content) { FontFamily = Fonts.Mono, FontSize = _size - 1 };
                     target.Add(run);
                     offset += code.Content.Length;
                     break;
