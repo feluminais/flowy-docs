@@ -387,9 +387,9 @@ internal sealed class FailuresPanel : StackPanel
         var item = new StackPanel { Spacing = 2, Children = { row } };
         if (ends is not null && (Failures.Has(ends.Low) || Failures.Has(ends.High)))
         {
-            var scale = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(96, 0, 0, 0) };
-            scale.Children.Add(new TextBlock { Text = $"1: {ends.Low}", Classes = { "muted" }, FontSize = 12, Margin = new Thickness(0, 0, 12, 0) });
-            scale.Children.Add(new TextBlock { Text = $"10: {ends.High}", Classes = { "muted" }, FontSize = 12 });
+            var scale = new StackPanel { Margin = new Thickness(96, 0, 0, 0) };
+            scale.Children.Add(new TextBlock { Text = $"1: {ends.Low}", Classes = { "muted" }, FontSize = 12, TextWrapping = TextWrapping.Wrap });
+            scale.Children.Add(new TextBlock { Text = $"10: {ends.High}", Classes = { "muted" }, FontSize = 12, TextWrapping = TextWrapping.Wrap });
             item.Children.Add(scale);
         }
         AutomationProperties.SetName(item, $"{label}: {(value is { } n ? n.ToString(CultureInfo.InvariantCulture) : "Not rated")}");

@@ -867,7 +867,8 @@ unknown `status`, a `flow`, `step` or `run` that doesn't exist, an id that break
 names. A file that can't be read at all is a problem too, and it never stops the model from loading: the file is skipped and left as it
 is. Renaming a shape by hand in `model.yaml` leaves its modes pointing at nothing, and the checks say so.
 
-**Where it works.** The browser version and an exported page show failure modes. The desktop app doesn't draw them yet, and it doesn't
+**Where it works.** The browser version, the desktop app and an exported page show failure modes, with the same badges, list and words.
+The desktop app only reads them: it has no forms for an analysis, its Failures button is greyed out while you edit, and it doesn't
 know a mode names a shape, so deleting that shape there goes through and the browser then lists the mode as a problem. Plum has an
 analysis, [Order to door](demo/flowy/failures/ordering.yaml), and `node dist/cli.js --dir docs/demo/flowy` from a clone opens it.
 

@@ -204,7 +204,9 @@ an error when a file has a problem, so a CI job can use it. The format, the rank
 
 A second analysis reads parts of the workflow engine [Conductor OSS](https://github.com/conductor-oss/conductor) from its code: seventeen modes, each with the files it came from. It is kept in the maintainer's clone of Conductor and is not published. [CONTRIBUTING](CONTRIBUTING.md#the-conductor-analysis) says how to build a clone like it. Flowy's own folder has an analysis too, [Flowy fail scenario](flowy/failures/flowy.yaml).
 
-Failure modes show in the browser version and in an exported page. The desktop app doesn't draw them yet.
+![The Failures panel in the desktop app on the Ordering view: the same ranked list, Order API and the line to Stripe outlined red with a badge, and the rest faded](docs/images/desktop-failures.png)
+
+Failure modes show in the browser version, in the desktop app and in an exported page. The desktop app only reads them: writing an analysis is the browser's.
 
 ## Find anything
 
