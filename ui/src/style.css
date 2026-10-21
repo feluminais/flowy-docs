@@ -795,6 +795,17 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .perf ul.plain { margin: 0; padding-left: 18px; }
 .stripfig { margin: 0; }
 .stripfig figcaption { margin-top: 4px; }
+/* A run with several sources: how they were measured, a block for each dial (the active one marked at its edge, in its own colour), and which dial the chart follows. */
+.perf .modelabel { align-self: flex-start; padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 12.5px; }
+.dial { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px 4px 12px; border-left: 3px solid transparent; border-radius: 4px; }
+.dial.active { border-left-color: var(--src, var(--accent)); background: color-mix(in srgb, var(--fg) 4%, transparent); }
+.dialname { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.dial .loadnum strong { font-size: 22px; }
+.dial .slide { padding-bottom: 18px; }
+.dial button.primary { align-self: flex-start; padding: 3px 10px; }
+.perf .along { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
+.perf .along .muted { font-size: 12.5px; }
+.perf .over { color: var(--danger); font-weight: 600; }
 
 /*
  * The YAML tab. The files are text with the last change marked in them: a line added is green with a +, a line removed is red, struck through and
