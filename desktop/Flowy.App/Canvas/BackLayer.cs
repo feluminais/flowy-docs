@@ -55,6 +55,20 @@ internal sealed class BackLayer : Control
         InvalidateVisual();
     }
 
+    private IReadOnlySet<(string From, string To)> _lifted = new HashSet<(string, string)>();
+
+    /// <summary>
+    /// The lit lines whose labels move aside, to the upper side of the line as the browser does for a step that plays: a step that leaves marks beside its
+    /// line (a cross, a bar, a clock) keeps its label clear of them. None leaves every label where it is.
+    /// </summary>
+    public void LiftLabels(IEnumerable<(string From, string To)> lines)
+    {
+        var set = lines.ToHashSet();
+        if (set.SetEquals(_lifted)) return;
+        _lifted = set;
+        InvalidateVisual();
+    }
+
     /// <summary>Where the labels showing now are, with their padding: what traffic runs under, as it runs under a shape.</summary>
     internal IReadOnlyList<CoreRect> LabelRects => _labels;
 
@@ -188,6 +202,12 @@ internal sealed class BackLayer : Control
         using var opacity = context.PushOpacity(Fade(line.Edge));
         var formatted = Format(line.Edge, text, Brush("FgBrush"));
         var box = LabelBox(line.Path, formatted);
+        if (_lifted.Contains((line.Edge.From, line.Edge.To)) && _scene is { } s
+            && s.Boxes.FirstOrDefault(b => b.Id == line.Edge.From) is { } a && s.Boxes.FirstOrDefault(b => b.Id == line.Edge.To) is { } b)
+        {
+            var (x, y) = MotionMath.LabelOffset(b.Rect.X + b.Rect.Width / 2 - (a.Rect.X + a.Rect.Width / 2), b.Rect.Y + b.Rect.Height / 2 - (a.Rect.Y + a.Rect.Height / 2), text.Length);
+            box = box with { X = box.X + x, Y = box.Y + y };
+        }
         context.DrawRectangle(Brush("BgBrush"), null, new Avalonia.Rect(box.X, box.Y, box.Width, box.Height), 2, 2);
         context.DrawText(formatted, new Point(box.X + 4, box.Y + 2));
     }

@@ -479,7 +479,7 @@ internal sealed partial class ReaderView : Grid
         RefreshPanel(model, view);
         ApplyLoad();
         RefreshPlayer(model, view, flow, index, shown);
-        UpdateMotion(flow, index, shown);
+        UpdateMotion(model, view, flow, index, shown);
         RefreshNavigator(model, view, flow);
     }
 
@@ -613,7 +613,9 @@ internal sealed partial class ReaderView : Grid
         {
             var step = f.Flow.Steps[i];
             var ends = step.From is null ? "" : Views.StepEnds(model, step.From, step.To, shown?.Ends[i]);
-            return new PlayerStep(ends, step.Text ?? "", step.Description, n < caption.Lanes.Count ? caption.Lanes[n] : "", LinkOf(model, step));
+            var animation = Animations.Read(step);
+            var outcome = animation is null ? null : Animations.OutcomeLine(animation, id => Views.NameOf(model, id));
+            return new PlayerStep(ends, step.Text ?? "", step.Description, n < caption.Lanes.Count ? caption.Lanes[n] : "", LinkOf(model, step), outcome);
         }).ToList();
         var moves = stop.Steps.Any(i => Animations.Read(f.Flow.Steps[i]) is not null && shown?.Ends[i] is not null);
         (string Name, int Step)? trail = _playing is { Trail.Count: > 0 } here ? TrailBar(model, here.Trail[^1]) : null;

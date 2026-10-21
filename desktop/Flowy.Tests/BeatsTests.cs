@@ -140,6 +140,16 @@ public class BeatsTests
     }
 
     [Fact]
+    public void A_step_leaves_marks_when_the_browser_says_it_does()
+    {
+        var all = Expected()["marks"]!.AsArray();
+        Assert.True(all.Count > 40);
+        foreach (var m in all) Assert.Equal(m!["marks"]!.GetValue<bool>(), Animations.LeavesMarks(Animations.Read(Tagged(m["animation"]))!));
+        Assert.Contains(all, m => m!["marks"]!.GetValue<bool>());
+        Assert.Contains(all, m => !m!["marks"]!.GetValue<bool>());
+    }
+
+    [Fact]
     public void A_long_word_is_cut_the_way_the_browser_cuts_it()
     {
         foreach (var l in Expected()["labels"]!.AsArray()) Assert.Equal(l!["short"]!.GetValue<string>(), Animations.ShortLabel(l["label"]!.GetValue<string>()));
