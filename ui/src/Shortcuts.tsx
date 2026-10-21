@@ -25,9 +25,9 @@ const FLOWS: [string, string][] = [
   ['Esc', 'Stop the flow'],
 ]
 const PERFORMANCE: [string, string][] = [
-  ['→  ←', 'Next and previous tested load'],
-  ['Home  End', 'Lowest and highest tested load'],
-  ['P', 'Ramp the load up on its own, or pause'],
+  ['→  ←', 'Next and previous tested level'],
+  ['Home  End', 'First and last tested level'],
+  ['P', 'Ramp the load or play the time, or pause'],
   ['Esc', 'Close the panel'],
 ]
 const FAILURES: [string, string][] = [

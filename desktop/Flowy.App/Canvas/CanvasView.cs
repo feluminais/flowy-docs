@@ -263,17 +263,19 @@ internal sealed class CanvasView : Border
 
     /// <summary>
     /// Shows where shapes stand at the stop on show (see <see cref="States.Marks"/>): each shape named here dims and carries its state, and the rest are as
-    /// they were. Null or nothing takes every state away. A shape's own state beats the strain colour of a load.
+    /// they were. Null or nothing takes every state away. A shape's own state beats the strain colour of a load. With <c>snap</c> (a slider is being dragged)
+    /// the shapes change at once instead of easing.
     /// </summary>
-    public void ShowStates(IReadOnlyDictionary<string, StateMark>? states)
+    public void ShowStates(IReadOnlyDictionary<string, StateMark>? states, bool snap = false)
     {
         _states = states ?? new Dictionary<string, StateMark>();
-        ApplyStates();
+        ApplyStates(snap);
     }
 
-    private void ApplyStates()
+    /// <summary>Puts each shape in the state it is told, at once when <paramref name="snap"/> (see <see cref="BoxControl.SetState"/>).</summary>
+    private void ApplyStates(bool snap = false)
     {
-        foreach (var (id, box) in _boxes) box.SetState(_states.TryGetValue(id, out var mark) ? mark : null);
+        foreach (var (id, box) in _boxes) box.SetState(_states.TryGetValue(id, out var mark) ? mark : null, snap);
     }
 
     /// <summary>The shapes on the canvas that are in a state now, by id: what the key under the player lists, and what a test reads.</summary>

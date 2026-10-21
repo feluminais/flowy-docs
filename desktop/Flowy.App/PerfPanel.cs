@@ -1,7 +1,9 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Automation;
+using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
@@ -14,8 +16,9 @@ namespace Flowy.App;
 internal sealed record PerfSelection(string? Id, string? From = null, string? To = null);
 
 /// <summary>
-/// Latency against load, one point for each tested level: the expected call and the slowest 5%, a cursor where the slider is, and a dashed mark
-/// where the run first struggles. Drawn in a 320 by 120 space that is scaled to the width it is given, as the browser's SVG is.
+/// Latency against load (or time), one point for each tested level: the expected call and the slowest 5%, a cursor where the slider is, and a dashed mark
+/// where the run first struggles. Drawn in a 320 by 120 space that is scaled to the width it is given, as the browser's SVG is. The levels of a run over
+/// time sit where their times are; the levels of a load run are evenly spaced.
 /// </summary>
 internal sealed class LatencyStrip : Control
 {
@@ -30,7 +33,7 @@ internal sealed class LatencyStrip : Control
         _kneeAt = kneeAt;
         _pos = pos;
         IsHitTestVisible = false;
-        AutomationProperties.SetName(this, "Expected call and slowest 5% at each tested load");
+        AutomationProperties.SetName(this, $"Expected call and slowest 5% at each tested {(run.IsTime ? "time" : "load")}");
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
 
@@ -55,7 +58,6 @@ internal sealed class LatencyStrip : Control
         var p95 = _run.Levels.Select(l => l.Overall.P95).ToList();
         if (p50.All(v => v is null) && p95.All(v => v is null)) return;
         var scale = PerfView.ScaleOf(p50.Concat(p95), log: true);
-        var n = _run.Levels.Count;
         using var _ = context.PushTransform(Matrix.CreateScale(Bounds.Width / 320, Bounds.Width / 320));
         var muted = Brush("MutedBrush");
         var grid = new Pen(Brush("LineBrush"), 1);
@@ -72,19 +74,19 @@ internal sealed class LatencyStrip : Control
         }
         if (_kneeAt is { } knee)
         {
-            var x = PerfView.XAt(Plot, knee, n);
+            var x = PerfView.LevelX(_run, Plot, knee);
             context.DrawLine(new Pen(Brush("DangerBrush"), 1, new DashStyle([3, 3], 0)), new Point(x, Plot.Y), new Point(x, Plot.Y + Plot.Height));
         }
         Curve(context, p95, scale, Brush("WarnBrush"));
         Curve(context, p50, scale, Brush("AccentBrush"));
-        var cursor = PerfView.XAt(Plot, _pos, n);
+        var cursor = PerfView.CursorX(_run, Plot, _pos);
         using var fade = context.PushOpacity(0.6);
         context.DrawLine(new Pen(Brush("FgBrush"), 1.5), new Point(cursor, Plot.Y), new Point(cursor, Plot.Y + Plot.Height));
     }
 
-    private static void Curve(DrawingContext context, IReadOnlyList<double?> values, Scale scale, IBrush brush)
+    private void Curve(DrawingContext context, IReadOnlyList<double?> values, Scale scale, IBrush brush)
     {
-        var d = PerfView.PathOf(values, scale, Plot);
+        var d = PerfView.PathOf(values, scale, Plot, _run);
         if (d == "") return;
         context.DrawGeometry(null, new Pen(brush, 2, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round), Geometry.Parse(d));
     }
@@ -211,12 +213,14 @@ internal static class KeyHint
 internal sealed class Sparkline : Control
 {
     private static readonly Area Plot = new(3, 3, 114, 22);
+    private readonly LoadRun _run;
     private readonly IReadOnlyList<double?> _series;
     private readonly Scale _scale;
     private double _pos;
 
-    public Sparkline(IReadOnlyList<double?> series, MetricInfo info, double pos)
+    public Sparkline(LoadRun run, IReadOnlyList<double?> series, MetricInfo info, double pos)
     {
+        _run = run;
         _series = series;
         _scale = info.Log ? PerfView.ScaleOf(series, log: true) : PerfView.ScaleOf(series, from: 0, to: info.Max);
         _pos = pos;
@@ -238,22 +242,25 @@ internal sealed class Sparkline : Control
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        var d = PerfView.PathOf(_series, _scale, Plot);
+        var d = PerfView.PathOf(_series, _scale, Plot, _run);
         if (d != "") context.DrawGeometry(null, new Pen(Brush("AccentBrush"), 1.75, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round), Geometry.Parse(d));
-        var x = PerfView.XAt(Plot, _pos, _series.Count);
+        var x = PerfView.CursorX(_run, Plot, _pos);
         using var fade = context.PushOpacity(0.6);
         context.DrawLine(new Pen(Brush("FgBrush"), 1.5), new Point(x, 0), new Point(x, 28));
     }
 }
 
-/// <summary>The load of each tested level written under the slider, where its stop is.</summary>
+/// <summary>The load or time of each tested level written under the slider, where its stop is (see <see cref="PerfView.TickLabels"/>, which thins them out).</summary>
 internal sealed class TickLabels : Control
 {
-    private readonly IReadOnlyList<string> _labels;
+    /// <summary>A slider's thumb is not centred on the very end of its track.</summary>
+    internal const double Edge = 9;
 
-    public TickLabels(IReadOnlyList<string> labels)
+    private readonly IReadOnlyList<(double Fraction, string Label)> _ticks;
+
+    public TickLabels(IReadOnlyList<(double Fraction, string Label)> ticks)
     {
-        _labels = labels;
+        _ticks = ticks;
         Height = 16;
         IsHitTestVisible = false;
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
@@ -263,16 +270,68 @@ internal sealed class TickLabels : Control
     {
         base.Render(context);
         var muted = this.TryFindResource("MutedBrush", ActualThemeVariant, out var found) && found is IBrush b ? b : Brushes.Gray;
-        var n = _labels.Count;
-        var every = (int)Math.Ceiling(n / 8.0);
-        const double edge = 9; // a slider's thumb is not centred on the very end of its track
-        for (var i = 0; i < n; i++)
+        foreach (var (fraction, label) in _ticks)
         {
-            if (i % every != 0 && i != n - 1) continue;
-            var text = new FormattedText(_labels[i], CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default), 11, muted);
-            var x = edge + (Bounds.Width - 2 * edge) * (n <= 1 ? 0 : (double)i / (n - 1));
+            var text = new FormattedText(label, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default), 11, muted);
+            var x = Edge + (Bounds.Width - 2 * Edge) * fraction;
             context.DrawText(text, new Point(x - text.Width / 2, 0));
         }
+    }
+}
+
+/// <summary>
+/// The events of a run over time as marks above the slider, each where its time is along it, in the colour of the state it leaves (a bar, dimmer until the run
+/// has got there). Each says its time and what it says when pointed at, and a click on one goes there.
+/// </summary>
+internal sealed class EventMarks : Panel
+{
+    private readonly List<(Border Hit, Border Bar, double Fraction, RunEvent Event)> _marks = [];
+
+    /// <summary>A mark was clicked: the position of its event along the run.</summary>
+    public event Action<double>? Picked;
+
+    public EventMarks(LoadRun run, Func<string, string> nameOf)
+    {
+        Height = 12;
+        foreach (var (fraction, e) in PerfView.EventFractions(run))
+        {
+            var bar = new Border { Width = 4, Height = 12, HorizontalAlignment = HorizontalAlignment.Center, Opacity = 0.45 };
+            bar.Classes.Add("eventmark");
+            bar.Classes.Add("state-" + e.State);
+            var hit = new Border { Width = 14, Height = 12, Background = Brushes.Transparent, Cursor = new Cursor(StandardCursorType.Hand), Child = bar };
+            var words = $"{PerfView.FmtLoad(e.At, run.Unit)}: {Perf.EventText(e, nameOf)}";
+            ToolTip.SetTip(hit, words);
+            AutomationProperties.SetName(hit, words);
+            var pos = PerfView.PosAt(run, e.At);
+            hit.PointerPressed += (_, args) =>
+            {
+                if (!args.GetCurrentPoint(hit).Properties.IsLeftButtonPressed) return;
+                args.Handled = true; // the slider under it does not take the press
+                Picked?.Invoke(pos);
+            };
+            _marks.Add((hit, bar, fraction, e));
+            Children.Add(hit);
+        }
+    }
+
+    /// <summary>The marks of events the run has got to are drawn in full, the rest dimmer.</summary>
+    public void SetTime(double time)
+    {
+        foreach (var (_, bar, _, e) in _marks) bar.Opacity = e.At <= time ? 1 : 0.45;
+    }
+
+    internal int Count => _marks.Count;
+
+    protected override Size MeasureOverride(Size available)
+    {
+        foreach (var (hit, _, _, _) in _marks) hit.Measure(new Size(14, 12));
+        return new Size(double.IsInfinity(available.Width) ? 0 : available.Width, 12);
+    }
+
+    protected override Size ArrangeOverride(Size final)
+    {
+        foreach (var (hit, _, fraction, _) in _marks) hit.Arrange(new Avalonia.Rect(TickLabels.Edge + (final.Width - 2 * TickLabels.Edge) * fraction - 7, 0, 14, 12));
+        return final;
     }
 }
 
@@ -295,6 +354,12 @@ internal sealed class PerfPanel : StackPanel
     private StackPanel? _scaledRow;
     private (string From, string To)? _scaledLine;
     private LatencyStrip? _strip;
+    private EventMarks? _marks;
+    private readonly List<(Button Row, Border Dot, TextBlock[] Words, RunEvent Event, string Time, string Text)> _eventRows = [];
+    private StackPanel? _stateRow; // under the readings of a picked shape: the state it is in, when it is in one
+    private string? _stateOf;
+    private StateMark? _stateShown;
+    private IReadOnlyDictionary<string, StateMark> _states = new Dictionary<string, StateMark>(); // the shapes in a state on the canvas now
     private ComboBox? _picker;
     private LoadRun? _run;
     private Model? _model;
@@ -308,10 +373,16 @@ internal sealed class PerfPanel : StackPanel
     /// <summary>The reader picked another run.</summary>
     public event Action<string>? RunPicked;
 
-    /// <summary>The reader picked a tested level: on the slider, or with Go there.</summary>
+    /// <summary>The reader picked a tested level with Go there.</summary>
     public event Action<double>? LevelPicked;
 
-    /// <summary>The reader pressed Ramp or Pause.</summary>
+    /// <summary>The reader moved the slider: where along the run it stands for (see <see cref="PerfView.SlidePos"/>).</summary>
+    public event Action<double>? Slid;
+
+    /// <summary>The reader picked an event, on the slider or in the list: where along the run it is.</summary>
+    public event Action<double>? EventPicked;
+
+    /// <summary>The reader pressed Ramp, Play or Pause.</summary>
     public event Action? RampClicked;
 
     /// <summary>The reader used a control that took the keyboard focus, so the reader gives it back and the keys work again.</summary>
@@ -323,7 +394,7 @@ internal sealed class PerfPanel : StackPanel
         _slider.ValueChanged += (_, e) =>
         {
             if (_syncing || _run is null) return;
-            LevelPicked?.Invoke(PerfView.Snap(_run, e.NewValue));
+            Slid?.Invoke(PerfView.SlidePos(_run, e.NewValue));
             Used?.Invoke();
         };
         ActualThemeVariantChanged += (_, _) =>
@@ -361,6 +432,21 @@ internal sealed class PerfPanel : StackPanel
     internal bool ScaledDownShown => _scaledRow is { IsVisible: true };
 
     internal ComboBox? Picker => _picker;
+
+    /// <summary>The events as the list shows them: the time, the words, whether the run has got there and whether it is the latest it has.</summary>
+    internal IReadOnlyList<(string Time, string Text, bool Passed, bool Current)> EventLines =>
+        _eventRows.Select(r => (r.Time, r.Text, r.Dot.Classes.Contains("passed"), r.Row.Classes.Contains("current"))).ToList();
+
+    /// <summary>The buttons of the event rows, to click.</summary>
+    internal IReadOnlyList<Button> EventButtons => _eventRows.Select(r => r.Row).ToList();
+
+    /// <summary>How many marks the slider carries, and the marks themselves.</summary>
+    internal int EventMarkCount => _marks?.Count ?? 0;
+
+    internal EventMarks? Marks => _marks;
+
+    /// <summary>The state the picked shape is shown in under its readings, or null.</summary>
+    internal string? SelectedState => _stateShown?.State;
 
     internal IReadOnlyList<(string Label, string Value)> Readings => _readings.Select(r => (r.Info.Label, r.Value.Text ?? "")).ToList();
 
@@ -413,6 +499,11 @@ internal sealed class PerfPanel : StackPanel
         _scaledLine = null;
         _picker = null;
         _strip = null;
+        _marks = null;
+        _eventRows.Clear();
+        _stateRow = null;
+        _stateOf = null;
+        _stateShown = null;
         _still = still;
         var problems = ProblemsFor(runProblems);
         if (!runs.TryGetValue(runId, out var run))
@@ -458,21 +549,43 @@ internal sealed class PerfPanel : StackPanel
             Children.Add(new StackPanel { Children = { header, note } });
         }
 
-        Children.Add(Chrome.Section(Icons.Activity, "Load"));
+        var timed = run.IsTime;
+        Children.Add(Chrome.Section(timed ? Icons.Clock : Icons.Activity, timed ? "Time" : "Load"));
         var number = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { _loadNumber, _loadNote } };
         Grid.SetColumn(_loadNote, 1);
         Children.Add(number);
         _syncing = true; // setting up the slider is not the reader moving it
-        _slider.Maximum = PerfView.Top(run);
-        _slider.Value = 0;
+        var (min, max) = PerfView.SliderRange(run);
+        _slider.Minimum = min;
+        _slider.Maximum = max;
+        _slider.Value = min;
+        // A load run's slider has a stop at each level, evenly; a run over time has its stops where its levels' times are.
+        if (timed) _slider.Ticks = new AvaloniaList<double>(run.Levels.Select(l => l.Load));
+        else
+        {
+            _slider.Ticks = null;
+            _slider.TickFrequency = 1;
+        }
         _syncing = false;
-        AutomationProperties.SetName(_slider, "Load");
-        Children.Add(_slider);
-        Children.Add(new TickLabels(run.Levels.Select(l => l.Load.ToString("R", CultureInfo.InvariantCulture)).ToList()));
+        AutomationProperties.SetName(_slider, timed ? "Time" : "Load");
+        if (run.Events.Count > 0)
+        {
+            _marks = new EventMarks(run, id => NameOf(model, id));
+            _marks.Picked += pos =>
+            {
+                EventPicked?.Invoke(pos);
+                Used?.Invoke();
+            };
+            Children.Add(new StackPanel { Children = { _marks, _slider } });
+        }
+        else Children.Add(_slider);
+        Children.Add(new TickLabels(PerfView.TickLabels(run)));
+        var play = timed ? "Play" : "Ramp";
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
         if (!still) buttons.Children.Add(_ramp);
-        buttons.Children.Add(KeyHint.Of(still ? [("← →", "Step")] : [("← →", "Step"), ("P", "Ramp")]));
+        buttons.Children.Add(KeyHint.Of(still ? [("← →", "Step")] : [("← →", "Step"), ("P", play)]));
         Children.Add(buttons);
+        if (run.Events.Count > 0) Children.Add(BuildEvents(model, run));
 
         Children.Add(Chrome.Section(Icons.Alert, "Where it struggles"));
         if (knee is null) Children.Add(Muted("It never struggled in the tested range."));
@@ -502,6 +615,41 @@ internal sealed class PerfPanel : StackPanel
         Children.Add(_keyRows);
         Children.Add(problems);
         SetPos(pos, ramping);
+    }
+
+    /// <summary>The Events list: a row for each event, with the time, the state it leaves a shape in drawn as the canvas draws it, and its words. A click on a row goes there.</summary>
+    private Control BuildEvents(Model model, LoadRun run)
+    {
+        var list = new StackPanel { Spacing = 2 };
+        foreach (var e in run.Events)
+        {
+            var time = PerfView.FmtLoad(e.At, run.Unit);
+            var text = Perf.EventText(e, id => NameOf(model, id));
+            var dot = new Border();
+            dot.Classes.Add("evdot");
+            var when = new TextBlock { Text = time, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+            var words = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
+            Control swatch = e.State == "running"
+                ? new PlainSwatch(false) { Margin = new Thickness(6, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center }
+                : new StateSwatch(new StateMark(e.State, false));
+            AutomationProperties.SetName(swatch, States.Labels[e.State]);
+            var stamp = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, VerticalAlignment = VerticalAlignment.Center, Children = { dot, when } };
+            var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(new GridLength(84)), new ColumnDefinition(new GridLength(44)), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 4, Children = { stamp, swatch, words } };
+            Grid.SetColumn(swatch, 1);
+            Grid.SetColumn(words, 2);
+            var row = new Button { Content = grid, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Focusable = false };
+            row.Classes.Add("event");
+            AutomationProperties.SetName(row, $"{time}, {text}, {States.Labels[e.State]}");
+            var pos = PerfView.PosAt(run, e.At);
+            row.Click += (_, _) =>
+            {
+                EventPicked?.Invoke(pos);
+                Used?.Invoke();
+            };
+            _eventRows.Add((row, dot, [when, words], e, time, text));
+            list.Children.Add(row);
+        }
+        return new StackPanel { Spacing = 12, Children = { Chrome.Section(Icons.Bolt, "Events"), list } };
     }
 
     private void BuildSelection(Model model, string view, LoadRun run, PerfSelection? selection)
@@ -539,7 +687,7 @@ internal sealed class PerfPanel : StackPanel
             var info = PerfView.Metrics[key];
             var label = new TextBlock { Text = info.Label, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center };
             var value = new TextBlock { FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
-            var curve = new Sparkline(values, info, _pos);
+            var curve = new Sparkline(run, values, info, _pos);
             var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { label, value, curve } };
             Grid.SetColumn(value, 1);
             Grid.SetColumn(curve, 2);
@@ -547,6 +695,13 @@ internal sealed class PerfPanel : StackPanel
             _readings.Add(new Reading(key, frame => at!(frame, key), value, curve, info));
         }
         if (!any) Children.Add(Muted(selection is { Id: not null } ? "Nothing measured here or inside it." : "Nothing measured here."));
+        if (selection is { Id: { } shape })
+        {
+            // Hidden until the shape is in a state; SetPos shows it.
+            _stateOf = shape;
+            _stateRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, IsVisible = false };
+            Children.Add(_stateRow);
+        }
         if (selection is { From: { } scaledFrom, To: { } scaledTo })
         {
             // Hidden until the line is scaled down to fit the screen; SetPos shows it.
@@ -566,7 +721,8 @@ internal sealed class PerfPanel : StackPanel
         IReadOnlyList<LineTraffic> drawn = _still ? [] : frame.Traffic.Lines; // reduced motion draws no traffic, so the key says nothing of it
         var marks = PerfView.FailureMarksOf(drawn);
         var source = Perf.SourceKeyOf(run, drawn);
-        var shape = $"{marks}|{source}";
+        var states = StateKey.Distinct(_states.Values);
+        var shape = $"{marks}|{source}|{string.Join(",", states)}";
         if (shape == _keyShape) return;
         _keyShape = shape;
         var dark = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
@@ -583,13 +739,29 @@ internal sealed class PerfPanel : StackPanel
             source?.Scale is { } scale ? (KeyRow.Dot(source.Color, dark), scale) : null,
             source is { Bigger: true } ? (KeyRow.Bigger(source.Color, dark), "Bigger call") : null,
             source is { ScaledDown: true } ? (KeyRow.Scaled(source.Color, dark), "Scaled down") : null));
+        if (StateKey.Of(_states.Values) is { } stateKey) _keyRows.Children.Add(stateKey); // the states on the canvas now: only those
+    }
+
+    /// <summary>The state of the picked shape, under its readings, when it is in one on the canvas now.</summary>
+    private void ShowSelectedState()
+    {
+        if (_stateRow is null) return;
+        var mark = _stateOf is { } id && _states.TryGetValue(id, out var found) && !found.Inside ? found : null;
+        if (mark == _stateShown) return;
+        _stateShown = mark;
+        _stateRow.Children.Clear();
+        _stateRow.IsVisible = mark is not null;
+        if (mark is null) return;
+        _stateRow.Children.Add(new StateGlyph(mark, 16));
+        _stateRow.Children.Add(new TextBlock { Text = States.Labels[mark.State], VerticalAlignment = VerticalAlignment.Center });
     }
 
     /// <summary>Puts the thumb back on the level the panel is at, after a drag that took it somewhere between levels without reaching another.</summary>
     public void SnapSlider()
     {
+        if (_run is not { } run) return;
         _syncing = true;
-        _slider.Value = _pos;
+        _slider.Value = PerfView.SliderValue(run, _pos);
         _syncing = false;
     }
 
@@ -604,11 +776,12 @@ internal sealed class PerfPanel : StackPanel
     /// Moves the panel to a position without building it again: the number, the slider, the cursors, the readings and the Ramp button. The readings are
     /// those of <paramref name="frame"/>, which the caller worked out for this position and also drew the canvas from.
     /// </summary>
-    public void SetPos(double pos, bool ramping, LoadFrame frame)
+    public void SetPos(double pos, bool ramping, LoadFrame frame, IReadOnlyDictionary<string, StateMark>? states = null)
     {
         if (_run is not { } run) return;
         _pos = pos;
         _ramping = ramping;
+        if (states is not null) _states = states;
         var load = PerfView.LoadAt(run, pos);
         _loadNumber.Text = PerfView.FmtLoad(load, run.Unit);
         if (PerfView.IsTested(pos)) _loadNote.Text = "Tested";
@@ -619,13 +792,23 @@ internal sealed class PerfPanel : StackPanel
             _loadNote.Text = $"Between {lower.Load.ToString("R", CultureInfo.InvariantCulture)} and {upper.Load.ToString("R", CultureInfo.InvariantCulture)}, estimated";
         }
         _syncing = true;
-        _slider.Value = pos;
+        _slider.Value = PerfView.SliderValue(run, pos);
         _syncing = false;
-        AutomationProperties.SetName(_slider, "Load");
-        Chrome.Fill(_ramp, ramping ? Icons.Pause : Icons.Play, ramping ? "Pause" : "Ramp");
+        AutomationProperties.SetName(_slider, run.IsTime ? "Time" : "Load");
+        Chrome.Fill(_ramp, ramping ? Icons.Pause : Icons.Play, ramping ? "Pause" : run.IsTime ? "Play" : "Ramp");
         _ramp.Classes.Set("pressed", ramping);
         _strip?.SetPos(pos);
+        _marks?.SetTime(load);
+        var rows = PerfView.EventRows(run, load);
+        for (var i = 0; i < _eventRows.Count && i < rows.Count; i++)
+        {
+            var (row, dot, words, _, _, _) = _eventRows[i];
+            row.Classes.Set("current", rows[i].Current);
+            dot.Classes.Set("passed", rows[i].Passed);
+            foreach (var word in words) word.Classes.Set("muted", !rows[i].Passed);
+        }
         UpdateKey(run, frame);
+        ShowSelectedState();
         if (_scaledRow is not null && _scaledLine is { } line) _scaledRow.IsVisible = !_still && frame.Traffic.Lines.Any(l => l.From == line.From && l.To == line.To && l.Capped);
         foreach (var r in _readings)
         {

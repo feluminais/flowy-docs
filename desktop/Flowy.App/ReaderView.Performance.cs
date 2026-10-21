@@ -6,8 +6,8 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>
-/// The Performance panel: which load-test run and where along it, the ramp, and the load drawn on the canvas (traffic on the lines, strain on the
-/// shapes). It takes Details' place on the right while it is open. A port of what App.tsx does for the Performance tab, with the same rules: it is
+/// The Performance panel: which load-test run and where along it, the ramp (Play, for a run over time), and the load drawn on the canvas (traffic on the lines,
+/// strain on the shapes, and for a run over time the states its events leave). It takes Details' place on the right while it is open. A port of what App.tsx does for the Performance tab, with the same rules: it is
 /// there only where the folder has a run (or a run file to complain about) and not while editing; a flow that was playing waits behind it; a click on
 /// the canvas picks what its panel reads out.
 /// </summary>
@@ -15,7 +15,7 @@ internal sealed partial class ReaderView
 {
     private bool _perf; // the Performance panel was opened (by its rail button or T)
     private string _runId = "";
-    private double _pos; // where along the run's tested levels the screen is: a whole number is a tested level
+    private double _pos; // where along the run's tested levels the screen is: a whole number is a tested level (a run over time can stand between them: on an event)
     private double _posNow; // where the ramp has got to, which can be ahead of what the screen shows
     private bool _ramping;
     private Stopwatch? _rampClock;
@@ -44,6 +44,8 @@ internal sealed partial class ReaderView
     {
         _perfPanel.RunPicked += PickRun;
         _perfPanel.LevelPicked += StepLevel;
+        _perfPanel.Slid += Slide;
+        _perfPanel.EventPicked += JumpTo;
         _perfPanel.RampClicked += ToggleRamp;
         _perfPanel.Used += () => Focus(); // a control in the panel took the keyboard: give it back, so the keys work
     }
@@ -98,6 +100,32 @@ internal sealed partial class ReaderView
         ApplyLoad();
     }
 
+    /// <summary>
+    /// The slider moved. A load run's goes level to level. A run over time goes where it is put, so an event can be stood on, and the states of shapes follow at
+    /// once instead of easing (a drag is many moves). It stops a ramp.
+    /// </summary>
+    private void Slide(double pos)
+    {
+        if (LoadTest is not { } run) return;
+        if (!run.IsTime)
+        {
+            StepLevel(pos);
+            return;
+        }
+        _ramping = false;
+        _pos = _posNow = PerfView.ClampPos(run, pos);
+        ApplyLoad(snap: true);
+    }
+
+    /// <summary>Goes to a place along the run, not only a level: a click on an event. The states ease to it, as they do for a step.</summary>
+    private void JumpTo(double pos)
+    {
+        if (LoadTest is not { } run) return;
+        _ramping = false;
+        _pos = _posNow = PerfView.ClampPos(run, pos);
+        ApplyLoad();
+    }
+
     private void ToggleRamp()
     {
         if (LoadTest is not { } run || Still) return;
@@ -141,8 +169,21 @@ internal sealed partial class ReaderView
         if (!done) RequestRampFrame();
     }
 
-    /// <summary>Draws the load on the canvas and moves the panel to it, without building either again: what a step of a ramp, or a key, changes.</summary>
-    private void ApplyLoad()
+    /// <summary>
+    /// The states a run over time leaves at the position on show: the latest event at or before it, for each shape (see <see cref="Perf.RunStates"/>). Null while the
+    /// panel is closed or when the run has no events, so a run that has none leaves the canvas as it was.
+    /// </summary>
+    private IReadOnlyDictionary<string, StateMark>? RunMarks(Model model)
+    {
+        if (!PerfOpen || LoadTest is not { IsTime: true, Events.Count: > 0 } run) return null;
+        return States.Marks(model, Perf.RunStates(run, PerfView.LoadAt(run, PerfView.ClampPos(run, _pos))));
+    }
+
+    /// <summary>
+    /// Draws the load on the canvas and moves the panel to it, without building either again: what a step of a ramp, or a key, changes. With <paramref name="snap"/>
+    /// (the slider of a run is being dragged) the shapes change state at once instead of easing.
+    /// </summary>
+    private void ApplyLoad(bool snap = false)
     {
         if (!PerfOpen || _folder is not { } folder || LoadTest is not { } run)
         {
@@ -152,7 +193,8 @@ internal sealed partial class ReaderView
         _pos = PerfView.ClampPos(run, _pos);
         var frame = Perf.FrameAt(folder.Model, run, PerfView.LoadAt(run, _pos), CurrentView()); // worked out once, for the canvas and the panel's readouts both
         _canvas.ShowLoad(frame.Traffic);
-        _perfPanel.SetPos(_pos, _ramping, frame);
+        _canvas.ShowStates(RunMarks(folder.Model), snap);
+        _perfPanel.SetPos(_pos, _ramping, frame, _canvas.StatesShown); // the key lists the states that are on the canvas now
     }
 
     private void ShowPerfPanel(Model model, string view)
@@ -178,4 +220,10 @@ internal sealed partial class ReaderView
     internal void TickRamp() => RampFrame();
 
     internal void PickRunById(string id) => PickRun(id);
+
+    /// <summary>Goes to a load or a time of the run on show (for a picture taken with <c>--at</c>), as a click on an event does.</summary>
+    internal void GoToTime(double x)
+    {
+        if (LoadTest is { } run) JumpTo(PerfView.PosAt(run, x));
+    }
 }
