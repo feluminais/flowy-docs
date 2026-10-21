@@ -184,6 +184,18 @@ export function structureProblems(flow: Flow, hasFlow: (id: string) => boolean):
   return out
 }
 
+/**
+ * The stop that stop `k` follows: the one `stops[k].before` points at, which is the stop whose first step is `before[0]`. Undefined for a first
+ * stop (nothing came before), and for a `k` that is not a stop. A stop only ever follows an earlier one, so this is found by looking back from `k`.
+ */
+export function stopBefore(stops: Stop[], k: number): number | undefined {
+  if (!Number.isInteger(k) || k < 0 || k >= stops.length) return undefined
+  const first = stops[k].before[0]
+  if (first === undefined) return undefined
+  for (let i = k - 1; i >= 0; i--) if (stops[i].steps[0] === first) return i
+  return undefined
+}
+
 /** The stop that holds file step `step`, or the first stop when no stop does (a stale step number never leaves the player nowhere). */
 export function stopIndexOf(stops: Stop[], step: number): number {
   const at = stops.findIndex(s => s.steps.includes(step))
