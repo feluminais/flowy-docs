@@ -226,15 +226,14 @@ internal sealed class FadeBar : Control
         InvalidateVisual();
     }
 
-    private IBrush Brush(string key) =>
-        this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
+    private IBrush Brush(string key) => AppTheme.Brush(this, key);
 
     public override void Render(DrawingContext context)
     {
         base.Render(context);
         var track = new Avalonia.Rect(Pad, 5, Math.Max(1, Bounds.Width - 2 * Pad), 14);
         var round = new RoundedRect(track, 7);
-        var color = Color.Parse(ActualThemeVariant == ThemeVariant.Dark ? _color.Dark : _color.Light);
+        var color = Color.Parse(AppTheme.IsDark(this) ? _color.Dark : _color.Light);
         using (context.PushClip(round))
         {
             var checks = new SolidColorBrush(Colors.Gray, 0.3);

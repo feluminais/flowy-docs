@@ -37,7 +37,7 @@ public sealed class EditDoc
         if (modelText is not null)
         {
             ModelFiles.ParseModel(modelText); // the shape check, with its messages
-            if (YamlText.Parse("model.yaml", modelText) is OrderedDictionary<string, object?> top)
+            if (YamlText.Parse(FolderLayout.ModelFile, modelText) is OrderedDictionary<string, object?> top)
             {
                 foreach (var (key, value) in top)
                 {
@@ -50,7 +50,7 @@ public sealed class EditDoc
         foreach (var (id, text) in flowTexts)
         {
             ModelFiles.ParseFlow(id, text);
-            var flow = YamlText.Parse($"flows/{id}.yaml", text) as OrderedDictionary<string, object?> ?? [];
+            var flow = YamlText.Parse(FolderLayout.FlowFile(id), text) as OrderedDictionary<string, object?> ?? [];
             // Like parseFlowFile: a missing or empty steps is an empty list, in the key's own place, else last.
             flow["steps"] = flow.TryGetValue("steps", out var steps) && !JsCompat.IsEmpty(steps) ? steps : new List<object?>();
             // Like parseFlowFile: a blank `groups:` is no section.
@@ -60,7 +60,7 @@ public sealed class EditDoc
         if (layoutText is not null)
         {
             ModelFiles.ParseLayout(layoutText);
-            if (YamlText.Parse("layout.yaml", layoutText) is OrderedDictionary<string, object?> views)
+            if (YamlText.Parse(FolderLayout.LayoutFile, layoutText) is OrderedDictionary<string, object?> views)
             {
                 foreach (var (view, boxes) in views)
                 {
@@ -121,9 +121,9 @@ public sealed class EditDoc
     /// <summary>Every file as path → text: model.yaml, each flow (in JavaScript's key order), and layout.yaml. Layout is last, as a separate write.</summary>
     public Dictionary<string, string> ToFiles()
     {
-        var files = new Dictionary<string, string> { ["model.yaml"] = YamlWriter.Write(ModelTree()) };
-        foreach (var id in JsCompat.OrderKeys(Flows.Keys)) files[$"flows/{id}.yaml"] = YamlWriter.Write(Flows[id]);
-        files["layout.yaml"] = YamlWriter.WriteLayout(Layout);
+        var files = new Dictionary<string, string> { [FolderLayout.ModelFile] = YamlWriter.Write(ModelTree()) };
+        foreach (var id in JsCompat.OrderKeys(Flows.Keys)) files[FolderLayout.FlowFile(id)] = YamlWriter.Write(Flows[id]);
+        files[FolderLayout.LayoutFile] = YamlWriter.WriteLayout(Layout);
         return files;
     }
 
@@ -132,18 +132,11 @@ public sealed class EditDoc
 
     public static Model FromFiles(IReadOnlyDictionary<string, string> files)
     {
-        var parsed = files.TryGetValue("model.yaml", out var modelText) ? ModelFiles.ParseModel(modelText) : null;
+        var parsed = files.TryGetValue(FolderLayout.ModelFile, out var modelText) ? ModelFiles.ParseModel(modelText) : null;
         var flows = new IdMap<Flow>();
         foreach (var (rel, text) in files)
-            if (rel.StartsWith("flows/", StringComparison.Ordinal)) flows.Add(rel["flows/".Length..^".yaml".Length], ModelFiles.ParseFlow(rel["flows/".Length..^".yaml".Length], text));
-        var layout = files.TryGetValue("layout.yaml", out var layoutText) ? ModelFiles.ParseLayout(layoutText) : [];
-        return new Model
-        {
-            Objects = parsed?.Objects ?? new IdMap<FlowyObject>(),
-            Connections = parsed?.Connections ?? [],
-            Meta = parsed?.Meta ?? new Dictionary<string, object?>(),
-            Flows = flows,
-            Layout = layout,
-        };
+            if (rel.StartsWith(FolderLayout.FlowsDir + "/", StringComparison.Ordinal)) flows.Add(rel[(FolderLayout.FlowsDir.Length + 1)..^FolderLayout.Extension.Length], ModelFiles.ParseFlow(rel[(FolderLayout.FlowsDir.Length + 1)..^FolderLayout.Extension.Length], text));
+        var layout = files.TryGetValue(FolderLayout.LayoutFile, out var layoutText) ? ModelFiles.ParseLayout(layoutText) : [];
+        return Model.FromParts(parsed, flows, layout);
     }
 }

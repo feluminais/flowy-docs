@@ -30,7 +30,7 @@ public static class EmptyKeys
         }
         else if (value is IReadOnlyDictionary<string, object?> map)
         {
-            foreach (var key in JsKeys.Order(map.Keys))
+            foreach (var key in JsCompat.OrderKeys(map.Keys))
             {
                 path.Add(key);
                 if (map[key] is null) found.Add([.. path]);

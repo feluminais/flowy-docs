@@ -99,6 +99,20 @@ public sealed class Model
     /// <summary>The object with this id, or null (also for "root", which is no object).</summary>
     public FlowyObject? GetObject(string? id) => id is not null && id != Names.Root && Objects.TryGetValue(id, out var o) ? o : null;
 
+    /// <summary>
+    /// A model put together from what the files of a folder gave: model.yaml (null: there is none), the flows, the layout, and the failure analyses (none by default).
+    /// The folder loader and the editor both build their model here, so they agree on what a missing part is.
+    /// </summary>
+    public static Model FromParts(ModelFiles.ParsedModel? parsed, IdMap<Flow> flows, IReadOnlyDictionary<string, IReadOnlyDictionary<string, LayoutPoint>> layout, IdMap<FailureAnalysis>? failures = null) => new()
+    {
+        Objects = parsed?.Objects ?? new IdMap<FlowyObject>(),
+        Connections = parsed?.Connections ?? [],
+        Meta = parsed?.Meta ?? new Dictionary<string, object?>(),
+        Flows = flows,
+        Failures = failures ?? new IdMap<FailureAnalysis>(),
+        Layout = layout,
+    };
+
     /// <summary>Whether a box is an outside service: <c>external: true</c>.</summary>
     public static bool IsExternal(FlowyObject o) => o.External == "true";
 }
