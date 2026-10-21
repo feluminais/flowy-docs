@@ -142,11 +142,11 @@ internal sealed class FailuresPanel : StackPanel
     {
         var ids = s.Model.Failures.Keys.ToList();
         if (ids.Count < 2)
-            return new TextBlock { Text = analysis.Name.Trim() == "" ? s.AnalysisId : analysis.Name, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) };
+            return new TextBlock { Text = Structure.JsTrim(analysis.Name) == "" ? s.AnalysisId : analysis.Name, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) };
         var picker = new ComboBox
         {
             HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 32, 0), Focusable = false,
-            ItemsSource = ids.Select(id => s.Model.Failures[id].Name.Trim() == "" ? id : s.Model.Failures[id].Name).ToList(), SelectedIndex = ids.IndexOf(s.AnalysisId!),
+            ItemsSource = ids.Select(id => Structure.JsTrim(s.Model.Failures[id].Name) == "" ? id : s.Model.Failures[id].Name).ToList(), SelectedIndex = ids.IndexOf(s.AnalysisId!),
         };
         AutomationProperties.SetName(picker, "Analysis");
         picker.SelectionChanged += (_, _) =>
@@ -158,16 +158,19 @@ internal sealed class FailuresPanel : StackPanel
         return picker;
     }
 
+    private bool _aboutOpen; // kept here, not in the control: the panel is built again on every pick, and About stays as the reader left it
+
     private Control About(string text)
     {
         var note = Muted(text);
-        note.IsVisible = false;
-        var header = new Button { Content = "▸ About" };
+        note.IsVisible = _aboutOpen;
+        var header = new Button { Content = _aboutOpen ? "▾ About" : "▸ About" };
         header.Classes.Add("disclosure");
         header.Click += (_, _) =>
         {
-            note.IsVisible = !note.IsVisible;
-            header.Content = note.IsVisible ? "▾ About" : "▸ About";
+            _aboutOpen = !_aboutOpen;
+            note.IsVisible = _aboutOpen;
+            header.Content = _aboutOpen ? "▾ About" : "▸ About";
             Used?.Invoke();
         };
         return new StackPanel { Children = { header, note } };
@@ -334,7 +337,7 @@ internal sealed class FailuresPanel : StackPanel
             var show = new Button();
             show.Classes.Add("tool");
             Chrome.Fill(show, Icons.Route, "Show it");
-            int? step = int.TryParse(mode.Step, NumberStyles.None, CultureInfo.InvariantCulture, out var at) ? at : null;
+            var step = FailuresView.StepOf(mode.Step);
             show.Click += (_, _) =>
             {
                 FlowShown?.Invoke(flow, step);

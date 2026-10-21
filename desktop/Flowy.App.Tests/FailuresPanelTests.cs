@@ -213,6 +213,25 @@ public class FailuresPanelTests
     }
 
     [AvaloniaFact]
+    public void A_band_and_Not_analysed_replace_each_other_as_one_filter_as_in_the_browser()
+    {
+        var (window, reader) = Open(Plum);
+        Press(window, Key.M, PhysicalKey.M);
+        var model = reader.Folder!.Model;
+        var left = Failures.Coverage(model, model.Failures["ordering"]).Left.Count;
+        Click(Named(reader, $"Not analysed ({left})"));
+        Assert.True(reader.FailuresState.Left);
+        Click(Named(reader, "High, 2")); // a band leaves the list of shapes for the rows of that band
+        Assert.False(reader.FailuresState.Left);
+        Assert.Equal(RiskBand.High, reader.FailuresState.Band);
+        Assert.All(reader.FailuresPanelNow.Rows, r => Assert.StartsWith("High.", r.Name));
+        Click(Named(reader, $"Not analysed ({left})")); // and the shapes leave the band
+        Assert.True(reader.FailuresState.Left);
+        Assert.Null(reader.FailuresState.Band);
+        Assert.DoesNotContain(reader.FailuresPanelNow.BandButtons, x => x.Pressed);
+    }
+
+    [AvaloniaFact]
     public void A_shape_picked_on_the_canvas_narrows_the_list_to_what_it_carries_and_the_chip_clears_it()
     {
         var (window, reader) = Open();
@@ -332,6 +351,46 @@ public class FailuresPanelTests
         var texts = reader.FailuresPanelNow.Texts;
         Assert.DoesNotContain("No failure analyses.", texts);
         Assert.Contains(texts, t => t.StartsWith("failures/broken.yaml"));
+    }
+
+    [AvaloniaFact]
+    public void About_stays_open_while_a_row_is_picked_as_the_browsers_details_does()
+    {
+        var (window, reader) = Open(Plum);
+        Press(window, Key.M, PhysicalKey.M);
+        var about = reader.Folder!.Model.Failures["ordering"].About!;
+        bool Shown() => reader.FailuresPanelNow.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == about).IsVisible;
+        Assert.False(Shown());
+        Click(reader.FailuresPanelNow.Buttons.First(b => b.Classes.Contains("disclosure")));
+        Assert.True(Shown());
+        reader.PickModeById("stripe-timeout"); // the panel is built again
+        Assert.True(Shown());
+        Click(reader.FailuresPanelNow.Buttons.First(b => b.Classes.Contains("disclosure")));
+        reader.PickModeById("card-declined");
+        Assert.False(Shown());
+    }
+
+    [AvaloniaFact]
+    public void A_click_on_a_problem_of_an_analysis_opens_the_Failures_panel_at_its_mode()
+    {
+        var (_, reader) = Open();
+        var problem = reader.Folder!.Problems.First(p => p.File == "failures/ordering.yaml" && p.Message.StartsWith("constructor: "));
+        reader.JumpToProblem(problem);
+        Assert.True(reader.FailuresOpenNow);
+        Assert.Equal(("ordering", "constructor", null, false), reader.FailuresState);
+        Assert.Equal("shop", reader.View); // the mode is on Orders DB, whose view is Shop
+        var file = reader.Folder.Problems.First(p => p.File == "failures/empty.yaml");
+        reader.JumpToProblem(file); // a problem of the whole file opens the analysis with no mode picked
+        Assert.Equal(("empty", null, null, false), reader.FailuresState);
+    }
+
+    [AvaloniaFact]
+    public void A_problem_of_an_analysis_while_editing_says_the_panel_is_not_there()
+    {
+        var (_, reader) = Open();
+        reader.SetEditing(true);
+        reader.JumpToProblem(reader.Folder!.Problems.First(p => p.File == "failures/ordering.yaml"));
+        Assert.False(reader.FailuresOpenNow);
     }
 
     [AvaloniaFact]
