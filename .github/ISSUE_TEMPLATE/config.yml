@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea
+    url: https://github.com/feluminais/flowy-docs/discussions
+    about: Ask how something works, or talk an idea through before filing it.
+  - name: Security problem
+    url: https://github.com/feluminais/flowy-docs/security/advisories/new
+    about: Report it privately. See SECURITY.md.

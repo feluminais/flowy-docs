@@ -132,7 +132,7 @@
             },
             {
               "name": "total",
-              "note": "Cents, not decimals. Rounding broke the first tax run."
+              "note": "Stored in cents because rounding broke the first tax run."
             }
           ],
           "rows": [
@@ -245,7 +245,7 @@
             },
             {
               "name": "total",
-              "note": "Cents, not decimals. Rounding broke the first tax run."
+              "note": "Stored in cents because rounding broke the first tax run."
             }
           ],
           "rows": [
@@ -269,7 +269,7 @@
           "notes": [
             {
               "name": "total",
-              "text": "Cents, not decimals. Rounding broke the first tax run."
+              "text": "Stored in cents because rounding broke the first tax run."
             }
           ]
         },

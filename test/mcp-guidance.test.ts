@@ -65,15 +65,15 @@ test('every tool, prompt and guide the instructions name is really there', async
   assert.ok(instructions.includes('flowy://docs/format.md') && resources.includes('flowy://docs/format.md'))
 })
 
-test('the guide lists every tool, and the README and guide count them as the server does', async t => {
+test('the guide lists every tool, and SECURITY.md and the guide count them as the server does', async t => {
   const client = await setup(t)
   const tools = (await client.listTools()).tools.map(x => x.name)
   const guide = await readFile('docs/guide.md', 'utf8')
-  const readme = await readFile('README.md', 'utf8')
+  const security = await readFile('SECURITY.md', 'utf8')
   const table = guide.slice(guide.indexOf('**The tools.**'), guide.indexOf('Not over MCP:'))
   assert.deepEqual(tools.filter(name => !table.includes(`\`${name}\``)), [], 'tools missing from the guide table')
   const words = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty']
   assert.match(guide, new RegExp(`The server has ${words[tools.length]}\\.`))
   const reads = tools.filter(name => name.startsWith('get_')).length
-  assert.match(readme, new RegExp(`Claude gets ${words[tools.length]} tools: ${words[reads]} read the model and ${words[tools.length - reads]} change`))
+  assert.match(security, new RegExp(`Claude gets ${words[tools.length]} tools: ${words[reads]} read the model and ${words[tools.length - reads]} change`))
 })

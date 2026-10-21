@@ -104,7 +104,7 @@ objects:
         columns:
           - {name: id, key: primary}
           - {name: customer_id, to: customers}
-          - {name: total, note: "Cents, not decimals. Rounding broke the first tax run."}
+          - {name: total, note: "Stored in cents because rounding broke the first tax run."}
         rows:
           - [o_1042, c_77, 2490]
           - [o_1043, c_12, 1380]

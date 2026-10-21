@@ -13,7 +13,7 @@ objects:
     type: system
     name: Flowy Docs
     description: |
-      Architecture docs you zoom through instead of scrolling through.
+      Architecture docs you zoom into, kept in your repo.
 
       One npm package with four ways in: the canvas in a browser, an MCP server for Claude, a static
       export, and Mermaid on the command line. They all read and write the same YAML through the

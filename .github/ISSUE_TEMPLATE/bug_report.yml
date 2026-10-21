@@ -1,0 +1,40 @@
+name: Bug report
+description: Something draws wrong, saves wrong or crashes.
+labels: [bug]
+body:
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - Desktop app
+        - Browser version
+        - VS Code extension
+        - MCP server (Claude)
+        - CLI command
+        - Docs
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you saw, and what you expected. A screenshot helps.
+    validations:
+      required: true
+  - type: textarea
+    id: model
+    attributes:
+      label: The YAML involved
+      description: The smallest piece of `model.yaml` or a flow that shows it. Leave out anything private.
+      render: yaml
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The app or extension version, or the commit you built.
+  - type: input
+    id: system
+    attributes:
+      label: System
+      description: Windows, macOS or Linux, and the Node version for the browser version.
