@@ -14,7 +14,7 @@
   <a href="CONTRIBUTING.md">Build &amp; contribute</a>
 </p>
 
-![The overview of Plum, a food-delivery service, in the Flowy Docs app: customers, restaurants, couriers and support agents, four systems and three outside services](docs/images/desktop-overview.png)
+![Flowy Docs on Plum, a food-delivery service: the Ordering view with a store's tables open in its panel, search, a flow playing, the shape pickers of edit mode, a load-test replay, and the dark theme behind](docs/images/hero.png)
 
 Readers start at the big picture and open only the shape they care about. The model is plain YAML in a `flowy/` folder:
 people, systems, apps, stores and components, the connections between them, and step-by-step flows. It sits in git next
@@ -31,7 +31,7 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](docs/writin
 (Ctrl+O). It finds the repo's `flowy/` folder, draws it, and redraws it whenever a file changes. No repo handy? **Help ›
 Open the Demo** shows Plum.
 
-**The browser version** does the same on any system that has Node, and it is where `export` and Claude's MCP server live.
+**The browser version** does the same on any system that has Node, and it is where `export`, Claude's MCP server, the YAML tab and failure modes live.
 It runs from a [clone of this repo](#the-browser-version), since there is no npm package yet. From the root of the repo you
 want to read:
 
@@ -95,11 +95,19 @@ Hover a shape for its short description. Click it for the full text, the files i
 in. Inside a shape, click the blue frame round what is in it to see that shape the same way. A line that stands for several connections opens to list them, and pointing at a row lights its line on the canvas.
 Lines show their labels when you point at one, or when you select a shape.
 
-A shape can list the files and folders it lives in. When the repo's `origin` is on GitHub or GitLab they link there, and a
-path that doesn't exist shows up as a problem, so the model can't quietly point at code that's gone.
+A shape can hold a few lines of code, such as a formula or a query, and its panel draws them in colour. Flowy works out the
+language, and you can pick another. A shape can also list the files and folders it lives in. When the repo's `origin` is on GitHub or
+GitLab they link there, and a path that doesn't exist shows up as a problem, so the model can't quietly point at code that's gone.
 
 A shape can also link to its long documents, such as a runbook or a decision record, so Flowy stays the map and the
 documents stay documents.
+
+![Orders DB's panel: the orders table with a key mark on id and customer_id, a dot on total and its note under the table, and three more tables closed to a line each](docs/images/desktop-data.png)
+
+A store can show what it holds. Its panel draws a table as a table, with column headings, a few sample rows and a short note
+where a choice needs explaining ("Cents, not decimals"), and a line for how long the data is kept. A key set, a topic and a
+document use the same frame. You write it under `data:` on the store; Flowy never connects to a database. [The guide](docs/guide.md#data)
+has the format.
 
 ## Flows
 
@@ -146,6 +154,50 @@ Plum has two made-up runs of a dinner rush, one where Delivery gives way and one
 small shop that really runs, with a load generator that writes these files (`npm run lab:run`, then
 `node src/cli.ts --dir perf-lab/flowy` to look at it). The browser and the desktop app both show runs.
 
+## Failure modes
+
+![The Failures tab on the Ordering view: eight modes ranked from High to Not rated, the Stripe timeout picked, Order API outlined in red with a 2 on it, and the shapes it affects outlined lighter](docs/images/failures.png)
+
+Flowy can hold how a system breaks, too. A failure analysis lives in `flowy/failures/<name>.yaml`. For a shape, or a line between two,
+it says how the part fails, what that causes, what exists to deal with it and what to do next, and rates it from 1 to 10 on
+Severity, Likelihood and Hard to spot (10 means nobody would notice). A Failures tab joins the icons on the right edge, or press **M**.
+
+- The list runs from High to Low, then Not rated for a mode with no ratings. A severity of 9 or 10 is High whatever else is missing.
+- **Analysed 8 of 26** counts the shapes that have a mode, and **Not analysed** lists the rest.
+- A shape or a line with modes carries a badge in the colour of its worst one, and a shape that holds others adds up what is inside it.
+- Pick a mode to outline its part in red and what it affects in a lighter outline. The rest fades.
+- **Show it** plays the flow that tells the failure. **Seen in a run** opens the Performance tab at the load where that part first fails.
+- **Copy as table** and **Copy as CSV** copy the ranked list. In edit mode the tab adds **New analysis** and **Add failure mode**.
+
+A mode looks like this:
+
+```yaml
+name: Order to door
+modes:
+  stripe-timeout:
+    from: checkout
+    to: stripe
+    mode: Stripe doesn't answer within five seconds
+    effect: The order waits on a hold that may or may not exist.
+    severity: 8
+    occurrence: 4
+    detection: 3
+    controls: Three tries with backoff. The idempotency key stops a double hold.
+    action: Page when more than 1% of holds time out for five minutes.
+    status: planned
+    affects: [customer-app, kitchen-tablet]
+    flow: capture-payment
+```
+
+What a mode affects is written by hand. Flowy doesn't work it out from the lines, because a line's direction means different things.
+Plum has an analysis with made-up ratings, [Order to door](docs/demo/flowy/failures/ordering.yaml). From a clone, run
+`node dist/cli.js --dir docs/demo/flowy` and press **M**. Claude reads and writes analyses through the MCP server (`get_failures`,
+`put_failure`), and `node /path/to/flowy-docs/dist/cli.js failures` prints the ranked table, or a CSV with `--format csv`. It exits with
+an error when a file has a problem, so a CI job can use it. The format, the ranking and the names are in
+[the guide](docs/guide.md#failure-modes).
+
+Failure modes show in the browser version and in an exported page. The desktop app doesn't draw them yet.
+
 ## Find anything
 
 ![Search open with "re" typed: Restaurant, Refunds in Order API, and Data warehouse in Back office](docs/images/desktop-search.png)
@@ -162,7 +214,7 @@ claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
 Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and `flowy/flows/*.yaml`, points
-each shape at the code it lives in, marks outside services, and refuses any change that would break the model. Keep the
+each shape at the code it lives in, marks outside services, and refuses any change that would break the model. Ask how the system fails and it can write a failure analysis in `flowy/failures/` too. Keep the
 model open in the app, and it updates by itself as Claude saves.
 
 You can write the files by hand too. This is Checkout from the demo:
@@ -192,14 +244,33 @@ the same way, so git sees no difference between a change made in one and a chang
 - Drag from the dot under a shape onto another shape to connect them, then type a label.
 - **Add** offers only the types that fit where you are: actors and systems at the top, apps and stores inside a system, components
   inside an app or store.
-- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description and code. A field saves when you leave it.
+- Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description, code and source, and a store's data. A field saves when you leave it.
+- **Ctrl+click** adds a shape to the selection, **Shift+drag** draws a box round some and **Ctrl+A** takes them all. Drag any of them to move
+  them together, or press **Delete** to remove them as one edit.
 - **Tidy** forgets where shapes were dragged and lays the view out again with as few crossing lines as it finds.
 - **New flow** records a walkthrough: click the shape where a step starts and the shape it goes to, type what happens, press
   Enter, repeat.
 
 Every save goes through the same checks as Claude's edits: a change that would add a problem is refused, and nothing is
-written. **Ctrl+Z** takes back your last change, **Ctrl+Y** puts it back. Git keeps the history.
+written. **Ctrl+Z** takes back your last change, **Ctrl+Y** puts it back. Git keeps the history, and in the browser the
+[YAML tab](#yaml-and-history) keeps every step.
 [The guide](docs/guide.md#edit-it) has the rest.
+
+## YAML and history
+
+![The YAML tab: model.yaml with the line Claude's last edit changed marked in red and green, and under it the steps from First seen up to a change to Website's tech](docs/images/yaml.png)
+
+The **YAML** tab on the left edge, or **Y**, shows the model's files as text, read only. It keeps every change to them as a step,
+whoever made it. A step wears a badge: You for an edit in Flowy ("Changed Website's tech"), Claude for a write through the MCP server
+("Claude: put_object menu-cache"), and Outside for a file changed some other way, in your editor or by a `git pull`.
+
+Pick a step to see its files, with the lines it added in green and the lines it removed in red. **Compare with now** marks what going
+back would change. **Restore** puts every file of that step back, once edit mode is on. A restore is a step of its own, so nothing is
+lost, and Ctrl+Z takes it back.
+
+The history is in your application data folder, not in the repo, so `git status` stays as it was and the history doesn't follow the folder
+to another computer. The newest 300 steps are kept, and **Clear history** empties them. The YAML tab is in the browser version only: the
+desktop app, the VS Code panel and an exported page don't have it.
 
 ## Share it
 
@@ -210,7 +281,7 @@ node /path/to/flowy-docs/dist/cli.js export
 ```
 
 It writes a read-only copy of the canvas to `./flowy-site`. Put the folder on any static host, such as GitHub Pages, and
-send the link. Embed the link to show it in Notion or Confluence. The export carries any load-test runs too.
+send the link. Embed the link to show it in Notion or Confluence. The export carries any load-test runs and failure analyses too.
 
 For a README or a pull request, the app's **View › Copy as Mermaid** (the browser's **Mermaid** button) copies the view on
 screen, or the flow playing, as a Mermaid diagram that GitHub and GitLab draw. **View › Save Picture** saves the diagram as a
@@ -251,6 +322,8 @@ sequenceDiagram
 | P | Autoplay: step through the flow on its own, or pause. In Performance, ramp the load up on its own |
 | R | Replay the step's animation |
 | T | The Performance tab, where a folder has load-test runs |
+| M | The Failures tab, where a folder has failure analyses (browser) |
+| Y | The YAML tab: the files as text, and every change to them (browser) |
 | Ctrl+O, F5 | Open a folder, reload it (app) |
 | E | Edit mode on and off |
 | N | Add a shape |
@@ -267,6 +340,8 @@ It is a native app, not a browser in a window: it reads a repo's `flowy/` folder
 side panel, flows, search and problems, in light or dark, and it reloads when the files change. A file that breaks keeps the
 last good model on screen, with the file and line in a banner, and stays read-only until it is fixed. It edits too: **E** turns on
 the same forms, dragging, connecting and flow recording as the browser, with Undo and Redo.
+
+![The dark theme: the Ordering view with Order API's panel open beside it](docs/images/desktop-dark.png)
 
 - **File › Open Folder** (Ctrl+O), a folder dropped on the window, or **Open Recent**. Give it a repo and it opens the repo's
   `flowy/` folder. A folder with no model is refused with a message. Opening never creates a file; only an edit does, and only `model.yaml`,
@@ -311,14 +386,16 @@ build on the first run. After a `git pull`, run `npm install` and `npm run build
 <details>
 <summary>Is it safe to run?</summary>
 
-Flowy runs on your machine and touches only its model folder.
+Flowy runs on your machine and touches only its model folder and its own folder under your application data.
 
 - The browser version listens on 127.0.0.1, so other computers can't reach it. It refuses a request whose Host isn't
   `127.0.0.1` or `localhost` on its own port, and it saves only when a request carries a header that a web page open in
   another tab can't send. A website can't change your files through it.
-- Saving, from the canvas or from Claude, writes `model.yaml`, `layout.yaml` and `flows/*.yaml` in the model folder and
-  nothing else; the load-test runs in `perf/` are only ever read. `export` writes only to its output folder. The desktop app writes only when you edit, and only those same files, each
+- Saving, from the canvas or from Claude, writes `model.yaml`, `layout.yaml`, `flows/*.yaml` and `failures/*.yaml` in the model folder and
+  nothing else; the load-test runs in `perf/` are only ever read. `export` writes only to its output folder. The desktop app writes only when you edit, and only `model.yaml`, `layout.yaml` and `flows/*.yaml`, each
   through a temporary file and only if the file is still as it was read, so it can't overwrite a change made elsewhere.
+- The browser version's YAML history is in its own folder under your application data (`FLOWY_STATE_DIR` moves it), never in the
+  repo. Opening a folder stores a copy of its YAML there, and each change adds another.
 - It never opens your code. For `code:` paths it checks that they exist, and it runs `git` with fixed arguments to read
   the `origin` URL and the branch for the links.
 - It makes no network requests of its own: no telemetry, no CDN, no fonts. The page talks only to its local server.
@@ -329,8 +406,8 @@ Flowy runs on your machine and touches only its model folder.
   document in its default app, anything else shown in its folder and not run (an app you pick under **File › Open Files
   With** may open any file in the repo). It keeps its recent folders, window size, line-style pick and that app in
   `state.json` in its own folder under your application data.
-- Through the `mcp` command, Claude gets eleven tools: three read the model and eight change its objects, icons,
-  connections and flows. None runs a command or reads a file outside the model folder.
+- Through the `mcp` command, Claude gets sixteen tools: four read the model and twelve change its objects, icons,
+  connections, flows and failure analyses. None runs a command or reads a file outside the model folder.
 
 Treat a `flowy/` folder you didn't write like any other text from that repo. In the browser, descriptions are Markdown and
 can embed images, which your browser then fetches from wherever they point, and Claude reads the descriptions back through MCP.

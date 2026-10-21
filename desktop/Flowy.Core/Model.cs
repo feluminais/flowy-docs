@@ -36,6 +36,12 @@ public sealed record FlowyObject(string? Type, string? Name, string? In, string?
     public string? Opacity { get; init; }
 
     public string? Icon { get; init; }
+
+    /// <summary>A store's <c>data</c> as the file held it: a list if it is well formed, which <see cref="StoreData"/> reads and the checks report on.</summary>
+    public object? Data { get; init; }
+
+    /// <summary>The <c>snippets</c> as the file held them: a list if it is well formed, which <see cref="Snippets"/> reads and the checks report on.</summary>
+    public object? Snippets { get; init; }
 }
 
 public sealed record Connection(string? From, string? To, string? Label);

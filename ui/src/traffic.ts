@@ -30,5 +30,17 @@ export function advance(stream: Stream, line: Pick<LineTraffic, 'perSecond' | 't
   }
 }
 
+/** How faint a particle is at its faintest, when it is well behind something: still there, so the flow reads, but a ghost. */
+export const GHOST = 0.3
+
+/**
+ * How far behind something a particle is, 0 to 1, from how deep inside it the particle sits: 0 until it is `ramp` outside, 1 once it is `ramp`
+ * inside, and in between a slope, so it fades as it goes behind and comes back as it comes out, never in a step.
+ */
+export const howBehind = (depth: number, ramp: number): number => Math.min(1, Math.max(0, (depth + ramp) / (2 * ramp)))
+
+/** How a particle `behind` of the way draws: fainter, and a little smaller, as something does when it is further back. */
+export const ghost = (behindBy: number): { alpha: number; scale: number } => ({ alpha: 1 - behindBy + behindBy * GHOST, scale: 1 - behindBy * 0.25 })
+
 /** How visible a particle is: full until it is nearly out, then fading, so one that fails dies away instead of vanishing. */
 export const visibility = (m: Mote): number => (m.fails === 0 ? 1 : Math.min(1, Math.max(0, (m.fails - m.s) / 0.15)))

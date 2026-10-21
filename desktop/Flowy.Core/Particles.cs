@@ -43,6 +43,18 @@ public static class Particles
         }
     }
 
+    /// <summary>How faint a particle is at its faintest, when it is well behind something: still there, so the flow reads, but a ghost.</summary>
+    public const double GhostAlpha = 0.3;
+
+    /// <summary>
+    /// How far behind something a particle is, 0 to 1, from how deep inside it the particle sits: 0 until it is <paramref name="ramp"/> outside, 1 once it is
+    /// <paramref name="ramp"/> inside, and in between a slope, so it fades as it goes behind and comes back as it comes out, never in a step.
+    /// </summary>
+    public static double HowBehind(double depth, double ramp) => Math.Min(1, Math.Max(0, (depth + ramp) / (2 * ramp)));
+
+    /// <summary>How a particle <paramref name="behind"/> of the way draws: fainter, and a little smaller, as something does when it is further back.</summary>
+    public static (double Alpha, double Scale) Ghost(double behind) => (1 - behind + behind * GhostAlpha, 1 - behind * 0.25);
+
     /// <summary>How visible a particle is: full until it is nearly out, then fading, so one that fails dies away instead of vanishing.</summary>
     public static double Visibility(Mote m) => m.Fails == 0 ? 1 : Math.Min(1, Math.Max(0, (m.Fails - m.S) / 0.15));
 }

@@ -1,0 +1,268 @@
+{
+  "htmlCases": [
+    {
+      "html": "",
+      "runs": []
+    },
+    {
+      "html": "plain",
+      "runs": [
+        {
+          "text": "plain"
+        }
+      ]
+    },
+    {
+      "html": "<span class=\"hljs-keyword\">const</span> a = <span class=\"hljs-string\">&quot;x &amp; y&quot;</span>",
+      "runs": [
+        {
+          "text": "const",
+          "kind": "keyword"
+        },
+        {
+          "text": " a = "
+        },
+        {
+          "text": "\"x & y\"",
+          "kind": "string"
+        }
+      ]
+    },
+    {
+      "html": "<span class=\"hljs-title class_\">Order</span>",
+      "runs": [
+        {
+          "text": "Order",
+          "kind": "type"
+        }
+      ]
+    },
+    {
+      "html": "<span class=\"hljs-title function_\">price</span>(<span class=\"hljs-params\">a</span>)",
+      "runs": [
+        {
+          "text": "price",
+          "kind": "function"
+        },
+        {
+          "text": "(a)"
+        }
+      ]
+    },
+    {
+      "html": "<span class=\"hljs-string\">a<span class=\"hljs-subst\">${b}</span>c</span>",
+      "runs": [
+        {
+          "text": "a",
+          "kind": "string"
+        },
+        {
+          "text": "${b}"
+        },
+        {
+          "text": "c",
+          "kind": "string"
+        }
+      ]
+    },
+    {
+      "html": "<span class=\"hljs-comment\">// <span class=\"hljs-doctag\">TODO</span> later</span>",
+      "runs": [
+        {
+          "text": "// ",
+          "kind": "comment"
+        },
+        {
+          "text": "TODO",
+          "kind": "keyword"
+        },
+        {
+          "text": " later",
+          "kind": "comment"
+        }
+      ]
+    },
+    {
+      "html": "<span class=\"hljs-number\">1</span><span class=\"hljs-number\">2</span>",
+      "runs": [
+        {
+          "text": "12",
+          "kind": "number"
+        }
+      ]
+    },
+    {
+      "html": "<span class=\"hljs-unknown\">kept as it is</span>",
+      "runs": [
+        {
+          "text": "kept as it is"
+        }
+      ]
+    },
+    {
+      "html": "<span class=\"hljs-attr\">a</span>=<span class=\"hljs-string\">&#x27;b&#39;</span> &lt;&gt;",
+      "runs": [
+        {
+          "text": "a",
+          "kind": "property"
+        },
+        {
+          "text": "="
+        },
+        {
+          "text": "'b'",
+          "kind": "string"
+        },
+        {
+          "text": " <>"
+        }
+      ]
+    },
+    {
+      "html": "<span class=\"hljs-meta\"><span class=\"hljs-keyword\">#include</span> <span class=\"hljs-string\">&lt;stdio.h&gt;</span></span>",
+      "runs": [
+        {
+          "text": "#include",
+          "kind": "keyword"
+        },
+        {
+          "text": " ",
+          "kind": "meta"
+        },
+        {
+          "text": "<stdio.h>",
+          "kind": "string"
+        }
+      ]
+    },
+    {
+      "html": "</span>stray close",
+      "runs": [
+        {
+          "text": "stray close"
+        }
+      ]
+    }
+  ],
+  "snippets": [
+    {
+      "language": "typescript",
+      "text": "const user = await repo.findById(id) as User | undefined;",
+      "html": "<span class=\"hljs-keyword\">const</span> user = <span class=\"hljs-keyword\">await</span> repo.<span class=\"hljs-title function_\">findById</span>(id) <span class=\"hljs-keyword\">as</span> <span class=\"hljs-title class_\">User</span> | <span class=\"hljs-literal\">undefined</span>;"
+    },
+    {
+      "language": "javascript",
+      "text": "app.get('/health', (req, res) => res.json({ ok: true }));",
+      "html": "app.<span class=\"hljs-title function_\">get</span>(<span class=\"hljs-string\">&#x27;/health&#x27;</span>, <span class=\"hljs-function\">(<span class=\"hljs-params\">req, res</span>) =&gt;</span> res.<span class=\"hljs-title function_\">json</span>({ <span class=\"hljs-attr\">ok</span>: <span class=\"hljs-literal\">true</span> }));"
+    },
+    {
+      "language": "json",
+      "text": "{\"orderId\": \"A-1042\", \"status\": \"paid\", \"total\": 42.5}",
+      "html": "<span class=\"hljs-punctuation\">{</span><span class=\"hljs-attr\">&quot;orderId&quot;</span><span class=\"hljs-punctuation\">:</span> <span class=\"hljs-string\">&quot;A-1042&quot;</span><span class=\"hljs-punctuation\">,</span> <span class=\"hljs-attr\">&quot;status&quot;</span><span class=\"hljs-punctuation\">:</span> <span class=\"hljs-string\">&quot;paid&quot;</span><span class=\"hljs-punctuation\">,</span> <span class=\"hljs-attr\">&quot;total&quot;</span><span class=\"hljs-punctuation\">:</span> <span class=\"hljs-number\">42.5</span><span class=\"hljs-punctuation\">}</span>"
+    },
+    {
+      "language": "yaml",
+      "text": "replicas: 3\nimage: ghcr.io/acme/api:1.4.2",
+      "html": "<span class=\"hljs-attr\">replicas:</span> <span class=\"hljs-number\">3</span>\n<span class=\"hljs-attr\">image:</span> <span class=\"hljs-string\">ghcr.io/acme/api:1.4.2</span>"
+    },
+    {
+      "language": "csharp",
+      "text": "public record Order(Guid Id, decimal Total, DateTime PlacedAt);",
+      "html": "<span class=\"hljs-function\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">record</span> <span class=\"hljs-title\">Order</span>(<span class=\"hljs-params\">Guid Id, <span class=\"hljs-built_in\">decimal</span> Total, DateTime PlacedAt</span>)</span>;"
+    },
+    {
+      "language": "java",
+      "text": "public interface OrderRepository extends JpaRepository<Order, Long> {}",
+      "html": "<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">OrderRepository</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">JpaRepository</span>&lt;Order, Long&gt; {}"
+    },
+    {
+      "language": "kotlin",
+      "text": "data class Order(val id: String, val total: Double, val paid: Boolean = false)",
+      "html": "<span class=\"hljs-keyword\">data</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Order</span>(<span class=\"hljs-keyword\">val</span> id: String, <span class=\"hljs-keyword\">val</span> total: <span class=\"hljs-built_in\">Double</span>, <span class=\"hljs-keyword\">val</span> paid: <span class=\"hljs-built_in\">Boolean</span> = <span class=\"hljs-literal\">false</span>)"
+    },
+    {
+      "language": "python",
+      "text": "orders = [o for o in db.query(Order) if o.total > 100]",
+      "html": "orders = [o <span class=\"hljs-keyword\">for</span> o <span class=\"hljs-keyword\">in</span> db.query(Order) <span class=\"hljs-keyword\">if</span> o.total &gt; <span class=\"hljs-number\">100</span>]"
+    },
+    {
+      "language": "go",
+      "text": "func (s *Server) Health(w http.ResponseWriter, r *http.Request) {",
+      "html": "<span class=\"hljs-function\"><span class=\"hljs-keyword\">func</span> <span class=\"hljs-params\">(s *Server)</span></span> Health(w http.ResponseWriter, r *http.Request) {"
+    },
+    {
+      "language": "rust",
+      "text": "let conn = pool.get().await.map_err(|e| anyhow!(e))?;",
+      "html": "<span class=\"hljs-keyword\">let</span> <span class=\"hljs-variable\">conn</span> = pool.<span class=\"hljs-title function_ invoke__\">get</span>().<span class=\"hljs-keyword\">await</span>.<span class=\"hljs-title function_ invoke__\">map_err</span>(|e| anyhow!(e))?;"
+    },
+    {
+      "language": "sql",
+      "text": "SELECT customer_id, SUM(total) FROM orders GROUP BY customer_id;",
+      "html": "<span class=\"hljs-keyword\">SELECT</span> customer_id, <span class=\"hljs-built_in\">SUM</span>(total) <span class=\"hljs-keyword\">FROM</span> orders <span class=\"hljs-keyword\">GROUP</span> <span class=\"hljs-keyword\">BY</span> customer_id;"
+    },
+    {
+      "language": "bash",
+      "text": "curl -sS -X POST https://api.example.com/orders -H \"Content-Type: application/json\" -d @order.json",
+      "html": "curl -sS -X POST https://api.example.com/orders -H <span class=\"hljs-string\">&quot;Content-Type: application/json&quot;</span> -d @order.json"
+    },
+    {
+      "language": "powershell",
+      "text": "Get-ChildItem -Path .\\logs -Filter *.log | Remove-Item -Force",
+      "html": "<span class=\"hljs-built_in\">Get-ChildItem</span> <span class=\"hljs-literal\">-Path</span> .\\logs <span class=\"hljs-literal\">-Filter</span> *.log | <span class=\"hljs-built_in\">Remove-Item</span> <span class=\"hljs-literal\">-Force</span>"
+    },
+    {
+      "language": "html",
+      "text": "<div class=\"card\"><h2>Orders</h2><p>3 open</p></div>",
+      "html": "<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">div</span> <span class=\"hljs-attr\">class</span>=<span class=\"hljs-string\">&quot;card&quot;</span>&gt;</span><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">h2</span>&gt;</span>Orders<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">h2</span>&gt;</span><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">p</span>&gt;</span>3 open<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">p</span>&gt;</span><span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">div</span>&gt;</span>"
+    },
+    {
+      "language": "xml",
+      "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<configuration>\n  <appSettings>\n    <add key=\"RetryCount\" value=\"3\" />\n    <add key=\"Region\" value=\"eu-west-1\" />\n  </appSettings>\n  <connectionStrings>\n    <add name=\"Orders\" connectionString=\"Host=db;Database=orders\" />\n  </connectionStrings>\n</configuration>",
+      "html": "<span class=\"hljs-meta\">&lt;?xml version=<span class=\"hljs-string\">&quot;1.0&quot;</span> encoding=<span class=\"hljs-string\">&quot;UTF-8&quot;</span>?&gt;</span>\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">configuration</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">appSettings</span>&gt;</span>\n    <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">add</span> <span class=\"hljs-attr\">key</span>=<span class=\"hljs-string\">&quot;RetryCount&quot;</span> <span class=\"hljs-attr\">value</span>=<span class=\"hljs-string\">&quot;3&quot;</span> /&gt;</span>\n    <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">add</span> <span class=\"hljs-attr\">key</span>=<span class=\"hljs-string\">&quot;Region&quot;</span> <span class=\"hljs-attr\">value</span>=<span class=\"hljs-string\">&quot;eu-west-1&quot;</span> /&gt;</span>\n  <span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">appSettings</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">connectionStrings</span>&gt;</span>\n    <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">add</span> <span class=\"hljs-attr\">name</span>=<span class=\"hljs-string\">&quot;Orders&quot;</span> <span class=\"hljs-attr\">connectionString</span>=<span class=\"hljs-string\">&quot;Host=db;Database=orders&quot;</span> /&gt;</span>\n  <span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">connectionStrings</span>&gt;</span>\n<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">configuration</span>&gt;</span>"
+    },
+    {
+      "language": "css",
+      "text": ".card { display: grid; gap: 8px; }",
+      "html": "<span class=\"hljs-selector-class\">.card</span> { <span class=\"hljs-attribute\">display</span>: grid; <span class=\"hljs-attribute\">gap</span>: <span class=\"hljs-number\">8px</span>; }"
+    },
+    {
+      "language": "dockerfile",
+      "text": "FROM node:22-alpine\nRUN npm ci --omit=dev",
+      "html": "<span class=\"hljs-keyword\">FROM</span> node:<span class=\"hljs-number\">22</span>-alpine\n<span class=\"hljs-keyword\">RUN</span><span class=\"language-bash\"> npm ci --omit=dev</span>"
+    },
+    {
+      "language": "markdown",
+      "text": "## Retry policy\n- **Max attempts:** 3",
+      "html": "<span class=\"hljs-section\">## Retry policy</span>\n<span class=\"hljs-bullet\">-</span> <span class=\"hljs-strong\">**Max attempts:**</span> 3"
+    },
+    {
+      "language": "cpp",
+      "text": "std::vector<int> ids = {1, 2, 3};",
+      "html": "std::vector&lt;<span class=\"hljs-type\">int</span>&gt; ids = {<span class=\"hljs-number\">1</span>, <span class=\"hljs-number\">2</span>, <span class=\"hljs-number\">3</span>};"
+    },
+    {
+      "language": "c",
+      "text": "#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct {\n    int id;\n    double total;\n} order_t;\n\nint main(int argc, char **argv) {\n    order_t *o = malloc(sizeof(order_t));\n    o->id = 1;\n    o->total = 42.5;\n    printf(\"order %d: %.2f\\n\", o->id, o->total);\n    free(o);\n    return 0;\n}",
+      "html": "<span class=\"hljs-meta\">#<span class=\"hljs-keyword\">include</span> <span class=\"hljs-string\">&lt;stdio.h&gt;</span></span>\n<span class=\"hljs-meta\">#<span class=\"hljs-keyword\">include</span> <span class=\"hljs-string\">&lt;stdlib.h&gt;</span></span>\n\n<span class=\"hljs-keyword\">typedef</span> <span class=\"hljs-class\"><span class=\"hljs-keyword\">struct</span> {</span>\n    <span class=\"hljs-type\">int</span> id;\n    <span class=\"hljs-type\">double</span> total;\n} <span class=\"hljs-type\">order_t</span>;\n\n<span class=\"hljs-type\">int</span> <span class=\"hljs-title function_\">main</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> argc, <span class=\"hljs-type\">char</span> **argv)</span> {\n    <span class=\"hljs-type\">order_t</span> *o = <span class=\"hljs-built_in\">malloc</span>(<span class=\"hljs-keyword\">sizeof</span>(<span class=\"hljs-type\">order_t</span>));\n    o-&gt;id = <span class=\"hljs-number\">1</span>;\n    o-&gt;total = <span class=\"hljs-number\">42.5</span>;\n    <span class=\"hljs-built_in\">printf</span>(<span class=\"hljs-string\">&quot;order %d: %.2f\\n&quot;</span>, o-&gt;id, o-&gt;total);\n    <span class=\"hljs-built_in\">free</span>(o);\n    <span class=\"hljs-keyword\">return</span> <span class=\"hljs-number\">0</span>;\n}"
+    },
+    {
+      "language": "php",
+      "text": "$order = Order::where('id', $id)->firstOrFail();",
+      "html": "<span class=\"hljs-variable\">$order</span> = <span class=\"hljs-title class_\">Order</span>::<span class=\"hljs-title function_ invoke__\">where</span>(<span class=\"hljs-string\">&#x27;id&#x27;</span>, <span class=\"hljs-variable\">$id</span>)-&gt;<span class=\"hljs-title function_ invoke__\">firstOrFail</span>();"
+    },
+    {
+      "language": "ruby",
+      "text": "orders.select { |o| o.total > 100 }.map(&:id)",
+      "html": "orders.select { |<span class=\"hljs-params\">o</span>| o.total &gt; <span class=\"hljs-number\">100</span> }.map(&amp;<span class=\"hljs-symbol\">:id</span>)"
+    },
+    {
+      "language": "swift",
+      "text": "let order = try await api.fetchOrder(id: orderID)",
+      "html": "<span class=\"hljs-keyword\">let</span> order <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">try</span> <span class=\"hljs-keyword\">await</span> api.fetchOrder(id: orderID)"
+    }
+  ],
+  "unknown": {
+    "language": "klingon",
+    "html": null
+  }
+}

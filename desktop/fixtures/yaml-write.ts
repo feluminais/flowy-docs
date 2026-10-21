@@ -37,6 +37,26 @@ const SHAPES: { name: string; data: Tree }[] = [
   { name: 'multiline in list in map', data: { items: ['a\nb', 'c', 'd\ne\n'] } },
   { name: 'multiline in nested map', data: { objects: { a: { description: 'Line one\n\nLine two\n' } } } },
   { name: 'multiline in list item map', data: { steps: [{ text: 'x', description: 'More\nlines here\n' }] } },
+  {
+    name: 'code in a snippet',
+    data: {
+      objects: {
+        a: {
+          snippets: [
+            { title: 'Fee', language: 'typescript', text: 'const fee = base + km * rate' },
+            { text: '# comment\n  indented\n\tafter a tab\n\nlast' },
+            { text: '  starts with spaces\nback at the margin' },
+            { text: 'line with trailing space \nnext' },
+            { text: 'say "hi" and \'bye\'\nurl: http://x.test/a#b' },
+            { text: '{\n  "a": [1, 2],\n  "b": null\n}' },
+            { text: '| a | b |\n|---|---|' },
+            { text: '>\n!tag &anchor *alias' },
+            { text: '- item\n- other' },
+          ],
+        },
+      },
+    },
+  },
   { name: 'mapping in a step', data: { steps: [{ from: 'a', to: 'b', text: 'x', animation: { kind: 'callback', trigger: 'outside', carries: 'receipt' } }, { from: 'b', text: 'y', animation: 'call' }] } },
   {
     name: 'groups before steps',
@@ -88,5 +108,11 @@ export async function dumpYamlWrite(): Promise<unknown> {
       }
     }
   }
-  return { strings, shapes, layouts, files }
+  // A store's data is written on one-line forms. Text the data check refuses (a line break) or that the C# writer words differently on purpose (the separators) is left out.
+  const apart = [10, 13, 0x85, 0x2028, 0x2029].map(c => String.fromCharCode(c))
+  const flowCells = STRINGS.filter(s => !apart.some(c => s.includes(c))).map(s => ({
+    s,
+    ...out('model.yaml', { objects: { db: { type: 'store', name: 'S', data: [{ name: 'a', columns: [{ name: 'c', note: s }], rows: [[s]] }, { name: 'b', sample: { list: [s] } }] } }, connections: [] }),
+  }))
+  return { strings, shapes, layouts, files, flowCells }
 }

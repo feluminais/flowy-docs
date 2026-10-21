@@ -33,11 +33,22 @@ npm run dev:ui
 `docs/demo/` is Plum, the made-up delivery service in the README's screenshots. `node src/cli.ts --dir docs/demo/flowy`
 opens it. Its `code:` paths point at placeholder files beside it, so the canvas shows no problems. Its `flowy/perf/` holds
 two load-test runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute, and
-the same test after a fix); they name shapes and connections of the model, so a rename there is a run problem. The screenshots in
+the same test after a fix); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
+is an eight-mode failure analysis with made-up ratings, and it names shapes, connections, a flow and a run in the same way. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
-`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
-and `--search re` for the search. Retake them when the app changes how it looks.
+`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups,
+`--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
+Retake them when the app changes how it looks.
+
+`docs/images/hero.png`, the picture at the top of the README, is cut from those screenshots. After retaking them, run
+`uv run --with pillow docs/images/hero.py` to build it again.
+
+`docs/images/failures.png` and `docs/images/yaml.png` are the browser version in the light theme at twice the pixel density, in a 1200 by 1000
+and a 1200 by 760 window. Serve a copy of `docs/demo` (`FLOWY_STATE_DIR=<empty folder> node src/cli.ts --dir <copy>/flowy --no-open`, so the
+copy's history stays out of your own and the demo is not written to). For the first, open `#ordering/failures/ordering/stripe-timeout`. For the
+second, press E and change a few things (a shape's Tech, a line of a flow's file in an editor, a `put_object` through `node src/cli.ts mcp`) so
+the list has You, Claude and Outside steps, press Y, and pick the step Claude wrote.
 
 ## The animation showcase
 
@@ -145,6 +156,14 @@ the named colours, the rules) and `src/core/icons.ts` (the built-in icons, from 
 case and `appearance.json` check that the two sides resolve every shape, colour, opacity and icon alike, and `geometry.json` that a
 straight line meets each shape on its outline. `docs/shapes-sheet` is the model behind `docs/images/shapes.png`.
 
+Code snippets have two generated pieces. `src/core/detect.ts` is the table of cues that names a snippet's language, and
+`node desktop/tools/make-detect-data.ts` writes it to `desktop/Flowy.Core/DetectData.cs`. The canvas colours code with highlight.js
+and the desktop app runs the same highlight.js in-process (Jint): `ui/src/hljs.ts` lists the languages, and
+`node desktop/tools/make-hljs-bundle.ts` builds them into `desktop/Flowy.App/Assets/hljs.js`. Run each after changing its source, then
+`node desktop/fixtures/generate.ts`. `test/detect.test.ts` fails when either file is stale, and scores the cues on `test/detect-*.json`: four
+sets of labelled snippets, the last written blind (a fresh agent that never saw the cues, scored once before the set joined the tests: 58 of
+62 code snippets named, every one of 18 non-code snippets left plain). Add a cue for an idiom people really write, not for one snippet.
+
 Packaging is Velopack: `dotnet tool restore` (from `desktop/`), then
 
 ```bash
@@ -192,6 +211,10 @@ Before merging a change to the app, look at what it could affect, in a real wind
       elsewhere; add a box with N; drag a box and a second one; draw a connection from the dot under one box onto another and type a label;
       record a flow with two clicks and a line of text per step. Ctrl+Z walks it all back, Ctrl+Y forward. Open the same folder in the
       browser (`node src/cli.ts --dir <copy>`): it shows the same, and `git diff` shows only the lines you changed.
+- [ ] On a copy of `docs/demo`, open Pricing: its panel has a Code section with the Delivery fee snippet in TypeScript, the keywords, the
+      comment and the numbers in their own colours, and a Copy button that puts the lines on the clipboard. In edit mode press Add code, type
+      a title and some SQL, pick nothing: the card reads "Auto: SQL" once there is code. Pick Go: the colours change and `language: go` is in
+      the file. Pick Auto: the line goes. Remove the snippet: `snippets:` is gone.
 - [ ] While the app has a model open, change it in the browser (or save from an editor): the app shows it without a reload, and an edit
       made in the app after that starts from what is on disk.
 - [ ] Light and dark: change the system's theme while the app is open.
@@ -282,6 +305,10 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
       bottom draws each mark it names. ← → move between loads, Home and End jump (Home gives `#shop/perf/ramp/0`), and the address follows. Esc closes the
       panel; Back closes it too if you opened it with T (after Esc, Back opens it again). With Explorer open on the left as well, both
       panels show and the diagram still fits; the Details button swaps Details back in, and Esc closes whichever is showing.
+- [ ] On Plum (`--dir docs/demo/flowy`, Delivery at 900 orders/min) the line from Dispatch to Order events runs behind Live tracking: its dots go faint and a little
+      smaller as they reach the box, run across it as ghosts, and come back as they leave, with no jump at either edge, in the browser and in the desktop app. Click Dispatch:
+      the dots on its lines do the same under a label ("accepts or refuses", "travel times"), which stays readable, and in the browser under the card that appears when you
+      point at a shape. A dot that comes out of the first or last shape of its own line is not faint there. Reduced motion draws no dots at all.
 - [ ] Click Fulfilment worker: the panel stays and reads Busy and Failing with a curve each. Click the line from Order queue to
       it: its numbers show. Pick Slow gateway in the run picker: the struggle is
       at a lower load. Press Home, then P (or click Ramp): the load sweeps up through the levels in about 30 s (from a later load it
@@ -295,6 +322,25 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
 - [ ] Press E with the Performance panel open: it closes and the button leaves the rail; E again brings the button back. Open
       `#shop/perf/ramp/2` in a new tab: it opens on that load. With the system's reduce-motion setting on there are no dots, no Ramp
       button and no easing between loads, and the outlines, thickness, badges and numbers still show. Light and dark both read.
+
+Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
+
+- [ ] The right rail has a Failures button under Performance with an 8 on it, and M opens its panel in Details' place with `#root/failures/ordering` in the
+      address. The key reads High 2, Medium 2, Low 3 and Not rated 1, then "Analysed 8 of 26" and "Not analysed (18)". At the overview Ordering
+      carries a red 4 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), ETA to Mapbox (108),
+      Checkout to Stripe (96) and on down to Fleet DB, which is Not rated.
+- [ ] Open `#ordering/failures/ordering/stripe-timeout`: Order API and the line to Stripe are outlined red, Kitchen tablet and Customer app in a lighter outline,
+      and the rest fades. The panel reads Risk 96 Medium, "After: 96 to 32". Show it plays The payment is captured. Open `#delivery/failures/ordering/eta-mapbox-fails`:
+      Seen in a run opens `#dispatch/perf/dinner-rush/3`. ← → move down the list, and Esc closes the panel.
+- [ ] Press E with the panel open: it stays, and gains New analysis, Add failure mode and a form for the mode picked. Copy as table and Copy as CSV put the ranked
+      list on the clipboard. `node src/cli.ts failures --dir docs/demo/flowy` prints the same table and exits with 0. Light and dark both read.
+
+YAML (press Y, in a copy of `docs/demo` served with `FLOWY_STATE_DIR` pointing at an empty folder, so the history stays out of your own):
+
+- [ ] The left panel gains a YAML tab beside Explorer and Flows, with a tab for `model.yaml`, `failures/ordering.yaml` and each flow, and one step, First seen. Press E, change
+      a shape's Tech, and press Tab: a "You" step appears, and the changed line shows red above green. Change a file in an editor: an "Outside" step appears.
+- [ ] Pick the older step: its files show with the marks against the step before it, and Restore is greyed out with "Edit to restore" beside it. Press E, then Restore: the
+      model goes back, a "Restored" step is on top, and Ctrl+Z puts the change back. Clear history asks first, and Clear empties the list. An exported page and the VS Code panel have no YAML tab.
 
 Editing (press E):
 
@@ -326,6 +372,16 @@ Editing (press E):
       under Icon: each shows on the canvas as you pick it, and `shape`, `color`, `opacity` and `icon` appear for `api`
       in `example/model.yaml`. Click Default in each (the dashed swatch for Color): the keys go. Ctrl+Z walks them back.
       Type `bank` in the icon filter: only `building-bank` is left.
+
+- [ ] In edit mode click Orders DB. Under Data type `- name: orders`, `  columns: [id, total]`, `  rows:` and `    - [o_1, 2490]` on four lines,
+      then press Tab: the row sits on one line in `example/model.yaml`, and with edit mode off Orders DB's panel has a Data section with
+      a table of two columns and one row. Type `- [a` in the Data box and press Tab: a notice says why and the text stays. Clear the box:
+      the data is gone from the file. Ctrl+Z brings it back. API's form has no Data box.
+- [ ] In edit mode click API. Under Code press Add code: an empty card appears and Add code greys out. Type a title and, in the code box,
+      `SELECT id FROM orders WHERE status = 'placed'`, then press Tab: the card reads "Auto: SQL" and `snippets` is in
+      `example/model.yaml` as a block of lines. With edit mode off API's panel has a Code section with the SQL in colour and a Copy button.
+      Open the Language row and pick Go: `language: go` is in the file. Pick Auto: it goes. A fenced block under Description that starts with `` ```ts ``
+      is coloured, and one with no language stays plain.
 
 `git checkout example` puts the tracked files back. Delete `example/layout.yaml` and the new
 flow's file by hand.

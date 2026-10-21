@@ -49,6 +49,10 @@ public static partial class YamlWriter
                 return Map(map, indent, flowLists);
             case List<object?> list:
                 return flowLists ? FlowList(list, indent) : Seq(list, indent, flowLists);
+            case FlowSeq flowSeq:
+                return FlowItems(flowSeq.Items);
+            case FlowMap flowMap:
+                return FlowPairs(flowMap.Map);
             default:
                 throw new InvalidOperationException($"only text, lists and maps can be written, not {node?.GetType().Name ?? "null"}");
         }
@@ -73,6 +77,31 @@ public static partial class YamlWriter
         if (list.Count == 0) return "[]";
         return "[" + string.Join(", ", list.Select(item => Node(item, indent + Step + Step, false, inFlow: true))) + "]";
     }
+
+    // ---- one-line collections (a store's data, see StoreData.Compact) -------------------------------------------------
+
+    /// <summary>The yaml package writes a flow collection one level in, so a value in it never starts at the left edge (where --- would read as a document marker).</summary>
+    private const string FlowIndent = "    ";
+
+    private static string FlowItems(IReadOnlyList<object?> items) => items.Count == 0 ? "[]" : "[" + string.Join(", ", items.Select(FlowNode)) + "]";
+
+    private static string FlowPairs(OrderedDictionary<string, object?> map) =>
+        map.Count == 0 ? "{}" : "{" + string.Join(", ", JsKeys.Order(map.Keys).Select(key => Scalar(key, FlowIndent, true, true) + ": " + FlowNode(map[key]))) + "}";
+
+    /// <summary>Inside a flow collection everything is flow: text, then lists and maps on the same line.</summary>
+    private static string FlowNode(object? node) => node switch
+    {
+        string s => FlowScalar(s),
+        List<object?> list => FlowItems(list),
+        FlowSeq flowSeq => FlowItems(flowSeq.Items),
+        OrderedDictionary<string, object?> map => FlowPairs(map),
+        FlowMap flowMap => FlowPairs(flowMap.Map),
+        _ => throw new InvalidOperationException($"only text, lists and maps can be written, not {node?.GetType().Name ?? "null"}"),
+    };
+
+    /// <summary>An empty string is <c>""</c> (<c>[a, , b]</c> does not parse) and text with a line break is double quoted on one line.</summary>
+    private static string FlowScalar(string s) =>
+        s == "" ? "\"\"" : s.IndexOfAny(['\r', '\n']) >= 0 ? DoubleQuoted(s, "", true) : Scalar(s, FlowIndent, false, true);
 
     /// <summary>One <c>key: value</c> of a map whose own indent is <paramref name="indent"/>. Keys and values are written one level further in.</summary>
     private static string Pair(string key, object? value, string indent, bool flowLists)
@@ -292,6 +321,12 @@ public static partial class YamlWriter
         return "|" + header + "\n" + indent + start + value + end;
     }
 }
+
+/// <summary>A list the writer puts on one line, as a flow sequence: <c>[a, b]</c>. What <see cref="StoreData.Compact"/> marks.</summary>
+public sealed record FlowSeq(IReadOnlyList<object?> Items);
+
+/// <summary>A mapping the writer puts on one line, as a flow mapping: <c>{name: id, key: primary}</c>.</summary>
+public sealed record FlowMap(OrderedDictionary<string, object?> Map);
 
 /// <summary>Keys in the order JavaScript lists an object's: ids that look like array indexes ("2", "10") first, ascending, then the rest as given.</summary>
 public static class JsKeys

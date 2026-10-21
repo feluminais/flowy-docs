@@ -5,6 +5,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { dumpBeats } from './beats.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
+import { dumpDetect, dumpHighlight } from './detect.ts'
 import { dumpEditLabels } from './editlabel.ts'
 import { dumpGeometry } from './geometry.ts'
 import { buildTrail, dumpHistory } from './history.ts'
@@ -41,6 +42,8 @@ await write('stops', await dumpStops())
 await write('captions', await dumpCaptions())
 await write('history', await dumpHistory())
 await write('editlabel', dumpEditLabels())
+await write('detect', dumpDetect())
+await write('highlight', dumpHighlight())
 
 // The sample trail: the step and blob files the TypeScript store writes, for the C# store to read.
 const trailDir = join(dirname(expectedPath('history')), 'history-trail')

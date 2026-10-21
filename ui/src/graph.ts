@@ -467,6 +467,31 @@ export function lineEnds(a: Rect, b: Rect, edgeA: Outline = [], edgeB: Outline =
   return [leave(a, edgeA, b), leave(b, edgeB, a)]
 }
 
+/**
+ * How far inside the shape drawn in `r` the point (x, y) is: positive inside, 0 on the outline, negative outside (close to the distance from it).
+ * The shape is its outline, or the box itself when `edge` is empty. A line that runs behind a shape is covered by it, and traffic on that line
+ * goes dim as its depth grows (see `behind` in traffic.ts).
+ */
+export function depthIn(r: Rect, edge: Outline, x: number, y: number): number {
+  if (edge.length === 0) return Math.min(x - r.x, r.x + r.width - x, y - r.y, r.y + r.height - y)
+  // The outline is convex, so the depth is the point's distance from the nearest side, on the inner side, whichever way the outline winds.
+  let area = 0
+  for (let i = 0; i < edge.length; i++) {
+    const [px, py] = edge[i]
+    const [qx, qy] = edge[(i + 1) % edge.length]
+    area += px * qy - qx * py
+  }
+  const inward = area < 0 ? -1 : 1
+  let depth = Infinity
+  for (let i = 0; i < edge.length; i++) {
+    const [px, py] = edge[i]
+    const [qx, qy] = edge[(i + 1) % edge.length]
+    const cross = (qx - px) * (y - r.y - py) - (qy - py) * (x - r.x - px)
+    depth = Math.min(depth, (inward * cross) / Math.hypot(qx - px, qy - py))
+  }
+  return depth
+}
+
 export type Side = 'top' | 'right' | 'bottom' | 'left'
 
 /** The side of `from` that faces `to`: the one a line between their centres leaves through. */
