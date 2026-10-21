@@ -8,9 +8,10 @@ import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Analysis, Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Mode, Model, ObjectType, Step } from './model.ts'
 import { tidySnippets } from './snippets.ts'
 import type { SnippetInput } from './snippets.ts'
+import { changeKind, dropGroup, groupRange, joinGroup, leaveGroup, newGroup, stepGroupId, withGroups } from './groups.ts'
 import { stateProblems } from './states.ts'
 import { GROUP_KINDS, isGroupKind, TIMES_MAX, TIMES_MIN, timesOk } from './structure.ts'
-import { blank, hasText, isMap, own } from './text.ts'
+import { hasText, isMap, own } from './text.ts'
 import { chain, memberIds } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
@@ -45,6 +46,7 @@ export type AnalysisInput = { id: string; name: string; about?: string; scope?: 
 
 const FIELDS = ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description', 'code', 'links', 'snippets', 'data'] as const
 const CLEARABLE = ['in', 'shape', 'color', 'opacity', 'icon', 'tech', 'description'] as const
+const LISTS = ['code', 'links', 'snippets', 'data'] as const
 
 /**
  * Create or update an object. Omitted fields stay as they are; "" removes in, shape, color, opacity, icon, tech or
@@ -63,13 +65,11 @@ export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
   // On disk an opacity is text, like every value: `opacity: 40` reads back as "40".
   if (typeof next.opacity === 'number') next.opacity = String(next.opacity)
   for (const k of CLEARABLE) if (next[k] === '') delete next[k]
-  if (Array.isArray(next.code) && next.code.length === 0) delete next.code
   if (fields.links !== undefined) next.links = fields.links.map(({ title, ...rest }) => (title?.trim() ? { title, ...rest } : rest))
-  if (Array.isArray(next.links) && next.links.length === 0) delete next.links
   if (fields.snippets !== undefined) next.snippets = tidySnippets(fields.snippets)
-  if (Array.isArray(next.snippets) && next.snippets.length === 0) delete next.snippets
   if (fields.data !== undefined) next.data = tidyData(fields.data)
-  if (Array.isArray(next.data) && next.data.length === 0) delete next.data
+  // A list with nothing in it is no list.
+  for (const k of LISTS) if (Array.isArray(next[k]) && next[k].length === 0) delete next[k]
   // On disk it's `external: true`, which the failsafe schema reads back as the text "true".
   if (next.external === true) next.external = 'true'
   else if (next.external === false) delete next.external
@@ -173,6 +173,34 @@ export function relabel(model: Model, which: ConnectionInput, label: string): Mo
   return { ...model, connections: model.connections.with(i, label ? { ...model.connections[i], label } : rest) }
 }
 
+/** The model with this flow (new, or replacing the one of that id). */
+const setFlow = (model: Model, id: string, flow: Flow): Model => ({ ...model, flows: { ...model.flows, [id]: flow } })
+
+/** The model with an existing flow changed: `change` gets the flow and returns what replaces it. An unknown flow, or one with an invalid file name, is refused first. */
+const withFlow = (model: Model, id: string, change: (flow: Flow) => Flow): Model => setFlow(model, id, change(existingFlow(model, id)))
+
+/** The model with this analysis (new, or replacing the one of that id). */
+const setAnalysis = (model: Model, id: string, analysis: Analysis): Model => ({ ...model, failures: { ...model.failures, [id]: analysis } })
+
+/** The model with an existing analysis changed, as withFlow does for a flow. */
+const withAnalysis = (model: Model, id: string, change: (analysis: Analysis) => Analysis): Model => setAnalysis(model, id, change(existingAnalysis(model, id)))
+
+/** Flow and analysis ids are file names, and Windows and macOS don't tell Visit.yaml from visit.yaml: refuses an id that differs from another only in case. */
+function refuseCaseClash(table: object, id: string, dir: 'flows' | 'failures'): void {
+  const clash = Object.keys(table).find(other => other !== id && other.toLowerCase() === id.toLowerCase())
+  if (clash) throw new OpError(`${dir}/${clash}.yaml already exists and differs only in case. Rename or delete that file by hand.`)
+}
+
+/** The entry of a table of flows or analyses, refused when there is none or when its file name is not a valid id (so it can't be changed here). */
+function existingEntry<T>(table: Record<string, T>, id: string, noun: 'flow' | 'analysis', dir: 'flows' | 'failures'): T {
+  if (!Object.hasOwn(table, id)) throw new OpError(`unknown ${noun} "${id}"`)
+  if (!isValidId(id)) throw new OpError(`${dir}/${id}.yaml has an invalid file name, so it can't be changed here. Rename or delete it by hand.`)
+  return table[id]
+}
+
+const existingFlow = (model: Model, id: string): Flow => existingEntry(model.flows, id, 'flow', 'flows')
+const existingAnalysis = (model: Model, id: string): Analysis => existingEntry(model.failures, id, 'analysis', 'failures')
+
 /** An animation with its numbers (share, at) as text, which is how a file holds them: a number cannot be written. Anything else is left for the checker. */
 function animationAsText(animation: unknown): unknown {
   if (!isMap(animation)) return animation
@@ -182,9 +210,7 @@ function animationAsText(animation: unknown): unknown {
 /** Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. */
 export function putFlow(model: Model, { id, name, view, steps, groups, states }: FlowInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid flow id: ${ID_RULE}`)
-  // Flow ids are file names, and Windows and macOS don't tell Visit.yaml from visit.yaml.
-  const clash = Object.keys(model.flows).find(other => other !== id && other.toLowerCase() === id.toLowerCase())
-  if (clash) throw new OpError(`flows/${clash}.yaml already exists and differs only in case. Rename or delete that file by hand.`)
+  refuseCaseClash(model.flows, id, 'flows')
   // A blank detail is no detail, as on the canvas, so the file stays as short as it can be. An empty `states` is none, too.
   const copy = (s: Step): Step => {
     const out: Record<string, unknown> = { ...s }
@@ -199,38 +225,16 @@ export function putFlow(model: Model, { id, name, view, steps, groups, states }:
   const written = groups && Object.keys(groups).length > 0 ? { groups: Object.fromEntries(Object.entries(groups).map(([gid, g]) => [gid, text(g)])) } : {}
   // Where shapes stand before step 1 goes right after the view, as the guide shows it.
   const start = states && Object.keys(states).length > 0 ? { states } : {}
-  return { ...model, flows: { ...model.flows, [id]: { name, view, ...start, ...written, steps: steps.map(copy) } } }
-}
-
-function existingFlow(model: Model, id: string): Flow {
-  if (!Object.hasOwn(model.flows, id)) throw new OpError(`unknown flow "${id}"`)
-  if (!isValidId(id)) throw new OpError(`flows/${id}.yaml has an invalid file name, so it can't be changed here. Rename or delete it by hand.`)
-  return model.flows[id]
-}
-
-/**
- * The flow with these groups: replaced where its `groups:` already is, else put just before the steps, so the file reads name, view, groups,
- * steps. No groups, or none left, takes the section out.
- */
-function withGroups(flow: Flow, groups: Record<string, Group> | undefined): Flow {
-  const none = groups === undefined || Object.keys(groups).length === 0
-  const out: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(flow)) {
-    if (key === 'groups') {
-      if (!none) out.groups = groups
-      continue
-    }
-    if (key === 'steps' && !none && !('groups' in flow)) out.groups = groups
-    out[key] = value
-  }
-  return out as Flow
+  return setFlow(model, id, { name, view, ...start, ...written, steps: steps.map(copy) })
 }
 
 /** Change an existing flow's name, steps or groups, keeping everything else it has (and its groups when not given any). */
 export function updateFlow(model: Model, id: string, changes: Partial<Pick<Flow, 'name' | 'steps' | 'groups'>>): Model {
   const { groups, ...rest } = changes
-  const flow = { ...existingFlow(model, id), ...rest }
-  return { ...model, flows: { ...model.flows, [id]: 'groups' in changes ? withGroups(flow, groups) : flow } }
+  return withFlow(model, id, old => {
+    const flow = { ...old, ...rest }
+    return 'groups' in changes ? withGroups(flow, groups) : flow
+  })
 }
 
 /** The keys of a step in the order the guide shows them; a key set later goes after the nearest earlier one that is there. */
@@ -241,16 +245,14 @@ const STEP_ORDER = ['from', 'to', 'text', 'description', 'animation', 'states', 
  * `states` out. Refused for a shape that does not exist or a word that is not a state, in the checker's words. Every other key of the step is kept.
  */
 export function setStepStates(model: Model, flowId: string, index: number, states: Record<string, string>): Model {
-  const flow = existingFlow(model, flowId)
-  const step = existingStep(flow, flowId, index)
-  const [why] = stateProblems({ name: '', view: '', steps: [{ from: '', text: '', states }] }, [], id => getObject(model, id) !== undefined)
-  if (why !== undefined) throw new OpError(why.message)
-  const next = withChanges(step, { states: Object.keys(states).length === 0 ? undefined : { ...states } }, STEP_ORDER) as Step
-  return { ...model, flows: { ...model.flows, [flowId]: { ...flow, steps: flow.steps.with(index, next) } } }
+  return withFlow(model, flowId, flow => {
+    const step = existingStep(flow, flowId, index)
+    const [why] = stateProblems({ name: '', view: '', steps: [{ from: '', text: '', states }] }, [], id => getObject(model, id) !== undefined)
+    if (why !== undefined) throw new OpError(why.message)
+    const next = withChanges(step, { states: Object.keys(states).length === 0 ? undefined : { ...states } }, STEP_ORDER) as Step
+    return { ...flow, steps: flow.steps.with(index, next) }
+  })
 }
-
-const groupOf = (s: Step | undefined): string => (s !== undefined && typeof s.group === 'string' ? s.group.trim() : '')
-const laneOf = (s: Step | undefined): string => (s !== undefined && typeof s.lane === 'string' ? s.lane.trim() : '')
 
 function existingStep(flow: Flow, id: string, index: number): Step {
   if (!Number.isInteger(index) || index < 0 || index >= flow.steps.length) throw new OpError(`flow "${id}" has no step ${index + 1}`)
@@ -258,36 +260,16 @@ function existingStep(flow: Flow, id: string, index: number): Step {
 }
 
 /**
- * The steps of a flow with step `index` taken out of its group (it stays in the list, without `group` and `lane`), and the groups without
- * any that this left empty. When it started a lane and the next step of the group has none, that step takes the label.
- */
-function leaveGroup(flow: Flow, index: number): { steps: Step[]; groups: Record<string, Group> | undefined } {
-  const steps = [...flow.steps]
-  const g = groupOf(steps[index])
-  if (g === '') return { steps, groups: flow.groups }
-  const lane = laneOf(steps[index]) !== '' ? steps[index].lane : undefined
-  const next = steps[index + 1]
-  if (lane !== undefined && groupOf(next) === g && laneOf(next) === '') steps[index + 1] = { ...next, lane }
-  const { group: _g, lane: _l, ...kept } = steps[index]
-  steps[index] = kept as Step
-  let groups = flow.groups
-  if (groups !== undefined && !steps.some(s => groupOf(s) === g)) {
-    const { [g]: _, ...rest } = groups
-    groups = rest
-  }
-  return { steps, groups }
-}
-
-/**
  * Remove step `index` of a flow without breaking its groups: when it started a lane and the next step of that group has none, that step takes
  * the label, and a group whose last member goes is taken out with it.
  */
 export function removeStep(model: Model, id: string, index: number): Model {
-  const flow = existingFlow(model, id)
-  existingStep(flow, id, index)
-  const { steps, groups } = leaveGroup(flow, index)
-  steps.splice(index, 1)
-  return { ...model, flows: { ...model.flows, [id]: withGroups({ ...flow, steps }, groups) } }
+  return withFlow(model, id, flow => {
+    existingStep(flow, id, index)
+    const { steps, groups } = leaveGroup(flow, index)
+    steps.splice(index, 1)
+    return withGroups({ ...flow, steps }, groups)
+  })
 }
 
 /**
@@ -296,14 +278,15 @@ export function removeStep(model: Model, id: string, index: number): Model {
  * keeps its place. Whether the animation is allowed is the checker's to say when the edit is saved, in the words put_flow is refused with.
  */
 export function setStepAnimation(model: Model, id: string, index: number, animation: Record<string, unknown> | string | undefined): Model {
-  const flow = existingFlow(model, id)
-  const step = existingStep(flow, id, index)
-  const steps = [...flow.steps]
-  if (animation === undefined || animation === '') {
-    const { animation: _, ...rest } = step
-    steps[index] = rest as Step
-  } else steps[index] = { ...step, animation: animationAsText(animation) }
-  return { ...model, flows: { ...model.flows, [id]: { ...flow, steps } } }
+  return withFlow(model, id, flow => {
+    const step = existingStep(flow, id, index)
+    const steps = [...flow.steps]
+    if (animation === undefined || animation === '') {
+      const { animation: _, ...rest } = step
+      steps[index] = rest as Step
+    } else steps[index] = { ...step, animation: animationAsText(animation) }
+    return { ...flow, steps }
+  })
 }
 
 /**
@@ -316,27 +299,10 @@ export function setStepGroup(model: Model, id: string, index: number, group: str
   const step = existingStep(flow, id, index)
   const to = group.trim()
   if (to !== '' && !(flow.groups !== undefined && Object.hasOwn(flow.groups, to))) throw new OpError(`unknown group "${group}"`)
-  if (groupOf(step) === to) return model
+  if (stepGroupId(step) === to) return model
   const left = leaveGroup(flow, index)
-  const steps = left.steps
-  if (to !== '') {
-    const { lane: _l, ...joined } = { ...steps[index], group: to }
-    steps[index] = joined as Step
-    const kind = flow.groups![to].kind
-    if (kind === 'branch' || kind === 'parallel') {
-      const first = steps.findIndex((s, i) => i !== index && groupOf(s) === to)
-      if (first === -1) steps[index] = { ...steps[index], lane: 'Lane 1' }
-      else if (first > index) {
-        const has = laneOf(steps[first]) !== ''
-        steps[index] = { ...steps[index], lane: has ? steps[first].lane : 'Lane 1' }
-        if (has) {
-          const { lane: _o, ...rest } = steps[first]
-          steps[first] = rest as Step
-        }
-      }
-    }
-  }
-  return { ...model, flows: { ...model.flows, [id]: withGroups({ ...flow, steps }, left.groups) } }
+  const steps = to === '' ? left.steps : joinGroup(left.steps, index, to, flow.groups![to].kind)
+  return setFlow(model, id, withGroups({ ...flow, steps }, left.groups))
 }
 
 /**
@@ -345,38 +311,12 @@ export function setStepGroup(model: Model, id: string, index: number, group: str
  * (and, for parallel, every other step that starts no lane starts one of its own unless two lanes are there already).
  */
 export function setGroupKind(model: Model, id: string, group: string, kind: string): Model {
-  const flow = existingFlow(model, id)
-  if (flow.groups === undefined || !Object.hasOwn(flow.groups, group)) throw new OpError(`unknown group "${group}"`)
-  if (!isGroupKind(kind)) throw new OpError(`unknown kind "${kind}" (use ${GROUP_KINDS.join(', ')})`)
-  const { times, until, ...others } = flow.groups[group]
-  const next: Group = { ...others, kind }
-  if (kind === 'repeat') {
-    if (times !== undefined) next.times = times
-    if (until !== undefined) next.until = until
-    if (blank(times) && blank(until)) next.times = '3'
-  }
-  const steps = [...flow.steps]
-  const members = steps.flatMap((s, i) => (groupOf(s) === group ? [i] : []))
-  if (kind === 'repeat') {
-    for (const i of members) {
-      if (steps[i].lane === undefined) continue
-      const { lane: _l, ...kept } = steps[i]
-      steps[i] = kept as Step
-    }
-  } else if (members.length > 0) {
-    if (laneOf(steps[members[0]]) === '') steps[members[0]] = { ...steps[members[0]], lane: 'Lane 1' }
-    // Parallel lanes are at least two: every step that starts no lane starts one of its own, as groupSteps does.
-    if (kind === 'parallel' && members.filter(i => laneOf(steps[i]) !== '').length < 2) {
-      for (const i of members) {
-        if (laneOf(steps[i]) !== '') continue
-        const used = new Set(members.map(j => laneOf(steps[j])))
-        let n = 1
-        while (used.has(`Lane ${n}`)) n++
-        steps[i] = { ...steps[i], lane: `Lane ${n}` }
-      }
-    }
-  }
-  return { ...model, flows: { ...model.flows, [id]: withGroups({ ...flow, steps }, { ...flow.groups, [group]: next }) } }
+  return withFlow(model, id, flow => {
+    if (flow.groups === undefined || !Object.hasOwn(flow.groups, group)) throw new OpError(`unknown group "${group}"`)
+    if (!isGroupKind(kind)) throw new OpError(`unknown kind "${kind}" (use ${GROUP_KINDS.join(', ')})`)
+    const { steps, declared } = changeKind(flow, group, kind)
+    return withGroups({ ...flow, steps }, { ...flow.groups, [group]: declared })
+  })
 }
 
 /**
@@ -384,51 +324,45 @@ export function setGroupKind(model: Model, id: string, group: string, kind: stri
  * parallel group every step starts a lane of its own ("Lane 1", "Lane 2"…), which the steps' lane labels then reshape.
  */
 export function groupSteps(model: Model, id: string, group: string, kind: string, first: number, last: number): Model {
-  const flow = existingFlow(model, id)
-  if (!isValidId(group)) throw new OpError(`"${group}" is not a valid group id: ${ID_RULE}`)
-  if (flow.groups !== undefined && Object.hasOwn(flow.groups, group)) throw new OpError(`group "${group}" already exists`)
-  if (!isGroupKind(kind)) throw new OpError(`unknown kind "${kind}" (use ${GROUP_KINDS.join(', ')})`)
-  existingStep(flow, id, first)
-  existingStep(flow, id, last)
-  if (last < first) throw new OpError(`step ${last + 1} comes before step ${first + 1}`)
-  const steps = [...flow.steps]
-  for (let i = first; i <= last; i++) {
-    const other = groupOf(steps[i])
-    if (other !== '') throw new OpError(`step ${i + 1} is already in group "${other}"`)
-    const { lane: _l, ...kept } = steps[i]
-    steps[i] = kind === 'repeat' ? { ...kept, group } as Step : { ...kept, group, lane: `Lane ${i - first + 1}` } as Step
-  }
-  const declared: Group = kind === 'repeat' ? { kind, times: '3' } : { kind }
-  return { ...model, flows: { ...model.flows, [id]: withGroups({ ...flow, steps }, { ...(flow.groups ?? {}), [group]: declared }) } }
+  return withFlow(model, id, flow => {
+    if (!isValidId(group)) throw new OpError(`"${group}" is not a valid group id: ${ID_RULE}`)
+    if (flow.groups !== undefined && Object.hasOwn(flow.groups, group)) throw new OpError(`group "${group}" already exists`)
+    if (!isGroupKind(kind)) throw new OpError(`unknown kind "${kind}" (use ${GROUP_KINDS.join(', ')})`)
+    existingStep(flow, id, first)
+    existingStep(flow, id, last)
+    if (last < first) throw new OpError(`step ${last + 1} comes before step ${first + 1}`)
+    for (let i = first; i <= last; i++) {
+      const other = stepGroupId(flow.steps[i])
+      if (other !== '') throw new OpError(`step ${i + 1} is already in group "${other}"`)
+    }
+    return withGroups({ ...flow, steps: groupRange(flow.steps, group, kind, first, last) }, { ...(flow.groups ?? {}), [group]: newGroup(kind) })
+  })
 }
 
 /** Create or replace a group of a flow. `times` may be a number, which is written as text; a blank `times`, `until` or `text` is left out. */
 export function putGroup(model: Model, flowId: string, id: string, group: GroupInput): Model {
-  const flow = existingFlow(model, flowId)
-  if (!isValidId(id)) throw new OpError(`"${id}" is not a valid group id: ${ID_RULE}`)
-  const next: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(group)) {
-    if (value === undefined) continue
-    const text = typeof value === 'number' ? String(value) : value
-    if ((key === 'times' || key === 'until' || key === 'text') && (typeof text !== 'string' || text.trim() === '')) continue
-    next[key] = text
-  }
-  // The checks only refuse a problem that is new, so a bad `times` over an old bad `times` would pass them: this says no first.
-  if ('times' in next && !timesOk(next.times)) throw new OpError(`group "${id}": times must be a whole number from ${TIMES_MIN} to ${TIMES_MAX}`)
-  return { ...model, flows: { ...model.flows, [flowId]: withGroups(flow, { ...(flow.groups ?? {}), [id]: next as Group }) } }
+  return withFlow(model, flowId, flow => {
+    if (!isValidId(id)) throw new OpError(`"${id}" is not a valid group id: ${ID_RULE}`)
+    const next: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(group)) {
+      if (value === undefined) continue
+      const text = typeof value === 'number' ? String(value) : value
+      if ((key === 'times' || key === 'until' || key === 'text') && (typeof text !== 'string' || text.trim() === '')) continue
+      next[key] = text
+    }
+    // The checks only refuse a problem that is new, so a bad `times` over an old bad `times` would pass them: this says no first.
+    if ('times' in next && !timesOk(next.times)) throw new OpError(`group "${id}": times must be a whole number from ${TIMES_MIN} to ${TIMES_MAX}`)
+    return withGroups(flow, { ...(flow.groups ?? {}), [id]: next as Group })
+  })
 }
 
 /** Remove a group's declaration, and the group and lane of every step that named it. */
 export function removeGroup(model: Model, flowId: string, id: string): Model {
-  const flow = existingFlow(model, flowId)
-  if (flow.groups === undefined || !Object.hasOwn(flow.groups, id)) throw new OpError(`unknown group "${id}"`)
-  const { [id]: _, ...rest } = flow.groups
-  const steps = flow.steps.map(s => {
-    if (typeof s.group !== 'string' || s.group.trim() !== id) return s
-    const { group: _g, lane: _l, ...kept } = s
-    return kept as Step
+  return withFlow(model, flowId, flow => {
+    if (flow.groups === undefined || !Object.hasOwn(flow.groups, id)) throw new OpError(`unknown group "${id}"`)
+    const { [id]: _, ...rest } = flow.groups
+    return withGroups({ ...flow, steps: dropGroup(flow.steps, id) }, rest)
   })
-  return { ...model, flows: { ...model.flows, [flowId]: withGroups({ ...flow, steps }, rest) } }
 }
 
 export function deleteFlow(model: Model, id: string): Model {
@@ -462,18 +396,10 @@ function modeOf(input: ModeInput): Mode {
   return out as Mode
 }
 
-function existingAnalysis(model: Model, id: string): Analysis {
-  if (!Object.hasOwn(model.failures, id)) throw new OpError(`unknown analysis "${id}"`)
-  if (!isValidId(id)) throw new OpError(`failures/${id}.yaml has an invalid file name, so it can't be changed here. Rename or delete it by hand.`)
-  return model.failures[id]
-}
-
 /** Create or replace a failure analysis. Replacing drops everything the old one had, hand-written extra keys included. */
 export function putAnalysis(model: Model, { id, name, about, scope, scale, modes }: AnalysisInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid analysis id: ${ID_RULE}`)
-  // Analysis ids are file names, and Windows and macOS don't tell Ordering.yaml from ordering.yaml.
-  const clash = Object.keys(model.failures).find(other => other !== id && other.toLowerCase() === id.toLowerCase())
-  if (clash) throw new OpError(`failures/${clash}.yaml already exists and differs only in case. Rename or delete that file by hand.`)
+  refuseCaseClash(model.failures, id, 'failures')
   const written: Record<string, Mode> = {}
   for (const [mid, input] of Object.entries(modes)) own(written, mid, modeOf(input))
   const analysis: Analysis = {
@@ -483,7 +409,7 @@ export function putAnalysis(model: Model, { id, name, about, scope, scale, modes
     ...(scale && Object.keys(scale).length > 0 ? { scale } : {}),
     modes: written,
   }
-  return { ...model, failures: { ...model.failures, [id]: analysis } }
+  return setAnalysis(model, id, analysis)
 }
 
 export function deleteAnalysis(model: Model, id: string): Model {
@@ -495,18 +421,20 @@ export function deleteAnalysis(model: Model, id: string): Model {
 
 /** Create or replace one mode of an analysis, keeping its place. Replacing drops everything the old mode had. */
 export function putMode(model: Model, analysisId: string, id: string, input: ModeInput): Model {
-  const analysis = existingAnalysis(model, analysisId)
-  const modes = { ...analysis.modes }
-  own(modes, id, modeOf(input))
-  return { ...model, failures: { ...model.failures, [analysisId]: { ...analysis, modes } } }
+  return withAnalysis(model, analysisId, analysis => {
+    const modes = { ...analysis.modes }
+    own(modes, id, modeOf(input))
+    return { ...analysis, modes }
+  })
 }
 
 export function deleteMode(model: Model, analysisId: string, id: string): Model {
-  const analysis = existingAnalysis(model, analysisId)
-  if (!Object.hasOwn(analysis.modes, id)) throw new OpError(`unknown failure mode "${id}" in "${analysisId}"`)
-  const modes = { ...analysis.modes }
-  delete modes[id]
-  return { ...model, failures: { ...model.failures, [analysisId]: { ...analysis, modes } } }
+  return withAnalysis(model, analysisId, analysis => {
+    if (!Object.hasOwn(analysis.modes, id)) throw new OpError(`unknown failure mode "${id}" in "${analysisId}"`)
+    const modes = { ...analysis.modes }
+    delete modes[id]
+    return { ...analysis, modes }
+  })
 }
 
 const MODE_ORDER = ['mode', 'on', 'from', 'to', 'effect', 'cause', 'severity', 'occurrence', 'detection', 'controls', 'action', 'owner', 'status', 'after', 'affects', 'flow', 'step', 'run', 'description']
@@ -547,28 +475,30 @@ const emptied = (v: string) => v.trim() === ''
 
 /** Change some fields of one mode and nothing else: unlike putMode, what a hand wrote there is kept, and a field stays where it is in the file. */
 export function updateMode(model: Model, analysisId: string, id: string, changes: ModeChanges): Model {
-  const analysis = existingAnalysis(model, analysisId)
-  if (!Object.hasOwn(analysis.modes, id)) throw new OpError(`unknown failure mode "${id}" in "${analysisId}"`)
-  const old = analysis.modes[id]
-  const next: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(changes)) {
-    if (key === 'after') {
-      const ratings = withChanges(old.after ?? {}, Object.fromEntries(Object.entries(value as object).map(([k, v]) => [k, emptied(v as string) ? undefined : v])), RATING_ORDER)
-      next.after = Object.keys(ratings).length > 0 ? ratings : undefined
-    } else if (key === 'affects') next.affects = (value as string[]).length > 0 ? [...(value as string[])] : undefined
-    else next[key] = typeof value === 'string' && emptied(value) ? undefined : value
-  }
-  const modes = { ...analysis.modes }
-  own(modes, id, withChanges(old, next, MODE_ORDER) as Mode)
-  return { ...model, failures: { ...model.failures, [analysisId]: { ...analysis, modes } } }
+  return withAnalysis(model, analysisId, analysis => {
+    if (!Object.hasOwn(analysis.modes, id)) throw new OpError(`unknown failure mode "${id}" in "${analysisId}"`)
+    const old = analysis.modes[id]
+    const next: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(changes)) {
+      if (key === 'after') {
+        const ratings = withChanges(old.after ?? {}, Object.fromEntries(Object.entries(value as object).map(([k, v]) => [k, emptied(v as string) ? undefined : v])), RATING_ORDER)
+        next.after = Object.keys(ratings).length > 0 ? ratings : undefined
+      } else if (key === 'affects') next.affects = (value as string[]).length > 0 ? [...(value as string[])] : undefined
+      else next[key] = typeof value === 'string' && emptied(value) ? undefined : value
+    }
+    const modes = { ...analysis.modes }
+    own(modes, id, withChanges(old, next, MODE_ORDER) as Mode)
+    return { ...analysis, modes }
+  })
 }
 
 /** Rename an analysis, or set its about and scope (blank removes those two). A blank name is kept, so the checker can refuse it. */
 export function updateAnalysis(model: Model, id: string, changes: { name?: string; about?: string; scope?: string }): Model {
-  const analysis = existingAnalysis(model, id)
-  const next: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(changes)) next[key] = key !== 'name' && emptied(value) ? undefined : value
-  return { ...model, failures: { ...model.failures, [id]: withChanges(analysis, next, ANALYSIS_ORDER) as Analysis } }
+  return withAnalysis(model, id, analysis => {
+    const next: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(changes)) next[key] = key !== 'name' && emptied(value) ? undefined : value
+    return withChanges(analysis, next, ANALYSIS_ORDER) as Analysis
+  })
 }
 
 /** Save where boxes sit in one view (layout.yaml). Positions of objects and views that no longer exist are dropped. */

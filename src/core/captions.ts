@@ -4,8 +4,8 @@
  * desktop/Flowy.Core/Captions.cs is a port, and desktop/fixtures/structure.ts keeps the two equal.
  */
 import type { Flow } from './model.ts'
+import { groupOf } from './structure.ts'
 import type { GroupKind, Stop } from './structure.ts'
-import { blank, isMap } from './text.ts'
 
 /**
  * `chip` is the card's words for the group ("" outside one); `text` is the group's own `text`. A branch lists its lanes as `tabs`
@@ -28,25 +28,25 @@ export const LEGEND: LegendRow[] = [
   { kind: null, title: 'The label on a line', text: 'Which lane, or which repeat, the step is in.' },
 ]
 
-const part = (v: unknown): string => (blank(v) ? '' : String(v).trim())
-
-/** What a repeat does, in words: "up to 3 times, until it works", or "" when it says neither. */
-const repeatWords = (g: Record<string, unknown>): string => {
-  const times = part(g.times)
-  const until = part(g.until)
-  return [times === '' ? '' : `up to ${times} times`, until === '' ? '' : `until ${until}`].filter(w => w !== '').join(', ')
+/**
+ * What a repeat does, in words: "up to 3 times, until it works", or "" when it says neither. A heading that starts the line asks for
+ * `capital`: "Up to 3 times, until it works".
+ */
+export function repeatWords(g: { times?: string; until?: string } | undefined, capital = false): string {
+  const words = [g?.times === undefined ? '' : `up to ${g.times} times`, g?.until === undefined ? '' : `until ${g.until}`].filter(w => w !== '').join(', ')
+  return capital ? words.charAt(0).toUpperCase() + words.slice(1) : words
 }
 
 export function captionOf(flow: Flow, stop: Stop): Caption {
   const none: Caption = { chip: '', text: '', tabs: [], tab: -1, lanes: [], marks: stop.steps.map(() => '') }
   if (stop.group === undefined || stop.kind === undefined) return none
-  const g = isMap(flow.groups) && Object.hasOwn(flow.groups, stop.group) && isMap(flow.groups[stop.group]) ? flow.groups[stop.group] : {}
-  const text = part(g.text)
+  const g = groupOf(flow, stop.group)
+  const text = g?.text ?? ''
   const labels = stop.laneLabels ?? []
   const laneOf = (i: number): string => labels[stop.lanes?.[i] ?? -1] ?? ''
   if (stop.kind === 'repeat') {
-    const times = part(g.times)
-    const until = part(g.until)
+    const times = g?.times ?? ''
+    const until = g?.until ?? ''
     const words = repeatWords(g)
     const mark = times !== '' ? `up to ${times}` : until !== '' ? `until ${until}` : ''
     return { ...none, chip: words === '' ? 'Repeats' : `Repeats ${words}`, text, marks: stop.steps.map(() => mark) }
@@ -106,8 +106,8 @@ export function progressOf(flow: Flow, stops: Stop[]): Progress {
       col = start + longest
     } else {
       for (let j = k; j <= end; j++) cells.push({ stop: j, col: col++, row: 0, title: stops[j].lanes?.map(l => s.laneLabels?.[l] ?? '').join(' + ') ?? '' })
-      const g = isMap(flow.groups) && Object.hasOwn(flow.groups, s.group) && isMap(flow.groups[s.group]) ? flow.groups[s.group] : {}
-      const times = part(g.times)
+      const g = groupOf(flow, s.group)
+      const times = g?.times ?? ''
       const words = repeatWords(g)
       brackets.push(s.kind === 'repeat'
         ? { kind: s.kind, from: start, to: col - 1, text: times === '' ? '' : `×${times}`, title: words === '' ? 'Repeats' : `Repeats ${words}` }
