@@ -1197,6 +1197,24 @@
             "band": "unrated",
             "part": "Shop > Orders DB",
             "home": "shop"
+          },
+          {
+            "id": "bom-step",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
+          },
+          {
+            "id": "nel-status",
+            "ratings": {},
+            "after": {},
+            "risk": null,
+            "band": "unrated",
+            "part": "Shop > Orders DB",
+            "home": "shop"
           }
         ],
         "rank": [
@@ -1284,6 +1302,16 @@
             "id": "bad-run",
             "risk": null,
             "band": "unrated"
+          },
+          {
+            "id": "bom-step",
+            "risk": null,
+            "band": "unrated"
+          },
+          {
+            "id": "nel-status",
+            "risk": null,
+            "band": "unrated"
           }
         ],
         "coverage": {
@@ -1291,8 +1319,8 @@
           "left": []
         },
         "coverageText": "Analysed 0 of 0",
-        "markdown": "## problems\n\nAnalysed 0 of 0\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status | Severity after | Likelihood after | Hard to spot after |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| Not rated |  | Has no part |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Has two kinds of part |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | gone | Names a shape that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated |  | Names half a line |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Web app to Orders DB | Names a line the model does not have |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Web app to gone | Names a line with an unknown end |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Hurts something that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Rated out of range |  |  | 11 | 07 | 5.5 |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | After rating out of range |  |  |  |  |  |  |  |  |  | open | 0 |  |  |\n| Not rated | Shop > Orders DB | A status nobody knows |  |  |  |  |  |  |  |  |  | finished |  |  |  |\n| Not rated | Shop > Orders DB | Names a flow that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step with no flow |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step that is not from 1 |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step past the end |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB |  |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | An id that is not an id |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Names a run that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |",
-        "csv": "Risk band,Part,Mode,Effect,Cause,Severity,Likelihood,Hard to spot,Risk,Controls,Next action,Owner,Status,Severity after,Likelihood after,Hard to spot after\nNot rated,,Has no part,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Has two kinds of part,,,,,,,,,,open,,,\nNot rated,gone,Names a shape that is not there,,,,,,,,,,open,,,\nNot rated,,Names half a line,,,,,,,,,,open,,,\nNot rated,Web app to Orders DB,Names a line the model does not have,,,,,,,,,,open,,,\nNot rated,Web app to gone,Names a line with an unknown end,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Hurts something that is not there,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Rated out of range,,,11,07,5.5,,,,,open,,,\nNot rated,Shop > Orders DB,After rating out of range,,,,,,,,,,open,0,,\nNot rated,Shop > Orders DB,A status nobody knows,,,,,,,,,,finished,,,\nNot rated,Shop > Orders DB,Names a flow that is not there,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step with no flow,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step that is not from 1,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step past the end,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,An id that is not an id,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Names a run that is not there,,,,,,,,,,open,,,",
+        "markdown": "## problems\n\nAnalysed 0 of 0\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status | Severity after | Likelihood after | Hard to spot after |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| Not rated |  | Has no part |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Has two kinds of part |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | gone | Names a shape that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated |  | Names half a line |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Web app to Orders DB | Names a line the model does not have |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Web app to gone | Names a line with an unknown end |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Hurts something that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Rated out of range |  |  | 11 | 07 | 5.5 |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | After rating out of range |  |  |  |  |  |  |  |  |  | open | 0 |  |  |\n| Not rated | Shop > Orders DB | A status nobody knows |  |  |  |  |  |  |  |  |  | finished |  |  |  |\n| Not rated | Shop > Orders DB | Names a flow that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step with no flow |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step that is not from 1 |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step past the end |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB |  |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | An id that is not an id |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Names a run that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step that is only a byte order mark |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A status that is only a next line character |  |  |  |  |  |  |  |  |  |  |  |  |  |",
+        "csv": "Risk band,Part,Mode,Effect,Cause,Severity,Likelihood,Hard to spot,Risk,Controls,Next action,Owner,Status,Severity after,Likelihood after,Hard to spot after\nNot rated,,Has no part,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Has two kinds of part,,,,,,,,,,open,,,\nNot rated,gone,Names a shape that is not there,,,,,,,,,,open,,,\nNot rated,,Names half a line,,,,,,,,,,open,,,\nNot rated,Web app to Orders DB,Names a line the model does not have,,,,,,,,,,open,,,\nNot rated,Web app to gone,Names a line with an unknown end,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Hurts something that is not there,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Rated out of range,,,11,07,5.5,,,,,open,,,\nNot rated,Shop > Orders DB,After rating out of range,,,,,,,,,,open,0,,\nNot rated,Shop > Orders DB,A status nobody knows,,,,,,,,,,finished,,,\nNot rated,Shop > Orders DB,Names a flow that is not there,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step with no flow,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step that is not from 1,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step past the end,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,An id that is not an id,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Names a run that is not there,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step that is only a byte order mark,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A status that is only a next line character,,,,,,,,,,,,,",
         "problems": [
           {
             "file": "failures/problems.yaml",
@@ -1373,6 +1401,10 @@
           {
             "file": "failures/problems.yaml",
             "message": "Bad-Id: the id must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+          },
+          {
+            "file": "failures/problems.yaml",
+            "message": "nel-status: status \"\" must be open, planned, done or accepted"
           }
         ],
         "runLinks": [
@@ -1388,7 +1420,7 @@
               "boxes": {
                 "shop": {
                   "band": "unrated",
-                  "count": 13
+                  "count": 15
                 }
               },
               "lines": {}
@@ -1410,7 +1442,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ],
             "drawnIn": [
               "both",
@@ -1425,7 +1459,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ],
             "reach": [
               {
@@ -1642,6 +1678,36 @@
               },
               {
                 "id": "bad-run",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bom-step",
+                "reach": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "shop"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "nel-status",
                 "reach": {
                   "fails": [
                     "shop"
@@ -1676,7 +1742,9 @@
                   "step-beyond",
                   "blank-mode",
                   "Bad-Id",
-                  "bad-run"
+                  "bad-run",
+                  "bom-step",
+                  "nel-status"
                 ]
               },
               {
@@ -1705,7 +1773,7 @@
               "boxes": {
                 "db": {
                   "band": "unrated",
-                  "count": 12
+                  "count": 14
                 }
               },
               "lines": {
@@ -1730,7 +1798,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ],
             "drawnIn": [
               "both",
@@ -1745,7 +1815,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ],
             "reach": [
               {
@@ -1966,6 +2038,36 @@
               },
               {
                 "id": "bad-run",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "bom-step",
+                "reach": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                },
+                "light": {
+                  "fails": [
+                    "db"
+                  ],
+                  "affects": []
+                }
+              },
+              {
+                "id": "nel-status",
                 "reach": {
                   "fails": [
                     "db"
@@ -2003,7 +2105,9 @@
                   "step-beyond",
                   "blank-mode",
                   "Bad-Id",
-                  "bad-run"
+                  "bad-run",
+                  "bom-step",
+                  "nel-status"
                 ]
               },
               {
@@ -2183,6 +2287,22 @@
               },
               {
                 "id": "bad-run",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "bom-step",
+                "reach": {
+                  "fails": [],
+                  "affects": []
+                },
+                "light": null
+              },
+              {
+                "id": "nel-status",
                 "reach": {
                   "fails": [],
                   "affects": []

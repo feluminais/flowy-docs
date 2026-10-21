@@ -67,3 +67,12 @@ modes:
     mode: Names a run that is not there
     on: db
     run: nope
+  bom-step:
+    mode: A step that is only a byte order mark
+    on: db
+    flow: checkout
+    step: "\uFEFF"
+  nel-status:
+    mode: A status that is only a next line character
+    on: db
+    status: "\u0085"

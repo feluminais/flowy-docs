@@ -207,6 +207,10 @@
     {
       "file": "failures/problems.yaml",
       "message": "Bad-Id: the id must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+    },
+    {
+      "file": "failures/problems.yaml",
+      "message": "nel-status: status \"\" must be open, planned, done or accepted"
     }
   ],
   "failures": [
@@ -436,6 +440,19 @@
           "mode": "Names a run that is not there",
           "on": "db",
           "run": "nope"
+        },
+        {
+          "id": "bom-step",
+          "mode": "A step that is only a byte order mark",
+          "on": "db",
+          "flow": "checkout",
+          "step": "﻿"
+        },
+        {
+          "id": "nel-status",
+          "mode": "A status that is only a next line character",
+          "on": "db",
+          "status": ""
         }
       ]
     }

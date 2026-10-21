@@ -187,7 +187,305 @@
     }
   ],
   "shop": {
-    "modeCount": 25,
+    "modeCount": 27,
+    "locate": [
+      {
+        "problem": {
+          "file": "failures/empty.yaml",
+          "message": "name is missing"
+        },
+        "spot": {
+          "view": "root",
+          "failure": {
+            "analysis": "empty"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/ordering.yaml",
+          "message": "constructor: status \"constructor\" must be open, planned, done or accepted"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "ordering",
+            "mode": "constructor"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "name is missing"
+        },
+        "spot": {
+          "view": "root",
+          "failure": {
+            "analysis": "problems"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "scope \"web\" must be \"root\" or an object with children"
+        },
+        "spot": {
+          "view": "root",
+          "failure": {
+            "analysis": "problems"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "no-part: needs \"on\" (a shape) or \"from\" and \"to\" (a line)"
+        },
+        "spot": {
+          "view": "root",
+          "failure": {
+            "analysis": "problems",
+            "mode": "no-part"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "both: has \"on\" and also \"from\" or \"to\"; use one or the other"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "both"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "unknown-shape: unknown object \"gone\""
+        },
+        "spot": {
+          "view": "root",
+          "failure": {
+            "analysis": "problems",
+            "mode": "unknown-shape"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "half-line: \"from\" and \"to\" go together"
+        },
+        "spot": {
+          "view": "root",
+          "failure": {
+            "analysis": "problems",
+            "mode": "half-line"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "no-connection: web → db is not a connection in the model"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "no-connection"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "unknown-end: unknown object \"gone\""
+        },
+        "spot": {
+          "view": "root",
+          "failure": {
+            "analysis": "problems",
+            "mode": "unknown-end"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "bad-affects: affects: unknown object \"nope\""
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "bad-affects"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "bad-rating: severity must be a whole number from 1 to 10"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "bad-rating"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "bad-rating: occurrence must be a whole number from 1 to 10"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "bad-rating"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "bad-rating: detection must be a whole number from 1 to 10"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "bad-rating"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "bad-after: after severity must be a whole number from 1 to 10"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "bad-after"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "bad-status: status \"finished\" must be open, planned, done or accepted"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "bad-status"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "bad-flow: flow \"nope\" doesn't exist"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "bad-flow"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "step-without-flow: step needs a flow"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "step-without-flow"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "step-zero: step must be a whole number from 1"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "step-zero"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "step-beyond: step 9 is outside flow \"checkout\", which has 3 steps"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "step-beyond"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "blank-mode: \"mode\" is missing"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "blank-mode"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "Bad-Id: the id must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "Bad-Id"
+          }
+        }
+      },
+      {
+        "problem": {
+          "file": "failures/problems.yaml",
+          "message": "nel-status: status \"\" must be open, planned, done or accepted"
+        },
+        "spot": {
+          "view": "shop",
+          "failure": {
+            "analysis": "problems",
+            "mode": "nel-status"
+          }
+        }
+      }
+    ],
     "active": [
       {
         "id": "empty",
@@ -878,7 +1176,7 @@
           "high": 0,
           "medium": 0,
           "low": 0,
-          "unrated": 17
+          "unrated": 19
         },
         "rows": [
           {
@@ -901,7 +1199,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ],
             "elsewhere": []
           },
@@ -943,7 +1243,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ],
             "elsewhere": []
           },
@@ -965,7 +1267,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ],
             "elsewhere": [
               "no-part",
@@ -1008,7 +1312,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ],
             "elsewhere": [
               "no-part",
@@ -1036,7 +1342,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ]
           },
           {
@@ -1078,7 +1386,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ]
           }
         ],
@@ -1104,7 +1414,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ]
           },
           {
@@ -1153,7 +1465,9 @@
               "step-beyond",
               "blank-mode",
               "Bad-Id",
-              "bad-run"
+              "bad-run",
+              "bom-step",
+              "nel-status"
             ]
           },
           {
@@ -1430,6 +1744,28 @@
                 "at": null
               }
             ]
+          },
+          {
+            "id": "bom-step",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
+          },
+          {
+            "id": "nel-status",
+            "after": null,
+            "known": true,
+            "firstError": [
+              {
+                "run": "spike",
+                "at": null
+              }
+            ]
           }
         ]
       }
@@ -1437,6 +1773,7 @@
   },
   "plum": {
     "modeCount": 14,
+    "locate": [],
     "active": [
       {
         "id": "ordering",

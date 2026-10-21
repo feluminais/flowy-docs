@@ -5,6 +5,7 @@ import {
   reach, riskOf, rollUp, runLinkProblems, usersOfConnection, usersOfObject,
 } from '../../src/core/failures.ts'
 import { ROOT } from '../../src/core/model.ts'
+import { locate } from '../../ui/src/edit.ts'
 import { activeAnalysis, afterText, bandCounts, firstErrorAt, modeCount, modeIn, neighbour, ratingCells, rowsFor, STATUS_NAMES } from '../../ui/src/failuresview.ts'
 import { modelOf } from '../../src/core/state.ts'
 import { computeView, isView } from '../../src/core/views.ts'
@@ -80,6 +81,8 @@ async function dumpViewDir(dir: string): Promise<unknown> {
   const bands = [undefined, 'high', 'medium', 'low', 'unrated'] as const
   return {
     modeCount: modeCount(model),
+    // Where the bar's problem list takes a click on a problem of an analysis: the view, and the analysis and mode to open.
+    locate: Object.entries(model.failures).flatMap(([id, a]) => analysisProblems(model, id, a).map(problem => ({ problem, spot: locate(model, problem) }))),
     active: [...Object.keys(model.failures), 'nope', '', 'constructor'].map(id => ({ id, active: activeAnalysis(model.failures, id) ?? null })),
     analyses: Object.entries(model.failures).map(([id, a]) => ({
       id,

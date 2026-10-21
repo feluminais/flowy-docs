@@ -79,14 +79,17 @@ internal sealed partial class ReaderView
             Refresh();
         };
         _failuresPanel.ModePicked += SelectMode;
+        // One filter, as the browser keeps it: pressing a band leaves the list of shapes, and pressing Not analysed lets go of the band.
         _failuresPanel.BandPicked += band =>
         {
             _band = band;
+            _left = false;
             Refresh();
         };
         _failuresPanel.LeftToggled += () =>
         {
             _left = !_left;
+            _band = null;
             Refresh();
         };
         _failuresPanel.PartCleared += () =>
@@ -212,4 +215,7 @@ internal sealed partial class ReaderView
     internal string? CopiedText { get; private set; }
 
     internal void StepFailureList(Key key) => StepFailures(key);
+
+    /// <summary>What a click on a problem in the bar's list does.</summary>
+    internal void JumpToProblem(Problem problem) => Jump(problem);
 }

@@ -46,8 +46,8 @@ public static class Failures
     /// <summary>The key the TypeScript and the fixtures call a band by.</summary>
     public static string BandKey(RiskBand band) => band switch { RiskBand.High => "high", RiskBand.Medium => "medium", RiskBand.Low => "low", _ => "unrated" };
 
-    /// <summary>Text with something in it. A blank value in a file is as good as none.</summary>
-    public static bool Has(string? v) => !string.IsNullOrWhiteSpace(v);
+    /// <summary>Text with something in it. A blank value in a file is as good as none, by what JavaScript's <c>trim()</c> calls blank, as the TypeScript does.</summary>
+    public static bool Has(string? v) => !Structure.Blank(v);
 
     /// <summary>A rating written in a file: exactly the text 1 to 10. Anything else (5.5, 07, 0, 11, 1e1, a space) is not a rating.</summary>
     public static int? RatingOf(string? text) =>
@@ -173,7 +173,7 @@ public static class Failures
 
     /// <summary>One analysis for a reader: in Markdown a heading, the coverage and the table; in CSV the table alone, since anything else would break the file.</summary>
     public static string AnalysisText(Model model, string id, FailureAnalysis a, string format) =>
-        format == "csv" ? Table(model, a, "csv") : $"## {(a.Name.Trim() == "" ? id : $"{a.Name} ({id})")}\n\n{CoverageText(model, a)}\n\n{Table(model, a, "markdown")}";
+        format == "csv" ? Table(model, a, "csv") : $"## {(Structure.JsTrim(a.Name) == "" ? id : $"{a.Name} ({id})")}\n\n{CoverageText(model, a)}\n\n{Table(model, a, "markdown")}";
 
     /// <summary>The text a drawn line is known by: the same as <c>lineId</c> in ui/src/graph.ts.</summary>
     public static string LineKey(string from, string to) => $"{from} {to}";

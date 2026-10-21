@@ -959,6 +959,19 @@ internal sealed partial class ReaderView : Grid
             _side = new Side(SideKind.Line, From: line.From, To: line.To);
             Refresh();
         }
+        else if (spot.Failure is { } failure)
+        {
+            if (!CanFailures)
+            {
+                ShowNotice("Failures are not shown while editing.");
+                return;
+            }
+            _analysisId = failure.Analysis;
+            _modeId = failure.Mode;
+            _band = null;
+            _left = false;
+            OpenFailures();
+        }
         else if (spot.Flow is { } flow)
         {
             // The player only lists flows with steps in a view that opens; Locate falls back to the top for a bad view.

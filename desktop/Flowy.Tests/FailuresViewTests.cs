@@ -31,6 +31,41 @@ public class FailuresViewTests
                 FailuresView.RatingCells(e["rating"]?.GetValue<int>()));
     }
 
+    [Theory]
+    [InlineData("shop", "failures")]
+    [InlineData("plum", "plum")]
+    public void A_problem_of_an_analysis_is_located_where_the_browser_takes_a_click_on_it(string key, string fixture)
+    {
+        var model = Load(fixture).Model;
+        var located = Expected()[key]!["locate"]!.AsArray();
+        Assert.Equal(model.Failures.Sum(a => Failures.AnalysisProblems(model, a.Key, a.Value).Count), located.Count);
+        foreach (var e in located)
+        {
+            var p = e!["problem"]!;
+            var problem = new Problem(p["file"]!.GetValue<string>(), p["id"]?.GetValue<string>(), p["message"]!.GetValue<string>());
+            var want = e["spot"]!;
+            var spot = Navigation.Locate(model, problem);
+            Assert.Equal(want["view"]!.GetValue<string>(), spot.View);
+            Assert.Equal(want["failure"]?["analysis"]?.GetValue<string>(), spot.Failure?.Analysis);
+            Assert.Equal(want["failure"]?["mode"]?.GetValue<string>(), spot.Failure?.Mode);
+        }
+    }
+
+    [Theory]
+    [InlineData("5", 5)]
+    [InlineData(" 5", 5)]
+    [InlineData("+5", 5)]
+    [InlineData("5.0", 5)]
+    [InlineData("1e1", 10)]
+    [InlineData("2.9", 2)]
+    [InlineData("0", 0)]
+    [InlineData("", null)]
+    [InlineData("abc", null)]
+    [InlineData("1e400", null)]
+    [InlineData(null, null)]
+    public void Show_it_reads_a_step_as_a_number_the_way_the_browser_does(string? text, int? step) =>
+        Assert.Equal(step, FailuresView.StepOf(text));
+
     [Fact]
     public void A_status_has_the_name_a_reader_sees()
     {
