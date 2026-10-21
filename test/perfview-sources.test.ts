@@ -1,7 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { dialsOf, kneeOf, levelAt, parseRun } from '../src/core/perf.ts'
-import type { Run } from '../src/core/perf.ts'
+import { kneeOf } from '../src/core/perf/analyse.ts'
+import { dialsOf } from '../src/core/perf/dials.ts'
+import { levelAt } from '../src/core/perf/levels.ts'
+import { parseRun } from '../src/core/perf/parse.ts'
+import type { Run } from '../src/core/perf/types.ts'
 import {
   activeSeries, bracketOf, boxSeriesIn, dialTicks, dialTop, edgeActive, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, positionOf, positionsOf, rampActive, rampFromActive,
   RAMP_MS, settingOf, stepActive, stepFrom,

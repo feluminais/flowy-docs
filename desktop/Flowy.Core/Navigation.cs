@@ -15,7 +15,7 @@ public sealed record Spot(string View, string? Object = null, (string From, stri
 public enum EscapeStep { Shortcuts, Navigator, Flow, Panel, Up }
 
 /// <summary>The reading half of ui/src/edit.ts, ui/src/search.ts and ui/src/keys.ts, and the teaser of ui/src/Box.tsx.</summary>
-public static partial class Navigation
+public static class Navigation
 {
     /// <summary>Which way <paramref name="to"/> lies from <paramref name="from"/> in the nesting. Opening a box that sits beside the one you're in is across, so going there and back never dives in twice.</summary>
     public static Move MoveBetween(Model model, string from, string to)
@@ -52,12 +52,6 @@ public static partial class Navigation
         return (lines.Where(l => l.From == id).ToList(), lines.Where(l => l.To == id).ToList());
     }
 
-    [GeneratedRegex(@"^flows/(.+)\.yaml$")]
-    private static partial Regex FlowFile();
-
-    [GeneratedRegex(@"^failures/(.+)\.yaml\z")]
-    private static partial Regex FailureFile();
-
     public static Spot Locate(Model model, Problem problem)
     {
         if (problem.Id is not null && model.GetObject(problem.Id) is not null) return new Spot(Views.ParentOf(model, problem.Id), problem.Id);
@@ -71,19 +65,15 @@ public static partial class Navigation
                 if (Views.PlaceEnds(model, view, c.From, c.To) is { } line) return new Spot(view, Line: line);
             return new Spot(Views.ParentOf(model, end), end);
         }
-        var failure = FailureFile().Match(problem.File);
-        if (failure.Success && model.Failures.Contains(failure.Groups[1].Value))
+        if (FolderLayout.FailureIdOf(problem.File) is { } aid && model.Failures.Contains(aid))
         {
             // A mode's problems start with its id and ": " (the id is no shape id: it never names an object). The longest id that fits is the mode.
-            var aid = failure.Groups[1].Value;
             var modes = model.Failures[aid].Modes;
             var mode = modes.Keys.Where(id => problem.Message.StartsWith($"{id}: ", StringComparison.Ordinal)).OrderByDescending(id => id.Length).FirstOrDefault();
             return mode is null ? new Spot(Names.Root, Failure: (aid, null)) : new Spot(Failures.HomeView(model, modes[mode]), Failure: (aid, mode));
         }
-        var flow = FlowFile().Match(problem.File);
-        if (flow.Success && model.Flows.Contains(flow.Groups[1].Value))
+        if (FolderLayout.FlowIdOf(problem.File) is { } id && model.Flows.Contains(id))
         {
-            var id = flow.Groups[1].Value;
             var view = model.Flows[id].View;
             return new Spot(Views.IsView(model, view) ? view! : Names.Root, Flow: id, Step: problem.Step);
         }

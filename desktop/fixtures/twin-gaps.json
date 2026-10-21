@@ -81,19 +81,27 @@
     "updateAnalysis",
     "updateMode"
   ],
-  "perf": [
-    "AT_ONCE",
-    "AXES",
-    "FAILURES",
+  "perf/analyse": [
     "KNEE_LATENCY",
-    "KNEE_STRAIN",
+    "KNEE_STRAIN"
+  ],
+  "perf/dials": [
+    "SOURCE_PALETTE"
+  ],
+  "perf/parse": [
     "MOST_ADDED",
-    "MOST_TESTED",
+    "MOST_TESTED"
+  ],
+  "perf/traffic": [
+    "AT_ONCE",
     "OTHER_COLOR",
     "RADIUS_MAX",
     "RADIUS_MIN",
-    "SOURCE_PALETTE",
-    "capCounts",
+    "capCounts"
+  ],
+  "perf/types": [
+    "AXES",
+    "FAILURES",
     "eventsOf",
     "isTime"
   ],

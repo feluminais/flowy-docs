@@ -6,6 +6,7 @@ import { parseArgs } from 'node:util'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { flowToMermaid, viewToMermaid } from './core/mermaid.ts'
 import { analysisText } from './core/failures.ts'
+import { FILE_KINDS, kindOfPath, pathOf } from './core/filekinds.ts'
 import { modelOf } from './core/state.ts'
 import { exportSite } from './node/export.ts'
 import { loadDir, loadState } from './node/files.ts'
@@ -72,8 +73,8 @@ async function printFailures(dir: string, analysis: string | undefined, format: 
     return 1
   }
   const ids = analysis === undefined ? Object.keys(model.failures) : [analysis]
-  const problems = [...state.problems.filter(p => p.file.startsWith('failures/')), ...(state.failureProblems ?? [])]
-    .filter(p => analysis === undefined || p.file === `failures/${analysis}.yaml`)
+  const problems = [...state.problems.filter(p => kindOfPath(p.file) === FILE_KINDS.failure), ...(state.failureProblems ?? [])]
+    .filter(p => analysis === undefined || p.file === pathOf(FILE_KINDS.failure, analysis))
   if (ids.length === 0 && problems.length === 0) {
     console.error(`No failure analyses in ${dir}.`)
     return 1

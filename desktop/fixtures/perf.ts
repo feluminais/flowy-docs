@@ -4,11 +4,15 @@ import { ParseError, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
 import type { Problem } from '../../src/core/problem.ts'
-import {
-  checkRun, checkRuns, dialsOf, eventsPassed, eventText, interpolate, knee, kneeOf, kneeText, kneeTextOf, levelAt, loadOfPosition, lockstepPositions, lockstepTop, parseRun, rollUp, runStates, scaleText, settingAt,
-  sourceKey, sourceKeyAt, strain, traffic, trafficAt,
-} from '../../src/core/perf.ts'
-import type { Dial, Metrics, Run, Setting } from '../../src/core/perf.ts'
+import { eventsPassed, knee, kneeOf, runStates, strain } from '../../src/core/perf/analyse.ts'
+import { checkRun, checkRuns } from '../../src/core/perf/check.ts'
+import { dialsOf, loadOfPosition, lockstepPositions, lockstepTop, settingAt } from '../../src/core/perf/dials.ts'
+import { interpolate, levelAt } from '../../src/core/perf/levels.ts'
+import { parseRun } from '../../src/core/perf/parse.ts'
+import { rollUpLoad } from '../../src/core/perf/rollup.ts'
+import { eventText, kneeText, kneeTextOf, scaleText, sourceKey, sourceKeyAt } from '../../src/core/perf/text.ts'
+import { traffic, trafficAt } from '../../src/core/perf/traffic.ts'
+import type { Dial, Metrics, Run, Setting } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
 import {
   activeRun, activeSeries, bracketOf, BOX_KEYS, boxAt, boxSeries, boxSeriesIn, dialTicks, dialTop, edgeActive, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, positionsOf, rampActive, rampFromActive, settingOf, slideDial, stepActive, stepFrom, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
@@ -521,7 +525,7 @@ async function dumpSources(model: Model): Promise<unknown> {
               const t = trafficAt(model, runs, id, setting, view)
               return { view, ...t, key: sourceKeyAt(runs, id, t.lines) }
             }),
-            rolled: views(id).map(view => ({ view, ...rollUp(model, level, view) })),
+            rolled: views(id).map(view => ({ view, ...rollUpLoad(model, level, view) })),
           }
         }),
       }
@@ -560,7 +564,7 @@ export async function dumpPerf(): Promise<unknown> {
         level: interpolate(run, load),
         traffic: views.map(view => ({ view, ...traffic(model, run, load, view) })),
       })),
-      rolled: run.levels.flatMap(level => views.map(view => ({ load: level.load, view, ...rollUp(model, level, view) }))),
+      rolled: run.levels.flatMap(level => views.map(view => ({ load: level.load, view, ...rollUpLoad(model, level, view) }))),
       knee: found ?? null,
       text: found ? kneeText(run, found, oid => nameOf(model, oid)) : null,
     }
@@ -582,7 +586,7 @@ export async function dumpPerf(): Promise<unknown> {
           const t = traffic(model, read.run, load, view)
           return { view, ...t, key: sourceKey(read.run, t.lines) ?? null }
         }),
-        rolled: views.map(view => ({ view, ...rollUp(model, interpolate(read.run, load), view) })),
+        rolled: views.map(view => ({ view, ...rollUpLoad(model, interpolate(read.run, load), view) })),
       })),
     }
   })

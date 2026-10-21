@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process'
 import type { ChildProcess } from 'node:child_process'
 import { Agent, request } from 'node:http'
 import { join } from 'node:path'
-import type { Level, Metrics, Pair } from '../../src/core/perf.ts'
+import type { Level, Metrics, Pair } from '../../src/core/perf/types.ts'
 import { runLevel } from './gen.ts'
 
 const here = import.meta.dirname

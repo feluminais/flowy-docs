@@ -3,7 +3,7 @@ import type { Problem } from '../../src/core/problem.ts'
 import { bandOf, BAND_NAMES, coverage, partName, lightFor, ratingsOf, riskOf } from '../../src/core/failures.ts'
 import type { Band, Part, Ranked } from '../../src/core/failures.ts'
 import type { Model } from '../../src/core/model.ts'
-import type { Run } from '../../src/core/perf.ts'
+import type { Run } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { Section } from './Chrome.tsx'
@@ -204,7 +204,7 @@ export function FailuresBody(p: FailuresProps) {
         </>
       )}
 
-      <span className="hint muted"><kbd>←</kbd><kbd>→</kbd>Step<kbd>Esc</kbd>Close</span>
+      <span className="hint muted"><kbd>←</kbd><kbd>→</kbd>Step</span>
       <Section icon={Info} title="Key" />
       <KeyRow>
         {BAND_ORDER.filter(b => counts[b] > 0).map(b => <KeyItem key={b} swatch={<span className={`sw ${b}`} />}>{BAND_NAMES[b]}</KeyItem>)}

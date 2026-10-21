@@ -3,7 +3,7 @@ namespace Flowy.Core;
 /// <summary>
 /// A dial: one thing the load can be turned up on. A run with one source has one (its <c>Id</c> is ""); a run that adds others has one for each run it adds (the id of that run); a
 /// run tested together has one for each of its sources. <c>Values</c> are the loads that were tested, going up; <c>Color</c> is the colour its dots are drawn in, from its source or
-/// else from the palette. A port of <c>Dial</c> in src/core/perf.ts.
+/// else from the palette. A port of <c>Dial</c> in src/core/perf/types.ts.
 /// </summary>
 public sealed record Dial(string Id, string Name, string Unit, IReadOnlyList<double> Values, Source? Source, string Color);
 
@@ -16,7 +16,7 @@ public sealed record KeyedSource(string Id, string Name, string? Color, string? 
 /// <summary>The pieces the Performance key draws for the sources (see <see cref="Perf.SourceKeyAt"/>).</summary>
 public sealed record SourcesKey(IReadOnlyList<KeyedSource> Sources, bool ScaledDown, bool Other);
 
-/// <summary>Several sources of requests: a port of the end of src/core/perf.ts, kept equal to it by the same fixtures.</summary>
+/// <summary>Several sources of requests: a port of src/core/perf/dials.ts, src/core/perf/levels.ts, src/core/perf/analyse.ts, src/core/perf/traffic.ts and src/core/perf/text.ts, kept equal to them by the same fixtures.</summary>
 public static partial class Perf
 {
     public const string ModeSingle = "single";
@@ -24,6 +24,12 @@ public static partial class Perf
     public const string ModeAdded = "added";
 
     public const string ModeTested = "tested";
+
+    /// <summary>
+    /// The colours a source takes when it names none, in the order the sources are listed. Red is left out: it is the colour of a call that fails. A source that names a colour
+    /// keeps it, and one that doesn't takes the first of these that no other source draws in (see <see cref="DialsOf"/>).
+    /// </summary>
+    public static readonly string[] SourcePalette = ["blue", "green", "orange", "indigo"];
 
     /// <summary>
     /// The colour of each source: the one it names, else the first of the palette that no other source draws in, in the order the sources come. (Two sources that name the same colour are
@@ -197,7 +203,7 @@ public static partial class Perf
             while (x >= d.Values[lo + 1]) lo++;
             cells.Add((lo, (x - d.Values[lo]) / (d.Values[lo + 1] - d.Values[lo])));
         }
-        string KeyOf(IEnumerable<double?> values) => string.Join("|", values.Select(v => v is { } n ? Js(n) : "-"));
+        string KeyOf(IEnumerable<double?> values) => string.Join("|", values.Select(v => v is { } n ? JsCompat.Raw(n) : "-"));
         var tested = new Dictionary<string, Level>();
         foreach (var l in run.Levels) tested[KeyOf(dials.Select(d => l.Loads is { } own && own.TryGetValue(d.Id, out var v) ? (double?)v : null))] = l;
         var corners = new List<(double W, Level Level)>();
@@ -321,7 +327,7 @@ public static partial class Perf
     public static string KneeTextOf(IdMap<LoadRun> runs, string id, Knee k, Func<string, string> nameOf)
     {
         if (DialsOf(runs, id) is not { } found || found.Mode == ModeSingle) return KneeText(runs[id], k, nameOf);
-        var stood = found.Items.Select(d => $"{d.Name} at {Js(Round2(k.Setting is { } setting && setting.TryGetValue(d.Id, out var at) ? at : d.Values[0]))} {d.Unit}").ToList();
+        var stood = found.Items.Select(d => $"{d.Name} at {JsCompat.Raw(Round2(k.Setting is { } setting && setting.TryGetValue(d.Id, out var at) ? at : d.Values[0]))} {d.Unit}").ToList();
         return $"First struggles with {JoinAnd(stood)}: {StruggleText(k, nameOf)}";
     }
 

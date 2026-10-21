@@ -3,6 +3,7 @@
  * by where they play, and the keys that move about the tree. Nothing here draws, so the canvas and the desktop app each draw
  * these rows and agree on what is on them. desktop/Flowy.Core/Outline.cs is a port, and desktop/fixtures/outline.ts keeps the two equal.
  */
+import { FILE_KINDS, idOfPath } from './filekinds.ts'
 import type { Problem } from './problem.ts'
 import { getObject, isExternal, ROOT } from './model.ts'
 import type { Model } from './model.ts'
@@ -139,7 +140,7 @@ function problemsIn(model: Model, problems: readonly Problem[]): { shapes: Set<s
   }
   for (const p of problems) {
     if (p.id !== undefined && getObject(model, p.id)) mark(p.id)
-    const flow = /^flows\/(.+)\.yaml$/.exec(p.file)?.[1]
+    const flow = idOfPath(FILE_KINDS.flow, p.file)
     if (flow !== undefined && Object.hasOwn(model.flows, flow)) {
       flows.add(flow)
       mark(model.flows[flow].view)
