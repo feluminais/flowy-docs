@@ -24,6 +24,7 @@ internal sealed class CanvasView : Border
     private readonly MarksLayer _marks = new();
     private readonly TrafficLayer _traffic = new();
     private Traffic? _load; // the load being shown, if the Performance panel is open
+    private IReadOnlyDictionary<string, StateMark> _states = new Dictionary<string, StateMark>(); // the states at the stop on show, by shape
     private IDisposable? _step;
     private readonly Avalonia.Controls.Canvas _stage = new() { RenderTransformOrigin = RelativePoint.TopLeft };
     private readonly Dictionary<string, BoxControl> _boxes = [];
@@ -251,6 +252,7 @@ internal sealed class CanvasView : Border
         foreach (var (id, control) in _boxes) control.SetSelected(_selected.Contains(id));
         _back.SetScene(scene, lineStyle);
         if (_load is not null) ApplyLoad();
+        ApplyStates();
     }
 
     /// <summary>Where the labels showing now are, for tests.</summary>
@@ -258,6 +260,24 @@ internal sealed class CanvasView : Border
 
     /// <summary>The traffic layer, for tests: how many particles run and whether it runs at all.</summary>
     internal (int Particles, bool Running) TrafficNow => (_traffic.ParticleCount, _traffic.Running);
+
+    /// <summary>
+    /// Shows where shapes stand at the stop on show (see <see cref="States.Marks"/>): each shape named here dims and carries its state, and the rest are as
+    /// they were. Null or nothing takes every state away. A shape's own state beats the strain colour of a load.
+    /// </summary>
+    public void ShowStates(IReadOnlyDictionary<string, StateMark>? states)
+    {
+        _states = states ?? new Dictionary<string, StateMark>();
+        ApplyStates();
+    }
+
+    private void ApplyStates()
+    {
+        foreach (var (id, box) in _boxes) box.SetState(_states.TryGetValue(id, out var mark) ? mark : null);
+    }
+
+    /// <summary>The shapes on the canvas that are in a state now, by id: what the key under the player lists, and what a test reads.</summary>
+    internal IReadOnlyDictionary<string, StateMark> StatesShown => _boxes.Where(b => b.Value.State is not null).ToDictionary(b => b.Key, b => b.Value.State!);
 
     /// <summary>The load that is showing, or null.</summary>
     internal Traffic? Load => _load;

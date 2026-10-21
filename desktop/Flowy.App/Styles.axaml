@@ -694,6 +694,58 @@
     <Setter Property="StrokeThickness" Value="2" />
   </Style>
 
+  <!--
+    A shape in a state other than Running (StateMarks.cs, BoxControl.SetState): a second outline over its own in the state's dash (the dash and the
+    movement are in code, since a dash is counted in stroke widths), a glyph on a ring in the state's colour, and the content dimmed. The colours are
+    the tokens the browser uses, so they follow light and dark: starting and restarting are the accent, stopping and degraded the warning, stopped the muted.
+    A state beats the strain colour of the Performance panel on the same shape.
+  -->
+  <Style Selector=":is(Grid).box Path.stateline">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <!-- What a step does not light is faded to 0.15; a shape in a state stays easier to see, since where it stands holds until a step changes it. -->
+  <Style Selector=":is(Grid).box.dim.stated">
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
+  <Style Selector=":is(Grid).box.stated Path.strain, :is(Grid).box.stated Path.strainglow">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector=":is(Grid).box.state-starting Path.stateline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Grid).box.state-stopping Path.stateline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).box.state-stopped Path.stateline"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector=":is(Grid).box.state-restarting Path.stateline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Grid).box.state-degraded Path.stateline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <!-- The glyph's ring and drawing, wherever the glyph sits: on a shape, in the key under the player, in Details. -->
+  <Style Selector=":is(Grid).stateglyph Ellipse.ring">
+    <Setter Property="Fill" Value="{DynamicResource BoxBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).stateglyph Path.stateicon">
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).stateglyph.state-starting Ellipse.ring, :is(Grid).stateglyph.state-starting Path.stateicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Grid).stateglyph.state-stopping Ellipse.ring, :is(Grid).stateglyph.state-stopping Path.stateicon"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).stateglyph.state-stopped Ellipse.ring, :is(Grid).stateglyph.state-stopped Path.stateicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector=":is(Grid).stateglyph.state-restarting Ellipse.ring, :is(Grid).stateglyph.state-restarting Path.stateicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Grid).stateglyph.state-degraded Ellipse.ring, :is(Grid).stateglyph.state-degraded Path.stateicon"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <!-- The key's small outline: the same colours as the shape's. -->
+  <Style Selector=":is(Grid).stateswatch.state-starting Rectangle.outline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Grid).stateswatch.state-stopping Rectangle.outline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).stateswatch.state-stopped Rectangle.outline"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector=":is(Grid).stateswatch.state-restarting Rectangle.outline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Grid).stateswatch.state-degraded Rectangle.outline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).stateswatch.plain Rectangle.outline"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector=":is(Grid).stateswatch.none Rectangle.outline"><Setter Property="Stroke" Value="{DynamicResource LineBrush}" /></Style>
+  <!-- Off, going off and restarting are grey as well as dim: the tile and its icon take the outside service's grey. -->
+  <Style Selector=":is(Grid).box.stated.state-stopped Border.tile, :is(Grid).box.stated.state-stopping Border.tile, :is(Grid).box.stated.state-restarting Border.tile">
+    <Setter Property="Background" Value="{DynamicResource ExternalTileBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box.stated.state-stopped Path.icon, :is(Grid).box.stated.state-stopping Path.icon, :is(Grid).box.stated.state-restarting Path.icon">
+    <Setter Property="Stroke" Value="{DynamicResource ExternalBrush}" />
+  </Style>
+
   <!-- The zoom buttons in the corner of the canvas: one rounded group with flat buttons in it, like the bar's. -->
   <Style Selector="Border.zoomgroup">
     <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
