@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import type { Metrics, Pair } from '../../src/core/perf.ts'
+import type { Metrics, Pair } from '../../src/core/perf/types.ts'
 
 /** The nearest-rank percentile (0 to 100) of numbers already sorted ascending, or undefined for none. */
 export function percentile(sorted: readonly number[], p: number): number | undefined {

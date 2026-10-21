@@ -4,6 +4,7 @@ import type { Model, ObjectType } from './model.ts'
 import { animationProblem, interceptorProblem } from './animation.ts'
 import { dataProblems } from './data.ts'
 import { analysisProblems } from './failures.ts'
+import { FILE_KINDS, pathOf } from './filekinds.ts'
 import { isRepoPath, isWebAddress } from './paths.ts'
 import { stepPrefix, withoutStep } from './problem.ts'
 import type { Problem } from './problem.ts'
@@ -117,7 +118,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
   })
 
   for (const [fid, f] of Object.entries(model.flows)) {
-    const p = (message: string, at?: { step: number }) => add(`flows/${fid}.yaml`, undefined, message, at)
+    const p = (message: string, at?: { step: number }) => add(pathOf(FILE_KINDS.flow, fid), undefined, message, at)
     // A problem that belongs to a step reads "step N: ..." (N counts from 1) and points the canvas at it.
     const at = (message: string, step?: number) => (step === undefined ? p(message) : p(stepPrefix(step) + message, { step }))
     if (!isValidId(fid)) p(`"${fid}" is not a valid flow id: the file name must ${ID_RULE}`)

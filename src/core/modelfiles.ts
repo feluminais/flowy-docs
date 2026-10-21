@@ -1,5 +1,7 @@
 import { Document, isMap as isYamlMap, visit } from 'yaml'
 import { compactEntries } from './data.ts'
+import { FILE_KINDS, FOLDER_KINDS, idUnder, kindOfPath, pathOf } from './filekinds.ts'
+import type { WrittenKind } from './filekinds.ts'
 import { ParseError, orEmpty } from './model.ts'
 import type { Analysis, Connection, Flow, Layout, Mode, Model } from './model.ts'
 import { isMap, own } from './text.ts'
@@ -29,7 +31,7 @@ function checkEntry(file: string, what: string, entry: unknown, fields: readonly
 
 /** Checks the file's shape only. Field values are checked by check() in check.ts. */
 export function parseModelFile(text: string): Pick<Model, 'objects' | 'connections' | 'meta'> {
-  const file = 'model.yaml'
+  const file = FILE_KINDS.model.file
   const doc = orEmpty(readYaml(file, text), {})
   if (!isMap(doc)) throw new ParseError(file, 'expected a mapping with "objects" and "connections"')
   const { objects: rawObjects, connections: rawConnections, ...meta } = doc
@@ -44,7 +46,7 @@ export function parseModelFile(text: string): Pick<Model, 'objects' | 'connectio
 
 /** Checks the file's shape only. An empty file gives `{ steps: [] }`; check() reports what's missing. */
 export function parseFlowFile(id: string, text: string): Flow {
-  const file = `flows/${id}.yaml`
+  const file = pathOf(FILE_KINDS.flow, id)
   const doc = orEmpty(readYaml(file, text), {})
   if (!isMap(doc)) throw new ParseError(file, 'expected a mapping with "name", "view" and "steps"')
   checkEntry(file, 'flow', doc, TEXT_FIELDS.flow)
@@ -66,7 +68,7 @@ export function parseFlowFile(id: string, text: string): Flow {
  * known is for check(). A blank `after` or `affects` is no section. A missing name reads as "" and a missing `modes` as none.
  */
 export function parseAnalysisFile(id: string, text: string): Analysis {
-  const file = `failures/${id}.yaml`
+  const file = pathOf(FILE_KINDS.failure, id)
   const doc = orEmpty(readYaml(file, text), {})
   if (!isMap(doc)) throw new ParseError(file, 'expected a mapping with "name" and "modes"')
   checkEntry(file, 'analysis', doc, TEXT_FIELDS.analysis)
@@ -104,7 +106,7 @@ function toPoint(v: unknown): [number, number] | undefined {
 }
 
 export function parseLayoutFile(text: string): Layout {
-  const file = 'layout.yaml'
+  const file = FILE_KINDS.layout.file
   const doc = orEmpty(readYaml(file, text), {})
   if (!isMap(doc)) throw new ParseError(file, 'expected view → object → [x, y]')
   return Object.fromEntries(Object.entries(doc).map(([view, rawBoxes]) => {
@@ -120,18 +122,41 @@ export function parseLayoutFile(text: string): Layout {
 
 
 /**
+ * What the model does with each file Flowy writes. A kind in filekinds.ts that Flowy writes must have an entry here, or this doesn't compile.
+ * `get` is the file's content as plain data, the way serializeFile and PUT /api/file take it. `all` is a folder kind's files by id.
+ */
+type Ops = {
+  parse: (id: string, text: string) => unknown
+  serialize: (data: unknown) => string
+  get: (m: Model, id: string) => unknown
+  all?: (m: Model) => Record<string, unknown>
+}
+
+const OPS: Record<WrittenKind, Ops> = {
+  // For model.yaml that's the file's own top-level keys, not the { objects, connections, meta } that parseModelFile returns.
+  model: { parse: (_, text) => parseModelFile(text), serialize: dumpModel, get: m => ({ ...m.meta, objects: m.objects, connections: m.connections }) },
+  layout: { parse: (_, text) => parseLayoutFile(text), serialize: data => serializeLayout(data as Layout), get: m => m.layout },
+  flow: { parse: parseFlowFile, serialize: dump, get: (m, id) => m.flows[id], all: m => m.flows },
+  failure: { parse: parseAnalysisFile, serialize: dump, get: (m, id) => m.failures[id], all: m => m.failures },
+}
+
+/** The ops for a path and the id it names. Anything that is not a file Flowy writes is read as a flow. */
+function target(rel: string): { ops: Ops; id: string } {
+  const kind = kindOfPath(rel)
+  if (kind === undefined || !kind.writable) return { ops: OPS.flow, id: idUnder(FILE_KINDS.flow, rel) }
+  return { ops: OPS[kind.kind as WrittenKind], id: kind.folder === undefined ? '' : idUnder(kind, rel) }
+}
+
+/**
  * One file's content as plain data, the way serializeFile and PUT /api/file take it. For model.yaml
  * that's the file's own top-level keys, not the { objects, connections, meta } that parseModelFile returns.
  */
 export function fileData(m: Model, rel: string): unknown {
-  if (rel === 'model.yaml') return { ...m.meta, objects: m.objects, connections: m.connections }
-  if (rel === 'layout.yaml') return m.layout
-  if (rel.startsWith('failures/')) return m.failures[rel.slice('failures/'.length, -'.yaml'.length)]
-  return m.flows[rel.slice('flows/'.length, -'.yaml'.length)]
+  const { ops, id } = target(rel)
+  return ops.get(m, id)
 }
 
-/** Whether a file may be absent and so can be created and deleted: a flow or a failure analysis. model.yaml and layout.yaml stay. */
-export const isRemovableFile = (rel: string): boolean => rel.startsWith('flows/') || rel.startsWith('failures/')
+export { isRemovableFile } from './filekinds.ts'
 
 function compactData(doc: Document) {
   const objects = doc.get('objects', true)
@@ -146,7 +171,7 @@ function dumpModel(value: unknown): string {
   return doc.toString({ lineWidth: 0, flowCollectionPadding: false })
 }
 
-export const serializeModelFile = (m: Model) => dumpModel(fileData(m, 'model.yaml'))
+export const serializeModelFile = (m: Model) => dumpModel(fileData(m, FILE_KINDS.model.file))
 export const serializeFlow = (flow: Flow) => dump(flow)
 export const serializeAnalysis = (a: Analysis) => dump(a)
 
@@ -158,10 +183,8 @@ export function serializeLayout(layout: Layout): string {
 
 /** Parse one file of the folder, picked by its path (model.yaml, layout.yaml, flows/<id>.yaml or failures/<id>.yaml). Throws ParseError. */
 export function parseFile(rel: string, text: string): ReturnType<typeof parseModelFile> | Layout | Flow | Analysis {
-  if (rel === 'model.yaml') return parseModelFile(text)
-  if (rel === 'layout.yaml') return parseLayoutFile(text)
-  if (rel.startsWith('failures/')) return parseAnalysisFile(rel.slice('failures/'.length, -'.yaml'.length), text)
-  return parseFlowFile(rel.slice('flows/'.length, -'.yaml'.length), text)
+  const { ops, id } = target(rel)
+  return ops.parse(id, text) as ReturnType<typeof parseModelFile> | Layout | Flow | Analysis
 }
 
 /**
@@ -170,14 +193,15 @@ export function parseFile(rel: string, text: string): ReturnType<typeof parseMod
  * Throws on a number, boolean or null in model or flow files, which only hold text.
  * Not a check: parse the result with parseFile before writing it.
  */
-export const serializeFile = (rel: string, data: unknown): string =>
-  rel === 'layout.yaml' ? serializeLayout(data as Layout) : rel === 'model.yaml' ? dumpModel(data) : dump(data)
+export const serializeFile = (rel: string, data: unknown): string => target(rel).ops.serialize(data)
 
 /** Every file MCP may write, as path → text. layout.yaml belongs to the canvas. */
 export function modelFiles(m: Model): Record<string, string> {
-  const files: Record<string, string> = { 'model.yaml': serializeModelFile(m) }
-  for (const [id, flow] of Object.entries(m.flows)) files[`flows/${id}.yaml`] = serializeFlow(flow)
-  for (const [id, analysis] of Object.entries(m.failures)) files[`failures/${id}.yaml`] = serializeAnalysis(analysis)
+  const files: Record<string, string> = { [FILE_KINDS.model.file]: serializeModelFile(m) }
+  for (const kind of FOLDER_KINDS) {
+    const ops = kind.writable ? OPS[kind.kind as WrittenKind] : undefined
+    if (ops?.all) for (const [id, data] of Object.entries(ops.all(m))) files[pathOf(kind, id)] = ops.serialize(data)
+  }
   return files
 }
 

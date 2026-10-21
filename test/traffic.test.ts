@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { advance, BACK, ghost, GHOST, HOLD, howBehind, moteLook, MOST, newStream, POP, REJECTED_END, visibility } from '../ui/src/traffic.ts'
-import type { Failure } from '../src/core/perf.ts'
+import type { Failure } from '../src/core/perf/types.ts'
 
 /** Run a stream for `ms` in frames of 16 ms, like a screen would. */
 function run(stream: ReturnType<typeof newStream>, line: { perSecond: number; travelMs: number; failed: number; failure?: Failure }, ms: number, rand: () => number = () => 0.99) {

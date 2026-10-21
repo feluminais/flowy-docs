@@ -1,7 +1,10 @@
 import { colorPair } from '../../src/core/look.ts'
 import type { Model } from '../../src/core/model.ts'
-import { eventsOf, interpolate, isTime, levelAt, loadOfPosition, lockstepPositions, rollUp, settingAt } from '../../src/core/perf.ts'
-import type { Dial, Knee, Level, LineTraffic, Metrics, Mode, Pair, Run, RunEvent, Setting } from '../../src/core/perf.ts'
+import { loadOfPosition, lockstepPositions, settingAt } from '../../src/core/perf/dials.ts'
+import { interpolate, levelAt } from '../../src/core/perf/levels.ts'
+import { rollUpLoad } from '../../src/core/perf/rollup.ts'
+import { eventsOf, isTime } from '../../src/core/perf/types.ts'
+import type { Dial, Knee, Level, LineTraffic, Metrics, Mode, Pair, Run, RunEvent, Setting } from '../../src/core/perf/types.ts'
 
 export { isTime }
 
@@ -238,14 +241,14 @@ export function lineSeries(model: Model, run: Run, view: string, from: string, t
 /** An object's number at each of these levels (the levels of a run, or of a run with several sources along one dial: see activeSeries). */
 export function boxSeriesIn(model: Model, levels: readonly Level[], view: string, id: string, key: keyof Metrics): (number | undefined)[] {
   return levels.map(l => {
-    const { objects } = rollUp(model, l, view)
+    const { objects } = rollUpLoad(model, l, view)
     return Object.hasOwn(objects, id) ? objects[id][key] : undefined
   })
 }
 
 /** The same for the line a view draws between two shapes. */
 export function lineSeriesIn(model: Model, levels: readonly Level[], view: string, from: string, to: string, key: keyof Metrics): (number | undefined)[] {
-  return levels.map(l => rollUp(model, l, view).lines.find(p => p.from === from && p.to === to)?.[key])
+  return levels.map(l => rollUpLoad(model, l, view).lines.find(p => p.from === from && p.to === to)?.[key])
 }
 
 /** An object's numbers at a load, or undefined when nothing was measured on it. */
@@ -260,13 +263,13 @@ export function lineAt(model: Model, run: Run, view: string, from: string, to: s
 
 /** An object's numbers in a level (what a run says at a load, or what runs with several sources say at a setting: see levelAt). */
 export function boxAtLevel(model: Model, level: Level, view: string, id: string): Metrics | undefined {
-  const { objects } = rollUp(model, level, view)
+  const { objects } = rollUpLoad(model, level, view)
   return Object.hasOwn(objects, id) ? objects[id] : undefined
 }
 
 /** A line's numbers in a level. */
 export function lineAtLevel(model: Model, level: Level, view: string, from: string, to: string): Pair | undefined {
-  return rollUp(model, level, view).lines.find(p => p.from === from && p.to === to)
+  return rollUpLoad(model, level, view).lines.find(p => p.from === from && p.to === to)
 }
 
 // ---- Colour and key

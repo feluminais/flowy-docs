@@ -36,18 +36,18 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   problem.
 - Ctrl+K or / (or Search) finds a shape anywhere in the model by name. Pick one and the canvas
   opens the level it's on, with its panel open.
-- The icons on the left edge open a panel with two tabs. Explorer (O) shows everything as a tree, with
+- The icons on the left edge open a panel with tabs. Explorer (O) shows everything as a tree, with
   how many shapes and flows are inside each, a dot where something is wrong, and a filter. It sorts as
   VS Code's Explorer does: shapes that hold others first, then the rest, each by name in any case, and
   with numbers read as numbers ("step 2" before "step 10"). A click shows a shape where it's drawn; Enter
   or a double-click zooms into it, and the tree follows you as you zoom. Flows (L) lists every flow, each
   level's by name: first those in the level you're in, then all the others under the level they play in,
-  and a click goes there and plays it. In the browser version a YAML tab (Y) beside them shows the files
-  as text, with every change to them ([YAML and history](#yaml-and-history)). The numbers on the icons are how many shapes and flows there are
-  in all. Details, on the right (its own icon, or a click on a shape or a line), is what the
-  click picked. Where the folder has load-test runs, a Performance icon below it (T) puts a run's panel
-  in Details' place: see [Performance](#performance). Where it has failure analyses, a Failures icon (M) does the same: see
-  [Failure modes](#failure-modes). Drag the inner edge of either panel to resize it,
+  and a click goes there and plays it. Where the folder has failure analyses, Failures (M) lists how things
+  fail, worst first, and marks the diagram: see [Failure modes](#failure-modes). In the browser version a YAML tab (Y) beside them shows the files
+  as text, with every change to them ([YAML and history](#yaml-and-history)). The numbers on the icons are how many shapes, flows and
+  failure modes there are in all. Details, on the right (its own icon, or a click on a shape or a line), is what the
+  click picked, and stays free beside the Failures tab. Where the folder has load-test runs, a Performance icon below it (T) puts a run's panel
+  in Details' place: see [Performance](#performance). Drag the inner edge of either panel to resize it,
   and double-click it to put the width back.
 - Pick a flow in the Flows tab to play it step by step: ← and → move, Home and End jump to the first
   and last step, Esc stops. A step can be one shape doing something on its own, and a step with more
@@ -890,13 +890,13 @@ counts by its `after` ratings, and the panel shows both ("96 to 32").
 part or as an end of a line. Actors are left out, because nothing of ours fails there. Outside services count, since a failing Stripe is
 a failure you design for. Lines don't count. **Not analysed** lists the shapes left.
 
-**Reading it.** Open the Failures tab on the right edge, or press **M**. (In the desktop app it is on the left, beside Explorer and Flows, so Details stays free on the right.) Pick an analysis if there are several. A shape or a line that
+**Reading it.** Open the Failures tab on the left edge, beside Explorer and Flows, or press **M**. Details stays free on the right: a shape or a line picked on the canvas reads out there and narrows the list. Performance and Failures never show at once, because the load and the risk would draw over each other. Pick an analysis if there are several. A shape or a line that
 has modes carries a badge: the colour of its worst band and how many. A shape that holds others adds up what is inside it, so at the
 overview you see which system holds the risk and zoom in to find where, as in Performance. Four items count the modes by band, and a
 click on one filters the list. The list has two groups: **This view**, the modes whose part is inside the level on screen, and **Other
 views**, and picking one of those moves the canvas to the level that draws its part. Pick a mode to see all of it: Effect, Cause, the
 three ratings drawn as ten small cells, Controls, Next action with the owner and status, and what it affects. On the canvas its part is
-outlined in red, what it affects in a lighter outline, and the rest fades. ← and → move down the list and Esc closes the tab. A click on
+outlined in red, what it affects in a lighter outline, and the rest fades. ← and → move down the list, and Esc closes the tab while your last click was in it, as it does Explorer and Flows. A click on
 a shape or a line shows the modes on it. **Show it** plays the flow that tells the failure. **Seen in a run** appears when `run` is set
 and the part has errors in it, and opens Performance at the first load where it does. The address is
 `#<view>/failures/<analysis>/<mode>`.
@@ -1024,10 +1024,10 @@ them. The sample model that ships with the app can't be edited.
 What it has, as the canvas does: zoom into a shape (double-click it, or select it and press Enter; Esc and Backspace go back up, and
 the breadcrumb works too), a frame around the shape you're inside, shapes that belong to another level faded and dashed, wheel to
 zoom and drag to pan, **F** to fit, the side panel with the description, its code, its links, the files a shape lives in (as links when the repo's
-origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one) and the one on the right (**T** for load-test runs), flows that play with ← and → (Home and End go to the first and last
+origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one, **M** lists how things fail) and the one on the right (**T** for load-test runs), flows that play with ← and → (Home and End go to the first and last
 step) with a step's animation, **R** to play it again and **P** to let the flow run on its own, **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a shape that sits
-beside the one you're in slides across instead of zooming in.** It doesn't have the browser's YAML tab (**Y**) or Failures tab (**M**) yet.
+beside the one you're in slides across instead of zooming in.** It doesn't have the browser's YAML tab (**Y**) yet.
 
 The links in a shape's panel open on your computer. A web address opens in the browser, a folder in the file explorer, and a file in your
 default app if it is a document (Markdown, text, PDF, a common image). Any other file, such as a script or a program, is shown in its
