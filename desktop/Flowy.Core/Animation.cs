@@ -236,6 +236,97 @@ public static class Animations
     private static Beat[] When(bool condition, params Beat[] beats) => condition ? beats : [];
 
     /// <summary>
+    /// The drawings the pickers of edit mode offer, one for each way a step can travel and one for each way its request can end, as stroke-only path data on a
+    /// 44 by 24 grid: the same strings the browser draws (src/core/animation.ts). "none" is no animation, and a request that arrives.
+    /// </summary>
+    public static readonly (string Id, string Path)[] KindSketches =
+    [
+        ("none", "M6 12H38"),
+        ("send", "M6 12H36M30 6l6 6l-6 6"),
+        ("call", "M6 8H38M32 3l6 5l-6 5M38 17H6M12 12l-6 5l6 5"),
+        ("callback", "M22 3a5 5 0 0 0 -5 5v4l-2 4h14l-2 -4v-4a5 5 0 0 0 -5 -5zM20 19a2 2 0 0 0 4 0"),
+        ("event", "M24 2l-9 12h7l-2 8l9 -12h-7z"),
+    ];
+
+    public static readonly (string Id, string Path)[] OutcomeSketches =
+    [
+        ("none", "M6 12H36M30 6l6 6l-6 6"),
+        ("fail", "M6 12H26M31 6l9 12M40 6l-9 12"),
+        ("timeout", "M6 12H22M29 12h.01M34 12h.01M39 12h.01"),
+        ("lost", "M6 12H16M22 6l10 12M32 6l-10 12"),
+        ("rejected", "M6 9H31M37 3v18M31 16H12M18 11l-6 5l6 5"),
+        ("intercepted", "M6 8H18l7 8M27 14h12v8h-12z"),
+        ("duplicated", "M6 7H36M30 2l6 5l-6 5M6 18H36M30 13l6 5l-6 5"),
+        ("delayed", "M6 12H15M29 12H38M22 6a6 6 0 1 0 .01 0M22 9v3l2 2"),
+    ];
+
+    /// <summary>
+    /// Why an outcome cannot be picked for a step that travels as <paramref name="kind"/>, in a few words for a tooltip, or null when it can. The picker greys the choice
+    /// out with this beside it, and the checks refuse the same pairs. An outcome of "" (the request arrives) always fits.
+    /// </summary>
+    public static string? OutcomeBlock(string? kind, string outcome)
+    {
+        if (outcome == "") return null;
+        if (string.IsNullOrEmpty(kind)) return "Pick how it travels first";
+        if (kind == "callback") return "Not for a callback";
+        if (outcome == "timeout" && kind != "call") return "Needs a call";
+        if (outcome == "fail" && kind is not ("send" or "call")) return "Needs a send or a call";
+        return null;
+    }
+
+    /// <summary>Who takes an intercepted request until the reader names one: an interception needs a taker, so picking it never leaves the step without.</summary>
+    public const string DefaultTaker = "Third party";
+
+    /// <summary>The keys that mean something only while the step has an outcome.</summary>
+    private static readonly string[] NeedsOutcome = ["share", "reason", "by", "at"];
+
+    /// <summary>
+    /// A step's <c>animation</c> with one key set, as the pickers of edit mode make it: a port of animationWith in src/core/animation.ts. The keys are kind, outcome,
+    /// share, reason, at, carries, by (the id of a shape that takes the request) and byName (the name of a party that is not in the model). Null is no animation, a
+    /// string is the bare kind, and a mapping keeps the order of the keys that were there.
+    /// </summary>
+    public static object? With(object? current, string key, string value)
+    {
+        var map = new OrderedDictionary<string, object?>();
+        if (current is OrderedDictionary<string, object?> given) foreach (var (k, v) in given) map[k] = v;
+        else if (current is string kind0 && kind0 != "") map["kind"] = kind0;
+        void Drop(params string[] keys)
+        {
+            foreach (var k in keys) map.Remove(k);
+        }
+        var text = Structure.JsTrim(value);
+        switch (key)
+        {
+            case "kind":
+                if (text == "") return null;
+                map["kind"] = text;
+                if (text != "callback") Drop("trigger");
+                if (map.TryGetValue("outcome", out var had) && had is string outcome && OutcomeBlock(text, outcome) is not null) Drop(["outcome", .. NeedsOutcome]);
+                break;
+            case "outcome":
+                if (text == "") Drop(["outcome", .. NeedsOutcome]);
+                else
+                {
+                    map["outcome"] = text;
+                    if (text != "intercepted") Drop("by");
+                    if (text != "lost") Drop("at");
+                }
+                break;
+            case "byName":
+                if (text == "") Drop("by");
+                else map["by"] = new OrderedDictionary<string, object?> { ["name"] = text };
+                break;
+            default:
+                if (text == "") Drop(key);
+                else map[key] = text;
+                break;
+        }
+        if (map.TryGetValue("outcome", out var now) && now is "intercepted" && !map.ContainsKey("by")) map["by"] = new OrderedDictionary<string, object?> { ["name"] = DefaultTaker };
+        if (map.Count == 0) return null;
+        return map.Count == 1 && map.TryGetValue("kind", out var only) && only is string name ? name : map;
+    }
+
+    /// <summary>
     /// Whether the step leaves marks where its outcome happened (a cross, a bar, a clock, a marker, a reason). A still picture needs them too, and the label of its line
     /// moves aside so they never sit on it.
     /// </summary>

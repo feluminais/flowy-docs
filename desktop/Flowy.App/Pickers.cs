@@ -80,7 +80,8 @@ internal sealed class Chooser : StackPanel
     private readonly Func<string, string> _describe;
     private string? _chosen;
 
-    public Chooser(string label, Panel cells, Func<string, Task<bool>> picked, Func<string, string>? describe = null)
+    /// <param name="maxHeight">The most the cells may take: more of them scroll, for a long list such as every shape of the model.</param>
+    public Chooser(string label, Panel cells, Func<string, Task<bool>> picked, Func<string, string>? describe = null, double? maxHeight = null)
     {
         Spacing = 6;
         _cells = cells;
@@ -89,11 +90,28 @@ internal sealed class Chooser : StackPanel
         cells.Margin = new Thickness(-3); // the cells carry 3 on each side, so the first row and column sit at the edge
         AutomationProperties.SetName(cells, label);
         Children.Add(Pick.Head(label, out _value));
-        Children.Add(cells);
+        if (maxHeight is { } height)
+        {
+            cells.Margin = new Thickness(0);
+            Children.Add(new ScrollViewer { Content = cells, MaxHeight = height, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled });
+        }
+        else Children.Add(cells);
     }
 
     /// <summary>The ids on offer, in order.</summary>
     internal IReadOnlyList<string> Ids => _ids;
+
+    /// <summary>Whether the cell of <paramref name="id"/> can be picked, and, when it cannot, why (its tooltip). A cell that cannot be picked stays where it is, dimmed.</summary>
+    public void Allow(string id, string? blocked)
+    {
+        if (!_byId.TryGetValue(id, out var cell)) return;
+        cell.IsEnabled = blocked is null;
+        cell.Opacity = blocked is null ? 1 : 0.4;
+        ToolTip.SetTip(cell, blocked is null ? AutomationProperties.GetName(cell) : blocked);
+    }
+
+    /// <summary>Whether the cell of <paramref name="id"/> can be picked now, for the tests.</summary>
+    internal bool Allowed(string id) => _byId.TryGetValue(id, out var cell) && cell.IsEnabled;
 
     internal string? Chosen => _chosen;
 

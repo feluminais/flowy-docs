@@ -266,6 +266,22 @@ export function removeStep(model: Model, id: string, index: number): Model {
 }
 
 /**
+ * Set what step `index` of a flow plays: a kind, or a mapping with a kind (`{ kind: call, outcome: rejected, reason: Rate limit }`), as put_flow takes it. A mapping
+ * has its numbers written as text, as a file holds them. `undefined` takes the animation away. The step keeps its other keys, and an `animation` it already has
+ * keeps its place. Whether the animation is allowed is the checker's to say when the edit is saved, in the words put_flow is refused with.
+ */
+export function setStepAnimation(model: Model, id: string, index: number, animation: Record<string, unknown> | string | undefined): Model {
+  const flow = existingFlow(model, id)
+  const step = existingStep(flow, id, index)
+  const steps = [...flow.steps]
+  if (animation === undefined || animation === '') {
+    const { animation: _, ...rest } = step
+    steps[index] = rest as Step
+  } else steps[index] = { ...step, animation: animationAsText(animation) }
+  return { ...model, flows: { ...model.flows, [id]: { ...flow, steps } } }
+}
+
+/**
  * Put step `index` in the declared group `group` ("" takes it out of its group). It leaves its old group first, as in removeStep. A repeat has
  * no lanes. In a branch or parallel group a step that comes before the others takes over the label of the first lane, which it joins at the
  * front, and in a group with no other step it starts "Lane 1".

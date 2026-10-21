@@ -442,6 +442,84 @@ export function beatsFor(a: Animation, { length, afterLanding }: { length: numbe
 }
 
 /**
+ * The drawings the pickers of edit mode offer, one for each way a step can travel and one for each way its request can end, as stroke-only path data on a
+ * 44 by 24 grid. The browser and the desktop app draw the same strings. `none` is the choice of no animation, and of a request that arrives.
+ */
+export const KIND_SKETCHES: Record<'none' | AnimationKind, string> = {
+  none: 'M6 12H38',
+  send: 'M6 12H36M30 6l6 6l-6 6',
+  call: 'M6 8H38M32 3l6 5l-6 5M38 17H6M12 12l-6 5l6 5',
+  callback: 'M22 3a5 5 0 0 0 -5 5v4l-2 4h14l-2 -4v-4a5 5 0 0 0 -5 -5zM20 19a2 2 0 0 0 4 0',
+  event: 'M24 2l-9 12h7l-2 8l9 -12h-7z',
+}
+export const OUTCOME_SKETCHES: Record<'none' | Outcome, string> = {
+  none: 'M6 12H36M30 6l6 6l-6 6',
+  fail: 'M6 12H26M31 6l9 12M40 6l-9 12',
+  timeout: 'M6 12H22M29 12h.01M34 12h.01M39 12h.01',
+  lost: 'M6 12H16M22 6l10 12M32 6l-10 12',
+  rejected: 'M6 9H31M37 3v18M31 16H12M18 11l-6 5l6 5',
+  intercepted: 'M6 8H18l7 8M27 14h12v8h-12z',
+  duplicated: 'M6 7H36M30 2l6 5l-6 5M6 18H36M30 13l6 5l-6 5',
+  delayed: 'M6 12H15M29 12H38M22 6a6 6 0 1 0 .01 0M22 9v3l2 2',
+}
+
+/**
+ * Why an outcome cannot be picked for a step that travels as `kind`, in a few words for a tooltip, or undefined when it can. The picker greys the choice out
+ * with this beside it, and the checker refuses the same pairs. `outcome` "" (the request arrives) always fits.
+ */
+export function outcomeBlock(kind: string | undefined, outcome: string): string | undefined {
+  if (outcome === '') return undefined
+  if (kind === undefined || kind === '') return 'Pick how it travels first'
+  if (kind === 'callback') return 'Not for a callback'
+  if (outcome === 'timeout' && kind !== 'call') return 'Needs a call'
+  if (outcome === 'fail' && kind !== 'send' && kind !== 'call') return 'Needs a send or a call'
+  return undefined
+}
+
+/** The keys of an animation the pickers and fields of edit mode set. `by` is the id of a shape that takes the request, `byName` the name of a party that is not in the model. */
+export type AnimationKey = 'kind' | 'outcome' | 'share' | 'reason' | 'at' | 'carries' | 'by' | 'byName'
+
+/** Who takes an intercepted request until the reader names one: an interception needs a taker, so picking it never leaves the step without. */
+export const DEFAULT_TAKER = 'Third party'
+
+/** The keys that mean something only while the step has an outcome. */
+const NEEDS_OUTCOME = ['share', 'reason', 'by', 'at'] as const
+
+/**
+ * A step's `animation` with one key set, as the pickers of edit mode make it. Setting the kind to "" takes the animation away, and the outcome to "" takes it
+ * away together with what needs it (share, reason, by, at). A choice that no longer fits what is set drops what it unseats: a new kind drops an outcome it
+ * cannot have, a new outcome drops `by` unless it is intercepted and `at` unless it is lost. An intercepted step always has someone who takes it: when none
+ * is named it is DEFAULT_TAKER. A blank text removes its key. The result is the bare kind when
+ * nothing else is set, else a mapping that keeps the order of the keys that were there; undefined means no animation.
+ */
+export function animationWith(current: unknown, key: AnimationKey, value: string): Record<string, unknown> | string | undefined {
+  const map: Record<string, unknown> = isMap(current) ? { ...current } : typeof current === 'string' && current !== '' ? { kind: current } : {}
+  const drop = (...keys: string[]) => keys.forEach(k => delete map[k])
+  const text = value.trim()
+  if (key === 'kind') {
+    if (text === '') return undefined
+    map.kind = text
+    if (text !== 'callback') drop('trigger')
+    if (typeof map.outcome === 'string' && outcomeBlock(text, map.outcome) !== undefined) drop('outcome', ...NEEDS_OUTCOME)
+  } else if (key === 'outcome') {
+    if (text === '') drop('outcome', ...NEEDS_OUTCOME)
+    else {
+      map.outcome = text
+      if (text !== 'intercepted') drop('by')
+      if (text !== 'lost') drop('at')
+    }
+  } else if (key === 'byName') {
+    if (text === '') drop('by')
+    else map.by = { name: text }
+  } else if (text === '') drop(key)
+  else map[key] = text
+  if (map.outcome === 'intercepted' && map.by === undefined) map.by = { name: DEFAULT_TAKER }
+  const keys = Object.keys(map)
+  if (keys.length === 0) return undefined
+  return keys.length === 1 && keys[0] === 'kind' && typeof map.kind === 'string' ? map.kind : map
+}
+
+/**
  * Whether the step leaves marks where its outcome happened (a cross, a bar, a clock, a marker, a reason). A still picture needs them too, and the label of
  * its line moves aside so they never sit on it.
  */
