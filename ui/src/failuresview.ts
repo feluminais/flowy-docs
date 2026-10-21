@@ -86,6 +86,7 @@ export function neighbour(ids: string[], current: string | undefined, delta: 1 |
 
 /** The first tested level of a run, from 0, where the mode's part has errors above 0, measured in the view that draws it. Undefined when it never does, or was never measured. */
 export function firstErrorAt(model: Model, run: Run, m: Mode): number | undefined {
+  if (run.adds !== undefined || run.sources !== undefined) return undefined // a run with several sources has no one level to go to
   const view = homeView(model, m)
   let series: (number | undefined)[] = []
   if (typeof m.on === 'string' && m.on !== '') {

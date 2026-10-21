@@ -56,3 +56,28 @@ test('an address can name a run and a tested level, and no other address reads a
     assert.deepEqual(readHash(hash), { view: ROOT }, hash)
   assert.deepEqual(readHash('#shop/perf'), { view: 'shop', flow: 'perf' }) // a flow can be called perf
 })
+
+test('a run with several sources has a place for each in its address, in dial order, and it goes both ways', () => {
+  assert.equal(toHash('shop', undefined, { run: 'together', level: 2, levels: [2, 1.5] }), '#shop/perf/together/2,1.5')
+  assert.equal(toHash(ROOT, undefined, { run: 'together', level: 0, levels: [0, 0, 3] }), '#root/perf/together/0,0,3')
+  assert.deepEqual(readHash('#shop/perf/together/2,1.5'), { view: 'shop', perf: { run: 'together', level: 2, levels: [2, 1.5] } })
+  assert.deepEqual(readHash('#root/perf/together/0,0,3,1'), { view: ROOT, perf: { run: 'together', level: 0, levels: [0, 0, 3, 1] } })
+  for (const levels of [[0, 0], [3, 1], [2, 1.5], [10, 0.25, 4]]) {
+    const perf = { run: 'together', level: levels[0], levels }
+    assert.deepEqual(readHash(toHash('shop', undefined, perf)), { view: 'shop', perf })
+  }
+  // a single run's address is what it was
+  assert.deepEqual(readHash('#shop/perf/together/2'), { view: 'shop', perf: { run: 'together', level: 2 } })
+})
+
+test('a list of places that is not one reads as no places, so the page opens at the opening place, and nothing throws', () => {
+  // a number that is not one, an empty place, a sign, an exponent, too many places, a place with too many digits
+  for (const list of ['x,1', '1,', ',1', '1,,2', '-1,2', '1e3,2', '1,2,3,4,5', '1234567,1', '1.,2', '.5,2', '1,2x', ',']) {
+    const read = readHash(`#shop/perf/together/${list}`)
+    assert.deepEqual(read, { view: 'shop', perf: { run: 'together', level: 0, levels: [] } }, list)
+  }
+  // a list is only a list for a run: the run and the view must still be ids, and the address has no more parts
+  for (const hash of ['#shop/perf/Together/1,2', '#Bad/perf/together/1,2', '#shop/perf/together/1,2/3', '#shop/runs/together/1,2'])
+    assert.deepEqual(readHash(hash), { view: ROOT }, hash)
+  assert.doesNotThrow(() => readHash('#shop/perf/together/' + '9,'.repeat(5000)))
+})

@@ -264,12 +264,18 @@ public static class PerfView
     // ---- readings -----------------------------------------------------------------------------------------------
 
     /// <summary>What each tested level says about an object, key by key, as the view draws it (a shape that holds others takes the worst of what is inside).</summary>
-    public static IReadOnlyList<double?> BoxSeries(Model model, LoadRun run, string view, string id, string key) =>
-        run.Levels.Select(l => Perf.RollUp(model, l, view).Objects is var o && o.TryGetValue(id, out var m) ? m[key] : null).ToList();
+    public static IReadOnlyList<double?> BoxSeries(Model model, LoadRun run, string view, string id, string key) => BoxSeriesIn(model, run.Levels, view, id, key);
 
     /// <summary>The same for the line a view draws between two shapes.</summary>
-    public static IReadOnlyList<double?> LineSeries(Model model, LoadRun run, string view, string from, string to, string key) =>
-        run.Levels.Select(l => Perf.RollUp(model, l, view).Lines.FirstOrDefault(p => p.From == from && p.To == to)?[key]).ToList();
+    public static IReadOnlyList<double?> LineSeries(Model model, LoadRun run, string view, string from, string to, string key) => LineSeriesIn(model, run.Levels, view, from, to, key);
+
+    /// <summary>An object's number at each of these levels (the levels of a run, or of a run with several sources along one dial: see <see cref="ActiveSeries"/>).</summary>
+    public static IReadOnlyList<double?> BoxSeriesIn(Model model, IEnumerable<Level> levels, string view, string id, string key) =>
+        levels.Select(l => Perf.RollUp(model, l, view).Objects is var o && o.TryGetValue(id, out var m) ? m[key] : null).ToList();
+
+    /// <summary>The same for the line a view draws between two shapes.</summary>
+    public static IReadOnlyList<double?> LineSeriesIn(Model model, IEnumerable<Level> levels, string view, string from, string to, string key) =>
+        levels.Select(l => Perf.RollUp(model, l, view).Lines.FirstOrDefault(p => p.From == from && p.To == to)?[key]).ToList();
 
     /// <summary>An object's numbers at a load, or null when nothing was measured on it.</summary>
     public static Metrics? BoxAt(Model model, LoadRun run, string view, string id, double load) =>
@@ -299,4 +305,109 @@ public static class PerfView
 
     /// <summary>A source's colour for the theme that is showing, as <c>#rrggbb</c>: a named colour has one for each theme, a hex is the same in both. Null for text that is neither.</summary>
     public static string? SourceHex(string? color, bool dark) => Look.ColorPair(color) is { } pair ? (dark ? pair.Dark : pair.Light) : null;
+
+    // ---- several dials ------------------------------------------------------------------------------------------
+
+    /// <summary>The top of a dial's slider: the position of its last tested load.</summary>
+    public static int DialTop(Dial d) => d.Values.Count - 1;
+
+    public static double ClampDial(Dial d, double pos) => Math.Min(DialTop(d), Math.Max(0, double.IsFinite(pos) ? pos : 0));
+
+    /// <summary>The setting that puts every dial at its position (see <see cref="Perf.SettingAt"/>).</summary>
+    public static IdMap<double> SettingOf(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions) => Perf.SettingAt(dials, positions);
+
+    /// <summary>The position of a load along a dial, the other way round from <see cref="Perf.LoadOfPosition"/>: a tested load is its whole position, and between two it is a straight line. Outside the loads it is the nearest end.</summary>
+    public static double PositionOf(Dial d, double x)
+    {
+        var top = DialTop(d);
+        if (!double.IsFinite(x) || x <= d.Values[0]) return 0;
+        if (x >= d.Values[top]) return top;
+        for (var i = 0; i < top; i++)
+            if (x < d.Values[i + 1]) return i + (x - d.Values[i]) / (d.Values[i + 1] - d.Values[i]);
+        return top;
+    }
+
+    /// <summary>The positions of a setting, one for each dial; a dial it doesn't name is at its lowest load.</summary>
+    public static List<double> PositionsOf(IReadOnlyList<Dial> dials, IdMap<double> setting) =>
+        [.. dials.Select(d => PositionOf(d, setting.TryGetValue(d.Id, out var x) ? x : double.NaN))];
+
+    /// <summary>
+    /// Where the panel opens: at the first struggle when every dial rises together (the knee's step, each dial along its own loads), else every dial at its top, as a single run opens.
+    /// <paramref name="knee"/> is what <see cref="Perf.KneeOf"/> found for the run, if anything.
+    /// </summary>
+    public static List<double> OpeningPositions(IReadOnlyList<Dial> dials, Knee? knee) =>
+        knee is null ? [.. dials.Select(d => (double)DialTop(d))] : Perf.LockstepPositions(dials, knee.Index);
+
+    /// <summary>The positions with the dial <paramref name="active"/> at <paramref name="pos"/> (kept inside the dial); the others stay where they are.</summary>
+    public static List<double> PlaceActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active, double pos) =>
+        [.. positions.Select((p, i) => i == active ? ClampDial(dials[i], pos) : p)];
+
+    /// <summary>The whole-number position one step on from <paramref name="pos"/> in <paramref name="direction"/> (1 or -1): the next tested load, or the one before, even when <paramref name="pos"/> is between two.</summary>
+    public static double StepFrom(double pos, int direction) => direction == 1 ? Math.Floor(pos + 1e-6) + 1 : Math.Ceiling(pos - 1e-6) - 1;
+
+    /// <summary>The positions with the dial <paramref name="active"/> one tested load further on (it stops at either end). Arrow keys.</summary>
+    public static List<double> StepActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active, int direction) =>
+        PlaceActive(dials, positions, active, Perf.JsRound(ClampDial(dials[active], StepFrom(positions[active], direction))));
+
+    /// <summary>The positions with the dial <paramref name="active"/> at its first or last tested load. Home and End.</summary>
+    public static List<double> EdgeActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active, bool end) =>
+        PlaceActive(dials, positions, active, end ? DialTop(dials[active]) : 0);
+
+    /// <summary>The positions with the dial <paramref name="active"/> <paramref name="ms"/> further on in a ramp (it stops at its last tested load). The others are held.</summary>
+    public static List<double> RampActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active, double ms) =>
+        PlaceActive(dials, positions, active, positions[active] + ms * DialTop(dials[active]) / RampMs);
+
+    /// <summary>Where a ramp of the dial <paramref name="active"/> starts: from its bottom when it is at the top already, else from where it is.</summary>
+    public static List<double> RampFromActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active) =>
+        positions[active] >= DialTop(dials[active]) ? PlaceActive(dials, positions, active, 0) : [.. positions];
+
+    /// <summary>
+    /// The level at each tested load of the dial <paramref name="active"/>, with the others held where they stand: what the Strip and the small curves plot, as a single run plots the levels it
+    /// was tested at. One level for each load of the dial, in order.
+    /// </summary>
+    public static List<Level> ActiveSeries(IdMap<LoadRun> runs, string id, IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active)
+    {
+        var held = SettingOf(dials, positions);
+        var dial = dials[Math.Min(dials.Count - 1, Math.Max(0, active))];
+        return [.. dial.Values.Select(v =>
+        {
+            var setting = new IdMap<double>();
+            foreach (var d in dials) setting.Add(d.Id, d.Id == dial.Id ? v : held[d.Id]);
+            return Perf.LevelAt(runs, id, setting);
+        })];
+    }
+
+    /// <summary>The dials that are held while the Strip and the curves follow <paramref name="active"/>, each with its name and where it stands in words: "Courier pings held at 100 pings/s".</summary>
+    public static List<string> HeldText(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active)
+    {
+        var output = new List<string>();
+        for (var i = 0; i < dials.Count; i++)
+            if (i != active) output.Add($"{dials[i].Name} held at {FmtLoad(Perf.LoadOfPosition(dials[i].Values, positions[i]), dials[i].Unit)}");
+        return output;
+    }
+
+    /// <summary>The labels under a dial's slider: its tested loads at their places along it (0 to 1), every one, or every few when there would be too many to read. The last is always named.</summary>
+    public static IReadOnlyList<(double Fraction, string Label)> DialTicks(Dial d, int most = 8)
+    {
+        var n = d.Values.Count;
+        var every = (int)Math.Ceiling(n / (double)most);
+        var output = new List<(double, string)>();
+        for (var i = 0; i < n; i++)
+            if (i % every == 0 || i == n - 1) output.Add((n == 1 ? 0 : (double)i / (n - 1), Num(d.Values[i])));
+        return output;
+    }
+
+    /// <summary>The tested loads either side of a position (the same when it is on one), for "Between 600 and 900, estimated".</summary>
+    public static (double Lower, double Upper, bool Tested) BracketOf(Dial d, double pos)
+    {
+        var top = DialTop(d);
+        var p = ClampDial(d, pos);
+        return (d.Values[Math.Min(top - 1, (int)Math.Floor(p))], d.Values[Math.Min(top, (int)Math.Floor(p) + 1)], IsTested(p));
+    }
+
+    /// <summary>What the panel says once, near the top, about how the sources were measured: nothing for a single run.</summary>
+    public static string? ModeLabel(string mode) => mode switch { Perf.ModeAdded => "Added from separate runs", Perf.ModeTested => "Tested together", _ => null };
+
+    /// <summary>What a shape's readout says when runs that were added made it pass its capacity, which one run never does: nothing for a share that is 1 or under, or for runs tested together.</summary>
+    public static string? OverText(string mode, double? util) => mode == Perf.ModeAdded && util > 1 ? "Added use is over 100%" : null;
 }
