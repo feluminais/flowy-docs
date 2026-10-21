@@ -1,9 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ParseError } from '../src/core/model.ts'
-import { checkRun, checkRuns, dialsOf, parseRun, SOURCE_PALETTE } from '../src/core/perf.ts'
+import {
+  AT_ONCE, checkRun, checkRuns, dialsOf, interpolate, knee, kneeOf, kneeTextOf, levelAt, lockstepPositions, parseRun, rollUp, settingAt, SOURCE_PALETTE, sourceKeyAt, trafficAt, traffic,
+} from '../src/core/perf.ts'
 import type { Run } from '../src/core/perf.ts'
 import { shop } from './fixtures.ts'
+import { nameOf } from '../src/core/views.ts'
 
 /**
  * Several sources of requests: a run that adds others and a run tested together. These read against the shop fixture (test/fixtures.ts), where orders and auth
@@ -364,4 +367,314 @@ test('a time run is one dial too, over its times', () => {
 test('a dial for a run that is not there is nothing', () => {
   assert.equal(dialsOf({}, 'x'), undefined)
   assert.equal(dialsOf(added().runs, '__proto__'), undefined)
+})
+
+// ---- settings, combining and the grid
+
+const near = (actual: number | undefined, expected: number, message?: string) => assert.ok(actual !== undefined && Math.abs(actual - expected) < 1e-9, message ?? `expected ${expected}, got ${actual}`)
+const together = () => added().runs
+const nameFor = (id: string) => shop().objects[id]?.name ?? id
+
+test('two added runs add what they say about a shape at their own loads: 0.3 and 0.4 make 0.7', () => {
+  const runs = together()
+  const level = levelAt(runs, 'together', { orders: 200, pings: 100 })
+  near(level.objects.db.util, 0.7)
+  near(level.objects.db.queue, 5) // 3 + 2
+  near(level.objects.orders.util, 0.4)
+  near(level.objects.auth.util, 0.3)
+  assert.deepEqual(level.loads, { orders: 200, pings: 100 })
+  // Each part is interpolated at its own load before they add.
+  near(levelAt(runs, 'together', { orders: 150, pings: 75 }).objects.db.util, 0.3 + 0.2)
+})
+
+test('added past 100% a shape reads over capacity, its colour stops at full strain, and nothing is NaN', () => {
+  const runs = together()
+  const level = levelAt(runs, 'together', { orders: 300, pings: 200 })
+  near(level.objects.db.util, 1.3)
+  const t = trafficAt(shop(), runs, 'together', { orders: 300, pings: 200 }, 'shop')
+  assert.equal(t.boxes.db.strain, 1)
+  assert.equal(t.boxes.shop.strain, 1)
+  for (const b of Object.values(t.boxes)) assert.ok(Number.isFinite(b.queue) && (b.strain === undefined || Number.isFinite(b.strain)))
+  // The same shape of a single run never passes 1.
+  assert.equal(trafficAt(shop(), runs, 'orders', { '': 300 }, 'shop').boxes.db.strain, 0.6)
+})
+
+test('errors take the worst; a shape one part does not measure keeps what the other says', () => {
+  const runs = runsOf({
+    a: 'name: A\nunit: a/s\nlevels:\n  - { load: 1, objects: { api: { util: 0.2, errors: 0.01, queue: 1 }, db: { util: 0.1 } } }\n  - { load: 2, objects: { api: { util: 0.3, errors: 0.01, queue: 1 }, db: { util: 0.1 } } }\n',
+    b: 'name: B\nunit: b/s\nlevels:\n  - { load: 1, objects: { api: { util: 0.1, errors: 0.04 } } }\n  - { load: 2, objects: { api: { util: 0.1, errors: 0.04 } } }\n',
+    both: 'name: Both\nadds: [a, b]\n',
+  }).runs
+  const level = levelAt(runs, 'both', { a: 1, b: 1 })
+  near(level.objects.api.util, 0.3)
+  near(level.objects.api.errors, 0.04)
+  near(level.objects.api.queue, 1)
+  assert.deepEqual(level.objects.db, { util: 0.1 })
+})
+
+test('a line adds its rates, takes the worst latency and failing share, and weighs the size of a call by rate', () => {
+  const part = (name: string, unit: string, c: string) => `name: ${name}\nunit: ${unit}\nlevels:\n  - { load: 1, overall: { rate: 1 }, connections: [${c}] }\n  - { load: 2, connections: [${c}] }\n`
+  const runs = runsOf({
+    a: part('A', 'a/s', '{ from: web, to: api, rate: 10, bytes: 100, p50: 5, p95: 9, errors: 0.1 }'),
+    b: part('B', 'b/s', '{ from: web, to: api, rate: 30, bytes: 500, p50: 20, p95: 40, errors: 0.02 }'),
+    c: part('C', 'c/s', '{ from: web, to: api, rate: 20, bytes: 300, p50: 1 }'),
+    d: part('D', 'd/s', '{ from: web, to: api, rate: 20, bytes: 100, p50: 1 }'),
+    ab: 'name: AB\nadds: [a, b]\n', cd: 'name: CD\nadds: [c, d]\n',
+  }).runs
+  const [ab] = levelAt(runs, 'ab', { a: 1, b: 1 }).connections
+  assert.deepEqual({ ...ab, by: undefined }, { from: 'web', to: 'api', rate: 40, bytes: 400, p50: 20, p95: 40, errors: 0.1, by: undefined })
+  assert.deepEqual(ab.by, { a: { rate: 10, bytes: 100, p50: 5, errors: 0.1 }, b: { rate: 30, bytes: 500, p50: 20, errors: 0.02 } })
+  // Equal rates, different sizes: the mean of the two.
+  near(levelAt(runs, 'cd', { c: 1, d: 1 }).connections[0].bytes, 200)
+})
+
+test('a line carried by two parts keeps what each carried, once the view folds them onto one line', () => {
+  const [, shared] = rollUp(shop(), levelAt(together(), 'together', { orders: 200, pings: 100 }), 'shop').lines
+  assert.equal(shared.from + shared.to, 'apidb')
+  near(shared.rate, 150)
+  assert.deepEqual(shared.by, { orders: { rate: 100, bytes: 400, p50: 20, errors: 0.01 }, pings: { rate: 50, bytes: 100, p50: 50 } })
+})
+
+test('levelAt of a single run is interpolate, and keeps a time run, a load that is not a number and a missing dial at the lowest level', () => {
+  const runs = together()
+  for (const load of [100, 150, 250, 300, 0, 999, Number.NaN, Number.POSITIVE_INFINITY]) assert.deepEqual(levelAt(runs, 'orders', { '': load }), interpolate(runs.orders, load))
+  assert.deepEqual(levelAt(runs, 'orders', {}), interpolate(runs.orders, Number.NaN))
+  assert.deepEqual(levelAt(runs, 'orders', { x: 5 }).objects, interpolate(runs.orders, 100).objects)
+})
+
+test('a setting past a dial\'s range is that end, a setting that is not a number is the lowest, and a missing dial too', () => {
+  const runs = together()
+  assert.deepEqual(levelAt(runs, 'together', { orders: 9999, pings: -5 }).loads, { orders: 300, pings: 50 })
+  assert.deepEqual(levelAt(runs, 'together', { orders: Number.NaN, pings: Number.POSITIVE_INFINITY }).loads, { orders: 100, pings: 50 })
+  assert.deepEqual(levelAt(runs, 'together', {}).loads, { orders: 100, pings: 50 })
+  assert.deepEqual(levelAt(runs, 'together', { orders: 100, pings: 50, extra: 7 }).loads, { orders: 100, pings: 50 })
+  assert.deepEqual(levelAt(runs, 'ghost', { '': 1 }), { load: 0, overall: {}, objects: {}, connections: [] })
+})
+
+/** A 2 by 2 grid whose corners are 0.1, 0.2, 0.5 and 0.9 on db; the line has a `by` at every corner. */
+const SQUARE = `name: Square
+sources:
+  orders: { name: Customer orders, unit: orders/min, color: blue, dot: rate / 50 }
+  pings: { name: Courier pings, unit: pings/s, color: green, dot: rate / 25 }
+levels:
+  - load: { orders: 100, pings: 10 }
+    overall: { p95: 40 }
+    objects: { db: { util: 0.1, queue: 0 } }
+    connections: [{ from: orders, to: db, rate: 20, p50: 10, by: { orders: { rate: 10 }, pings: { rate: 10 } } }]
+  - load: { orders: 100, pings: 30 }
+    overall: { p95: 60 }
+    objects: { db: { util: 0.2, queue: 4 } }
+    connections: [{ from: orders, to: db, rate: 40, p50: 20, by: { orders: { rate: 10 }, pings: { rate: 30 } } }]
+  - load: { orders: 300, pings: 10 }
+    overall: { p95: 80 }
+    objects: { db: { util: 0.5, queue: 8 } }
+    connections: [{ from: orders, to: db, rate: 100, p50: 30, by: { orders: { rate: 90 }, pings: { rate: 10 } } }]
+  - load: { orders: 300, pings: 30 }
+    overall: { p95: 120 }
+    objects: { db: { util: 0.9, queue: 12 } }
+    connections: [{ from: orders, to: db, rate: 120, p50: 40, by: { orders: { rate: 90 }, pings: { rate: 30 } } }]
+`
+const square = () => runsOf({ square: SQUARE }).runs
+
+test('a 2 by 2 grid blends at its centre to the mean of its four corners, and gives a tested combination exactly', () => {
+  const runs = square()
+  const centre = levelAt(runs, 'square', { orders: 200, pings: 20 })
+  near(centre.objects.db.util, (0.1 + 0.2 + 0.5 + 0.9) / 4)
+  near(centre.objects.db.queue, (0 + 4 + 8 + 12) / 4)
+  near(centre.overall.p95, (40 + 60 + 80 + 120) / 4)
+  near(centre.connections[0].rate, (20 + 40 + 100 + 120) / 4)
+  near(centre.connections[0].by!.pings.rate, (10 + 30 + 10 + 30) / 4)
+  assert.deepEqual(centre.loads, { orders: 200, pings: 20 })
+  const corner = levelAt(runs, 'square', { orders: 300, pings: 10 })
+  near(corner.objects.db.util, 0.5)
+  assert.equal(corner.objects.db.queue, 8)
+  assert.deepEqual(corner.connections[0], { from: 'orders', to: 'db', rate: 100, p50: 30, by: { orders: { rate: 90 }, pings: { rate: 10 } } })
+  // Along one edge only that source moves.
+  near(levelAt(runs, 'square', { orders: 100, pings: 20 }).objects.db.util, 0.15)
+  near(levelAt(runs, 'square', { orders: 150, pings: 10 }).objects.db.util, 0.2)
+})
+
+test('outside the grid a setting is the nearest edge, and a number nobody measured at every corner is left out', () => {
+  const runs = square()
+  assert.deepEqual(levelAt(runs, 'square', { orders: 9999, pings: -1 }).loads, { orders: 300, pings: 10 })
+  near(levelAt(runs, 'square', { orders: 9999, pings: -1 }).objects.db.util, 0.5)
+  const gap = runsOf({ gap: SQUARE.replace('objects: { db: { util: 0.5, queue: 8 } }', 'objects: { db: { util: 0.5 } }') }).runs
+  assert.equal(levelAt(gap, 'gap', { orders: 200, pings: 20 }).objects.db.queue, undefined)
+  near(levelAt(gap, 'gap', { orders: 100, pings: 20 }).objects.db.queue, 2) // the two corners it blends both say
+  near(levelAt(gap, 'gap', { orders: 300, pings: 10 }).objects.db.util, 0.5)
+})
+
+test('the lockstep steps put each dial along its own range: 3 and 5 levels meet at (0, 0), (0.5, 1), (1, 2), (1.5, 3), (2, 4)', () => {
+  const levels = (n: number) => Array.from({ length: n }, (_, i) => `  - load: ${(i + 1) * 10}\n`).join('')
+  const runs = runsOf({ three: `name: Three\nunit: t\nlevels:\n${levels(3)}`, five: `name: Five\nunit: f\nlevels:\n${levels(5)}`, both: 'name: Both\nadds: [three, five]\n' }).runs
+  const { dials } = dialsOf(runs, 'both')!
+  assert.deepEqual([0, 1, 2, 3, 4].map(step => lockstepPositions(dials, step)), [[0, 0], [0.5, 1], [1, 2], [1.5, 3], [2, 4]])
+  assert.deepEqual(settingAt(dials, [1.5, 3]), { three: 25, five: 40 })
+  assert.deepEqual(settingAt(dials, [9, -1]), { three: 30, five: 10 })
+  assert.deepEqual(lockstepPositions(dials.slice(0, 1), 2), [2], 'one dial alone runs the whole way')
+})
+
+test('the knee of a single run is knee, and of two added runs the first step where everything rises together and a shape is nearly full', () => {
+  const runs = together()
+  assert.deepEqual(kneeOf(runs, 'orders'), knee(runs.orders))
+  const k = kneeOf(runs, 'together')!
+  assert.equal(k.index, 2)
+  assert.deepEqual(k.setting, { orders: 300, pings: 200 })
+  assert.ok('by' in k && k.by.id === 'db' && k.by.kind === 'util')
+  near('by' in k ? k.by.share : undefined, 1.3)
+  assert.equal(kneeTextOf(runs, 'together', k, nameFor), 'First struggles with Customer orders at 300 orders/min and Courier pings at 200 pings/s: Orders DB at 130% of capacity')
+  // A single run's words are the ones it always had.
+  assert.equal(kneeTextOf(runs, 'orders', kneeOf(runs, 'orders')!, nameFor), 'First struggles at 200 orders/min: the slowest 5% of calls go from 20 ms to 60 ms')
+})
+
+test('a knee between levels says where each source stood, and a run that never struggles has none', () => {
+  const runs = square()
+  assert.equal(kneeOf(runs, 'square')!.index, 1, 'orders 300 and pings 30 make 0.9 on db')
+  assert.equal(kneeTextOf(runs, 'square', kneeOf(runs, 'square')!, nameFor), 'First struggles with Customer orders at 300 orders/min and Courier pings at 30 pings/s: Orders DB at 90% of capacity')
+  const flat = (text: string) => text.replace(/ {4}overall: .*\n/g, '') // no overall numbers, so no latency to pass
+  const calm = runsOf({
+    calm: flat(SQUARE).replace(/util: 0\.[59]/g, 'util: 0.4'), a: flat(ORDERS).replace(/util: 0\.[67]/g, 'util: 0.5'), b: flat(PINGS).replace(/util: 0\.[78]/g, 'util: 0.3'),
+    both: 'name: Both\nadds: [a, b]\n',
+  }).runs
+  assert.equal(kneeOf(calm, 'calm'), undefined)
+  assert.equal(kneeOf(calm, 'both'), undefined)
+  assert.equal(kneeOf(calm, 'ghost'), undefined)
+})
+
+test('a knee in latency alone is named by the slowest 5% of calls for several sources too', () => {
+  const runs = square()
+  const slow = runsOf({ slow: SQUARE.replace(/util: 0\.[259]/g, 'util: 0.1').replace('util: 0.1, queue: 0', 'util: 0.1').replace('p95: 40', 'p95: 20') }).runs
+  const k = kneeOf(slow, 'slow')!
+  assert.ok('latency' in k)
+  assert.equal(kneeTextOf(slow, 'slow', k, nameFor), 'First struggles with Customer orders at 300 orders/min and Courier pings at 30 pings/s: the slowest 5% of calls go from 20 ms to 120 ms')
+  assert.ok(runs.square)
+})
+
+test('each source draws its dots in its own colour and size, and a line they share is scaled by one factor so the ratio holds', () => {
+  const t = trafficAt(shop(), together(), 'together', { orders: 200, pings: 100 }, 'shop')
+  const shared = t.lines.filter(l => l.from === 'api' && l.to === 'db')
+  assert.deepEqual(shared.map(l => [l.source, l.color, l.dots, l.offset]), [['orders', 'blue', 2, -0.5], ['pings', 'green', 2, 0.5]])
+  assert.equal(shared[0].width, shared[1].width, 'the line is as thick as everything it carries')
+  assert.equal(shared[1].radius, 1, 'pings\' size formula gives a radius, orders has none')
+  assert.equal(shared[0].radius, undefined)
+  // A line only one source carries has no offset.
+  const alone = t.lines.find(l => l.from === 'customer')!
+  assert.deepEqual([alone.source, alone.color, alone.offset], ['orders', 'blue', undefined])
+})
+
+const BUSY_ORDERS = ORDERS.replace(/rate: (\d+)/g, (_, n) => `rate: ${Number(n) * 100}`)
+const BUSY_PINGS = PINGS.replace(/rate: (\d+)/g, (_, n) => `rate: ${Number(n) * 2}`)
+
+test('past the cap both sources on a line are scaled down together: ten to one stays ten to one', () => {
+  const runs = runsOf({ orders: BUSY_ORDERS, pings: BUSY_PINGS, together: TOGETHER }).runs
+  const t = trafficAt(shop(), runs, 'together', { orders: 200, pings: 100 }, 'shop')
+  const [orders, pings] = t.lines.filter(l => l.from === 'api' && l.to === 'db')
+  // orders: rate 10000 / 50 = 200 dots, pings: rate 100 / 25 = 4 dots (a 50 to 1 ratio).
+  assert.equal(orders.dots, AT_ONCE)
+  near(pings.dots, (4 * AT_ONCE) / 200)
+  assert.equal(orders.capped, true)
+  assert.equal(pings.capped, true, 'the whole line is scaled down')
+  near(orders.dots! / pings.dots!, 50, 'the ratio is the formula\'s')
+  // Under the cap nothing is scaled.
+  assert.ok(trafficAt(shop(), together(), 'together', { orders: 200, pings: 100 }, 'shop').lines.every(l => l.capped === undefined))
+})
+
+test('with four sources on a busy view the dots of a line stay bounded', () => {
+  const part = (n: number, rate: number) => `name: P${n}\nunit: u${n}\nsource: { dot: rate / 10 }\nlevels:\n  - { load: 1, connections: [{ from: web, to: api, rate: ${rate} }] }\n  - { load: 2, connections: [{ from: web, to: api, rate: ${rate * 2} }] }\n`
+  const runs = runsOf({ p1: part(1, 1e6), p2: part(2, 5e5), p3: part(3, 250), p4: part(4, 5), four: 'name: Four\nadds: [p1, p2, p3, p4]\n' }).runs
+  const lines = trafficAt(shop(), runs, 'four', { p1: 2, p2: 2, p3: 2, p4: 2 }, 'web').lines.concat(trafficAt(shop(), runs, 'four', { p1: 2, p2: 2, p3: 2, p4: 2 }, 'shop').lines)
+  const mine = lines.filter(l => l.from === 'web' && l.to === 'api')
+  assert.deepEqual(mine.map(l => l.source), ['p1', 'p2', 'p3', 'p4'])
+  assert.deepEqual(mine.map(l => l.offset), [-1.5, -0.5, 0.5, 1.5])
+  assert.ok(mine.every(l => l.dots! <= AT_ONCE && Number.isFinite(l.perSecond)))
+  near(mine[0].dots! / mine[1].dots!, 2)
+})
+
+test('a run tested together draws a line with a by for each source, and a line without one in a neutral colour with the default curve', () => {
+  const runs = runsOf({
+    mixed: SQUARE.replace(/connections: \[/g, 'connections: [{ from: web, to: api, rate: 30, p50: 9 }, '),
+  }).runs
+  const t = trafficAt(shop(), runs, 'mixed', { orders: 200, pings: 20 }, 'shop')
+  const neutral = t.lines.find(l => l.from === 'web')!
+  assert.deepEqual([neutral.color, neutral.source, neutral.offset, neutral.dots], ['gray', undefined, undefined, undefined])
+  assert.deepEqual(neutral, { ...traffic(shop(), runs.mixed, 0, 'shop').lines[0], color: 'gray', ...neutral }, 'the single-run builder made it: the default curve')
+  const split = t.lines.filter(l => l.to === 'db')
+  assert.deepEqual(split.map(l => [l.source, l.color]), [['orders', 'blue'], ['pings', 'green']])
+})
+
+test('a shared line where only one source reports a rate draws that source alone', () => {
+  const one = SQUARE.replace(/by: \{ orders: \{ rate: (\d+) \}, pings: \{ rate: (\d+) \} \}/g, 'by: { orders: { rate: $1 }, pings: { p50: 5 } }')
+  const runs = runsOf({ one }).runs
+  const lines = trafficAt(shop(), runs, 'one', { orders: 200, pings: 20 }, 'shop').lines.filter(l => l.to === 'db')
+  assert.deepEqual(lines.map(l => [l.source, l.offset]), [['orders', undefined]])
+  // A source that is the only one named, with no rate of its own, carries the whole line.
+  const sole = runsOf({ sole: SQUARE.replace(/by: \{ orders: \{ rate: (\d+) \}, pings: \{ rate: (\d+) \} \}/g, 'by: { pings: { p50: 7 } }') }).runs
+  const alone = trafficAt(shop(), sole, 'sole', { orders: 100, pings: 10 }, 'shop').lines.filter(l => l.to === 'db')
+  assert.deepEqual(alone.map(l => [l.source, l.dots]), [['pings', 0.8]])
+})
+
+test('a line that names no rate at all, in the total or in any by, has no traffic, not zero dots', () => {
+  const bare = SQUARE.replace(/rate: \d+, p50/g, 'p50').replace(/by: \{ orders: \{ rate: \d+ \}, pings: \{ rate: \d+ \} \}/g, 'by: { orders: { p50: 3 }, pings: { p50: 4 } }')
+  const runs = runsOf({ bare }).runs
+  assert.deepEqual(trafficAt(shop(), runs, 'bare', { orders: 200, pings: 20 }, 'shop').lines, [])
+})
+
+test('the failing share of a line goes to the source that says it, and to every source when only the line does', () => {
+  const failing = runsOf({
+    own: SQUARE.replace('by: { orders: { rate: 10 }, pings: { rate: 10 } }', 'by: { orders: { rate: 10, errors: 0.2 }, pings: { rate: 10 } }'),
+    shared: SQUARE.replace('rate: 20, p50: 10,', 'rate: 20, p50: 10, errors: 0.1,'),
+  }).runs
+  const at = { orders: 100, pings: 10 }
+  assert.deepEqual(trafficAt(shop(), failing, 'own', at, 'shop').lines.map(l => [l.source, l.failed]), [['orders', 0.2], ['pings', 0]])
+  assert.deepEqual(trafficAt(shop(), failing, 'shared', at, 'shop').lines.map(l => [l.source, l.failed]), [['orders', 0.1], ['pings', 0.1]])
+})
+
+test('trafficAt of a single run is traffic, line for line, at every load and in every view', () => {
+  const runs = together()
+  for (const view of ['root', 'shop', 'api', 'web'])
+    for (const load of [100, 130, 200, 250, 300, 0, Number.NaN]) assert.deepEqual(trafficAt(shop(), runs, 'orders', { '': load }, view), traffic(shop(), runs.orders, load, view))
+  assert.deepEqual(trafficAt(shop(), runs, 'ghost', {}, 'shop'), { boxes: {}, lines: [] })
+})
+
+test('the key names each source that has a line on screen, with its scale and size, and says once when a line is scaled down', () => {
+  const runs = together()
+  const lines = trafficAt(shop(), runs, 'together', { orders: 200, pings: 100 }, 'shop').lines
+  assert.deepEqual(sourceKeyAt(runs, 'together', lines), {
+    sources: [
+      { id: 'orders', name: 'Customer orders', color: 'blue', scale: '1 dot = 50 calls/s', bigger: false },
+      { id: 'pings', name: 'Courier pings', color: 'green', scale: '1 dot = 25 calls/s', bigger: true },
+    ],
+    scaledDown: false, other: false,
+  })
+  // A source with nothing on screen is not in the key.
+  const onlyPings = lines.filter(l => l.source === 'pings')
+  assert.deepEqual(sourceKeyAt(runs, 'together', onlyPings).sources.map(s => s.id), ['pings'])
+  assert.deepEqual(sourceKeyAt(runs, 'together', []), { sources: [], scaledDown: false, other: false })
+  const busy = runsOf({ orders: BUSY_ORDERS, pings: BUSY_PINGS, together: TOGETHER }).runs
+  assert.equal(sourceKeyAt(busy, 'together', trafficAt(shop(), busy, 'together', { orders: 200, pings: 100 }, 'shop').lines).scaledDown, true)
+})
+
+test('the key of a single run is what sourceKey says, and a neutral line is flagged', () => {
+  const runs = together()
+  const lines = traffic(shop(), runs.orders, 200, 'shop').lines
+  assert.deepEqual(sourceKeyAt(runs, 'orders', lines), { sources: [{ id: '', name: 'Customer orders', color: 'blue', scale: '1 dot = 50 calls/s', bigger: false }], scaledDown: false, other: false })
+  const plain = runsOf({ plain: 'name: Plain\nlevels:\n  - { load: 1, connections: [{ from: web, to: api, rate: 5 }] }\n  - { load: 2, connections: [{ from: web, to: api, rate: 6 }] }\n' }).runs
+  assert.deepEqual(sourceKeyAt(plain, 'plain', traffic(shop(), plain.plain, 1, 'shop').lines), { sources: [], scaledDown: false, other: false })
+  const mixed = runsOf({ mixed: SQUARE.replace(/connections: \[/g, 'connections: [{ from: web, to: api, rate: 30, p50: 9 }, ') }).runs
+  assert.equal(sourceKeyAt(mixed, 'mixed', trafficAt(shop(), mixed, 'mixed', { orders: 200, pings: 20 }, 'shop').lines).other, true)
+})
+
+test('runs added or tested, sent through JSON as they are to the browser, draw the same traffic and say the same knee', () => {
+  for (const [runs, id, setting] of [[together(), 'together', { orders: 250, pings: 150 }], [square(), 'square', { orders: 200, pings: 20 }]] as const) {
+    const sent = JSON.parse(JSON.stringify(runs)) as Record<string, Run>
+    assert.deepEqual(trafficAt(shop(), sent, id, setting, 'shop'), trafficAt(shop(), runs, id, setting, 'shop'))
+    assert.deepEqual(kneeOf(sent, id), kneeOf(runs, id))
+    assert.deepEqual(levelAt(sent, id, setting), levelAt(runs, id, setting))
+  }
+})
+
+test('checkRun reads a hostile id in a level of a grid as data', () => {
+  const { run } = parseRun('together', SQUARE.replace('objects: { db: { util: 0.1, queue: 0 } }', 'objects: { __proto__: { util: 0.1 }, db: { util: 0.1, queue: 0 } }'))
+  assert.equal(Object.getPrototypeOf(run.levels[0].objects), Object.prototype)
+  assert.deepEqual(Object.keys(run.levels[0].objects), ['__proto__', 'db'])
 })
