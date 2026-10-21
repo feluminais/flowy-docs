@@ -589,7 +589,7 @@ as a flow's file name), one file for each scope you would review in one meeting,
 several.
 
 ```yaml
-name: Order to door
+name: Plum fail scenario
 about: Made-up ratings for the demo, not a review of anything real.
 scale:
   severity: { low: Nobody notices, high: A customer loses money or the kitchen stops }

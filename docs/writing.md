@@ -199,6 +199,8 @@ What changed: the sender is the subject in every step, the endpoint moved into M
 A failure analysis ranks how the system breaks, for someone deciding what to fix first. The format is in
 [the guide](guide.md#failure-modes).
 
+- **Name the analysis for what it covers, in plain words.** "Plum fail scenario" and "Conductor fail scenario" say what is in them. A title
+  such as "How Conductor can fail" does not.
 - **State a mode as a fact, one way of failing to a row.** "Stripe doesn't answer within five seconds" is a mode. "Payment problems" is a
   heading. A part that fails three ways gets three rows.
 - **The effect is what a person or another part sees.** "The order waits on a hold that may or may not exist." says what happens next.
