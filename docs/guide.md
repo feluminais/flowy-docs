@@ -870,6 +870,12 @@ reads the way the code works.
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
 notes in an object's `description` instead.
 
+If you or Claude write the YAML by hand, put double quotes around the text of a one-line step when it holds a comma:
+`{ from: app, to: api, text: "Sets the time zone, if the request has one" }`. Unquoted, the comma ends the text and what follows
+becomes a key with no value. The file still loads, with the step cut short, but it can't be saved again, so Flowy lists the key as a
+problem (`step 3: "if the request has one" has no value`) instead of leaving it to fail on the next edit.
+[Writing good Flowy docs](writing.md#write-flows) has the full list of characters to quote.
+
 ## Share it
 
 People without the repo can read the model too:
