@@ -1,3 +1,6 @@
+import type { Flow } from '../../src/core/model.ts'
+import { stopsOf } from '../../src/core/structure.ts'
+
 /**
  * The trail Open flow leaves behind: where the reader was in each flow they left to read another. It lives in memory only (the address
  * names the flow playing, not the way there), so a reload drops it. The functions return new trails and change nothing in place.
@@ -22,4 +25,15 @@ export function closeFlow(trail: readonly Spot[]): { back: Spot; trail: Spot[] }
 export function followBack(trail: readonly Spot[], named: string): { step: number; trail: Spot[] } {
   const top = trail.at(-1)
   return top?.flow === named ? { step: top.step, trail: trail.slice(0, -1) } : { step: 0, trail: [] }
+}
+
+/**
+ * What the player's Back button says: the flow the last place of the trail is in (its id when it is gone) and the stop to return to, counted from 1. A flow that got shorter
+ * under a live reload gives its last stop.
+ */
+export function cameFrom(flows: Record<string, Flow>, trail: readonly Spot[]): { name: string; step: number } | undefined {
+  const last = trail.at(-1)
+  if (last === undefined) return undefined
+  const left = Object.hasOwn(flows, last.flow) ? flows[last.flow] : undefined
+  return { name: left?.name ?? last.flow, step: Math.min(last.step, left ? stopsOf(left).length - 1 : last.step) + 1 }
 }
