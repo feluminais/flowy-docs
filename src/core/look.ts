@@ -1,5 +1,6 @@
 import { ICONS } from './icons.ts'
-import type { FlowyObject, Model } from './model.ts'
+import type { FlowyObject, Model, ObjectType } from './model.ts'
+import { isMap } from './text.ts'
 
 /** How a shape is drawn, how its colour is chosen and which icon it carries. The desktop app (Look.cs) holds the same tables, and a fixture test keeps the two equal. */
 
@@ -44,9 +45,22 @@ export const SHAPE_DEFS: Record<Shape, ShapeDef> = {
   arrow: { path: 'M1 1H165L199 36L165 71H1Z', pad: [0, 36, 0, 12], badge: [34, 5], tile: true, edge: [[1, 1], [165, 1], [199, 36], [165, 71], [1, 71]] },
 }
 
-/** What `type` draws when an object names no shape: actors as pills, stores as cylinders, the rest as rectangles. */
-export const shapeOf = (o: Pick<FlowyObject, 'type' | 'shape'>): Shape =>
-  isShape(o.shape) ? o.shape : o.type === 'actor' ? 'pill' : o.type === 'store' ? 'cylinder' : 'rectangle'
+/**
+ * What each object type brings: the types it may sit directly inside (none: only at the top), the colour and shape it has when an object names none,
+ * and its icon. Actors are pills and stores cylinders; the rest are rectangles.
+ */
+export const OBJECT_TYPE_INFO: Record<ObjectType, { parents: readonly ObjectType[]; color: ColorName; shape: Shape; icon: string }> = {
+  actor: { parents: [], color: 'purple', shape: 'pill', icon: 'user' },
+  system: { parents: [], color: 'blue', shape: 'rectangle', icon: 'cube' },
+  app: { parents: ['system'], color: 'teal', shape: 'rectangle', icon: 'app-window' },
+  store: { parents: ['system'], color: 'pink', shape: 'cylinder', icon: 'database' },
+  component: { parents: ['app', 'store'], color: 'orange', shape: 'rectangle', icon: 'puzzle' },
+}
+/** The info of a type; a type nobody knows gets the system's. */
+const typeInfo = (type: string) => OBJECT_TYPE_INFO[Object.hasOwn(OBJECT_TYPE_INFO, type) ? (type as ObjectType) : 'system']
+
+/** What `type` draws when an object names no shape. */
+export const shapeOf = (o: Pick<FlowyObject, 'type' | 'shape'>): Shape => (isShape(o.shape) ? o.shape : typeInfo(o.type).shape)
 
 /** Named colours, each as [light theme, dark theme], to read on the canvas of either. Any #rgb or #rrggbb works too. */
 export const COLORS = {
@@ -131,7 +145,7 @@ export function iconProblem(name: string, d: unknown): string | undefined {
 /** The model's own icons: the well-formed entries of `icons:` in model.yaml. check() reports the rest. */
 export function customIcons(meta: Model['meta']): Record<string, string> {
   const icons = meta.icons
-  if (typeof icons !== 'object' || icons === null || Array.isArray(icons)) return {}
+  if (!isMap(icons)) return {}
   return Object.fromEntries(Object.entries(icons).filter(([name, d]) => iconProblem(name, d) === undefined)) as Record<string, string>
 }
 
@@ -140,10 +154,7 @@ export const isKnownIcon = (meta: Model['meta'], name: unknown): boolean =>
   typeof name === 'string' && (Object.hasOwn(ICONS, name) || Object.hasOwn(customIcons(meta), name))
 
 /** The colour an object has when it names none: its type's, or grey for an outside service. */
-export const typeColor = (o: Pick<FlowyObject, 'type' | 'external'>): ColorName =>
-  o.external === 'true' ? 'gray' : o.type === 'actor' ? 'purple' : o.type === 'app' ? 'teal' : o.type === 'store' ? 'pink' : o.type === 'component' ? 'orange' : 'blue'
-
-const TYPE_ICONS: Record<string, string> = { actor: 'user', system: 'cube', app: 'app-window', store: 'database', component: 'puzzle' }
+export const typeColor = (o: Pick<FlowyObject, 'type' | 'external'>): ColorName => (o.external === 'true' ? 'gray' : typeInfo(o.type).color)
 
 /**
  * The path data of the icon an object shows: the one it names, else a cloud when it is an outside service,
@@ -156,7 +167,7 @@ export function iconData(model: Pick<Model, 'meta'>, o: Pick<FlowyObject, 'type'
     if (Object.hasOwn(ICONS, o.icon)) return ICONS[o.icon]
   }
   if (o.external === 'true') return ICONS.cloud
-  return ICONS[Object.hasOwn(TYPE_ICONS, o.type) ? TYPE_ICONS[o.type] : 'cube']
+  return ICONS[typeInfo(o.type).icon]
 }
 
 /** Whether the icon tile shows: always, unless the shape has no room for it and the object names no icon. */

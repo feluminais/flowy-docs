@@ -1,6 +1,7 @@
 import { Graph, layout } from '@dagrejs/dagre'
 import type { Edge, FitViewOptions, Node, Viewport, XYPosition } from '@xyflow/react'
-import type { Problem } from '../../src/core/check.ts'
+import type { Problem } from '../../src/core/problem.ts'
+import { lineKey } from '../../src/core/failures.ts'
 import type { Mark } from '../../src/core/failures.ts'
 import type { BoxTraffic } from '../../src/core/perf.ts'
 import type { StateMark } from '../../src/core/states.ts'
@@ -42,7 +43,8 @@ export type Playing = { ends: ([string, string] | null)[]; step?: number; steps?
 /** Whether an edge is one a flow step added (it has no connection of its own), so a click on it opens no panel. */
 export const isStepLine = (id: string): boolean => /^(step|lane)(-\d+)?$/.test(id)
 
-export const lineId = (from: string, to: string) => `${from} ${to}`
+/** The core's lineKey; App.tsx still calls it lineId. */
+export const lineId = lineKey
 
 const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
 const overlaps = (a: XYPosition, b: XYPosition) => Math.abs(a.x - b.x) < BOX.width && Math.abs(a.y - b.y) < BOX.height
@@ -367,7 +369,7 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
   const badLines = new Set(problems.flatMap(p => {
     const c = p.connection === undefined ? undefined : model.connections[p.connection]
     const ends = c && placeEnds(model, view, c.from, c.to)
-    return ends ? [lineId(...ends)] : []
+    return ends ? [lineKey(...ends)] : []
   }))
   const isLit = (from: string, to: string) => litEnds.some(e => e[0] === from && e[1] === to)
   const faintSteps = (playing?.faint ?? []).flatMap(i => {
@@ -385,25 +387,25 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
   // A lit line draws over the faded boxes (zIndex), with an arrowhead in its own colour.
   const litLine = { zIndex: 1, markerEnd: { type: 'arrowclosed', color: 'var(--accent)' } } as const
   const lines: Edge[] = edges.map(e => ({
-    id: lineId(e.from, e.to),
+    id: lineKey(e.from, e.to),
     type: 'line',
     source: e.from,
     target: e.to,
     label: e.label || undefined,
     markerEnd: { type: 'arrowclosed' },
-    className: classes(dimming && (isLit(e.from, e.to) ? 'active' : isFaint(e.from, e.to) ? 'lane' : 'dim'), badLines.has(lineId(e.from, e.to)) && 'problem'),
+    className: classes(dimming && (isLit(e.from, e.to) ? 'active' : isFaint(e.from, e.to) ? 'lane' : 'dim'), badLines.has(lineKey(e.from, e.to)) && 'problem'),
     ...(dimming && isLit(e.from, e.to) ? litLine : {}),
   }))
   // A one-box step lights its box, no line. A step with no connection of its own gets a dashed line, and so does a faint one.
   const drawn = new Set<string>()
   litEnds.forEach((e, n) => {
-    const id = lineId(e[0], e[1])
+    const id = lineKey(e[0], e[1])
     if (e[0] === e[1] || edges.some(c => c.from === e[0] && c.to === e[1]) || drawn.has(id)) return
     drawn.add(id)
     lines.push({ id: n === 0 ? 'step' : `step-${n}`, type: 'line', source: e[0], target: e[1], className: 'step', ...litLine })
   })
   for (const { i, e } of faintSteps) {
-    const id = lineId(e[0], e[1])
+    const id = lineKey(e[0], e[1])
     if (e[0] === e[1] || edges.some(c => c.from === e[0] && c.to === e[1]) || drawn.has(id)) continue
     drawn.add(id)
     lines.push({ id: `lane-${i}`, type: 'line', source: e[0], target: e[1], className: 'lane', markerEnd: { type: 'arrowclosed' } })

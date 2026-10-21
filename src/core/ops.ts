@@ -4,12 +4,13 @@ import type { DataInput } from './data.ts'
 import { analysesText, usersOfConnection, usersOfObject } from './failures.ts'
 import { iconProblem } from './look.ts'
 import type { Shape } from './look.ts'
-import { getObject, ID_RULE, isMap, isValidId, ROOT } from './model.ts'
+import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Analysis, Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Mode, Model, ObjectType, Step } from './model.ts'
 import { tidySnippets } from './snippets.ts'
 import type { SnippetInput } from './snippets.ts'
 import { stateProblems } from './states.ts'
 import { GROUP_KINDS, isGroupKind, TIMES_MAX, TIMES_MIN, timesOk } from './structure.ts'
+import { blank, hasText, isMap, own } from './text.ts'
 import { chain, memberIds } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
@@ -79,14 +80,14 @@ export function putObject(model: Model, { id, ...fields }: ObjectInput): Model {
 export function putIcon(model: Model, name: string, path: string): Model {
   const why = iconProblem(name, path)
   if (why) throw new OpError(`icon ${name} ${why}`)
-  const icons = typeof model.meta.icons === 'object' && model.meta.icons !== null && !Array.isArray(model.meta.icons) ? model.meta.icons : {}
+  const icons = isMap(model.meta.icons) ? model.meta.icons : {}
   return { ...model, meta: { ...model.meta, icons: { ...icons, [name]: path.trim() } } }
 }
 
 /** Remove a custom icon. Refused while an object uses it. */
 export function deleteIcon(model: Model, name: string): Model {
   const { icons } = model.meta
-  if (typeof icons !== 'object' || icons === null || Array.isArray(icons) || !Object.hasOwn(icons, name)) throw new OpError(`unknown icon "${name}"`)
+  if (!isMap(icons) || !Object.hasOwn(icons, name)) throw new OpError(`unknown icon "${name}"`)
   const users = Object.entries(model.objects).filter(([, o]) => o.icon === name).map(([id]) => id)
   if (users.length) throw new OpError(`icon "${name}" is used by ${users.join(', ')}. Change those first.`)
   const { [name]: _, ...rest } = icons as Record<string, unknown>
@@ -174,7 +175,7 @@ export function relabel(model: Model, which: ConnectionInput, label: string): Mo
 
 /** An animation with its numbers (share, at) as text, which is how a file holds them: a number cannot be written. Anything else is left for the checker. */
 function animationAsText(animation: unknown): unknown {
-  if (typeof animation !== 'object' || animation === null || Array.isArray(animation)) return animation
+  if (!isMap(animation)) return animation
   return Object.fromEntries(Object.entries(animation).map(([key, value]) => [key, (key === 'share' || key === 'at') && typeof value === 'number' ? String(value) : value]))
 }
 
@@ -250,7 +251,6 @@ export function setStepStates(model: Model, flowId: string, index: number, state
 
 const groupOf = (s: Step | undefined): string => (s !== undefined && typeof s.group === 'string' ? s.group.trim() : '')
 const laneOf = (s: Step | undefined): string => (s !== undefined && typeof s.lane === 'string' ? s.lane.trim() : '')
-const blankText = (v: unknown): boolean => typeof v !== 'string' || v.trim() === ''
 
 function existingStep(flow: Flow, id: string, index: number): Step {
   if (!Number.isInteger(index) || index < 0 || index >= flow.steps.length) throw new OpError(`flow "${id}" has no step ${index + 1}`)
@@ -353,7 +353,7 @@ export function setGroupKind(model: Model, id: string, group: string, kind: stri
   if (kind === 'repeat') {
     if (times !== undefined) next.times = times
     if (until !== undefined) next.until = until
-    if (blankText(times) && blankText(until)) next.times = '3'
+    if (blank(times) && blank(until)) next.times = '3'
   }
   const steps = [...flow.steps]
   const members = steps.flatMap((s, i) => (groupOf(s) === group ? [i] : []))
@@ -438,11 +438,6 @@ export function deleteFlow(model: Model, id: string): Model {
   return { ...model, flows }
 }
 
-/** Sets an own property, so an id like "__proto__" is data and never the prototype. */
-function put<T>(target: Record<string, T>, key: string, value: T) {
-  Object.defineProperty(target, key, { value, enumerable: true, writable: true, configurable: true })
-}
-
 /** A mode as it is written to a file: fields in a stable order, numbers as text, a blank string or an empty list left out. */
 function modeOf(input: ModeInput): Mode {
   const out: Record<string, unknown> = {}
@@ -480,12 +475,11 @@ export function putAnalysis(model: Model, { id, name, about, scope, scale, modes
   const clash = Object.keys(model.failures).find(other => other !== id && other.toLowerCase() === id.toLowerCase())
   if (clash) throw new OpError(`failures/${clash}.yaml already exists and differs only in case. Rename or delete that file by hand.`)
   const written: Record<string, Mode> = {}
-  for (const [mid, input] of Object.entries(modes)) put(written, mid, modeOf(input))
-  const has = (v: string | undefined): v is string => typeof v === 'string' && v.trim() !== ''
+  for (const [mid, input] of Object.entries(modes)) own(written, mid, modeOf(input))
   const analysis: Analysis = {
     name,
-    ...(has(about) ? { about } : {}),
-    ...(has(scope) ? { scope } : {}),
+    ...(hasText(about) ? { about } : {}),
+    ...(hasText(scope) ? { scope } : {}),
     ...(scale && Object.keys(scale).length > 0 ? { scale } : {}),
     modes: written,
   }
@@ -503,7 +497,7 @@ export function deleteAnalysis(model: Model, id: string): Model {
 export function putMode(model: Model, analysisId: string, id: string, input: ModeInput): Model {
   const analysis = existingAnalysis(model, analysisId)
   const modes = { ...analysis.modes }
-  put(modes, id, modeOf(input))
+  own(modes, id, modeOf(input))
   return { ...model, failures: { ...model.failures, [analysisId]: { ...analysis, modes } } }
 }
 
@@ -548,7 +542,8 @@ function withChanges(fields: object, changes: Record<string, unknown>, order: re
 export type ModeChanges = Partial<Record<'mode' | 'on' | 'from' | 'to' | 'effect' | 'cause' | 'severity' | 'occurrence' | 'detection' | 'controls' | 'action' | 'owner' | 'status' | 'flow' | 'step' | 'run' | 'description', string>>
   & { after?: Partial<Record<'severity' | 'occurrence' | 'detection', string>>; affects?: string[] }
 
-const blank = (v: string) => v.trim() === ''
+/** Whitespace-only text. Unlike text.ts's blank, it takes text only, so a value that is not text throws. */
+const emptied = (v: string) => v.trim() === ''
 
 /** Change some fields of one mode and nothing else: unlike putMode, what a hand wrote there is kept, and a field stays where it is in the file. */
 export function updateMode(model: Model, analysisId: string, id: string, changes: ModeChanges): Model {
@@ -558,13 +553,13 @@ export function updateMode(model: Model, analysisId: string, id: string, changes
   const next: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(changes)) {
     if (key === 'after') {
-      const ratings = withChanges(old.after ?? {}, Object.fromEntries(Object.entries(value as object).map(([k, v]) => [k, blank(v as string) ? undefined : v])), RATING_ORDER)
+      const ratings = withChanges(old.after ?? {}, Object.fromEntries(Object.entries(value as object).map(([k, v]) => [k, emptied(v as string) ? undefined : v])), RATING_ORDER)
       next.after = Object.keys(ratings).length > 0 ? ratings : undefined
     } else if (key === 'affects') next.affects = (value as string[]).length > 0 ? [...(value as string[])] : undefined
-    else next[key] = typeof value === 'string' && blank(value) ? undefined : value
+    else next[key] = typeof value === 'string' && emptied(value) ? undefined : value
   }
   const modes = { ...analysis.modes }
-  put(modes, id, withChanges(old, next, MODE_ORDER) as Mode)
+  own(modes, id, withChanges(old, next, MODE_ORDER) as Mode)
   return { ...model, failures: { ...model.failures, [analysisId]: { ...analysis, modes } } }
 }
 
@@ -572,7 +567,7 @@ export function updateMode(model: Model, analysisId: string, id: string, changes
 export function updateAnalysis(model: Model, id: string, changes: { name?: string; about?: string; scope?: string }): Model {
   const analysis = existingAnalysis(model, id)
   const next: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(changes)) next[key] = key !== 'name' && blank(value) ? undefined : value
+  for (const [key, value] of Object.entries(changes)) next[key] = key !== 'name' && emptied(value) ? undefined : value
   return { ...model, failures: { ...model.failures, [id]: withChanges(analysis, next, ANALYSIS_ORDER) as Analysis } }
 }
 

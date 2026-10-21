@@ -6,15 +6,13 @@
  * Nothing here draws, and nothing needs a browser. desktop/Flowy.Core/Structure.cs is a port, and
  * desktop/fixtures/structure.ts keeps the two equal.
  */
-import { ID_RULE, isMap, isValidId } from './model.ts'
+import { ID_RULE, isValidId } from './model.ts'
+import { blank, isMap } from './text.ts'
 import type { Flow } from './model.ts'
 
 export const GROUP_KINDS = ['repeat', 'branch', 'parallel'] as const
 export type GroupKind = (typeof GROUP_KINDS)[number]
 export const isGroupKind = (v: unknown): v is GroupKind => GROUP_KINDS.some(k => k === v)
-
-/** Whether a value says nothing: not text, or only whitespace. A blank group, lane, flow or option is the same as none. */
-export const blank = (v: unknown): boolean => typeof v !== 'string' || v.trim() === ''
 
 /** A step's group id, trimmed; "" when it has none. */
 export const stepGroup = (flow: Flow, i: number): string => {

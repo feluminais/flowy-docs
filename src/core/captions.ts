@@ -3,10 +3,9 @@
  * They are decided here once, so the browser and the desktop app say the same things. Nothing here draws.
  * desktop/Flowy.Core/Captions.cs is a port, and desktop/fixtures/structure.ts keeps the two equal.
  */
-import { isMap } from './model.ts'
 import type { Flow } from './model.ts'
-import { blank } from './structure.ts'
 import type { GroupKind, Stop } from './structure.ts'
+import { blank, isMap } from './text.ts'
 
 /**
  * `chip` is the card's words for the group ("" outside one); `text` is the group's own `text`. A branch lists its lanes as `tabs`

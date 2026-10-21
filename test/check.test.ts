@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { check, isRepoPath, isWebAddress, newProblems, typesIn } from '../src/core/check.ts'
+import { check, newProblems, typesIn } from '../src/core/check.ts'
+import { isRepoPath, isWebAddress } from '../src/core/paths.ts'
 import type { Model } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 

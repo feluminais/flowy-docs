@@ -1,24 +1,16 @@
 import { MAX_OPEN, parseNav } from './navstate.ts'
 import type { NavSaved } from './navstate.ts'
-import { store } from './store.ts'
+import { readPref, writePref } from './store.ts'
 
 /** One entry for each address the page is served from, so each project keeps its own. */
 const key = () => `flowy.nav:${location.pathname}`
 
 /** What this project remembered. Storage may be blocked (private windows, some exported pages): then nothing is remembered. */
 export function loadNav(): NavSaved {
-  try {
-    return parseNav(store.get(key()))
-  } catch {
-    return { expanded: [] }
-  }
+  return parseNav(readPref(key()))
 }
 
 export function keepNav(saved: NavSaved): void {
-  try {
-    const { tab, navWidth, detailsWidth } = saved
-    store.set(key(), JSON.stringify({ ...(tab === undefined ? {} : { tab }), expanded: saved.expanded.slice(0, MAX_OPEN), navWidth, detailsWidth }))
-  } catch {
-    // nothing to do: the tree still holds in this page
-  }
+  const { tab, navWidth, detailsWidth } = saved
+  writePref(key(), JSON.stringify({ ...(tab === undefined ? {} : { tab }), expanded: saved.expanded.slice(0, MAX_OPEN), navWidth, detailsWidth }))
 }

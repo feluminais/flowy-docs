@@ -1,11 +1,12 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { colorPair, fillOpacity, iconData, onFill } from '../../src/core/look.ts'
+import { isExternal, OBJECT_TYPES } from '../../src/core/model.ts'
 import type { FlowyObject, Model } from '../../src/core/model.ts'
 import { iconOf, PathIcon } from './icons.tsx'
 import type { IconProps } from './icons.tsx'
 
 /** The class that gives an element its type's colour (`--c`): the tile, the header and the chips of a panel are tinted with it. */
-export const kindClass = (type: string, external = false) => (external ? 't-external' : ['actor', 'system', 'app', 'store', 'component'].includes(type) ? `t-${type}` : 't-system')
+export const kindClass = (type: string, external = false) => (external ? 't-external' : (OBJECT_TYPES as readonly string[]).includes(type) ? `t-${type}` : 't-system')
 
 /**
  * What an object's own `color` and `opacity` set on its element: `--c`, the colour (a named one in both themes, through
@@ -36,7 +37,7 @@ export function TypeTile({ type, external, size = 34, d, style }: { type: string
 /** The tile of one object as it is drawn on the canvas: the icon and colour it names, else its type's. */
 export function ObjectTile({ model, object, size }: { model: Model; object: FlowyObject | undefined; size?: number }) {
   if (!object) return <TypeTile type="" size={size} />
-  return <TypeTile type={object.type} external={object.external === 'true'} size={size} d={iconData(model, object)} style={lookVars(object)} />
+  return <TypeTile type={object.type} external={isExternal(object)} size={size} d={iconData(model, object)} style={lookVars(object)} />
 }
 
 /** A small rounded label with an optional icon. `kind` picks its colour: an object type's class, or "warn" or "accent". */

@@ -1,6 +1,7 @@
-import type { Problem } from './check.ts'
+import type { Problem } from './problem.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Analysis, Mode, Model } from './model.ts'
+import { hasText, own } from './text.ts'
 import { chain, isView, memberIds, nameOf, parentOf, placeEnds, placeStep } from './views.ts'
 
 /**
@@ -149,10 +150,7 @@ export function analysisText(model: Model, id: string, a: Analysis, format: 'mar
   return `## ${a.name.trim() === '' ? id : `${a.name} (${id})`}\n\n${coverageText(model, a)}\n\n${table(model, a, 'markdown')}`
 }
 
-/** Text with something in it. A blank value in a file is as good as none. */
-const has = (v: unknown): v is string => typeof v === 'string' && v.trim() !== ''
-
-/** The text a drawn line is known by: the same as `lineId` in ui/src/graph.ts. */
+/** The text a drawn line is known by. ui/src/graph.ts draws the lines with it. */
 export const lineKey = (from: string, to: string): string => `${from} ${to}`
 
 /** What a shape or a line wears on the canvas: the worst band of the modes it carries, and how many. */
@@ -162,11 +160,6 @@ export type Marks = { boxes: Record<string, Mark>; lines: Record<string, Mark> }
 export type Part = { box: string } | { line: [string, string] }
 export type Reach = { fails: string[]; failsLine?: string; affects: string[] }
 
-/** Sets an own property, so an id like "__proto__" is data and never the prototype. */
-function put<T>(target: Record<string, T>, key: string, value: T) {
-  Object.defineProperty(target, key, { value, enumerable: true, writable: true, configurable: true })
-}
-
 /** The box in `view` that stands for a shape: itself, or the box it is inside. None when the view does not draw it (and none for the view's own frame). */
 const drawn = (model: Model, view: string, id: string): string | undefined => placeStep(model, view, { from: id })?.[0]
 
@@ -175,8 +168,8 @@ const drawn = (model: Model, view: string, id: string): string | undefined => pl
  * stand beside the view as an outsider). The overview when nothing resolves.
  */
 export function homeView(model: Model, m: Mode): string {
-  if (has(m.on)) return getObject(model, m.on) ? parentOf(model, m.on) : ROOT
-  if (has(m.from) && has(m.to) && getObject(model, m.from)) {
+  if (hasText(m.on)) return getObject(model, m.on) ? parentOf(model, m.on) : ROOT
+  if (hasText(m.from) && hasText(m.to) && getObject(model, m.from)) {
     for (const view of chain(model, m.from)) if (placeEnds(model, view, m.from, m.to)) return view
   }
   return ROOT
@@ -186,17 +179,17 @@ export function homeView(model: Model, m: Mode): string {
 export function inView(model: Model, view: string, m: Mode): boolean {
   if (view === ROOT) return true
   const inside = (id: unknown) => typeof id === 'string' && getObject(model, id) !== undefined && chain(model, id).includes(view)
-  return has(m.on) ? inside(m.on) : inside(m.from) || inside(m.to)
+  return hasText(m.on) ? inside(m.on) : inside(m.from) || inside(m.to)
 }
 
 /** What carries a mode in a view: a box, or a drawn line (by its key). A line whose two ends sit in one drawn box is carried by that box. */
 type Carrier = { box: string } | { line: string }
 function carrierOf(model: Model, view: string, m: Mode): Carrier | undefined {
-  if (has(m.on)) {
+  if (hasText(m.on)) {
     const box = drawn(model, view, m.on)
     return box === undefined ? undefined : { box }
   }
-  if (has(m.from) && has(m.to)) {
+  if (hasText(m.from) && hasText(m.to)) {
     const ends = placeEnds(model, view, m.from, m.to)
     if (ends) return { line: lineKey(...ends) }
     const a = drawn(model, view, m.from)
@@ -216,7 +209,7 @@ export function rollUp(model: Model, a: Analysis, view: string): Marks {
     const key = 'box' in carrier ? carrier.box : carrier.line
     const band = bandOf(m)
     const old = Object.hasOwn(table, key) ? table[key] : undefined
-    put(table, key, { band: old !== undefined && BANDS.indexOf(old.band) <= BANDS.indexOf(band) ? old.band : band, count: (old?.count ?? 0) + 1 })
+    own(table, key, { band: old !== undefined && BANDS.indexOf(old.band) <= BANDS.indexOf(band) ? old.band : band, count: (old?.count ?? 0) + 1 })
   }
   return marks
 }
@@ -237,10 +230,10 @@ export function carried(model: Model, a: Analysis, view: string, part: Part): st
 export function reach(model: Model, view: string, m: Mode): Reach {
   const fails: string[] = []
   let failsLine: string | undefined
-  if (has(m.on)) {
+  if (hasText(m.on)) {
     const box = drawn(model, view, m.on)
     if (box !== undefined) fails.push(box)
-  } else if (has(m.from) && has(m.to)) {
+  } else if (hasText(m.from) && hasText(m.to)) {
     const ends = placeEnds(model, view, m.from, m.to)
     if (ends) {
       fails.push(...new Set(ends))
@@ -269,20 +262,20 @@ export function analysisProblems(model: Model, aid: string, a: Analysis): Proble
   const file = `failures/${aid}.yaml`
   const problems: Problem[] = []
   if (!isValidId(aid)) problems.push({ file, message: `"${aid}" is not a valid analysis id: the file name must ${ID_RULE}` })
-  if (!has(a.name)) problems.push({ file, message: 'name is missing' })
-  if (has(a.scope) && !isView(model, a.scope)) problems.push({ file, message: `scope "${a.scope}" must be "root" or an object with children` })
+  if (!hasText(a.name)) problems.push({ file, message: 'name is missing' })
+  if (hasText(a.scope) && !isView(model, a.scope)) problems.push({ file, message: `scope "${a.scope}" must be "root" or an object with children` })
   for (const [mid, m] of Object.entries(a.modes)) {
     // No `id`: on a problem that means "this object" to the problem list and the canvas, and a mode id is not an object id.
     const p = (message: string) => problems.push({ file, message: `${mid}: ${message}` })
     if (!isValidId(mid)) p(`the id must ${ID_RULE}`)
-    if (!has(m.mode)) p('"mode" is missing')
+    if (!hasText(m.mode)) p('"mode" is missing')
 
-    const line = has(m.from) || has(m.to)
-    if (has(m.on) && line) p('has "on" and also "from" or "to"; use one or the other')
-    else if (has(m.on)) {
+    const line = hasText(m.from) || hasText(m.to)
+    if (hasText(m.on) && line) p('has "on" and also "from" or "to"; use one or the other')
+    else if (hasText(m.on)) {
       if (!getObject(model, m.on)) p(`unknown object "${m.on}"`)
     } else if (line) {
-      if (!has(m.from) || !has(m.to)) p('"from" and "to" go together')
+      if (!hasText(m.from) || !hasText(m.to)) p('"from" and "to" go together')
       else {
         const unknown = [...new Set([m.from, m.to])].filter(end => !getObject(model, end))
         for (const end of unknown) p(`unknown object "${end}"`)
@@ -292,15 +285,15 @@ export function analysisProblems(model: Model, aid: string, a: Analysis): Proble
 
     for (const id of m.affects ?? []) if (!getObject(model, id)) p(`affects: unknown object "${id}"`)
 
-    for (const key of RATING_KEYS) if (has(m[key]) && ratingOf(m[key]) === undefined) p(`${key} must be a whole number from 1 to 10`)
-    for (const key of RATING_KEYS) if (has(m.after?.[key]) && ratingOf(m.after?.[key]) === undefined) p(`after ${key} must be a whole number from 1 to 10`)
+    for (const key of RATING_KEYS) if (hasText(m[key]) && ratingOf(m[key]) === undefined) p(`${key} must be a whole number from 1 to 10`)
+    for (const key of RATING_KEYS) if (hasText(m.after?.[key]) && ratingOf(m.after?.[key]) === undefined) p(`after ${key} must be a whole number from 1 to 10`)
 
-    if (has(m.status) && !(STATUSES as readonly string[]).includes(m.status)) p(`status "${m.status}" must be open, planned, done or accepted`)
+    if (hasText(m.status) && !(STATUSES as readonly string[]).includes(m.status)) p(`status "${m.status}" must be open, planned, done or accepted`)
 
-    const flow = has(m.flow) ? m.flow : undefined
+    const flow = hasText(m.flow) ? m.flow : undefined
     const known = flow !== undefined && Object.hasOwn(model.flows, flow)
     if (flow !== undefined && !known) p(`flow "${flow}" doesn't exist`)
-    if (has(m.step)) {
+    if (hasText(m.step)) {
       if (flow === undefined) p('step needs a flow')
       else if (!/^[1-9]\d*$/.test(m.step)) p('step must be a whole number from 1')
       else if (known && Number(m.step) > model.flows[flow].steps.length) {
@@ -330,6 +323,6 @@ export const analysesText = (ids: string[]): string => `${ids.length === 1 ? 'fa
 /** The modes of an analysis whose `run` names a run that isn't in perf/. Kept apart because the model doesn't hold runs: loadState calls this. */
 export function runLinkProblems(aid: string, a: Analysis, runs: Record<string, unknown>): Problem[] {
   return Object.entries(a.modes)
-    .filter(([, m]) => has(m.run) && !Object.hasOwn(runs, m.run))
+    .filter(([, m]) => hasText(m.run) && !Object.hasOwn(runs, m.run))
     .map(([mid, m]) => ({ file: `failures/${aid}.yaml`, message: `${mid}: run "${m.run}" doesn't exist` }))
 }

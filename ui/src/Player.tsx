@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { animationOf, outcomeLine } from '../../src/core/animation.ts'
 import { LEGEND } from '../../src/core/captions.ts'
 import type { Caption, Progress } from '../../src/core/captions.ts'
@@ -10,22 +9,15 @@ import type { StateMark } from '../../src/core/states.ts'
 import { Chip } from './Chrome.tsx'
 import { ArrowLeft, ArrowRight, ArrowsSplit, Close, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
 import { StateKey } from './states.tsx'
-import { store } from './store.ts'
+import { usePref } from './store.ts'
 
 /** The icon of a kind of group, in the chip, the bracket and the mark on the canvas. */
 export const KIND_ICON = { repeat: Repeat, branch: GitFork, parallel: ArrowsSplit } as const satisfies Record<GroupKind, unknown>
 
 type Place = [string, string] | null
 
+/** Where the legend's open or closed is kept, so it is as last time. Storage may be blocked or empty: the legend then starts closed. */
 const LEGEND_KEY = 'flowy.legend'
-/** Whether the legend was left open, from last time. Storage may be blocked or empty: the legend then starts closed. */
-function legendWasOpen(): boolean {
-  try {
-    return store.get(LEGEND_KEY) === 'open'
-  } catch {
-    return false
-  }
-}
 
 type Props = {
   model: Model
@@ -77,18 +69,10 @@ function Bar({ progress, now }: { progress: Progress; now: number }) {
 /** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
 export function Player({ model, flow, stops, stop, ends, caption, progress, marks, auto, moving, repeat, trail, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
-  const [legend, setLegend] = useState(legendWasOpen)
+  const [legendPref, setLegendPref] = usePref(LEGEND_KEY, 'closed')
+  const legend = legendPref === 'open'
   const grouped = progress.brackets.length > 0 // the legend explains groups, so a flow with none has no button
-  const toggleLegend = () => {
-    setLegend(open => {
-      try {
-        store.set(LEGEND_KEY, open ? 'closed' : 'open')
-      } catch {
-        // not remembered: it still opens and closes
-      }
-      return !open
-    })
-  }
+  const toggleLegend = () => setLegendPref(legend ? 'closed' : 'open')
   const GroupIcon = here.kind === undefined ? undefined : KIND_ICON[here.kind]
   return (
     <section className="player" aria-live="polite">

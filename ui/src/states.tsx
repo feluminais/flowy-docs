@@ -2,7 +2,7 @@ import type { JSX } from 'react'
 import { STATE_LABELS, STATE_NAMES } from '../../src/core/states.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { Alert, PathIcon } from './icons.tsx'
-import { KeyItem, KeyRow } from './Performance.tsx'
+import { KeyItem, KeyRow } from './legend.tsx'
 
 /**
  * The little drawing that names a state, so colour is never the only cue. The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs):

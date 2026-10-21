@@ -4,6 +4,8 @@
  * Messages are plain JSON; ids pair an answer with its request.
  */
 
+import { isMap } from './text.ts'
+
 /** The `type` of the message that has the host put text on the clipboard. A webview may not be allowed to write there itself. */
 export const COPY_MESSAGE = 'flowy-copy'
 
@@ -29,12 +31,11 @@ export const CHANGED_MESSAGE = 'flowy-changed'
 /** The message that asks the host for `request`, numbered `id` so its answer can be matched. */
 export const requestMessage = (id: number, request: Request) => ({ type: REQUEST_MESSAGE, id, request })
 
-const isObject = (data: unknown): data is Record<string, unknown> => typeof data === 'object' && data !== null && !Array.isArray(data)
 const isId = (id: unknown): id is number => typeof id === 'number' && Number.isSafeInteger(id) && id >= 0
 
 /** The request a message makes and its id, or undefined when `data` is not a well-formed request. */
 export function requestOf(data: unknown): { id: number; request: Request } | undefined {
-  if (!isObject(data) || data.type !== REQUEST_MESSAGE || !isId(data.id) || !isObject(data.request)) return undefined
+  if (!isMap(data) || data.type !== REQUEST_MESSAGE || !isId(data.id) || !isMap(data.request)) return undefined
   const { op, method, file, body } = data.request
   if (op === 'state') return { id: data.id, request: { op } }
   if (op === 'write' && (method === 'PUT' || method === 'DELETE') && typeof file === 'string') return { id: data.id, request: { op, method, file, body } }
@@ -49,7 +50,7 @@ export const responseMessage = (id: number, outcome: Outcome) => ({ type: RESPON
 
 /** The answer a message carries and the id of the request it answers, or undefined when `data` is not an answer. */
 export function responseOf(data: unknown): { id: number; outcome: Outcome } | undefined {
-  if (!isObject(data) || data.type !== RESPONSE_MESSAGE || !isId(data.id)) return undefined
+  if (!isMap(data) || data.type !== RESPONSE_MESSAGE || !isId(data.id)) return undefined
   if (typeof data.error === 'string') return { id: data.id, outcome: { error: data.error } }
   if ('value' in data) return { id: data.id, outcome: { value: data.value } }
   return undefined
@@ -58,7 +59,7 @@ export function responseOf(data: unknown): { id: number; outcome: Outcome } | un
 /** The message that tells the page something under the flowy/ folder changed, so it asks for the State again. */
 export const changedMessage = () => ({ type: CHANGED_MESSAGE })
 
-export const isChanged = (data: unknown): boolean => isObject(data) && data.type === CHANGED_MESSAGE
+export const isChanged = (data: unknown): boolean => isMap(data) && data.type === CHANGED_MESSAGE
 
 export const OPEN_MESSAGE = 'flowy-open'
 
@@ -67,7 +68,7 @@ export const openMessage = (path: string) => ({ type: OPEN_MESSAGE, path })
 
 /** The path a message asks the host to open, or undefined when `data` is some other message. */
 export function pathToOpen(data: unknown): string | undefined {
-  if (!isObject(data) || data.type !== OPEN_MESSAGE) return undefined
+  if (!isMap(data) || data.type !== OPEN_MESSAGE) return undefined
   return typeof data.path === 'string' && data.path !== '' ? data.path : undefined
 }
 
@@ -80,7 +81,7 @@ export const revealMessage = (target: Target) => ({ type: REVEAL_MESSAGE, target
 
 /** The target a message asks the page to show, or undefined when `data` is some other message. */
 export function revealOf(data: unknown): Target | undefined {
-  if (!isObject(data) || data.type !== REVEAL_MESSAGE || !isObject(data.target)) return undefined
+  if (!isMap(data) || data.type !== REVEAL_MESSAGE || !isMap(data.target)) return undefined
   const { shape, flow } = data.target
   if (typeof shape === 'string' && shape !== '') return { shape }
   if (typeof flow === 'string' && flow !== '') return { flow }

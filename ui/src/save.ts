@@ -1,4 +1,4 @@
-import type { Problem } from '../../src/core/check.ts'
+import type { Problem } from '../../src/core/problem.ts'
 import { describeEdit } from '../../src/core/editlabel.ts'
 import { fallbackLabel } from '../../src/core/history.ts'
 import { fileData, isRemovableFile } from '../../src/core/model.ts'

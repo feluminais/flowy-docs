@@ -1,31 +1,32 @@
 import { useState } from 'react'
-import type { FocusEvent, FormEvent, ReactNode } from 'react'
-import { encodePath, isRepoPath, isWebAddress, typesIn } from '../../src/core/check.ts'
-import type { Problem } from '../../src/core/check.ts'
+import type { FormEvent, ReactNode } from 'react'
+import { typesIn } from '../../src/core/check.ts'
+import type { Problem } from '../../src/core/problem.ts'
 import type { DataInput } from '../../src/core/data.ts'
+import { lineKey } from '../../src/core/failures.ts'
 import { getObject, isExternal, linksOf, parseData, ROOT } from '../../src/core/model.ts'
 import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
+import { encodePath, isRepoPath, isWebAddress } from '../../src/core/paths.ts'
 import { ANIMATION_KINDS, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
 import { deleteFlow, deleteObject, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
+import { isMap } from '../../src/core/text.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { CodeFields, CodeSection } from './Code.tsx'
 import { DataField, DataSection } from './Data.tsx'
 import { connectionsOf, linesOf, newId, pickStepState, problemsOf, stateOf, stepStateShapes, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
-import { lineId } from './graph.ts'
 import { StateGlyph, stateClasses, stateWord } from './states.tsx'
+import { Field } from './forms.tsx'
+import type { SaveEdit } from './forms.tsx'
 import { openInEditor, vscode } from './host.ts'
 import { Chip, kindClass, lookVars, ObjectTile, Section, TypeTile } from './Chrome.tsx'
 import { ColorPicker, ExternalToggle, IconPicker, KindPicker, OpacityPicker, ShapePicker, SketchPicker, StatePicker, TypePicker } from './Pickers.tsx'
 import type { Sketch } from './Pickers.tsx'
 import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Table, Text, Trash, Close } from './icons.tsx'
-
-/** Runs one edit and resolves to true once it's saved. Whatever went wrong shows as a notice. */
-export type Run = (op: (model: Model) => Model) => Promise<boolean>
 
 function Panel({ onClose, children }: { onClose: () => void; children: ReactNode }) {
   return (
@@ -77,24 +78,7 @@ function ObjectHeader({ model, id, object, problems, state }: { model: Model; id
   )
 }
 
-/** A text field that saves when you leave it or press Enter, and shows the saved text again if saving fails. */
-export function Field({ label, value, multiline, list, placeholder, disabled, title, onSave }: { label: ReactNode; value: string; multiline?: boolean; list?: string; placeholder?: string; disabled?: boolean; title?: string; onSave: (value: string) => Promise<boolean> }) {
-  const save = async (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const input = e.currentTarget
-    if (input.value !== value && !(await onSave(input.value))) input.value = value
-  }
-  // Keyed by the saved value, so the field shows the new text after every reload.
-  return (
-    <label title={title}>
-      {label}
-      {multiline
-        ? <textarea key={value} defaultValue={value} rows={8} disabled={disabled} onBlur={save} />
-        : <input key={value} defaultValue={value} list={list} placeholder={placeholder} disabled={disabled} onBlur={save} onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()} />}
-    </label>
-  )
-}
-
-type Common = { model: Model; run: Run; onClose: () => void }
+type Common = { model: Model; run: SaveEdit; onClose: () => void }
 
 /**
  * A path in the repo, as the link its text is. In VS Code it opens in the editor (with Ctrl or Cmd held, the repo host's page
@@ -194,7 +178,7 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
   const row = (line: BoxLine, Arrow: typeof ArrowRight) => {
     const other = getObject(model, line.other)
     return (
-    <li key={lineId(line.from, line.to)} className="row" onMouseEnter={() => onHover(lineId(line.from, line.to))} onMouseLeave={() => onHover(undefined)}>
+    <li key={lineKey(line.from, line.to)} className="row" onMouseEnter={() => onHover(lineKey(line.from, line.to))} onMouseLeave={() => onHover(undefined)}>
       <span className="dirn" aria-hidden="true"><Arrow size={14} /></span>
       <div>
         <div className="other">
@@ -375,7 +359,6 @@ const cap = (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
 /** How a step travels and how its request ends, as sketches to pick from. A step on one shape does not travel, so nothing but None is open to it. */
 const KIND_CHOICES: Sketch[] = [{ id: '', name: 'None', sketch: KIND_SKETCHES.none }, ...ANIMATION_KINDS.map(k => ({ id: k, name: cap(k), sketch: KIND_SKETCHES[k] }))]
 const OUTCOME_CHOICES: Sketch[] = [{ id: '', name: 'Arrives', sketch: OUTCOME_SKETCHES.none }, ...OUTCOMES.map(o => ({ id: o, name: cap(o), sketch: OUTCOME_SKETCHES[o] }))]
-const isTable = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
 /**
  * How a step plays: the way it travels, the way its request ends, and what goes with an outcome (a share of the requests, a reason, and for an interception
@@ -383,7 +366,7 @@ const isTable = (v: unknown): v is Record<string, unknown> => typeof v === 'obje
  */
 function StepAnimation({ step, takers, onSet }: { step: Step; takers: { id: string; type: string; name: string; end: boolean }[]; onSet: (key: AnimationKey, value: string) => Promise<boolean> }) {
   const raw = step.animation
-  const map = isTable(raw) ? raw : typeof raw === 'string' ? { kind: raw } : {}
+  const map = isMap(raw) ? raw : typeof raw === 'string' ? { kind: raw } : {}
   const text = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v) : '')
   const kind = text(map.kind)
   const outcome = text(map.outcome)
@@ -392,7 +375,7 @@ function StepAnimation({ step, takers, onSet }: { step: Step; takers: { id: stri
   const outcomes = OUTCOME_CHOICES.map(c => ({ ...c, block: outcomeBlock(kind, c.id) }))
   const ended = outcome !== ''
   const taken = text(map.by)
-  const named = isTable(map.by) ? text(map.by.name) : ''
+  const named = isMap(map.by) ? text(map.by.name) : ''
   const intercepted = outcome === 'intercepted'
   const off = (why: string, on: boolean) => (on ? undefined : why)
   return (
@@ -476,7 +459,7 @@ function StepStates({ model, step, onPick }: { model: Model; step: Step; onPick:
 }
 
 /** The groups of the flow being recorded: how each one behaves, and a form that puts a stretch of its steps in a new one. */
-function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps: Step[]; groups: Record<string, Group>; edit: Run }) {
+function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps: Step[]; groups: Record<string, Group>; edit: SaveEdit }) {
   const ids = Object.keys(groups)
   const [kind, setKind] = useState('repeat')
   const add = async (e: FormEvent<HTMLFormElement>) => {
@@ -565,8 +548,8 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
   }
   const change = (edit: (steps: Step[]) => Step[]) => run(m => updateFlow(m, rec.id, { steps: edit(onScreen(m)) }))
   // An edit that counts steps (put one in a group, delete one) is checked against the list on screen as well.
-  const edit: Run = op => run(m => { onScreen(m); return op(m) })
-  const groups: Record<string, Group> = flow && typeof flow.groups === 'object' && flow.groups !== null && !Array.isArray(flow.groups) ? flow.groups : {}
+  const edit: SaveEdit = op => run(m => { onScreen(m); return op(m) })
+  const groups: Record<string, Group> = flow && isMap(flow.groups) ? flow.groups : {}
   const others = Object.entries(model.flows).filter(([id]) => id !== rec.id).map(([id, f]): [string, string] => [id, f.name])
   // A step with no "to", or one recorded by clicking the same box twice, is that box acting on its own.
   const ends = (from: string, to?: string) => (to === undefined || to === from ? `${nameOf(model, from)}, on its own` : `${nameOf(model, from)} → ${nameOf(model, to)}`)
