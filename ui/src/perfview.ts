@@ -52,6 +52,12 @@ export function fmtMs(ms: number): string {
 }
 export const fmtPct = (share: number): string => `${trim(share * 100, share < 0.1 ? 1 : 0)}%`
 export const fmtRate = (rate: number): string => `${trim(rate, rate < 10 ? 1 : 0)} calls a second`
+/** The size of a call: "400 B", "1.5 KB", "2.4 MB" (a thousand to the step, like the numbers a formula is written in). */
+export function fmtBytes(bytes: number): string {
+  if (bytes >= 1_000_000) return `${trim(bytes / 1_000_000, bytes < 10_000_000 ? 1 : 0)} MB`
+  if (bytes >= 1000) return `${trim(bytes / 1000, bytes < 10_000 ? 1 : 0)} KB`
+  return `${trim(bytes, bytes < 10 ? 1 : 0)} B`
+}
 /** A load with its unit: "200 req/s". */
 export const fmtLoad = (load: number, unit: string): string => `${trim(load, load < 10 ? 1 : 0)} ${unit}`
 
@@ -61,6 +67,7 @@ export const METRICS: Record<keyof Metrics, { label: string; show: (v: number) =
   queue: { label: 'Waiting', show: v => String(Math.round(v)) },
   errors: { label: 'Failing', show: fmtPct },
   rate: { label: 'Calls', show: fmtRate },
+  bytes: { label: 'Size of a call', show: fmtBytes },
   p50: { label: 'Expected call', show: fmtMs, log: true },
   p95: { label: 'Slowest 5%', show: fmtMs, log: true },
 }

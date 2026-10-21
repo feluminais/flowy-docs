@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseRun } from '../src/core/perf.ts'
 import {
-  activeRun, boxAt, boxSeries, clampPos, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, levelLabels, lineAt, lineSeries, loadAt, METRICS, pathOf, RAMP_MS, rampFrom, rampPos, scaleOf, snap, top, xAt, yAt,
+  activeRun, boxAt, boxSeries, clampPos, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, levelLabels, lineAt, lineSeries, loadAt, METRICS, pathOf, RAMP_MS, rampFrom, rampPos, scaleOf, snap, top, xAt, yAt,
 } from '../ui/src/perfview.ts'
 import { shop } from './fixtures.ts'
 
@@ -75,6 +75,14 @@ test('numbers are written the way a reader says them', () => {
   assert.equal(fmtPct(0.0004), '0%')
   assert.equal(fmtRate(98), '98 calls a second')
   assert.equal(fmtRate(4.25), '4.3 calls a second')
+  assert.equal(fmtBytes(400), '400 B')
+  assert.equal(fmtBytes(0), '0 B')
+  assert.equal(fmtBytes(1000), '1 KB')
+  assert.equal(fmtBytes(1536), '1.5 KB')
+  assert.equal(fmtBytes(48_000), '48 KB')
+  assert.equal(fmtBytes(2_400_000), '2.4 MB')
+  assert.equal(METRICS.bytes.label, 'Size of a call')
+  assert.equal(METRICS.bytes.show(1600), '1.6 KB')
   assert.equal(fmtLoad(200, 'req/s'), '200 req/s')
   assert.equal(fmtLoad(2.5, 'req/s'), '2.5 req/s')
   assert.equal(METRICS.util.show(0.93), '93%')
