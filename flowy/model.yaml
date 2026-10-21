@@ -463,6 +463,18 @@ objects:
       Performance tab will show at a load: the numbers between two tested levels, the worst of what
       a shape holds, where things first struggle, and how busy each line is.
 
+      A run can also set a source: the colour of its dots, and formulas for how many dots a line shows
+      and how big each is. A line past the screen's limit is scaled down and says so.
+  formula:
+    type: component
+    in: core
+    name: Traffic formula
+    code: [src/core/formula.ts, desktop/Flowy.Core/Formula.cs]
+    description: |
+      The small arithmetic a run's source uses: numbers, `rate`, `bytes` and `p50`, and `+ - * /`. A
+      hand-written reader and evaluator, with no functions and no `eval`, so a formula that can't be read is
+      a problem with a place in it and never a crash. The desktop app's port (`Formula.cs`) is kept equal by fixtures.
+
       It replays what was measured and never predicts: above the highest tested load there is
       nothing to show. Nothing here draws: the canvas and the desktop app each show it, and the desktop
       app's port (`Perf.cs`) is kept equal by fixtures.
@@ -582,6 +594,7 @@ connections:
   - { from: vscode, to: filestore, label: "loads the model, and writes the canvas's edits" }
   - { from: vscode, to: canvas, label: shows the built page in a panel }
   - { from: filestore, to: perf, label: reads the runs in perf/ }
+  - { from: perf, to: formula, label: how many dots and how big }
   - { from: perf, to: views, label: which line a connection lands in }
   - { from: perf, to: model, label: reads files the same way }
   - { from: perf-lab, to: perf, label: writes runs it can read }
