@@ -7,6 +7,7 @@ import { dumpBeats } from './beats.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
 import { dumpDetect, dumpHighlight } from './detect.ts'
 import { dumpEditLabels } from './editlabel.ts'
+import { dumpFormula } from './formula.ts'
 import { dumpGeometry } from './geometry.ts'
 import { buildTrail, dumpHistory } from './history.ts'
 import { dumpLayout } from './layout.ts'
@@ -36,6 +37,7 @@ await write('yaml-write', await dumpYamlWrite())
 await write('ops', await dumpOps())
 await write('beats', dumpBeats())
 await write('outline', await dumpOutline())
+await write('formula', dumpFormula())
 await write('perf-runs', await dumpPerf())
 await write('perf-view', await dumpPerfView())
 await write('stops', await dumpStops())

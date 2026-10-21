@@ -7,6 +7,7 @@ import { dumpDetect, dumpHighlight } from '../desktop/fixtures/detect.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from '../desktop/fixtures/dump.ts'
 import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
 import { dumpEditLabels } from '../desktop/fixtures/editlabel.ts'
+import { dumpFormula } from '../desktop/fixtures/formula.ts'
 import { buildTrail, dumpHistory } from '../desktop/fixtures/history.ts'
 import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
@@ -84,6 +85,11 @@ test('desktop navigator rows, flow groups and keys still match what the TypeScri
 test('desktop load-test runs still read, roll up, struggle and draw as the TypeScript core says', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('perf-runs'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(await dumpPerf())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop traffic formulas still read, print and evaluate as the TypeScript core says', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('formula'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(dumpFormula())), expected, 'run: node desktop/fixtures/generate.ts')
 })
 
 test('desktop panel maths and words still match ui/src/perfview.ts', async () => {

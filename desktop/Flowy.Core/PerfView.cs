@@ -81,6 +81,14 @@ public static class PerfView
 
     public static string FmtRate(double rate) => $"{Trim(rate, rate < 10 ? 1 : 0)} calls a second";
 
+    /// <summary>The size of a call: "400 B", "1.5 KB", "2.4 MB" (a thousand to the step, like the numbers a formula is written in).</summary>
+    public static string FmtBytes(double bytes) => bytes switch
+    {
+        >= 1_000_000 => $"{Trim(bytes / 1_000_000, bytes < 10_000_000 ? 1 : 0)} MB",
+        >= 1000 => $"{Trim(bytes / 1000, bytes < 10_000 ? 1 : 0)} KB",
+        _ => $"{Trim(bytes, bytes < 10 ? 1 : 0)} B",
+    };
+
     /// <summary>A load with its unit: "200 req/s".</summary>
     public static string FmtLoad(double load, string unit) => $"{Trim(load, load < 10 ? 1 : 0)} {unit}";
 
@@ -91,6 +99,7 @@ public static class PerfView
         ["queue"] = new("Waiting", v => Trim(Perf.JsRound(v), 0)),
         ["errors"] = new("Failing", FmtPct),
         ["rate"] = new("Calls", FmtRate),
+        ["bytes"] = new("Size of a call", FmtBytes),
         ["p50"] = new("Expected call", FmtMs, Log: true),
         ["p95"] = new("Slowest 5%", FmtMs, Log: true),
     };
@@ -98,7 +107,7 @@ public static class PerfView
     /// <summary>The numbers a shape can have, and a line, in the order the panel lists them.</summary>
     public static readonly string[] BoxKeys = ["util", "queue", "errors"];
 
-    public static readonly string[] LineKeys = ["rate", "p50", "p95", "errors"];
+    public static readonly string[] LineKeys = ["rate", "bytes", "p50", "p95", "errors"];
 
     // ---- curves -------------------------------------------------------------------------------------------------
 

@@ -544,6 +544,999 @@
       "problems": []
     },
     {
+      "id": "source-good",
+      "text": "name: S\nunit: u\nsource: { color: blue, dot: rate / 50, size: bytes / 400 }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "u",
+        "source": {
+          "color": "blue",
+          "dot": {
+            "text": "rate / 50",
+            "formula": "rate / 50"
+          },
+          "size": {
+            "text": "bytes / 400",
+            "formula": "bytes / 400"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "source-hex",
+      "text": "name: S\nsource: { color: \"#1D9E75\" }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "source": {
+          "color": "#1D9E75"
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "source-short-hex",
+      "text": "name: S\nsource: { color: \"#abc\", dot: \"-rate\", size: \"bytes * 2\" }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "source": {
+          "color": "#abc",
+          "dot": {
+            "text": "-rate",
+            "formula": "-rate"
+          },
+          "size": {
+            "text": "bytes * 2",
+            "formula": "bytes * 2"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "source-block",
+      "text": "name: S\nsource:\n  color: teal\n  dot: (rate + rate) / 100\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "source": {
+          "color": "teal",
+          "dot": {
+            "text": "(rate + rate) / 100",
+            "formula": "(rate + rate) / 100"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "source-empty",
+      "text": "name: S\nsource: {}\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "source-null",
+      "text": "name: S\nsource: ~\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "source-blank",
+      "text": "name: S\nsource:\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "source-text",
+      "text": "name: S\nsource: 5\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-text.yaml",
+          "message": "source must be a mapping of color, dot and size"
+        }
+      ]
+    },
+    {
+      "id": "source-list",
+      "text": "name: S\nsource: [blue]\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-list.yaml",
+          "message": "source must be a mapping of color, dot and size"
+        }
+      ]
+    },
+    {
+      "id": "source-unknown",
+      "text": "name: S\nsource: { colour: blue, extra: 1, color: red }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "source": {
+          "color": "red"
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-unknown.yaml",
+          "message": "source: unknown key \"colour\" (use color, dot, size)"
+        },
+        {
+          "file": "perf/source-unknown.yaml",
+          "message": "source: unknown key \"extra\" (use color, dot, size)"
+        }
+      ]
+    },
+    {
+      "id": "source-unknown-only",
+      "text": "name: S\nsource: { colour: blue }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-unknown-only.yaml",
+          "message": "source: unknown key \"colour\" (use color, dot, size)"
+        }
+      ]
+    },
+    {
+      "id": "source-long-key",
+      "text": "name: S\nsource: { kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk: 1, color: red }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "source": {
+          "color": "red"
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-long-key.yaml",
+          "message": "source: unknown key \"kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk…\" (use color, dot, size)"
+        }
+      ]
+    },
+    {
+      "id": "source-proto",
+      "text": "name: S\nsource: { __proto__: x, constructor: y, color: red }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "source": {
+          "color": "red"
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-proto.yaml",
+          "message": "source: unknown key \"__proto__\" (use color, dot, size)"
+        },
+        {
+          "file": "perf/source-proto.yaml",
+          "message": "source: unknown key \"constructor\" (use color, dot, size)"
+        }
+      ]
+    },
+    {
+      "id": "source-bad-color",
+      "text": "name: S\nsource: { color: chartreuse, dot: rate / 50 }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "source": {
+          "dot": {
+            "text": "rate / 50",
+            "formula": "rate / 50"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-bad-color.yaml",
+          "message": "source: color must be a colour name or a hex such as #1d9e75"
+        }
+      ]
+    },
+    {
+      "id": "source-short-color",
+      "text": "name: S\nsource: { color: \"#12\" }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-short-color.yaml",
+          "message": "source: color must be a colour name or a hex such as #1d9e75"
+        }
+      ]
+    },
+    {
+      "id": "source-color-list",
+      "text": "name: S\nsource: { color: [red] }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-color-list.yaml",
+          "message": "source: color must be a colour name or a hex such as #1d9e75"
+        }
+      ]
+    },
+    {
+      "id": "source-long-color",
+      "text": "name: S\nsource: { color: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-long-color.yaml",
+          "message": "source: color must be a colour name or a hex such as #1d9e75"
+        }
+      ]
+    },
+    {
+      "id": "source-bad-dot",
+      "text": "name: S\nsource: { color: green, dot: \"rate *\", size: \"bytes / 0.5\" }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "source": {
+          "color": "green",
+          "size": {
+            "text": "bytes / 0.5",
+            "formula": "bytes / 0.5"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-bad-dot.yaml",
+          "message": "source: dot formula \"rate *\": unexpected end"
+        }
+      ]
+    },
+    {
+      "id": "source-dot-list",
+      "text": "name: S\nsource: { dot: [rate] }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-dot-list.yaml",
+          "message": "source: dot must be a formula such as rate / 50"
+        }
+      ]
+    },
+    {
+      "id": "source-size-map",
+      "text": "name: S\nsource: { size: { a: b } }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-size-map.yaml",
+          "message": "source: size must be a formula such as bytes / 400"
+        }
+      ]
+    },
+    {
+      "id": "source-formulas",
+      "text": "name: S\nsource: { dot: \"((rate)\", size: \"1e3\" }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-formulas.yaml",
+          "message": "source: dot formula \"((rate)\": missing \")\""
+        },
+        {
+          "file": "perf/source-formulas.yaml",
+          "message": "source: size formula \"1e3\": unexpected \"e3\" at 2"
+        }
+      ]
+    },
+    {
+      "id": "source-formula-call",
+      "text": "name: S\nsource: { dot: \"rate()\" }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-formula-call.yaml",
+          "message": "source: dot formula \"rate()\": unexpected \"(\" at 5"
+        }
+      ]
+    },
+    {
+      "id": "source-formula-hex",
+      "text": "name: S\nsource: { dot: \"0x10\", size: \"1.2.3\" }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-formula-hex.yaml",
+          "message": "source: dot formula \"0x10\": unexpected \"x10\" at 2"
+        },
+        {
+          "file": "perf/source-formula-hex.yaml",
+          "message": "source: size formula \"1.2.3\": bad number \"1.2.3\" at 1"
+        }
+      ]
+    },
+    {
+      "id": "source-formula-name",
+      "text": "name: S\nsource: { dot: \"speed / 2\", size: \"Rate\" }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-formula-name.yaml",
+          "message": "source: dot formula \"speed / 2\": unknown name \"speed\" (use rate, bytes, p50)"
+        },
+        {
+          "file": "perf/source-formula-name.yaml",
+          "message": "source: size formula \"Rate\": unknown name \"Rate\" (use rate, bytes, p50)"
+        }
+      ]
+    },
+    {
+      "id": "source-formula-blank",
+      "text": "name: S\nsource: { dot: \"\", size: \"   \" }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-formula-blank.yaml",
+          "message": "source: size formula \"   \": empty"
+        }
+      ]
+    },
+    {
+      "id": "source-formula-80",
+      "text": "name: S\nsource: { dot: \"rate + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1\" }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "source": {
+          "dot": {
+            "text": "rate + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1",
+            "formula": "((((((((((((((((((rate + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "source-formula-81",
+      "text": "name: S\nsource: { dot: \"rate + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 \" }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/source-formula-81.yaml",
+          "message": "source: dot formula \"rate + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1…\": at most 80 characters"
+        }
+      ]
+    },
+    {
+      "id": "source-formula-divide",
+      "text": "name: S\nsource: { dot: rate / 0, size: -bytes }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "S",
+        "unit": "load",
+        "source": {
+          "dot": {
+            "text": "rate / 0",
+            "formula": "rate / 0"
+          },
+          "size": {
+            "text": "-bytes",
+            "formula": "-bytes"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "bytes-good",
+      "text": "name: B\nlevels:\n  - load: 1\n    overall: { bytes: 90 }\n    connections:\n      - { from: web, to: db, bytes: 400.5, rate: 3 }\n  - load: 2\n",
+      "run": {
+        "name": "B",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {
+              "bytes": 90
+            },
+            "objects": {},
+            "connections": [
+              {
+                "from": "web",
+                "to": "db",
+                "rate": 3,
+                "bytes": 400.5
+              }
+            ]
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "bytes-bad",
+      "text": "name: B\nlevels:\n  - load: 1\n    connections:\n      - { from: web, to: api, bytes: big }\n      - { from: auth, to: db, bytes: -3 }\n  - load: 2\n",
+      "run": {
+        "name": "B",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "web",
+                "to": "api"
+              },
+              {
+                "from": "auth",
+                "to": "db"
+              }
+            ]
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/bytes-bad.yaml",
+          "message": "load 1, web → api: bytes must be a number"
+        },
+        {
+          "file": "perf/bytes-bad.yaml",
+          "message": "load 1, auth → db: bytes must be 0 or more"
+        }
+      ]
+    },
+    {
+      "id": "failure-good",
+      "text": "name: F\nlevels:\n  - load: 1\n    connections:\n      - { from: web, to: api, failure: lost }\n      - { from: auth, to: db, failure: rejected }\n      - { from: orders, to: db, failure: \"\" }\n      - { from: queue, to: worker, failure: ~ }\n  - load: 2\n",
+      "run": {
+        "name": "F",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "web",
+                "to": "api",
+                "failure": "lost"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "failure": "rejected"
+              },
+              {
+                "from": "orders",
+                "to": "db"
+              },
+              {
+                "from": "queue",
+                "to": "worker"
+              }
+            ]
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "failure-bad",
+      "text": "name: F\nlevels:\n  - load: 1\n    connections:\n      - { from: web, to: api, failure: weird }\n      - { from: auth, to: db, failure: [lost] }\n      - { from: orders, to: db, failure: Lost }\n  - load: 2\n",
+      "run": {
+        "name": "F",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "web",
+                "to": "api"
+              },
+              {
+                "from": "auth",
+                "to": "db"
+              },
+              {
+                "from": "orders",
+                "to": "db"
+              }
+            ]
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/failure-bad.yaml",
+          "message": "load 1, web → api: failure must be lost or rejected"
+        },
+        {
+          "file": "perf/failure-bad.yaml",
+          "message": "load 1, auth → db: failure must be lost or rejected"
+        },
+        {
+          "file": "perf/failure-bad.yaml",
+          "message": "load 1, orders → db: failure must be lost or rejected"
+        }
+      ]
+    },
+    {
       "id": "numeric-ids",
       "text": "name: A\nlevels:\n  - load: 1\n    objects:\n      b: { util: 0.1 }\n      \"10\": { util: 0.2 }\n      \"2\": { util: 0.3 }\n  - load: 2\n    objects:\n      \"2\": { util: 0.4 }\n",
       "run": {
@@ -14062,6 +15055,4829 @@
       ],
       "knee": null,
       "text": null
+    }
+  ],
+  "scaled": [
+    {
+      "id": "dots",
+      "text": "name: Dots\nunit: req/s\nsource: { color: blue, dot: rate / 50, size: bytes / 400 }\nlevels:\n  - load: 1\n    connections:\n      - { from: customer, to: web, rate: 100, p50: 10, bytes: 400, errors: 0 }\n      - { from: orders, to: db, rate: 50, p50: 400, bytes: 800, errors: 0.1, failure: lost }\n      - { from: auth, to: db, rate: 150, p50: 100, bytes: 300, errors: 0.02, failure: lost }\n      - { from: orders, to: queue, rate: 1000, p50: 0.5, bytes: 100 }\n      - { from: worker, to: gateway, rate: 40, p50: 90, bytes: 2000, errors: 0.3, failure: rejected }\n      - { from: orders, to: gateway, rate: 40, p50: 90, errors: 0.3, failure: lost }\n  - load: 2\n    connections:\n      - { from: customer, to: web, rate: 1000, p50: 10, bytes: 1600, errors: 0.05 }\n      - { from: orders, to: db, rate: 500, p50: 800, bytes: 800, errors: 0.2, failure: lost }\n      - { from: auth, to: db, rate: 1500, p50: 400, bytes: 300, errors: 0.04, failure: rejected }\n      - { from: orders, to: queue, rate: 100000, p50: 0.5, bytes: 100000000 }\n      - { from: worker, to: gateway, rate: 0, p50: 90, bytes: 10 }\n      - { from: orders, to: gateway, rate: 60, p50: 90, errors: 0.3 }\n",
+      "run": {
+        "name": "Dots",
+        "unit": "req/s",
+        "source": {
+          "color": "blue",
+          "dot": {
+            "text": "rate / 50",
+            "formula": "rate / 50"
+          },
+          "size": {
+            "text": "bytes / 400",
+            "formula": "bytes / 400"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "bytes": 400,
+                "p50": 10,
+                "errors": 0
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 50,
+                "bytes": 800,
+                "p50": 400,
+                "errors": 0.1,
+                "failure": "lost"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "rate": 150,
+                "bytes": 300,
+                "p50": 100,
+                "errors": 0.02,
+                "failure": "lost"
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "rate": 1000,
+                "bytes": 100,
+                "p50": 0.5
+              },
+              {
+                "from": "worker",
+                "to": "gateway",
+                "rate": 40,
+                "bytes": 2000,
+                "p50": 90,
+                "errors": 0.3,
+                "failure": "rejected"
+              },
+              {
+                "from": "orders",
+                "to": "gateway",
+                "rate": 40,
+                "p50": 90,
+                "errors": 0.3,
+                "failure": "lost"
+              }
+            ]
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 1000,
+                "bytes": 1600,
+                "p50": 10,
+                "errors": 0.05
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 500,
+                "bytes": 800,
+                "p50": 800,
+                "errors": 0.2,
+                "failure": "lost"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "rate": 1500,
+                "bytes": 300,
+                "p50": 400,
+                "errors": 0.04,
+                "failure": "rejected"
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "rate": 100000,
+                "bytes": 100000000,
+                "p50": 0.5
+              },
+              {
+                "from": "worker",
+                "to": "gateway",
+                "rate": 0,
+                "bytes": 10,
+                "p50": 90
+              },
+              {
+                "from": "orders",
+                "to": "gateway",
+                "rate": 60,
+                "p50": 90,
+                "errors": 0.3
+              }
+            ]
+          }
+        ]
+      },
+      "problems": [],
+      "scale": "1 dot = 50 calls/s",
+      "loads": [
+        {
+          "load": 1,
+          "level": {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "bytes": 400,
+                "p50": 10,
+                "errors": 0
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 50,
+                "bytes": 800,
+                "p50": 400,
+                "errors": 0.1,
+                "failure": "lost"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "rate": 150,
+                "bytes": 300,
+                "p50": 100,
+                "errors": 0.02,
+                "failure": "lost"
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "rate": 1000,
+                "bytes": 100,
+                "p50": 0.5
+              },
+              {
+                "from": "worker",
+                "to": "gateway",
+                "rate": 40,
+                "bytes": 2000,
+                "p50": 90,
+                "errors": 0.3,
+                "failure": "rejected"
+              },
+              {
+                "from": "orders",
+                "to": "gateway",
+                "rate": 40,
+                "p50": 90,
+                "errors": 0.3,
+                "failure": "lost"
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 4.51,
+                  "perSecond": 2.5,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "blue",
+                  "dots": 2,
+                  "radius": 1
+                },
+                {
+                  "from": "shop",
+                  "to": "gateway",
+                  "width": 4.36,
+                  "perSecond": 1.07,
+                  "travelMs": 1500,
+                  "failed": 0.3,
+                  "color": "blue",
+                  "dots": 1.6,
+                  "radius": 2.24
+                }
+              ],
+              "key": {
+                "name": "Dots",
+                "color": "blue",
+                "scale": "1 dot = 50 calls/s",
+                "bigger": true,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 4.51,
+                  "perSecond": 2.5,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "blue",
+                  "dots": 2,
+                  "radius": 1
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 4.95,
+                  "perSecond": 1.89,
+                  "travelMs": 2113,
+                  "failed": 0.1,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 4,
+                  "radius": 1.03
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "width": 6,
+                  "perSecond": 38.39,
+                  "travelMs": 521,
+                  "failed": 0,
+                  "color": "blue",
+                  "dots": 20,
+                  "radius": 0.5
+                },
+                {
+                  "from": "worker",
+                  "to": "gateway",
+                  "width": 3.92,
+                  "perSecond": 0.53,
+                  "travelMs": 1500,
+                  "failed": 0.3,
+                  "color": "blue",
+                  "failure": "rejected",
+                  "dots": 0.8,
+                  "radius": 2.24
+                },
+                {
+                  "from": "web",
+                  "to": "gateway",
+                  "width": 3.92,
+                  "perSecond": 0.53,
+                  "travelMs": 1500,
+                  "failed": 0.3,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 0.8
+                }
+              ],
+              "key": {
+                "name": "Dots",
+                "color": "blue",
+                "scale": "1 dot = 50 calls/s",
+                "bigger": true,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 4.06,
+                  "perSecond": 0.47,
+                  "travelMs": 2113,
+                  "failed": 0.1,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 1,
+                  "radius": 1.41
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "width": 4.77,
+                  "perSecond": 1.95,
+                  "travelMs": 1541,
+                  "failed": 0.05,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 3,
+                  "radius": 0.87
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "width": 6,
+                  "perSecond": 38.39,
+                  "travelMs": 521,
+                  "failed": 0,
+                  "color": "blue",
+                  "dots": 20,
+                  "radius": 0.5
+                },
+                {
+                  "from": "orders",
+                  "to": "gateway",
+                  "width": 3.92,
+                  "perSecond": 0.53,
+                  "travelMs": 1500,
+                  "failed": 0.3,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 0.8
+                }
+              ],
+              "key": {
+                "name": "Dots",
+                "color": "blue",
+                "scale": "1 dot = 50 calls/s",
+                "bigger": true,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 100,
+                  "bytes": 400,
+                  "p50": 10,
+                  "errors": 0
+                },
+                {
+                  "from": "shop",
+                  "to": "gateway",
+                  "rate": 80,
+                  "bytes": 2000,
+                  "p50": 90,
+                  "errors": 0.3
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 100,
+                  "bytes": 400,
+                  "p50": 10,
+                  "errors": 0
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 200,
+                  "bytes": 425,
+                  "p50": 400,
+                  "errors": 0.1,
+                  "failure": "lost"
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "rate": 1000,
+                  "bytes": 100,
+                  "p50": 0.5
+                },
+                {
+                  "from": "worker",
+                  "to": "gateway",
+                  "rate": 40,
+                  "bytes": 2000,
+                  "p50": 90,
+                  "errors": 0.3,
+                  "failure": "rejected"
+                },
+                {
+                  "from": "web",
+                  "to": "gateway",
+                  "rate": 40,
+                  "p50": 90,
+                  "errors": 0.3,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 50,
+                  "bytes": 800,
+                  "p50": 400,
+                  "errors": 0.1,
+                  "failure": "lost"
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "rate": 150,
+                  "bytes": 300,
+                  "p50": 100,
+                  "errors": 0.02,
+                  "failure": "lost"
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "rate": 1000,
+                  "bytes": 100,
+                  "p50": 0.5
+                },
+                {
+                  "from": "orders",
+                  "to": "gateway",
+                  "rate": 40,
+                  "p50": 90,
+                  "errors": 0.3,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 1.5,
+          "level": {
+            "load": 1.5,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 550,
+                "bytes": 1000,
+                "p50": 10,
+                "errors": 0.025
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 275,
+                "bytes": 800,
+                "p50": 600,
+                "errors": 0.15000000000000002,
+                "failure": "lost"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "rate": 825,
+                "bytes": 300,
+                "p50": 250,
+                "errors": 0.03,
+                "failure": "lost"
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "rate": 50500,
+                "bytes": 50000050,
+                "p50": 0.5
+              },
+              {
+                "from": "worker",
+                "to": "gateway",
+                "rate": 20,
+                "bytes": 1005,
+                "p50": 90,
+                "failure": "rejected"
+              },
+              {
+                "from": "orders",
+                "to": "gateway",
+                "rate": 50,
+                "p50": 90,
+                "errors": 0.3,
+                "failure": "lost"
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 5.61,
+                  "perSecond": 13.73,
+                  "travelMs": 801,
+                  "failed": 0.05,
+                  "color": "blue",
+                  "dots": 11,
+                  "radius": 1.58
+                },
+                {
+                  "from": "shop",
+                  "to": "gateway",
+                  "width": 4.28,
+                  "perSecond": 0.93,
+                  "travelMs": 1500,
+                  "failed": 0.3,
+                  "color": "blue",
+                  "dots": 1.4,
+                  "radius": 1.59
+                }
+              ],
+              "key": {
+                "name": "Dots",
+                "color": "blue",
+                "scale": "1 dot = 50 calls/s",
+                "bigger": true,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 5.61,
+                  "perSecond": 13.73,
+                  "travelMs": 801,
+                  "failed": 0.05,
+                  "color": "blue",
+                  "dots": 11,
+                  "radius": 1.58
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 6,
+                  "perSecond": 9.63,
+                  "travelMs": 2285,
+                  "failed": 0.15,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 22,
+                  "radius": 1.03
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "width": 6,
+                  "perSecond": 46.07,
+                  "travelMs": 521,
+                  "failed": 0,
+                  "color": "blue",
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                },
+                {
+                  "from": "worker",
+                  "to": "gateway",
+                  "width": 3.48,
+                  "perSecond": 0.27,
+                  "travelMs": 1500,
+                  "failed": 0,
+                  "color": "blue",
+                  "failure": "rejected",
+                  "dots": 0.4,
+                  "radius": 1.59
+                },
+                {
+                  "from": "web",
+                  "to": "gateway",
+                  "width": 4.06,
+                  "perSecond": 0.67,
+                  "travelMs": 1500,
+                  "failed": 0.3,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 1
+                }
+              ],
+              "key": {
+                "name": "Dots",
+                "color": "blue",
+                "scale": "1 dot = 50 calls/s",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 5.16,
+                  "perSecond": 2.41,
+                  "travelMs": 2285,
+                  "failed": 0.15,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 5.5,
+                  "radius": 1.41
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "width": 5.88,
+                  "perSecond": 8.62,
+                  "travelMs": 1915,
+                  "failed": 0.05,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 16.5,
+                  "radius": 0.87
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "width": 6,
+                  "perSecond": 46.07,
+                  "travelMs": 521,
+                  "failed": 0,
+                  "color": "blue",
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                },
+                {
+                  "from": "orders",
+                  "to": "gateway",
+                  "width": 4.06,
+                  "perSecond": 0.67,
+                  "travelMs": 1500,
+                  "failed": 0.3,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 1
+                }
+              ],
+              "key": {
+                "name": "Dots",
+                "color": "blue",
+                "scale": "1 dot = 50 calls/s",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 550,
+                  "bytes": 1000,
+                  "p50": 10,
+                  "errors": 0.025
+                },
+                {
+                  "from": "shop",
+                  "to": "gateway",
+                  "rate": 70,
+                  "bytes": 1005,
+                  "p50": 90,
+                  "errors": 0.3
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 550,
+                  "bytes": 1000,
+                  "p50": 10,
+                  "errors": 0.025
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 1100,
+                  "bytes": 425,
+                  "p50": 600,
+                  "errors": 0.15000000000000002,
+                  "failure": "lost"
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "rate": 50500,
+                  "bytes": 50000050,
+                  "p50": 0.5
+                },
+                {
+                  "from": "worker",
+                  "to": "gateway",
+                  "rate": 20,
+                  "bytes": 1005,
+                  "p50": 90,
+                  "failure": "rejected"
+                },
+                {
+                  "from": "web",
+                  "to": "gateway",
+                  "rate": 50,
+                  "p50": 90,
+                  "errors": 0.3,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 275,
+                  "bytes": 800,
+                  "p50": 600,
+                  "errors": 0.15000000000000002,
+                  "failure": "lost"
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "rate": 825,
+                  "bytes": 300,
+                  "p50": 250,
+                  "errors": 0.03,
+                  "failure": "lost"
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "rate": 50500,
+                  "bytes": 50000050,
+                  "p50": 0.5
+                },
+                {
+                  "from": "orders",
+                  "to": "gateway",
+                  "rate": 50,
+                  "p50": 90,
+                  "errors": 0.3,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 2,
+          "level": {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 1000,
+                "bytes": 1600,
+                "p50": 10,
+                "errors": 0.05
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 500,
+                "bytes": 800,
+                "p50": 800,
+                "errors": 0.2,
+                "failure": "lost"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "rate": 1500,
+                "bytes": 300,
+                "p50": 400,
+                "errors": 0.04,
+                "failure": "rejected"
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "rate": 100000,
+                "bytes": 100000000,
+                "p50": 0.5
+              },
+              {
+                "from": "worker",
+                "to": "gateway",
+                "rate": 0,
+                "bytes": 10,
+                "p50": 90,
+                "failure": "rejected"
+              },
+              {
+                "from": "orders",
+                "to": "gateway",
+                "rate": 60,
+                "p50": 90,
+                "errors": 0.3,
+                "failure": "lost"
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 6,
+                  "perSecond": 24.97,
+                  "travelMs": 801,
+                  "failed": 0.05,
+                  "color": "blue",
+                  "dots": 20,
+                  "radius": 2
+                },
+                {
+                  "from": "shop",
+                  "to": "gateway",
+                  "width": 4.18,
+                  "perSecond": 0.8,
+                  "travelMs": 1500,
+                  "failed": 0.3,
+                  "color": "blue",
+                  "dots": 1.2,
+                  "radius": 0.5
+                }
+              ],
+              "key": {
+                "name": "Dots",
+                "color": "blue",
+                "scale": "1 dot = 50 calls/s",
+                "bigger": true,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 6,
+                  "perSecond": 24.97,
+                  "travelMs": 801,
+                  "failed": 0.05,
+                  "color": "blue",
+                  "dots": 20,
+                  "radius": 2
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 6,
+                  "perSecond": 9.97,
+                  "travelMs": 2408,
+                  "failed": 0.2,
+                  "color": "blue",
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 1.03
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "width": 6,
+                  "perSecond": 46.07,
+                  "travelMs": 521,
+                  "failed": 0,
+                  "color": "blue",
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                },
+                {
+                  "from": "worker",
+                  "to": "gateway",
+                  "width": 1.5,
+                  "perSecond": 0,
+                  "travelMs": 1500,
+                  "failed": 0,
+                  "color": "blue",
+                  "failure": "rejected",
+                  "dots": 0,
+                  "radius": 0.5
+                },
+                {
+                  "from": "web",
+                  "to": "gateway",
+                  "width": 4.18,
+                  "perSecond": 0.8,
+                  "travelMs": 1500,
+                  "failed": 0.3,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 1.2
+                }
+              ],
+              "key": {
+                "name": "Dots",
+                "color": "blue",
+                "scale": "1 dot = 50 calls/s",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 5.55,
+                  "perSecond": 4.15,
+                  "travelMs": 2408,
+                  "failed": 0.2,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 10,
+                  "radius": 1.41
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "width": 6,
+                  "perSecond": 11.36,
+                  "travelMs": 2113,
+                  "failed": 0.05,
+                  "color": "blue",
+                  "failure": "rejected",
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 0.87
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "width": 6,
+                  "perSecond": 46.07,
+                  "travelMs": 521,
+                  "failed": 0,
+                  "color": "blue",
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                },
+                {
+                  "from": "orders",
+                  "to": "gateway",
+                  "width": 4.18,
+                  "perSecond": 0.8,
+                  "travelMs": 1500,
+                  "failed": 0.3,
+                  "color": "blue",
+                  "failure": "lost",
+                  "dots": 1.2
+                }
+              ],
+              "key": {
+                "name": "Dots",
+                "color": "blue",
+                "scale": "1 dot = 50 calls/s",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 1000,
+                  "bytes": 1600,
+                  "p50": 10,
+                  "errors": 0.05
+                },
+                {
+                  "from": "shop",
+                  "to": "gateway",
+                  "rate": 60,
+                  "bytes": 10,
+                  "p50": 90,
+                  "errors": 0.3
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 1000,
+                  "bytes": 1600,
+                  "p50": 10,
+                  "errors": 0.05
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 2000,
+                  "bytes": 425,
+                  "p50": 800,
+                  "errors": 0.2
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "rate": 100000,
+                  "bytes": 100000000,
+                  "p50": 0.5
+                },
+                {
+                  "from": "worker",
+                  "to": "gateway",
+                  "rate": 0,
+                  "bytes": 10,
+                  "p50": 90,
+                  "failure": "rejected"
+                },
+                {
+                  "from": "web",
+                  "to": "gateway",
+                  "rate": 60,
+                  "p50": 90,
+                  "errors": 0.3,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 500,
+                  "bytes": 800,
+                  "p50": 800,
+                  "errors": 0.2,
+                  "failure": "lost"
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "rate": 1500,
+                  "bytes": 300,
+                  "p50": 400,
+                  "errors": 0.04,
+                  "failure": "rejected"
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "rate": 100000,
+                  "bytes": 100000000,
+                  "p50": 0.5
+                },
+                {
+                  "from": "orders",
+                  "to": "gateway",
+                  "rate": 60,
+                  "p50": 90,
+                  "errors": 0.3,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "curve",
+      "text": "name: Curve\nsource: { color: \"#1D9E75\" }\nlevels:\n  - load: 1\n    connections: [{ from: customer, to: web, rate: 100, p50: 10 }, { from: orders, to: db, rate: 10, p50: 5, errors: 0.5, failure: rejected }]\n  - load: 2\n    connections: [{ from: customer, to: web, rate: 900, p50: 30 }, { from: orders, to: db, rate: 90 }]\n",
+      "run": {
+        "name": "Curve",
+        "unit": "load",
+        "source": {
+          "color": "#1D9E75"
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10,
+                "p50": 5,
+                "errors": 0.5,
+                "failure": "rejected"
+              }
+            ]
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 900,
+                "p50": 30
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 90
+              }
+            ]
+          }
+        ]
+      },
+      "problems": [],
+      "scale": null,
+      "loads": [
+        {
+          "load": 1,
+          "level": {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10,
+                "p50": 5,
+                "errors": 0.5,
+                "failure": "rejected"
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "#1D9E75"
+                }
+              ],
+              "key": {
+                "name": "Curve",
+                "color": "#1D9E75",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "#1D9E75"
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 676,
+                  "failed": 0.5,
+                  "color": "#1D9E75",
+                  "failure": "rejected"
+                }
+              ],
+              "key": {
+                "name": "Curve",
+                "color": "#1D9E75",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 676,
+                  "failed": 0.5,
+                  "color": "#1D9E75",
+                  "failure": "rejected"
+                }
+              ],
+              "key": {
+                "name": "Curve",
+                "color": "#1D9E75",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 100,
+                  "p50": 10
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 100,
+                  "p50": 10
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 10,
+                  "p50": 5,
+                  "errors": 0.5,
+                  "failure": "rejected"
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 10,
+                  "p50": 5,
+                  "errors": 0.5,
+                  "failure": "rejected"
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 1.5,
+          "level": {
+            "load": 1.5,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 500,
+                "p50": 20
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 50,
+                "failure": "rejected"
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 5.55,
+                  "perSecond": 12.3,
+                  "travelMs": 977,
+                  "failed": 0,
+                  "color": "#1D9E75"
+                }
+              ],
+              "key": {
+                "name": "Curve",
+                "color": "#1D9E75",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 5.55,
+                  "perSecond": 12.3,
+                  "travelMs": 977,
+                  "failed": 0,
+                  "color": "#1D9E75"
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 4.06,
+                  "perSecond": 8.33,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "color": "#1D9E75",
+                  "failure": "rejected"
+                }
+              ],
+              "key": {
+                "name": "Curve",
+                "color": "#1D9E75",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 4.06,
+                  "perSecond": 8.33,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "color": "#1D9E75",
+                  "failure": "rejected"
+                }
+              ],
+              "key": {
+                "name": "Curve",
+                "color": "#1D9E75",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 500,
+                  "p50": 20
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 500,
+                  "p50": 20
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 50,
+                  "failure": "rejected"
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 50,
+                  "failure": "rejected"
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 2,
+          "level": {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 900,
+                "p50": 30
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 90,
+                "failure": "rejected"
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 5.93,
+                  "perSecond": 13.32,
+                  "travelMs": 1102,
+                  "failed": 0,
+                  "color": "#1D9E75"
+                }
+              ],
+              "key": {
+                "name": "Curve",
+                "color": "#1D9E75",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 5.93,
+                  "perSecond": 13.32,
+                  "travelMs": 1102,
+                  "failed": 0,
+                  "color": "#1D9E75"
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 4.44,
+                  "perSecond": 9.34,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "color": "#1D9E75",
+                  "failure": "rejected"
+                }
+              ],
+              "key": {
+                "name": "Curve",
+                "color": "#1D9E75",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 4.44,
+                  "perSecond": 9.34,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "color": "#1D9E75",
+                  "failure": "rejected"
+                }
+              ],
+              "key": {
+                "name": "Curve",
+                "color": "#1D9E75",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 900,
+                  "p50": 30
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 900,
+                  "p50": 30
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 90,
+                  "failure": "rejected"
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 90,
+                  "failure": "rejected"
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fallback",
+      "text": "name: Fallback\nsource: { color: amber, dot: bytes / 100, size: bytes / 400 }\nlevels:\n  - load: 1\n    connections: [{ from: customer, to: web, rate: 100, p50: 10 }, { from: orders, to: db, rate: 10, p50: 5, bytes: 500 }, { from: orders, to: queue, rate: 5, bytes: -1 }]\n  - load: 2\n    connections: [{ from: customer, to: web, rate: 100, p50: 10, bytes: 100 }, { from: orders, to: db, rate: 10, p50: 5 }, { from: orders, to: queue, rate: 5 }]\n",
+      "run": {
+        "name": "Fallback",
+        "unit": "load",
+        "source": {
+          "color": "amber",
+          "dot": {
+            "text": "bytes / 100",
+            "formula": "bytes / 100"
+          },
+          "size": {
+            "text": "bytes / 400",
+            "formula": "bytes / 400"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10,
+                "bytes": 500,
+                "p50": 5
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "rate": 5
+              }
+            ]
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "bytes": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10,
+                "p50": 5
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "rate": 5
+              }
+            ]
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/fallback.yaml",
+          "message": "load 1, orders → queue: bytes must be 0 or more"
+        }
+      ],
+      "scale": null,
+      "loads": [
+        {
+          "load": 1,
+          "level": {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10,
+                "bytes": 500,
+                "p50": 5
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "rate": 5
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "amber"
+                }
+              ],
+              "key": {
+                "name": "Fallback",
+                "color": "amber",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "amber"
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 7.4,
+                  "travelMs": 676,
+                  "failed": 0,
+                  "color": "amber",
+                  "dots": 5,
+                  "radius": 1.12
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "width": 2.67,
+                  "perSecond": 4.61,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "color": "amber"
+                }
+              ],
+              "key": {
+                "name": "Fallback",
+                "color": "amber",
+                "bigger": true,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 7.4,
+                  "travelMs": 676,
+                  "failed": 0,
+                  "color": "amber",
+                  "dots": 5,
+                  "radius": 1.12
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "width": 2.67,
+                  "perSecond": 4.61,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "color": "amber"
+                }
+              ],
+              "key": {
+                "name": "Fallback",
+                "color": "amber",
+                "bigger": true,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 100,
+                  "p50": 10
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 100,
+                  "p50": 10
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 10,
+                  "bytes": 500,
+                  "p50": 5
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "rate": 5
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 10,
+                  "bytes": 500,
+                  "p50": 5
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "rate": 5
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 1.5,
+          "level": {
+            "load": 1.5,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10,
+                "p50": 5
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "rate": 5
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "amber"
+                }
+              ],
+              "key": {
+                "name": "Fallback",
+                "color": "amber",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "amber"
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 676,
+                  "failed": 0,
+                  "color": "amber"
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "width": 2.67,
+                  "perSecond": 4.61,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "color": "amber"
+                }
+              ],
+              "key": {
+                "name": "Fallback",
+                "color": "amber",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 676,
+                  "failed": 0,
+                  "color": "amber"
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "width": 2.67,
+                  "perSecond": 4.61,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "color": "amber"
+                }
+              ],
+              "key": {
+                "name": "Fallback",
+                "color": "amber",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 100,
+                  "p50": 10
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 100,
+                  "p50": 10
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 10,
+                  "p50": 5
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "rate": 5
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 10,
+                  "p50": 5
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "rate": 5
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 2,
+          "level": {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "bytes": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10,
+                "p50": 5
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "rate": 5
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 4.51,
+                  "perSecond": 1.25,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "amber",
+                  "dots": 1,
+                  "radius": 0.5
+                }
+              ],
+              "key": {
+                "name": "Fallback",
+                "color": "amber",
+                "bigger": true,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 4.51,
+                  "perSecond": 1.25,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "amber",
+                  "dots": 1,
+                  "radius": 0.5
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 676,
+                  "failed": 0,
+                  "color": "amber"
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "width": 2.67,
+                  "perSecond": 4.61,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "color": "amber"
+                }
+              ],
+              "key": {
+                "name": "Fallback",
+                "color": "amber",
+                "bigger": true,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 676,
+                  "failed": 0,
+                  "color": "amber"
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "width": 2.67,
+                  "perSecond": 4.61,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "color": "amber"
+                }
+              ],
+              "key": {
+                "name": "Fallback",
+                "color": "amber",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 100,
+                  "bytes": 100,
+                  "p50": 10
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 100,
+                  "bytes": 100,
+                  "p50": 10
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 10,
+                  "p50": 5
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "rate": 5
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 10,
+                  "p50": 5
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "rate": 5
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "no-value",
+      "text": "name: No value\nsource: { dot: -rate, size: rate / 0 }\nlevels:\n  - load: 1\n    connections: [{ from: customer, to: web, rate: 100, p50: 10 }, { from: orders, to: db, rate: 10 }]\n  - load: 2\n    connections: [{ from: customer, to: web, rate: 100, p50: 10 }, { from: orders, to: db, rate: 10 }]\n",
+      "run": {
+        "name": "No value",
+        "unit": "load",
+        "source": {
+          "dot": {
+            "text": "-rate",
+            "formula": "-rate"
+          },
+          "size": {
+            "text": "rate / 0",
+            "formula": "rate / 0"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10
+              }
+            ]
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10
+              }
+            ]
+          }
+        ]
+      },
+      "problems": [],
+      "scale": null,
+      "loads": [
+        {
+          "load": 1,
+          "level": {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0
+                }
+              ],
+              "key": {
+                "name": "No value",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 1000,
+                  "failed": 0
+                }
+              ],
+              "key": {
+                "name": "No value",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 1000,
+                  "failed": 0
+                }
+              ],
+              "key": {
+                "name": "No value",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 100,
+                  "p50": 10
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 100,
+                  "p50": 10
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 10
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 10
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 1.5,
+          "level": {
+            "load": 1.5,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0
+                }
+              ],
+              "key": {
+                "name": "No value",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 1000,
+                  "failed": 0
+                }
+              ],
+              "key": {
+                "name": "No value",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 1000,
+                  "failed": 0
+                }
+              ],
+              "key": {
+                "name": "No value",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 100,
+                  "p50": 10
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 100,
+                  "p50": 10
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 10
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 10
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 2,
+          "level": {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 10
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0
+                }
+              ],
+              "key": {
+                "name": "No value",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 4.51,
+                  "perSecond": 9.52,
+                  "travelMs": 801,
+                  "failed": 0
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 1000,
+                  "failed": 0
+                }
+              ],
+              "key": {
+                "name": "No value",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 1000,
+                  "failed": 0
+                }
+              ],
+              "key": {
+                "name": "No value",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 100,
+                  "p50": 10
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 100,
+                  "p50": 10
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 10
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 10
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "huge",
+      "text": "name: Huge\nsource: { dot: rate * 1000000, size: rate * rate }\nlevels:\n  - load: 1\n    connections: [{ from: customer, to: web, rate: 100000000, p50: 3000 }, { from: orders, to: db, rate: 5, p50: 1 }]\n  - load: 2\n    connections: [{ from: customer, to: web, rate: 1, p50: 3000 }, { from: orders, to: db, rate: 5, p50: 1 }]\n",
+      "run": {
+        "name": "Huge",
+        "unit": "load",
+        "source": {
+          "dot": {
+            "text": "rate * 1000000",
+            "formula": "rate * 1000000"
+          },
+          "size": {
+            "text": "rate * rate",
+            "formula": "rate * rate"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100000000,
+                "p50": 3000
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 5,
+                "p50": 1
+              }
+            ]
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 1,
+                "p50": 3000
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 5,
+                "p50": 1
+              }
+            ]
+          }
+        ]
+      },
+      "problems": [],
+      "scale": null,
+      "loads": [
+        {
+          "load": 1,
+          "level": {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 100000000,
+                "p50": 3000
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 5,
+                "p50": 1
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 6,
+                  "perSecond": 8.06,
+                  "travelMs": 2979,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                }
+              ],
+              "key": {
+                "name": "Huge",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 6,
+                  "perSecond": 8.06,
+                  "travelMs": 2979,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 2.67,
+                  "perSecond": 44.36,
+                  "travelMs": 541,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                }
+              ],
+              "key": {
+                "name": "Huge",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 2.67,
+                  "perSecond": 44.36,
+                  "travelMs": 541,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                }
+              ],
+              "key": {
+                "name": "Huge",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 100000000,
+                  "p50": 3000
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 100000000,
+                  "p50": 3000
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 5,
+                  "p50": 1
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 5,
+                  "p50": 1
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 1.5,
+          "level": {
+            "load": 1.5,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 50000000.5,
+                "p50": 3000
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 5,
+                "p50": 1
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 6,
+                  "perSecond": 8.06,
+                  "travelMs": 2979,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                }
+              ],
+              "key": {
+                "name": "Huge",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 6,
+                  "perSecond": 8.06,
+                  "travelMs": 2979,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 2.67,
+                  "perSecond": 44.36,
+                  "travelMs": 541,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                }
+              ],
+              "key": {
+                "name": "Huge",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 2.67,
+                  "perSecond": 44.36,
+                  "travelMs": 541,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                }
+              ],
+              "key": {
+                "name": "Huge",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 50000000.5,
+                  "p50": 3000
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 50000000.5,
+                  "p50": 3000
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 5,
+                  "p50": 1
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 5,
+                  "p50": 1
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 2,
+          "level": {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 1,
+                "p50": 3000
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 5,
+                "p50": 1
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 1.95,
+                  "perSecond": 8.06,
+                  "travelMs": 2979,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 1
+                }
+              ],
+              "key": {
+                "name": "Huge",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 1.95,
+                  "perSecond": 8.06,
+                  "travelMs": 2979,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 1
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 2.67,
+                  "perSecond": 44.36,
+                  "travelMs": 541,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                }
+              ],
+              "key": {
+                "name": "Huge",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 2.67,
+                  "perSecond": 44.36,
+                  "travelMs": 541,
+                  "failed": 0,
+                  "dots": 24,
+                  "capped": true,
+                  "radius": 2.5
+                }
+              ],
+              "key": {
+                "name": "Huge",
+                "bigger": true,
+                "scaledDown": true
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 1,
+                  "p50": 3000
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 1,
+                  "p50": 3000
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 5,
+                  "p50": 1
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 5,
+                  "p50": 1
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio",
+      "text": "name: Ratio\nsource: { color: teal, dot: rate * 3 }\nlevels:\n  - load: 1\n    connections: [{ from: customer, to: web, rate: 0.1, p50: 10 }, { from: orders, to: db, rate: 0.4, p50: 400 }]\n  - load: 2\n    connections: [{ from: customer, to: web, rate: 2, p50: 10 }, { from: orders, to: db, rate: 8, p50: 400 }]\n",
+      "run": {
+        "name": "Ratio",
+        "unit": "load",
+        "source": {
+          "color": "teal",
+          "dot": {
+            "text": "rate * 3",
+            "formula": "rate * 3"
+          }
+        },
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 0.1,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 0.4,
+                "p50": 400
+              }
+            ]
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 2,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 8,
+                "p50": 400
+              }
+            ]
+          }
+        ]
+      },
+      "problems": [],
+      "scale": "1 dot = 0.333333 calls/s",
+      "loads": [
+        {
+          "load": 1,
+          "level": {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 0.1,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 0.4,
+                "p50": 400
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 1.56,
+                  "perSecond": 0.37,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 0.3
+                }
+              ],
+              "key": {
+                "name": "Ratio",
+                "color": "teal",
+                "scale": "1 dot = 0.333333 calls/s",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 1.56,
+                  "perSecond": 0.37,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 0.3
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 1.72,
+                  "perSecond": 0.57,
+                  "travelMs": 2113,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 1.2
+                }
+              ],
+              "key": {
+                "name": "Ratio",
+                "color": "teal",
+                "scale": "1 dot = 0.333333 calls/s",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 1.72,
+                  "perSecond": 0.57,
+                  "travelMs": 2113,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 1.2
+                }
+              ],
+              "key": {
+                "name": "Ratio",
+                "color": "teal",
+                "scale": "1 dot = 0.333333 calls/s",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 0.1,
+                  "p50": 10
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 0.1,
+                  "p50": 10
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 0.4,
+                  "p50": 400
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 0.4,
+                  "p50": 400
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 1.5,
+          "level": {
+            "load": 1.5,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 1.05,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 4.2,
+                "p50": 400
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 1.97,
+                  "perSecond": 3.93,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 3.15
+                }
+              ],
+              "key": {
+                "name": "Ratio",
+                "color": "teal",
+                "scale": "1 dot = 0.333333 calls/s",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 1.97,
+                  "perSecond": 3.93,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 3.15
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 2.57,
+                  "perSecond": 5.96,
+                  "travelMs": 2113,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 12.6
+                }
+              ],
+              "key": {
+                "name": "Ratio",
+                "color": "teal",
+                "scale": "1 dot = 0.333333 calls/s",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 2.57,
+                  "perSecond": 5.96,
+                  "travelMs": 2113,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 12.6
+                }
+              ],
+              "key": {
+                "name": "Ratio",
+                "color": "teal",
+                "scale": "1 dot = 0.333333 calls/s",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 1.05,
+                  "p50": 10
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 1.05,
+                  "p50": 10
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 4.2,
+                  "p50": 400
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 4.2,
+                  "p50": 400
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 2,
+          "level": {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 2,
+                "p50": 10
+              },
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 8,
+                "p50": 400
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 2.22,
+                  "perSecond": 7.49,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 6
+                }
+              ],
+              "key": {
+                "name": "Ratio",
+                "color": "teal",
+                "scale": "1 dot = 0.333333 calls/s",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 2.22,
+                  "perSecond": 7.49,
+                  "travelMs": 801,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 6
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 2.93,
+                  "perSecond": 11.36,
+                  "travelMs": 2113,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 24
+                }
+              ],
+              "key": {
+                "name": "Ratio",
+                "color": "teal",
+                "scale": "1 dot = 0.333333 calls/s",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 2.93,
+                  "perSecond": 11.36,
+                  "travelMs": 2113,
+                  "failed": 0,
+                  "color": "teal",
+                  "dots": 24
+                }
+              ],
+              "key": {
+                "name": "Ratio",
+                "color": "teal",
+                "scale": "1 dot = 0.333333 calls/s",
+                "bigger": false,
+                "scaledDown": false
+              }
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 2,
+                  "p50": 10
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 2,
+                  "p50": 10
+                },
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 8,
+                  "p50": 400
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 8,
+                  "p50": 400
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sized",
+      "text": "name: Sized\nlevels:\n  - load: 100\n    connections:\n      - { from: orders, to: db, rate: 50, bytes: 100, failure: lost }\n      - { from: auth, to: db, rate: 150, bytes: 300, failure: lost }\n      - { from: customer, to: web, rate: 10, bytes: 200, failure: lost }\n      - { from: orders, to: queue, bytes: 100 }\n      - { from: queue, to: worker, rate: 5, bytes: 100, failure: lost }\n  - load: 200\n    connections:\n      - { from: orders, to: db, rate: 50, bytes: 100, failure: rejected }\n      - { from: auth, to: db, rate: 150, bytes: 300, failure: lost }\n      - { from: customer, to: web, rate: 30, bytes: 600 }\n      - { from: orders, to: queue, bytes: 300 }\n      - { from: queue, to: worker, rate: 5, bytes: 100, failure: lost }\n",
+      "run": {
+        "name": "Sized",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 100,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 50,
+                "bytes": 100,
+                "failure": "lost"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "rate": 150,
+                "bytes": 300,
+                "failure": "lost"
+              },
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 10,
+                "bytes": 200,
+                "failure": "lost"
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "bytes": 100
+              },
+              {
+                "from": "queue",
+                "to": "worker",
+                "rate": 5,
+                "bytes": 100,
+                "failure": "lost"
+              }
+            ]
+          },
+          {
+            "load": 200,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 50,
+                "bytes": 100,
+                "failure": "rejected"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "rate": 150,
+                "bytes": 300,
+                "failure": "lost"
+              },
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 30,
+                "bytes": 600
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "bytes": 300
+              },
+              {
+                "from": "queue",
+                "to": "worker",
+                "rate": 5,
+                "bytes": 100,
+                "failure": "lost"
+              }
+            ]
+          }
+        ]
+      },
+      "problems": [],
+      "scale": null,
+      "loads": [
+        {
+          "load": 100,
+          "level": {
+            "load": 100,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 50,
+                "bytes": 100,
+                "failure": "lost"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "rate": 150,
+                "bytes": 300,
+                "failure": "lost"
+              },
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 10,
+                "bytes": 200,
+                "failure": "lost"
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "bytes": 100
+              },
+              {
+                "from": "queue",
+                "to": "worker",
+                "rate": 5,
+                "bytes": 100,
+                "failure": "lost"
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                }
+              ],
+              "key": null
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 4.95,
+                  "perSecond": 10.71,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                },
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 3.06,
+                  "perSecond": 5.67,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                },
+                {
+                  "from": "queue",
+                  "to": "worker",
+                  "width": 2.67,
+                  "perSecond": 4.61,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                }
+              ],
+              "key": null
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 4.06,
+                  "perSecond": 8.33,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "width": 4.77,
+                  "perSecond": 10.22,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                }
+              ],
+              "key": null
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 10,
+                  "bytes": 200,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 200,
+                  "bytes": 250,
+                  "failure": "lost"
+                },
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 10,
+                  "bytes": 200,
+                  "failure": "lost"
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "bytes": 100
+                },
+                {
+                  "from": "queue",
+                  "to": "worker",
+                  "rate": 5,
+                  "bytes": 100,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 50,
+                  "bytes": 100,
+                  "failure": "lost"
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "rate": 150,
+                  "bytes": 300,
+                  "failure": "lost"
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "bytes": 100
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 150,
+          "level": {
+            "load": 150,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 50,
+                "bytes": 100,
+                "failure": "lost"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "rate": 150,
+                "bytes": 300,
+                "failure": "lost"
+              },
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 20,
+                "bytes": 400,
+                "failure": "lost"
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "bytes": 200
+              },
+              {
+                "from": "queue",
+                "to": "worker",
+                "rate": 5,
+                "bytes": 100,
+                "failure": "lost"
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 3.48,
+                  "perSecond": 6.79,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                }
+              ],
+              "key": null
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 4.95,
+                  "perSecond": 10.71,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                },
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 3.48,
+                  "perSecond": 6.79,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                },
+                {
+                  "from": "queue",
+                  "to": "worker",
+                  "width": 2.67,
+                  "perSecond": 4.61,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                }
+              ],
+              "key": null
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 4.06,
+                  "perSecond": 8.33,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "width": 4.77,
+                  "perSecond": 10.22,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                }
+              ],
+              "key": null
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 20,
+                  "bytes": 400,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 200,
+                  "bytes": 250,
+                  "failure": "lost"
+                },
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 20,
+                  "bytes": 400,
+                  "failure": "lost"
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "bytes": 200
+                },
+                {
+                  "from": "queue",
+                  "to": "worker",
+                  "rate": 5,
+                  "bytes": 100,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 50,
+                  "bytes": 100,
+                  "failure": "lost"
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "rate": 150,
+                  "bytes": 300,
+                  "failure": "lost"
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "bytes": 200
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        },
+        {
+          "load": 200,
+          "level": {
+            "load": 200,
+            "overall": {},
+            "objects": {},
+            "connections": [
+              {
+                "from": "orders",
+                "to": "db",
+                "rate": 50,
+                "bytes": 100,
+                "failure": "rejected"
+              },
+              {
+                "from": "auth",
+                "to": "db",
+                "rate": 150,
+                "bytes": 300,
+                "failure": "lost"
+              },
+              {
+                "from": "customer",
+                "to": "web",
+                "rate": 30,
+                "bytes": 600,
+                "failure": "lost"
+              },
+              {
+                "from": "orders",
+                "to": "queue",
+                "bytes": 300
+              },
+              {
+                "from": "queue",
+                "to": "worker",
+                "rate": 5,
+                "bytes": 100,
+                "failure": "lost"
+              }
+            ]
+          },
+          "traffic": [
+            {
+              "view": "root",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "width": 3.74,
+                  "perSecond": 7.47,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                }
+              ],
+              "key": null
+            },
+            {
+              "view": "shop",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "web",
+                  "to": "db",
+                  "width": 4.95,
+                  "perSecond": 10.71,
+                  "travelMs": 1000,
+                  "failed": 0
+                },
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "width": 3.74,
+                  "perSecond": 7.47,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                },
+                {
+                  "from": "queue",
+                  "to": "worker",
+                  "width": 2.67,
+                  "perSecond": 4.61,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                }
+              ],
+              "key": null
+            },
+            {
+              "view": "web",
+              "boxes": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "width": 4.06,
+                  "perSecond": 8.33,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "rejected"
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "width": 4.77,
+                  "perSecond": 10.22,
+                  "travelMs": 1000,
+                  "failed": 0,
+                  "failure": "lost"
+                }
+              ],
+              "key": null
+            },
+            {
+              "view": "orders",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            },
+            {
+              "view": "db",
+              "boxes": {},
+              "lines": [],
+              "key": null
+            }
+          ],
+          "rolled": [
+            {
+              "view": "root",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "customer",
+                  "to": "shop",
+                  "rate": 30,
+                  "bytes": 600,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "shop",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "web",
+                  "to": "db",
+                  "rate": 200,
+                  "bytes": 250
+                },
+                {
+                  "from": "customer",
+                  "to": "web",
+                  "rate": 30,
+                  "bytes": 600,
+                  "failure": "lost"
+                },
+                {
+                  "from": "web",
+                  "to": "queue",
+                  "bytes": 300
+                },
+                {
+                  "from": "queue",
+                  "to": "worker",
+                  "rate": 5,
+                  "bytes": 100,
+                  "failure": "lost"
+                }
+              ]
+            },
+            {
+              "view": "web",
+              "objects": {},
+              "lines": [
+                {
+                  "from": "orders",
+                  "to": "db",
+                  "rate": 50,
+                  "bytes": 100,
+                  "failure": "rejected"
+                },
+                {
+                  "from": "auth",
+                  "to": "db",
+                  "rate": 150,
+                  "bytes": 300,
+                  "failure": "lost"
+                },
+                {
+                  "from": "orders",
+                  "to": "queue",
+                  "bytes": 300
+                }
+              ]
+            },
+            {
+              "view": "orders",
+              "objects": {},
+              "lines": []
+            },
+            {
+              "view": "db",
+              "objects": {},
+              "lines": []
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -3,7 +3,7 @@ using System.Globalization;
 namespace Flowy.Core;
 
 /// <summary>
-/// Everything a run can measure. On an object: util, queue, errors. On a connection or overall: rate, p50, p95, errors. A missing number
+/// Everything a run can measure. On an object: util, queue, errors. On a connection or overall: rate, bytes (a call's size), p50, p95, errors. A missing number
 /// means "not measured", never zero. A port of <c>Metrics</c> in src/core/perf.ts.
 /// </summary>
 public record Metrics
@@ -16,11 +16,13 @@ public record Metrics
 
     public double? Rate { get; init; }
 
+    public double? Bytes { get; init; }
+
     public double? P50 { get; init; }
 
     public double? P95 { get; init; }
 
-    public double? this[string key] => key switch { "util" => Util, "queue" => Queue, "errors" => Errors, "rate" => Rate, "p50" => P50, "p95" => P95, _ => null };
+    public double? this[string key] => key switch { "util" => Util, "queue" => Queue, "errors" => Errors, "rate" => Rate, "bytes" => Bytes, "p50" => P50, "p95" => P95, _ => null };
 
     internal Metrics With(string key, double? value) => key switch
     {
@@ -28,22 +30,32 @@ public record Metrics
         "queue" => this with { Queue = value },
         "errors" => this with { Errors = value },
         "rate" => this with { Rate = value },
+        "bytes" => this with { Bytes = value },
         "p50" => this with { P50 = value },
         "p95" => this with { P95 = value },
         _ => this,
     };
 
     /// <summary>Whether no number was measured.</summary>
-    public bool IsEmpty => Util is null && Queue is null && Errors is null && Rate is null && P50 is null && P95 is null;
+    public bool IsEmpty => Util is null && Queue is null && Errors is null && Rate is null && Bytes is null && P50 is null && P95 is null;
 }
 
-/// <summary>What one connection measured, or one line in a view once connections are rolled up.</summary>
-public sealed record Pair(string From, string To) : Metrics;
+/// <summary>What one connection measured, or one line in a view once connections are rolled up. <c>Failure</c> is how its failing share fails when it says (lost or rejected).</summary>
+public sealed record Pair(string From, string To) : Metrics
+{
+    public string? Failure { get; init; }
+}
 
 public sealed record Level(double Load, Metrics Overall, IdMap<Metrics> Objects, IReadOnlyList<Pair> Connections);
 
+/// <summary>A formula as the run wrote it and as it was read: the text is what a reader sees, the formula is what is evaluated.</summary>
+public sealed record SourceFormula(string Text, Formula Formula);
+
+/// <summary>Where a run's requests come from, and how to draw them: the dots' colour, and formulas for how many dots a line shows at once and for the area of a dot. Every part is optional.</summary>
+public sealed record Source(string? Color = null, SourceFormula? Dot = null, SourceFormula? Size = null);
+
 /// <summary>A load test, summarised (<c>Run</c> in perf.ts; renamed because the app already has things called Run).</summary>
-public sealed record LoadRun(string Name, string? About, string Unit, string? Entry, IReadOnlyList<Level> Levels);
+public sealed record LoadRun(string Name, string? About, string Unit, string? Entry, IReadOnlyList<Level> Levels, Source? Source = null);
 
 /// <summary>How strained an object is: 0 to 1, whether its utilisation or its failures decided it, and the raw share that did.</summary>
 public sealed record Strain(double Value, string By, double Share);
@@ -56,8 +68,26 @@ public sealed record Knee(int Index, double Load, KneeBy? By, double? LatencyFro
 
 public sealed record BoxTraffic(double? Strain, int Queue);
 
-/// <summary>How a line looks: how thick, how many particles a second, how long one takes to cross (ms), and the share of them that fail.</summary>
-public sealed record LineTraffic(string From, string To, double Width, double PerSecond, int TravelMs, double Failed);
+/// <summary>
+/// How a line looks: how thick, how many particles a second, how long one takes to cross (ms), and the share of them that fail. What a run's source adds
+/// is null (or false) when it adds nothing: <c>Color</c> as written, <c>Radius</c> times the usual dot's, <c>Capped</c> when the count was scaled down to fit the
+/// screen, <c>Failure</c> how the failing share fails, <c>Dots</c> how many are on the line at once once the formula and the cap have decided.
+/// </summary>
+public sealed record LineTraffic(string From, string To, double Width, double PerSecond, int TravelMs, double Failed)
+{
+    public string? Color { get; init; }
+
+    public double? Radius { get; init; }
+
+    public bool Capped { get; init; }
+
+    public string? Failure { get; init; }
+
+    public double? Dots { get; init; }
+}
+
+/// <summary>The pieces the Performance key draws for a run's source (see <see cref="Perf.SourceKeyOf"/>).</summary>
+public sealed record SourceKey(string Name, string? Color, string? Scale, bool Bigger, bool ScaledDown);
 
 public sealed record Traffic(IdMap<BoxTraffic> Boxes, IReadOnlyList<LineTraffic> Lines);
 
@@ -81,7 +111,14 @@ public sealed record LoadFrame(IdMap<Metrics> Objects, IReadOnlyList<Pair> Lines
 public static class Perf
 {
     private static readonly string[] ObjectKeys = ["util", "queue", "errors"];
-    private static readonly string[] EdgeKeys = ["rate", "p50", "p95", "errors"];
+    private static readonly string[] EdgeKeys = ["rate", "bytes", "p50", "p95", "errors"];
+    private static readonly string[] SourceKeys = ["color", "dot", "size"];
+    private static readonly string[] Failures = ["lost", "rejected"];
+
+    /// <summary>How much of a name a problem quotes, so a hostile key doesn't fill the problem list.</summary>
+    private const int Quoted = 40;
+
+    private static string Brief(string text) => text.Length > Quoted ? text[..Quoted] + "…" : text;
 
     /// <summary>The lowest and highest a metric may be.</summary>
     private static (double Lo, double Hi) Range(string key) => key is "util" or "errors" ? (0, 1) : (0, double.PositiveInfinity);
@@ -122,6 +159,54 @@ public static class Perf
         return m;
     }
 
+    /// <summary>The <c>source:</c> block of a run. A problem is reported through <paramref name="add"/> and what is wrong is left out; a block with nothing usable in it is no source.</summary>
+    private static Source? ReadSource(object? raw, Action<string> add)
+    {
+        var block = ModelFiles.OrEmpty(raw, null);
+        if (block is null) return null;
+        if (block is not OrderedDictionary<string, object?> map)
+        {
+            add("source must be a mapping of color, dot and size");
+            return null;
+        }
+        foreach (var key in map.Keys)
+            if (!SourceKeys.Contains(key)) add($"source: unknown key \"{Brief(key)}\" (use {string.Join(", ", SourceKeys)})");
+        string? color = null;
+        if (ModelFiles.OrEmpty(map.TryGetValue("color", out var c) ? c : null, null) is { } colorValue)
+        {
+            if (colorValue is string text && Look.IsColor(text)) color = text;
+            else add("source: color must be a colour name or a hex such as #1d9e75");
+        }
+        SourceFormula? ReadFormula(string key, string example)
+        {
+            if (ModelFiles.OrEmpty(map.TryGetValue(key, out var f) ? f : null, null) is not { } value) return null;
+            if (value is not string text)
+            {
+                add($"source: {key} must be a formula such as {example}");
+                return null;
+            }
+            var read = Formulas.Parse(text);
+            if (read.Formula is null)
+            {
+                add($"source: {key} {read.Problem}"); // a formula that can't be read leaves the default curve in its place
+                return null;
+            }
+            return new SourceFormula(text, read.Formula);
+        }
+        var dot = ReadFormula("dot", "rate / 50");
+        var size = ReadFormula("size", "bytes / 400");
+        return color is null && dot is null && size is null ? null : new Source(color, dot, size);
+    }
+
+    /// <summary>The <c>failure:</c> of a connection: lost or rejected, or nothing. Anything else is a problem.</summary>
+    private static string? ReadFailure(object? raw, string where, Action<string> add)
+    {
+        if (ModelFiles.OrEmpty(raw, null) is not { } value) return null;
+        if (value is string text && Failures.Contains(text)) return text;
+        add($"{where}: failure must be {string.Join(" or ", Failures)}");
+        return null;
+    }
+
     /// <summary>
     /// Reads one run file (<c>perf/&lt;id&gt;.yaml</c>). Throws a <see cref="ParseError"/> for a file that can't be played: bad YAML, the wrong shape,
     /// fewer than two levels, loads that don't go up. A number that is wrong is a problem instead, and is left out of the run.
@@ -145,6 +230,8 @@ public static class Perf
         var about = Word("about");
         var unit = Word("unit");
         var entry = Word("entry");
+        doc.TryGetValue("source", out var sourceValue);
+        var source = ReadSource(sourceValue, Add);
 
         doc.TryGetValue("levels", out var levelsValue);
         if (ModelFiles.OrEmpty(levelsValue, new List<object?>()) is not List<object?> rawLevels) throw new ParseError(file, "\"levels\" must be a list");
@@ -190,8 +277,10 @@ public static class Perf
                     Add($"{Where($"{f} → {t}")}: listed twice");
                     continue;
                 }
-                var read = ReadMetrics(EdgeKeys, c, Where($"{f} → {t}"), Add);
-                connections.Add(new Pair(f, t) { Rate = read.Rate, P50 = read.P50, P95 = read.P95, Errors = read.Errors });
+                var label = Where($"{f} → {t}");
+                var failure = ReadFailure(c.TryGetValue("failure", out var failureValue) ? failureValue : null, label, Add);
+                var read = ReadMetrics(EdgeKeys, c, label, Add);
+                connections.Add(new Pair(f, t) { Rate = read.Rate, Bytes = read.Bytes, P50 = read.P50, P95 = read.P95, Errors = read.Errors, Failure = failure });
             }
             return new Level(load, overall, objects, connections);
         }
@@ -200,7 +289,7 @@ public static class Perf
         for (var i = 1; i < levels.Count; i++)
             if (levels[i].Load <= levels[i - 1].Load)
                 throw new ParseError(file, $"level {i + 1}: load {Js(levels[i].Load)} must be above {Js(levels[i - 1].Load)} (levels go up in load)");
-        return (new LoadRun(name ?? id, about, unit ?? "load", entry, levels), problems);
+        return (new LoadRun(name ?? id, about, unit ?? "load", entry, levels, source), problems);
     }
 
     /// <summary>
@@ -259,6 +348,20 @@ public static class Perf
         return m;
     }
 
+    /// <summary>How a connection's failing share fails at <paramref name="load"/>: what the nearest level at or below it says, else the lowest level above that says one. Not interpolated: it is a kind, not a number.</summary>
+    private static string? FailureAt(IReadOnlyList<Level> levels, Func<Level, Pair?> pick, double load)
+    {
+        string? below = null;
+        string? above = null;
+        foreach (var l in levels)
+        {
+            if (pick(l)?.Failure is not { } f) continue;
+            if (l.Load <= load) below = f;
+            else above ??= f;
+        }
+        return below ?? above;
+    }
+
     /// <summary>
     /// The run at any load inside the tested range, as a <see cref="Level"/>. A load outside it is clamped to the nearest end, so nothing is
     /// ever extrapolated. Each metric is interpolated on the levels that carry it; one with no value at that load is left out (not measured),
@@ -283,8 +386,9 @@ public static class Perf
         var connections = new List<Pair>();
         foreach (var (from, to) in pairs)
         {
-            var m = MetricsAt(levels, l => l.Connections.FirstOrDefault(c => c.From == from && c.To == to), EdgeKeys, at);
-            if (!m.IsEmpty) connections.Add(new Pair(from, to) { Rate = m.Rate, P50 = m.P50, P95 = m.P95, Errors = m.Errors });
+            Pair? Pick(Level l) => l.Connections.FirstOrDefault(c => c.From == from && c.To == to);
+            var m = MetricsAt(levels, Pick, EdgeKeys, at);
+            if (!m.IsEmpty) connections.Add(new Pair(from, to) { Rate = m.Rate, Bytes = m.Bytes, P50 = m.P50, P95 = m.P95, Errors = m.Errors, Failure = FailureAt(levels, Pick, at) });
         }
         return new Level(at, MetricsAt(levels, l => l.Overall, EdgeKeys, at), objects, connections);
     }
@@ -328,6 +432,7 @@ public static class Perf
         foreach (var id in order) objects.Add(id, held[id]);
 
         var lines = new List<Pair>();
+        var sizes = new List<Sizes>();
         var index = new Dictionary<(string, string), int>();
         foreach (var c in level.Connections)
         {
@@ -338,15 +443,57 @@ public static class Perf
             {
                 Rate = Either(so?.Rate, c.Rate, (a, b) => a + b), P50 = Either(so?.P50, c.P50, Math.Max), P95 = Either(so?.P95, c.P95, Math.Max), Errors = Either(so?.Errors, c.Errors, Math.Max),
             };
+            var size = so is null ? new Sizes() : sizes[at];
+            if (c.Bytes is { } bytes)
+            {
+                size.Sum += bytes;
+                size.N++;
+                if (c.Rate is { } rate)
+                {
+                    size.Weighted += bytes * rate;
+                    size.Weight += rate;
+                }
+            }
+            if (c.Failure is { } failure && !size.Failures.Contains(failure)) size.Failures.Add(failure);
             if (so is null)
             {
                 index[ends] = lines.Count;
                 lines.Add(line);
+                sizes.Add(size);
             }
             else lines[at] = line;
         }
-        return (objects, lines);
+        return (objects, lines.Select((line, i) => WithSizes(line, sizes[i])).ToList());
     }
+
+    /// <summary>What the connections that land on one line say about the size of a call and how its failing share fails, as <see cref="RollUp"/> collects them.</summary>
+    private sealed class Sizes
+    {
+        public double Weighted { get; set; }
+
+        public double Weight { get; set; }
+
+        public double Sum { get; set; }
+
+        public int N { get; set; }
+
+        public List<string> Failures { get; } = [];
+    }
+
+    /// <summary>
+    /// A rolled-up line with its size of a call and how it fails. Bytes is the mean of the connections that give one, weighted by their rates (a connection
+    /// with no rate has no weight; with no rates at all it is the plain mean). The failure style is the one the connections that name one agree on; if they
+    /// differ there is none, and a connection that names none doesn't veto.
+    /// </summary>
+    private static Pair WithSizes(Pair line, Sizes size) => new(line.From, line.To)
+    {
+        Rate = line.Rate,
+        Bytes = size.Weight > 0 ? size.Weighted / size.Weight : size.N > 0 ? size.Sum / size.N : null,
+        P50 = line.P50,
+        P95 = line.P95,
+        Errors = line.Errors,
+        Failure = size.Failures.Count == 1 ? size.Failures[0] : null,
+    };
 
     /// <summary>A shape this strained is "struggling" (see <see cref="FindKnee"/>).</summary>
     public const double KneeStrain = 0.85;
@@ -387,17 +534,84 @@ public static class Perf
         return $"First struggles at {at}: the slowest 5% of calls go from {Js(JsRound(k.LatencyFrom!.Value))} ms to {Js(JsRound(k.LatencyTo!.Value))} ms";
     }
 
-    /// <summary>A line that carried <paramref name="rate"/> calls a second: logarithmic and capped, because a screen can't draw 1000 particles a second.</summary>
-    private static LineTraffic LineTrafficOf(Pair l, double rate)
+    /// <summary>
+    /// Most dots a source puts on a line at once. A screen line is a hundred to three hundred pixels long and a dot is a few pixels across, so past about
+    /// this many they run together and stop being countable. Past it a line is scaled down and says so (see <see cref="CapCounts"/>).
+    /// </summary>
+    public const int AtOnce = 24;
+
+    /// <summary>The radius of a dot, as a multiple of the usual one, is the square root of the <c>size</c> formula's area, kept between these.</summary>
+    public const double RadiusMin = 0.5;
+
+    public const double RadiusMax = 2.5;
+
+    /// <summary>
+    /// The dot counts of the sources on one line, scaled down by one common factor when the busiest passes <see cref="AtOnce"/>, so their ratio stays true.
+    /// Part 3a has one source on a line; the list is here for the several of Part 3b.
+    /// </summary>
+    public static (double[] Counts, bool Capped) CapCounts(IReadOnlyList<double> counts)
+    {
+        var most = counts.Count == 0 ? 0 : Math.Max(0, counts.Max());
+        return most <= AtOnce ? (counts.ToArray(), false) : (counts.Select(c => c * AtOnce / most).ToArray(), true);
+    }
+
+    /// <summary>The crossing time of a line in ms: what its expected call says, in steps from half a second to four. A line with no p50 is a middling trip.</summary>
+    private static int TravelOf(double? p50) => p50 is null ? 1000 : (int)JsRound(Clamp(500 + 1000 * Math.Log10(1 + p50.Value / 10), 500, 4000));
+
+    /// <summary>A line that carried <paramref name="rate"/> calls a second: logarithmic and capped, because a screen can't draw 1000 particles a second, unless the run's source says how many dots to show.</summary>
+    private static LineTraffic LineTrafficOf(Pair l, double rate, Source? source)
     {
         var errors = Round2(l.Errors ?? 0);
-        return new LineTraffic(
-            l.From,
-            l.To,
-            Round2(Clamp(1.5 + 1.5 * Math.Log10(1 + rate), 1.5, 6)),
-            rate > 0 ? Round2(Clamp(1.5 + 4 * Math.Log10(1 + rate), 1.5, 14)) : 0,
-            l.P50 is null ? 1000 : (int)JsRound(Clamp(500 + 1000 * Math.Log10(1 + l.P50.Value / 10), 500, 4000)),
-            errors >= 0.01 ? Math.Max(errors, 0.05) : errors);
+        var travelMs = TravelOf(l.P50);
+        var perSecond = rate > 0 ? Round2(Clamp(1.5 + 4 * Math.Log10(1 + rate), 1.5, 14)) : 0;
+        double? dots = null;
+        var capped = false;
+        double? radius = null;
+        var vars = new FormulaVars(rate, l.Bytes, l.P50);
+        // How many dots: the formula's count when it has a value (a missing number or a negative result leaves today's curve for this line).
+        if (source?.Dot is { } dot && Formulas.Eval(dot.Formula, vars) is { } count && count >= 0)
+        {
+            var (counts, wasCapped) = CapCounts([count]);
+            // The count is dots on the line at once; the speed stays with p50, so dots start as often as they take to cross.
+            perSecond = Round2(counts[0] / (travelMs / 1000.0));
+            dots = Round2(counts[0]);
+            capped = wasCapped;
+        }
+        if (source?.Size is { } size && Formulas.Eval(size.Formula, vars) is { } area && area >= 0) radius = Round2(Clamp(Math.Sqrt(area), RadiusMin, RadiusMax));
+        return new LineTraffic(l.From, l.To, Round2(Clamp(1.5 + 1.5 * Math.Log10(1 + rate), 1.5, 6)), perSecond, travelMs, errors >= 0.01 ? Math.Max(errors, 0.05) : errors)
+        {
+            Color = source?.Color,
+            Radius = radius,
+            Capped = capped,
+            Failure = l.Failure,
+            Dots = dots,
+        };
+    }
+
+    /// <summary>The number in a scale, as short as it reads: 50, 0.5, 12.5, with the float noise of a division (3.0000000000000004) rounded off.</summary>
+    private static string Plain(double n) => Js(double.Parse(n.ToString("G6", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture));
+
+    /// <summary>
+    /// "1 dot = 50 calls/s" for a run whose <c>dot</c> formula is a constant times the rate and nothing else; null for any other, because a scale in words
+    /// that is not true for every line is worse than none. Also null for a scale nobody reads (under a thousandth of a call or over a billion).
+    /// </summary>
+    public static string? ScaleText(LoadRun run)
+    {
+        if (run.Source?.Dot is not { } dot || Formulas.LinearInRate(dot.Formula) is not { } k) return null;
+        var calls = 1 / k;
+        return calls >= 0.001 && calls < 1e9 ? $"1 dot = {Plain(calls)} calls/s" : null;
+    }
+
+    /// <summary>
+    /// The pieces the Performance key draws for a run's source, from the lines on screen now: its name and the colour of its dots; the scale in words when the
+    /// formula is a plain ratio of the rate and a line follows it; whether any dot is bigger or smaller than usual; whether any line is scaled down to fit.
+    /// Null when the run sets no source or no line is on screen, so the key shows only what the picture shows.
+    /// </summary>
+    public static SourceKey? SourceKeyOf(LoadRun run, IReadOnlyList<LineTraffic> lines)
+    {
+        if (run.Source is not { } source || lines.Count == 0) return null;
+        var scale = lines.Any(l => l.Dots is not null) ? ScaleText(run) : null;
+        return new SourceKey(run.Name, source.Color, scale, lines.Any(l => l.Radius is not null), lines.Any(l => l.Capped));
     }
 
     /// <summary>
@@ -418,6 +632,6 @@ public static class Perf
             if (s is null && m.Queue is null) continue;
             boxes.Add(id, new BoxTraffic(s is null ? null : Round2(s.Value), (int)JsRound(m.Queue ?? 0)));
         }
-        return new LoadFrame(objects, lines, new Traffic(boxes, lines.Where(l => l.Rate is not null).Select(l => LineTrafficOf(l, l.Rate!.Value)).ToList()));
+        return new LoadFrame(objects, lines, new Traffic(boxes, lines.Where(l => l.Rate is not null).Select(l => LineTrafficOf(l, l.Rate!.Value, run.Source)).ToList()));
     }
 }
