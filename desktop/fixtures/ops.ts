@@ -4,7 +4,7 @@ import { typesIn } from '../../src/core/check.ts'
 import { modelFiles, ROOT, serializeLayout } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteFlow, deleteObject, deleteObjects, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setLines, setStepGroup, setStepStates, updateFlow } from '../../src/core/ops.ts'
+import { connect, deleteFlow, deleteObject, deleteObjects, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setLines, setStepAnimation, setStepGroup, setStepStates, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
@@ -131,6 +131,21 @@ export const STEPS: Spec[] = [
   { op: 'setGroupKind', id: 'plan', group: 'nope', kind: 'repeat' },
   { op: 'setGroupKind', id: 'nope', group: 'ending', kind: 'repeat' },
   { op: 'deleteFlow', id: 'plan' },
+  { op: 'putFlow', id: 'play', name: 'Customer plays', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'Asks', description: 'More', note: 'x' }, { from: 'shop', to: 'customer', text: 'Answers', animation: { kind: 'call', outcome: 'timeout' } }, { from: 'shop', text: 'Thinks' }] },
+  { op: 'setStepAnimation', id: 'play', index: 0, animation: { kind: 'send', outcome: 'lost', share: '30', reason: 'Packet dropped' } },
+  { op: 'setStepAnimation', id: 'play', index: 1, animation: 'send' },
+  { op: 'setStepAnimation', id: 'play', index: 0, animation: { kind: 'call', outcome: 'intercepted', by: { name: 'Café wifi proxy' }, share: '50' } },
+  { op: 'setStepAnimation', id: 'play', index: 0, animation: { kind: 'call', outcome: 'intercepted', by: 'pay' } },
+  { op: 'setStepAnimation', id: 'play', index: 0, animation: { kind: 'call', outcome: 'intercepted', by: 'shop' } },
+  { op: 'setStepAnimation', id: 'play', index: 0, animation: { kind: 'call', outcome: 'intercepted', by: 'ghost' } },
+  { op: 'setStepAnimation', id: 'play', index: 0, animation: { kind: 'callback', outcome: 'lost' } },
+  { op: 'setStepAnimation', id: 'play', index: 0, animation: { kind: 'send', outcome: 'lost', share: '101' } },
+  { op: 'setStepAnimation', id: 'play', index: 2, animation: 'call' },
+  { op: 'setStepAnimation', id: 'play', index: 0 },
+  { op: 'setStepAnimation', id: 'play', index: 0 },
+  { op: 'setStepAnimation', id: 'play', index: 9, animation: 'call' },
+  { op: 'setStepAnimation', id: 'nope', index: 0, animation: 'call' },
+  { op: 'deleteFlow', id: 'play' },
   { op: 'putFlow', id: 'outage', name: 'The shop goes down', view: 'root', states: { web: 'degraded' }, steps: [{ from: 'customer', to: 'shop', text: 'Orders' }, { from: 'shop', text: 'Stops answering', states: { api: 'stopped' } }, { from: 'customer', text: 'Waits', states: {} }, { from: 'shop', text: 'Is back', description: ' ', states: { api: 'running', web: 'running' } }] },
   { op: 'putFlow', id: 'no-states', name: 'An empty set writes none', view: 'root', states: {}, steps: [{ from: 'customer', text: 'Only step', states: {} }] },
   { op: 'putFlow', id: 'bad-state', name: 'A word that is not a state', view: 'root', states: { web: 'asleep' }, steps: [{ from: 'customer', text: 'x' }] },
@@ -192,6 +207,7 @@ function apply(model: Model, s: Spec): Model {
     case 'putGroup': return putGroup(model, s.id, s.group, s.options)
     case 'removeGroup': return removeGroup(model, s.id, s.group)
     case 'setStepGroup': return setStepGroup(model, s.id, s.index, s.group)
+    case 'setStepAnimation': return setStepAnimation(model, s.id, s.index, s.animation)
     case 'setStepStates': return setStepStates(model, s.id, s.index, s.states)
     case 'setGroupKind': return setGroupKind(model, s.id, s.group, s.kind)
     case 'groupSteps': return groupSteps(model, s.id, s.group, s.kind, s.first, s.last)

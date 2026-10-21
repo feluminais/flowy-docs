@@ -9,21 +9,30 @@ namespace Flowy.App.Canvas;
 
 /// <summary>
 /// A tagged step playing: a blob running along the line between its two boxes (the lit line the canvas already draws), and rings,
-/// flashes and waiting dots on the boxes. It sits over the boxes in the same camera, takes no pointer, and draws one step's beats at the
-/// time it is given (see <see cref="MotionMath"/>). The squash of a box is the canvas's job.
+/// flashes and waiting dots on the boxes. The ways a request can end add a puff and a cross where one is lost, a bar at the door of a
+/// rejected one, a dashed clock while one waits, the reason as a note beside the line and a dashed marker for whoever takes one.
+/// It sits over the boxes in the same camera, takes no pointer, and draws one step's beats at the time it is given (see
+/// <see cref="MotionMath"/>). The squash of a box is the canvas's job.
 /// </summary>
 internal sealed class MotionLayer : Control
 {
+    /// <summary>Whoever takes an intercepted request: the box that stands for it on the canvas (with its outline), or a name for a party that is not on it.</summary>
+    public sealed record Taker(CoreRect? Box = null, string? Shape = null, string? Name = null);
 
-    private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To, Geometry? ShapeFrom, Geometry? ShapeTo);
+    private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To, Geometry? ShapeFrom, Geometry? ShapeTo, CoreRect? TakerBox, Geometry? TakerShape, string? TakerName);
 
     /// <summary>How strongly a shape lights up when it flashes, at the start.</summary>
     private const double Flash = 0.55;
+
+    /// <summary>The ticks of a puff where a request is lost, and how far the dashed outline around a box that takes a request stands off it.</summary>
+    private const int Ticks = 6;
+    private const double Halo = 6;
 
     private static readonly Dictionary<string, Geometry> Glyphs = [];
 
     private IReadOnlyList<Run> _runs = [];
     private double _t;
+    private bool _still;
     private Viewport _viewport = new(0, 0, 1);
 
     public MotionLayer()
@@ -42,14 +51,10 @@ internal sealed class MotionLayer : Control
         }
     }
 
-    /// <summary>One step to draw: its animation, whether it follows a landing, the line style, and the two boxes (with the outline each shape has).</summary>
-    public sealed record RunSpec(StepAnimation Animation, bool AfterLanding, string Style, CoreRect From, CoreRect To, double[]? OutlineFrom = null, double[]? OutlineTo = null, string? ShapeFrom = null, string? ShapeTo = null);
+    /// <summary>One step to draw: its animation, whether it follows a landing, the line style, the two boxes (with the outline each shape has), and who takes it when it is intercepted.</summary>
+    public sealed record RunSpec(StepAnimation Animation, bool AfterLanding, string Style, CoreRect From, CoreRect To, double[]? OutlineFrom = null, double[]? OutlineTo = null, string? ShapeFrom = null, string? ShapeTo = null, Taker? By = null);
 
-    /// <summary>
-    /// Gets ready to draw several steps at once, each on the line between its boxes in its style, with the beats for how long it is.
-    /// Returns each step's beats and how long they last, in the order given.
-    /// </summary>
-    public IReadOnlyList<(IReadOnlyList<Beat> Beats, int Total)> Start(IReadOnlyList<RunSpec> specs)
+    private IReadOnlyList<(IReadOnlyList<Beat> Beats, int Total)> Prepare(IReadOnlyList<RunSpec> specs)
     {
         var runs = new List<Run>();
         var started = new List<(IReadOnlyList<Beat> Beats, int Total)>();
@@ -57,13 +62,45 @@ internal sealed class MotionLayer : Control
         {
             var line = Geometry.Parse(LinePaths.Build(s.Style, s.From, s.To, s.OutlineFrom, s.OutlineTo).Data);
             var (beats, total) = Animations.BeatsFor(s.Animation, line.ContourLength, s.AfterLanding);
-            runs.Add(new Run(beats, line, line.ContourLength, s.From, s.To, s.ShapeFrom is null ? null : Geometry.Parse(s.ShapeFrom), s.ShapeTo is null ? null : Geometry.Parse(s.ShapeTo)));
+            // Whoever takes the request: its box, or the dashed marker that hangs below the line where the request leaves it.
+            var by = s.By ?? (s.Animation.By is { } given ? new Taker(Name: given.Name ?? given.Shape) : null);
+            CoreRect? takerBox = by?.Box;
+            if (takerBox is null && by?.Name is { } name)
+            {
+                var size = MotionMath.MarkerSize(name);
+                var spot = SpotAt(line, line.ContourLength, beats.FirstOrDefault(b => b.Do == "marker")?.Along ?? 0.4);
+                var offset = MotionMath.MarkerSpot(spot.Dx, spot.Dy, size);
+                takerBox = new CoreRect(spot.X + offset.X - size.Width / 2, spot.Y + offset.Y - size.Height / 2, size.Width, size.Height);
+            }
+            runs.Add(new Run(beats, line, line.ContourLength, s.From, s.To, s.ShapeFrom is null ? null : Geometry.Parse(s.ShapeFrom), s.ShapeTo is null ? null : Geometry.Parse(s.ShapeTo),
+                takerBox, by?.Shape is { } shape ? Geometry.Parse(shape) : null, by?.Box is null ? by?.Name : null));
             started.Add((beats, total));
         }
         _runs = runs;
-        _t = 0;
         InvalidateVisual();
         return started;
+    }
+
+    /// <summary>
+    /// Gets ready to draw several steps at once, each on the line between its boxes in its style, with the beats for how long it is.
+    /// Returns each step's beats and how long they last, in the order given.
+    /// </summary>
+    public IReadOnlyList<(IReadOnlyList<Beat> Beats, int Total)> Start(IReadOnlyList<RunSpec> specs)
+    {
+        _still = false;
+        _t = 0;
+        return Prepare(specs);
+    }
+
+    /// <summary>
+    /// Draws what motion leaves where a step's outcome happened, with nothing moving: the cross where a request was lost, the bar at the door, the clock, the
+    /// marker of whoever took it and the reason. A step with no outcome draws nothing.
+    /// </summary>
+    public void StartStill(IReadOnlyList<RunSpec> specs)
+    {
+        _still = true;
+        _t = 0;
+        Prepare(specs);
     }
 
     /// <summary>Draws the step as it is <paramref name="t"/> ms in.</summary>
@@ -73,14 +110,25 @@ internal sealed class MotionLayer : Control
         InvalidateVisual();
     }
 
+    /// <summary>The motion has finished: what stays (the cross, the bar, the marker) stays, and the rest is gone.</summary>
+    public void Settle() => Show(double.MaxValue / 4);
+
     public void Clear()
     {
         _runs = [];
+        _still = false;
         InvalidateVisual();
     }
 
     private IBrush Brush(string key) =>
         this.TryFindResource(key, ActualThemeVariant, out var found) && found is IBrush brush ? brush : Brushes.Gray;
+
+    /// <summary>The colour of a slot of the tints, which follows the theme.</summary>
+    private static IBrush Tint(int slot)
+    {
+        var (light, dark) = MotionMath.TintPair(slot);
+        return ThemeBrushes.For(light, dark);
+    }
 
     private static Pen Round(IBrush brush, double thickness) => new(brush, thickness, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round);
 
@@ -91,6 +139,30 @@ internal sealed class MotionLayer : Control
         return geometry;
     }
 
+    /// <summary>A point of a line as a fraction of its length, and the way the line runs there.</summary>
+    private static (double X, double Y, double Dx, double Dy) SpotAt(Geometry line, double length, double fraction)
+    {
+        if (!line.TryGetPointAndTangentAtDistance(fraction * length, out var point, out var tangent)) return (0, 0, 1, 0);
+        return (point.X, point.Y, tangent.X, tangent.Y);
+    }
+
+    /// <summary>A mark that stays once its beat has started: the cross where a request was lost, the bar at the door, and the marker of who takes it. The rest show only while their beat runs.</summary>
+    private static bool Stays(Beat b) => b.Do is "pop" or "bar" or "marker";
+
+    private bool Shown(Beat b) => Stays(b) ? _t >= b.At : MotionMath.Active(b, _t);
+
+    /// <summary>The marks of an outcome, which are the only things a still picture has.</summary>
+    private static bool IsMark(Beat b) => b.Do is "pop" or "bar" or "clock" or "note" or "marker";
+
+    /// <summary>The beats of a step that are drawn now: those running at the time shown, and the marks that stay; with motion reduced, just the marks.</summary>
+    private IEnumerable<Beat> Drawn(Run run) => _still ? run.Beats.Where(IsMark) : run.Beats.Where(Shown);
+
+    /// <summary>Every beat of the steps being played, drawn or not, for the tests.</summary>
+    public IReadOnlyList<Beat> AllBeats => _runs.SelectMany(r => r.Beats).ToList();
+
+    /// <summary>The beats drawn now, for the tests: what <see cref="Render"/> would paint at the time <see cref="Show"/> was given.</summary>
+    public IReadOnlyList<Beat> DrawnBeats => _runs.SelectMany(Drawn).ToList();
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -98,38 +170,76 @@ internal sealed class MotionLayer : Control
         var matrix = Matrix.CreateScale(_viewport.Zoom, _viewport.Zoom) * Matrix.CreateTranslation(_viewport.X, _viewport.Y);
         using var _ = context.PushTransform(matrix);
 
+        if (_still)
+        {
+            // Reduced motion: once each of the marks an outcome leaves.
+            var drawn = new HashSet<string>();
+            foreach (var run in _runs)
+                foreach (var beat in Drawn(run))
+                    if (drawn.Add($"{beat.Do} {beat.On} {beat.Along} {beat.Text}")) DrawMark(context, run, beat);
+            return;
+        }
         foreach (var run in _runs)
         {
-            foreach (var beat in run.Beats.Where(b => b.Do == "blob" && MotionMath.Active(b, _t))) DrawBlob(context, run, beat);
-            foreach (var beat in run.Beats.Where(b => b.Do is "ring" or "flash" or "wait" or "drop" && MotionMath.Active(b, _t))) DrawEffect(context, run, beat);
+            var now = Drawn(run).ToList();
+            foreach (var beat in now.Where(b => b.Do == "marker")) DrawMark(context, run, beat);
+            foreach (var beat in now.Where(b => b.Do == "blob")) DrawBlob(context, run, beat);
+            foreach (var beat in now.Where(b => b.Do is "ring" or "flash" or "wait" or "drop")) DrawEffect(context, run, beat);
+            foreach (var beat in now.Where(b => b.Do is "pop" or "bar" or "clock" or "note")) DrawMark(context, run, beat);
         }
     }
 
     private void DrawBlob(DrawingContext context, Run run, Beat beat)
     {
         var p = MotionMath.Progress(beat, _t);
-        var at = MotionMath.Distance(beat.Dir, p, run.Length);
         var bg = Brush("BgBrush");
-        if (!run.Line.TryGetPointAndTangentAtDistance(at, out var point, out var tangent)) return;
-        var angle = Math.Atan2(tangent.Y, tangent.X);
-        var s = MotionMath.Bump(p);
+        Point point;
+        double angle;
+        if (beat.On == "by")
+        {
+            // Off the line, straight to the one who takes it, and as far as its edge.
+            var leave = SpotAt(run.Line, run.Length, beat.Start ?? 0);
+            var land = run.TakerBox is { } box ? MotionMath.EntryPoint((leave.X, leave.Y), box) : (leave.X, leave.Y);
+            var e = MotionMath.Ease(p);
+            point = new Point(leave.X + (land.X - leave.X) * e, leave.Y + (land.Y - leave.Y) * e);
+            angle = Math.Atan2(land.Y - leave.Y, land.X - leave.X);
+        }
+        else
+        {
+            var at = MotionMath.Distance(beat.Dir, p, run.Length, beat.Start, beat.End);
+            if (!run.Line.TryGetPointAndTangentAtDistance(at, out point, out var tangent)) return;
+            angle = Math.Atan2(tangent.Y, tangent.X);
+        }
+        // A blob that waits where it is does not stretch.
+        var s = beat.Start is not null && beat.Start == beat.End ? 0 : MotionMath.Bump(p);
         // The shape is stretched along the way it runs and no more rotated than that. The glyph or the words in it are not stretched at all.
         var place = Matrix.CreateTranslation(point.X, point.Y);
         var stretch = Matrix.CreateRotation(-angle) * Matrix.CreateScale(1 + 0.3 * s, 1 - 0.15 * s) * Matrix.CreateRotation(angle) * place;
+        // A refusal is the danger colour, then a colour of its own for a request in a burst, then the answer's colour.
+        var tint = beat.Tint is { } slot ? Tint(slot) : null;
         var fill = Brush(beat.Tone switch { "reply" => "AppBrush", "fail" => "DangerBrush", _ => "AccentBrush" });
+        if (beat.Tone != "fail" && tint is not null) fill = tint;
+        var ring = beat.Ring == true ? new Pen(tint ?? Brush("AccentBrush"), 2.5) : null;
         var rim = new Pen(bg, 2);
-        if (beat.Label is { } label)
+        if (beat.Label is { } word)
         {
+            var label = Animations.ShortLabel(word);
             var text = new FormattedText(label, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 12, bg);
             using (context.PushTransform(stretch))
+            {
                 context.DrawRectangle(fill, rim, new Avalonia.Rect(-text.Width / 2 - 10, -13, text.Width + 20, 26), 13, 13);
+                if (ring is not null) context.DrawRectangle(null, ring, new Avalonia.Rect(-text.Width / 2 - 16, -19, text.Width + 32, 38), 19, 19);
+            }
             using var _ = context.PushTransform(place);
             context.DrawText(text, new Point(-text.Width / 2, -text.Height / 2));
         }
         else
         {
             using (context.PushTransform(stretch))
+            {
                 context.DrawEllipse(fill, rim, new Point(0, 0), 15, 15);
+                if (ring is not null) context.DrawEllipse(null, ring, new Point(0, 0), 21, 21);
+            }
             using var _ = context.PushTransform(place);
             DrawGlyph(context, beat.Glyph, bg, 18, new Point(0, 0));
         }
@@ -164,6 +274,19 @@ internal sealed class MotionLayer : Control
                 }
                 break;
             }
+            case "flash" when beat.On == "by":
+            {
+                // The one who takes a request lights up: a box as its own outline, a party that is not on the canvas as its dashed pill.
+                if (run.TakerBox is not { } t) break;
+                var wash = new SolidColorBrush(((ISolidColorBrush)accent).Color, Flash * (1 - p));
+                if (run.TakerShape is { } shape)
+                {
+                    shape.Transform = new MatrixTransform(Matrix.CreateScale(t.Width / 200, t.Height / 72) * Matrix.CreateTranslation(t.X, t.Y));
+                    context.DrawGeometry(wash, null, shape);
+                }
+                else context.DrawRectangle(wash, null, new Avalonia.Rect(t.X, t.Y, t.Width, t.Height), 14, 14);
+                break;
+            }
             case "flash":
             {
                 var tint = beat.Tone == "fail" ? Brush("DangerBrush") : accent; // a refusal flashes in the danger colour
@@ -188,6 +311,112 @@ internal sealed class MotionLayer : Control
             {
                 using var fade = context.PushOpacity(1 - Math.Max(0, (p - 0.8) / 0.2));
                 DrawGlyph(context, beat.Glyph, accent, 26, new Point(r.X + r.Width / 2, r.Y - 50 + 50 * MotionMath.Ease(p)));
+                break;
+            }
+        }
+    }
+
+    private FormattedText Words(string text, IBrush brush) =>
+        new(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 12, brush);
+
+    /// <summary>The marks an outcome leaves, each as at <c>_t</c> (or as a still picture when motion is reduced): a puff and a cross, a bar, a clock, a note, a marker.</summary>
+    private void DrawMark(DrawingContext context, Run run, Beat beat)
+    {
+        var p = _still ? 1 : MotionMath.Progress(beat, _t);
+        var danger = Brush("DangerBrush");
+        switch (beat.Do)
+        {
+            case "pop":
+            {
+                var spot = SpotAt(run.Line, run.Length, beat.Along!.Value);
+                var ink = beat.Tint is { } slot ? Tint(slot) : Brush("AccentBrush");
+                var centre = new Point(spot.X, spot.Y);
+                if (p < 1)
+                {
+                    // The ring and the ticks go out and fade.
+                    using var fade = context.PushOpacity(1 - p);
+                    context.DrawEllipse(null, Round(ink, 3), centre, 6 + 22 * p, 6 + 22 * p);
+                    for (var k = 0; k < Ticks; k++)
+                    {
+                        var angle = k / (double)Ticks * 2 * Math.PI + 0.3;
+                        double near = 10 + 16 * p, far = 16 + 24 * p;
+                        context.DrawLine(Round(ink, 3), new Point(centre.X + Math.Cos(angle) * near, centre.Y + Math.Sin(angle) * near), new Point(centre.X + Math.Cos(angle) * far, centre.Y + Math.Sin(angle) * far));
+                    }
+                }
+                // The cross stays where the request vanished.
+                var grow = 0.5 + 0.5 * Math.Min(1, p * 4);
+                using (context.PushOpacity(0.9 * Math.Min(1, p * 5)))
+                using (context.PushTransform(Matrix.CreateScale(grow, grow) * Matrix.CreateTranslation(centre.X, centre.Y)))
+                {
+                    context.DrawLine(Round(danger, 3.5), new Point(-7, -7), new Point(7, 7));
+                    context.DrawLine(Round(danger, 3.5), new Point(7, -7), new Point(-7, 7));
+                }
+                break;
+            }
+            case "bar":
+            {
+                // The bar at the receiver's door flashes in thick, settles, and stays.
+                var spot = SpotAt(run.Line, run.Length, beat.Along!.Value);
+                using (context.PushOpacity(Math.Min(1, p * 8)))
+                using (context.PushTransform(Matrix.CreateRotation(Math.Atan2(spot.Dy, spot.Dx)) * Matrix.CreateTranslation(spot.X, spot.Y)))
+                    context.DrawLine(Round(danger, 7 + 6 * Math.Max(0, 1 - p * 4)), new Point(0, -22), new Point(0, 22));
+                break;
+            }
+            case "clock":
+            {
+                // A dashed dial that turns, a dot going round it, and for a still picture the hands (a waiting request would cover them).
+                var spot = SpotAt(run.Line, run.Length, beat.Along!.Value);
+                var muted = Brush("MutedBrush");
+                var accent = Brush("AccentBrush");
+                var centre = new Point(spot.X, spot.Y);
+                using var fade = context.PushOpacity(_still ? 1 : MotionMath.TubeOpacity(beat, _t));
+                var turn = _still ? 0 : _t / 1000 * 18.85 / 2; // 8 s a turn, in units of the pen
+                context.DrawEllipse(null, new Pen(muted, 2, new DashStyle([1.5, 2.5], turn), PenLineCap.Flat), centre, 24, 24);
+                var orbit = (_still ? -60 : -60 + 360 * (_t % 1600) / 1600) * Math.PI / 180;
+                context.DrawEllipse(accent, null, new Point(centre.X + Math.Cos(orbit) * 24, centre.Y + Math.Sin(orbit) * 24), 3.5, 3.5);
+                if (_still)
+                {
+                    context.DrawLine(Round(muted, 2), centre, new Point(centre.X, centre.Y - 10));
+                    context.DrawLine(Round(muted, 2), centre, new Point(centre.X + 7, centre.Y + 4));
+                }
+                break;
+            }
+            case "note":
+            {
+                // The reason, beside where it happened on the lower side of the line, or under the one who takes the request.
+                Point at;
+                if (beat.On == "by")
+                {
+                    if (run.TakerBox is not { } t) break;
+                    at = new Point(t.X + t.Width / 2, t.Y + t.Height + Halo + 12);
+                }
+                else
+                {
+                    var spot = SpotAt(run.Line, run.Length, beat.Along!.Value);
+                    var offset = MotionMath.NoteSpot(spot.Dx, spot.Dy, (beat.Text ?? "").Length);
+                    at = new Point(spot.X + offset.X, spot.Y + offset.Y);
+                }
+                var text = Words(beat.Text ?? "", Brush("FgBrush"));
+                var origin = new Point(at.X - text.Width / 2, at.Y - text.Height / 2);
+                using var fade = context.PushOpacity(_still ? 1 : MotionMath.TubeOpacity(beat, _t));
+                // Painted with an outline of the canvas colour, so it reads over a line.
+                if (text.BuildGeometry(origin) is { } outline) context.DrawGeometry(null, Round(Brush("BgBrush"), 4), outline);
+                context.DrawText(text, origin);
+                break;
+            }
+            case "marker":
+            {
+                // Whoever takes a request, for the whole step: a party that is not on the canvas as a dashed pill with its name, a box as a dashed outline around it.
+                if (run.TakerBox is not { } t) break;
+                var dashed = new Pen(Brush("MutedBrush"), 1.5, new DashStyle([5 / 1.5, 4 / 1.5], 0));
+                using var fade = context.PushOpacity(_still ? 1 : Math.Min(1, (_t - beat.At) / 150));
+                if (run.TakerShape is not null) context.DrawRectangle(null, dashed, new Avalonia.Rect(t.X - Halo, t.Y - Halo, t.Width + 2 * Halo, t.Height + 2 * Halo), 16, 16);
+                else if (run.TakerName is { } name)
+                {
+                    context.DrawRectangle(Brush("BgBrush"), dashed, new Avalonia.Rect(t.X, t.Y, t.Width, t.Height), 14, 14);
+                    var text = Words(name, Brush("FgBrush"));
+                    context.DrawText(text, new Point(t.X + t.Width / 2 - text.Width / 2, t.Y + t.Height / 2 - text.Height / 2));
+                }
                 break;
             }
         }

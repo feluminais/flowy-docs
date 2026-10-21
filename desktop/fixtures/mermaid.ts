@@ -14,7 +14,7 @@ const TEXTS = ['Plain', 'a "quoted" <b>word</b>', 'one\nline  \n\n  next', 'x; y
 /** The Mermaid text of every view and every flow, and of some hostile strings, as the TypeScript side writes them. */
 export async function dumpMermaid(): Promise<unknown> {
   const folders = []
-  for (const folder of ['docs/demo/flowy', 'example', 'desktop/fixtures/cases/problems/flowy', 'desktop/fixtures/cases/look/flowy', 'desktop/fixtures/cases/groups/flowy', 'desktop/fixtures/cases/states/flowy']) {
+  for (const folder of ['docs/demo/flowy', 'example', 'desktop/fixtures/cases/problems/flowy', 'desktop/fixtures/cases/look/flowy', 'desktop/fixtures/cases/groups/flowy', 'desktop/fixtures/cases/outcomes/flowy', 'desktop/fixtures/cases/states/flowy']) {
     const state = await loadState(join(root, folder))
     if ('parseError' in state) throw new Error(`${folder} can't be read`)
     const model: Model = modelOf(state)

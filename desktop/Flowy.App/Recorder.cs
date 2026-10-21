@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -29,6 +30,23 @@ internal sealed class Recorder : StackPanel
         public required FieldBox Lane;
         public required Choice<string> Flow;
         public required List<(string Shape, Chooser Tiles)> States;
+        public required AnimationRow Animation;
+    }
+
+    /// <summary>
+    /// How a step plays, as its row shows it: the way it travels and the way its request ends as sketches to pick from, a share and a reason, and for an interception who takes it
+    /// (a shape of the model, or a name). What the step cannot have is dimmed with the reason in its tooltip, so the form never changes shape. Desktop twin of StepAnimation in ui/src/Panel.tsx.
+    /// </summary>
+    private sealed class AnimationRow
+    {
+        public required Chooser Kind;
+        public required Chooser Outcome;
+        public required FieldBox Share;
+        public required FieldBox Reason;
+        public required Chooser Takers;
+        public required FieldBox TakerName;
+        public required Control Panel;
+        public required Action<Step> Sync;
     }
 
     private sealed class GroupCard
@@ -88,6 +106,18 @@ internal sealed class Recorder : StackPanel
     internal IReadOnlyList<ComboBox> StepGroupBoxes => _rows.Select(r => r.Group.Box).ToList();
 
     internal IReadOnlyList<FieldBox> StepLanes => _rows.Select(r => r.Lane).ToList();
+
+    internal IReadOnlyList<Chooser> StepKinds => _rows.Select(r => r.Animation.Kind).ToList();
+
+    internal IReadOnlyList<Chooser> StepOutcomes => _rows.Select(r => r.Animation.Outcome).ToList();
+
+    internal IReadOnlyList<FieldBox> StepShares => _rows.Select(r => r.Animation.Share).ToList();
+
+    internal IReadOnlyList<FieldBox> StepReasons => _rows.Select(r => r.Animation.Reason).ToList();
+
+    internal IReadOnlyList<Chooser> StepTakers => _rows.Select(r => r.Animation.Takers).ToList();
+
+    internal IReadOnlyList<FieldBox> StepTakerNames => _rows.Select(r => r.Animation.TakerName).ToList();
 
     internal IReadOnlyList<ComboBox> StepFlowBoxes => _rows.Select(r => r.Flow.Box).ToList();
 
@@ -205,7 +235,8 @@ internal sealed class Recorder : StackPanel
         });
         var signature = string.Join('\u0002', steps.Select(s => $"{s.From}\u0001{s.To}")) + '\u0003' + string.Join('\u0002', strange)
             + '\u0003' + string.Join('\u0002', declared.Select(g => $"{g.Key}\u0001{KindOf(declared, g.Key)}"))
-            + '\u0003' + string.Join('\u0002', others.Select(o => $"{o.Id}\u0001{o.Name}"));
+            + '\u0003' + string.Join('\u0002', others.Select(o => $"{o.Id}\u0001{o.Name}"))
+            + '\u0003' + string.Join('\u0002', model.Objects.Select(o => $"{o.Key}\u0001{o.Value.Name}\u0001{o.Value.Type}"));
         if (signature != _signature || _rows.Count != steps.Count)
         {
             _signature = signature;
@@ -222,6 +253,7 @@ internal sealed class Recorder : StackPanel
             _rows[i].Flow.Sync(Structure.JsTrim(steps[i].FlowId ?? ""));
             _rows[i].Lane.Sync(steps[i].Lane ?? "");
             _rows[i].Lane.IsVisible = group != "" && HasLanes(KindOf(declared, group));
+            _rows[i].Animation.Sync(steps[i]);
             foreach (var (shape, tiles) in _rows[i].States) tiles.Show(StateWord(steps[i].States, shape));
         }
         if (flow is not null) ShowGroups(rec.Id, steps.Count, declared);
@@ -517,6 +549,14 @@ internal sealed class Recorder : StackPanel
             structure.IsVisible = !structure.IsVisible;
             structureToggle.Content = structure.IsVisible ? "▾ Group and flow" : "▸ Group and flow";
         };
+        var animation = BuildAnimation(model, flowId, shown[i], i);
+        var animationToggle = new Button { Content = animation.Panel.IsVisible ? "▾ Animation" : "▸ Animation", HorizontalAlignment = HorizontalAlignment.Left };
+        animationToggle.Classes.Add("disclosure");
+        animationToggle.Click += (_, _) =>
+        {
+            animation.Panel.IsVisible = !animation.Panel.IsVisible;
+            animationToggle.Content = animation.Panel.IsVisible ? "▾ Animation" : "▸ Animation";
+        };
         // A state for each end of the step, as tiles: one edit for a pick, and None takes the state out. A shape the model no longer has is left out; the checks report it.
         var ends = new[] { shown[i].From, shown[i].To ?? shown[i].From }.Where(e => e is not null && model.GetObject(e) is not null).Distinct().Cast<string>().ToList();
         var tiles = ends.Select(shape => (Shape: shape, Tiles: Pick.StateTiles(Views.NameOf(model, shape), StateWord(shown[i].States, shape),
@@ -530,13 +570,86 @@ internal sealed class Recorder : StackPanel
             states.IsVisible = !states.IsVisible;
             statesToggle.Content = states.IsVisible ? "▾ State" : "▸ State";
         };
-        _rows.Add(new Row { Text = text, Detail = detail, Group = groupChoice, Lane = lane, Flow = flowChoice, States = tiles });
+        _rows.Add(new Row { Text = text, Detail = detail, Group = groupChoice, Lane = lane, Flow = flowChoice, States = tiles, Animation = animation });
         // A number before each step, so the order reads at a glance.
         var number = new Border { Child = new TextBlock { Text = (i + 1).ToString() }, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 22, 0, 0) };
         number.Classes.Add("badge");
         var top = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { number, text } };
         Grid.SetColumn(text, 1);
-        return Chrome.Card(new StackPanel { Spacing = 8, Children = { top, more, detail, structureToggle, structure, statesToggle, states, buttons } });
+        return Chrome.Card(new StackPanel { Spacing = 8, Children = { top, more, detail, animationToggle, animation.Panel, structureToggle, structure, statesToggle, states, buttons } });
+    }
+
+    private static string Title(string word) => word == "" ? word : char.ToUpperInvariant(word[0]) + word[1..];
+
+    /// <summary>One sketch of the pickers: the drawing and its name under it.</summary>
+    private static Control SketchCell(string path, string name)
+    {
+        var drawing = new Avalonia.Controls.Shapes.Path { Data = Geometry.Parse(path), Width = 44, Height = 24, HorizontalAlignment = HorizontalAlignment.Center };
+        drawing.Classes.Add("sketch");
+        return new StackPanel { Spacing = 4, Children = { drawing, new TextBlock { Text = name, FontSize = 10.5, HorizontalAlignment = HorizontalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis } } };
+    }
+
+    /// <summary>What a step's <c>animation</c> says, read for the form: its kind, outcome, share, reason, the shape that takes it and the name that does.</summary>
+    private static (string Kind, string Outcome, string Share, string Reason, string By, string ByName) ReadAnimation(object? raw)
+    {
+        var map = raw as OrderedDictionary<string, object?> ?? (raw is string bare && bare != "" ? new OrderedDictionary<string, object?> { ["kind"] = bare } : []);
+        string Text(string key) => map.TryGetValue(key, out var v) && v is string s ? s : "";
+        var by = map.TryGetValue("by", out var taker) ? taker : null;
+        return (Text("kind"), Text("outcome"), Text("share"), Text("reason"), by as string ?? "", by is OrderedDictionary<string, object?> named && named.TryGetValue("name", out var n) && n is string name ? name : "");
+    }
+
+    private AnimationRow BuildAnimation(Model model, string flowId, Step first, int i)
+    {
+        // The step's animation as it is in the document now, which an edit builds on: the form may have been synced after another edit.
+        Task<bool> Set(string key, string value) => Edit(flowId, d =>
+        {
+            var step = StepsOf(d, flowId).ElementAtOrDefault(i);
+            return EditOps.SetStepAnimation(d, flowId, i, Animations.With(step is not null && step.TryGetValue("animation", out var now) ? now : null, key, value));
+        });
+        var kind = new Chooser("Travels as", new UniformGrid { Columns = 5 }, id => Set("kind", id), id => id == "" ? "None" : Title(id));
+        foreach (var (id, path) in Animations.KindSketches) kind.Add(id == "none" ? "" : id, id == "none" ? "None" : Title(id), SketchCell(path, id == "none" ? "None" : Title(id)));
+        var outcome = new Chooser("Ends as", new UniformGrid { Columns = 4 }, id => Set("outcome", id), id => id == "" ? "Arrives" : Title(id));
+        foreach (var (id, path) in Animations.OutcomeSketches) outcome.Add(id == "none" ? "" : id, id == "none" ? "Arrives" : Title(id), SketchCell(path, id == "none" ? "Arrives" : Title(id)));
+        var share = new FieldBox("Share of requests (1 to 100)", "", false, v => Set("share", v), "e.g. 30");
+        var reason = new FieldBox($"Reason ({Animations.ReasonMax} characters)", "", false, v => Set("reason", v), "e.g. Rate limit");
+        var takers = new Chooser("Taken by", new UniformGrid { Columns = 2 }, id => Set("by", id), id => model.Objects.TryGetValue(id, out var o) ? o.Name ?? id : id, maxHeight: 150);
+        var takerName = new FieldBox($"Or a name ({Animations.NameMax} characters)", "", false, v => Set("byName", v), "e.g. Café wifi proxy");
+        foreach (var (id, o) in model.Objects)
+        {
+            var name = string.IsNullOrEmpty(o.Name) ? id : o.Name;
+            takers.Add(id, name, new StackPanel
+            {
+                Orientation = Orientation.Horizontal, Spacing = 6,
+                Children = { Chrome.ObjectTile(model, o, 20), new TextBlock { Text = name, FontSize = 12, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis } },
+            });
+        }
+        var panel = new StackPanel { Spacing = 10, Children = { kind, outcome, share, reason, takers, takerName } };
+        void Sync(Step step)
+        {
+            var (k, o, s, r, by, byName) = ReadAnimation(step.Animation);
+            var travels = !string.IsNullOrEmpty(step.To) && step.To != step.From;
+            kind.Show(k);
+            foreach (var id in kind.Ids) kind.Allow(id, id == "" || travels ? null : "Needs two shapes");
+            outcome.Show(o);
+            foreach (var id in outcome.Ids) outcome.Allow(id, Animations.OutcomeBlock(k, id));
+            var ended = o != "";
+            share.Sync(s);
+            share.IsEnabled = ended;
+            ToolTip.SetTip(share, ended ? null : "Pick an outcome first");
+            reason.Sync(r);
+            reason.IsEnabled = ended;
+            ToolTip.SetTip(reason, ended ? null : "Pick an outcome first");
+            var intercepted = o == "intercepted";
+            takers.Show(by == "" ? null : by);
+            foreach (var id in takers.Ids) takers.Allow(id, intercepted && id != step.From && id != step.To ? null : intercepted ? "An end of the step" : "Only for Intercepted");
+            takerName.Sync(byName);
+            takerName.IsEnabled = intercepted;
+            ToolTip.SetTip(takerName, intercepted ? null : "Only for Intercepted");
+        }
+        panel.IsVisible = first.Animation is not null && first.Animation is not "";
+        var row = new AnimationRow { Kind = kind, Outcome = outcome, Share = share, Reason = reason, Takers = takers, TakerName = takerName, Panel = panel, Sync = Sync };
+        Sync(first);
+        return row;
     }
 
     /// <summary>The copy of one group's options in a document, to change one and give it back to <see cref="EditOps.PutGroup"/>.</summary>

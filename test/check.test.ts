@@ -288,6 +288,35 @@ test('outcome rules', () => {
   assert.deepEqual(check(m).map(p => p.message), [
     'step 2: animation outcome timeout only applies to call',
     'step 3: animation outcome fail only applies to send and call',
-    'step 4: animation outcome must be fail or timeout',
+    'step 4: animation outcome must be fail, timeout, lost, rejected, intercepted, duplicated or delayed',
+  ])
+})
+
+test('the new outcomes and their keys are checked, and so is the shape that intercepts', () => {
+  const m = shop()
+  m.flows.checkout.steps = [
+    { from: 'customer', to: 'web', text: 'a', animation: { kind: 'send', outcome: 'lost', share: 30, reason: 'Packet dropped', at: 0.4 } },
+    { from: 'web', to: 'api', text: 'b', animation: { kind: 'call', outcome: 'intercepted', by: 'mail' } },
+    { from: 'web', to: 'api', text: 'c', animation: { kind: 'call', outcome: 'intercepted', by: { name: 'Café wifi proxy' } } },
+    { from: 'web', to: 'api', text: 'd', animation: { kind: 'call', outcome: 'intercepted', by: 'ghost' } },
+    { from: 'web', to: 'api', text: 'e', animation: { kind: 'call', outcome: 'intercepted', by: 'web' } },
+    { from: 'web', to: 'api', text: 'f', animation: { kind: 'call', outcome: 'intercepted', by: 'api' } },
+    { from: 'web', to: 'api', text: 'g', animation: { kind: 'call', outcome: 'intercepted' } },
+    { from: 'web', to: 'api', text: 'h', animation: { kind: 'call', outcome: 'lost', by: 'mail' } },
+    { from: 'web', to: 'api', text: 'i', animation: { kind: 'send', outcome: 'lost', share: 101 } },
+    { from: 'web', to: 'api', text: 'j', animation: { kind: 'callback', outcome: 'delayed' } },
+    { from: 'web', to: 'api', text: 'k', animation: { kind: 'send', outcome: 'delayed', reason: 'x'.repeat(41) } },
+    { from: 'web', to: 'api', text: 'l', animation: { kind: 'send', outcome: 'rejected', at: 0.5 } },
+  ]
+  assert.deepEqual(check(m).map(p => p.message), [
+    'step 4: animation by: unknown object "ghost"',
+    'step 5: animation by "web" is an end of the step (name another shape, or use { name: ... })',
+    'step 6: animation by "api" is an end of the step (name another shape, or use { name: ... })',
+    'step 7: animation outcome intercepted needs a "by" (a shape id, or { name: ... })',
+    'step 8: animation by only applies to outcome intercepted',
+    'step 9: animation share must be a whole number from 1 to 100',
+    'step 10: animation outcome delayed only applies to send, call and event',
+    'step 11: animation reason can be at most 40 characters',
+    'step 12: animation at only applies to outcome lost',
   ])
 })

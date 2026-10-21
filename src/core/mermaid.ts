@@ -1,3 +1,4 @@
+import { animationOf, outcomeLine } from './animation.ts'
 import { colorPair, isColor, isOpacity, fillOpacity, shapeOf, typeColor } from './look.ts'
 import type { Shape } from './look.ts'
 import { getObject, ROOT } from './model.ts'
@@ -77,7 +78,13 @@ export function flowToMermaid(model: Model, flowId: string): string {
   const flow = Object.hasOwn(model.flows, flowId) ? model.flows[flowId] : undefined
   if (!flow) throw new Error(`unknown flow "${flowId}"`)
   // A step the view can't show (the checker reports it) keeps its own ends.
-  const steps = flow.steps.map(s => ({ ends: placeStep(model, flow.view, s) ?? [s.from, s.to || s.from], text: mermaidText(String(s.text ?? '')) }))
+  // A step that ends in an outcome (lost, rejected, a share of the calls) says so in a note over its ends, in the words of the step card.
+  const outcome = (s: (typeof flow.steps)[number]) => {
+    const a = animationOf(s)
+    const line = a && outcomeLine(a, id => String(getObject(model, id)?.name || id))
+    return line === undefined ? undefined : mermaidText(line)
+  }
+  const steps = flow.steps.map(s => ({ ends: placeStep(model, flow.view, s) ?? [s.from, s.to || s.from], text: mermaidText(String(s.text ?? '')), outcome: outcome(s) }))
   // A shape that is only named in a states is a participant too, after the ones the steps use. The checker reports one the model does not have.
   const set = (raw: unknown) => Object.entries(readStates(raw)).filter(([id]) => getObject(model, id) !== undefined)
   const n = ids([...new Set([...steps.flatMap(s => s.ends), ...set(flow.states).map(([id]) => id), ...flow.steps.flatMap(s => set(s.states).map(([id]) => id))])])
@@ -85,8 +92,9 @@ export function flowToMermaid(model: Model, flowId: string): string {
     set(raw).filter(([, state]) => !skipRunning || state !== 'running').map(([id, state]) => `${indent}Note over ${n.get(id)}: ${STATE_LABELS[state]}`)
   // A step one box does on its own is a note over it. A step that continues in another flow says so in a note over its end.
   const line = (i: number, indent: string): string[] => {
-    const { ends: [a, b], text } = steps[i]
+    const { ends: [a, b], text, outcome: ended } = steps[i]
     const out = [a === b ? `${indent}Note over ${n.get(a)}: ${text}` : `${indent}${n.get(a)}->>${n.get(b)}: ${text}`]
+    if (ended !== undefined) out.push(`${indent}Note over ${a === b ? n.get(a) : `${n.get(a)},${n.get(b)}`}: ${ended}`)
     const link = blank(flow.steps[i].flow) ? undefined : String(flow.steps[i].flow).trim()
     if (link !== undefined && Object.hasOwn(model.flows, link))
       out.push(`${indent}Note over ${n.get(b)}: ${mermaidText(`Continues in "${String(model.flows[link].name || link)}"`)}`)

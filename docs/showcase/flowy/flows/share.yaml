@@ -1,0 +1,4 @@
+name: Share of requests
+view: steps
+steps:
+  - { from: share-from, to: share-to, text: Sends ten requests and three are lost, animation: { kind: send, outcome: lost, share: 30, reason: Packet dropped, at: 0.7 } }

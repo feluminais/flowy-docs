@@ -1725,6 +1725,237 @@
     {
       "spec": {
         "op": "putFlow",
+        "id": "play",
+        "name": "Customer plays",
+        "view": "root",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "shop",
+            "text": "Asks",
+            "description": "More",
+            "note": "x"
+          },
+          {
+            "from": "shop",
+            "to": "customer",
+            "text": "Answers",
+            "animation": {
+              "kind": "call",
+              "outcome": "timeout"
+            }
+          },
+          {
+            "from": "shop",
+            "text": "Thinks"
+          }
+        ]
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/play.yaml": "name: Customer plays\nview: root\nsteps:\n  - from: customer\n    to: shop\n    text: Asks\n    description: More\n    note: x\n  - from: shop\n    to: customer\n    text: Answers\n    animation:\n      kind: call\n      outcome: timeout\n  - from: shop\n    text: Thinks\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 0,
+        "animation": {
+          "kind": "send",
+          "outcome": "lost",
+          "share": "30",
+          "reason": "Packet dropped"
+        }
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/play.yaml": "name: Customer plays\nview: root\nsteps:\n  - from: customer\n    to: shop\n    text: Asks\n    description: More\n    note: x\n    animation:\n      kind: send\n      outcome: lost\n      share: 30\n      reason: Packet dropped\n  - from: shop\n    to: customer\n    text: Answers\n    animation:\n      kind: call\n      outcome: timeout\n  - from: shop\n    text: Thinks\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 1,
+        "animation": "send"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/play.yaml": "name: Customer plays\nview: root\nsteps:\n  - from: customer\n    to: shop\n    text: Asks\n    description: More\n    note: x\n    animation:\n      kind: send\n      outcome: lost\n      share: 30\n      reason: Packet dropped\n  - from: shop\n    to: customer\n    text: Answers\n    animation: send\n  - from: shop\n    text: Thinks\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 0,
+        "animation": {
+          "kind": "call",
+          "outcome": "intercepted",
+          "by": {
+            "name": "Café wifi proxy"
+          },
+          "share": "50"
+        }
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/play.yaml": "name: Customer plays\nview: root\nsteps:\n  - from: customer\n    to: shop\n    text: Asks\n    description: More\n    note: x\n    animation:\n      kind: call\n      outcome: intercepted\n      by:\n        name: Café wifi proxy\n      share: 50\n  - from: shop\n    to: customer\n    text: Answers\n    animation: send\n  - from: shop\n    text: Thinks\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 0,
+        "animation": {
+          "kind": "call",
+          "outcome": "intercepted",
+          "by": "pay"
+        }
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/play.yaml": "name: Customer plays\nview: root\nsteps:\n  - from: customer\n    to: shop\n    text: Asks\n    description: More\n    note: x\n    animation:\n      kind: call\n      outcome: intercepted\n      by: pay\n  - from: shop\n    to: customer\n    text: Answers\n    animation: send\n  - from: shop\n    text: Thinks\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 0,
+        "animation": {
+          "kind": "call",
+          "outcome": "intercepted",
+          "by": "shop"
+        }
+      },
+      "error": "Refused, nothing saved. This would add:\n- flows/play.yaml: step 1: animation by \"shop\" is an end of the step (name another shape, or use { name: ... })"
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 0,
+        "animation": {
+          "kind": "call",
+          "outcome": "intercepted",
+          "by": "ghost"
+        }
+      },
+      "error": "Refused, nothing saved. This would add:\n- flows/play.yaml: step 1: animation by: unknown object \"ghost\""
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 0,
+        "animation": {
+          "kind": "callback",
+          "outcome": "lost"
+        }
+      },
+      "error": "Refused, nothing saved. This would add:\n- flows/play.yaml: step 1: animation outcome lost only applies to send, call and event"
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 0,
+        "animation": {
+          "kind": "send",
+          "outcome": "lost",
+          "share": "101"
+        }
+      },
+      "error": "Refused, nothing saved. This would add:\n- flows/play.yaml: step 1: animation share must be a whole number from 1 to 100"
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 2,
+        "animation": "call"
+      },
+      "error": "Refused, nothing saved. This would add:\n- flows/play.yaml: step 3: animation \"call\" needs a \"to\""
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 0
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/play.yaml": "name: Customer plays\nview: root\nsteps:\n  - from: customer\n    to: shop\n    text: Asks\n    description: More\n    note: x\n  - from: shop\n    to: customer\n    text: Answers\n    animation: send\n  - from: shop\n    text: Thinks\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 0
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/play.yaml": "name: Customer plays\nview: root\nsteps:\n  - from: customer\n    to: shop\n    text: Asks\n    description: More\n    note: x\n  - from: shop\n    to: customer\n    text: Answers\n    animation: send\n  - from: shop\n    text: Thinks\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "play",
+        "index": 9,
+        "animation": "call"
+      },
+      "error": "flow \"play\" has no step 10"
+    },
+    {
+      "spec": {
+        "op": "setStepAnimation",
+        "id": "nope",
+        "index": 0,
+        "animation": "call"
+      },
+      "error": "unknown flow \"nope\""
+    },
+    {
+      "spec": {
+        "op": "deleteFlow",
+        "id": "play"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "putFlow",
         "id": "outage",
         "name": "The shop goes down",
         "view": "root",

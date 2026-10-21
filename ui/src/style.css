@@ -355,6 +355,9 @@ svg { flex: none; }
 }
 .player p { margin: 0 0 6px; }
 .player-ends { font-weight: 600; }
+/* How the step's request ended, in the words every other place uses (outcomeLine): a fact the picture can't give, so it is text, with a mark beside it. */
+.player .player-outcome { display: flex; align-items: center; gap: 6px; color: var(--danger); font-weight: 600; }
+.player-outcome::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .player-buttons { display: flex; gap: 8px; margin-top: 10px; }
 .player-buttons button:last-child { margin-left: auto; }
 /* How far a flow has got: a cell a stop, filled up to the one shown, a branch's lanes on rows of their own, and a bracket under each group. */
@@ -438,6 +441,12 @@ svg { flex: none; }
 .pick-grid.types { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); }
 .pick-grid.shapes { grid-template-columns: repeat(4, 1fr); }
 .pick-grid.kinds { grid-template-columns: repeat(3, 1fr); }
+.pick-grid.sketches { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); }
+.panel button.pick.sketch { padding: 6px 2px 5px; font-size: 10.5px; }
+.pick.sketch svg { width: 100%; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pick-grid.shapes-list { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); max-height: 150px; overflow-y: auto; }
+.panel button.pick.taker { flex-direction: row; justify-content: flex-start; gap: 8px; padding: 4px 8px 4px 4px; font-size: 12px; }
+.panel button.pick.taker > span:not(.tile) { flex: 1; text-align: left; }
 .pick-grid.states { grid-template-columns: repeat(4, 1fr); }
 .panel button.pick {
   flex-direction: column; gap: 5px; min-height: 0; padding: 8px 4px 6px; border: 1.5px solid transparent; border-radius: 10px;
@@ -602,6 +611,34 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .motion .dots circle { fill: var(--accent); }
 .motion .glyph { fill: none; stroke: var(--bg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .motion .glyph.drop { stroke: var(--accent); stroke-width: 2.2; }
+/* The ways a request can end other than fail and timeout (src/core/animation.ts). A request in a burst that meets one wears a colour of its own through --req
+   (StepMotion sets it from a shape colour name) and a ring, so colour is never the only thing that tells it apart. */
+.motion .blob.tinted :is(circle, rect):not(.halo) { fill: var(--req); }
+.motion .blob.tinted.fail :is(circle, rect):not(.halo) { fill: var(--danger); } /* a refusal on its way back is red; its ring keeps the colour */
+.motion .blob .halo { fill: none; stroke: var(--req, var(--accent)); stroke-width: 2.5; }
+/* Lost: a puff that goes out and fades, and the cross it leaves where the request vanished. */
+.motion .pop .puff { fill: none; stroke: var(--req, var(--accent)); stroke-width: 3; }
+.motion .pop .tick { stroke: var(--req, var(--accent)); stroke-width: 3; stroke-linecap: round; }
+.motion .pop .cross { stroke: var(--danger); stroke-width: 3.5; }
+/* Rejected: the bar at the receiver's door. */
+.motion .bar line { stroke: var(--danger); stroke-width: 7; stroke-linecap: round; }
+/* Delayed: a dashed clock round the waiting request, and a dot going round it. The hands are only for a still picture, where the request is not there to cover them. */
+.motion .clock .dial { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 3 5; }
+.motion .clock .spark { fill: var(--accent); stroke: none; }
+.motion .clock .orbit { transform: rotate(-60deg); }
+.motion .clock .hands { display: none; stroke: var(--muted); stroke-width: 2; }
+.motion .clock.still .hands { display: inline; }
+/* A reason, and the name on the dashed marker of whoever takes a request. */
+.motion .note { fill: var(--fg); font-size: 12px; font-weight: 600; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+.motion .marker rect { fill: var(--bg); stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.motion .marker.around rect { fill: none; }
+.motion .marker text { fill: var(--fg); font-size: 12px; font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) {
+  .motion .clock .dial { animation: dial-turn 8s linear infinite; transform-origin: 0 0; }
+  .motion .clock .orbit { animation: orbit-turn 1.6s linear infinite; transform-origin: 0 0; }
+}
+@keyframes dial-turn { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes orbit-turn { from { transform: rotate(-60deg); } to { transform: rotate(300deg); } }
 
 /* The navigator: a rail of icons on the left edge with a panel of Flows and Explorer beside it, and on the right a rail with Details (Navigator.tsx). */
 .stage { flex: 1; display: flex; min-height: 0; }

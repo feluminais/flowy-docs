@@ -3599,6 +3599,779 @@
       "playing": {
         "ends": [
           [
+            "courier-app",
+            "tracking"
+          ],
+          [
+            "tracking",
+            "ordering"
+          ],
+          [
+            "fleet-db",
+            "fleet-db"
+          ]
+        ],
+        "step": 0
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "courier-app",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 3
+        },
+        {
+          "id": "tracking",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "fleet-db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "courier",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "ordering",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        }
+      ],
+      "edges": [
+        {
+          "id": "courier courier-app",
+          "source": "courier",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch ordering",
+          "source": "dispatch",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch fleet-db",
+          "source": "dispatch",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch mapbox",
+          "source": "dispatch",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch notifications",
+          "source": "dispatch",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app dispatch",
+          "source": "courier-app",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app tracking",
+          "source": "courier-app",
+          "target": "tracking",
+          "label": "position every 5 s",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app ordering",
+          "source": "courier-app",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app mapbox",
+          "source": "courier-app",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "tracking fleet-db",
+          "source": "tracking",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "tracking ordering",
+          "source": "tracking",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "courier-app",
+        "dispatch",
+        "tracking",
+        "fleet-db"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "playing": {
+        "ends": [
+          [
+            "courier-app",
+            "tracking"
+          ],
+          [
+            "tracking",
+            "ordering"
+          ],
+          [
+            "fleet-db",
+            "fleet-db"
+          ]
+        ],
+        "step": 1
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "courier-app",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 3
+        },
+        {
+          "id": "tracking",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "fleet-db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "courier",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "ordering",
+          "classes": [
+            "lit",
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        }
+      ],
+      "edges": [
+        {
+          "id": "courier courier-app",
+          "source": "courier",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch ordering",
+          "source": "dispatch",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch fleet-db",
+          "source": "dispatch",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch mapbox",
+          "source": "dispatch",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch notifications",
+          "source": "dispatch",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app dispatch",
+          "source": "courier-app",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app tracking",
+          "source": "courier-app",
+          "target": "tracking",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app ordering",
+          "source": "courier-app",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app mapbox",
+          "source": "courier-app",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "tracking fleet-db",
+          "source": "tracking",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "tracking ordering",
+          "source": "tracking",
+          "target": "ordering",
+          "label": "2 connections",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "courier-app",
+        "dispatch",
+        "tracking",
+        "fleet-db"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "playing": {
+        "ends": [
+          [
+            "courier-app",
+            "tracking"
+          ],
+          [
+            "tracking",
+            "ordering"
+          ],
+          [
+            "fleet-db",
+            "fleet-db"
+          ]
+        ],
+        "step": 2
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "courier-app",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "dim"
+          ],
+          "inside": 3
+        },
+        {
+          "id": "tracking",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "fleet-db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "courier",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "ordering",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        }
+      ],
+      "edges": [
+        {
+          "id": "courier courier-app",
+          "source": "courier",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch ordering",
+          "source": "dispatch",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch fleet-db",
+          "source": "dispatch",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch mapbox",
+          "source": "dispatch",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch notifications",
+          "source": "dispatch",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app dispatch",
+          "source": "courier-app",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app tracking",
+          "source": "courier-app",
+          "target": "tracking",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app ordering",
+          "source": "courier-app",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app mapbox",
+          "source": "courier-app",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "tracking fleet-db",
+          "source": "tracking",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "tracking ordering",
+          "source": "tracking",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "courier-app",
+        "dispatch",
+        "tracking",
+        "fleet-db"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "playing": {
+        "ends": [
+          [
+            "courier-app",
+            "tracking"
+          ],
+          [
+            "tracking",
+            "ordering"
+          ],
+          [
+            "fleet-db",
+            "fleet-db"
+          ]
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "courier-app",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [],
+          "inside": 3
+        },
+        {
+          "id": "tracking",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "fleet-db",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "courier",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "ordering",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 2
+        }
+      ],
+      "edges": [
+        {
+          "id": "courier courier-app",
+          "source": "courier",
+          "target": "courier-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "dispatch ordering",
+          "source": "dispatch",
+          "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "dispatch fleet-db",
+          "source": "dispatch",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "dispatch mapbox",
+          "source": "dispatch",
+          "target": "mapbox",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "dispatch notifications",
+          "source": "dispatch",
+          "target": "notifications",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app dispatch",
+          "source": "courier-app",
+          "target": "dispatch",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app tracking",
+          "source": "courier-app",
+          "target": "tracking",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app ordering",
+          "source": "courier-app",
+          "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app mapbox",
+          "source": "courier-app",
+          "target": "mapbox",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "tracking fleet-db",
+          "source": "tracking",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "tracking ordering",
+          "source": "tracking",
+          "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        }
+      ],
+      "members": [
+        "courier-app",
+        "dispatch",
+        "tracking",
+        "fleet-db"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "playing": {
+        "ends": [
+          [
             "ordering",
             "dispatch"
           ],

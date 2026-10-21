@@ -18,7 +18,9 @@ public static partial class Mermaid
     /// <summary>Text as Mermaid shows it, never as its syntax: quotes, brackets, backticks, # and ; become #code; entities, and new lines become spaces.</summary>
     public static string Text(string text) => Special().Replace(LineBreaks().Replace(text, " "), m => $"#{Entities[m.Value[0]]};");
 
-    private static string NameOf(Model model, string id) => Text(model.GetObject(id) is { Name: { Length: > 0 } name } ? name : id);
+    private static string NameOfRaw(Model model, string id) => model.GetObject(id) is { Name: { Length: > 0 } name } ? name : id;
+
+    private static string NameOf(Model model, string id) => Text(NameOfRaw(model, id));
 
     /// <summary>Mermaid ids are made up (n0, n1, …): Flowy ids like "end" or "a-b" would read as Mermaid syntax.</summary>
     private static Dictionary<string, string> Ids(IEnumerable<string> boxes)
@@ -86,7 +88,10 @@ public static partial class Mermaid
         var steps = flow.Steps.Select(s =>
         {
             var (a, b) = Views.PlaceStep(model, flow.View, s.From, s.To) ?? (s.From ?? "", string.IsNullOrEmpty(s.To) ? s.From ?? "" : s.To);
-            return (A: a, B: b, Text: Text(s.Text ?? ""));
+            // A step that ends in an outcome (lost, rejected, a share of the calls) says so in a note over its ends, in the words of the step card.
+            var animation = Animations.Read(s);
+            var ended = animation is null ? null : Animations.OutcomeLine(animation, id => NameOfRaw(model, id));
+            return (A: a, B: b, Text: Text(s.Text ?? ""), Ended: ended is null ? null : Text(ended));
         }).ToList();
         // A shape that is only named in a states is a participant too, after the ones the steps use. The checks report one the model does not have.
         List<KeyValuePair<string, string>> Set(object? raw) => States.Read(raw).Where(kv => model.GetObject(kv.Key) is not null).ToList();
@@ -101,8 +106,9 @@ public static partial class Mermaid
         // A step one box does on its own is a note over it. A step that continues in another flow says so in a note over its end.
         List<string> Line(int i, string indent)
         {
-            var (a, b, text) = steps[i];
+            var (a, b, text, ended) = steps[i];
             var step = new List<string> { a == b ? $"{indent}Note over {n[a]}: {text}" : $"{indent}{n[a]}->>{n[b]}: {text}" };
+            if (ended is not null) step.Add($"{indent}Note over {(a == b ? n[a] : $"{n[a]},{n[b]}")}: {ended}");
             var link = Structure.Blank(flow.Steps[i].FlowId) ? null : Structure.JsTrim(flow.Steps[i].FlowId!);
             if (link is not null && model.Flows.TryGetValue(link, out var target))
                 step.Add($"{indent}Note over {n[b]}: {Text($"Continues in \"{(string.IsNullOrEmpty(target.Name) ? link : target.Name)}\"")}");

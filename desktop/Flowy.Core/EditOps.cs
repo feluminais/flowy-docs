@@ -356,6 +356,23 @@ public static class EditOps
     }
 
     /// <summary>
+    /// Set what step <paramref name="index"/> of a flow plays: a kind (text), or a mapping with a kind, as put_flow takes it. Null takes the animation away. The step keeps its
+    /// other keys, and an <c>animation</c> it already has keeps its place. Whether the animation is allowed is the checks' to say when the edit is saved.
+    /// </summary>
+    public static EditDoc SetStepAnimation(EditDoc doc, string id, int index, object? animation)
+    {
+        ExistingFlow(doc, id);
+        var d = doc.Clone();
+        var flow = Entry(d.Flows[id]);
+        var steps = StepsOf(flow);
+        if (index < 0 || index >= steps.Count) throw NoStep(id, index);
+        var step = Entry(steps[index]);
+        if (animation is null or "") step.Remove("animation");
+        else step["animation"] = animation;
+        return d;
+    }
+
+    /// <summary>
     /// Put step <paramref name="index"/> in the declared group <paramref name="group"/> ("" takes it out of its group). It leaves its old group first, as in
     /// <see cref="RemoveStep"/>. A repeat has no lanes. In a branch or parallel group a step that comes before the others takes over the label of the first lane,
     /// which it joins at the front, and in a group with no other step it starts "Lane 1".

@@ -43,3 +43,38 @@ steps:
     text: Calls and gets no answer
     animation: { kind: call, outcome: timeout }
     description: The envelope goes, the sender keeps waiting, no reply comes, and the line dims.
+  - from: lost-from
+    to: lost-to
+    text: Sends and the request is lost on the way
+    animation: { kind: send, outcome: lost, reason: Packet dropped }
+    description: The envelope pops partway along the line and leaves a cross. Nothing arrives.
+  - from: rejected-from
+    to: rejected-to
+    text: Calls and is turned away at the door
+    animation: { kind: call, outcome: rejected, reason: Rate limit }
+    description: The envelope stops at a bar by the receiver and comes back red.
+  - from: intercepted-from
+    to: intercepted-to
+    text: Calls and a third shape takes the call
+    animation: { kind: call, outcome: intercepted, by: intercepted-by }
+    description: The envelope leaves the line for the shape that takes it, which lights.
+  - from: named-from
+    to: named-to
+    text: Calls and a proxy outside the model reads the call
+    animation: { kind: call, outcome: intercepted, by: { name: Café wifi proxy } }
+    description: The envelope leaves the line for a dashed marker with the proxy's name.
+  - from: duplicated-from
+    to: duplicated-to
+    text: Sends and it is delivered twice
+    animation: { kind: send, outcome: duplicated, reason: Retried }
+    description: A second copy leaves the first, and the receiver takes both in.
+  - from: delayed-from
+    to: delayed-to
+    text: Calls and the request waits on the way
+    animation: { kind: call, outcome: delayed, reason: Cold start }
+    description: The envelope waits beside a turning dashed clock, then goes on and is answered.
+  - from: share-from
+    to: share-to
+    text: Sends ten requests and three are lost
+    animation: { kind: send, outcome: lost, share: 30, reason: Packet dropped, at: 0.7 }
+    description: A burst of ten, one after another. The lost ones are named r1, r2 and r3, each with its own colour and a ring, and they vanish 70 percent of the way along.

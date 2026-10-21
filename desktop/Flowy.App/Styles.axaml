@@ -388,6 +388,16 @@
   <Style Selector="Border.tab.on"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Border.tab.on TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.laneblock"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
+  <!-- How a step's request ended (outcomeLine): text in the danger colour with a dot beside it. -->
+  <Style Selector="TextBlock.outcome"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector="Border.outcomedot"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <!-- The sketches of how a step travels and how its request ends, drawn on a 44 by 24 grid in the colour of the text. -->
+  <Style Selector="Path.sketch">
+    <Setter Property="Stroke" Value="{DynamicResource FgBrush}" />
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
   <Style Selector="TextBlock.lane"><Setter Property="FontSize" Value="12" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Button.trail"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <!-- The legend a grouped flow's card opens: what the chips, the bar and the labels on lines mean. -->

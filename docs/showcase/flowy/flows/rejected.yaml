@@ -1,0 +1,4 @@
+name: Rejected
+view: steps
+steps:
+  - { from: rejected-from, to: rejected-to, text: Calls and is turned away at the door, animation: { kind: call, outcome: rejected, reason: Rate limit } }

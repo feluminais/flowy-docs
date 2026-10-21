@@ -57,7 +57,7 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
 - A step can carry an `animation:`. When you arrive at it, something runs
   along its line: `call` goes and comes back while the sender waits, `send` and `event` go one
   way, and `callback` shows what set it off (`trigger: outside` when it was the step before).
-  A step that really fails adds an `outcome`: `fail` on a `send` or `call` runs red and flashes the receiver, and `timeout` on a `call` leaves the sender waiting with no reply and dims the line. The step's text still says it failed.
+  A step that really ends another way adds an `outcome`: `fail` on a `send` or `call` runs red and flashes the receiver, `timeout` on a `call` leaves the sender waiting with no reply and dims the line, and five more show a request that is lost, turned away, taken by someone else, delivered twice or held up (see [How a request ends](#how-a-request-ends)). The step's text still says what happened.
   In the browser the step plays again two and a half seconds after it ends, until you move on (the Repeat button on the card turns that off),
   R plays it again from the start, and Autoplay (P) steps through the flow on its own after the first play. Nothing moves when
   the system asks for less motion, and a step's text always says the same thing. The desktop app
@@ -70,6 +70,53 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   a problem carry a "!".
 
 The page follows the files: when Claude or your editor changes them, it updates by itself.
+
+### How a request ends
+
+A step's `animation` can say how its request ends. With no `outcome` the request arrives, and a `call` is answered.
+
+```yaml
+- { from: app, to: api, text: The gateway turns the call away, animation: { kind: call, outcome: rejected, reason: Rate limit } }
+```
+
+| Outcome | What you see | Valid on |
+| --- | --- | --- |
+| `fail` | The request runs red and the receiver flashes red | `send`, `call` |
+| `timeout` | The sender keeps waiting, nothing comes back, and the line dims | `call` |
+| `lost` | The request pops partway along the line and leaves a cross. Nothing arrives, and a caller keeps waiting | `send`, `call`, `event` |
+| `rejected` | The request stops at a bar by the receiver and comes back red | `send`, `call`, `event` |
+| `intercepted` | The request leaves the line for a third shape, or a dashed marker with a name, which lights | `send`, `call`, `event` |
+| `duplicated` | A second copy leaves the first and the receiver takes both in | `send`, `call`, `event` |
+| `delayed` | The request waits partway beside a turning dashed clock, then goes on | `send`, `call`, `event` |
+
+A `callback` takes no outcome. The step card says the outcome in a few words, and so does the Mermaid export: "Lost", "Rejected: Rate limit",
+"Taken by Café wifi proxy", "Sent twice", "Delayed: Cold start", "30% lost". With reduced motion nothing moves, and the cross, the bar, the clock,
+the marker and the reason stay.
+
+These keys go inside `animation`, next to `outcome`:
+
+| Key | What it does |
+| --- | --- |
+| `reason` | A few words on why: 40 characters at most, on one line. It is drawn where the outcome happens (by the puff, the bar, the clock, or the one who takes the request) and the card says it after the outcome |
+| `share` | A whole percent from 1 to 100. Only that share of the requests meet the outcome and the rest arrive. Without it the step plays one request |
+| `by` | Needed for `intercepted`, and only there. A shape id that is not an end of the step, or `{ name: Café wifi proxy }` (24 characters at most) for a party that is not in the model. A shape gets a dashed outline, a name gets a dashed marker beside the line |
+| `at` | For `lost` only: how far along the line the request vanishes, from 0.1 to 0.9. Without it, 0.55 |
+
+```yaml
+- { from: gateway, to: orders, text: A third of the calls are lost, animation: { kind: send, outcome: lost, share: 30, reason: Packet dropped } }
+- { from: app, to: api, text: A proxy on the café wifi reads the call, animation: { kind: call, outcome: intercepted, by: { name: Café wifi proxy } } }
+```
+
+With `share` the step plays a burst, one request after another: 10 when the share is a multiple of 10, 20 for a multiple of 5,
+otherwise 100. Which of them meet the outcome is worked out from the share and spread evenly through the burst, never chosen at random, so the
+browser, the desktop app and the tests play the same burst. Those requests are named `r1`, `r2` and so on (or by the step's `carries` word), wear a ring and a colour of their own, and the
+others are ordinary deliveries with no name. A duplicated request is one request sent twice, so both copies carry the same name and colour.
+
+The checker names the step and the key. It refuses an outcome on a `callback`, a `share` outside 1 to 100 or with no outcome, a `reason` or a name that is blank,
+too long or has a line break, `by` on any other outcome, `intercepted` with no `by`, a `by` that names a shape that does not exist or one of the step's own ends, and an `at` outside 0.1 to 0.9
+or on any other outcome.
+
+Claude's `put_flow` takes the same keys, and is told to give a step an outcome only where it really ends that way.
 
 ## Edit it
 
@@ -109,6 +156,10 @@ checks, and write the same text, so a change made in one looks the same in git a
   Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
   delete steps. To change a flow you already have, pick it in the Flows tab: in edit mode its rows carry a pencil, and a click opens
   the flow for editing instead of playing it.
+- Each step's **Animation** is a form of drawn choices: the way it travels (None, Send, Call, Callback, Event) and the way its request ends (Arrives, Fail,
+  Timeout, Lost, Rejected, Intercepted, Duplicated, Delayed), then a share of the requests, a reason, and for an interception the shape that takes it or a name. A choice
+  the step cannot have is dimmed with the reason in its tooltip: an outcome needs a way to travel, Timeout needs a call, and a callback or a step on one shape has
+  none. Picking Intercepted names a placeholder ("Third party") until you pick a shape or type a name. Each pick is one edit, and a value the checks refuse (a share of 150) says why and saves nothing.
 - Each step's **Group and flow** holds the group it is in, its lane (for a branch or parallel group) and the flow it opens. Under the
   steps, **Groups** lists each group with its kind, its times or until (for a repeat) and its text, and a form puts a stretch of steps
   in a new group: a repeat is written with `times: 3`, and in a branch or parallel group every step starts a lane of its own

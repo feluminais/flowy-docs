@@ -1,0 +1,32 @@
+objects:
+  customer:
+    type: actor
+    name: Customer
+  shop:
+    type: system
+    name: Shop
+  web:
+    type: app
+    in: shop
+    name: Web app
+  api:
+    type: app
+    in: shop
+    name: API
+  db:
+    type: store
+    in: shop
+    name: Orders DB
+  cache:
+    type: app
+    in: shop
+    name: Edge cache
+  stripe:
+    type: system
+    name: Stripe
+    external: "true"
+connections:
+  - { from: customer, to: web, label: browses }
+  - { from: web, to: api, label: REST }
+  - { from: api, to: db, label: reads and writes }
+  - { from: web, to: cache, label: asks first }

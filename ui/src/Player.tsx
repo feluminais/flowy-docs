@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import { animationOf, outcomeLine } from '../../src/core/animation.ts'
 import { LEGEND } from '../../src/core/captions.ts'
 import type { Caption, Progress } from '../../src/core/captions.ts'
 import type { Flow, Model } from '../../src/core/model.ts'
 import type { GroupKind, Stop } from '../../src/core/structure.ts'
-import { isView, stepEnds } from '../../src/core/views.ts'
+import { isView, nameOf, stepEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import type { StateMark } from '../../src/core/states.ts'
 import { Chip } from './Chrome.tsx'
@@ -123,11 +124,14 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
         const step = flow.steps[i]
         const link = typeof step.flow === 'string' && step.flow.trim() !== '' ? step.flow.trim() : undefined
         const target = link !== undefined && Object.hasOwn(model.flows, link) ? model.flows[link] : undefined
+        const animation = animationOf(step)
+        const outcome = animation && outcomeLine(animation, id => nameOf(model, id))
         return (
           <div key={i} className={here.steps.length > 1 ? 'lane-block' : undefined}>
             {caption.lanes[n] && <p className="lane-name">{caption.lanes[n]}</p>}
             <p className="player-ends">{stepEnds(model, step, ends[i])}</p>
             <p>{step.text}</p>
+            {outcome !== undefined && <p className="player-outcome">{outcome}</p>}
             {step.description && (
               <details key={`${stop}-${i}`} className="more">
                 <summary>More</summary>

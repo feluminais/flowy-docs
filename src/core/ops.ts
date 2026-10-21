@@ -172,6 +172,12 @@ export function relabel(model: Model, which: ConnectionInput, label: string): Mo
   return { ...model, connections: model.connections.with(i, label ? { ...model.connections[i], label } : rest) }
 }
 
+/** An animation with its numbers (share, at) as text, which is how a file holds them: a number cannot be written. Anything else is left for the checker. */
+function animationAsText(animation: unknown): unknown {
+  if (typeof animation !== 'object' || animation === null || Array.isArray(animation)) return animation
+  return Object.fromEntries(Object.entries(animation).map(([key, value]) => [key, (key === 'share' || key === 'at') && typeof value === 'number' ? String(value) : value]))
+}
+
 /** Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. */
 export function putFlow(model: Model, { id, name, view, steps, groups, states }: FlowInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid flow id: ${ID_RULE}`)
@@ -183,6 +189,8 @@ export function putFlow(model: Model, { id, name, view, steps, groups, states }:
     const out: Record<string, unknown> = { ...s }
     if (typeof s.description === 'string' && !s.description.trim()) delete out.description
     if (isMap(s.states) && Object.keys(s.states).length === 0) delete out.states
+    // A number in an animation (share, at) is written as text, as a file holds it.
+    if ('animation' in out) out.animation = animationAsText(out.animation)
     return out as Step
   }
   // On disk a number is text, like every value: `times: 3` reads back as "3". No groups, or an empty set, writes no `groups:`.
@@ -280,6 +288,22 @@ export function removeStep(model: Model, id: string, index: number): Model {
   const { steps, groups } = leaveGroup(flow, index)
   steps.splice(index, 1)
   return { ...model, flows: { ...model.flows, [id]: withGroups({ ...flow, steps }, groups) } }
+}
+
+/**
+ * Set what step `index` of a flow plays: a kind, or a mapping with a kind (`{ kind: call, outcome: rejected, reason: Rate limit }`), as put_flow takes it. A mapping
+ * has its numbers written as text, as a file holds them. `undefined` takes the animation away. The step keeps its other keys, and an `animation` it already has
+ * keeps its place. Whether the animation is allowed is the checker's to say when the edit is saved, in the words put_flow is refused with.
+ */
+export function setStepAnimation(model: Model, id: string, index: number, animation: Record<string, unknown> | string | undefined): Model {
+  const flow = existingFlow(model, id)
+  const step = existingStep(flow, id, index)
+  const steps = [...flow.steps]
+  if (animation === undefined || animation === '') {
+    const { animation: _, ...rest } = step
+    steps[index] = rest as Step
+  } else steps[index] = { ...step, animation: animationAsText(animation) }
+  return { ...model, flows: { ...model.flows, [id]: { ...flow, steps } } }
 }
 
 /**

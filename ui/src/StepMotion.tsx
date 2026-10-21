@@ -1,14 +1,16 @@
 import { useContext, useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useInternalNode, ViewportPortal } from '@xyflow/react'
 import type { InternalNode } from '@xyflow/react'
-import { beatsFor } from '../../src/core/animation.ts'
+import { beatsFor, shortLabel } from '../../src/core/animation.ts'
 import type { Animation, Beat, Glyph } from '../../src/core/animation.ts'
 import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
+import type { Model } from '../../src/core/model.ts'
+import { nameOf, placeStep } from '../../src/core/views.ts'
 import { BOX } from './graph.ts'
 import type { BoxData, Rect } from './graph.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
-import { active, bump, cyclePeriod, distance, DWELL, ease, litOpacity, progress, squashTile } from './motion.ts'
+import { active, bump, cyclePeriod, distance, DWELL, ease, entryPoint, litOpacity, markerSize, markerSpot, noteSpot, progress, squashTile, tintColor, tubeOpacity } from './motion.ts'
 
 // The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
 const GLYPHS: Record<Glyph, string> = {
@@ -19,6 +21,10 @@ const GLYPHS: Record<Glyph, string> = {
 const HIDDEN = { display: 'none' } as const
 /** How strongly a shape lights up when it flashes, at the start. */
 const FLASH = 0.55
+/** The ticks of a puff where a request is lost. */
+const TICKS = 6
+/** How far the dashed outline around a box that takes a request stands off it. */
+const HALO = 6
 /** Every motion on screen and how long it takes, so the ones of a stop (a fan-out plays several) start again together. */
 const running = new Map<symbol, number>()
 
@@ -29,39 +35,138 @@ const tile = (id: string) => document.querySelector<HTMLElement>(`.react-flow__n
 /** The outline of the shape a box is drawn as, in the 200 by 72 area every shape is drawn in. */
 const outlineOf = (n: InternalNode): string => SHAPE_DEFS[shapeOf((n.data as BoxData).object)].path
 
-/** What one beat looks like before it starts. The frame loop below moves and shows it. The pipe beat and a gulp draw nothing of their own: the line is the lit line the canvas already draws. */
-function shape(b: Beat, i: number, from: Rect, to: Rect, paths: [string, string]): ReactNode {
+/** Who takes an intercepted request, as this view can draw it: a box on the canvas, or a party that is not on it, by name. */
+export type TakenBy = { node: string } | { name: string }
+
+/**
+ * Who takes an intercepted request, as `view` can draw it: the box that stands for the shape in this view, unless that is an end of the step (the view folds the
+ * shape into one of them) or the view can't show it; then its name stands in, drawn as a marker. Undefined for a step that is not intercepted.
+ */
+export function takenBy(model: Model, view: string, a: Animation, placed: readonly [string, string]): TakenBy | undefined {
+  if (a.by === undefined) return undefined
+  if ('name' in a.by) return { name: a.by.name }
+  const box = placeStep(model, view, { from: a.by.shape })?.[0]
+  return box !== undefined && box !== placed[0] && box !== placed[1] ? { node: box } : { name: nameOf(model, a.by.shape) }
+}
+
+/** What `shape` needs to draw something at the one who takes a request: the box when it is on the canvas, else the name its marker carries. */
+type Taker = { rect?: Rect; path?: string; name?: string }
+
+/**
+ * What one beat looks like before it starts. The frame loop below moves and shows it. The pipe beat and a gulp draw nothing of their own: the line is the lit line the canvas already draws.
+ * The marks of an outcome (a puff, a bar, a clock, a note, a marker) are laid out where they belong by the effect below, once it has measured the route.
+ */
+function shape(b: Beat, i: number, from: Rect, to: Rect, paths: [string, string], taker: Taker): ReactNode {
   const r = b.on === 'to' ? to : from
   const path = b.on === 'to' ? paths[1] : paths[0]
   switch (b.do) {
-    case 'blob':
+    case 'blob': {
+      const label = b.label === undefined ? undefined : shortLabel(b.label)
+      const half = label === undefined ? 15 : label.length * 4 + 10
+      const classes = ['blob', ...(b.tone === undefined ? [] : [b.tone]), ...(b.tint === undefined ? [] : ['tinted'])].join(' ')
       return (
         <g key={i} data-beat={i} style={HIDDEN}>
-          <g className={b.tone === undefined ? 'blob' : `blob ${b.tone}`}>
+          <g className={classes} style={b.tint === undefined ? undefined : ({ '--req': tintColor(b.tint) } as CSSProperties)}>
             <g className="stretch">
-              {b.label === undefined
+              {label === undefined
                 ? <circle r={15} />
-                : <rect x={-(b.label.length * 4 + 10)} y={-13} width={b.label.length * 8 + 20} height={26} rx={13} />}
+                : <rect x={-half} y={-13} width={half * 2} height={26} rx={13} />}
+              {b.ring === true && (label === undefined
+                ? <circle className="halo" r={21} />
+                : <rect className="halo" x={-half - 6} y={-19} width={half * 2 + 12} height={38} rx={19} />)}
             </g>
-            {b.label === undefined
+            {label === undefined
               ? <path className="glyph" d={GLYPHS[b.glyph!]} transform="translate(-9 -9) scale(0.75)" />
-              : <text textAnchor="middle" dominantBaseline="central">{b.label}</text>}
+              : <text textAnchor="middle" dominantBaseline="central">{label}</text>}
           </g>
         </g>
       )
+    }
     // The ring and the flash follow the outline of the shape they are on, whatever it is, so a hexagon flashes as a hexagon.
     case 'ring':
       return <path key={i} data-beat={i} className="ring" d={path} style={HIDDEN} />
     case 'flash':
+      if (b.on === 'by') {
+        // The one who takes a request lights up: a box as its own outline, a marker as the dashed pill.
+        if (taker.path !== undefined && taker.rect !== undefined)
+          return <path key={i} data-beat={i} className="flash" d={taker.path} transform={`translate(${taker.rect.x} ${taker.rect.y}) scale(${taker.rect.width / BOX.width} ${taker.rect.height / BOX.height})`} style={HIDDEN} />
+        const size = markerSize(taker.name ?? '')
+        return <rect key={i} data-beat={i} className="flash" width={size.width} height={size.height} rx={14} style={HIDDEN} />
+      }
       return <path key={i} data-beat={i} className={b.tone === 'fail' ? 'flash fail' : 'flash'} d={path} transform={`translate(${r.x} ${r.y}) scale(${r.width / BOX.width} ${r.height / BOX.height})`} style={HIDDEN} />
     case 'wait':
       return <g key={i} data-beat={i} className="dots" style={HIDDEN}>{[-12, 0, 12].map(dx => <circle key={dx} cx={r.x + r.width / 2 + dx} cy={r.y - 14} r={3.5} />)}</g>
     case 'drop':
       return <path key={i} data-beat={i} className="glyph drop" d={GLYPHS[b.glyph!]} style={HIDDEN} />
+    // A puff where a request is lost: a ring and ticks that go out and fade, and a cross that stays.
+    case 'pop':
+      return (
+        <g key={i} data-beat={i} className="pop" style={b.tint === undefined ? HIDDEN : ({ ...HIDDEN, '--req': tintColor(b.tint) } as CSSProperties)}>
+          <circle className="puff" r={1} />
+          {Array.from({ length: TICKS }, (_, k) => <line key={k} className="tick" />)}
+          <path className="cross" d="M-7 -7L7 7M7 -7L-7 7" />
+        </g>
+      )
+    // The bar by the receiver's door that turns a request away.
+    case 'bar':
+      return <g key={i} data-beat={i} className="bar" style={HIDDEN}><line x1={0} y1={-22} x2={0} y2={22} /></g>
+    // A dashed clock turning while a request waits: a ring and a dot going round it, and the hands a still picture needs.
+    case 'clock':
+      return (
+        <g key={i} data-beat={i} className="clock" style={HIDDEN}>
+          <circle className="dial" r={24} />
+          <g className="orbit"><circle className="spark" cx={24} cy={0} r={3.5} /></g>
+          <path className="hands" d="M0 0V-10M0 0L7 4" />
+        </g>
+      )
+    case 'note':
+      return <text key={i} data-beat={i} className="note" textAnchor="middle" dominantBaseline="central" style={HIDDEN}>{b.text}</text>
+    // Whoever takes a request, drawn for the whole step: a party that is not on the canvas as a dashed pill with its name, a box as a dashed outline around it.
+    case 'marker': {
+      if (taker.rect !== undefined && taker.path !== undefined) {
+        const t = taker.rect
+        return <g key={i} data-beat={i} className="marker around" style={HIDDEN}><rect x={t.x - HALO} y={t.y - HALO} width={t.width + 2 * HALO} height={t.height + 2 * HALO} rx={16} /></g>
+      }
+      const size = markerSize(taker.name ?? '')
+      return (
+        <g key={i} data-beat={i} className="marker" style={HIDDEN}>
+          <rect width={size.width} height={size.height} rx={14} />
+          <text x={size.width / 2} y={size.height / 2} textAnchor="middle" dominantBaseline="central">{taker.name}</text>
+        </g>
+      )
+    }
     default:
       return null
   }
 }
+
+/** A puff at one moment: the ring and the ticks go out and fade, and the cross settles. Called with `p` of 1 it is the cross alone. */
+function drawPop(node: SVGElement, p: number): void {
+  const [puff, ...rest] = Array.from(node.children) as SVGElement[]
+  const cross = rest.pop()!
+  puff.setAttribute('r', String(6 + 22 * p))
+  puff.style.opacity = String(1 - p)
+  rest.forEach((tick, k) => {
+    const angle = (k / TICKS) * 2 * Math.PI + 0.3
+    const [near, far] = [10 + 16 * p, 16 + 24 * p]
+    tick.setAttribute('x1', String(Math.cos(angle) * near))
+    tick.setAttribute('y1', String(Math.sin(angle) * near))
+    tick.setAttribute('x2', String(Math.cos(angle) * far))
+    tick.setAttribute('y2', String(Math.sin(angle) * far))
+    tick.style.opacity = String(1 - p)
+  })
+  cross.setAttribute('transform', `scale(${0.5 + 0.5 * Math.min(1, p * 4)})`)
+  cross.style.opacity = String(0.9 * Math.min(1, p * 5))
+}
+
+/** The bar at one moment: it flashes in thick and settles, and stays. */
+function drawBar(node: SVGElement, p: number): void {
+  node.style.opacity = String(Math.min(1, p * 8))
+  node.firstElementChild?.setAttribute('stroke-width', String(7 + 6 * Math.max(0, 1 - p * 4)))
+}
+
+/** A mark that stays once its beat has started: the cross where a request was lost, the bar at the door, and the marker of who takes it. The rest show only while their beat runs. */
+const stays = (b: Beat): boolean => b.do === 'pop' || b.do === 'bar' || b.do === 'marker'
 
 type Props = {
   /** The boxes the step lands on in this view (ids of nodes on the canvas), in the step's direction. */
@@ -71,6 +176,8 @@ type Props = {
   afterLanding: boolean
   /** Whether it plays again after a rest, until the step is left. */
   repeat: boolean
+  /** Who takes an intercepted request, as this view can draw it. Left out, the name or id the step gives is drawn as a marker. */
+  by?: TakenBy
   /** Called once when the motion has finished, or after a moment when motion is reduced. */
   onDone: () => void
 }
@@ -78,18 +185,23 @@ type Props = {
 /**
  * Plays one step's animation over the canvas: a blob running along the step's line, and rings, flashes
  * and squashes on the boxes. Mount it keyed by the step (and replay), so a new step cancels the old one.
- * When the system asks for less motion it draws nothing and only reports that it is done.
+ * When the system asks for less motion nothing moves: it draws only where the outcome happened (a cross, a bar, a marker, a clock, the reason)
+ * and reports that it is done after a moment.
  */
-export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Props) {
+export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }: Props) {
   const style = useContext(LineStyleContext)
   const from = useInternalNode(ends[0])
   const to = useInternalNode(ends[1])
+  const taken = useInternalNode(by !== undefined && 'node' in by ? by.node : '')
   const [svg, setSvg] = useState<SVGSVGElement | null>(null)
   const done = useRef(onDone)
   done.current = onDone
   const again = useRef(repeat)
   again.current = repeat
   const still = reducedMotion()
+  // The one who takes an intercepted request: a box when the view shows it, else a marker with a name.
+  const named = by !== undefined && 'name' in by ? by.name : animation.by === undefined ? undefined : 'name' in animation.by ? animation.by.name : animation.by.shape
+  const taker: Taker = taken ? { rect: rect(taken), path: outlineOf(taken) } : { name: named }
 
   useEffect(() => {
     if (!still) return
@@ -105,6 +217,69 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
     const { beats, total } = beatsFor(animation, { length, afterLanding })
     const nodes = beats.map((_, i) => svg.querySelector<SVGElement>(`[data-beat="${i}"]`))
     const stretches = nodes.map(n => n?.querySelector<SVGElement>('.stretch') ?? null)
+
+    // A point of the route as a fraction of it, and the way the route runs there.
+    const spotAt = (fraction: number) => {
+      const at = fraction * length
+      const here = route.getPointAtLength(at)
+      const behind = route.getPointAtLength(Math.max(0, at - 2))
+      const ahead = route.getPointAtLength(Math.min(length, at + 2))
+      return { x: here.x, y: here.y, dx: ahead.x - behind.x, dy: ahead.y - behind.y }
+    }
+    // Where the one who takes a request is: its box, or the dashed marker that hangs below the line where the request leaves it.
+    const markerAt = beats.find(x => x.do === 'marker')?.along ?? 0.4
+    const takerBox: Rect | undefined = (() => {
+      if (taker.rect) return taker.rect
+      if (taker.name === undefined) return undefined
+      const size = markerSize(taker.name)
+      const s = spotAt(markerAt)
+      const o = markerSpot(s.dx, s.dy, size)
+      return { x: s.x + o.x - size.width / 2, y: s.y + o.y - size.height / 2, ...size }
+    })()
+    // Where the blob leaves the line for the one who takes it, and the edge of it that it runs to.
+    const depart = (beat: Beat) => spotAt(beat.start ?? 0)
+    const arrive = (beat: Beat) => (takerBox ? entryPoint(depart(beat), takerBox) : depart(beat))
+
+    // The marks of an outcome stand where they belong from the start; the frame loop only shows them and moves what moves.
+    beats.forEach((beat, i) => {
+      const node = nodes[i]
+      if (!node) return
+      if (beat.do === 'pop' || beat.do === 'clock') {
+        const s = spotAt(beat.along!)
+        node.setAttribute('transform', `translate(${s.x} ${s.y})`)
+      } else if (beat.do === 'bar') {
+        const s = spotAt(beat.along!)
+        node.setAttribute('transform', `translate(${s.x} ${s.y}) rotate(${(Math.atan2(s.dy, s.dx) * 180) / Math.PI})`)
+      } else if (beat.do === 'note') {
+        if (beat.on === 'by') {
+          if (takerBox) node.setAttribute('transform', `translate(${takerBox.x + takerBox.width / 2} ${takerBox.y + takerBox.height + HALO + 12})`)
+        } else {
+          const s = spotAt(beat.along!)
+          const o = noteSpot(s.dx, s.dy, (beat.text ?? '').length)
+          node.setAttribute('transform', `translate(${s.x + o.x} ${s.y + o.y})`)
+        }
+      } else if ((beat.do === 'marker' || beat.do === 'flash') && beat.on === 'by' && !taker.rect && takerBox) {
+        node.setAttribute('transform', `translate(${takerBox.x} ${takerBox.y})`)
+      }
+    })
+
+    // Reduced motion: nothing moves. What stays is where the outcome happened, once each, and the step card says what happened.
+    if (still) {
+      const shown = new Set<string>()
+      beats.forEach((beat, i) => {
+        const node = nodes[i]
+        if (!node || !(beat.do === 'pop' || beat.do === 'bar' || beat.do === 'clock' || beat.do === 'note' || beat.do === 'marker')) return
+        const key = `${beat.do} ${beat.on} ${beat.along ?? ''} ${beat.text ?? ''}`
+        if (shown.has(key)) return
+        shown.add(key)
+        node.style.display = ''
+        if (beat.do === 'pop') drawPop(node, 1)
+        else if (beat.do === 'bar') drawBar(node, 1)
+        else if (beat.do === 'clock') node.classList.add('still')
+      })
+      return
+    }
+
     const tiles = { from: tile(ends[0]), to: tile(ends[1]) }
     // A timeout dims the lit lines through `--lit` on the canvas (see style.css). Only a motion that has a fade writes it, so the other steps of a stop never undo it.
     const fades = beats.some(b => b.do === 'fade')
@@ -119,21 +294,33 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
       const squash = { from: 0, to: 0 }
       beats.forEach((beat, i) => {
         const node = nodes[i]
-        const on = active(beat, t)
+        const on = stays(beat) ? t >= beat.at : active(beat, t)
         const p = progress(beat, t)
         if (node) node.style.display = on ? '' : 'none'
         if (beat.do === 'pipe') return
-        else if (beat.do === 'gulp' && on && beat.on !== 'line') squash[beat.on] = Math.max(squash[beat.on], bump(p))
+        else if (beat.do === 'gulp' && on && (beat.on === 'from' || beat.on === 'to')) squash[beat.on] = Math.max(squash[beat.on], bump(p))
         else if (!node || !on) return
         else if (beat.do === 'blob') {
-          const pos = distance(beat.dir, p, length)
-          const here = route.getPointAtLength(pos)
-          const behind = route.getPointAtLength(Math.max(0, pos - 2))
-          const ahead = route.getPointAtLength(Math.min(length, pos + 2))
-          const angle = (Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * 180) / Math.PI
+          let here: { x: number; y: number }
+          let angle: number
+          if (beat.on === 'by') {
+            // Off the line, straight to the one who takes it.
+            const [leave, land] = [depart(beat), arrive(beat)]
+            here = { x: leave.x + (land.x - leave.x) * ease(p), y: leave.y + (land.y - leave.y) * ease(p) }
+            angle = (Math.atan2(land.y - leave.y, land.x - leave.x) * 180) / Math.PI
+          } else {
+            const pos = distance(beat.dir, p, length, beat)
+            here = route.getPointAtLength(pos)
+            const behind = route.getPointAtLength(Math.max(0, pos - 2))
+            const ahead = route.getPointAtLength(Math.min(length, pos + 2))
+            angle = (Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * 180) / Math.PI
+          }
+          // A blob that waits where it is does not stretch.
+          const waiting = beat.start !== undefined && beat.start === beat.end
+          const stretch = waiting ? 0 : bump(p)
           // The shape is stretched along the way it runs, and no more rotated than that. The glyph or the words in it are not stretched at all.
           node.setAttribute('transform', `translate(${here.x} ${here.y})`)
-          stretches[i]?.setAttribute('transform', `rotate(${angle}) scale(${1 + 0.3 * bump(p)} ${1 - 0.15 * bump(p)}) rotate(${-angle})`)
+          stretches[i]?.setAttribute('transform', `rotate(${angle}) scale(${1 + 0.3 * stretch} ${1 - 0.15 * stretch}) rotate(${-angle})`)
         } else if (beat.do === 'ring') {
           const r = beat.on === 'to' ? b : a
           const grow = 6 + 22 * p
@@ -146,7 +333,10 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
           const r = beat.on === 'to' ? b : a
           node.setAttribute('transform', `translate(${r.x + r.width / 2 - 13} ${r.y - 50 + 50 * ease(p) - 13}) scale(1.08)`)
           node.style.opacity = String(1 - Math.max(0, (p - 0.8) / 0.2))
-        }
+        } else if (beat.do === 'pop') drawPop(node, p)
+        else if (beat.do === 'bar') drawBar(node, p)
+        else if (beat.do === 'clock' || beat.do === 'note') node.style.opacity = String(tubeOpacity(beat, t))
+        else if (beat.do === 'marker') node.style.opacity = String(Math.min(1, (t - beat.at) / 150))
       })
       for (const side of ['from', 'to'] as const) {
         const el = tiles[side]
@@ -179,14 +369,14 @@ export function StepMotion({ ends, animation, afterLanding, repeat, onDone }: Pr
     }
   }, [svg])
 
-  if (still || !from || !to) return null
+  if (!from || !to) return null
   const d = pathBetween(style, from, to)
   const [a, b] = [rect(from), rect(to)]
   return (
     <ViewportPortal>
       <svg ref={setSvg} className="motion" aria-hidden="true">
         <path className="route" d={d} />
-        {beatsFor(animation, { length: 0, afterLanding }).beats.map((beat, i) => shape(beat, i, a, b, [outlineOf(from), outlineOf(to)]))}
+        {beatsFor(animation, { length: 0, afterLanding }).beats.map((beat, i) => shape(beat, i, a, b, [outlineOf(from), outlineOf(to)], taker))}
       </svg>
     </ViewportPortal>
   )
