@@ -1,6 +1,6 @@
 # Flowy Docs guide
 
-The full detail behind the [README](../README.md): what every part of the canvas does, how editing and undo work, what Claude can change, and how sharing behaves. The examples come from Plum, a made-up delivery service whose model is in [`docs/demo/flowy`](demo/flowy).
+The full detail behind the [README](../README.md): what every part of the canvas does, how editing and undo work, what Claude can change, and how sharing behaves. [The file format](format.md) lists every key of the files, and [Writing good Flowy docs](writing.md) says what to put in them. The examples come from Plum, a made-up delivery service whose model is in [`docs/demo/flowy`](demo/flowy).
 
 What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md).
 
@@ -42,13 +42,13 @@ What to write in it, shape by shape, is in [Writing good Flowy docs](writing.md)
   with numbers read as numbers ("step 2" before "step 10"). A click shows a shape where it's drawn; Enter
   or a double-click zooms into it, and the tree follows you as you zoom. Flows (L) lists every flow, each
   level's by name: first those in the level you're in, then all the others under the level they play in,
-  and a click goes there and plays it. Where the folder has failure analyses, Failures (M) lists how things
-  fail, worst first, and marks the diagram: see [Failure modes](#failure-modes). In the browser version a YAML tab (Y) beside them shows the files
-  as text, with every change to them ([YAML and history](#yaml-and-history)). The numbers on the icons are how many shapes, flows and
-  failure modes there are in all. Details, on the right (its own icon, or a click on a shape or a line), is what the
-  click picked, and stays free beside the Failures tab. Where the folder has load-test runs, a Performance icon below it (T) puts a run's panel
-  in Details' place: see [Performance](#performance). Drag the inner edge of either panel to resize it,
-  and double-click it to put the width back.
+  and a click goes there and plays it. In the browser version a YAML tab (Y) beside them shows the files
+  as text, with every change to them ([YAML and history](#yaml-and-history)). The numbers on the icons are how many shapes, flows,
+  failure modes and runs there are in all. A Performance icon (T) and a Failures icon (M) sit with them, whether or not the folder has a
+  load-test run or a failure analysis: with none, their panels offer to **Create** one. See [Performance](#performance) and
+  [Failure modes](#failure-modes). Details, on the right (its own icon, or a click on a shape or a line), is what the
+  click picked, and it is all the right-hand side holds. Drag the inner edge of either panel to resize it,
+  and double-click it to put the width back. (The desktop app puts Failures on the left too, but still puts Performance on the right, in Details' place.)
 - Pick a flow in the Flows tab to play it step by step: ← and → move, Home and End jump to the first
   and last step, Esc stops. A step can be one shape doing something on its own, and a step with more
   to say has a More you can open. When a step lands on a shape that stands for a part inside it, the
@@ -543,7 +543,7 @@ Flowy checks a run the way it checks `code:` paths: a shape or connection it nam
 isn't one, is a problem. A run it can't read at all is a problem too, listed in the Performance tab, and it never stops the model
 from loading. Flowy only reads runs. Tools write them, and nothing in Flowy changes a run file.
 
-**Reading it.** Open the Performance tab on the right edge, or press **T**. Pick a run if there are several. The slider has a stop
+**Reading it.** Open the Performance tab on the left edge, or press **T**. Pick a run if there are several. The slider has a stop
 for each tested load; ← and → move between them, and **Ramp** (**P**) sweeps up to the highest, at a pace that would cover the whole run in half a minute. Between two
 tested loads the numbers are blended from the two, and the tab says so. Click a shape or a line to read its numbers at this load,
 with a small curve of each across all of them. A shape that holds others takes the worst of what is inside it, so at the overview
@@ -693,7 +693,8 @@ load generator that measures it and writes runs of this shape: `npm run lab:run`
 
 A store can say what it holds. Click it and its panel has a **Data** section that draws the data the way a developer pictures it: a
 table is column headings over a few sample rows, and a document is its fields, indented. The first entry is open. The others are one
-line each, with how many columns they have and how long they are kept, and a click opens or closes one.
+line each, with how many columns (or, for a document, fields) they have and how long they are kept, and a click opens or closes one.
+The browser and the desktop app draw it the same way.
 
 ![Orders DB's panel: the orders table with a key mark on id and customer_id, a dot on total and its note under the table, and three more tables closed to a line each](images/desktop-data.png)
 
@@ -778,11 +779,12 @@ a dot cannot carry a note. What to put in it, and how to word a note, is in [Wri
 The checks keep the section small. They refuse:
 
 - `data` on anything but a store, an entry with no name or the name of another, and an entry with both `columns` and `sample` or with neither.
+- `rows` with no `columns`, `notes` with no `sample`, and a column with no name or the name of another column.
 - A row with a different number of cells than there are columns, more than 12 columns or 8 rows, and a `key` other than `primary`.
 - A sample nested more than 3 levels deep or showing more than 20 fields, a list directly inside a list, and a note on a field that is not there.
 - Text with a line break, anywhere in `data` (the separator characters U+0085, U+2028 and U+2029 count), so that a row stays on one line.
 
-In edit mode a store's form has a **Data** box that holds the same lines as the file. Leave the box and the change is checked like any
+In edit mode, in the browser and in the desktop app, a store's form has a **Data** box that holds the same lines as the file. Leave the box and the change is checked like any
 other: a refusal says why and keeps what you typed, and clearing the box removes the data. Saving writes each row on one line, so a table of
 eight rows stays eight lines in git, and an empty cell is written `""`.
 
@@ -890,7 +892,7 @@ counts by its `after` ratings, and the panel shows both ("96 to 32").
 part or as an end of a line. Actors are left out, because nothing of ours fails there. Outside services count, since a failing Stripe is
 a failure you design for. Lines don't count. **Not analysed** lists the shapes left.
 
-**Reading it.** Open the Failures tab on the left edge, beside Explorer and Flows, or press **M**. Details stays free on the right: a shape or a line picked on the canvas reads out there and narrows the list. Performance and Failures never show at once, because the load and the risk would draw over each other. Pick an analysis if there are several. A shape or a line that
+**Reading it.** Open the Failures tab on the left edge, or press **M**. Details stays free on the right: a shape or a line picked on the canvas reads out there and narrows the list. Performance and Failures are never open at once, because the load and the risk would draw over each other. Pick an analysis if there are several. A shape or a line that
 has modes carries a badge: the colour of its worst band and how many. A shape that holds others adds up what is inside it, so at the
 overview you see which system holds the risk and zoom in to find where, as in Performance. Four items count the modes by band, and a
 click on one filters the list. The list has two groups: **This view**, the modes whose part is inside the level on screen, and **Other
@@ -939,6 +941,12 @@ From the root of the repo you want to document, once the clone is built as the
 claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
+Any other MCP client takes the same command over stdio. Its config looks like this:
+
+```json
+{ "mcpServers": { "flowy": { "command": "node", "args": ["/path/to/flowy-docs/dist/cli.js", "mcp"] } } }
+```
+
 Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and
 `flowy/flows/*.yaml`, and refuses any change that would break the model. Ask how the system fails and it can write a
 [failure analysis](#failure-modes) in `flowy/failures/` too, leaving a rating out rather than guessing it. Add `--dir <folder>`
@@ -971,6 +979,52 @@ reads the way the code works.
 
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
 notes in an object's `description` instead.
+
+**The tools.** The server has seventeen. What `get_model` shows can be sent straight back to the tool that writes it.
+
+| Tool | Does |
+| --- | --- |
+| `get_model` | Reads the model. `summary: true` gives one short line for each thing, and `object`, `flow` or `analysis` gives that one thing in full. It also lists the load-test runs and the problems |
+| `get_problems` | Lists every problem right now, one line each, or says "No problems." It is `flowy check` ([below](#check-it)) |
+| `get_view` | What one diagram shows: its shapes, the faded ones that connect in, and the lines merged to that zoom level |
+| `get_mermaid` | One view as a flowchart, or one flow as a sequence diagram |
+| `get_failures` | The failure analyses as tables, worst first, with coverage; `format: csv` for a spreadsheet |
+| `put_object`, `delete_object` | A shape and everything on it ([the file format](format.md#an-object)), or removes one that nothing holds or uses |
+| `connect`, `disconnect` | Adds a line from one shape to another, or removes it |
+| `put_flow`, `delete_flow` | A flow with its groups, states and animations, and answers with how each step reads on its view, or removes it |
+| `put_failures`, `delete_failures` | A whole failure analysis, or removes it |
+| `put_failure`, `delete_failure` | One mode of an analysis, or removes it. `run` must be one of the runs `get_model` lists |
+| `put_icon`, `delete_icon` | Your own icon, or removes one nothing uses |
+
+Not over MCP: the project's `lines:`, the load-test runs in `perf/` (a tool writes those) and `layout.yaml`.
+
+Besides tools, the server offers the guides as resources (`flowy://docs/format.md`, `writing.md` and `guide.md`, which a client can read when
+it has the clone) and five prompts for the usual jobs: `map-repo`, `update-after-change`, `write-flow`, `failure-analysis` and `review-model`.
+[The file format](format.md) lists every key, for writing the files by hand.
+
+If you or Claude write the YAML by hand, put double quotes around the text of a one-line step when it holds a comma:
+`{ from: app, to: api, text: "Sets the time zone, if the request has one" }`. Unquoted, the comma ends the text and what follows
+becomes a key with no value. The file still loads, with the step cut short, but it can't be saved again, so Flowy lists the key as a
+problem (`step 3: "if the request has one" has no value`) instead of leaving it to fail on the next edit.
+[Writing good Flowy docs](writing.md#write-flows) has the full list of characters to quote.
+
+## Check it
+
+```bash
+node /path/to/flowy-docs/dist/cli.js check
+```
+
+`check` prints every problem in the folder, one line each (`flows/checkout.yaml: step 3: unknown object "stripe"`), and exits with 1 if there is any. With
+none it says so and exits 0, so a build can gate on it:
+
+```yaml
+- run: node /path/to/flowy-docs/dist/cli.js check
+```
+
+It reads what the canvas reads: the model, the flows, the failure analyses and the load-test runs, a failure mode whose run doesn't exist, a path in `code:` that
+doesn't exist, and a file Flowy skips (`.yml`). It also writes every file back in memory, which reports a file that loads but could not be saved again, such as a
+key with no value that an unquoted comma leaves behind. `--dir` picks the model folder. A model or flow file that can't be read at all is the one line it prints.
+`export` lists problems on the page and exits 0, and `failures` exits 1 only for the failure files, so `check` is the one to gate on.
 
 ## Share it
 
@@ -1015,7 +1069,7 @@ what it saves, the browser and Claude see, and the other way round. A file that 
 with the reason in a banner, and while it is there editing is off.
 
 Editing in the app: **E** (or the Edit button) turns it on, and the bar gains New flow, Add, Undo, Redo and Tidy. A shape's panel becomes
-a form (name, type, outside service, tech, look, description, code, links, source), and a line's panel has a label field and a delete for each connection it
+a form (name, type, outside service, tech, look, description, code, links, source, and a store's data), and a line's panel has a label field and a delete for each connection it
 stands for. Drag a shape to move it; the dot under a shape starts a connection, which you drop on another shape. Each edit is checked first:
 one that would add a problem is refused and a notice says why. A file changed elsewhere since the app read it is never overwritten: the
 edit is dropped, and the view reloads. **Ctrl+Z** and **Ctrl+Y** undo and redo, but only where the files are still as that edit left
@@ -1023,8 +1077,8 @@ them. The sample model that ships with the app can't be edited.
 
 What it has, as the canvas does: zoom into a shape (double-click it, or select it and press Enter; Esc and Backspace go back up, and
 the breadcrumb works too), a frame around the shape you're inside, shapes that belong to another level faded and dashed, wheel to
-zoom and drag to pan, **F** to fit, the side panel with the description, its code, its links, the files a shape lives in (as links when the repo's
-origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one, **M** lists how things fail) and the one on the right (**T** for load-test runs), flows that play with ← and → (Home and End go to the first and last
+zoom and drag to pan, **F** to fit, the side panel with the description, its code, what a store holds (its [Data](#data) section), its links, the files a shape lives in (as links when the repo's
+origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one, **T** replays load-test runs, **M** lists failure modes) and the one on the right for Details, flows that play with ← and → (Home and End go to the first and last
 step) with a step's animation, **R** to play it again and **P** to let the flow run on its own, **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a shape that sits
 beside the one you're in slides across instead of zooming in.** It doesn't have the browser's YAML tab (**Y**) yet.

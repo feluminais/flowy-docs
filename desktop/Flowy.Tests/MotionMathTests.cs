@@ -33,6 +33,46 @@ public class MotionMathTests
     }
 
     [Fact]
+    public void Every_effect_poses_a_blob_as_the_browser_does()
+    {
+        var all = Motion()["effects"]!.AsArray();
+        Assert.Equal(360, all.Count);
+        foreach (var e in all)
+        {
+            var effect = e!["effect"]?.GetValue<string>();
+            var label = e["label"]!.GetValue<bool>();
+            var angle = e["angle"]!.GetValue<double>() * Math.PI / 180;
+            var want = e["pose"]!;
+            var got = MotionMath.PoseOf(effect, label, angle, e["p"]!.GetValue<double>());
+            var at = $"{effect} label={label} angle={e["angle"]} p={e["p"]}";
+            Assert.True(Math.Abs(want["dy"]!.GetValue<double>() - got.Dy) < 1e-9, at);
+            Assert.True(Math.Abs(want["turn"]!.GetValue<double>() * Math.PI / 180 - got.Turn) < 1e-9, at);
+            Assert.True(Math.Abs(want["grow"]!.GetValue<double>() - got.Grow) < 1e-9, at);
+            Assert.True(Math.Abs(want["rotate"]!.GetValue<double>() * Math.PI / 180 - got.Rotation) < 1e-9, at);
+            Assert.True(Math.Abs(want["x"]!.GetValue<double>() - got.Sx) < 1e-9, at);
+            Assert.True(Math.Abs(want["y"]!.GetValue<double>() - got.Sy) < 1e-9, at);
+        }
+    }
+
+    [Fact]
+    public void An_effect_leaves_and_lands_a_blob_as_it_is_and_never_turns_a_label_to_squish_it()
+    {
+        foreach (var effect in Animations.Effects)
+        foreach (var label in new[] { true, false })
+        foreach (var angle in new[] { 0.0, 0.4, 1.57, -1.2 })
+        {
+            foreach (var p in new[] { 0.0, 1.0 })
+            {
+                var ends = MotionMath.PoseOf(effect, label, angle, p);
+                Assert.True(Math.Abs(ends.Dy) < 1e-9 && Math.Abs(ends.Turn) < 1e-9 && Math.Abs(ends.Grow - 1) < 1e-9 && Math.Abs(ends.Sx - 1) < 1e-9 && Math.Abs(ends.Sy - 1) < 1e-9, $"{effect} at {p}");
+            }
+            if (effect == "squish" && label) Assert.Equal(0, MotionMath.PoseOf(effect, label, angle, 0.5).Rotation); // so its edges stay level and upright
+        }
+        Assert.Equal(MotionMath.Still, MotionMath.PoseOf(null, true, 0.5, 0.5));
+        Assert.Equal(MotionMath.Still, MotionMath.PoseOf("spin", true, 0.5, 0.5));
+    }
+
+    [Fact]
     public void Progress_activity_and_the_tube_fade_agree()
     {
         var all = Motion()["progress"]!.AsArray();

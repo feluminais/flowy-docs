@@ -10,7 +10,7 @@ import { nameOf, placeStep } from '../../src/core/views.ts'
 import { BOX } from './graph.ts'
 import type { BoxData, Rect } from './graph.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
-import { active, bump, cyclePeriod, distance, DWELL, ease, entryPoint, litOpacity, markerSize, markerSpot, noteSpot, progress, squashTile, tintColor, tubeOpacity } from './motion.ts'
+import { active, bump, cyclePeriod, distance, DWELL, ease, effectPose, entryPoint, litOpacity, markerSize, markerSpot, noteSpot, progress, squashTile, tintColor, tubeOpacity } from './motion.ts'
 
 // The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
 const GLYPHS: Record<Glyph, string> = {
@@ -315,12 +315,11 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }
             const ahead = route.getPointAtLength(Math.min(length, pos + 2))
             angle = (Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * 180) / Math.PI
           }
-          // A blob that waits where it is does not stretch.
+          // A blob keeps its shape unless the step asks for an effect (see EFFECTS), and one that waits where it is never moves for it. The glyph or the words in it are never stretched.
           const waiting = beat.start !== undefined && beat.start === beat.end
-          const stretch = waiting ? 0 : bump(p)
-          // The shape is stretched along the way it runs, and no more rotated than that. The glyph or the words in it are not stretched at all.
-          node.setAttribute('transform', `translate(${here.x} ${here.y})`)
-          stretches[i]?.setAttribute('transform', `rotate(${angle}) scale(${1 + 0.3 * stretch} ${1 - 0.15 * stretch}) rotate(${-angle})`)
+          const pose = animation.effect === undefined || waiting ? undefined : effectPose(animation.effect, beat.label !== undefined, angle, p)
+          node.setAttribute('transform', pose ? `translate(${here.x} ${here.y + pose.dy}) rotate(${pose.turn})` : `translate(${here.x} ${here.y})`)
+          stretches[i]?.setAttribute('transform', pose ? `rotate(${pose.rotate}) scale(${pose.x * pose.grow} ${pose.y * pose.grow}) rotate(${-pose.rotate})` : '')
         } else if (beat.do === 'ring') {
           const r = beat.on === 'to' ? b : a
           const grow = 6 + 22 * p

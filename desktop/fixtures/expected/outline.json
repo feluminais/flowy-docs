@@ -6091,8 +6091,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 81,
-              "flows": 24,
+              "shapes": 83,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -6100,8 +6100,8 @@
             }
           ],
           "totals": {
-            "shapes": 81,
-            "flows": 24,
+            "shapes": 83,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -6120,8 +6120,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 81,
-              "flows": 24,
+              "shapes": 83,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6232,8 +6232,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -6241,8 +6241,8 @@
             }
           ],
           "totals": {
-            "shapes": 81,
-            "flows": 24,
+            "shapes": 83,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -6262,8 +6262,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 81,
-              "flows": 24,
+              "shapes": 83,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6374,8 +6374,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6533,6 +6533,38 @@
               "depth": 2,
               "name": "Duplicated · to",
               "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-from",
+              "kind": "shape",
+              "id": "effects-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-to",
+              "kind": "shape",
+              "id": "effects-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · to",
+              "type": "store",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -6974,6 +7006,22 @@
               "match": true
             },
             {
+              "key": "flow:effects",
+              "kind": "flow",
+              "id": "effects",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:event",
               "kind": "flow",
               "id": "event",
@@ -7167,8 +7215,8 @@
             }
           ],
           "totals": {
-            "shapes": 81,
-            "flows": 24,
+            "shapes": 83,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -7183,6 +7231,8 @@
             "time",
             "send-from",
             "send-to",
+            "effects-from",
+            "effects-to",
             "call-from",
             "call-to",
             "event-from",
@@ -7268,8 +7318,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 81,
-              "flows": 24,
+              "shapes": 83,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8164,8 +8214,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8323,6 +8373,38 @@
               "depth": 2,
               "name": "Duplicated · to",
               "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-from",
+              "kind": "shape",
+              "id": "effects-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-to",
+              "kind": "shape",
+              "id": "effects-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · to",
+              "type": "store",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -8764,6 +8846,22 @@
               "match": true
             },
             {
+              "key": "flow:effects",
+              "kind": "flow",
+              "id": "effects",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:event",
               "kind": "flow",
               "id": "event",
@@ -8957,8 +9055,8 @@
             }
           ],
           "totals": {
-            "shapes": 81,
-            "flows": 24,
+            "shapes": 83,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -8973,6 +9071,8 @@
             "time",
             "send-from",
             "send-to",
+            "effects-from",
+            "effects-to",
             "call-from",
             "call-to",
             "event-from",
@@ -9058,8 +9158,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 81,
-              "flows": 24,
+              "shapes": 83,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -9954,8 +10054,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -10113,6 +10213,38 @@
               "depth": 2,
               "name": "Duplicated · to",
               "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-from",
+              "kind": "shape",
+              "id": "effects-from",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · from",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:effects-to",
+              "kind": "shape",
+              "id": "effects-to",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects · to",
+              "type": "store",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -10554,6 +10686,22 @@
               "match": true
             },
             {
+              "key": "flow:effects",
+              "kind": "flow",
+              "id": "effects",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Effects",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:event",
               "kind": "flow",
               "id": "event",
@@ -10747,8 +10895,8 @@
             }
           ],
           "totals": {
-            "shapes": 81,
-            "flows": 24,
+            "shapes": 83,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -10765,8 +10913,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 81,
-              "flows": 24,
+              "shapes": 83,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -11517,8 +11665,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -11974,8 +12122,8 @@
             }
           ],
           "totals": {
-            "shapes": 81,
-            "flows": 24,
+            "shapes": 83,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -11988,8 +12136,8 @@
           "editing": false,
           "rows": [],
           "totals": {
-            "shapes": 81,
-            "flows": 24,
+            "shapes": 83,
+            "flows": 25,
             "problems": 0
           }
         },
@@ -12008,8 +12156,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 81,
-              "flows": 24,
+              "shapes": 83,
+              "flows": 25,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -12120,8 +12268,8 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "shapes": 32,
-              "flows": 17,
+              "shapes": 34,
+              "flows": 18,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -12129,8 +12277,8 @@
             }
           ],
           "totals": {
-            "shapes": 81,
-            "flows": 24,
+            "shapes": 83,
+            "flows": 25,
             "problems": 0
           }
         }
@@ -12239,6 +12387,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -12313,7 +12467,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "root",
@@ -12418,6 +12572,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -12492,7 +12652,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "steps",
@@ -12526,6 +12686,12 @@
               "id": "duplicated",
               "name": "Duplicated",
               "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "effects",
+              "name": "Effects",
+              "steps": 4,
               "view": "steps"
             },
             {
@@ -12663,7 +12829,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "steps",
@@ -12697,6 +12863,12 @@
               "id": "duplicated",
               "name": "Duplicated",
               "steps": 1,
+              "view": "steps"
+            },
+            {
+              "id": "effects",
+              "name": "Effects",
+              "steps": 4,
               "view": "steps"
             },
             {
@@ -12834,7 +13006,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "structure",
@@ -12931,6 +13103,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13005,7 +13183,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "structure",
@@ -13102,6 +13280,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13176,7 +13360,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "performance",
@@ -13281,6 +13465,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13355,7 +13545,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "performance",
@@ -13460,6 +13650,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13534,7 +13730,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "states",
@@ -13631,6 +13827,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13705,7 +13907,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "states",
@@ -13802,6 +14004,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -13876,7 +14084,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "time",
@@ -13981,6 +14189,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -14055,7 +14269,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "time",
@@ -14160,6 +14374,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -14234,7 +14454,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "rolled-up",
@@ -14339,6 +14559,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -14413,7 +14639,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "rolled-up",
@@ -14518,6 +14744,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -14592,7 +14824,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "states-holder",
@@ -14697,6 +14929,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -14771,7 +15009,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "states-holder",
@@ -14876,6 +15114,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -14950,7 +15194,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "time-holder",
@@ -15055,6 +15299,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -15129,7 +15379,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "time-holder",
@@ -15234,6 +15484,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -15308,7 +15564,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "scale",
@@ -15413,6 +15669,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -15487,7 +15749,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "scale",
@@ -15592,6 +15854,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -15666,7 +15934,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "sources",
@@ -15771,6 +16039,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -15845,7 +16119,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         },
         {
           "view": "sources",
@@ -15950,6 +16224,12 @@
                   "view": "steps"
                 },
                 {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps"
+                },
+                {
                   "id": "event",
                   "name": "Event",
                   "steps": 1,
@@ -16024,7 +16304,7 @@
               ]
             }
           ],
-          "total": 24
+          "total": 25
         }
       ],
       "expandTo": [
@@ -16146,6 +16426,40 @@
           "opened": [
             "root",
             "send-to",
+            "steps"
+          ]
+        },
+        {
+          "id": "effects-from",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "effects-from",
+          "self": true,
+          "opened": [
+            "effects-from",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "effects-to",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "effects-to",
+          "self": true,
+          "opened": [
+            "effects-to",
+            "root",
             "steps"
           ]
         },
@@ -36731,6 +37045,888 @@
           "opened": [
             "mail",
             "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
+    },
+    "no-value": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 2,
+            "problems": 11
+          }
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 2,
+            "problems": 11
+          }
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "shop"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API, public",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:blank",
+              "kind": "flow",
+              "id": "blank",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Blank on purpose",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout",
+              "kind": "flow",
+              "id": "checkout",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Customer checks out",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 2,
+            "problems": 11
+          }
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "web",
+            "api"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API, public",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:blank",
+              "kind": "flow",
+              "id": "blank",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Blank on purpose",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout",
+              "kind": "flow",
+              "id": "checkout",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Customer checks out",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 2,
+            "problems": 11
+          }
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "web",
+            "api"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API, public",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:blank",
+              "kind": "flow",
+              "id": "blank",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Blank on purpose",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout",
+              "kind": "flow",
+              "id": "checkout",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Customer checks out",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 2,
+            "problems": 11
+          }
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API, public",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:blank",
+              "kind": "flow",
+              "id": "blank",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Blank on purpose",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 2,
+            "problems": 11
+          }
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 2,
+            "problems": 11
+          }
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 2,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 2,
+            "problems": 11
+          }
+        }
+      ],
+      "groups": [
+        {
+          "view": "root",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "blank",
+                  "name": "Blank on purpose",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "checkout",
+                  "name": "Customer checks out",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 2
+        },
+        {
+          "view": "root",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "blank",
+                  "name": "Blank on purpose",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "checkout",
+                  "name": "Customer checks out",
+                  "steps": 4,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 2
+        },
+        {
+          "view": "shop",
+          "editing": false,
+          "here": [
+            {
+              "id": "blank",
+              "name": "Blank on purpose",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "checkout",
+              "name": "Customer checks out",
+              "steps": 4,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [],
+          "total": 2
+        },
+        {
+          "view": "shop",
+          "editing": true,
+          "here": [
+            {
+              "id": "blank",
+              "name": "Blank on purpose",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "checkout",
+              "name": "Customer checks out",
+              "steps": 4,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [],
+          "total": 2
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": true,
+          "opened": [
+            "customer",
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": true,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": true,
+          "opened": [
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "api",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "api",
+          "self": true,
+          "opened": [
+            "api",
+            "root",
+            "shop"
           ]
         },
         {

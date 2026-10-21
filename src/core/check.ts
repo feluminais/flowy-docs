@@ -32,6 +32,19 @@ const isLinkEntry = (l: unknown): l is { url?: string; title?: string } => {
 }
 
 /**
+ * The keys in `value` that hold nothing, each as the path of keys down to it. In `{ text: Sets the time zone, if it has one }` the comma ends the
+ * text and `if it has one` becomes a key with no colon, which reads as null. Every other value reads as text, so null is the only odd one, and
+ * it can't be written back: saving fails with "Tag not resolved for null value" long after the file loaded without a complaint.
+ */
+function emptyKeys(value: unknown, path: string[] = []): string[][] {
+  if (Array.isArray(value)) return value.flatMap((v, i) => emptyKeys(v, [...path, `item ${i + 1}`]))
+  if (typeof value !== 'object' || value === null) return []
+  return Object.entries(value).flatMap(([k, v]) => (v === null ? [[...path, k]] : emptyKeys(v, [...path, k])))
+}
+
+const emptyKeyMessage = (path: string[]) => `"${path.join(' → ')}" has no value (a comma ends unquoted text: put text that has a comma in double quotes)`
+
+/**
  * Every problem in the model. Never throws. `absent` holds the code paths that don't exist; only Node
  * can tell, so the browser leaves it empty.
  * The MCP server refuses writes that add problems, so a message must not change when an
@@ -52,6 +65,8 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
   if (model.meta.lines !== undefined && !LINE_STYLES.some(s => s === model.meta.lines))
     add('model.yaml', undefined, 'lines must be straight, curved or angled')
 
+  for (const path of emptyKeys(model.meta)) add('model.yaml', undefined, emptyKeyMessage(path))
+
   const icons = model.meta.icons
   if (icons !== undefined && icons !== '') {
     if (!isMap(icons)) add('model.yaml', undefined, 'icons must map names to SVG path data')
@@ -65,6 +80,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     const p = (message: string) => add('model.yaml', id, `${id}: ${message}`)
     if (!isValidId(id)) p(`ids ${ID_RULE}`)
     if (!hasText(o.name)) p('name is missing')
+    for (const path of emptyKeys(o)) p(emptyKeyMessage(path))
     if (o.external !== undefined && o.external !== 'true' && o.external !== 'false') p('external must be true or false')
     if (!missing(o.shape) && !isShape(o.shape)) p(`unknown shape "${o.shape}" (use ${SHAPES.join(', ')})`)
     if (!missing(o.color) && !isColor(o.color)) p(`color "${o.color}" must be a name (${COLOR_NAMES.join(', ')}) or a hex like #3b82f6`)
@@ -111,6 +127,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     const end = (v: unknown) => (missing(v) ? '?' : v)
     const p = (message: string) => add('model.yaml', undefined, `connection ${end(c.from)} → ${end(c.to)}: ${message}`, { connection: i })
     checkEnds(p, c.from, c.to)
+    for (const path of emptyKeys(c)) p(emptyKeyMessage(path))
     if (!missing(c.from) && c.from === c.to) p('connects an object to itself')
     const key = JSON.stringify([c.from, c.to, c.label ?? ''])
     if (seen.has(key)) p(`duplicate${c.label ? ` "${c.label}"` : ''}`)
@@ -127,8 +144,10 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     if (missing(f.view)) p('view is missing')
     else if (!viewOk) p(`view "${f.view}" must be "root" or an object with children`)
     if (f.steps.length === 0) p('has no steps')
+    for (const path of emptyKeys({ ...f, steps: [] })) p(emptyKeyMessage(path)) // the steps are read one at a time below, so each says its own number
     f.steps.forEach((s, i) => {
       const sp = (message: string) => at(message, i)
+      for (const path of emptyKeys(s)) sp(emptyKeyMessage(path))
       const alone = s.to === undefined // one box doing something on its own; a blank "to:" is still a missing end
       if (!alone) checkEnds(sp, s.from, s.to)
       else if (missing(s.from)) sp('"from" is missing')
@@ -148,7 +167,10 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     for (const sq of stateProblems(f, stopsOf(f), id => getObject(model, id) !== undefined)) at(sq.message, sq.step)
   }
 
-  for (const [aid, a] of Object.entries(model.failures)) problems.push(...analysisProblems(model, aid, a))
+  for (const [aid, a] of Object.entries(model.failures)) {
+    problems.push(...analysisProblems(model, aid, a))
+    for (const path of emptyKeys(a)) add(`failures/${aid}.yaml`, undefined, emptyKeyMessage(path))
+  }
   return problems
 }
 

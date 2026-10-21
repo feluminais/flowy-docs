@@ -23,23 +23,30 @@ test('scrolling to a row moves as little as it can, and not at all when the row 
 })
 
 test('Review Focus: a remembered tab opens only where it exists (not YAML on an exported page or in VS Code)', () => {
-  assert.equal(openTab('yaml', { flows: true, yaml: false, failures: true }), undefined)
-  assert.equal(openTab('yaml', { flows: false, yaml: true, failures: false }), 'yaml')
-  assert.equal(openTab('flows', { flows: false, yaml: true, failures: true }), undefined)
-  assert.equal(openTab('flows', { flows: true, yaml: false, failures: false }), 'flows')
-  assert.equal(openTab('explorer', { flows: false, yaml: false, failures: false }), 'explorer')
-  assert.equal(openTab(undefined, { flows: true, yaml: true, failures: true }), undefined)
+  assert.equal(openTab('yaml', { flows: true, yaml: false }), undefined)
+  assert.equal(openTab('yaml', { flows: false, yaml: true }), 'yaml')
+  assert.equal(openTab('flows', { flows: false, yaml: true }), undefined)
+  assert.equal(openTab('flows', { flows: true, yaml: false }), 'flows')
+  assert.equal(openTab('explorer', { flows: false, yaml: false }), 'explorer')
+  assert.equal(openTab(undefined, { flows: true, yaml: true }), undefined)
 })
 
-test('the Failures tab is there only where there is an analysis (or a file of one to complain about), and is never remembered: the address brings it back', () => {
-  assert.equal(openTab('failures', { flows: true, yaml: true, failures: true }), 'failures')
-  assert.equal(openTab('failures', { flows: true, yaml: true, failures: false }), undefined)
+test('the Performance and Failures tabs are never remembered: the address brings them back', () => {
   assert.equal(rememberedTab('failures'), undefined)
+  assert.equal(rememberedTab('performance'), undefined)
   assert.equal(rememberedTab('flows'), 'flows')
   assert.equal(rememberedTab('explorer'), 'explorer')
   assert.equal(rememberedTab('yaml'), 'yaml')
   assert.equal(rememberedTab(undefined), undefined)
   assert.deepEqual(parseNav('{"tab":"failures"}'), { expanded: [] }) // a stored one is ignored too
+  assert.deepEqual(parseNav('{"tab":"performance"}'), { expanded: [] })
+})
+
+test('the Performance and Failures tabs open without a run or an analysis, and Performance only while not editing', () => {
+  assert.equal(openTab('performance', { flows: false, yaml: false }), 'performance')
+  assert.equal(openTab('performance', { flows: false, yaml: false, performance: true }), 'performance')
+  assert.equal(openTab('performance', { flows: true, yaml: true, performance: false }), undefined)
+  assert.equal(openTab('failures', { flows: false, yaml: false, performance: false }), 'failures')
 })
 
 test('stored navigator state is read as far as it can be trusted', () => {
@@ -50,6 +57,8 @@ test('stored navigator state is read as far as it can be trusted', () => {
   assert.deepEqual(parseNav('{"tab":"flows"}'), { tab: 'flows', expanded: [] })
   assert.deepEqual(parseNav('{"tab":"yaml"}'), { tab: 'yaml', expanded: [] })
   assert.deepEqual(parseNav('{"tab":"yamls"}'), { expanded: [] })
+  assert.deepEqual(parseNav('{"tab":"performance"}'), { expanded: [] }) // Performance and Failures are opened by the address, never remembered
+  assert.deepEqual(parseNav('{"tab":"failures"}'), { expanded: [] })
   assert.deepEqual(parseNav('{"tab":"details","expanded":"all"}'), { expanded: [] }) // details is never remembered
   assert.deepEqual(parseNav('{"expanded":["a",1,null,"b"]}'), { expanded: ['a', 'b'] })
   assert.equal(parseNav(JSON.stringify({ expanded: Array.from({ length: 5000 }, (_, i) => `s${i}`) })).expanded.length, 2000)

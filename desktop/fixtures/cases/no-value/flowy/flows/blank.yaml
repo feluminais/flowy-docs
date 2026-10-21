@@ -1,0 +1,6 @@
+# A colon with nothing after it is blank text, not a key with no value.
+name: Blank on purpose
+view: shop
+steps:
+  - { from: web, to: api, text: }
+  - { from: api, to: web, text: "", description: }

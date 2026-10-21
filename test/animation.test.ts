@@ -637,3 +637,27 @@ test('animationFields keeps what is wrong so the form can show it, and ignores w
   assert.deepEqual(animationFields({ animation: { kind: ['call'], share: true, by: { name: 4 } } }), { kind: '', outcome: '', share: '', reason: '', by: '', byName: '4' })
   assert.deepEqual(animationFields({ animation: 7 }), { kind: '', outcome: '', share: '', reason: '', by: '', byName: '' })
 })
+
+test('an effect is what a blob does on its way: read, kept after the other keys, and a wrong one is refused', () => {
+  for (const effect of ['squish', 'bounce', 'pulse', 'wiggle']) {
+    assert.equal(animationProblem({ kind: 'send', effect }, true), undefined, effect)
+    assert.deepEqual(animationOf({ to: 'b', animation: { kind: 'send', effect } }), { kind: 'send', trigger: 'inside', effect })
+  }
+  assert.deepEqual(
+    animationOf({ to: 'b', animation: { kind: 'call', carries: 'order', outcome: 'timeout', effect: 'bounce' } }),
+    { kind: 'call', trigger: 'inside', carries: 'order', outcome: 'timeout', effect: 'bounce' },
+  )
+  for (const effect of ['spin', 'Bounce', '', ['bounce'], 5]) {
+    assert.equal(animationProblem({ kind: 'send', effect }, true), 'animation effect must be squish, bounce, pulse or wiggle', JSON.stringify(effect))
+    assert.equal(animationOf({ to: 'b', animation: { kind: 'send', effect } }), undefined, JSON.stringify(effect))
+  }
+  // It goes with every way of travelling and every outcome, and a step that has none reads as before.
+  for (const kind of ANIMATION_KINDS) assert.equal(animationProblem({ kind, effect: 'pulse' }, true), undefined, kind)
+  assert.equal(animationProblem({ kind: 'send', outcome: 'lost', share: 30, effect: 'wiggle' }, true), undefined)
+  assert.equal('effect' in animationOf({ to: 'b', animation: { kind: 'send' } })!, false)
+  // The message for an option nobody knows is as it was: an effect is an extra key and not one of the options it lists.
+  assert.equal(animationProblem({ kind: 'send', speed: 'fast' }, true), 'unknown animation option "speed" (use kind, trigger, carries, outcome, share, reason, by, at)')
+  // The pickers of edit mode keep an effect that was written by hand.
+  assert.deepEqual(animationWith({ kind: 'call', effect: 'bounce' }, 'outcome', 'timeout'), { kind: 'call', effect: 'bounce', outcome: 'timeout' })
+  assert.deepEqual(animationWith({ kind: 'call', effect: 'bounce' }, 'kind', 'send'), { kind: 'send', effect: 'bounce' })
+})

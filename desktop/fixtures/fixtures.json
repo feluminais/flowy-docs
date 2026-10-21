@@ -24,5 +24,6 @@
   "data": "desktop/fixtures/cases/data/flowy",
   "snippets": "desktop/fixtures/cases/snippets/flowy",
   "states": "desktop/fixtures/cases/states/flowy",
-  "failures": "desktop/fixtures/cases/failures/flowy"
+  "failures": "desktop/fixtures/cases/failures/flowy",
+  "no-value": "desktop/fixtures/cases/no-value/flowy"
 }

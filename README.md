@@ -22,7 +22,7 @@ to the code it describes.
 
 The screenshots show Plum, a made-up delivery service, in the desktop app. Its model is in [docs/demo/flowy](docs/demo/flowy).
 
-What to write in it, shape by shape, is in [Writing good Flowy docs](docs/writing.md).
+What to write in it, shape by shape, is in [Writing good Flowy docs](docs/writing.md), and every key of the files is in [the file format](docs/format.md).
 
 ## Get it
 
@@ -105,9 +105,10 @@ documents stay documents.
 ![Orders DB's panel: the orders table with a key mark on id and customer_id, a dot on total and its note under the table, and three more tables closed to a line each](docs/images/desktop-data.png)
 
 A store can show what it holds. Its panel draws a table as a table, with column headings, a few sample rows and a short note
-where a choice needs explaining ("Cents, not decimals"), and a line for how long the data is kept. A key set, a topic and a
-document use the same frame. You write it under `data:` on the store; Flowy never connects to a database. [The guide](docs/guide.md#data)
-has the format.
+where a choice needs explaining ("Cents, not decimals"), and a line for how long the data is kept. The first table is open and the
+others are one line each. A key set, a topic and a document use the same frame. You write it under `data:` on the store, or in the
+**Data** box of its form in edit mode, in the app and in the browser alike, and Claude can write it from a migration or a schema file.
+The sample rows are made up: Flowy never connects to a database. [The guide](docs/guide.md#data) has the format.
 
 ## Flows
 
@@ -144,8 +145,8 @@ A shape can also be Starting, Stopping, Stopped, Restarting or Degraded. A step'
 
 ![The Delivery view at 900 orders a minute: Dispatch is outlined red and Live tracking yellow-green, dots run along the lines, and the Performance panel on the right has the load slider, where it first struggles, a latency curve and Dispatch's numbers](docs/images/desktop-performance.png)
 
-Flowy can also play back how a system behaved under load. Put a load test's results in `flowy/perf/<name>.yaml`, and a Performance
-tab joins the icons on the right edge (or press **T**). The diagram then shows the load: dots run along the lines as often, and as
+Flowy can also play back how a system behaved under load. Put a load test's results in `flowy/perf/<name>.yaml` and open the Performance
+tab among the icons on the left edge (or press **T**; the desktop app keeps it on the right). Without a run, the tab offers to **Create** a starter to fill in. The diagram then shows the load: dots run along the lines as often, and as
 slowly, as the calls were, a line gets thicker with traffic, a shape's outline goes from green to red as it fills up, and a number
 on it says how many are waiting. A run can also set the colour of its dots and a small formula for how many there are, so that ten times the calls
 is ten times the dots ("1 dot = 50 calls/s" in the key) until the screen limit says it is scaled down. A system with several sources of requests, such as customers and couriers, gets a slider, a colour and a scale for each source, from runs added together or from one run tested with both at once, and the tab says which. Move the slider (← →) to another tested load, or press **Ramp** (**P**) to sweep up through them.
@@ -166,7 +167,7 @@ small shop that really runs, with a load generator that writes these files (`npm
 
 Flowy can hold how a system breaks, too. A failure analysis lives in `flowy/failures/<name>.yaml`. For a shape, or a line between two,
 it says how the part fails, what that causes, what exists to deal with it and what to do next, and rates it from 1 to 10 on
-Severity, Likelihood and Hard to spot (10 means nobody would notice). A Failures tab sits on the left beside Explorer and Flows, or press **M**.
+Severity, Likelihood and Hard to spot (10 means nobody would notice). The Failures tab is among the icons on the left edge, or press **M**. With no analysis yet, its **Create** button turns edit mode on, where the first one is made.
 
 - The list runs from High to Low, then Not rated for a mode with no ratings. A severity of 9 or 10 is High whatever else is missing.
 - **Analysed 15 of 26** counts the shapes that have a mode, and **Not analysed** lists the rest.
@@ -223,9 +224,10 @@ From the root of the repo you want to document, once the clone is [built](#the-b
 claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
-Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and `flowy/flows/*.yaml`, points
-each shape at the code it lives in, marks outside services, and refuses any change that would break the model. Ask how the system fails and it can write a failure analysis in `flowy/failures/` too. Keep the
-model open in the app, and it updates by itself as Claude saves.
+Any other MCP client takes that command (`node /path/to/flowy-docs/dist/cli.js mcp`) over stdio. Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and `flowy/flows/*.yaml`, points
+each shape at the code it lives in, marks outside services, and refuses any change that would break the model. It can show what a store holds (its tables, key sets or topics, from a migration or a schema file) with invented sample rows. Ask how the system fails and it can write a failure analysis in `flowy/failures/` too. Keep the
+model open in the app, and it updates by itself as Claude saves. Besides its tools the server offers prompts for the usual jobs (map a repo, update the
+model after a change, write a flow, write a failure analysis, review the model) and the guides as resources; [the guide](docs/guide.md#let-claude-build-it) lists the tools.
 
 You can write the files by hand too. This is Checkout from the demo:
 
@@ -388,7 +390,15 @@ node /path/to/flowy-docs/dist/cli.js
 
 It prints a local address (port 4321, or the next free one) and opens it in your browser. The model lives in `./flowy`,
 which Flowy creates if it's missing. `--dir <folder>` uses another folder, `--port <number>` picks the port, and
-`--no-open` skips the browser. It does everything the app does, plus `export`.
+`--no-open` skips the browser. It does everything the app does, plus the commands below, each of which takes `--dir`:
+
+| Command | Does |
+| --- | --- |
+| `check` | Prints every problem in the folder, one line each, and exits 1 if there is any. The one to run in a build |
+| `export` | Writes a read-only copy of the canvas to `./flowy-site` (`--out` picks the folder) |
+| `mermaid --flow <id>` or `--view <id>` | Prints a flow as a sequence diagram or a view as a flowchart |
+| `failures` | Prints the failure analyses as tables (`--format csv`, `--analysis <id>`) |
+| `mcp` | Runs the MCP server for Claude |
 
 `flowy.sh` (macOS, Linux, Git Bash) and `flowy.cmd` (Windows) in the clone run the same command with the same flags, and
 build on the first run. After a `git pull`, run `npm install` and `npm run build` again.
@@ -416,7 +426,7 @@ Flowy runs on your machine and touches only its model folder and its own folder 
   document in its default app, anything else shown in its folder and not run (an app you pick under **File › Open Files
   With** may open any file in the repo). It keeps its recent folders, window size, line-style pick and that app in
   `state.json` in its own folder under your application data.
-- Through the `mcp` command, Claude gets sixteen tools: four read the model and twelve change its objects, icons,
+- Through the `mcp` command, Claude gets seventeen tools: five read the model and twelve change its objects, icons,
   connections, flows and failure analyses. None runs a command or reads a file outside the model folder.
 
 Treat a `flowy/` folder you didn't write like any other text from that repo. In the browser, descriptions are Markdown and

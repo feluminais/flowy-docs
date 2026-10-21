@@ -98,7 +98,7 @@ internal sealed class BackLayer : Control
     internal double? WidthOf(string edgeId) => _widths is not null && _widths.TryGetValue(edgeId, out var w) ? w : null;
 
     /// <summary>How thick a line is drawn: what a load's traffic gives it, which outranks being picked, hovered or lit as the browser's inline width does; else lit 3, picked or hovered 2, any other 1.5.</summary>
-    internal static double ThicknessOf(bool lit, bool picked, double? traffic) => traffic ?? (lit ? 3 : picked ? 2 : 1.5);
+    internal static double ThicknessOf(bool lit, bool picked, double? traffic) => traffic ?? (lit ? 2.5 : picked ? 2 : 1.5);
 
     /// <summary>The line under a point of this control, if any (within a few pixels of it), for pointing at and clicking lines.</summary>
     public string? EdgeAt(Point screen)
@@ -208,11 +208,6 @@ internal sealed class BackLayer : Control
         }
         var dash = e.Flags.HasFlag(EdgeFlags.Step) ? new DashStyle([8 / thickness, 5 / thickness], 0) : e.Flags.HasFlag(EdgeFlags.Lane) ? new DashStyle([4 / thickness, 5 / thickness], 0) : null;
         using var opacity = context.PushOpacity(Fade(e));
-        if (lit) // a soft glow under it
-        {
-            var glow = accent is ISolidColorBrush solid ? new SolidColorBrush(solid.Color, 0.3) : accent;
-            context.DrawGeometry(null, new Pen(glow, thickness + 5, lineCap: PenLineCap.Round), line.Geometry);
-        }
         context.DrawGeometry(null, new Pen(brush, thickness, dash, PenLineCap.Flat), line.Geometry);
 
         // The arrowhead: a closed triangle on the end, pointing along the line.
