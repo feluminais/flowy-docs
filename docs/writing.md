@@ -227,6 +227,10 @@ A run is written by a tool, and a few of its keys are choices you make about how
   makes them a count: `rate / 50` is one dot for every 50 calls a second. Pick the divisor so the busiest line you want to show stays under 24 dots, because past
   that the line is scaled down and the ratio stops being true.
 - **Leave red to failing calls.** A failing dot draws in the danger colour, so a source that is red can't be told from its own failures.
+- **Test the sources together when you can, and add runs when you can't.** Runs added from separate tests are an estimate that looks calmer near the limit than the system is, and the panel says so. A run tested together needs every
+  combination of the loads you list, so three sources at five loads each is 125 tests: two or three loads of each is usually the right size.
+- **Give each source its own colour and say which one carries a line.** Use `by` on a line that two sources share, so each draws in its colour and scale. A line with no `by` draws grey and the key calls it Other calls, so leave `by` off only for a line you
+  cannot split.
 - **Give `bytes` where sizes differ.** A `size` formula needs it, and the size of a call shows in the numbers of a line.
 - **Measure over time when the story is a sequence.** An outage, a restart or a deploy needs a before, a during and an after, which load alone cannot give: write `axis: time`, put a level at each time that was
   measured, and mark what happened with `events`. Write each event's `text` as the fact ("Payments killed", "Answers again") and leave it out only where "Stripe: Stopped" already says it. Put an event only where you saw the

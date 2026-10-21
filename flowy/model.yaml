@@ -349,7 +349,7 @@ objects:
     type: component
     in: canvas
     name: Performance tab
-    code: [ui/src/Performance.tsx, ui/src/perfview.ts, ui/src/TrafficLayer.tsx, ui/src/traffic.ts, ui/src/pathpoints.ts]
+    code: [ui/src/Performance.tsx, ui/src/perfview.ts, ui/src/TrafficLayer.tsx, ui/src/traffic.ts, ui/src/pathpoints.ts, ui/src/hash.ts]
     description: |
       Plays a load-test run back over the canvas: dots run along the lines as often and as slowly as the
       calls were, a shape's outline goes from green to red as it fills up, and the panel reads out the
@@ -357,6 +357,10 @@ objects:
 
       The dots are drawn on one canvas from each line's path, flattened once, and during a ramp the
       screen gets a new position at most every 50 ms. Nothing moves when the system asks for less motion.
+
+      A run with several sources has a slider, a colour and an own Ramp for each source, says whether they were
+      added from separate runs or tested together, follows the source you moved last with the others held and named,
+      and draws a stream of dots for each source on a line they share. The address holds one place for each source.
 
       A run over time has a slider in time with its events marked above it, an Events list whose rows jump,
       Play instead of Ramp, and the states its events leave on the shapes: they ease for a step, Play or a
@@ -491,7 +495,7 @@ objects:
     type: component
     in: core
     name: Performance runs
-    code: [src/core/perf.ts, desktop/Flowy.Core/Perf.cs]
+    code: [src/core/perf.ts, desktop/Flowy.Core/Perf.cs, desktop/Flowy.Core/PerfSources.cs]
     description: |
       A load test as numbers: for each load level that was tested, what each shape and each
       connection measured. It reads a run file, checks it against the model, and works out what the
@@ -500,6 +504,12 @@ objects:
 
       A run can also set a source: the colour of its dots, and formulas for how many dots a line shows
       and how big each is. A line past the screen's limit is scaled down and says so.
+
+      A run can have several sources of requests, two ways. One run can add others, each at its own load: a shape's
+      use and queue add, a line's rate adds and the worst latency and failing share are kept. Or one run can be tested
+      with several sources at once, its levels a full grid of loads, blended between tested combinations, and a
+      connection's `by` says what each source carries. Each source is a dial with its own colour and scale, and the
+      busiest source on a line sets one scale-down for them all, so their ratio stays true.
 
       A run can be measured over time instead of over load. Its levels are points in time, and its events
       put shapes in a state at a time: the state of a shape at a time is the latest event at or before it.

@@ -1,0 +1,3 @@
+name: "Orders and pings, added"
+about: "Made-up numbers for the demo. Customer orders and courier pings, each from its own run and each at its own load, added: what Fleet DB, Tracking and the lines between them read is the two together. Both send calls along the line from Tracking to Fleet DB, so each draws in its own colour there. Added numbers look calmer near the limit than a test with both at once would."
+adds: [orders-only, pings-climbing]
