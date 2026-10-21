@@ -341,7 +341,7 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
 Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
 
 - [ ] The right rail has a Failures button under Performance with a 14 on it, and M opens its panel in Details' place with `#root/failures/ordering` in the
-      address. The key reads High 2, Medium 6, Low 5 and Not rated 1, then "Analysed 15 of 26" and "Not analysed (11)". At the overview Ordering
+      address. The key reads High 2, Medium 5, Low 6 and Not rated 1, then "Analysed 15 of 26" and "Not analysed (11)". At the overview Ordering
       carries a red 6 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), Notifier to Twilio (144),
       ETA to Mapbox (108) and on down to Fleet DB, which is Not rated.
 - [ ] Open `#ordering/failures/ordering/stripe-timeout`: Order API and the line to Stripe are outlined red, Kitchen tablet and Customer app in a lighter outline,
