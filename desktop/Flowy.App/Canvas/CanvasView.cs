@@ -270,7 +270,7 @@ internal sealed class CanvasView : Border
         foreach (var (id, box) in _boxes) box.SetPerf(_load is not null && _load.Boxes.TryGetValue(id, out var perf) ? perf : null);
         _back.SetWidths(_load?.Lines.ToDictionary(l => SceneBuilder.LineId(l.From, l.To), l => l.Width));
         if (_load is null || MotionSettings.Reduced) _traffic.Clear();
-        else _traffic.Set(_load.Lines, PathOf);
+        else _traffic.Set(_load.Lines, PathOf, _scene?.Boxes.Select(b => new TrafficLayer.ShapeCover(b.Id, b.Rect, Look.DefOf(b.Object).Edge)).ToList() ?? []);
     }
 
     /// <summary>A traffic line's path, flattened, in the style the lines are drawn in: the same one the line itself takes, so the particles run on it.</summary>

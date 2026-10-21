@@ -467,6 +467,29 @@ export function lineEnds(a: Rect, b: Rect, edgeA: Outline = [], edgeB: Outline =
   return [leave(a, edgeA, b), leave(b, edgeB, a)]
 }
 
+/**
+ * Whether (x, y) is on the shape drawn in `r`, or within `margin` of it: inside its outline, or the box itself when `edge` is empty. A line that
+ * runs behind a shape is hidden by it, so traffic on that line hides there too, a dot's width before it touches.
+ */
+export function covers(r: Rect, edge: Outline, x: number, y: number, margin = 0): boolean {
+  if (edge.length === 0) return x >= r.x - margin && x <= r.x + r.width + margin && y >= r.y - margin && y <= r.y + r.height + margin
+  // The outline is convex, so the point is on the shape when it is on the inner side of every side, whichever way the outline winds.
+  let area = 0
+  for (let i = 0; i < edge.length; i++) {
+    const [px, py] = edge[i]
+    const [qx, qy] = edge[(i + 1) % edge.length]
+    area += px * qy - qx * py
+  }
+  const inward = area < 0 ? -1 : 1
+  for (let i = 0; i < edge.length; i++) {
+    const [px, py] = edge[i]
+    const [qx, qy] = edge[(i + 1) % edge.length]
+    const cross = (qx - px) * (y - r.y - py) - (qy - py) * (x - r.x - px)
+    if (inward * cross < -margin * Math.hypot(qx - px, qy - py)) return false
+  }
+  return true
+}
+
 export type Side = 'top' | 'right' | 'bottom' | 'left'
 
 /** The side of `from` that faces `to`: the one a line between their centres leaves through. */

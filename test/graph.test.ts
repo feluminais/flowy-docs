@@ -5,7 +5,7 @@ import { SHAPE_DEFS } from '../src/core/look.ts'
 import { emptyModel } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
 import { computeView } from '../src/core/views.ts'
-import { arrange, BOX, fitOptions, focusEdges, frameAround, frameNode, lineEnds, membersOf, panIntoView, PANEL, ports, tangle, toGraph, untangle } from '../ui/src/graph.ts'
+import { arrange, BOX, covers, fitOptions, focusEdges, frameAround, frameNode, lineEnds, membersOf, panIntoView, PANEL, ports, tangle, toGraph, untangle } from '../ui/src/graph.ts'
 import type { Region } from '../ui/src/graph.ts'
 import { shop } from './fixtures.ts'
 
@@ -170,6 +170,27 @@ test('a line runs between the borders of two boxes that face each other', () => 
   const [from, to] = lineEnds(a, { ...a, x: 100, y: 200 })
   assert.ok(from.y === 72 && to.y === 200, 'leaves the bottom, enters the top')
   assert.deepEqual(lineEnds(a, a), [{ x: 90, y: 36 }, { x: 90, y: 36 }])
+})
+
+test('a point is covered when it is on the shape drawn in a box, or within a margin of it', () => {
+  const box = { x: 0, y: 0, width: 200, height: 72 }
+  // A box with no outline is the rectangle.
+  assert.equal(covers(box, [], 100, 36), true)
+  assert.equal(covers(box, [], -1, 36), false)
+  assert.equal(covers(box, [], -1, 36, 2), true)
+  assert.equal(covers(box, [], -3, 36, 2), false)
+  // A diamond leaves the corners of its box bare, so a line passing there is not hidden.
+  const diamond = SHAPE_DEFS.diamond.edge
+  assert.equal(covers(box, diamond, 100, 36), true)
+  assert.equal(covers(box, diamond, 5, 5), false)
+  assert.equal(covers(box, diamond, 100, -2, 4), true)
+  assert.equal(covers(box, diamond, 100, -2, 2), false)
+  // It does not matter which way the outline is listed, or where the box is.
+  assert.equal(covers({ ...box, x: 300, y: 50 }, [...diamond].reverse(), 400, 86), true)
+  assert.equal(covers({ ...box, x: 300, y: 50 }, [...diamond].reverse(), 305, 55), false)
+  // A pill is round at the ends.
+  assert.equal(covers(box, SHAPE_DEFS.pill.edge, 100, 36), true)
+  assert.equal(covers(box, SHAPE_DEFS.pill.edge, 3, 3), false)
 })
 
 test('the view pans only as far as it takes to show a box beside the side panel', () => {

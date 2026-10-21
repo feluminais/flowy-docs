@@ -22,7 +22,7 @@ const SIDES = { top: Position.Top, right: Position.Right, bottom: Position.Botto
 
 export const rect = (n: InternalNode): Rect => ({ ...n.internals.positionAbsolute, ...sizeOf(n) })
 /** The outline a line meets: the shape's own, so it never ends in the air beside a diamond's corner. */
-const outline = (n: InternalNode): Outline => SHAPE_DEFS[shapeOf((n.data as BoxData).object)].edge
+export const outline = (n: InternalNode): Outline => SHAPE_DEFS[shapeOf((n.data as BoxData).object)].edge
 
 /** The SVG path and the label's place for one line in the given style. */
 function draw(style: LineStyle, a: Rect, b: Rect, edgeA: Outline, edgeB: Outline): [string, number, number] {

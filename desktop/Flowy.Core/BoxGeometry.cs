@@ -60,6 +60,33 @@ public static class BoxGeometry
         return (Leave(a, edgeA, b), Leave(b, edgeB, a));
     }
 
+    /// <summary>
+    /// Whether (<paramref name="x"/>, <paramref name="y"/>) is on the shape drawn in <paramref name="r"/>, or within <paramref name="margin"/> of it: inside its outline,
+    /// or the box itself when <paramref name="edge"/> is empty. A line that runs behind a shape is hidden by it, so traffic on that line hides there too, a
+    /// dot's width before it touches.
+    /// </summary>
+    public static bool Covers(Rect r, double[]? edge, double x, double y, double margin = 0)
+    {
+        if (edge is null || edge.Length == 0) return x >= r.X - margin && x <= r.Right + margin && y >= r.Y - margin && y <= r.Bottom + margin;
+        // The outline is convex, so the point is on the shape when it is on the inner side of every side, whichever way the outline winds.
+        var n = edge.Length / 2;
+        var area = 0.0;
+        for (var i = 0; i < n; i++)
+        {
+            var j = (i + 1) % n;
+            area += edge[2 * i] * edge[2 * j + 1] - edge[2 * j] * edge[2 * i + 1];
+        }
+        var inward = area < 0 ? -1 : 1;
+        for (var i = 0; i < n; i++)
+        {
+            double px = edge[2 * i], py = edge[2 * i + 1];
+            double qx = edge[2 * ((i + 1) % n)], qy = edge[2 * ((i + 1) % n) + 1];
+            var cross = (qx - px) * (y - r.Y - py) - (qy - py) * (x - r.X - px);
+            if (inward * cross < -margin * Math.Sqrt((qx - px) * (qx - px) + (qy - py) * (qy - py))) return false;
+        }
+        return true;
+    }
+
     /// <summary>The side of <paramref name="from"/> that faces <paramref name="to"/>: the one a line between their centres leaves through.</summary>
     private static Side Facing(Rect from, Rect to)
     {

@@ -305,6 +305,8 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
       bottom draws each mark it names. ← → move between loads, Home and End jump (Home gives `#shop/perf/ramp/0`), and the address follows. Esc closes the
       panel; Back closes it too if you opened it with T (after Esc, Back opens it again). With Explorer open on the left as well, both
       panels show and the diagram still fits; the Details button swaps Details back in, and Esc closes whichever is showing.
+- [ ] On Plum (`--dir docs/demo/flowy`, Delivery at 900 orders/min) no dot sits on a shape. The line from Dispatch to Order events runs behind Live tracking: it is
+      plain across it and dotted again on the other side, in the browser and in the desktop app, and a dot that reaches a shape's outline goes under it.
 - [ ] Click Fulfilment worker: the panel stays and reads Busy and Failing with a curve each. Click the line from Order queue to
       it: its numbers show. Pick Slow gateway in the run picker: the struggle is
       at a lower load. Press Home, then P (or click Ramp): the load sweeps up through the levels in about 30 s (from a later load it
