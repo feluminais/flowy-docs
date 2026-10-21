@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { ANIMATION_KINDS, animationOf, OUTCOMES } from '../src/core/animation.ts'
 import { knee, traffic } from '../src/core/perf.ts'
 import type { Metrics } from '../src/core/perf.ts'
+import { marksOf, readStates, STATE_NAMES, statesAt } from '../src/core/states.ts'
 import { GROUP_KINDS, runsOf, stopsOf } from '../src/core/structure.ts'
 import { fileData, serializeFile } from '../src/core/model.ts'
 import { modelOf } from '../src/core/state.ts'
@@ -83,6 +84,21 @@ test('every kind of group is drawn by a flow, and a step can hand its story to a
   assert.ok(parallel.some(r => r.lanes.some(l => l.steps.length > 1) && r.lanes.some(l => l.steps.length === 1)), 'no parallel group with a lane that outlasts the others')
   assert.ok(flowList.some(([, flow]) => flow.steps.some(s => s.flow !== undefined && s.flow in flows)), 'no step hands its story to another flow')
   assert.ok(flowList.some(([, flow]) => flow.steps.some(s => s.to === undefined)), 'no step where a shape acts on its own')
+})
+
+test('every state is shown by a flow, and a shape that holds one in a state shows that at the overview', () => {
+  const whole = modelOf(state)
+  const shown = new Set<string>()
+  let inside = 0
+  for (const [, flow] of flowList) {
+    for (const raw of [flow.states, ...flow.steps.map(s => s.states)]) for (const state of Object.values(readStates(raw))) shown.add(state)
+    const stops = stopsOf(flow)
+    stops.forEach((_, k) => {
+      for (const mark of Object.values(marksOf(whole, statesAt(flow, stops, k)))) if (mark.inside) inside++
+    })
+  }
+  for (const name of STATE_NAMES) assert.ok(shown.has(name), `no flow puts a shape in "${name}": add a step to docs/showcase`)
+  assert.ok(inside > 0, 'no stop shows a shape that only holds a shape in a state')
 })
 
 test('the run has every load effect, and the strongest level shows each one', () => {

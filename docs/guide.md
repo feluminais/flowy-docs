@@ -393,6 +393,70 @@ stay. A flow with none of these keys reads, plays and exports exactly as it did.
 Claude's `put_flow` takes `groups` and a step's `group`, `lane` and `flow` (a `times` may be a number there), and its instructions say when
 to reach for each. Edit mode has fields for all of them (see above).
 
+## Shape states
+
+A shape is Running unless a flow says otherwise. A step can say that a shape is coming up, shutting down, off, restarting or not well, and the shape shows it from that step until another step changes it.
+
+![Stripe restarting beside Order API, with a key under the progress bar naming Restarting and Degraded inside](images/desktop-states.png)
+
+| State | Means | On the canvas |
+| --- | --- | --- |
+| Running | Up and serving | Nothing is drawn |
+| Starting | Coming up, not ready | Dimmed, with a dotted outline that circles |
+| Stopping | Draining or shutting down | The outline drains and the shape dims |
+| Stopped | Off | Dimmed and grey, with a dashed outline and a power symbol |
+| Restarting | Down and coming back | Dimmed, with a short arc circling the outline |
+| Degraded | Up but not well | A slow pulse in the warning colour, with a warning triangle |
+
+The file holds the lowercase word. A step's `states` maps shape ids to states. Plum's
+[stripe-outage](demo/flowy/flows/stripe-outage.yaml) uses all six:
+
+```yaml
+name: Stripe goes down and comes back
+view: ordering
+steps:
+  - { from: order-api, to: stripe, text: The hold is slow while Stripe shuts down, animation: call, states: { stripe: stopping } }
+  - { from: checkout, to: stripe, text: The hold times out, animation: { kind: call, outcome: timeout }, states: { stripe: stopped } }
+  - { from: checkout, to: customer-app, text: Offers pay at the door, states: { checkout: degraded } }
+  - { from: order-api, to: stripe, text: The status page says Stripe is restarting, animation: call, states: { stripe: restarting } }
+  - { from: order-api, to: stripe, text: The next check finds it coming back up, animation: call, states: { stripe: starting } }
+  - { from: checkout, to: stripe, text: The hold goes through, animation: call, states: { stripe: running, checkout: running } }
+```
+
+- A flow's own `states` say where shapes stand before step 1: `states: { stripe: starting }`. Left out, every shape starts Running.
+- A step's change holds from that stop until another step changes it, so set a shape back to `running` when it recovers. The state at any stop is worked out from the start and the steps before it, which means stepping back needs no undo and no timer.
+- In a parallel stop every lane's change applies, and two lanes that set one shape to different states are a problem. In a branch each lane starts from the state before the branch, and the last lane's changes carry on after it. If a shape's state after a branch matters, set it again in the next step.
+- A flow that another flow opens starts from its own `states`, not from where the first one left off.
+- At the overview, a shape with no state of its own shows the worst state of what is inside it (Stopped, then Restarting, Degraded, Stopping, Starting) on a dashed ring that reads "Stopped inside". A state of its own shows instead.
+- The player card has a key for the states on the canvas now, and Details names the state of the shape it shows. A change takes about 0.6 seconds. Starting and Restarting keep moving, and Degraded pulses, for as long as they are on screen. Nothing moves when the system asks for less motion; the dimming, outline and symbol stay.
+
+Flowy checks it as it checks everything else: an id that isn't a shape, a word that isn't one of the six, `states` that isn't a mapping of ids to words, and two lanes of one parallel stop that disagree. A change that deletes a shape that only a `states` names is refused, as it is for a step's shape.
+
+**Elsewhere in Flowy.** In edit mode a step's form has a **State** section with a row of drawn tiles (None, then the six) for each end of the step, and a pick is one edit; a flow's starting states are written in the file or by Claude. Claude's `put_flow` takes `states` on the flow and on each step, and its instructions say to use them where the story really takes a shape down, brings it up or hurts it. Mermaid writes a note over the shape with the state's name:
+
+```mermaid
+sequenceDiagram
+  participant n0 as Order API
+  participant n1 as Stripe
+  participant n2 as Customer app
+  participant n3 as Checkout
+  n0->>n1: The hold is slow while Stripe shuts down
+  Note over n1: Stopping
+  n0->>n1: The hold times out
+  Note over n1: Stopped
+  n0->>n2: Offers pay at the door
+  Note over n3: Degraded
+  n0->>n1: The status page says Stripe is restarting
+  Note over n1: Restarting
+  n0->>n1: The next check finds it coming back up
+  Note over n1: Starting
+  n0->>n1: The hold goes through
+  Note over n1: Running
+  Note over n3: Running
+```
+
+A flow with no `states` reads, plays and exports exactly as it did.
+
 ## Performance
 
 A run is a load test, summarised: for each load that was tested, what each shape and each connection measured. It lives in

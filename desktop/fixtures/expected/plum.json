@@ -1256,6 +1256,101 @@
           "ends": "Notifications → Twilio"
         }
       ]
+    },
+    {
+      "id": "stripe-outage",
+      "name": "Stripe goes down and comes back",
+      "view": "ordering",
+      "steps": [
+        {
+          "from": "order-api",
+          "to": "stripe",
+          "text": "The hold is slow while Stripe shuts down",
+          "animation": "call",
+          "states": {
+            "stripe": "stopping"
+          },
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Order API → Stripe"
+        },
+        {
+          "from": "checkout",
+          "to": "stripe",
+          "text": "The hold times out",
+          "description": "Checkout waits five seconds for the hold and gets no answer. It does not retry while Stripe is down.\n",
+          "animation": {
+            "kind": "call",
+            "outcome": "timeout"
+          },
+          "states": {
+            "stripe": "stopped"
+          },
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Checkout in Order API → Stripe"
+        },
+        {
+          "from": "checkout",
+          "to": "customer-app",
+          "text": "Offers pay at the door",
+          "states": {
+            "checkout": "degraded"
+          },
+          "placed": [
+            "order-api",
+            "customer-app"
+          ],
+          "ends": "Checkout in Order API → Customer app"
+        },
+        {
+          "from": "order-api",
+          "to": "stripe",
+          "text": "The status page says Stripe is restarting",
+          "animation": "call",
+          "states": {
+            "stripe": "restarting"
+          },
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Order API → Stripe"
+        },
+        {
+          "from": "order-api",
+          "to": "stripe",
+          "text": "The next check finds it coming back up",
+          "animation": "call",
+          "states": {
+            "stripe": "starting"
+          },
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Order API → Stripe"
+        },
+        {
+          "from": "checkout",
+          "to": "stripe",
+          "text": "The hold goes through",
+          "animation": "call",
+          "states": {
+            "stripe": "running",
+            "checkout": "running"
+          },
+          "placed": [
+            "order-api",
+            "stripe"
+          ],
+          "ends": "Checkout in Order API → Stripe"
+        }
+      ]
     }
   ],
   "problems": [],

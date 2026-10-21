@@ -137,6 +137,8 @@ it as `loop`, `alt` and `par` blocks. The format is in [the guide](docs/guide.md
 [capture-payment](docs/demo/flowy/flows/capture-payment.yaml) retries a charge and branches on the outcome, and
 [announce-order](docs/demo/flowy/flows/announce-order.yaml) tells two readers at once and opens Delivery's flow.
 
+A shape can also be Starting, Stopping, Stopped, Restarting or Degraded. A step's `states` change it, the change holds until a later step changes it again, and Flowy animates the move. Plum's [stripe-outage](docs/demo/flowy/flows/stripe-outage.yaml) uses all six, and [the guide](docs/guide.md#shape-states) has the format.
+
 ## Performance
 
 ![The Delivery view at 900 orders a minute: Dispatch is outlined red and Live tracking yellow-green, dots run along the lines, and the Performance panel on the right has the load slider, where it first struggles, a latency curve and Dispatch's numbers](docs/images/desktop-performance.png)

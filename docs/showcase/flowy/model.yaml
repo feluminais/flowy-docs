@@ -23,6 +23,13 @@ objects:
       One shape for each thing a load test can show, named for what it shows.
 
       Open the Performance tab (**T**), pick **Every load effect**, then press **Ramp** or step the levels with the arrow keys.
+  states:
+    type: system
+    name: Shape states
+    description: |
+      One shape that goes through every state, and one that holds another shape in a state.
+
+      Play **Every state** to watch a shape start, run, degrade, stop, restart and run again, and **State inside a shape** to see a shape show that something inside it is not running.
   send-from:
     type: app
     in: steps
@@ -241,6 +248,26 @@ objects:
     in: rolled-up
     name: Rolled up · B
     description: Waits for 10 calls at every load, and gets less busy as the load goes up, from 50% to 30%.
+  states-caller:
+    type: app
+    in: states
+    name: State · caller
+    description: Calls the other shapes. It is always running.
+  states-service:
+    type: app
+    in: states
+    name: State · service
+    description: Goes through every state, one step at a time.
+  states-holder:
+    type: app
+    in: states
+    name: State · holder
+    description: Holds a part. Shows a ring with a dashed edge while the part is in a state and it has none of its own.
+  states-part:
+    type: component
+    in: states-holder
+    name: State · part
+    description: The part. Its state shows on the holder at the overview.
 connections:
   - from: send-from
     to: send-to
@@ -322,4 +349,10 @@ connections:
     label: calls
   - from: load
     to: rolled-b
+    label: calls
+  - from: states-caller
+    to: states-service
+    label: calls
+  - from: states-caller
+    to: states-holder
     label: calls
