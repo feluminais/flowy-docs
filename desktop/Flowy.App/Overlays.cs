@@ -111,59 +111,10 @@ internal sealed class SearchBox : Border
     }
 }
 
-/// <summary>What ? opens: the keyboard shortcuts, as the key handler of the reader has them.</summary>
+/// <summary>What ? opens: the keyboard shortcuts, read from the same <see cref="KeyMap"/> entries the reader answers keys with.</summary>
 internal sealed class ShortcutsCard : Border
 {
-    private static readonly (string, string)[] Reading =
-    [
-        ("Enter", "Open the selected shape"),
-        ("Esc", "Close what's open, then go up a level. The navigator closes only if your last click was in it"),
-        ("Backspace  Z", "Zoom out: go up a level"),
-        ("Ctrl+K  /", "Find a shape"),
-        ("F", "Fit the view"),
-        ("L", "Show every flow, and play one"),
-        ("O", "Show everything as a tree"),
-        ("T", "Show a load-test run on the diagram, where there is one"),
-        ("M", "Show how things fail, worst first"),
-        ("E", "Edit mode on and off"),
-        ("?", "Show these shortcuts"),
-    ];
-
-    private static readonly (string, string)[] Flows =
-    [
-        ("→  ←", "Next and previous step"),
-        ("Home  End", "First and last step"),
-        ("P", "Step through the flow on its own, or pause"),
-        ("R", "Replay the step"),
-        ("Esc", "Stop the flow"),
-    ];
-
-    private static readonly (string, string)[] Performance =
-    [
-        ("→  ←", "Next and previous tested level"),
-        ("Home  End", "First and last tested level"),
-        ("P", "Ramp the load or play the time, or pause"),
-        ("Esc", "Close the panel"),
-    ];
-
-    private static readonly (string, string)[] Failing =
-    [
-        ("→  ←", "Next and previous failure"),
-    ];
-
-    private static readonly (string, string)[] Editing =
-    [
-        ("N", "Add a shape here"),
-        ("Ctrl+click  Shift+click", "Add a shape to the selection, or take it out"),
-        ("Shift+drag", "Draw a box round shapes to select them"),
-        ("Ctrl+A", "Select every shape in this view"),
-        ("Delete", "Delete the selected shapes or line"),
-        ("Ctrl+Z", "Undo the last change"),
-        ("Esc  Backspace", "Straight after dragging a shape: take the drag back"),
-        ("Ctrl+Y  Ctrl+Shift+Z", "Redo"),
-    ];
-
-    public ShortcutsCard(Action close, bool performance = false, bool failures = false)
+    public ShortcutsCard(Action close, KeyState state)
     {
         Classes.Add("card");
         HorizontalAlignment = HorizontalAlignment.Center;
@@ -172,11 +123,8 @@ internal sealed class ShortcutsCard : Border
         Margin = new Thickness(16, 12);
         var column = new StackPanel { Spacing = 4 };
         column.Children.Add(new TextBlock { Text = "Keyboard shortcuts", FontSize = 17, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 0, 32, 0) });
-        AddGroup(column, Icons.Search, "Getting around", Reading);
-        AddGroup(column, Icons.Play, "Flows", Flows);
-        if (performance) AddGroup(column, Icons.Activity, "Performance", Performance);
-        if (failures) AddGroup(column, Icons.Bolt, "Failures", Failing);
-        AddGroup(column, Icons.Pencil, "In edit mode", Editing);
+        foreach (var group in Enum.GetValues<HelpGroup>())
+            if (KeyMap.Shows(group, state)) AddGroup(column, IconOf(group), KeyMap.Title(group), KeyMap.Rows(group));
         var closeButton = new Button { Content = Icons.Make(Icons.Close, "closeicon", 16), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top };
         closeButton.Classes.Add("close");
         closeButton.Click += (_, _) => close();
@@ -185,24 +133,25 @@ internal sealed class ShortcutsCard : Border
         Avalonia.Automation.AutomationProperties.SetName(this, "Keyboard shortcuts");
     }
 
-    private static void AddGroup(StackPanel into, string icon, string title, (string Key, string What)[] keys)
+    private static string IconOf(HelpGroup group) => group switch
+    {
+        HelpGroup.Reading => Icons.Search,
+        HelpGroup.Flows => Icons.Play,
+        HelpGroup.Performance => Icons.Activity,
+        HelpGroup.Failures => Icons.Bolt,
+        _ => Icons.Pencil,
+    };
+
+    private static void AddGroup(StackPanel into, string icon, string title, IReadOnlyList<(string Key, string What)> keys)
     {
         var heading = Chrome.Section(icon, title);
         heading.Margin = new Thickness(2, 12, 0, 4);
         into.Children.Add(heading);
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(new GridLength(170)), new ColumnDefinition(GridLength.Star)], RowSpacing = 6, ColumnSpacing = 14 };
-        for (var i = 0; i < keys.Length; i++)
+        for (var i = 0; i < keys.Count; i++)
         {
             grid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-            // Two spaces between keys that do the same thing: each is its own cap.
-            var caps = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
-            foreach (var name in keys[i].Key.Split("  "))
-            {
-                var cap = new Border { Child = new TextBlock { Text = name, FontSize = 12, FontFamily = new FontFamily("Cascadia Mono, Consolas, Menlo, monospace") } };
-                cap.Classes.Add("kbd");
-                caps.Children.Add(cap);
-            }
-            var key = caps;
+            var key = KeyCaps.Of(keys[i].Key); // two spaces between keys that do the same thing: each is its own cap
             var what = new TextBlock { Text = keys[i].What, TextWrapping = TextWrapping.Wrap };
             Grid.SetRow(key, i);
             Grid.SetRow(what, i);

@@ -129,7 +129,7 @@ internal sealed partial class ReaderView
             _ => null,
         };
         _perf.EnsurePlaces();
-        _perfPanel.Show(model, view, folder.Runs!, folder.RunProblems ?? [], PerfView.ActiveRun(folder.Runs!, _perf.RunId), _perf.Pos, _perf.Ramping, Still, selection, Several is null ? null : _perf.Places, _perf.Active);
+        _perfPanel.Show(new PerfPanelModel(model, view, folder.Runs!, folder.RunProblems ?? [], PerfView.ActiveRun(folder.Runs!, _perf.RunId), _perf.Pos, _perf.Ramping, Still, selection, Several is null ? null : _perf.Places, _perf.Active));
         _panel.ShowControl(_perfPanel, "perf");
     }
 
