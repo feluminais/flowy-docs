@@ -13,7 +13,8 @@ namespace Flowy.App.Canvas;
 /// particle's place is a lookup. Where its line runs behind a shape that is not one of its ends, or under a label, a particle is still drawn, going faint
 /// and a little smaller as it goes behind and back as it comes out, so the flow reads through what covers it. A run's source sets the particles' colour and
 /// size (a line's <c>Color</c> and <c>Radius</c>), and a line that says how its failing share fails draws a lost call as a ring where it pops and a rejected
-/// one as a call that stops at a bar at the end of the line and comes back in the danger tone. Reduced motion draws none: the canvas leaves this empty then.
+/// one as a call that stops at a bar at the end of the line and comes back in the danger tone. A line that several sources share has a stream for each (a line's
+/// <c>Source</c>), drawn in that source's colour and running a little to its side of the path (its <c>Offset</c>). Reduced motion draws none: the canvas leaves this empty then.
 /// </summary>
 internal sealed class TrafficLayer : Control
 {
@@ -24,7 +25,7 @@ internal sealed class TrafficLayer : Control
 
     private List<Drawn> _lines = [];
     private IReadOnlyList<CoreRect> _labels = [];
-    private readonly Dictionary<(string, string), ParticleStream> _streams = [];
+    private readonly Dictionary<(string, string, string?), ParticleStream> _streams = [];
     private Viewport _viewport = new(0, 0, 1);
     private bool _running;
     private DateTime _last;
@@ -62,18 +63,22 @@ internal sealed class TrafficLayer : Control
     {
         _labels = labels;
         var drawn = new List<Drawn>();
+        // The sources that share a line are entries of one path: it is worked out once, however many there are.
+        var paths = new Dictionary<(string, string), FlatLine?>();
         foreach (var line in lines)
         {
-            if (pathOf(line) is not { } path) continue;
-            if (!_streams.TryGetValue((line.From, line.To), out var stream))
+            if (!paths.TryGetValue((line.From, line.To), out var found)) paths[(line.From, line.To)] = found = pathOf(line);
+            if (found is not { } path) continue;
+            var key = (line.From, line.To, line.Source);
+            if (!_streams.TryGetValue(key, out var stream))
             {
-                _streams[(line.From, line.To)] = stream = new ParticleStream();
+                _streams[key] = stream = new ParticleStream();
                 for (double t = 0; t < line.TravelMs; t += 32) Flowy.Core.Particles.Advance(stream, line, 32, Rand);
             }
             drawn.Add(new Drawn(line, path, stream, shapes.Where(s => s.Id != line.From && s.Id != line.To).ToList()));
         }
         _lines = drawn;
-        foreach (var key in _streams.Keys.Where(k => !drawn.Any(d => (d.Line.From, d.Line.To) == k)).ToList()) _streams.Remove(key);
+        foreach (var key in _streams.Keys.Where(k => !drawn.Any(d => (d.Line.From, d.Line.To, d.Line.Source) == k)).ToList()) _streams.Remove(key);
         if (drawn.Count == 0) Stop();
         else Start();
         InvalidateVisual();
@@ -165,11 +170,23 @@ internal sealed class TrafficLayer : Control
             var radius = (2.2 + d.Line.Width / 2) * (d.Line.Radius ?? 1) / _viewport.Zoom; // a few pixels on screen, whatever the zoom, and bigger or smaller where the run's size says
             var ramp = radius * 2; // how far either side of an outline a particle takes to go from clear to well behind
             var tone = Tint(d.Line.Color, ok);
+            // Sources that share a line run a little apart, to either side of it, by steps of a usual dot and its room: so two on one path don't hide each other.
+            var aside = (d.Line.Offset ?? 0) * (2.2 + d.Line.Width / 2) / _viewport.Zoom * 2.4;
             var bar = 0.0; // how strongly the bar at the end of a rejected line shows: the strongest of its particles
             foreach (var m in d.Stream.Motes)
             {
                 var look = Flowy.Core.Particles.Look(m, d.Line.Failure);
                 var (x, y) = PathPoints.PointAt(d.Path, look.At);
+                if (aside != 0)
+                {
+                    // To the side of the path, by its direction a little either way along it.
+                    var (ax, ay) = PathPoints.PointAt(d.Path, look.At - 0.02);
+                    var (bx, by) = PathPoints.PointAt(d.Path, look.At + 0.02);
+                    var span = Math.Sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
+                    if (span == 0) span = 1;
+                    x += -(by - ay) / span * aside;
+                    y += (bx - ax) / span * aside;
+                }
                 if (look.Bar is { } strength && strength > bar) bar = strength;
                 var (ghostAlpha, scale) = Flowy.Core.Particles.Ghost(BehindOf(d.Behind, _labels, x, y, ramp));
                 var r = radius * scale;

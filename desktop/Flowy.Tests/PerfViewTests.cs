@@ -403,6 +403,7 @@ public class PerfViewTests
             for (var d = 0; d < dials.Count; d++)
             {
                 Assert.Equal(shown[d]!["top"]!.GetValue<int>(), PerfView.DialTop(dials[d]));
+                foreach (var s in shown[d]!["slide"]!.AsArray()) Assert.Equal(D(s!["to"]), PerfView.SlideDial(dials[d], D(s["value"])));
                 Same(shown[d]!["ticks"], Ticks(PerfView.DialTicks(dials[d])), $"{id} {dials[d].Id}: the labels under it");
                 Same(shown[d]!["few"], Ticks(PerfView.DialTicks(dials[d], 2)), $"{id} {dials[d].Id}: fewer labels");
                 foreach (var b in shown[d]!["brackets"]!.AsArray())

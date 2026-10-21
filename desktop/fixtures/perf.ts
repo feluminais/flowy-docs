@@ -11,7 +11,7 @@ import {
 import type { Dial, Metrics, Run, Setting } from '../../src/core/perf.ts'
 import { nameOf } from '../../src/core/views.ts'
 import {
-  activeRun, activeSeries, bracketOf, BOX_KEYS, boxAt, boxSeries, boxSeriesIn, dialTicks, dialTop, edgeActive, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, positionsOf, rampActive, rampFromActive, settingOf, stepActive, stepFrom, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
+  activeRun, activeSeries, bracketOf, BOX_KEYS, boxAt, boxSeries, boxSeriesIn, dialTicks, dialTop, edgeActive, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, positionsOf, rampActive, rampFromActive, settingOf, slideDial, stepActive, stepFrom, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
 } from '../../ui/src/perfview.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -654,6 +654,7 @@ function dumpDials(model: Model) {
       dials: dials.map(d => ({
         id: d.id, top: dialTop(d), ticks: dialTicks(d), few: dialTicks(d, 2),
         brackets: [-1, 0, 0.25, 1, 1.5, dialTop(d), 99].map(pos => ({ pos, ...bracketOf(d, pos) })),
+        slide: [-1, 0.4, 0.5, 1.6, 99].map(value => ({ value, to: slideDial(d, value) })),
       })),
       sets: sets(dials.map(dialTop)).map(positions => {
         const setting = settingOf(dials, positions)
