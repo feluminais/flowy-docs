@@ -1,0 +1,6 @@
+name: Customer checks out
+view: shop
+steps:
+  - { from: customer, to: web, text: Clicks Buy }
+  - { from: web, to: api, text: Posts the order }
+  - { from: api, to: db, text: Saves the order }
