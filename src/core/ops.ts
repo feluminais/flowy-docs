@@ -168,6 +168,12 @@ export function relabel(model: Model, which: ConnectionInput, label: string): Mo
   return { ...model, connections: model.connections.with(i, label ? { ...model.connections[i], label } : rest) }
 }
 
+/** An animation with its numbers (share, at) as text, which is how a file holds them: a number cannot be written. Anything else is left for the checker. */
+function animationAsText(animation: unknown): unknown {
+  if (typeof animation !== 'object' || animation === null || Array.isArray(animation)) return animation
+  return Object.fromEntries(Object.entries(animation).map(([key, value]) => [key, (key === 'share' || key === 'at') && typeof value === 'number' ? String(value) : value]))
+}
+
 /** Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. */
 export function putFlow(model: Model, { id, name, view, steps, groups }: FlowInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid flow id: ${ID_RULE}`)
@@ -177,7 +183,8 @@ export function putFlow(model: Model, { id, name, view, steps, groups }: FlowInp
   // A blank detail is no detail, as on the canvas, so the file stays as short as it can be.
   const copy = (s: Step): Step => {
     const { description, ...rest } = s
-    return typeof description === 'string' && !description.trim() ? rest as Step : { ...s }
+    const step = typeof description === 'string' && !description.trim() ? rest as Step : { ...s }
+    return 'animation' in step ? { ...step, animation: animationAsText(step.animation) } : step
   }
   // On disk a number is text, like every value: `times: 3` reads back as "3". No groups, or an empty set, writes no `groups:`.
   const text = (g: GroupInput): Group => (typeof g.times === 'number' ? { ...g, times: String(g.times) } : g) as Group

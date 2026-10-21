@@ -270,6 +270,19 @@ test('a step keeps its animation through putFlow and updateFlow', () => {
   assert.deepEqual(edited.flows.tagged.steps[0], { from: 'customer', to: 'web', text: 'Taps', animation: 'call' })
 })
 
+test('putFlow writes the numbers of an animation as text, and keeps the other keys of the new outcomes as they are', () => {
+  const steps = [
+    { from: 'customer', to: 'web', text: 'Pings', animation: { kind: 'send', outcome: 'lost', share: 30, at: 0.4, reason: 'Packet dropped' } },
+    { from: 'web', to: 'api', text: 'Is read', animation: { kind: 'call', outcome: 'intercepted', by: { name: 'Café wifi proxy' } } },
+  ]
+  const put = putFlow(shop(), { id: 'losing', name: 'Losing', view: 'shop', steps })
+  assert.deepEqual(put.flows.losing.steps[0].animation, { kind: 'send', outcome: 'lost', share: '30', at: '0.4', reason: 'Packet dropped' })
+  assert.deepEqual(put.flows.losing.steps[1], steps[1])
+  const plain = putFlow(shop(), { id: 'plain', name: 'Plain', view: 'shop', steps: [{ from: 'customer', to: 'web', text: 'Clicks', animation: 'call' }, { from: 'web', to: 'api', text: 'Posts' }] })
+  assert.deepEqual(plain.flows.plain.steps, [{ from: 'customer', to: 'web', text: 'Clicks', animation: 'call' }, { from: 'web', to: 'api', text: 'Posts' }])
+  assert.equal('animation' in plain.flows.plain.steps[1], false)
+})
+
 test('a step keeps its outcome, key for key, through putFlow and updateFlow', () => {
   const steps = [
     { from: 'customer', to: 'web', text: 'Clicks', animation: { kind: 'call', outcome: 'timeout' } },
