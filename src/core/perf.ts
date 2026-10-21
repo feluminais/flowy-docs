@@ -30,6 +30,8 @@ export type Pair = Metrics & { from: string; to: string; failure?: Failure; by?:
  * 0, unused). The levelAt of a run with several sources gives `loads` too, as the setting it was worked out at.
  */
 export type Level = { load: number; loads?: Record<string, number>; overall: Metrics; objects: Record<string, Metrics>; connections: Pair[] }
+/** Where each dial of a run stands: a load for each, by the dial's id (a run with one source has one dial, with the id ''). See dialsOf and levelAt. */
+export type Setting = Record<string, number>
 /**
  * A formula as the run wrote it. Only the text is kept: a run travels to the browser as JSON, which drops anything but data, so the formula is read
  * from the text where it is used (see formulaOf). parseRun has already checked that the text reads.
@@ -759,15 +761,17 @@ export function rollUp(model: Model, level: Level, view: string): { objects: Rec
     if (!ends) continue
     const key = JSON.stringify(ends)
     const so = lines.get(key)
-    const size = sizes.get(key) ?? { weighted: 0, weight: 0, sum: 0, n: 0, failures: [] }
+    const size: Sizes = sizes.get(key) ?? { ...newMean(), failures: [], by: new Map() }
     sizes.set(key, size)
-    if (c.bytes !== undefined) {
-      size.sum += c.bytes
-      size.n++
-      if (c.rate !== undefined) {
-        size.weighted += c.bytes * c.rate
-        size.weight += c.rate
-      }
+    takeBytes(size, c)
+    // What each source carries on the line is rolled up the same way, source by source.
+    for (const [sid, m] of Object.entries(c.by ?? {})) {
+      const share = size.by.get(sid) ?? newShare()
+      size.by.set(sid, share)
+      share.rate = either(share.rate, m.rate, add)
+      share.p50 = either(share.p50, m.p50, Math.max)
+      share.errors = either(share.errors, m.errors, Math.max)
+      takeBytes(share, { bytes: m.bytes, rate: m.rate })
     }
     if (c.failure !== undefined && !size.failures.includes(c.failure)) size.failures.push(c.failure)
     lines.set(key, {
@@ -778,18 +782,45 @@ export function rollUp(model: Model, level: Level, view: string): { objects: Rec
   return { objects, lines: [...lines].map(([key, line]) => withSizes(line, sizes.get(key)!)) }
 }
 
-/** What the connections that land on one line say about the size of a call and how its failing share fails, as rollUp collects them. */
-type Sizes = { weighted: number; weight: number; sum: number; n: number; failures: Failure[] }
+/** The sizes of calls seen so far, for a mean that is weighted by rate (`weighted` over `weight`) or, with no rates, plain (`sum` over `n`). */
+type Mean = { weighted: number; weight: number; sum: number; n: number }
+const newMean = (): Mean => ({ weighted: 0, weight: 0, sum: 0, n: 0 })
+/** The size of a call a connection gives, if it gives one, counted into `mean`; the rate it gives is its weight. */
+function takeBytes(mean: Mean, c: { bytes?: number; rate?: number }) {
+  if (c.bytes === undefined) return
+  mean.sum += c.bytes
+  mean.n++
+  if (c.rate !== undefined) {
+    mean.weighted += c.bytes * c.rate
+    mean.weight += c.rate
+  }
+}
+/** The mean size of a call: weighted by rate (a connection with no rate has no weight); with no rates at all it is the plain mean; none given is none. */
+const meanBytes = (mean: Mean): number | undefined => (mean.weight > 0 ? mean.weighted / mean.weight : mean.n > 0 ? mean.sum / mean.n : undefined)
+
+/** What one source carries on a line, as rollUp collects it from the connections that land there. */
+type Share = Mean & { rate?: number; p50?: number; errors?: number }
+const newShare = (): Share => newMean()
+
+/** What the connections that land on one line say about the size of a call, how its failing share fails and what each source carries, as rollUp collects them. */
+type Sizes = Mean & { failures: Failure[]; by: Map<string, Share> }
 
 /**
  * A rolled-up line with its size of a call and how it fails. Bytes is the mean of the connections that give one, weighted by their rates
  * (a connection with no rate has no weight; with no rates at all it is the plain mean). The failure style is the one the connections that name one
- * agree on; if they differ there is none, and a connection that names none doesn't veto.
+ * agree on; if they differ there is none, and a connection that names none doesn't veto. What each source carries (`by`) is put together the same way.
  */
 function withSizes(line: Pair, size: Sizes): Pair {
-  const bytes = size.weight > 0 ? size.weighted / size.weight : size.n > 0 ? size.sum / size.n : undefined
   const { from, to, rate, p50, p95, errors } = line
-  return { from, to, ...defined({ rate, bytes, p50, p95, errors }), ...(size.failures.length === 1 ? { failure: size.failures[0] } : {}) }
+  const by: Record<string, Metrics> = {}
+  for (const [sid, s] of size.by) {
+    const m = defined({ rate: s.rate, bytes: meanBytes(s), p50: s.p50, errors: s.errors })
+    if (Object.keys(m).length > 0) put(by, sid, m)
+  }
+  return {
+    from, to, ...defined({ rate, bytes: meanBytes(size), p50, p95, errors }),
+    ...(size.failures.length === 1 ? { failure: size.failures[0] } : {}), ...(Object.keys(by).length > 0 ? { by } : {}),
+  }
 }
 
 /** A shape this strained is "struggling" (see knee). */
@@ -797,10 +828,26 @@ export const KNEE_STRAIN = 0.85
 /** Overall p95 this many times the lowest level's counts as latency giving way. */
 export const KNEE_LATENCY = 3
 
-/** Where a run first struggles: a tested level, and either the object that is worst there or, with none to blame, the latency. */
+/**
+ * Where a run first struggles: a tested level, and either the object that is worst there or, with none to blame, the latency. A run with several sources has no single
+ * load: its knee is a step of the sources rising together (`index`, from 0; see kneeOf) and `setting` says where each source stood (`load` is 0, unused).
+ */
 export type Knee =
-  | { index: number; load: number; by: { id: string; kind: 'util' | 'errors'; share: number } }
-  | { index: number; load: number; latency: { from: number; to: number } }
+  | { index: number; load: number; setting?: Setting; by: { id: string; kind: 'util' | 'errors'; share: number } }
+  | { index: number; load: number; setting?: Setting; latency: { from: number; to: number } }
+
+/** What gives out at a level: the object that is worst there if it is strained to KNEE_STRAIN, else the latency if the slowest 5% passed KNEE_LATENCY times `base`. */
+function struggle(level: Level, base: number | undefined): { by: { id: string; kind: 'util' | 'errors'; share: number } } | { latency: { from: number; to: number } } | undefined {
+  let worst: { id: string; kind: 'util' | 'errors'; share: number; value: number } | undefined
+  for (const [id, m] of Object.entries(level.objects)) {
+    const s = strain(m)
+    if (s && (worst === undefined || s.value > worst.value)) worst = { id, kind: s.by, share: s.share, value: s.value }
+  }
+  if (worst && worst.value >= KNEE_STRAIN) return { by: { id: worst.id, kind: worst.kind, share: worst.share } }
+  const p95 = level.overall.p95
+  if (base !== undefined && base > 0 && p95 !== undefined && p95 >= KNEE_LATENCY * base) return { latency: { from: base, to: p95 } }
+  return undefined
+}
 
 /**
  * The first tested level where an object's strain reaches KNEE_STRAIN, naming the worst one there; failing that, the
@@ -810,25 +857,23 @@ export type Knee =
 export function knee(run: Run): Knee | undefined {
   const base = run.levels[0].overall.p95
   for (const [index, level] of run.levels.entries()) {
-    let worst: { id: string; kind: 'util' | 'errors'; share: number; value: number } | undefined
-    for (const [id, m] of Object.entries(level.objects)) {
-      const s = strain(m)
-      if (s && (worst === undefined || s.value > worst.value)) worst = { id, kind: s.by, share: s.share, value: s.value }
-    }
-    if (worst && worst.value >= KNEE_STRAIN) return { index, load: level.load, by: { id: worst.id, kind: worst.kind, share: worst.share } }
-    const p95 = level.overall.p95
-    if (base !== undefined && base > 0 && p95 !== undefined && p95 >= KNEE_LATENCY * base) return { index, load: level.load, latency: { from: base, to: p95 } }
+    const found = struggle(level, base)
+    if (found) return { index, load: level.load, ...found }
   }
   return undefined
 }
 
 const pct = (n: number) => `${Math.round(n * 100)}%`
 
+/** What gives out, in words: "Fleet DB at 90% of capacity", "the slowest 5% of calls go from 100 ms to 420 ms". */
+function struggleText(k: Knee, nameOf: (id: string) => string): string {
+  if ('by' in k) return `${nameOf(k.by.id)} ${k.by.kind === 'util' ? `at ${pct(k.by.share)} of capacity` : `failing ${pct(k.by.share)} of calls`}`
+  return `the slowest 5% of calls go from ${Math.round(k.latency.from)} ms to ${Math.round(k.latency.to)} ms`
+}
+
 /** The sentence under the Performance tab's strip, for both readers. `nameOf` turns an object id into the name a reader sees. */
 export function kneeText(run: Run, k: Knee, nameOf: (id: string) => string): string {
-  const at = `${k.load} ${run.unit}`
-  if ('by' in k) return `First struggles at ${at}: ${nameOf(k.by.id)} ${k.by.kind === 'util' ? `at ${pct(k.by.share)} of capacity` : `failing ${pct(k.by.share)} of calls`}`
-  return `First struggles at ${at}: the slowest 5% of calls go from ${Math.round(k.latency.from)} ms to ${Math.round(k.latency.to)} ms`
+  return `First struggles at ${k.load} ${run.unit}: ${struggleText(k, nameOf)}`
 }
 
 export type BoxTraffic = { strain?: number; queue: number }
@@ -836,11 +881,13 @@ export type BoxTraffic = { strain?: number; queue: number }
  * How a line looks: how thick, how many particles a second, how long one takes to cross (ms), and the share of them that fail.
  * What a run's source adds is left out when it adds nothing, so a run without one is described as it always was: `color` (as written),
  * `radius` (times the usual dot's radius), `capped` (the count was scaled down to fit the screen), `failure` (how the failing share fails)
- * and `dots` (how many are on the line at once, once the `dot` formula has decided and the cap has had its say).
+ * and `dots` (how many are on the line at once, once the `dot` formula has decided and the cap has had its say). A line that several sources share has an entry
+ * for each of them: `source` is the dial it is for, and `offset` how far from the middle of the line (in steps of a dot's width, either side) its dots run, so that
+ * two sources on one path don't hide each other. A run with one source has neither.
  */
 export type LineTraffic = {
   from: string; to: string; width: number; perSecond: number; travelMs: number; failed: number
-  color?: string; radius?: number; capped?: true; failure?: Failure; dots?: number
+  color?: string; radius?: number; capped?: true; failure?: Failure; dots?: number; source?: string; offset?: number
 }
 export type Traffic = { boxes: Record<string, BoxTraffic>; lines: LineTraffic[] }
 
@@ -869,32 +916,41 @@ export function capCounts(counts: number[]): { counts: number[]; capped: boolean
 /** The crossing time of a line in ms: what its expected call says, in steps from half a second to four. A line with no p50 is a middling trip. */
 const travelOf = (p50: number | undefined): number => (p50 === undefined ? 1000 : Math.round(clamp(500 + 1000 * Math.log10(1 + p50 / 10), 500, 4000)))
 
-/** A line that carried `rate` calls a second. Starting values, tuned on the lab's run in phase 3; a screen can't draw 1000 particles a second, so these are logarithmic and capped. */
-function lineTraffic(l: Pair, rate: number, source: Source | undefined): LineTraffic {
+/** How many dots a source's `dot` formula puts on a line that carried `rate` calls a second, or undefined when it puts none (no formula, a missing number, a negative result). */
+function dotsFor(l: Pair, rate: number, source: Source | undefined): number | undefined {
+  const dot = source?.dot ? formulaOf(source.dot) : undefined
+  const count = dot ? evalFormula(dot, { rate, bytes: l.bytes, p50: l.p50 }) : undefined
+  return count !== undefined && count >= 0 ? count : undefined
+}
+
+/**
+ * A line that carried `rate` calls a second. Starting values, tuned on the lab's run in phase 3; a screen can't draw 1000 particles a second, so these are logarithmic and capped.
+ * `wide` is the rate that sets its thickness (a source's share of a shared line is as thick as the whole line), and `counted` is the count and the cap when
+ * several sources share the line and were scaled together (see sharedLines).
+ */
+function lineTraffic(l: Pair, rate: number, source: Source | undefined, wide = rate, counted?: { dots: number | undefined; capped: boolean }): LineTraffic {
   const errors = round2(l.errors ?? 0)
   const base: LineTraffic = {
     from: l.from,
     to: l.to,
-    width: round2(clamp(1.5 + 1.5 * Math.log10(1 + rate), 1.5, 6)),
+    width: round2(clamp(1.5 + 1.5 * Math.log10(1 + wide), 1.5, 6)),
     perSecond: rate > 0 ? round2(clamp(1.5 + 4 * Math.log10(1 + rate), 1.5, 14)) : 0,
     travelMs: travelOf(l.p50),
     failed: errors >= 0.01 ? Math.max(errors, 0.05) : errors,
   }
   if (source?.color !== undefined) base.color = source.color
   if (l.failure !== undefined) base.failure = l.failure
-  const vars = { rate, bytes: l.bytes, p50: l.p50 }
   // How many dots: the formula's count when it has a value (a missing number or a negative result leaves today's curve for this line).
-  const dot = source?.dot ? formulaOf(source.dot) : undefined
-  const count = dot ? evalFormula(dot, vars) : undefined
-  if (count !== undefined && count >= 0) {
-    const { counts, capped } = capCounts([count])
+  const count = counted ? counted.dots : dotsFor(l, rate, source)
+  if (count !== undefined) {
+    const { counts, capped } = counted ? { counts: [count], capped: counted.capped } : capCounts([count])
     // The count is dots on the line at once; the speed stays with p50, so dots start as often as they take to cross.
     base.perSecond = round2(counts[0] / (base.travelMs / 1000))
     base.dots = round2(counts[0])
     if (capped) base.capped = true
   }
   const size = source?.size ? formulaOf(source.size) : undefined
-  const area = size ? evalFormula(size, vars) : undefined
+  const area = size ? evalFormula(size, { rate, bytes: l.bytes, p50: l.p50 }) : undefined
   if (area !== undefined && area >= 0) base.radius = round2(clamp(Math.sqrt(area), RADIUS_MIN, RADIUS_MAX))
   return base
 }
@@ -907,13 +963,21 @@ function lineTraffic(l: Pair, rate: number, source: Source | undefined): LineTra
  */
 export function traffic(model: Model, run: Run, load: number, view: string): Traffic {
   const { objects, lines } = rollUp(model, interpolate(run, load), view)
+  return { boxes: boxesOf(objects), lines: lines.flatMap(l => (l.rate === undefined ? [] : [lineTraffic(l, l.rate, run.source)])) }
+}
+
+/**
+ * What each shape looks like: its strain (0 green to 1 red, left out when nothing was measured) and its queue. A shape that is added past capacity (0.7 and 0.6 make 1.3) is as
+ * strained as one that is full: the colour stops at 1, and the readout says the rest.
+ */
+function boxesOf(objects: Record<string, Metrics>): Record<string, BoxTraffic> {
   const boxes: Record<string, BoxTraffic> = {}
   for (const [id, m] of Object.entries(objects)) {
     const s = strain(m)?.value
     if (s === undefined && m.queue === undefined) continue
-    put(boxes, id, { ...(s === undefined ? {} : { strain: round2(s) }), queue: Math.round(m.queue ?? 0) })
+    put(boxes, id, { ...(s === undefined ? {} : { strain: round2(Math.min(1, s)) }), queue: Math.round(m.queue ?? 0) })
   }
-  return { boxes, lines: lines.flatMap(l => (l.rate === undefined ? [] : [lineTraffic(l, l.rate, run.source)])) }
+  return boxes
 }
 
 /** The number in a scale, as short as it reads: 50, 0.5, 12.5, with the float noise of a division (3.0000000000000004) rounded off. */
@@ -924,7 +988,12 @@ const plain = (n: number): string => String(Number(n.toPrecision(6)))
  * words that is not true for every line is worse than none. Also undefined for a scale nobody reads (under a thousandth of a call or over a billion).
  */
 export function scaleText(run: Run): string | undefined {
-  const dot = run.source?.dot ? formulaOf(run.source.dot) : undefined
+  return sourceScale(run.source)
+}
+
+/** The scale in words of one source (see scaleText). */
+function sourceScale(source: Source | undefined): string | undefined {
+  const dot = source?.dot ? formulaOf(source.dot) : undefined
   const k = dot ? linearInRate(dot) : undefined
   if (k === undefined) return undefined
   const calls = 1 / k
@@ -946,4 +1015,297 @@ export function sourceKey(run: Run, lines: LineTraffic[]): { name: string; color
     bigger: lines.some(l => l.radius !== undefined),
     scaledDown: lines.some(l => l.capped === true),
   }
+}
+
+// ---- Several sources
+
+const own = <T>(record: Record<string, T> | undefined, key: string): T | undefined => (record !== undefined && Object.hasOwn(record, key) ? record[key] : undefined)
+/** The load a setting gives a dial; a dial it doesn't name is not a number. */
+const settingFor = (setting: Setting, id: string): number => (Object.hasOwn(setting, id) ? setting[id] : Number.NaN)
+/** A load kept inside a dial's tested range, as interpolate keeps it: nothing is extrapolated, and one that isn't a number is the lowest. */
+const keep = (d: Dial, x: number): number => (Number.isFinite(x) ? Math.min(d.values[d.values.length - 1], Math.max(d.values[0], x)) : d.values[0])
+
+/**
+ * The load at a position along a dial's tested loads: a tested load exactly at a whole number, a straight line between two in between. A position past either end is that end;
+ * one that isn't a number is the lowest.
+ */
+export function loadOfPosition(values: readonly number[], pos: number): number {
+  const top = values.length - 1
+  const p = Math.min(top, Math.max(0, Number.isFinite(pos) ? pos : 0))
+  const i = Math.min(top - 1, Math.floor(p))
+  return values[i] + (values[i + 1] - values[i]) * (p - i)
+}
+
+/** The setting that puts every dial at a position along its own loads (one position for each dial, in dial order). */
+export function settingAt(dials: readonly Dial[], positions: readonly number[]): Setting {
+  const out: Setting = {}
+  dials.forEach((d, i) => put(out, d.id, loadOfPosition(d.values, positions[i] ?? 0)))
+  return out
+}
+
+/**
+ * The steps of every dial rising together, from its lowest load to its highest: as many as the dial with the most loads has levels, less one. Step `i` puts a dial with `m`
+ * levels at position `i * (m - 1) / N`, so a dial with 3 levels and one with 5 meet at (0, 0), (0.5, 1), (1, 2), (1.5, 3) and (2, 4).
+ */
+export const lockstepTop = (dials: readonly Dial[]): number => Math.max(...dials.map(d => d.values.length)) - 1
+export const lockstepPositions = (dials: readonly Dial[], step: number): number[] => {
+  const n = lockstepTop(dials)
+  return dials.map(d => (n === 0 ? 0 : (step * (d.values.length - 1)) / n))
+}
+
+/** What several parts carry together on a line or overall: rates added, the worst latency and failing share, and the size of a call weighted by rate. */
+function foldEdges(items: Metrics[]): Metrics {
+  let sum: Metrics = {}
+  const mean = newMean()
+  for (const m of items) {
+    sum = defined({ rate: either(sum.rate, m.rate, add), p50: either(sum.p50, m.p50, Math.max), p95: either(sum.p95, m.p95, Math.max), errors: either(sum.errors, m.errors, Math.max) })
+    takeBytes(mean, m)
+  }
+  return defined({ ...sum, bytes: meanBytes(mean) })
+}
+
+/**
+ * Runs added together: every part is the level its run has at its own load, and what they say about one shape or line is put together. A shape's utilisation and queue add (they may
+ * pass 1: it reads as over capacity), its failing share is the worst; a line's rate adds, its latency and failing share are the worst, the size of a call is the mean weighted
+ * by rate, and `by` keeps what each part carried so its dots can be drawn in its colour and scale. This is an estimate: queues grow faster than a sum, so it looks calmer
+ * than the system would near its limit.
+ */
+function addLevels(parts: { id: string; level: Level }[], loads: Setting): Level {
+  const objects: Record<string, Metrics> = {}
+  for (const { level } of parts) {
+    for (const [oid, m] of Object.entries(level.objects)) {
+      const so = Object.hasOwn(objects, oid) ? objects[oid] : {}
+      put(objects, oid, defined({ util: either(so.util, m.util, add), errors: either(so.errors, m.errors, Math.max), queue: either(so.queue, m.queue, add) }))
+    }
+  }
+  const lines = new Map<string, { from: string; to: string; carried: { id: string; pair: Pair }[] }>()
+  for (const { id, level } of parts) {
+    for (const pair of level.connections) {
+      const key = JSON.stringify([pair.from, pair.to])
+      const line = lines.get(key) ?? { from: pair.from, to: pair.to, carried: [] }
+      lines.set(key, line)
+      line.carried.push({ id, pair })
+    }
+  }
+  const connections = [...lines.values()].map(({ from, to, carried }): Pair => {
+    const failures = [...new Set(carried.flatMap(({ pair }) => (pair.failure === undefined ? [] : [pair.failure])))]
+    const by: Record<string, Metrics> = {}
+    for (const { id, pair } of carried) {
+      const m = defined({ rate: pair.rate, bytes: pair.bytes, p50: pair.p50, errors: pair.errors })
+      if (Object.keys(m).length > 0) put(by, id, m)
+    }
+    return { from, to, ...foldEdges(carried.map(c => c.pair)), ...(failures.length === 1 ? { failure: failures[0] } : {}), ...(Object.keys(by).length > 0 ? { by } : {}) }
+  })
+  return { load: 0, loads, overall: foldEdges(parts.map(p => p.level.overall)), objects, connections }
+}
+
+/**
+ * A run tested together at a setting: the tested combinations around it, blended in proportion (a straight line along each source, so at the middle of a cell the mean of its
+ * corners). Nothing outside the grid is shown: a setting past an end is that end. A number comes out only when every corner that counts carries it, and a corner the setting is
+ * not in (weight 0) doesn't count, so a tested combination is exactly what was measured. How a failing share fails is the nearest corner's, as it is a kind, not a number.
+ */
+function blendGrid(run: Run, dials: Dial[], setting: Setting): Level {
+  const loads: Setting = {}
+  const cells = dials.map(d => {
+    const x = keep(d, settingFor(setting, d.id))
+    put(loads, d.id, x)
+    const last = d.values.length - 1
+    if (x >= d.values[last]) return { lo: last - 1, t: 1 }
+    let lo = 0
+    while (x >= d.values[lo + 1]) lo++
+    return { lo, t: (x - d.values[lo]) / (d.values[lo + 1] - d.values[lo]) }
+  })
+  const tested = new Map(run.levels.map(l => [JSON.stringify(dials.map(d => l.loads?.[d.id])), l] as const))
+  const corners: { w: number; level: Level }[] = []
+  for (let mask = 0; mask < 1 << dials.length; mask++) {
+    let w = 1
+    const picked = dials.map((d, i) => {
+      const up = (mask >> i) & 1
+      w *= up ? cells[i].t : 1 - cells[i].t
+      return d.values[cells[i].lo + up]
+    })
+    const level = tested.get(JSON.stringify(picked))
+    if (w !== 0 && level) corners.push({ w, level })
+  }
+  const blend = (pick: (l: Level) => Metrics | undefined, keys: readonly (keyof Metrics)[]): Metrics => {
+    const out: Metrics = {}
+    if (corners.length === 0) return out
+    for (const key of keys) {
+      let total = 0
+      let all = true
+      for (const { w, level } of corners) {
+        const v = pick(level)?.[key]
+        if (v === undefined) {
+          all = false
+          break
+        }
+        total += w * v
+      }
+      if (all) out[key] = total
+    }
+    return out
+  }
+
+  const objects: Record<string, Metrics> = {}
+  for (const oid of new Set(corners.flatMap(c => Object.keys(c.level.objects)))) {
+    const m = blend(l => own(l.objects, oid), OBJECT_KEYS)
+    if (Object.keys(m).length > 0) put(objects, oid, m)
+  }
+  const pairs = new Map<string, [string, string]>()
+  for (const { level } of corners) for (const c of level.connections) pairs.set(JSON.stringify([c.from, c.to]), [c.from, c.to])
+  const connections: Pair[] = []
+  for (const [from, to] of pairs.values()) {
+    const pick = (l: Level) => l.connections.find(c => c.from === from && c.to === to)
+    const m = blend(pick, EDGE_KEYS)
+    const by: Record<string, Metrics> = {}
+    for (const d of dials) {
+      const b = blend(l => own(pick(l)?.by, d.id), BY_KEYS)
+      if (Object.keys(b).length > 0) put(by, d.id, b)
+    }
+    let failure: Failure | undefined
+    let heaviest = 0
+    for (const { w, level } of corners) {
+      const f = pick(level)?.failure
+      if (f !== undefined && w > heaviest) {
+        heaviest = w
+        failure = f
+      }
+    }
+    if (Object.keys(m).length > 0 || Object.keys(by).length > 0)
+      connections.push({ from, to, ...m, ...(failure === undefined ? {} : { failure }), ...(Object.keys(by).length > 0 ? { by } : {}) })
+  }
+  return { load: 0, loads, overall: blend(l => l.overall, EDGE_KEYS), objects, connections }
+}
+
+/**
+ * The run at a setting, as a Level, whatever kind of run it is: one source is interpolate; runs added are each interpolated at their own load and put together; a run tested together
+ * is blended inside its grid. A load past a dial's tested range is that end, and one that isn't a number is the lowest. A run that can't be played (dialsOf says so) is an empty level.
+ * A level of several sources has `loads`, the setting it was worked out at.
+ */
+export function levelAt(runs: Record<string, Run>, id: string, setting: Setting): Level {
+  const found = dialsOf(runs, id)
+  if (!found) return { load: 0, overall: {}, objects: {}, connections: [] }
+  if (found.mode === 'single') return interpolate(runs[id], settingFor(setting, ''))
+  if (found.mode === 'tested') return blendGrid(runs[id], found.dials, setting)
+  const loads: Setting = {}
+  const parts = found.dials.map(d => {
+    const x = keep(d, settingFor(setting, d.id))
+    put(loads, d.id, x)
+    return { id: d.id, level: interpolate(runs[d.id], x) }
+  })
+  return addLevels(parts, loads)
+}
+
+/**
+ * Where a run first struggles. One source: knee. Several: every dial rises together from its lowest load to its highest, each along its own loads (see lockstepPositions), and
+ * the first step where a shape is strained to KNEE_STRAIN, or failing that the slowest 5% pass KNEE_LATENCY times what they were at the start, is the knee; its `setting` says
+ * where each source stood. Undefined when the run never struggles, and for a run that can't be played.
+ */
+export function kneeOf(runs: Record<string, Run>, id: string): Knee | undefined {
+  const found = dialsOf(runs, id)
+  if (!found) return undefined
+  if (found.mode === 'single') return knee(runs[id])
+  const { dials } = found
+  let base: number | undefined
+  for (let step = 0; step <= lockstepTop(dials); step++) {
+    const setting = settingAt(dials, lockstepPositions(dials, step))
+    const level = levelAt(runs, id, setting)
+    if (step === 0) base = level.overall.p95
+    const hit = struggle(level, base)
+    if (hit) return { index: step, load: 0, setting, ...hit }
+  }
+  return undefined
+}
+
+/** "A, B and C". */
+const joinAnd = (items: string[]): string => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)
+
+/**
+ * The knee in words. One source: kneeText, unchanged. Several: where each source stood, then what gave out ("First struggles with Customer orders at 300 orders/min and Courier
+ * pings at 100 pings/s: Fleet DB at 90% of capacity"). `nameOf` turns a shape id into the name a reader sees.
+ */
+export function kneeTextOf(runs: Record<string, Run>, id: string, k: Knee, nameOf: (id: string) => string): string {
+  const found = dialsOf(runs, id)
+  if (!found || found.mode === 'single') return kneeText(runs[id], k, nameOf)
+  const stood = found.dials.map(d => `${d.name} at ${round2(own(k.setting, d.id) ?? d.values[0])} ${d.unit}`)
+  return `First struggles with ${joinAnd(stood)}: ${struggleText(k, nameOf)}`
+}
+
+/** The colour of a line that no source is said to carry: neutral, so it is never mistaken for one of them. */
+export const OTHER_COLOR = 'gray'
+
+/**
+ * The traffic on one rolled-up line of a run with several sources: an entry for each source that carries something on it, in the colour, scale and size of that source. The sources
+ * on a line are scaled by one common factor when the busiest passes AT_ONCE, so a line of ten times the calls still reads as ten times the dots; they run a little apart, so two on one
+ * path don't hide each other. The line is as thick as everything it carries. A line the run doesn't split by source draws as it would for a run with no source, in a neutral colour.
+ */
+function sharedLines(l: Pair, dials: Dial[]): LineTraffic[] {
+  const split = dials.flatMap(d => {
+    const by = own(l.by, d.id)
+    return by === undefined ? [] : [{ dial: d, by }]
+  })
+  const carried = split.flatMap(s => (s.by.rate === undefined ? [] : [s.by.rate]))
+  const total = l.rate ?? (carried.length > 0 ? carried.reduce(add) : undefined)
+  if (split.length === 0) return l.rate === undefined ? [] : [{ ...lineTraffic(l, l.rate, undefined), color: OTHER_COLOR }]
+  if (total === undefined) return []
+  // A source's own numbers are its own. What it doesn't give is the line's where that is fair: the whole line when it is the only source named, the expected call always (it sets
+  // only how fast dots cross), and the failing share when no source gives one (then the line's is the best guess for each). Never another source's size or failing share.
+  const alone = split.length === 1
+  const anyErrors = split.some(s => s.by.errors !== undefined)
+  const rows = split.flatMap(({ dial, by }) => {
+    const rate = by.rate ?? (alone ? total : undefined)
+    if (rate === undefined) return []
+    const pair: Pair = {
+      from: l.from, to: l.to,
+      ...defined({ rate, bytes: by.bytes ?? (alone ? l.bytes : undefined), p50: by.p50 ?? l.p50, errors: by.errors ?? (alone || !anyErrors ? l.errors : undefined) }),
+      ...(l.failure === undefined ? {} : { failure: l.failure }),
+    }
+    return [{ dial, pair, rate, count: dotsFor(pair, rate, dial.source) }]
+  })
+  const capped = capCounts(rows.flatMap(r => (r.count === undefined ? [] : [r.count])))
+  let next = 0
+  return rows.map((r, i) => {
+    const counted = r.count === undefined ? undefined : { dots: capped.counts[next++], capped: capped.capped }
+    return {
+      ...lineTraffic(r.pair, r.rate, r.dial.source, total, counted),
+      color: r.dial.color, source: r.dial.id,
+      ...(rows.length > 1 ? { offset: i - (rows.length - 1) / 2 } : {}),
+    }
+  })
+}
+
+/**
+ * Everything the Performance tab draws for one view at a setting of a run's dials, as traffic is for one source: the same for a run with one source (it is traffic), and for runs
+ * with several the boxes of the combined level (strain stops at 1 however far over capacity they are added) and a line for each source on each line.
+ */
+export function trafficAt(model: Model, runs: Record<string, Run>, id: string, setting: Setting, view: string): Traffic {
+  const found = dialsOf(runs, id)
+  if (!found) return { boxes: {}, lines: [] }
+  if (found.mode === 'single') return traffic(model, runs[id], settingFor(setting, ''), view)
+  const { objects, lines } = rollUp(model, levelAt(runs, id, setting), view)
+  return { boxes: boxesOf(objects), lines: lines.flatMap(l => sharedLines(l, found.dials)) }
+}
+
+/** A source in the key: its name, the colour of its dots, its scale in words when its formula is a plain ratio of the rate and a line follows it, and whether any dot is bigger or smaller than usual. */
+export type KeyedSource = { id: string; name: string; color?: string; scale?: string; bigger: boolean }
+
+/**
+ * The pieces the Performance key draws for the sources, from the lines on screen now: a swatch and a name for each source that has a line, its scale and size where it has them, whether
+ * any line is scaled down to fit, and whether a line is drawn in the neutral colour (a line the run doesn't split by source). For one source it is what sourceKey says.
+ */
+export function sourceKeyAt(runs: Record<string, Run>, id: string, lines: LineTraffic[]): { sources: KeyedSource[]; scaledDown: boolean; other: boolean } {
+  const found = dialsOf(runs, id)
+  if (!found) return { sources: [], scaledDown: false, other: false }
+  if (found.mode === 'single') {
+    const k = sourceKey(runs[id], lines)
+    if (!k) return { sources: [], scaledDown: false, other: false }
+    return { sources: [{ id: '', name: k.name, ...(k.color === undefined ? {} : { color: k.color }), ...(k.scale === undefined ? {} : { scale: k.scale }), bigger: k.bigger }], scaledDown: k.scaledDown, other: false }
+  }
+  const sources = found.dials.flatMap((d): KeyedSource[] => {
+    const mine = lines.filter(l => l.source === d.id)
+    if (mine.length === 0) return []
+    const scale = mine.some(l => l.dots !== undefined) ? sourceScale(d.source) : undefined
+    return [{ id: d.id, name: d.name, color: d.color, ...(scale === undefined ? {} : { scale }), bigger: mine.some(l => l.radius !== undefined) }]
+  })
+  return { sources, scaledDown: lines.some(l => l.capped === true), other: lines.some(l => l.source === undefined) }
 }
