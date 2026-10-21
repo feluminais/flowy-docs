@@ -43,7 +43,7 @@ public class PerfTests
 
     private static JsonObject Json(IdMap<Metrics> objects) => new(objects.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)Json(kv.Value))));
 
-    private static JsonObject Json(SourceFormula f) => new() { ["text"] = f.Text, ["formula"] = Formulas.Text(f.Formula) };
+    private static JsonObject Json(SourceFormula f) => new() { ["text"] = f.Text };
 
     private static JsonObject Json(Source s)
     {

@@ -552,12 +552,10 @@
         "source": {
           "color": "blue",
           "dot": {
-            "text": "rate / 50",
-            "formula": "rate / 50"
+            "text": "rate / 50"
           },
           "size": {
-            "text": "bytes / 400",
-            "formula": "bytes / 400"
+            "text": "bytes / 400"
           }
         },
         "levels": [
@@ -612,12 +610,10 @@
         "source": {
           "color": "#abc",
           "dot": {
-            "text": "-rate",
-            "formula": "-rate"
+            "text": "-rate"
           },
           "size": {
-            "text": "bytes * 2",
-            "formula": "bytes * 2"
+            "text": "bytes * 2"
           }
         },
         "levels": [
@@ -646,8 +642,7 @@
         "source": {
           "color": "teal",
           "dot": {
-            "text": "(rate + rate) / 100",
-            "formula": "(rate + rate) / 100"
+            "text": "(rate + rate) / 100"
           }
         },
         "levels": [
@@ -929,8 +924,7 @@
         "unit": "load",
         "source": {
           "dot": {
-            "text": "rate / 50",
-            "formula": "rate / 50"
+            "text": "rate / 50"
           }
         },
         "levels": [
@@ -1048,8 +1042,7 @@
         "source": {
           "color": "green",
           "size": {
-            "text": "bytes / 0.5",
-            "formula": "bytes / 0.5"
+            "text": "bytes / 0.5"
           }
         },
         "levels": [
@@ -1290,8 +1283,7 @@
         "unit": "load",
         "source": {
           "dot": {
-            "text": "rate + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1",
-            "formula": "((((((((((((((((((rate + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1"
+            "text": "rate + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1"
           }
         },
         "levels": [
@@ -1347,12 +1339,10 @@
         "unit": "load",
         "source": {
           "dot": {
-            "text": "rate / 0",
-            "formula": "rate / 0"
+            "text": "rate / 0"
           },
           "size": {
-            "text": "-bytes",
-            "formula": "-bytes"
+            "text": "-bytes"
           }
         },
         "levels": [
@@ -15067,12 +15057,10 @@
         "source": {
           "color": "blue",
           "dot": {
-            "text": "rate / 50",
-            "formula": "rate / 50"
+            "text": "rate / 50"
           },
           "size": {
-            "text": "bytes / 400",
-            "formula": "bytes / 400"
+            "text": "bytes / 400"
           }
         },
         "levels": [
@@ -16831,12 +16819,10 @@
         "source": {
           "color": "amber",
           "dot": {
-            "text": "bytes / 100",
-            "formula": "bytes / 100"
+            "text": "bytes / 100"
           },
           "size": {
-            "text": "bytes / 400",
-            "formula": "bytes / 400"
+            "text": "bytes / 400"
           }
         },
         "levels": [
@@ -17509,12 +17495,10 @@
         "unit": "load",
         "source": {
           "dot": {
-            "text": "-rate",
-            "formula": "-rate"
+            "text": "-rate"
           },
           "size": {
-            "text": "rate / 0",
-            "formula": "rate / 0"
+            "text": "rate / 0"
           }
         },
         "levels": [
@@ -18025,12 +18009,10 @@
         "unit": "load",
         "source": {
           "dot": {
-            "text": "rate * 1000000",
-            "formula": "rate * 1000000"
+            "text": "rate * 1000000"
           },
           "size": {
-            "text": "rate * rate",
-            "formula": "rate * rate"
+            "text": "rate * rate"
           }
         },
         "levels": [
@@ -18589,8 +18571,7 @@
         "source": {
           "color": "teal",
           "dot": {
-            "text": "rate * 3",
-            "formula": "rate * 3"
+            "text": "rate * 3"
           }
         },
         "levels": [

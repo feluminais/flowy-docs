@@ -1,6 +1,5 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { evalFormula } from '../src/core/formula.ts'
 import { ParseError } from '../src/core/model.ts'
 import { AT_ONCE, capCounts, checkRun, interpolate, knee, kneeText, parseRun, RADIUS_MAX, RADIUS_MIN, rollUp, scaleText, sourceKey, strain, traffic } from '../src/core/perf.ts'
 import { shop } from './fixtures.ts'
@@ -311,11 +310,9 @@ test('a source reads its colour and its two formulas', () => {
   const { run, problems } = parseRun('r', withSource('source: { color: blue, dot: rate / 50, size: bytes / 400 }'))
   assert.deepEqual(problems, [])
   assert.equal(run.source?.color, 'blue')
-  assert.equal(run.source?.dot?.text, 'rate / 50')
-  assert.equal(evalFormula(run.source!.dot!.formula, { rate: 100 }), 2)
-  assert.equal(run.source?.size?.text, 'bytes / 400')
-  assert.equal(evalFormula(run.source!.size!.formula, { bytes: 1600 }), 4)
-  assert.equal(JSON.stringify(run.source), '{"color":"blue","dot":{"text":"rate / 50","formula":"rate / 50"},"size":{"text":"bytes / 400","formula":"bytes / 400"}}')
+  assert.deepEqual(run.source, { color: 'blue', dot: { text: 'rate / 50' }, size: { text: 'bytes / 400' } })
+  assert.deepEqual(JSON.parse(JSON.stringify(run)).source, run.source) // a run is data: it can go to the browser as JSON and back
+  assert.equal(traffic(shop(), parseRun('r', 'name: R\nsource: { dot: rate / 50 }\nlevels:\n  - { load: 1, connections: [{ from: web, to: api, rate: 100 }] }\n  - { load: 2, connections: [{ from: web, to: api, rate: 100 }] }\n').run, 1, 'shop').lines[0].dots, 2)
 })
 
 test('every key of a source is optional, and a hex colour is as good as a name', () => {
@@ -684,4 +681,12 @@ test('the key says nothing of a source that has nothing on screen, or no source 
 test('a key with a colour only is a dot and a name', () => {
   const run = scaled('source: { color: teal }')
   assert.deepEqual(sourceKey(run, traffic(shop(), run, 1, 'shop').lines), { name: 'Scaled', color: 'teal', bigger: false, scaledDown: false })
+})
+
+test('a run that went through JSON, as one does on its way to the browser, draws the same traffic and says the same key', () => {
+  const run = scaled('source: { color: blue, dot: rate / 50, size: bytes / 400 }', 'rate: 100, p50: 10, bytes: 800')
+  const sent: typeof run = JSON.parse(JSON.stringify(run))
+  assert.deepEqual(traffic(shop(), sent, 1, 'shop'), traffic(shop(), run, 1, 'shop'))
+  assert.equal(scaleText(sent), '1 dot = 50 calls/s')
+  assert.deepEqual(sourceKey(sent, traffic(shop(), sent, 1, 'shop').lines), sourceKey(run, traffic(shop(), run, 1, 'shop').lines))
 })
