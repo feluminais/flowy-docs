@@ -228,6 +228,9 @@ A run is written by a tool, and a few of its keys are choices you make about how
   that the line is scaled down and the ratio stops being true.
 - **Leave red to failing calls.** A failing dot draws in the danger colour, so a source that is red can't be told from its own failures.
 - **Give `bytes` where sizes differ.** A `size` formula needs it, and the size of a call shows in the numbers of a line.
+- **Measure over time when the story is a sequence.** An outage, a restart or a deploy needs a before, a during and an after, which load alone cannot give: write `axis: time`, put a level at each time that was
+  measured, and mark what happened with `events`. Write each event's `text` as the fact ("Payments killed", "Answers again") and leave it out only where "Stripe: Stopped" already says it. Put an event only where you saw the
+  state change in the logs or the incident, and set the shape back to `running` with a later event, because nothing else clears it. A level is a measurement and an event is a moment: they need not fall together.
 - **Say how a failure fails only where you know.** `failure: lost` is for calls that die on the way, `failure: rejected` for calls a gateway turns away (a rate limit,
   a 429). When the run only says that some calls failed, leave it out and they fade.
 

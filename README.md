@@ -149,12 +149,14 @@ tab joins the icons on the right edge (or press **T**). The diagram then shows t
 slowly, as the calls were, a line gets thicker with traffic, a shape's outline goes from green to red as it fills up, and a number
 on it says how many are waiting. A run can also set the colour of its dots and a small formula for how many there are, so that ten times the calls
 is ten times the dots ("1 dot = 50 calls/s" in the key) until the screen limit says it is scaled down. Move the slider (← →) to another tested load, or press **Ramp** (**P**) to sweep up through them.
+A run can also be measured over time (`axis: time`), with events on its timeline such as "Payments killed" at 40 s: the slider is in time, the events are marked on it, **Play** sweeps the run, and the
+shapes stop, restart and recover as the events say.
 The tab says where things first struggle ("First struggles at 200 req/s: Fulfilment worker at 100% of capacity"), plots latency
 against load, and reads out the numbers of the shape or line you click.
 
 It plays back what was measured and nothing more: between two tested loads it blends the two, past the highest there is nothing
 to show, and a shape nobody measured stays plain. The file format is in [the guide](docs/guide.md#performance). To see it work, open the demo (Help › Open the Demo) and press **T**:
-Plum has three made-up runs: a dinner rush where Delivery gives way, the same test after a fix, and courier pings with a dot scale. `perf-lab/` is a
+Plum has four made-up runs: a dinner rush where Delivery gives way, the same test after a fix, courier pings with a dot scale, and Stripe going down and coming back over time. `perf-lab/` is a
 small shop that really runs, with a load generator that writes these files (`npm run lab:run`, then
 `node src/cli.ts --dir perf-lab/flowy` to look at it). The browser and the desktop app both show runs.
 
@@ -323,9 +325,9 @@ sequenceDiagram
 | Esc | Close what's open, then go up a level. The navigator closes only if your last click was in it |
 | Backspace, Z | Zoom out: go up a level |
 | F | Fit the view |
-| ← → | Previous and next step of the flow playing, or previous and next tested load |
-| Home, End | First and last step, or lowest and highest load |
-| P | Autoplay: step through the flow on its own, or pause. In Performance, ramp the load up on its own |
+| ← → | Previous and next step of the flow playing, or previous and next tested level |
+| Home, End | First and last step, or first and last tested level |
+| P | Autoplay: step through the flow on its own, or pause. In Performance, ramp the load or play the time on its own |
 | R | Replay the step's animation |
 | T | The Performance tab, where a folder has load-test runs |
 | M | The Failures tab, where a folder has failure analyses (browser) |

@@ -482,7 +482,7 @@ levels:
       - { from: web-api, to: payments, rate: 80, p50: 95, p95: 260, errors: 0.01 }
 ```
 
-Every number is optional except a level's `load`. On a shape, `util` is how much of what it can do is in use (0 to 1), `queue` how many are waiting, and
+Every number is optional except a level's `load` (or `at`, in a run over time, below). On a shape, `util` is how much of what it can do is in use (0 to 1), `queue` how many are waiting, and
 `errors` the share that fail (0 to 1). On a connection, and in `overall` (what the entry point measured), `rate` is calls a
 second, `bytes` is how many bytes a call carries (the tab calls it the size of a call), `p50` and `p95` are milliseconds (the tab calls them the expected call and the slowest 5%) and `errors` is the share that fail.
 Levels go up in load, and a run needs at least two. A number that isn't there isn't drawn as zero: that shape or line stays
@@ -525,6 +525,49 @@ The key also says what one dot stands for ("1 dot = 50 calls/s") when `dot` is t
 `bytes` on a line that several connections land on is their mean, weighted by their `rate`. A connection can also say how its failing share fails, with
 `failure: lost` (a failing call pops where it dies) or `failure: rejected` (it runs to the end of the line, stops at a bar and comes back red). Without
 `failure` a failing call fades away, as before.
+
+**Runs over time.** A run can be measured over time instead of over load, so an outage and its recovery can be replayed. Say `axis: time`, give each
+level an `at` where a load run gives a `load`, and list `events`: things that happen at a time, such as a shape going down.
+
+![Stripe stopped on the canvas, the Time slider with an event mark above it, and the Events list](images/desktop-time.png)
+
+```yaml
+name: Payments killed at 40 s
+axis: time
+unit: s
+events:
+  - { at: 40, on: stripe, state: stopped, text: Payments killed }
+  - { at: 70, on: stripe, state: starting, text: Restart begins }
+  - { at: 85, on: stripe, state: running, text: Answers again }
+levels:
+  - at: 0
+    overall: { rate: 98, p50: 60, p95: 140, errors: 0 }
+    objects:
+      stripe: { util: 0.4 }
+  - at: 45
+    objects:
+      stripe: { util: 0 }
+      checkout: { util: 0.9, errors: 0.6 }
+  - at: 120
+```
+
+Plum's [stripe-outage](demo/flowy/perf/stripe-outage.yaml) is a run like this one, and
+[every-state-over-time](showcase/flowy/perf/every-state-over-time.yaml) in the showcase puts a shape in all six states.
+
+- `axis` is `load` or `time`. Left out it is `load`, so a run without it reads, plays and exports exactly as before. A run is one or the other: a time run's levels say `at`
+  and a load run's say `load`, and the wrong one is a problem (the run still plays, using the number). `at` is a time in the run's `unit` (seconds if there is none), 0 or more.
+  Levels go up in time, and the numbers between two levels are blended as they are for a load.
+- An event is `{ at, on, state, text }`: a time inside the run, a shape id, one of the six [states](#shape-states), and words for the list. Without `text` the row reads
+  "Stripe: Stopped". The state of a shape at a time is the latest event at or before it. Of two events at one time the later in the file wins, and a shape with no event yet is Running.
+- Events are only for a time run. An event with no time, a time outside the run's first and last time, no shape or an unknown state is a problem and is left out of the run;
+  so is `events` on a load run. A shape an event names that the model doesn't have is a problem too, found at the next load, so deleting a shape never breaks a run.
+
+**Playing it.** The tab says **Time** where it said Load, and the slider is linear in time: a level sits where its time is, and a mark above the slider sits where each event
+is, in the colour of the state it leaves and with its words when you point at it. The **Events** list under the buttons has a row for each: a ring until the run has got there and a dot after,
+with the latest lit. A click on a row or a mark goes there. **Play** (**P**) takes the whole run in half a minute, and ← and → still go from level to level. The shapes
+take the state the events leave, a state beats the strain colour, and the key names only the states on screen now. Stepping, Play and a click on an event let a shape ease into its new
+state in about 0.6 seconds; dragging the slider changes it at once, so the shapes keep up with the thumb. Nothing moves when the system asks for less motion: there is no Play, and
+the states, marks and numbers stay. The address names a level, as it does for a load run: `#ordering/perf/stripe-outage/2`. A failure mode's `run` can name a time run too.
 
 **What to remember.** This is a replay. Flowy never predicts a load nobody tested, so the slider stops at the highest one. How
 strained a shape looks is its `util`, or its failure rate counted twenty times (5% failing is as bad as full), whichever is

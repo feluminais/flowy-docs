@@ -30,6 +30,13 @@ objects:
       One shape that goes through every state, and one that holds another shape in a state.
 
       Play **Every state** to watch a shape start, run, degrade, stop, restart and run again, and **State inside a shape** to see a shape show that something inside it is not running.
+  time:
+    type: system
+    name: Runs over time
+    description: |
+      A run measured over time instead of over load, with events on its timeline that set the state of a shape.
+
+      Open the Performance tab (**T**), pick **Every state over time**, then press **Play**, drag the slider or click an event.
   send-from:
     type: app
     in: steps
@@ -268,6 +275,26 @@ objects:
     in: states-holder
     name: State · part
     description: The part. Its state shows on the holder at the overview.
+  time-caller:
+    type: app
+    in: time
+    name: Time · caller
+    description: Calls the other shapes. It is always running, and gets busy while the service is off.
+  time-service:
+    type: app
+    in: time
+    name: Time · service
+    description: Goes through every state as the run plays, one event at a time.
+  time-holder:
+    type: app
+    in: time
+    name: Time · holder
+    description: Holds a part. Shows a ring with a dashed edge while the part is in a state and it has none of its own.
+  time-part:
+    type: component
+    in: time-holder
+    name: Time · part
+    description: The part. It stops at 45 s and runs again at 72 s, and its state shows on the holder at the overview.
   scale:
     type: system
     name: Colour and scale
@@ -397,6 +424,12 @@ connections:
     label: calls
   - from: states-caller
     to: states-holder
+    label: calls
+  - from: time-caller
+    to: time-service
+    label: calls
+  - from: time-caller
+    to: time-holder
     label: calls
   - from: source
     to: dots-few

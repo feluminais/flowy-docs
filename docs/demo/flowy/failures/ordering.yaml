@@ -22,6 +22,7 @@ modes:
     affects: [customer-app, kitchen-tablet]
     flow: capture-payment
     step: 1
+    run: stripe-outage
   card-declined:
     from: checkout
     to: stripe
