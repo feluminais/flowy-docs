@@ -51,6 +51,9 @@ public static class JsCompat
     private static bool IsIndex(string s, out uint n) =>
         uint.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out n) && n != uint.MaxValue && (s.Length == 1 || s[0] != '0');
 
+    /// <summary>A number as the shortest text that reads back to it (the <c>R</c> format), the form run files and the Performance readouts use.</summary>
+    public static string Raw(double n) => n.ToString("R", CultureInfo.InvariantCulture);
+
     /// <summary>A number as JavaScript prints it: 10 not 10.0, 12.5 as it is. A position is a whole number or a short fraction, so this stays simple.</summary>
     public static string Number(double d)
     {
