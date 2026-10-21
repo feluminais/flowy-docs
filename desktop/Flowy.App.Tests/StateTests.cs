@@ -267,10 +267,10 @@ public class StateTests
             ["from"] = "web",
             ["states"] = new OrderedDictionary<string, object?> { ["web"] = "degraded", ["api"] = "starting", ["db"] = new List<object?>() },
         };
-        Assert.Equal(["web", "api"], Recorder.StatesWith(step, "db", "").Keys);
-        var next = Recorder.StatesWith(step, "api", "running");
+        Assert.Equal(["web", "api"], FlowForm.StatesWith(step, "db", "").Keys);
+        var next = FlowForm.StatesWith(step, "api", "running");
         Assert.Equal(["web", "api"], next.Keys);
         Assert.Equal("running", next["api"]);
-        Assert.Equal(["web"], Recorder.StatesWith(step, "api", "").Keys);
+        Assert.Equal(["web"], FlowForm.StatesWith(step, "api", "").Keys);
     }
 }

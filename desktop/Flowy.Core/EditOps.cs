@@ -1,3 +1,5 @@
+using static Flowy.Core.YamlTree;
+
 namespace Flowy.Core;
 
 /// <summary>A refused edit. The message is written for whoever asked for it.</summary>
@@ -21,10 +23,6 @@ public static class EditOps
 
     private static OrderedDictionary<string, object?>? ObjectOf(EditDoc doc, string? id) =>
         id is not null && id != Names.Root && doc.Objects.TryGetValue(id, out var o) ? o as OrderedDictionary<string, object?> : null;
-
-    private static string? Text(OrderedDictionary<string, object?> map, string key) => map.TryGetValue(key, out var v) ? v as string : null;
-
-    private static OrderedDictionary<string, object?> Entry(object? node) => node as OrderedDictionary<string, object?> ?? [];
 
     // ---- objects -------------------------------------------------------------------------------------------------
 
@@ -179,6 +177,23 @@ public static class EditOps
         return Entry(flow);
     }
 
+    /// <summary>Change a copy of an existing flow: refuses an unknown flow, then runs <paramref name="edit"/> on the copy of the document and the flow in it. It returns the edited document.</summary>
+    private static EditDoc OnFlow(EditDoc doc, string id, Func<EditDoc, OrderedDictionary<string, object?>, EditDoc> edit)
+    {
+        ExistingFlow(doc, id);
+        var d = doc.Clone();
+        return edit(d, Entry(d.Flows[id]));
+    }
+
+    /// <summary>As <see cref="OnFlow"/>, for an edit of step <paramref name="index"/>: refuses a step the flow does not have, then hands over the flow's steps.</summary>
+    private static EditDoc OnStep(EditDoc doc, string id, int index, Func<EditDoc, OrderedDictionary<string, object?>, List<object?>, EditDoc> edit) =>
+        OnFlow(doc, id, (d, flow) =>
+        {
+            var steps = StepsOf(flow);
+            if (index < 0 || index >= steps.Count) throw NoStep(id, index);
+            return edit(d, flow, steps);
+        });
+
     /// <summary>A step: from, optionally to, the text, and optionally the longer detail. A blank detail is no detail.</summary>
     public static OrderedDictionary<string, object?> NewStep(string from, string? to, string text, string? description = null)
     {
@@ -246,13 +261,13 @@ public static class EditOps
     /// <summary>Change an existing flow's name, steps or groups, keeping everything else it has (and its groups when not given any).</summary>
     public static EditDoc UpdateFlow(EditDoc doc, string id, string? name = null, IEnumerable<OrderedDictionary<string, object?>>? steps = null, OrderedDictionary<string, object?>? groups = null)
     {
-        ExistingFlow(doc, id);
-        var d = doc.Clone();
-        var flow = Entry(d.Flows[id]);
-        if (name is not null) flow["name"] = name;
-        if (steps is not null) flow["steps"] = steps.Select(s => (object?)Clone(s)).ToList();
-        if (groups is not null) d.Flows[id] = WithGroups(flow, Clone(groups));
-        return d;
+        return OnFlow(doc, id, (d, flow) =>
+        {
+            if (name is not null) flow["name"] = name;
+            if (steps is not null) flow["steps"] = steps.Select(s => (object?)Clone(s)).ToList();
+            if (groups is not null) d.Flows[id] = WithGroups(flow, Clone(groups));
+            return d;
+        });
     }
 
     /// <summary>The keys of a step in the order the guide shows them; a key set later goes after the nearest earlier one that is there.</summary>
@@ -264,42 +279,43 @@ public static class EditOps
     /// </summary>
     public static EditDoc SetStepStates(EditDoc doc, string id, int index, IReadOnlyDictionary<string, string> states)
     {
-        ExistingFlow(doc, id);
-        var d = doc.Clone();
-        var flow = Entry(d.Flows[id]);
-        var steps = StepsOf(flow);
-        if (index < 0 || index >= steps.Count) throw NoStep(id, index);
-        var tree = new OrderedDictionary<string, object?>();
-        foreach (var shape in JsCompat.OrderKeys(states.Keys)) tree[shape] = states[shape];
-        var probe = new Flow("", "", [new Step("", null, "", null, States: tree)]);
-        if (States.Problems(probe, [], shape => ObjectOf(doc, shape) is not null) is [var (_, why), ..]) throw new OpError(why);
-        var entries = Entry(steps[index]).ToList();
-        var at = entries.FindIndex(e => e.Key == "states");
-        if (tree.Count == 0)
+        return OnStep(doc, id, index, (d, _, steps) =>
         {
-            if (at != -1) entries.RemoveAt(at);
-        }
-        else if (at != -1) entries[at] = new("states", tree);
-        else
-        {
-            var rank = Array.IndexOf(StepOrder, "states");
-            int after = -1, nearest = -1;
-            for (var i = 0; i < entries.Count; i++)
+            var tree = new OrderedDictionary<string, object?>();
+            foreach (var shape in JsCompat.OrderKeys(states.Keys)) tree[shape] = states[shape];
+            var probe = new Flow("", "", [new Step("", null, "", null, States: tree)]);
+            if (States.Problems(probe, [], shape => ObjectOf(doc, shape) is not null) is [var (_, why), ..]) throw new OpError(why);
+            var entries = Entry(steps[index]).ToList();
+            var at = entries.FindIndex(e => e.Key == "states");
+            if (tree.Count == 0)
             {
-                var r = Array.IndexOf(StepOrder, entries[i].Key);
-                if (r != -1 && r < rank && r > nearest) (nearest, after) = (r, i);
+                if (at != -1) entries.RemoveAt(at);
             }
-            entries.Insert(after + 1, new("states", tree));
-        }
-        var next = new OrderedDictionary<string, object?>();
-        foreach (var (key, value) in entries) next[key] = value;
-        steps[index] = next;
-        return d;
+            else if (at != -1) entries[at] = new("states", tree);
+            else
+            {
+                var rank = Array.IndexOf(StepOrder, "states");
+                int after = -1, nearest = -1;
+                for (var i = 0; i < entries.Count; i++)
+                {
+                    var r = Array.IndexOf(StepOrder, entries[i].Key);
+                    if (r != -1 && r < rank && r > nearest) (nearest, after) = (r, i);
+                }
+                entries.Insert(after + 1, new("states", tree));
+            }
+            var next = new OrderedDictionary<string, object?>();
+            foreach (var (key, value) in entries) next[key] = value;
+            steps[index] = next;
+            return d;
+        });
     }
 
     private static string GroupOf(object? step) => Text(Entry(step), "group") is { } g ? JsCompat.JsTrim(g) : "";
 
     private static string LaneOf(object? step) => Text(Entry(step), "lane") is { } l ? JsCompat.JsTrim(l) : "";
+
+    /// <summary>The label a lane gets when nothing names it: "Lane 1", "Lane 2"…</summary>
+    private static string LaneName(int n) => $"Lane {n}";
 
     private static OrderedDictionary<string, object?>? GroupsOf(OrderedDictionary<string, object?> flow) =>
         flow.TryGetValue("groups", out var g) ? g as OrderedDictionary<string, object?> : null;
@@ -344,15 +360,13 @@ public static class EditOps
     /// </summary>
     public static EditDoc RemoveStep(EditDoc doc, string id, int index)
     {
-        ExistingFlow(doc, id);
-        var d = doc.Clone();
-        var flow = Entry(d.Flows[id]);
-        var steps = StepsOf(flow);
-        if (index < 0 || index >= steps.Count) throw NoStep(id, index);
-        var groups = LeaveGroup(flow, steps, index);
-        steps.RemoveAt(index);
-        d.Flows[id] = WithGroups(flow, groups);
-        return d;
+        return OnStep(doc, id, index, (d, flow, steps) =>
+        {
+            var groups = LeaveGroup(flow, steps, index);
+            steps.RemoveAt(index);
+            d.Flows[id] = WithGroups(flow, groups);
+            return d;
+        });
     }
 
     /// <summary>
@@ -361,15 +375,13 @@ public static class EditOps
     /// </summary>
     public static EditDoc SetStepAnimation(EditDoc doc, string id, int index, object? animation)
     {
-        ExistingFlow(doc, id);
-        var d = doc.Clone();
-        var flow = Entry(d.Flows[id]);
-        var steps = StepsOf(flow);
-        if (index < 0 || index >= steps.Count) throw NoStep(id, index);
-        var step = Entry(steps[index]);
-        if (animation is null or "") step.Remove("animation");
-        else step["animation"] = animation;
-        return d;
+        return OnStep(doc, id, index, (d, _, steps) =>
+        {
+            var step = Entry(steps[index]);
+            if (animation is null or "") step.Remove("animation");
+            else step["animation"] = animation;
+            return d;
+        });
     }
 
     /// <summary>
@@ -379,38 +391,36 @@ public static class EditOps
     /// </summary>
     public static EditDoc SetStepGroup(EditDoc doc, string id, int index, string group)
     {
-        ExistingFlow(doc, id);
-        var d = doc.Clone();
-        var flow = Entry(d.Flows[id]);
-        var steps = StepsOf(flow);
-        if (index < 0 || index >= steps.Count) throw NoStep(id, index);
-        var to = JsCompat.JsTrim(group);
-        var declared = GroupsOf(flow);
-        if (to != "" && !(declared is not null && declared.ContainsKey(to))) throw new OpError($"unknown group \"{group}\"");
-        if (GroupOf(steps[index]) == to) return doc;
-        var left = LeaveGroup(flow, steps, index);
-        if (to != "")
+        return OnStep(doc, id, index, (d, flow, steps) =>
         {
-            var joined = WithoutLane(steps[index]);
-            joined["group"] = to;
-            steps[index] = joined;
-            var kind = Text(Entry(declared![to]), "kind");
-            if (kind is "branch" or "parallel")
+            var to = JsCompat.JsTrim(group);
+            var declared = GroupsOf(flow);
+            if (to != "" && !(declared is not null && declared.ContainsKey(to))) throw new OpError($"unknown group \"{group}\"");
+            if (GroupOf(steps[index]) == to) return doc;
+            var left = LeaveGroup(flow, steps, index);
+            if (to != "")
             {
-                var first = -1;
-                for (var i = 0; i < steps.Count && first == -1; i++)
-                    if (i != index && GroupOf(steps[i]) == to) first = i;
-                if (first == -1) joined["lane"] = "Lane 1";
-                else if (first > index)
+                var joined = WithoutLane(steps[index]);
+                joined["group"] = to;
+                steps[index] = joined;
+                var kind = Text(Entry(declared![to]), "kind");
+                if (kind is "branch" or "parallel")
                 {
-                    var has = LaneOf(steps[first]) != "";
-                    joined["lane"] = has ? Entry(steps[first])["lane"] : "Lane 1";
-                    if (has) steps[first] = WithoutLane(steps[first]);
+                    var first = -1;
+                    for (var i = 0; i < steps.Count && first == -1; i++)
+                        if (i != index && GroupOf(steps[i]) == to) first = i;
+                    if (first == -1) joined["lane"] = LaneName(1);
+                    else if (first > index)
+                    {
+                        var has = LaneOf(steps[first]) != "";
+                        joined["lane"] = has ? Entry(steps[first])["lane"] : LaneName(1);
+                        if (has) steps[first] = WithoutLane(steps[first]);
+                    }
                 }
             }
-        }
-        d.Flows[id] = WithGroups(flow, left);
-        return d;
+            d.Flows[id] = WithGroups(flow, left);
+            return d;
+        });
     }
 
     /// <summary>
@@ -419,50 +429,50 @@ public static class EditOps
     /// </summary>
     public static EditDoc SetGroupKind(EditDoc doc, string id, string group, string kind)
     {
-        ExistingFlow(doc, id);
-        var d = doc.Clone();
-        var flow = Entry(d.Flows[id]);
-        var groups = GroupsOf(flow);
-        if (groups is null || !groups.ContainsKey(group)) throw new OpError($"unknown group \"{group}\"");
-        if (!Structure.Kinds.Contains(kind)) throw new OpError($"unknown kind \"{kind}\" (use {string.Join(", ", Structure.Kinds)})");
-        var old = Entry(groups[group]);
-        var next = new OrderedDictionary<string, object?>();
-        foreach (var (key, value) in old)
-            if (key is not ("times" or "until")) next[key] = value;
-        next["kind"] = kind;
-        if (kind == "repeat")
+        return OnFlow(doc, id, (d, flow) =>
         {
-            old.TryGetValue("times", out var times);
-            old.TryGetValue("until", out var until);
-            if (old.ContainsKey("times")) next["times"] = times;
-            if (old.ContainsKey("until")) next["until"] = until;
-            if (JsCompat.Blank(times) && JsCompat.Blank(until)) next["times"] = "3";
-        }
-        var steps = StepsOf(flow);
-        var members = Enumerable.Range(0, steps.Count).Where(i => GroupOf(steps[i]) == group).ToList();
-        if (kind == "repeat")
-        {
-            foreach (var i in members)
-                if (Entry(steps[i]).ContainsKey("lane")) steps[i] = WithoutLane(steps[i]);
-        }
-        else if (members.Count > 0)
-        {
-            if (LaneOf(steps[members[0]]) == "") Entry(steps[members[0]])["lane"] = "Lane 1";
-            // Parallel lanes are at least two: every step that starts no lane starts one of its own, as GroupSteps does.
-            if (kind == "parallel" && members.Count(i => LaneOf(steps[i]) != "") < 2)
+            var groups = GroupsOf(flow);
+            if (groups is null || !groups.ContainsKey(group)) throw new OpError($"unknown group \"{group}\"");
+            if (!Structure.Kinds.Contains(kind)) throw new OpError($"unknown kind \"{kind}\" (use {string.Join(", ", Structure.Kinds)})");
+            var old = Entry(groups[group]);
+            var next = new OrderedDictionary<string, object?>();
+            foreach (var (key, value) in old)
+                if (key is not ("times" or "until")) next[key] = value;
+            next["kind"] = kind;
+            if (kind == "repeat")
+            {
+                old.TryGetValue("times", out var times);
+                old.TryGetValue("until", out var until);
+                if (old.ContainsKey("times")) next["times"] = times;
+                if (old.ContainsKey("until")) next["until"] = until;
+                if (JsCompat.Blank(times) && JsCompat.Blank(until)) next["times"] = "3";
+            }
+            var steps = StepsOf(flow);
+            var members = Enumerable.Range(0, steps.Count).Where(i => GroupOf(steps[i]) == group).ToList();
+            if (kind == "repeat")
+            {
                 foreach (var i in members)
-                {
-                    if (LaneOf(steps[i]) != "") continue;
-                    var used = members.Select(j => LaneOf(steps[j])).ToHashSet();
-                    var n = 1;
-                    while (used.Contains($"Lane {n}")) n++;
-                    Entry(steps[i])["lane"] = $"Lane {n}";
-                }
-        }
-        var all = new OrderedDictionary<string, object?>();
-        foreach (var (key, value) in groups) all[key] = key == group ? next : value;
-        d.Flows[id] = WithGroups(flow, all);
-        return d;
+                    if (Entry(steps[i]).ContainsKey("lane")) steps[i] = WithoutLane(steps[i]);
+            }
+            else if (members.Count > 0)
+            {
+                if (LaneOf(steps[members[0]]) == "") Entry(steps[members[0]])["lane"] = LaneName(1);
+                // Parallel lanes are at least two: every step that starts no lane starts one of its own, as GroupSteps does.
+                if (kind == "parallel" && members.Count(i => LaneOf(steps[i]) != "") < 2)
+                    foreach (var i in members)
+                    {
+                        if (LaneOf(steps[i]) != "") continue;
+                        var used = members.Select(j => LaneOf(steps[j])).ToHashSet();
+                        var n = 1;
+                        while (used.Contains(LaneName(n))) n++;
+                        Entry(steps[i])["lane"] = LaneName(n);
+                    }
+            }
+            var all = new OrderedDictionary<string, object?>();
+            foreach (var (key, value) in groups) all[key] = key == group ? next : value;
+            d.Flows[id] = WithGroups(flow, all);
+            return d;
+        });
     }
 
     /// <summary>
@@ -471,72 +481,69 @@ public static class EditOps
     /// </summary>
     public static EditDoc GroupSteps(EditDoc doc, string id, string group, string kind, int first, int last)
     {
-        ExistingFlow(doc, id);
-        if (!Names.IsValidId(group)) throw new OpError($"\"{group}\" is not a valid group id: {Names.IdRule}");
-        var d = doc.Clone();
-        var flow = Entry(d.Flows[id]);
-        var groups = GroupsOf(flow);
-        if (groups is not null && groups.ContainsKey(group)) throw new OpError($"group \"{group}\" already exists");
-        if (!Structure.Kinds.Contains(kind)) throw new OpError($"unknown kind \"{kind}\" (use {string.Join(", ", Structure.Kinds)})");
-        var steps = StepsOf(flow);
-        if (first < 0 || first >= steps.Count) throw NoStep(id, first);
-        if (last < 0 || last >= steps.Count) throw NoStep(id, last);
-        if (last < first) throw new OpError($"step {last + 1} comes before step {first + 1}");
-        for (var i = first; i <= last; i++)
+        return OnFlow(doc, id, (d, flow) =>
         {
-            var other = GroupOf(steps[i]);
-            if (other != "") throw new OpError($"step {i + 1} is already in group \"{other}\"");
-            var kept = WithoutLane(steps[i]);
-            kept["group"] = group;
-            if (kind != "repeat") kept["lane"] = $"Lane {i - first + 1}";
-            steps[i] = kept;
-        }
-        var declared = new OrderedDictionary<string, object?> { ["kind"] = kind };
-        if (kind == "repeat") declared["times"] = "3";
-        var all = new OrderedDictionary<string, object?>();
-        if (groups is not null)
-            foreach (var (key, value) in groups) all[key] = value;
-        all[group] = declared;
-        d.Flows[id] = WithGroups(flow, all);
-        return d;
+            if (!Names.IsValidId(group)) throw new OpError($"\"{group}\" is not a valid group id: {Names.IdRule}");
+            var groups = GroupsOf(flow);
+            if (groups is not null && groups.ContainsKey(group)) throw new OpError($"group \"{group}\" already exists");
+            if (!Structure.Kinds.Contains(kind)) throw new OpError($"unknown kind \"{kind}\" (use {string.Join(", ", Structure.Kinds)})");
+            var steps = StepsOf(flow);
+            if (first < 0 || first >= steps.Count) throw NoStep(id, first);
+            if (last < 0 || last >= steps.Count) throw NoStep(id, last);
+            if (last < first) throw new OpError($"step {last + 1} comes before step {first + 1}");
+            for (var i = first; i <= last; i++)
+            {
+                var other = GroupOf(steps[i]);
+                if (other != "") throw new OpError($"step {i + 1} is already in group \"{other}\"");
+                var kept = WithoutLane(steps[i]);
+                kept["group"] = group;
+                if (kind != "repeat") kept["lane"] = LaneName(i - first + 1);
+                steps[i] = kept;
+            }
+            var declared = new OrderedDictionary<string, object?> { ["kind"] = kind };
+            if (kind == "repeat") declared["times"] = "3";
+            var all = new OrderedDictionary<string, object?>();
+            if (groups is not null)
+                foreach (var (key, value) in groups) all[key] = value;
+            all[group] = declared;
+            d.Flows[id] = WithGroups(flow, all);
+            return d;
+        });
     }
 
     /// <summary>Create or replace a group of a flow. A blank <c>times</c>, <c>until</c> or <c>text</c> is left out.</summary>
     public static EditDoc PutGroup(EditDoc doc, string flowId, string id, OrderedDictionary<string, object?> group)
     {
-        ExistingFlow(doc, flowId);
-        if (!Names.IsValidId(id)) throw new OpError($"\"{id}\" is not a valid group id: {Names.IdRule}");
-        var d = doc.Clone();
-        var flow = Entry(d.Flows[flowId]);
-        var next = new OrderedDictionary<string, object?>();
-        foreach (var (key, value) in group)
+        return OnFlow(doc, flowId, (d, flow) =>
         {
-            if (value is null) continue;
-            if (key is "times" or "until" or "text" && JsCompat.Blank(value)) continue;
-            next[key] = value;
-        }
-        // The checks only refuse a problem that is new, so a bad `times` over an old bad `times` would pass them: this says no first.
-        if (next.TryGetValue("times", out var times) && !Structure.TimesOk(times))
-            throw new OpError($"group \"{id}\": times must be a whole number from {Structure.TimesMin} to {Structure.TimesMax}");
-        var groups = new OrderedDictionary<string, object?>();
-        if (flow.TryGetValue("groups", out var existing) && existing is OrderedDictionary<string, object?> map)
-            foreach (var (key, value) in map) groups[key] = value;
-        groups[id] = next;
-        d.Flows[flowId] = WithGroups(flow, groups);
-        return d;
+            if (!Names.IsValidId(id)) throw new OpError($"\"{id}\" is not a valid group id: {Names.IdRule}");
+            var next = new OrderedDictionary<string, object?>();
+            foreach (var (key, value) in group)
+            {
+                if (value is null) continue;
+                if (key is "times" or "until" or "text" && JsCompat.Blank(value)) continue;
+                next[key] = value;
+            }
+            // The checks only refuse a problem that is new, so a bad `times` over an old bad `times` would pass them: this says no first.
+            if (next.TryGetValue("times", out var times) && !Structure.TimesOk(times))
+                throw new OpError($"group \"{id}\": times must be a whole number from {Structure.TimesMin} to {Structure.TimesMax}");
+            var groups = new OrderedDictionary<string, object?>();
+            if (flow.TryGetValue("groups", out var existing) && existing is OrderedDictionary<string, object?> map)
+                foreach (var (key, value) in map) groups[key] = value;
+            groups[id] = next;
+            d.Flows[flowId] = WithGroups(flow, groups);
+            return d;
+        });
     }
 
     /// <summary>Remove a group's declaration, and the group and lane of every step that named it.</summary>
     public static EditDoc RemoveGroup(EditDoc doc, string flowId, string id)
     {
-        ExistingFlow(doc, flowId);
-        var d = doc.Clone();
-        var flow = Entry(d.Flows[flowId]);
-        if (!(flow.TryGetValue("groups", out var existing) && existing is OrderedDictionary<string, object?> map && map.ContainsKey(id))) throw new OpError($"unknown group \"{id}\"");
-        var rest = new OrderedDictionary<string, object?>();
-        foreach (var (key, value) in map)
-            if (key != id) rest[key] = value;
-        if (flow.TryGetValue("steps", out var raw) && raw is List<object?> steps)
+        return OnFlow(doc, flowId, (d, flow) =>
+        {
+            if (!(flow.TryGetValue("groups", out var existing) && existing is OrderedDictionary<string, object?> map && map.ContainsKey(id))) throw new OpError($"unknown group \"{id}\"");
+            var rest = Without(map, id);
+            var steps = StepsOf(flow);
             for (var i = 0; i < steps.Count; i++)
             {
                 if (GroupOf(steps[i]) != id) continue;
@@ -545,16 +552,18 @@ public static class EditOps
                     if (key is not ("group" or "lane")) kept[key] = value;
                 steps[i] = kept;
             }
-        d.Flows[flowId] = WithGroups(flow, rest);
-        return d;
+            d.Flows[flowId] = WithGroups(flow, rest);
+            return d;
+        });
     }
 
     public static EditDoc DeleteFlow(EditDoc doc, string id)
     {
-        ExistingFlow(doc, id);
-        var d = doc.Clone();
-        d.Flows.Remove(id);
-        return d;
+        return OnFlow(doc, id, (d, _) =>
+        {
+            d.Flows.Remove(id);
+            return d;
+        });
     }
 
     // ---- layout and settings -------------------------------------------------------------------------------------
