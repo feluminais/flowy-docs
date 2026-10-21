@@ -32,13 +32,14 @@ npm run dev:ui
 
 `docs/demo/` is Plum, the made-up delivery service in the README's screenshots. `node src/cli.ts --dir docs/demo/flowy`
 opens it. Its `code:` paths point at placeholder files beside it, so the canvas shows no problems. Its `flowy/perf/` holds
-four runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute,
-the same test after a fix, courier pings with a `source` that sets a colour and a dot scale, and Stripe going down at 40 s and coming back at 85 s, a run over time; the file names sort so the demo still opens on the dinner rush); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
+seven runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute,
+the same test after a fix, customer orders alone, courier pings with a `source` that sets a colour and a dot scale, the two added together (`together`), the two tested together (`together-measured`),
+and Stripe going down at 40 s and coming back at 85 s, a run over time; the file names sort so the demo still opens on the dinner rush); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
 is a fourteen-mode failure analysis with made-up ratings, and it names shapes, connections, flows and a run in the same way. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
 `--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups, `--view ordering --flow stripe-outage --step 3` for `desktop-states.png`,
-`--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, `--view ordering --run stripe-outage --tab performance --at 70` (1280 by 760) for `desktop-time.png`, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
+`--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, `--view ordering --run stripe-outage --tab performance --at 70` (1280 by 760) for `desktop-time.png`, `--view delivery --run together --tab performance --at 800,400` (1280 by 760) for `desktop-sources.png`, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
 Retake them when the app changes how it looks.
 
 `docs/images/hero.png`, the picture at the top of the README, is cut from those screenshots. After retaking them, run
@@ -71,17 +72,18 @@ Put the folder in `conductor-oss/flowy`, open it with `node src/cli.ts --dir con
 `docs/showcase/` plays every animation Flowy has, so you can open it and see that each one works and looks right, in the browser and
 in the desktop app. `node src/cli.ts --dir docs/showcase/flowy` opens it, and so does
 `dotnet run --project desktop/Flowy.App -- docs/showcase`. Each shape is named for the animation it plays (Send · from, Flash · to), and its second line holds the tag that sets it off.
-It has six views:
+It has seven views:
 
 - Step animations: a flow of one step for each way a step can travel (Send, Call, Event, Callback, Flash, Bolt drop, Send with a word, Fail, Timeout, Lost, Rejected, Intercepted twice, Duplicated, Delayed, Share of requests), so you can click through them, and Every step animation, which plays them all: press **P** to watch them one after the other, or **R** to play a step again.
 - Flow structure: a flow each for Repeat, Branch, Parallel and Flow link.
 - Performance: the run Every load effect (**T**) gives each shape one effect of load, and **Ramp** sweeps all of them.
 - Colour and scale: the run Colour and scale gives each shape one thing a run's `source` does (dots in proportion to the calls, the same dots at another pace, bigger calls, a line scaled down, lost calls, rejected calls).
+- Several sources: the runs Several sources added and Several sources tested together put two sources of requests on one line, add a shared shape past full, and leave one line with no source named.
 - Shape states: the flows Every state and State inside a shape.
 - Runs over time: the run Every state over time puts a service in all six states through events, and a part inside a holder in one: pick it in the Performance tab (**T**), then press **Play**, drag the slider or click an event.
 
 `test/showcase.test.ts` fails when an animation kind, an outcome, a kind of group, a load effect or a state has no place there. When you add one, add a
-pair of shapes named for it, a step or a flow, and (for a load effect) numbers in `docs/showcase/flowy/perf/every-load-effect.yaml`, then add the check to that test.
+pair of shapes named for it, a step or a flow, and (for a load effect) numbers in `docs/showcase/flowy/perf/every-load-effect.yaml` (for several sources, `added.yaml` and `together-grid.yaml`), then add the check to that test.
 The folder is also one of the parity fixtures in `desktop/fixtures/fixtures.json`, so the desktop app has to read it the same way.
 
 ## The VS Code extension
@@ -156,7 +158,7 @@ dotnet run --project desktop/Flowy.App -- docs/demo --shot out.png         # sav
 
 `--shot` takes flags that set up what the picture shows: `--view ordering`, `--select order-api`, `--line "web order-api"`,
 `--hover "web order-api"`, `--flow place-order --step 1`, `--search re`, `--shortcuts`, `--run stripe-outage --tab performance --at 70` (the Performance panel on
-a run, at a time or load), `--zoom ordering --delay 200` (a frame of the
+a run, at a time or load; `--run together --at 800,400` puts each source of a run with several at a load), `--zoom ordering --delay 200` (a frame of the
 zoom), `--lines curved`, `--theme dark`, `--size 1100x700`. Check a visual change by looking at pictures next to
 `docs/images/desktop-*.png`. `FLOWY_REDUCE_MOTION=1` turns animation off.
 
@@ -222,7 +224,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       the first window forward; `FlowyDocs.exe <folder>` from a terminal opens it in the running app, not a second one.
 - [ ] With the system's animation effects off (Settings › Accessibility › Visual effects), opening a box is instant. With them on, it
       is smooth: no stutter on the way in or out, and a second double-click during the move doesn't break it.
-- [ ] Help › Open the Demo shows Plum with no problems and a Performance button with a 4 on it; T opens the panel on 900 orders/min,
+- [ ] Help › Open the Demo shows Plum with no problems and a Performance button with a 7 on it; T opens the panel on 900 orders/min,
       "ETA at 90% of capacity", with Delivery outlined red. View › Copy as Mermaid, pasted into an editor, starts with `` ```mermaid ``;
       View › Save Picture… writes a PNG of the diagram alone. An empty `model.yaml` says "Nothing to show yet".
 - [ ] Close a window after resizing it, open the app again: it opens at that size.
@@ -391,6 +393,21 @@ Runs over time (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, the
 - [ ] Pick Stripe while at 45 s: under its readings is a Stopped line. Pick Dinner rush in the run picker: the tab says Load and Ramp again, and Stripe is as it was. Pick Every state over time in the showcase (`--dir docs/showcase/flowy`):
       the service goes through all six states, and at 45 s the holder shows a dashed ring that reads Stopped inside. With the system's reduce-motion setting on there is no Play, and the states, marks and numbers still show.
       Light and dark both read. In Plum's Failures tab, Stripe doesn't answer within five seconds has Seen in a run: it opens the tab at 45 s on this run.
+
+Several sources (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
+
+- [ ] Press T and pick Orders and pings, added in the run picker (`#delivery/perf/together/3,3`, with Delivery open). The tab says Added from separate runs. It has a block for Customer orders (a blue dot) and one for
+      Courier pings (green), each with a slider, its tested loads under it, "Tested" and its own Ramp, and the first is marked at its edge. It opens at 800 orders/min and 400 pings/s: "First struggles with Customer orders at
+      800 orders/min and Courier pings at 400 pings/s: Fleet DB at 101% of capacity". On the line from Live tracking to Fleet DB blue and green dots run side by side, and the key names both sources with "1 dot = 4 calls/s" and "1 dot = 20 calls/s".
+- [ ] ← → Home and End move the marked block only. Press the Courier pings slider: that block is marked now, the chart is headed Courier pings with "Customer orders held at 800 orders/min", and the keys move it. Ramp under Courier pings
+      moves that slider alone and P stops it; press Ramp under Customer orders while one runs and the ramp moves there. Go there puts both back.
+- [ ] Put both at their highest (1200 and 800): Fleet DB is red, and clicking it reads Busy 143% and "Added use is over 100%". The line from Live tracking to Fleet DB has 24 green dots and fewer blue ones (15, the ratio of their calls),
+      and the key says Scaled down. Orders alone (Customer orders in the picker) has no label and one slider, as before.
+- [ ] Pick Orders and pings, tested together: the tab says Tested together, with three loads on each slider. At 600 orders/min and 400 pings/s Fleet DB reads 99%, where the two added read 93%, and nothing says "Added use" at any setting.
+      `#delivery/perf/together/2` (one place for two sources) and `#delivery/perf/together/a,b` both open at the first struggle, and `#delivery/perf/together/1,4` opens at 200 orders/min and 800 pings/s.
+- [ ] With reduced motion on there are no dots and no Ramp buttons, and the sliders, numbers and the key's Busy, Waiting and Not measured stay. Both themes read.
+- [ ] In the showcase (`--dir docs/showcase/flowy`, Several sources, T): Several sources added at its highest has blue and green dots side by side on the line into Shared service, both scaled down together, and Shared service reads
+      "Added use is over 100%". Several sources tested together has a grey line into Not split by source, and the key says Other calls.
 
 Editing (press E):
 

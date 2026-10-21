@@ -1,0 +1,114 @@
+name: "Orders and pings, tested together"
+about: "Made-up numbers for the demo. Customer orders and courier pings sent at once, nine combinations: three loads of each. Fleet DB fills faster than the two runs added would say, because the two compete for it. ETA and Matcher answer orders only, and Courier app calls Live tracking with pings only."
+sources:
+  orders: { name: Customer orders, entry: customer-app, unit: orders/min, color: blue, dot: rate / 4, size: bytes / 400 }
+  pings: { name: Courier pings, entry: courier-app, unit: pings/s, color: green, dot: rate / 20 }
+levels:
+  - load: { orders: 100, pings: 50 }
+    overall: { rate: 51.7, p50: 40, p95: 121, errors: 0 }
+    objects:
+      fleet-db: { util: 0.131 }
+      tracking: { util: 0.101 }
+      matcher: { util: 0.052 }
+      eta: { util: 0.092 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 50, p50: 18, bytes: 280, errors: 0, by: { pings: { rate: 50 } } }
+      - { from: tracking, to: fleet-db, rate: 58, p50: 3, bytes: 140, errors: 0, by: { orders: { rate: 8 }, pings: { rate: 50 } } }
+      - { from: matcher, to: fleet-db, rate: 1.7, p50: 9, bytes: 900, errors: 0, by: { orders: { rate: 1.7 } } }
+      - { from: matcher, to: eta, rate: 10, p50: 5, bytes: 300, errors: 0, by: { orders: { rate: 10 } } }
+  - load: { orders: 100, pings: 400 }
+    overall: { rate: 401.7, p50: 60, p95: 209, errors: 0 }
+    objects:
+      fleet-db: { util: 0.722 }
+      tracking: { util: 0.496 }
+      matcher: { util: 0.052 }
+      eta: { util: 0.092 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 400, p50: 40.7, bytes: 280, errors: 0, by: { pings: { rate: 400 } } }
+      - { from: tracking, to: fleet-db, rate: 408, p50: 12.2, bytes: 140, errors: 0, by: { orders: { rate: 8 }, pings: { rate: 400 } } }
+      - { from: matcher, to: fleet-db, rate: 1.7, p50: 12.2, bytes: 900, errors: 0, by: { orders: { rate: 1.7 } } }
+      - { from: matcher, to: eta, rate: 10, p50: 5, bytes: 300, errors: 0, by: { orders: { rate: 10 } } }
+  - load: { orders: 100, pings: 800 }
+    overall: { rate: 781.7, p50: 175, p95: 746, errors: 0.066 }
+    objects:
+      fleet-db: { util: 0.99, errors: 0.036 }
+      tracking: { util: 0.831 }
+      matcher: { util: 0.052 }
+      eta: { util: 0.092 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 800, p50: 114.2, bytes: 280, errors: 0.01, by: { pings: { rate: 800 } } }
+      - { from: tracking, to: fleet-db, rate: 788, p50: 85.6, bytes: 140, errors: 0.036, by: { orders: { rate: 8 }, pings: { rate: 780 } } }
+      - { from: matcher, to: fleet-db, rate: 1.7, p50: 16.1, bytes: 900, errors: 0.036, by: { orders: { rate: 1.7 } } }
+      - { from: matcher, to: eta, rate: 10, p50: 5, bytes: 300, errors: 0, by: { orders: { rate: 10 } } }
+  - load: { orders: 600, pings: 50 }
+    overall: { rate: 59.9, p50: 69, p95: 248, errors: 0.005 }
+    objects:
+      fleet-db: { util: 0.352 }
+      tracking: { util: 0.274 }
+      matcher: { util: 0.283 }
+      eta: { util: 0.53 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 50, p50: 18, bytes: 280, errors: 0, by: { pings: { rate: 50 } } }
+      - { from: tracking, to: fleet-db, rate: 100, p50: 3.4, bytes: 140, errors: 0, by: { orders: { rate: 50 }, pings: { rate: 50 } } }
+      - { from: matcher, to: fleet-db, rate: 9.85, p50: 15, bytes: 900, errors: 0, by: { orders: { rate: 9.85 } } }
+      - { from: matcher, to: eta, rate: 60, p50: 14, bytes: 300, errors: 0.0025, by: { orders: { rate: 60 } } }
+  - load: { orders: 600, pings: 400 }
+    overall: { rate: 409.9, p50: 122, p95: 440, errors: 0.039 }
+    objects:
+      fleet-db: { util: 0.986, errors: 0.034 }
+      tracking: { util: 0.693 }
+      matcher: { util: 0.283 }
+      eta: { util: 0.53 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 400, p50: 53.3, bytes: 280, errors: 0, by: { pings: { rate: 400 } } }
+      - { from: tracking, to: fleet-db, rate: 450, p50: 16, bytes: 140, errors: 0.034, by: { orders: { rate: 50 }, pings: { rate: 400 } } }
+      - { from: matcher, to: fleet-db, rate: 9.85, p50: 26.7, bytes: 900, errors: 0.034, by: { orders: { rate: 9.85 } } }
+      - { from: matcher, to: eta, rate: 60, p50: 14, bytes: 300, errors: 0.0025, by: { orders: { rate: 60 } } }
+  - load: { orders: 600, pings: 800 }
+    overall: { rate: 789.9, p50: 175, p95: 746, errors: 0.066 }
+    objects:
+      fleet-db: { util: 0.99, errors: 0.036 }
+      tracking: { util: 0.99 }
+      matcher: { util: 0.283 }
+      eta: { util: 0.53 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 800, p50: 114.2, bytes: 280, errors: 0.01, by: { pings: { rate: 800 } } }
+      - { from: tracking, to: fleet-db, rate: 830, p50: 85.6, bytes: 140, errors: 0.036, by: { orders: { rate: 50 }, pings: { rate: 780 } } }
+      - { from: matcher, to: fleet-db, rate: 9.85, p50: 26.8, bytes: 900, errors: 0.036, by: { orders: { rate: 9.85 } } }
+      - { from: matcher, to: eta, rate: 60, p50: 14, bytes: 300, errors: 0.0025, by: { orders: { rate: 60 } } }
+  - load: { orders: 1200, pings: 50 }
+    overall: { rate: 69, p50: 219, p95: 886, errors: 0.06 }
+    objects:
+      fleet-db: { util: 0.594 }
+      tracking: { util: 0.489 }
+      matcher: { util: 0.567 }
+      eta: { util: 0.949, errors: 0.05 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 50, p50: 20.7, bytes: 280, errors: 0, by: { pings: { rate: 50 } } }
+      - { from: tracking, to: fleet-db, rate: 150, p50: 6.9, bytes: 140, errors: 0, by: { orders: { rate: 100 }, pings: { rate: 50 } } }
+      - { from: matcher, to: fleet-db, rate: 19, p50: 34.5, bytes: 900, errors: 0, by: { orders: { rate: 19 } } }
+      - { from: matcher, to: eta, rate: 120, p50: 80, bytes: 300, errors: 0.05, by: { orders: { rate: 120 } } }
+  - load: { orders: 1200, pings: 400 }
+    overall: { rate: 419, p50: 339, p95: 1374, errors: 0.096 }
+    objects:
+      fleet-db: { util: 0.99, errors: 0.036 }
+      tracking: { util: 0.936 }
+      matcher: { util: 0.567 }
+      eta: { util: 0.949, errors: 0.05 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 400, p50: 53.5, bytes: 280, errors: 0, by: { pings: { rate: 400 } } }
+      - { from: tracking, to: fleet-db, rate: 500, p50: 16.1, bytes: 140, errors: 0.036, by: { orders: { rate: 100 }, pings: { rate: 400 } } }
+      - { from: matcher, to: fleet-db, rate: 19, p50: 53.5, bytes: 900, errors: 0.036, by: { orders: { rate: 19 } } }
+      - { from: matcher, to: eta, rate: 120, p50: 80, bytes: 300, errors: 0.05, by: { orders: { rate: 120 } } }
+  - load: { orders: 1200, pings: 800 }
+    overall: { rate: 799, p50: 339, p95: 1374, errors: 0.096 }
+    objects:
+      fleet-db: { util: 0.99, errors: 0.036 }
+      tracking: { util: 0.99 }
+      matcher: { util: 0.567 }
+      eta: { util: 0.949, errors: 0.05 }
+    connections:
+      - { from: courier-app, to: tracking, rate: 800, p50: 114.2, bytes: 280, errors: 0.01, by: { pings: { rate: 800 } } }
+      - { from: tracking, to: fleet-db, rate: 880, p50: 85.6, bytes: 140, errors: 0.036, by: { orders: { rate: 100 }, pings: { rate: 780 } } }
+      - { from: matcher, to: fleet-db, rate: 19, p50: 53.5, bytes: 900, errors: 0.036, by: { orders: { rate: 19 } } }
+      - { from: matcher, to: eta, rate: 120, p50: 80, bytes: 300, errors: 0.05, by: { orders: { rate: 120 } } }

@@ -554,6 +554,47 @@
       "name": "Rejected calls",
       "in": "scale",
       "description": "A share of the calls is turned away at the end of the line. Each stops at a bar and comes back red."
+    },
+    {
+      "id": "sources",
+      "type": "system",
+      "name": "Several sources",
+      "description": "Two sources of requests at once, each with its own slider, colour and scale: added from separate runs (**Several sources added**) and tested together (**Several sources tested together**).\n\nOpen the Performance tab (**T**), pick one of them, then move a slider or press **Ramp** on a source. The chart follows the source you moved last.\n"
+    },
+    {
+      "id": "a-in",
+      "type": "app",
+      "name": "Source A",
+      "in": "sources",
+      "description": "Where Source A's calls come in. Its dots are blue, one for every 50 calls a second, and bigger than Source B's because its calls carry more."
+    },
+    {
+      "id": "b-in",
+      "type": "app",
+      "name": "Source B",
+      "in": "sources",
+      "description": "Where Source B's calls come in. Its dots are green, one for every 10 calls a second."
+    },
+    {
+      "id": "gateway",
+      "type": "app",
+      "name": "Where they meet",
+      "in": "sources",
+      "description": "Both sources send their calls through here. The line to Shared service carries both, so it has a stream of dots for each, side by side, in its colour. Past 24 dots at once both are scaled down together, so the ratio stays true."
+    },
+    {
+      "id": "shared",
+      "type": "store",
+      "name": "Shared service",
+      "in": "sources",
+      "description": "Both sources fill it. In the run added from separate runs its use is the two added, and past 100% it reads \"Added use is over 100%\". In the run tested together it is what was measured with both at once."
+    },
+    {
+      "id": "audit",
+      "type": "app",
+      "name": "Not split by source",
+      "in": "sources",
+      "description": "The run says how many calls this line carries but not which source sent them, so its dots are grey and the key says \"Other calls\"."
     }
   ],
   "connections": [
@@ -778,6 +819,26 @@
       "from": "source",
       "to": "calls-rejected",
       "label": "calls"
+    },
+    {
+      "from": "a-in",
+      "to": "gateway",
+      "label": "calls"
+    },
+    {
+      "from": "b-in",
+      "to": "gateway",
+      "label": "calls"
+    },
+    {
+      "from": "gateway",
+      "to": "shared",
+      "label": "calls"
+    },
+    {
+      "from": "gateway",
+      "to": "audit",
+      "label": "logs"
     }
   ],
   "layout": {
@@ -1023,6 +1084,28 @@
       "calls-rejected": [
         440,
         750
+      ]
+    },
+    "sources": {
+      "a-in": [
+        0,
+        40
+      ],
+      "b-in": [
+        0,
+        280
+      ],
+      "gateway": [
+        440,
+        160
+      ],
+      "shared": [
+        880,
+        80
+      ],
+      "audit": [
+        880,
+        280
       ]
     }
   },
@@ -2023,7 +2106,8 @@
         "performance",
         "states",
         "time",
-        "scale"
+        "scale",
+        "sources"
       ],
       "outsiders": [],
       "edges": []
@@ -2441,6 +2525,43 @@
           "from": "source",
           "to": "calls-rejected",
           "label": "calls",
+          "count": 1
+        }
+      ]
+    },
+    "sources": {
+      "id": "sources",
+      "members": [
+        "a-in",
+        "b-in",
+        "gateway",
+        "shared",
+        "audit"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "a-in",
+          "to": "gateway",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "b-in",
+          "to": "gateway",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "gateway",
+          "to": "shared",
+          "label": "calls",
+          "count": 1
+        },
+        {
+          "from": "gateway",
+          "to": "audit",
+          "label": "logs",
           "count": 1
         }
       ]

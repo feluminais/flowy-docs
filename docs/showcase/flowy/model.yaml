@@ -428,6 +428,38 @@ objects:
     in: scale
     name: Rejected calls
     description: A share of the calls is turned away at the end of the line. Each stops at a bar and comes back red.
+  sources:
+    type: system
+    name: Several sources
+    description: |
+      Two sources of requests at once, each with its own slider, colour and scale: added from separate runs (**Several sources added**) and tested together (**Several sources tested together**).
+
+      Open the Performance tab (**T**), pick one of them, then move a slider or press **Ramp** on a source. The chart follows the source you moved last.
+  a-in:
+    type: app
+    in: sources
+    name: Source A
+    description: Where Source A's calls come in. Its dots are blue, one for every 50 calls a second, and bigger than Source B's because its calls carry more.
+  b-in:
+    type: app
+    in: sources
+    name: Source B
+    description: Where Source B's calls come in. Its dots are green, one for every 10 calls a second.
+  gateway:
+    type: app
+    in: sources
+    name: Where they meet
+    description: Both sources send their calls through here. The line to Shared service carries both, so it has a stream of dots for each, side by side, in its colour. Past 24 dots at once both are scaled down together, so the ratio stays true.
+  shared:
+    type: store
+    in: sources
+    name: Shared service
+    description: Both sources fill it. In the run added from separate runs its use is the two added, and past 100% it reads "Added use is over 100%". In the run tested together it is what was measured with both at once.
+  audit:
+    type: app
+    in: sources
+    name: Not split by source
+    description: The run says how many calls this line carries but not which source sent them, so its dots are grey and the key says "Other calls".
 connections:
   - from: send-from
     to: send-to
@@ -561,3 +593,15 @@ connections:
   - from: source
     to: calls-rejected
     label: calls
+  - from: a-in
+    to: gateway
+    label: calls
+  - from: b-in
+    to: gateway
+    label: calls
+  - from: gateway
+    to: shared
+    label: calls
+  - from: gateway
+    to: audit
+    label: logs
