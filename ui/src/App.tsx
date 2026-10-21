@@ -45,7 +45,7 @@ import { PickedBar } from './PickedBar.tsx'
 import { addsToSelection, banded, keepsSelection, toggled } from './selection.ts'
 import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
-import { StepMotion } from './StepMotion.tsx'
+import { leavesMarks, StepMotion, takenBy } from './StepMotion.tsx'
 import { GroupMarks } from './GroupMarks.tsx'
 import { Player } from './Player.tsx'
 import { closeFlow, followBack, openFlow as leaveFlow } from './trail.ts'
@@ -275,7 +275,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const animated = flow && stop ? stop.steps.flatMap(i => {
     const a = animationOf(flow.steps[i])
     const p = shown?.ends[i]
-    return a && p ? [{ i, animation: a, placed: p }] : []
+    return a && p ? [{ i, animation: a, placed: p, by: takenBy(model, view, a, p) }] : []
   }) : []
   const moving = animated.length > 0
   const stepKey = flow && playing ? `${playing.flow}:${stopIndex}:${replays}` : ''
@@ -336,8 +336,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })), openLevel)]
   const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
   const selectedBox = side?.kind === 'object' ? side.id : undefined
-  // The lines a pipe plays along move their labels aside (see Line), unless motion is reduced and there is no pipe.
-  const pipes = still ? '' : animated.map(m => lineId(m.placed[0], m.placed[1])).join('\n')
+  // The lines a pipe plays along move their labels aside (see Line), unless motion is reduced and there is no pipe. A step that leaves marks (a cross, a bar) keeps its label clear of them.
+  const pipes = animated.filter(m => !still || leavesMarks(m.animation)).map(m => lineId(m.placed[0], m.placed[1])).join('\n')
   const edges = useMemo(() => {
     const lifted = new Set(pipes === '' ? [] : pipes.split('\n'))
     const drawn = focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }).map(e => (lifted.has(e.id) ? { ...e, data: { lift: true } } : e))
@@ -968,7 +968,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               <Controls showInteractive={false} fitViewOptions={fitOptions(rightOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
               {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
               {flow && stop && animated.map(m => (
-                <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
+                <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
               ))}
               {flow && <GroupMarks marks={marks} />}
             </ReactFlow>

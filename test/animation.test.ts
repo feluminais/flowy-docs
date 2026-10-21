@@ -502,13 +502,13 @@ test('a duplicated pair is one request: both copies carry the same name and tint
   assert.equal(play('send', { outcome: 'duplicated', share: 10 }).beats.filter(b => b.do === 'gulp' && b.on === 'to').length, 9 + 2)
 })
 
-test('a burst stays short: 100 requests start within three seconds, and a call answers every one of them', () => {
+test('a burst stays short: 100 requests start within four seconds, and a call answers every one of them', () => {
   for (const kind of ['send', 'call', 'event'] as const) {
     for (const length of [0, 250, 5000]) {
       const longest = Math.max(...[{ outcome: 'lost' as const }, {}].map(more => beatsFor(plain(kind, more), { length, afterLanding: false }).total))
       const { beats, total } = beatsFor(plain(kind, { outcome: 'lost', share: 1 }), { length, afterLanding: false })
       assert.equal(beats.filter(b => b.do === 'blob' && b.dir === 'fwd').length, 100)
-      assert.ok(total <= longest + 3000, `${kind} ${length}: ${total}`)
+      assert.ok(total <= longest + 4000, `${kind} ${length}: ${total}`)
     }
   }
   const call = beatsFor(plain('call', { outcome: 'lost', share: 1 }), { length: 5000, afterLanding: false })
@@ -516,6 +516,20 @@ test('a burst stays short: 100 requests start within three seconds, and a call a
   const answered = beatsFor(plain('call', { outcome: 'lost', share: 30 }), { length: 250, afterLanding: false }).beats
   assert.equal(answered.filter(b => b.do === 'blob' && b.dir === 'back').length, 7, 'every request that arrives is answered')
   assert.equal(answered.filter(b => b.do === 'wait').length, 10)
+})
+
+test('a short line spaces the requests of a burst further apart, so its blobs do not run into each other', () => {
+  const starts = (length: number) => beatsFor(plain('send', { outcome: 'lost', share: 30 }), { length, afterLanding: false }).beats.filter(b => b.do === 'blob' && b.dir === 'fwd').map(b => b.at)
+  const gap = (length: number) => starts(length)[1] - starts(length)[0]
+  assert.equal(gap(250), 300)
+  assert.equal(gap(5000), 300)
+  assert.equal(gap(91), 444, 'a line of 91 px is crossed in 1200 ms, so 36 px apart is 475 ms, held to the 4 s the burst may take')
+  assert.ok(gap(120) > 300 && gap(120) < 444)
+  assert.equal(gap(0), 300, 'a line that has not been measured yet is spaced as usual')
+  assert.equal(gap(Number.NaN), 300)
+  // A burst of 100 is a stream, not a row: it keeps to its few seconds whatever the line.
+  const stream = beatsFor(plain('send', { outcome: 'lost', share: 1 }), { length: 91, afterLanding: false }).beats.filter(b => b.do === 'blob' && b.dir === 'fwd').map(b => b.at)
+  assert.equal(stream.at(-1)! - stream[0], 99 * 40)
 })
 
 test('a burst of timeouts dims the line once, after the last of them', () => {

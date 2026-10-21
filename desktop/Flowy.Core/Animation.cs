@@ -71,9 +71,13 @@ public static class Animations
     private const double WaitAt = 0.4;
     private const double LandingNoteAt = 0.88;
 
-    /// <summary>A burst starts a request every BurstStagger ms at most, and spreads its starts over at most BurstSpread ms.</summary>
+    /// <summary>
+    /// A burst starts a request every BurstStagger ms, or further apart on a short line so the blobs stay about BlobSpacing px from each other,
+    /// and never spreads its starts over more than BurstSpread ms.
+    /// </summary>
     private const int BurstStagger = 300;
-    private const int BurstSpread = 3000;
+    private const int BlobSpacing = 36;
+    private const int BurstSpread = 4000;
 
     private static readonly string KindsHint = "use " + string.Join(", ", Kinds);
 
@@ -416,7 +420,8 @@ public static class Animations
         if (a.Share is { } share && a.Outcome is not null && a.Kind != "callback")
         {
             var (count, hit) = BurstOf(share);
-            var stagger = Math.Min(BurstStagger, BurstSpread / (count - 1));
+            var spacing = double.IsFinite(length) && length > 0 ? (int)Math.Ceiling(BlobSpacing * t / length) : 0;
+            var stagger = Math.Min(BurstSpread / (count - 1), Math.Max(BurstStagger, spacing));
             var last = Array.LastIndexOf(hit, true);
             var nth = 0;
             body = [];
