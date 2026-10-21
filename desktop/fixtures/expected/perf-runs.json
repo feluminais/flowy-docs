@@ -1562,6 +1562,1363 @@
         ]
       },
       "problems": []
+    },
+    {
+      "id": "time-good",
+      "text": "name: Payments killed at 40 s\nabout: Made up\naxis: time\nunit: s\nentry: web\nevents:\n  - { at: 85, on: gateway, state: running, text: Answers again }\n  - { at: 40, on: gateway, state: stopped, text: Payments killed }\n  - { at: 70, on: gateway, state: starting, text: Restart begins }\nlevels:\n  - at: 0\n    overall: { rate: 98, p50: 60, p95: 140, errors: 0 }\n    objects:\n      gateway: { util: 0.4 }\n  - at: 45\n    objects:\n      gateway: { util: 0 }\n      web: { util: 0.9, errors: 0.6 }\n  - at: 120\n",
+      "run": {
+        "name": "Payments killed at 40 s",
+        "about": "Made up",
+        "unit": "s",
+        "entry": "web",
+        "axis": "time",
+        "events": [
+          {
+            "at": 40,
+            "on": "gateway",
+            "state": "stopped",
+            "text": "Payments killed"
+          },
+          {
+            "at": 70,
+            "on": "gateway",
+            "state": "starting",
+            "text": "Restart begins"
+          },
+          {
+            "at": 85,
+            "on": "gateway",
+            "state": "running",
+            "text": "Answers again"
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {
+              "rate": 98,
+              "p50": 60,
+              "p95": 140,
+              "errors": 0
+            },
+            "objects": {
+              "gateway": {
+                "util": 0.4
+              }
+            },
+            "connections": []
+          },
+          {
+            "load": 45,
+            "overall": {},
+            "objects": {
+              "gateway": {
+                "util": 0
+              },
+              "web": {
+                "util": 0.9,
+                "errors": 0.6
+              }
+            },
+            "connections": []
+          },
+          {
+            "load": 120,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "time-bare",
+      "text": "name: T\naxis: time\nlevels:\n  - at: 0\n  - at: 5\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 5,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "time-no-events",
+      "text": "name: T\naxis: time\nunit: min\nlevels:\n  - at: 0.5\n  - at: \" 1e1 \"\n",
+      "run": {
+        "name": "T",
+        "unit": "min",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0.5,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 10,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "time-load-key",
+      "text": "name: T\naxis: time\nlevels:\n  - at: 0\n  - load: 5\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 5,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/time-load-key.yaml",
+          "message": "level 2: a time run uses at, not load"
+        }
+      ]
+    },
+    {
+      "id": "time-both-keys",
+      "text": "name: T\naxis: time\nlevels:\n  - at: 0\n  - at: 5\n    load: 9\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 5,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/time-both-keys.yaml",
+          "message": "level 2: a time run uses at, not load"
+        }
+      ]
+    },
+    {
+      "id": "time-all-load-keys",
+      "text": "name: T\naxis: time\nlevels:\n  - load: 0\n  - load: 5\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 5,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/time-all-load-keys.yaml",
+          "message": "level 1: a time run uses at, not load"
+        },
+        {
+          "file": "perf/time-all-load-keys.yaml",
+          "message": "level 2: a time run uses at, not load"
+        }
+      ]
+    },
+    {
+      "id": "time-missing-at",
+      "text": "name: T\naxis: time\nlevels:\n  - at: 0\n  - objects: {}\n",
+      "error": {
+        "file": "perf/time-missing-at.yaml",
+        "line": null,
+        "message": "level 2: at must be a number, 0 or more"
+      }
+    },
+    {
+      "id": "time-word-at",
+      "text": "name: T\naxis: time\nlevels:\n  - at: soon\n  - at: 5\n",
+      "error": {
+        "file": "perf/time-word-at.yaml",
+        "line": null,
+        "message": "level 1: at must be a number, 0 or more"
+      }
+    },
+    {
+      "id": "time-negative-at",
+      "text": "name: T\naxis: time\nlevels:\n  - at: -1\n  - at: 5\n",
+      "error": {
+        "file": "perf/time-negative-at.yaml",
+        "line": null,
+        "message": "level 1: at must be a number, 0 or more"
+      }
+    },
+    {
+      "id": "time-backwards",
+      "text": "name: T\naxis: time\nlevels:\n  - at: 5\n  - at: 5\n",
+      "error": {
+        "file": "perf/time-backwards.yaml",
+        "line": null,
+        "message": "level 2: at 5 must be above 5 (levels go up in time)"
+      }
+    },
+    {
+      "id": "time-bad-numbers",
+      "text": "name: T\naxis: time\nlevels:\n  - at: 3\n    objects:\n      a: { util: 2 }\n  - at: 4\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 3,
+            "overall": {},
+            "objects": {
+              "a": {}
+            },
+            "connections": []
+          },
+          {
+            "load": 4,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/time-bad-numbers.yaml",
+          "message": "at 3, a: util must be between 0 and 1"
+        }
+      ]
+    },
+    {
+      "id": "load-at-key",
+      "text": "name: T\nlevels:\n  - load: 1\n  - at: 5\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 5,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/load-at-key.yaml",
+          "message": "level 2: a load run uses load, not at"
+        }
+      ]
+    },
+    {
+      "id": "load-empty-at",
+      "text": "name: T\nlevels:\n  - load: 1\n  - at:\n    load: 5\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 5,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/load-empty-at.yaml",
+          "message": "level 2: a load run uses load, not at"
+        }
+      ]
+    },
+    {
+      "id": "axis-load",
+      "text": "name: T\naxis: load\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "axis-weird",
+      "text": "name: T\naxis: weird\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/axis-weird.yaml",
+          "message": "axis must be load or time"
+        }
+      ]
+    },
+    {
+      "id": "axis-number",
+      "text": "name: T\naxis: 5\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/axis-number.yaml",
+          "message": "axis must be load or time"
+        }
+      ]
+    },
+    {
+      "id": "axis-list",
+      "text": "name: T\naxis: [time]\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/axis-list.yaml",
+          "message": "axis must be load or time"
+        }
+      ]
+    },
+    {
+      "id": "axis-capital",
+      "text": "name: T\naxis: Time\nlevels:\n  - at: 1\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/axis-capital.yaml",
+          "message": "axis must be load or time"
+        },
+        {
+          "file": "perf/axis-capital.yaml",
+          "message": "level 1: a load run uses load, not at"
+        },
+        {
+          "file": "perf/axis-capital.yaml",
+          "message": "level 2: a load run uses load, not at"
+        }
+      ]
+    },
+    {
+      "id": "axis-blank",
+      "text": "name: T\naxis:\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "axis-tilde",
+      "text": "name: T\naxis: ~\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "axis-long",
+      "text": "name: T\naxis: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/axis-long.yaml",
+          "message": "axis must be load or time"
+        }
+      ]
+    },
+    {
+      "id": "events-on-load",
+      "text": "name: T\nevents:\n  - { at: 1, on: web, state: stopped }\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/events-on-load.yaml",
+          "message": "events are only for a time run (set axis: time)"
+        }
+      ]
+    },
+    {
+      "id": "events-on-load-empty",
+      "text": "name: T\nevents: []\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/events-on-load-empty.yaml",
+          "message": "events are only for a time run (set axis: time)"
+        }
+      ]
+    },
+    {
+      "id": "events-on-load-null",
+      "text": "name: T\nevents: ~\nlevels:\n  - load: 1\n  - load: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "load",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "events-empty",
+      "text": "name: T\naxis: time\nevents: []\nlevels:\n  - at: 1\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "events-null",
+      "text": "name: T\naxis: time\nevents:\nlevels:\n  - at: 1\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "events-map",
+      "text": "name: T\naxis: time\nevents: { at: 1 }\nlevels:\n  - at: 1\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/events-map.yaml",
+          "message": "events must be a list"
+        }
+      ]
+    },
+    {
+      "id": "events-text",
+      "text": "name: T\naxis: time\nevents: soon\nlevels:\n  - at: 1\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 1,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/events-text.yaml",
+          "message": "events must be a list"
+        }
+      ]
+    },
+    {
+      "id": "event-not-map",
+      "text": "name: T\naxis: time\nevents: [soon, [1], { at: 1, on: web, state: stopped }]\nlevels:\n  - at: 0\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 1,
+            "on": "web",
+            "state": "stopped",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/event-not-map.yaml",
+          "message": "event 1 must be a mapping of at, on, state and text"
+        },
+        {
+          "file": "perf/event-not-map.yaml",
+          "message": "event 2 must be a mapping of at, on, state and text"
+        }
+      ]
+    },
+    {
+      "id": "event-no-at",
+      "text": "name: T\naxis: time\nevents:\n  - { on: web, state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/event-no-at.yaml",
+          "message": "event 1: at must be a number"
+        }
+      ]
+    },
+    {
+      "id": "event-word-at",
+      "text": "name: T\naxis: time\nevents:\n  - { at: soon, on: web, state: stopped }\n  - { at: \"\", on: web, state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/event-word-at.yaml",
+          "message": "event 1: at must be a number"
+        },
+        {
+          "file": "perf/event-word-at.yaml",
+          "message": "event 2: at must be a number"
+        }
+      ]
+    },
+    {
+      "id": "event-no-on",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 1, state: stopped }\n  - { at: 1, on: \"\", state: stopped }\n  - { at: 1, on: [web], state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/event-no-on.yaml",
+          "message": "event 1: on must name a shape"
+        },
+        {
+          "file": "perf/event-no-on.yaml",
+          "message": "event 2: on must name a shape"
+        },
+        {
+          "file": "perf/event-no-on.yaml",
+          "message": "event 3: on must name a shape"
+        }
+      ]
+    },
+    {
+      "id": "event-bad-state",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 1, on: web, state: asleep }\n  - { at: 1, on: web, state: Stopped }\n  - { at: 1, on: web, state: [stopped] }\n  - { at: 1, on: web }\n  - { at: 1, on: web, state: \"\" }\nlevels:\n  - at: 0\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/event-bad-state.yaml",
+          "message": "event 1: unknown state \"asleep\" (use running, starting, stopping, stopped, restarting, degraded)"
+        },
+        {
+          "file": "perf/event-bad-state.yaml",
+          "message": "event 2: unknown state \"Stopped\" (use running, starting, stopping, stopped, restarting, degraded)"
+        },
+        {
+          "file": "perf/event-bad-state.yaml",
+          "message": "event 3: state needs a state word (use running, starting, stopping, stopped, restarting, degraded)"
+        },
+        {
+          "file": "perf/event-bad-state.yaml",
+          "message": "event 4: state needs a state word (use running, starting, stopping, stopped, restarting, degraded)"
+        },
+        {
+          "file": "perf/event-bad-state.yaml",
+          "message": "event 5: unknown state \"\" (use running, starting, stopping, stopped, restarting, degraded)"
+        }
+      ]
+    },
+    {
+      "id": "event-long-state",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 1, on: web, state: ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss }\nlevels:\n  - at: 0\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/event-long-state.yaml",
+          "message": "event 1: unknown state \"ssssssssssssssssssssssssssssssssssssssss…\" (use running, starting, stopping, stopped, restarting, degraded)"
+        }
+      ]
+    },
+    {
+      "id": "event-everything-wrong",
+      "text": "name: T\naxis: time\nunit: s\nevents:\n  - { at: 9, state: asleep, text: [x] }\nlevels:\n  - at: 0\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/event-everything-wrong.yaml",
+          "message": "event 1: at 9 is outside the run (0 to 2 s)"
+        },
+        {
+          "file": "perf/event-everything-wrong.yaml",
+          "message": "event 1: on must name a shape"
+        },
+        {
+          "file": "perf/event-everything-wrong.yaml",
+          "message": "event 1: unknown state \"asleep\" (use running, starting, stopping, stopped, restarting, degraded)"
+        },
+        {
+          "file": "perf/event-everything-wrong.yaml",
+          "message": "event 1: text must be plain text"
+        }
+      ]
+    },
+    {
+      "id": "event-text",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 1, on: web, state: stopped, text: [x] }\n  - { at: 1.5, on: web, state: running, text: \"  \" }\n  - { at: 2, on: web, state: degraded, text: \"  Slow  \" }\n  - { at: 2, on: db, state: degraded, text: ~ }\nlevels:\n  - at: 0\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 1,
+            "on": "web",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 1.5,
+            "on": "web",
+            "state": "running",
+            "text": ""
+          },
+          {
+            "at": 2,
+            "on": "web",
+            "state": "degraded",
+            "text": "Slow"
+          },
+          {
+            "at": 2,
+            "on": "db",
+            "state": "degraded",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/event-text.yaml",
+          "message": "event 1: text must be plain text"
+        }
+      ]
+    },
+    {
+      "id": "event-edges",
+      "text": "name: T\naxis: time\nunit: s\nevents:\n  - { at: 0, on: web, state: stopped }\n  - { at: 150, on: web, state: running }\nlevels:\n  - at: 0\n  - at: 150\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 0,
+            "on": "web",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 150,
+            "on": "web",
+            "state": "running",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 150,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "event-outside",
+      "text": "name: T\naxis: time\nunit: s\nevents:\n  - { at: -0.001, on: web, state: stopped }\n  - { at: 150.001, on: web, state: running }\n  - { at: 1e9, on: web, state: running }\nlevels:\n  - at: 0\n  - at: 150\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 150,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/event-outside.yaml",
+          "message": "event 1: at -0.001 is outside the run (0 to 150 s)"
+        },
+        {
+          "file": "perf/event-outside.yaml",
+          "message": "event 2: at 150.001 is outside the run (0 to 150 s)"
+        },
+        {
+          "file": "perf/event-outside.yaml",
+          "message": "event 3: at 1000000000 is outside the run (0 to 150 s)"
+        }
+      ]
+    },
+    {
+      "id": "event-ties",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 5, on: web, state: stopped }\n  - { at: 5, on: web, state: degraded }\n  - { at: 5, on: db, state: starting }\n  - { at: 9, on: web, state: running }\n  - { at: 9, on: web, state: stopping }\n  - { at: 1, on: db, state: stopped }\nlevels:\n  - at: 0\n  - at: 10\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 1,
+            "on": "db",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 5,
+            "on": "web",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 5,
+            "on": "web",
+            "state": "degraded",
+            "text": ""
+          },
+          {
+            "at": 5,
+            "on": "db",
+            "state": "starting",
+            "text": ""
+          },
+          {
+            "at": 9,
+            "on": "web",
+            "state": "running",
+            "text": ""
+          },
+          {
+            "at": 9,
+            "on": "web",
+            "state": "stopping",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 10,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "event-proto",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 1, on: __proto__, state: stopped }\n  - { at: 2, on: constructor, state: degraded }\n  - { at: 3, on: toString, state: running }\nlevels:\n  - at: 0\n  - at: 4\n    objects:\n      __proto__: { util: 0.5 }\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 1,
+            "on": "__proto__",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 2,
+            "on": "constructor",
+            "state": "degraded",
+            "text": ""
+          },
+          {
+            "at": 3,
+            "on": "toString",
+            "state": "running",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 4,
+            "overall": {},
+            "objects": {
+              "__proto__": {
+                "util": 0.5
+              }
+            },
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "event-numeric-ids",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 1, on: b, state: stopped }\n  - { at: 2, on: \"10\", state: stopped }\n  - { at: 3, on: \"2\", state: degraded }\n  - { at: 4, on: \"007\", state: starting }\nlevels:\n  - at: 0\n  - at: 5\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 1,
+            "on": "b",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 2,
+            "on": "10",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 3,
+            "on": "2",
+            "state": "degraded",
+            "text": ""
+          },
+          {
+            "at": 4,
+            "on": "007",
+            "state": "starting",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 5,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "event-resorted",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 3, on: a, state: stopped }\n  - { at: 1, on: a, state: starting }\n  - { at: 3, on: b, state: stopped }\n  - { at: 2, on: a, state: running }\nlevels:\n  - at: 0\n  - at: 4\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 1,
+            "on": "a",
+            "state": "starting",
+            "text": ""
+          },
+          {
+            "at": 2,
+            "on": "a",
+            "state": "running",
+            "text": ""
+          },
+          {
+            "at": 3,
+            "on": "a",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 3,
+            "on": "b",
+            "state": "stopped",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 4,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": []
+    },
+    {
+      "id": "event-unit-default",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 9, on: web, state: stopped }\nlevels:\n  - at: 0\n  - at: 4\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 4,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/event-unit-default.yaml",
+          "message": "event 1: at 9 is outside the run (0 to 4 s)"
+        }
+      ]
     }
   ],
   "strain": [
@@ -19857,6 +21214,2904 @@
               "lines": []
             }
           ]
+        }
+      ]
+    }
+  ],
+  "timed": [
+    {
+      "id": "outage",
+      "text": "name: Payments killed at 40 s\nabout: Made up\naxis: time\nunit: s\nentry: web\nevents:\n  - { at: 85, on: gateway, state: running, text: Answers again }\n  - { at: 40, on: gateway, state: stopped, text: Payments killed }\n  - { at: 70, on: gateway, state: starting, text: Restart begins }\nlevels:\n  - at: 0\n    overall: { rate: 98, p50: 60, p95: 140, errors: 0 }\n    objects:\n      gateway: { util: 0.4 }\n  - at: 45\n    objects:\n      gateway: { util: 0 }\n      web: { util: 0.9, errors: 0.6 }\n  - at: 120\n",
+      "run": {
+        "name": "Payments killed at 40 s",
+        "about": "Made up",
+        "unit": "s",
+        "entry": "web",
+        "axis": "time",
+        "events": [
+          {
+            "at": 40,
+            "on": "gateway",
+            "state": "stopped",
+            "text": "Payments killed"
+          },
+          {
+            "at": 70,
+            "on": "gateway",
+            "state": "starting",
+            "text": "Restart begins"
+          },
+          {
+            "at": 85,
+            "on": "gateway",
+            "state": "running",
+            "text": "Answers again"
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {
+              "rate": 98,
+              "p50": 60,
+              "p95": 140,
+              "errors": 0
+            },
+            "objects": {
+              "gateway": {
+                "util": 0.4
+              }
+            },
+            "connections": []
+          },
+          {
+            "load": 45,
+            "overall": {},
+            "objects": {
+              "gateway": {
+                "util": 0
+              },
+              "web": {
+                "util": 0.9,
+                "errors": 0.6
+              }
+            },
+            "connections": []
+          },
+          {
+            "load": 120,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [],
+      "check": [],
+      "words": [
+        "Payments killed",
+        "Restart begins",
+        "Answers again"
+      ],
+      "times": [
+        {
+          "t": -1,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": -0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 39.999,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 40,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            }
+          ],
+          "states": {
+            "gateway": "stopped"
+          }
+        },
+        {
+          "t": 40.001,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            }
+          ],
+          "states": {
+            "gateway": "stopped"
+          }
+        },
+        {
+          "t": 44.999,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            }
+          ],
+          "states": {
+            "gateway": "stopped"
+          }
+        },
+        {
+          "t": 45,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            }
+          ],
+          "states": {
+            "gateway": "stopped"
+          }
+        },
+        {
+          "t": 45.001,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            }
+          ],
+          "states": {
+            "gateway": "stopped"
+          }
+        },
+        {
+          "t": 69.999,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            }
+          ],
+          "states": {
+            "gateway": "stopped"
+          }
+        },
+        {
+          "t": 70,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            },
+            {
+              "at": 70,
+              "on": "gateway",
+              "state": "starting",
+              "text": "Restart begins"
+            }
+          ],
+          "states": {
+            "gateway": "starting"
+          }
+        },
+        {
+          "t": 70.001,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            },
+            {
+              "at": 70,
+              "on": "gateway",
+              "state": "starting",
+              "text": "Restart begins"
+            }
+          ],
+          "states": {
+            "gateway": "starting"
+          }
+        },
+        {
+          "t": 84.999,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            },
+            {
+              "at": 70,
+              "on": "gateway",
+              "state": "starting",
+              "text": "Restart begins"
+            }
+          ],
+          "states": {
+            "gateway": "starting"
+          }
+        },
+        {
+          "t": 85,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            },
+            {
+              "at": 70,
+              "on": "gateway",
+              "state": "starting",
+              "text": "Restart begins"
+            },
+            {
+              "at": 85,
+              "on": "gateway",
+              "state": "running",
+              "text": "Answers again"
+            }
+          ],
+          "states": {
+            "gateway": "running"
+          }
+        },
+        {
+          "t": 85.001,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            },
+            {
+              "at": 70,
+              "on": "gateway",
+              "state": "starting",
+              "text": "Restart begins"
+            },
+            {
+              "at": 85,
+              "on": "gateway",
+              "state": "running",
+              "text": "Answers again"
+            }
+          ],
+          "states": {
+            "gateway": "running"
+          }
+        },
+        {
+          "t": 119.999,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            },
+            {
+              "at": 70,
+              "on": "gateway",
+              "state": "starting",
+              "text": "Restart begins"
+            },
+            {
+              "at": 85,
+              "on": "gateway",
+              "state": "running",
+              "text": "Answers again"
+            }
+          ],
+          "states": {
+            "gateway": "running"
+          }
+        },
+        {
+          "t": 120,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            },
+            {
+              "at": 70,
+              "on": "gateway",
+              "state": "starting",
+              "text": "Restart begins"
+            },
+            {
+              "at": 85,
+              "on": "gateway",
+              "state": "running",
+              "text": "Answers again"
+            }
+          ],
+          "states": {
+            "gateway": "running"
+          }
+        },
+        {
+          "t": 120.001,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            },
+            {
+              "at": 70,
+              "on": "gateway",
+              "state": "starting",
+              "text": "Restart begins"
+            },
+            {
+              "at": 85,
+              "on": "gateway",
+              "state": "running",
+              "text": "Answers again"
+            }
+          ],
+          "states": {
+            "gateway": "running"
+          }
+        },
+        {
+          "t": 121,
+          "passed": [
+            {
+              "at": 40,
+              "on": "gateway",
+              "state": "stopped",
+              "text": "Payments killed"
+            },
+            {
+              "at": 70,
+              "on": "gateway",
+              "state": "starting",
+              "text": "Restart begins"
+            },
+            {
+              "at": 85,
+              "on": "gateway",
+              "state": "running",
+              "text": "Answers again"
+            }
+          ],
+          "states": {
+            "gateway": "running"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ghosts",
+      "text": "name: Ghosts\naxis: time\nevents:\n  - { at: 1, on: ghost, state: stopped }\n  - { at: 2, on: ghost, state: running }\n  - { at: 3, on: gateway, state: degraded }\n  - { at: 4, on: phantom, state: starting }\nlevels:\n  - at: 0\n    objects: { ghost: { util: 0.1 } }\n  - at: 5\n",
+      "run": {
+        "name": "Ghosts",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 1,
+            "on": "ghost",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 2,
+            "on": "ghost",
+            "state": "running",
+            "text": ""
+          },
+          {
+            "at": 3,
+            "on": "gateway",
+            "state": "degraded",
+            "text": ""
+          },
+          {
+            "at": 4,
+            "on": "phantom",
+            "state": "starting",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {
+              "ghost": {
+                "util": 0.1
+              }
+            },
+            "connections": []
+          },
+          {
+            "load": 5,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [],
+      "check": [
+        {
+          "file": "perf/ghosts.yaml",
+          "message": "unknown object \"ghost\""
+        },
+        {
+          "file": "perf/ghosts.yaml",
+          "message": "unknown object \"phantom\""
+        }
+      ],
+      "words": [
+        "ghost: Stopped",
+        "ghost: Running",
+        "Payment gateway: Degraded",
+        "phantom: Starting"
+      ],
+      "times": [
+        {
+          "t": -1,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": -0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.999,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 1,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "stopped"
+          }
+        },
+        {
+          "t": 1.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "stopped"
+          }
+        },
+        {
+          "t": 1.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "stopped"
+          }
+        },
+        {
+          "t": 2,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running"
+          }
+        },
+        {
+          "t": 2.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running"
+          }
+        },
+        {
+          "t": 2.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running"
+          }
+        },
+        {
+          "t": 3,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "gateway",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running",
+            "gateway": "degraded"
+          }
+        },
+        {
+          "t": 3.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "gateway",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running",
+            "gateway": "degraded"
+          }
+        },
+        {
+          "t": 3.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "gateway",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running",
+            "gateway": "degraded"
+          }
+        },
+        {
+          "t": 4,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "gateway",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "phantom",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running",
+            "gateway": "degraded",
+            "phantom": "starting"
+          }
+        },
+        {
+          "t": 4.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "gateway",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "phantom",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running",
+            "gateway": "degraded",
+            "phantom": "starting"
+          }
+        },
+        {
+          "t": 4.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "gateway",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "phantom",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running",
+            "gateway": "degraded",
+            "phantom": "starting"
+          }
+        },
+        {
+          "t": 5,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "gateway",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "phantom",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running",
+            "gateway": "degraded",
+            "phantom": "starting"
+          }
+        },
+        {
+          "t": 5.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "gateway",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "phantom",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running",
+            "gateway": "degraded",
+            "phantom": "starting"
+          }
+        },
+        {
+          "t": 6,
+          "passed": [
+            {
+              "at": 1,
+              "on": "ghost",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "ghost",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "gateway",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "phantom",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "ghost": "running",
+            "gateway": "degraded",
+            "phantom": "starting"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ties",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 5, on: web, state: stopped }\n  - { at: 5, on: web, state: degraded }\n  - { at: 5, on: db, state: starting }\n  - { at: 9, on: web, state: running }\n  - { at: 9, on: web, state: stopping }\n  - { at: 1, on: db, state: stopped }\nlevels:\n  - at: 0\n  - at: 10\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 1,
+            "on": "db",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 5,
+            "on": "web",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 5,
+            "on": "web",
+            "state": "degraded",
+            "text": ""
+          },
+          {
+            "at": 5,
+            "on": "db",
+            "state": "starting",
+            "text": ""
+          },
+          {
+            "at": 9,
+            "on": "web",
+            "state": "running",
+            "text": ""
+          },
+          {
+            "at": 9,
+            "on": "web",
+            "state": "stopping",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 10,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [],
+      "check": [],
+      "words": [
+        "Orders DB: Stopped",
+        "Web: Stopped",
+        "Web: Degraded",
+        "Orders DB: Starting",
+        "Web: Running",
+        "Web: Stopping"
+      ],
+      "times": [
+        {
+          "t": -1,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": -0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.999,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 1,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "stopped"
+          }
+        },
+        {
+          "t": 1.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "stopped"
+          }
+        },
+        {
+          "t": 4.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "stopped"
+          }
+        },
+        {
+          "t": 5,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "db",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "starting",
+            "web": "degraded"
+          }
+        },
+        {
+          "t": 5.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "db",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "starting",
+            "web": "degraded"
+          }
+        },
+        {
+          "t": 8.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "db",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "starting",
+            "web": "degraded"
+          }
+        },
+        {
+          "t": 9,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "db",
+              "state": "starting",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "stopping",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "starting",
+            "web": "stopping"
+          }
+        },
+        {
+          "t": 9.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "db",
+              "state": "starting",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "stopping",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "starting",
+            "web": "stopping"
+          }
+        },
+        {
+          "t": 9.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "db",
+              "state": "starting",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "stopping",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "starting",
+            "web": "stopping"
+          }
+        },
+        {
+          "t": 10,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "db",
+              "state": "starting",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "stopping",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "starting",
+            "web": "stopping"
+          }
+        },
+        {
+          "t": 10.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "db",
+              "state": "starting",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "stopping",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "starting",
+            "web": "stopping"
+          }
+        },
+        {
+          "t": 11,
+          "passed": [
+            {
+              "at": 1,
+              "on": "db",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 5,
+              "on": "db",
+              "state": "starting",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 9,
+              "on": "web",
+              "state": "stopping",
+              "text": ""
+            }
+          ],
+          "states": {
+            "db": "starting",
+            "web": "stopping"
+          }
+        }
+      ]
+    },
+    {
+      "id": "numeric",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 1, on: b, state: stopped }\n  - { at: 2, on: \"10\", state: stopped }\n  - { at: 3, on: \"2\", state: degraded }\n  - { at: 4, on: \"007\", state: starting }\nlevels:\n  - at: 0\n  - at: 5\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 1,
+            "on": "b",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 2,
+            "on": "10",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 3,
+            "on": "2",
+            "state": "degraded",
+            "text": ""
+          },
+          {
+            "at": 4,
+            "on": "007",
+            "state": "starting",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 5,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [],
+      "check": [
+        {
+          "file": "perf/numeric.yaml",
+          "message": "unknown object \"b\""
+        },
+        {
+          "file": "perf/numeric.yaml",
+          "message": "unknown object \"10\""
+        },
+        {
+          "file": "perf/numeric.yaml",
+          "message": "unknown object \"2\""
+        },
+        {
+          "file": "perf/numeric.yaml",
+          "message": "unknown object \"007\""
+        }
+      ],
+      "words": [
+        "b: Stopped",
+        "10: Stopped",
+        "2: Degraded",
+        "007: Starting"
+      ],
+      "times": [
+        {
+          "t": -1,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": -0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.999,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 1,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "b": "stopped"
+          }
+        },
+        {
+          "t": 1.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "b": "stopped"
+          }
+        },
+        {
+          "t": 1.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "b": "stopped"
+          }
+        },
+        {
+          "t": 2,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "10": "stopped",
+            "b": "stopped"
+          }
+        },
+        {
+          "t": 2.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "10": "stopped",
+            "b": "stopped"
+          }
+        },
+        {
+          "t": 2.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "10": "stopped",
+            "b": "stopped"
+          }
+        },
+        {
+          "t": 3,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "2",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "2": "degraded",
+            "10": "stopped",
+            "b": "stopped"
+          }
+        },
+        {
+          "t": 3.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "2",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "2": "degraded",
+            "10": "stopped",
+            "b": "stopped"
+          }
+        },
+        {
+          "t": 3.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "2",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "2": "degraded",
+            "10": "stopped",
+            "b": "stopped"
+          }
+        },
+        {
+          "t": 4,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "2",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "007",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "2": "degraded",
+            "10": "stopped",
+            "b": "stopped",
+            "007": "starting"
+          }
+        },
+        {
+          "t": 4.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "2",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "007",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "2": "degraded",
+            "10": "stopped",
+            "b": "stopped",
+            "007": "starting"
+          }
+        },
+        {
+          "t": 4.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "2",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "007",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "2": "degraded",
+            "10": "stopped",
+            "b": "stopped",
+            "007": "starting"
+          }
+        },
+        {
+          "t": 5,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "2",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "007",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "2": "degraded",
+            "10": "stopped",
+            "b": "stopped",
+            "007": "starting"
+          }
+        },
+        {
+          "t": 5.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "2",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "007",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "2": "degraded",
+            "10": "stopped",
+            "b": "stopped",
+            "007": "starting"
+          }
+        },
+        {
+          "t": 6,
+          "passed": [
+            {
+              "at": 1,
+              "on": "b",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "10",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "2",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 4,
+              "on": "007",
+              "state": "starting",
+              "text": ""
+            }
+          ],
+          "states": {
+            "2": "degraded",
+            "10": "stopped",
+            "b": "stopped",
+            "007": "starting"
+          }
+        }
+      ]
+    },
+    {
+      "id": "proto",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 1, on: __proto__, state: stopped }\n  - { at: 2, on: constructor, state: degraded }\n  - { at: 3, on: toString, state: running }\nlevels:\n  - at: 0\n  - at: 4\n    objects:\n      __proto__: { util: 0.5 }\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 1,
+            "on": "__proto__",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 2,
+            "on": "constructor",
+            "state": "degraded",
+            "text": ""
+          },
+          {
+            "at": 3,
+            "on": "toString",
+            "state": "running",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 4,
+            "overall": {},
+            "objects": {
+              "__proto__": {
+                "util": 0.5
+              }
+            },
+            "connections": []
+          }
+        ]
+      },
+      "problems": [],
+      "check": [
+        {
+          "file": "perf/proto.yaml",
+          "message": "unknown object \"__proto__\""
+        },
+        {
+          "file": "perf/proto.yaml",
+          "message": "unknown object \"constructor\""
+        },
+        {
+          "file": "perf/proto.yaml",
+          "message": "unknown object \"toString\""
+        }
+      ],
+      "words": [
+        "__proto__: Stopped",
+        "constructor: Degraded",
+        "toString: Running"
+      ],
+      "times": [
+        {
+          "t": -1,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": -0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.999,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 1,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped"
+          }
+        },
+        {
+          "t": 1.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped"
+          }
+        },
+        {
+          "t": 1.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped"
+          }
+        },
+        {
+          "t": 2,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "constructor",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped",
+            "constructor": "degraded"
+          }
+        },
+        {
+          "t": 2.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "constructor",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped",
+            "constructor": "degraded"
+          }
+        },
+        {
+          "t": 2.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "constructor",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped",
+            "constructor": "degraded"
+          }
+        },
+        {
+          "t": 3,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "constructor",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "toString",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped",
+            "constructor": "degraded",
+            "toString": "running"
+          }
+        },
+        {
+          "t": 3.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "constructor",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "toString",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped",
+            "constructor": "degraded",
+            "toString": "running"
+          }
+        },
+        {
+          "t": 3.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "constructor",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "toString",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped",
+            "constructor": "degraded",
+            "toString": "running"
+          }
+        },
+        {
+          "t": 4,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "constructor",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "toString",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped",
+            "constructor": "degraded",
+            "toString": "running"
+          }
+        },
+        {
+          "t": 4.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "constructor",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "toString",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped",
+            "constructor": "degraded",
+            "toString": "running"
+          }
+        },
+        {
+          "t": 5,
+          "passed": [
+            {
+              "at": 1,
+              "on": "__proto__",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "constructor",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 3,
+              "on": "toString",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "__proto__": "stopped",
+            "constructor": "degraded",
+            "toString": "running"
+          }
+        }
+      ]
+    },
+    {
+      "id": "text",
+      "text": "name: T\naxis: time\nevents:\n  - { at: 1, on: web, state: stopped, text: [x] }\n  - { at: 1.5, on: web, state: running, text: \"  \" }\n  - { at: 2, on: web, state: degraded, text: \"  Slow  \" }\n  - { at: 2, on: db, state: degraded, text: ~ }\nlevels:\n  - at: 0\n  - at: 2\n",
+      "run": {
+        "name": "T",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 1,
+            "on": "web",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 1.5,
+            "on": "web",
+            "state": "running",
+            "text": ""
+          },
+          {
+            "at": 2,
+            "on": "web",
+            "state": "degraded",
+            "text": "Slow"
+          },
+          {
+            "at": 2,
+            "on": "db",
+            "state": "degraded",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 2,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [
+        {
+          "file": "perf/text.yaml",
+          "message": "event 1: text must be plain text"
+        }
+      ],
+      "check": [],
+      "words": [
+        "Web: Stopped",
+        "Web: Running",
+        "Slow",
+        "Orders DB: Degraded"
+      ],
+      "times": [
+        {
+          "t": -1,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": -0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.999,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 1,
+          "passed": [
+            {
+              "at": 1,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "stopped"
+          }
+        },
+        {
+          "t": 1.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "stopped"
+          }
+        },
+        {
+          "t": 1.499,
+          "passed": [
+            {
+              "at": 1,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "stopped"
+          }
+        },
+        {
+          "t": 1.5,
+          "passed": [
+            {
+              "at": 1,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 1.5,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "running"
+          }
+        },
+        {
+          "t": 1.501,
+          "passed": [
+            {
+              "at": 1,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 1.5,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "running"
+          }
+        },
+        {
+          "t": 1.999,
+          "passed": [
+            {
+              "at": 1,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 1.5,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "running"
+          }
+        },
+        {
+          "t": 2,
+          "passed": [
+            {
+              "at": 1,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 1.5,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "web",
+              "state": "degraded",
+              "text": "Slow"
+            },
+            {
+              "at": 2,
+              "on": "db",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "degraded",
+            "db": "degraded"
+          }
+        },
+        {
+          "t": 2.001,
+          "passed": [
+            {
+              "at": 1,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 1.5,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "web",
+              "state": "degraded",
+              "text": "Slow"
+            },
+            {
+              "at": 2,
+              "on": "db",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "degraded",
+            "db": "degraded"
+          }
+        },
+        {
+          "t": 3,
+          "passed": [
+            {
+              "at": 1,
+              "on": "web",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 1.5,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            },
+            {
+              "at": 2,
+              "on": "web",
+              "state": "degraded",
+              "text": "Slow"
+            },
+            {
+              "at": 2,
+              "on": "db",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "degraded",
+            "db": "degraded"
+          }
+        }
+      ]
+    },
+    {
+      "id": "inside",
+      "text": "name: Inside\naxis: time\nevents:\n  - { at: 10, on: web, state: degraded }\n  - { at: 20, on: orders, state: stopped }\n  - { at: 30, on: web, state: running }\nlevels:\n  - at: 0\n  - at: 40\n",
+      "run": {
+        "name": "Inside",
+        "unit": "s",
+        "axis": "time",
+        "events": [
+          {
+            "at": 10,
+            "on": "web",
+            "state": "degraded",
+            "text": ""
+          },
+          {
+            "at": 20,
+            "on": "orders",
+            "state": "stopped",
+            "text": ""
+          },
+          {
+            "at": 30,
+            "on": "web",
+            "state": "running",
+            "text": ""
+          }
+        ],
+        "levels": [
+          {
+            "load": 0,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          },
+          {
+            "load": 40,
+            "overall": {},
+            "objects": {},
+            "connections": []
+          }
+        ]
+      },
+      "problems": [],
+      "check": [],
+      "words": [
+        "Web: Degraded",
+        "Orders: Stopped",
+        "Web: Running"
+      ],
+      "times": [
+        {
+          "t": -1,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": -0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 0.001,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 9.999,
+          "passed": [],
+          "states": {}
+        },
+        {
+          "t": 10,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "degraded"
+          }
+        },
+        {
+          "t": 10.001,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "degraded"
+          }
+        },
+        {
+          "t": 19.999,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "degraded"
+          }
+        },
+        {
+          "t": 20,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 20,
+              "on": "orders",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "degraded",
+            "orders": "stopped"
+          }
+        },
+        {
+          "t": 20.001,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 20,
+              "on": "orders",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "degraded",
+            "orders": "stopped"
+          }
+        },
+        {
+          "t": 29.999,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 20,
+              "on": "orders",
+              "state": "stopped",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "degraded",
+            "orders": "stopped"
+          }
+        },
+        {
+          "t": 30,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 20,
+              "on": "orders",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 30,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "running",
+            "orders": "stopped"
+          }
+        },
+        {
+          "t": 30.001,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 20,
+              "on": "orders",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 30,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "running",
+            "orders": "stopped"
+          }
+        },
+        {
+          "t": 39.999,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 20,
+              "on": "orders",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 30,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "running",
+            "orders": "stopped"
+          }
+        },
+        {
+          "t": 40,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 20,
+              "on": "orders",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 30,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "running",
+            "orders": "stopped"
+          }
+        },
+        {
+          "t": 40.001,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 20,
+              "on": "orders",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 30,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "running",
+            "orders": "stopped"
+          }
+        },
+        {
+          "t": 41,
+          "passed": [
+            {
+              "at": 10,
+              "on": "web",
+              "state": "degraded",
+              "text": ""
+            },
+            {
+              "at": 20,
+              "on": "orders",
+              "state": "stopped",
+              "text": ""
+            },
+            {
+              "at": 30,
+              "on": "web",
+              "state": "running",
+              "text": ""
+            }
+          ],
+          "states": {
+            "web": "running",
+            "orders": "stopped"
+          }
         }
       ]
     }

@@ -54,6 +54,8 @@ public class PerfTests
         return o;
     }
 
+    private static JsonObject Json(RunEvent e) => new() { ["at"] = e.At, ["on"] = e.On, ["state"] = e.State, ["text"] = e.Text };
+
     private static JsonObject Json(Level l) => new()
     {
         ["load"] = l.Load,
@@ -69,6 +71,8 @@ public class PerfTests
         o["unit"] = r.Unit;
         if (r.Entry is not null) o["entry"] = r.Entry;
         if (r.Source is { } source) o["source"] = Json(source);
+        if (r.IsTime) o["axis"] = "time";
+        if (r.Events.Count > 0) o["events"] = new JsonArray(r.Events.Select(e => (JsonNode?)Json(e)).ToArray());
         o["levels"] = new JsonArray(r.Levels.Select(l => (JsonNode?)Json(l)).ToArray());
         return o;
     }
@@ -264,6 +268,45 @@ public class PerfTests
                 }
             }
         }
+    }
+
+    [Fact]
+    public void Runs_over_time_read_check_and_stand_where_their_events_leave_them_as_the_TypeScript_has_it()
+    {
+        var all = Expected()["timed"]!.AsArray();
+        Assert.True(all.Count >= 7);
+        foreach (var item in all)
+        {
+            var id = item!["id"]!.GetValue<string>();
+            var (run, problems) = Perf.ParseRun(id, item["text"]!.GetValue<string>());
+            Same(item["run"], Json(run), $"{id}: the run");
+            Same(item["problems"], Json(problems), $"{id}: its problems");
+            Same(item["check"], Json(Perf.CheckRun(id, run, Loaded.Model)), $"{id}: what the model does not back up");
+            Same(item["words"], new JsonArray(run.Events.Select(e => (JsonNode?)Perf.EventText(e, oid => Views.NameOf(Loaded.Model, oid))).ToArray()), $"{id}: what its events say");
+            foreach (var at in item["times"]!.AsArray())
+            {
+                var t = at!["t"]!.GetValue<double>();
+                Same(at["passed"], new JsonArray(Perf.EventsPassed(run, t).Select(e => (JsonNode?)Json(e)).ToArray()), $"{id} at {t}: the events passed");
+                Same(at["states"], new JsonObject(Perf.RunStates(run, t).Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)kv.Value))), $"{id} at {t}: the states");
+            }
+        }
+    }
+
+    [Fact]
+    public void A_load_run_has_no_axis_and_no_events_and_a_time_that_is_not_a_number_has_passed_none()
+    {
+        var ramp = Loaded.Runs!["ramp"];
+        Assert.False(ramp.IsTime);
+        Assert.Empty(ramp.Events);
+        Assert.Empty(Perf.EventsPassed(ramp, 50));
+        Assert.Empty(Perf.RunStates(ramp, 50));
+        var (outage, _) = Perf.ParseRun("outage", "name: O\naxis: time\nevents:\n  - { at: 1, on: web, state: stopped }\nlevels:\n  - at: 0\n  - at: 2\n");
+        Assert.True(outage.IsTime);
+        Assert.Equal("s", outage.Unit);
+        Assert.Empty(Perf.EventsPassed(outage, double.NaN));
+        Assert.Empty(Perf.RunStates(outage, double.NaN));
+        Assert.Equal("stopped", Perf.RunStates(outage, double.PositiveInfinity)["web"]);
+        Assert.Equal("Web: Stopped", Perf.EventText(outage.Events[0], oid => Views.NameOf(Loaded.Model, oid)));
     }
 
     [Fact]
