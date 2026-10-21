@@ -31,35 +31,25 @@ public static class Captions
         new(null, "The label on a line", "Which lane, or which repeat, the step is in."),
     ];
 
-    private static string Part(OrderedDictionary<string, object?> group, string key)
+    /// <summary>What a repeat does, in words: "up to 3 times, until it works", or "" when it says neither. A heading that starts the line asks for <paramref name="capital"/>: "Up to 3 times, until it works".</summary>
+    public static string RepeatWords(Structure.GroupInfo? g, bool capital = false)
     {
-        group.TryGetValue(key, out var v);
-        return JsCompat.Blank(v) ? "" : JsCompat.JsTrim((string)v!);
-    }
-
-    private static OrderedDictionary<string, object?> GroupOf(Flow flow, string id) =>
-        flow.Groups is { } groups && groups.TryGetValue(id, out var v) && v is OrderedDictionary<string, object?> body ? body : [];
-
-    /// <summary>What a repeat does, in words: "up to 3 times, until it works", or "" when it says neither.</summary>
-    private static string RepeatWords(OrderedDictionary<string, object?> group)
-    {
-        var times = Part(group, "times");
-        var until = Part(group, "until");
-        return string.Join(", ", new[] { times == "" ? "" : $"up to {times} times", until == "" ? "" : $"until {until}" }.Where(w => w != ""));
+        var words = string.Join(", ", new[] { g?.Times is null ? "" : $"up to {g.Times} times", g?.Until is null ? "" : $"until {g.Until}" }.Where(w => w != ""));
+        return capital && words != "" ? char.ToUpperInvariant(words[0]) + words[1..] : words;
     }
 
     public static Caption Of(Flow flow, Stop stop)
     {
         var none = new Caption("", "", [], -1, [], stop.Steps.Select(_ => "").ToList());
         if (stop.Group is null || stop.Kind is null) return none;
-        var group = GroupOf(flow, stop.Group);
-        var text = Part(group, "text");
+        var group = Structure.GroupOf(flow, stop.Group);
+        var text = group?.Text ?? "";
         IReadOnlyList<string> labels = stop.LaneLabels ?? [];
         string LaneOf(int i) => stop.Lanes is { } lanes && i < lanes.Count && lanes[i] >= 0 && lanes[i] < labels.Count ? labels[lanes[i]] : "";
         if (stop.Kind == "repeat")
         {
-            var times = Part(group, "times");
-            var until = Part(group, "until");
+            var times = group?.Times ?? "";
+            var until = group?.Until ?? "";
             var words = RepeatWords(group);
             var mark = times != "" ? $"up to {times}" : until != "" ? $"until {until}" : "";
             return none with { Chip = words == "" ? "Repeats" : $"Repeats {words}", Text = text, Marks = stop.Steps.Select(_ => mark).ToList() };
@@ -123,8 +113,8 @@ public static class Captions
             {
                 for (var j = k; j <= end; j++)
                     cells.Add(new Cell(j, col++, 0, stops[j].Lanes is { } named ? string.Join(" + ", named.Select(n => s.LaneLabels is { } labels && n >= 0 && n < labels.Count ? labels[n] : "")) : ""));
-                var group = GroupOf(flow, s.Group);
-                var times = Part(group, "times");
+                var group = Structure.GroupOf(flow, s.Group);
+                var times = group?.Times ?? "";
                 var words = RepeatWords(group);
                 brackets.Add(s.Kind == "repeat"
                     ? new Bracket(s.Kind, start, col - 1, times == "" ? "" : $"×{times}", words == "" ? "Repeats" : $"Repeats {words}")

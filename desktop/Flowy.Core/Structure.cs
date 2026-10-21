@@ -38,10 +38,33 @@ public static partial class Structure
 
     private static string LaneOf(Flow flow, int i) => JsCompat.Blank(flow.Steps[i].Lane) ? "" : JsCompat.JsTrim(flow.Steps[i].Lane!);
 
+    /// <summary>What each kind of group is, in one place: whether its steps split into lanes, and which options it takes. The algorithms differ per kind, so they stay as switches where they are.</summary>
+    private static readonly Dictionary<string, (bool Lanes, string[] Options)> Info = new()
+    {
+        ["repeat"] = (false, ["times", "until"]),
+        ["branch"] = (true, []),
+        ["parallel"] = (true, []),
+    };
+
+    /// <summary>Whether a group of this kind splits its steps into lanes. False for a value that is no kind.</summary>
+    public static bool HasLanes(object? kind) => kind is string k && Info.TryGetValue(k, out var i) && i.Lanes;
+
+    /// <summary>Whether a group of this kind takes the option. False for a value that is no kind.</summary>
+    public static bool TakesOption(object? kind, string option) => kind is string k && Info.TryGetValue(k, out var i) && i.Options.Contains(option);
+
+    /// <summary>A declared group as a reader needs it. <c>Kind</c> is null when the file gives none or one that is not known. <c>Times</c>, <c>Until</c> and <c>Text</c> are trimmed text, null when blank.</summary>
+    public sealed record GroupInfo(string? Kind, string? Times, string? Until, string? Text);
+
+    /// <summary>Group <paramref name="id"/> of the flow, or null when it is blank, not declared or declared as something other than a mapping.</summary>
+    public static GroupInfo? GroupOf(Flow flow, string id)
+    {
+        if (id == "" || flow.Groups is not { } groups || !groups.TryGetValue(id, out var v) || v is not OrderedDictionary<string, object?> body) return null;
+        string? Part(string key) => body.TryGetValue(key, out var x) && !JsCompat.Blank(x) ? JsCompat.JsTrim((string)x!) : null;
+        return new GroupInfo(body.TryGetValue("kind", out var kind) && kind is string k && Kinds.Contains(k) ? k : null, Part("times"), Part("until"), Part("text"));
+    }
+
     /// <summary>The kind of a declared group, or null when <paramref name="id"/> is blank, not declared or of no known kind.</summary>
-    private static string? KindOf(Flow flow, string id) =>
-        id != "" && flow.Groups is { } groups && groups.TryGetValue(id, out var g) && g is OrderedDictionary<string, object?> body
-        && body.TryGetValue("kind", out var kind) && kind is string k && Kinds.Contains(k) ? k : null;
+    private static string? KindOf(Flow flow, string id) => GroupOf(flow, id)?.Kind;
 
     /// <summary>Every run of a flow, in order. A step in no group, or in one that is not declared or has no known kind, is in no run. A group split by another step is two runs.</summary>
     public static List<GroupRun> Runs(Flow flow)
@@ -60,7 +83,7 @@ public static partial class Structure
             var end = i;
             while (end + 1 < n && StepGroup(flow, end + 1) == id) end++;
             var lanes = new List<(string Label, List<int> Steps)>();
-            if (kind != "repeat")
+            if (HasLanes(kind))
             {
                 for (var j = i; j <= end; j++)
                 {
@@ -177,7 +200,7 @@ public static partial class Structure
             if (kind is not string name || !Kinds.Contains(name)) continue;
             body.TryGetValue("times", out var times);
             body.TryGetValue("until", out var until);
-            if (name != "repeat")
+            if (!TakesOption(name, "times"))
             {
                 if (!JsCompat.Blank(times)) Add("times only applies to repeat");
                 if (!JsCompat.Blank(until)) Add("until only applies to repeat");
@@ -208,8 +231,8 @@ public static partial class Structure
             var lane = LaneOf(flow, i);
             if (gid != "" && !declared) At($"group \"{gid}\" is not declared under groups");
             if (lane != "" && gid == "") At("lane needs a group");
-            if (declared && kind == "repeat" && lane != "") At("lane only applies to branch and parallel");
-            if (declared && kind is "branch" or "parallel")
+            if (declared && kind is not null && !HasLanes(kind) && lane != "") At("lane only applies to branch and parallel");
+            if (declared && HasLanes(kind))
             {
                 var mine = members.GetValueOrDefault(gid) ?? [];
                 if (mine[0] == i && lane == "") At($"the first step of group \"{gid}\" needs a lane");
