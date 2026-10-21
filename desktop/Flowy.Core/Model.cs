@@ -61,6 +61,24 @@ public sealed record Step(string? From, string? To, string? Text, string? Descri
 /// </summary>
 public sealed record Flow(string? Name, string? View, IReadOnlyList<Step> Steps, OrderedDictionary<string, object?>? Groups = null, object? States = null);
 
+/// <summary>The three ratings a failure mode keeps under <c>after</c>, as the text of a whole number from 1 to 10 (every file value is text).</summary>
+public sealed record FailureRatings(string? Severity, string? Occurrence, string? Detection);
+
+/// <summary>
+/// One way a part can fail, in a failure analysis. <c>On</c> names a shape, or <c>From</c> and <c>To</c> a line. Every known field is text when present
+/// (the ratings too: Failures reads them as numbers), <c>After</c> holds the ratings once the next action is done and <c>Affects</c> lists the shapes it hurts.
+/// </summary>
+public sealed record FailureMode(
+    string? Mode, string? On, string? From, string? To, string? Effect, string? Cause, string? Severity, string? Occurrence, string? Detection,
+    string? Controls, string? Action, string? Owner, string? Status, string? Flow, string? Step, string? Run, string? Description,
+    FailureRatings? After, IReadOnlyList<string>? Affects);
+
+/// <summary>What the two ends of a rating mean, for the picked mode's detail.</summary>
+public sealed record RatingEnds(string? Low, string? High);
+
+/// <summary>A failure analysis: <c>failures/&lt;id&gt;.yaml</c>. <c>Scope</c> is "root" or a shape with children; a missing name reads as "".</summary>
+public sealed record FailureAnalysis(string Name, string? About, string? Scope, OrderedDictionary<string, RatingEnds>? Scale, IdMap<FailureMode> Modes);
+
 public readonly record struct LayoutPoint(double X, double Y);
 
 public sealed class Model
@@ -70,6 +88,9 @@ public sealed class Model
     public IReadOnlyList<Connection> Connections { get; init; } = [];
 
     public IdMap<Flow> Flows { get; init; } = new();
+
+    /// <summary>The failure analyses of <c>failures/</c>, by file name. A file that couldn't be read is not here (see <see cref="Folder.FailureProblems"/>).</summary>
+    public IdMap<FailureAnalysis> Failures { get; init; } = new();
 
     /// <summary>View id → object id → where the box was dragged to.</summary>
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, LayoutPoint>> Layout { get; init; } =

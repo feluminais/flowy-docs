@@ -13,6 +13,10 @@ public static class ModelFiles
     private static readonly string[] FlowFields = ["name", "view"];
     private static readonly string[] StepFields = ["from", "to", "text", "description", "group", "lane", "flow"];
     private static readonly string[] GroupFields = ["kind", "text", "times", "until"];
+    private static readonly string[] AnalysisFields = ["name", "about", "scope"];
+    private static readonly string[] ModeFields = ["mode", "on", "from", "to", "effect", "cause", "severity", "occurrence", "detection", "controls", "action", "owner", "status", "flow", "step", "run", "description"];
+    private static readonly string[] RatingFields = ["severity", "occurrence", "detection"];
+    private static readonly string[] ScaleFields = ["low", "high"];
     private const double MaxCoordinate = 1_000_000;
 
     /// <summary>The model.yaml part of a <see cref="Model"/>; the folder loader adds flows and layout.</summary>
@@ -98,6 +102,60 @@ public static class ModelFiles
         }).ToList();
         doc.TryGetValue("states", out var flowStates);
         return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups, flowStates);
+    }
+
+    /// <summary>
+    /// Checks the file's shape only, as parseAnalysisFile does: the right kinds of value in the right places. Whether a part exists, a rating is in range or a
+    /// status is known is for <see cref="Failures.AnalysisProblems"/>. A blank <c>after</c> or <c>affects</c> is no section; a missing name reads as "".
+    /// </summary>
+    public static FailureAnalysis ParseAnalysis(string id, string text)
+    {
+        var file = $"failures/{id}.yaml";
+        if (OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
+            throw new ParseError(file, "expected a mapping with \"name\" and \"modes\"");
+        CheckEntry(file, "analysis", doc, AnalysisFields);
+        doc.TryGetValue("modes", out var rawModes);
+        if (OrEmpty(rawModes, NewMap()) is not OrderedDictionary<string, object?> modeMap) throw new ParseError(file, "\"modes\" must map ids to mappings");
+        var modes = new IdMap<FailureMode>();
+        foreach (var mid in JsKeys.Order(modeMap.Keys))
+        {
+            var at = $"mode \"{mid}\"";
+            var raw = modeMap[mid];
+            CheckEntry(file, at, raw, ModeFields);
+            var m = (OrderedDictionary<string, object?>)raw!;
+            m.TryGetValue("after", out var rawAfter);
+            FailureRatings? after = null;
+            if (OrEmpty(rawAfter, null) is { } declaredAfter)
+            {
+                if (declaredAfter is not OrderedDictionary<string, object?> afterMap) throw new ParseError(file, $"{at}: \"after\" must be a mapping of ratings");
+                CheckEntry(file, $"{at} after", afterMap, RatingFields);
+                after = new FailureRatings(Text(afterMap, "severity"), Text(afterMap, "occurrence"), Text(afterMap, "detection"));
+            }
+            m.TryGetValue("affects", out var rawAffects);
+            IReadOnlyList<string>? affects = null;
+            if (OrEmpty(rawAffects, null) is { } declaredAffects)
+            {
+                if (declaredAffects is not List<object?> items || items.Any(a => a is not string)) throw new ParseError(file, $"{at}: \"affects\" must be a list of ids");
+                affects = items.Cast<string>().ToList();
+            }
+            modes.Add(mid, new FailureMode(
+                Text(m, "mode"), Text(m, "on"), Text(m, "from"), Text(m, "to"), Text(m, "effect"), Text(m, "cause"), Text(m, "severity"), Text(m, "occurrence"), Text(m, "detection"),
+                Text(m, "controls"), Text(m, "action"), Text(m, "owner"), Text(m, "status"), Text(m, "flow"), Text(m, "step"), Text(m, "run"), Text(m, "description"), after, affects));
+        }
+        doc.TryGetValue("scale", out var rawScale);
+        OrderedDictionary<string, RatingEnds>? scale = null;
+        if (OrEmpty(rawScale, null) is { } declaredScale)
+        {
+            if (declaredScale is not OrderedDictionary<string, object?> scaleMap) throw new ParseError(file, "\"scale\" must map ratings to a low and a high");
+            scale = [];
+            foreach (var rating in JsKeys.Order(scaleMap.Keys))
+            {
+                CheckEntry(file, $"scale \"{rating}\"", scaleMap[rating], ScaleFields);
+                var ends = (OrderedDictionary<string, object?>)scaleMap[rating]!;
+                scale.Add(rating, new RatingEnds(Text(ends, "low"), Text(ends, "high")));
+            }
+        }
+        return new FailureAnalysis(Text(doc, "name") ?? "", Text(doc, "about"), Text(doc, "scope"), scale, modes);
     }
 
     // ponytail: plain decimal numbers only. JavaScript's Number() also takes 0x10 and 0b11; layout.yaml is written

@@ -154,7 +154,7 @@ internal sealed partial class ReaderView : Grid
         _canvas.FrameClicked += () =>
         {
             // While a flow is recorded, or a load shows, the outline is just empty canvas: the panel has its own work.
-            if (Recording is not null || PerfOpen) PaneClicked();
+            if (Recording is not null || PerfOpen || FailuresOpen) PaneClicked();
             else ShowLevel();
         };
         _panel.Closed += () =>
@@ -163,6 +163,7 @@ internal sealed partial class ReaderView : Grid
             else CloseDetails();
         };
         WirePerformance();
+        WireFailures();
         _nav.Tabs.Picked += SetTab;
         _nav.Closed += CloseNav;
         _rail.Picked += ToggleTab;
@@ -309,6 +310,11 @@ internal sealed partial class ReaderView : Grid
         _details = false;
         _perf = false;
         _ramping = false;
+        if (_tab == PanelTab.Failures) _tab = null; // another folder's analyses start from the top
+        _analysisId = "";
+        _modeId = null;
+        _band = null;
+        _left = false;
         _playing = null;
         _hover = null;
         _codeBase = null;
@@ -445,7 +451,7 @@ internal sealed partial class ReaderView : Grid
         return _folder.Model.Flows.Where(kv => kv.Value.View == view && (kv.Value.Steps.Count > 0 || Editing)).Select(kv => (kv.Key, kv.Value)).ToList();
     }
 
-    private (string Id, Flow Flow)? PlayingFlow() => Editing || PerfOpen ? null : _playing is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
+    private (string Id, Flow Flow)? PlayingFlow() => Editing || PerfOpen || FailuresOpen ? null : _playing is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
 
     /// <summary>What the player steps through: the stops of a flow. A flow with no groups has one for each step.</summary>
     private IReadOnlyList<Stop> StopsOf(Flow flow) => _stops.GetValue(flow, f => Structure.Stops(f));
@@ -478,6 +484,7 @@ internal sealed partial class ReaderView : Grid
         RefreshEdit();
         RefreshPanel(model, view);
         ApplyLoad();
+        ApplyFailures();
         RefreshPlayer(model, view, flow, index, shown);
         UpdateMotion(model, view, flow, index, shown);
         RefreshNavigator(model, view, flow);
@@ -821,7 +828,12 @@ internal sealed partial class ReaderView : Grid
         _canvas.Reveal(id, _detailsWidth, ShownTab is not null ? _navWidth : 0);
     }
 
-    public void Select(string id) => OpenObject(id);
+    /// <summary>Picks a shape, and while the Failures panel is open a failure mode of the analysis on show if the id is one (for a picture: --select).</summary>
+    public void Select(string id)
+    {
+        if (FailuresOpen && Analysis is { } analysis && analysis.Modes.Contains(id)) SelectMode(id);
+        else OpenObject(id);
+    }
 
     /// <summary>Shows the panel of a line of the current view.</summary>
     public void OpenLine(string from, string to)
@@ -924,7 +936,7 @@ internal sealed partial class ReaderView : Grid
             _shortcuts = null;
             return;
         }
-        _shortcuts = new ShortcutsCard(() => ShowShortcuts(false), CanPerf);
+        _shortcuts = new ShortcutsCard(() => ShowShortcuts(false), CanPerf, CanFailures);
         _overlay.Children.Add(_shortcuts);
     }
 
@@ -940,6 +952,19 @@ internal sealed partial class ReaderView : Grid
         {
             _side = new Side(SideKind.Line, From: line.From, To: line.To);
             Refresh();
+        }
+        else if (spot.Failure is { } failure)
+        {
+            if (!CanFailures)
+            {
+                ShowNotice("Failures are not shown while editing.");
+                return;
+            }
+            _analysisId = failure.Analysis;
+            _modeId = failure.Mode;
+            _band = null;
+            _left = false;
+            OpenFailures();
         }
         else if (spot.Flow is { } flow)
         {
@@ -1013,6 +1038,7 @@ internal sealed partial class ReaderView : Grid
         else if (PerfOpen && e.Key == Key.Home) StepLevel(0);
         else if (PerfOpen && LoadTest is { } top && e.Key == Key.End) StepLevel(PerfView.Top(top));
         else if (PerfOpen && e.PhysicalKey == PhysicalKey.P && plain) ToggleRamp();
+        else if (FailuresOpen && e.Key is Key.Right or Key.Left && StepFailures(e.Key)) { }
         else if (flow is not null && e.Key == Key.Right) StepTo(StopIndex() + 1);
         else if (flow is not null && e.Key == Key.Left) StepTo(StopIndex() - 1);
         else if (flow is not null && e.Key == Key.Home) StepTo(0);
@@ -1033,6 +1059,7 @@ internal sealed partial class ReaderView : Grid
         else if (e.PhysicalKey == PhysicalKey.L && plain && ShowFlows) ToggleTab(PanelTab.Flows);
         else if (e.PhysicalKey == PhysicalKey.O && plain) ToggleTab(PanelTab.Explorer);
         else if (e.PhysicalKey == PhysicalKey.T && plain && CanPerf) TogglePerf();
+        else if (e.PhysicalKey == PhysicalKey.M && plain && CanFailures) ToggleFailures();
         // Z zooms out, always: in edit mode Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
         else if ((e.Key == Key.Back || e.PhysicalKey == PhysicalKey.Z) && plain && view != Names.Root && Recording is null) Up();
         else return;

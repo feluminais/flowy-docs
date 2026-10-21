@@ -832,7 +832,7 @@ counts by its `after` ratings, and the panel shows both ("96 to 32").
 part or as an end of a line. Actors are left out, because nothing of ours fails there. Outside services count, since a failing Stripe is
 a failure you design for. Lines don't count. **Not analysed** lists the shapes left.
 
-**Reading it.** Open the Failures tab on the right edge, or press **M**. Pick an analysis if there are several. A shape or a line that
+**Reading it.** Open the Failures tab on the right edge, or press **M**. (In the desktop app it is on the left, beside Explorer and Flows, so Details stays free on the right.) Pick an analysis if there are several. A shape or a line that
 has modes carries a badge: the colour of its worst band and how many. A shape that holds others adds up what is inside it, so at the
 overview you see which system holds the risk and zoom in to find where, as in Performance. Four items count the modes by band, and a
 click on one filters the list. The list has two groups: **This view**, the modes whose part is inside the level on screen, and **Other
@@ -867,7 +867,8 @@ unknown `status`, a `flow`, `step` or `run` that doesn't exist, an id that break
 names. A file that can't be read at all is a problem too, and it never stops the model from loading: the file is skipped and left as it
 is. Renaming a shape by hand in `model.yaml` leaves its modes pointing at nothing, and the checks say so.
 
-**Where it works.** The browser version and an exported page show failure modes. The desktop app doesn't draw them yet, and it doesn't
+**Where it works.** The browser version, the desktop app and an exported page show failure modes, with the same badges, list and words.
+The desktop app only reads them: it has no forms for an analysis, its Failures button is greyed out while you edit, and it doesn't
 know a mode names a shape, so deleting that shape there goes through and the browser then lists the mode as a problem. Plum has an
 analysis, [Order to door](demo/flowy/failures/ordering.yaml), and `node dist/cli.js --dir docs/demo/flowy` from a clone opens it.
 

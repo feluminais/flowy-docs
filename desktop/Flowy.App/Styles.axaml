@@ -649,7 +649,75 @@
     <Setter Property="HorizontalAlignment" Value="Center" />
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
-  <!-- The marks of a key (the Performance panel), each drawn as it looks on the chart or the canvas. -->
+  <!--
+    The Failures tab. A badge at a shape's top left (the top right holds the queue number) says how many failure modes it carries, in the colour of the worst
+    one. A picked mode outlines its part, outlines what it affects lighter and fades the rest. The same marks are in the key and the list (Border.sw.*).
+  -->
+  <Style Selector=":is(Grid).box Border.failbadge">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="MinWidth" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="Padding" Value="6,0" />
+    <Setter Property="Margin" Value="-7,-9,0,0" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="Background" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box.failmarked Border.failbadge"><Setter Property="IsVisible" Value="True" /></Style>
+  <Style Selector=":is(Grid).box Border.failbadge.high"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector=":is(Grid).box Border.failbadge.medium"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).box Border.failbadge.low"><Setter Property="Background" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector=":is(Grid).box Border.failbadge.unrated">
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.failbadge TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource BgBrush}" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.failbadge.unrated TextBlock"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /></Style>
+  <Style Selector=":is(Grid).box Path.failline">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Stroke" Value="{DynamicResource DangerBrush}" />
+    <Setter Property="StrokeThickness" Value="3" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box.fails Path.failline, :is(Grid).box.affected Path.failline"><Setter Property="IsVisible" Value="True" /></Style>
+  <Style Selector=":is(Grid).box.affected Path.failline">
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
+  <Style Selector=":is(Grid).box.fails, :is(Grid).box.affected"><Setter Property="Opacity" Value="1" /></Style>
+  <Style Selector=":is(Grid).box.faildim"><Setter Property="Opacity" Value="0.15" /></Style>
+  <!-- The marks of a key (the Performance panel and the Failures tab), each drawn as it looks on the chart or the canvas. -->
+  <Style Selector="Border.sw.high, Border.sw.medium, Border.sw.low, Border.sw.unrated">
+    <Setter Property="Width" Value="12" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="CornerRadius" Value="6" />
+  </Style>
+  <Style Selector="Border.sw.high"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector="Border.sw.medium"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector="Border.sw.low"><Setter Property="Background" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector="Border.sw.unrated">
+    <Setter Property="BorderThickness" Value="1.5" />
+    <Setter Property="BorderBrush" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector="Border.sw.fails, Border.sw.affects">
+    <Setter Property="Width" Value="18" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+    <Setter Property="BorderThickness" Value="3" />
+  </Style>
+  <Style Selector="Border.sw.affects">
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
   <Style Selector="Border.sw, Line.knee">
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="Focusable" Value="False" />
@@ -913,6 +981,35 @@
   </Style>
   <Style Selector="Button.result.at /template/ ContentPresenter, Button.result:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+  </Style>
+  <!-- The Failures tab's list: a row for each mode, with the band's mark, the part and the mode, and the risk. The one picked is tinted like a pressed tool. -->
+  <Style Selector="Button.failrow">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Padding" Value="8,4" />
+    <Setter Property="MinHeight" Value="34" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.failrow:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
+  <Style Selector="Button.failrow.current /template/ ContentPresenter, Button.failrow.current:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <Style Selector="Button.failrow TextBlock.part, Button.failrow TextBlock.risk">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="Border.cell">
+    <Setter Property="Width" Value="8" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="CornerRadius" Value="2" />
+  </Style>
+  <Style Selector="Border.cell.on">
+    <Setter Property="Background" Value="{DynamicResource FgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource FgBrush}" />
   </Style>
   <Style Selector="TextBox">
     <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
