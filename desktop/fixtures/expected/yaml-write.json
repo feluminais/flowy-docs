@@ -1471,6 +1471,111 @@
       }
     },
     {
+      "s": "  \nx",
+      "value": {
+        "text": "k: \" \\ \\nx\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \" \\ \\nx\"\n"
+      },
+      "key": {
+        "text": "\" \\ \\nx\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \" \\ \\nx\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "\n  \nx",
+      "value": {
+        "text": "k: \"\\n \\ \\nx\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\n \\ \\nx\"\n"
+      },
+      "key": {
+        "text": "\"\\n \\ \\nx\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\n \\ \\nx\"\n      d: x\n"
+      }
+    },
+    {
+      "s": " \n\t\nx",
+      "value": {
+        "text": "k: \"\\ \\n\\t\\nx\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\ \\n\\t\\nx\"\n"
+      },
+      "key": {
+        "text": "\"\\ \\n\\t\\nx\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\ \\n\\t\\nx\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "\t\nx",
+      "value": {
+        "text": "k: \"\\t\\nx\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\t\\nx\"\n"
+      },
+      "key": {
+        "text": "\"\\t\\nx\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\t\\nx\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "   \n\n",
+      "value": {
+        "text": "k: \"  \\ \\n\\n\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"  \\ \\n\\n\"\n"
+      },
+      "key": {
+        "text": "\"  \\ \\n\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"  \\ \\n\\n\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "\n \n\t\n",
+      "value": {
+        "text": "k: \"\\n\\ \\n\\t\\n\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\n\\ \\n\\t\\n\"\n"
+      },
+      "key": {
+        "text": "\"\\n\\ \\n\\t\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\n\\ \\n\\t\\n\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "\n\n \n  y",
+      "value": {
+        "text": "k: \"\\n\\n\\ \\n  y\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\n\\n\\ \\n  y\"\n"
+      },
+      "key": {
+        "text": "\"\\n\\n\\ \\n  y\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\n\\n\\ \\n  y\"\n      d: x\n"
+      }
+    },
+    {
       "s": "Line one\nLine two\n- a list\n- of things\n\n```ts\nconst x = 1\n```\n",
       "value": {
         "text": "k: |\n  Line one\n  Line two\n  - a list\n  - of things\n\n  ```ts\n  const x = 1\n  ```\n"

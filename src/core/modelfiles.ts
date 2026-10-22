@@ -5,7 +5,7 @@ import type { WrittenKind } from './filekinds.ts'
 import { ParseError, orEmpty } from './model.ts'
 import type { Analysis, Connection, Flow, Layout, Mode, Model } from './model.ts'
 import { isMap, own, plainNumber } from './text.ts'
-import { dump, readYaml } from './yamltext.ts'
+import { dump, quoteBlankFirstLines, readYaml } from './yamltext.ts'
 
 const TEXT_FIELDS = {
   object: ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description'],
@@ -170,6 +170,7 @@ function compactData(doc: Document) {
 /** model.yaml's text: like the other files, plus the one-line forms a store's data is written in (see compactData). */
 function dumpModel(value: unknown): string {
   const doc = new Document(value, { schema: 'failsafe', aliasDuplicateObjects: false })
+  quoteBlankFirstLines(doc)
   compactData(doc)
   return doc.toString({ lineWidth: 0, flowCollectionPadding: false })
 }

@@ -124,6 +124,7 @@ export const KEYMAP: readonly Entry[] = [
       else if (layer === 'panel') act.closePanel()
       else if (layer === 'up') act.up()
       else return false
+      return undefined
     },
     help: {
       reading: { text: "Close what's open, then go up a level. The navigator closes only if your last click was in it" },

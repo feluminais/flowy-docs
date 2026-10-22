@@ -160,13 +160,13 @@ const present = (v: unknown) => v !== undefined && v !== ''
 
 function gridProblems(label: string, entry: Record<string, unknown>, out: string[]) {
   const columns = entry.columns
-  if (!Array.isArray(columns)) return out.push(`${label}: columns must be a list`)
+  if (!Array.isArray(columns)) { out.push(`${label}: columns must be a list`); return }
   if (columns.length === 0) out.push(`${label}: columns is empty`)
   const seen = new Set<string>()
   columns.forEach((c, i) => {
     const name = typeof c === 'string' ? text(c) : isMap(c) ? text(c.name) : undefined
-    if (typeof c !== 'string' && !isMap(c)) return out.push(`${label}: column ${i + 1} must be a name or a mapping`)
-    if (name === undefined) return out.push(`${label}: column ${i + 1} has no name`)
+    if (typeof c !== 'string' && !isMap(c)) { out.push(`${label}: column ${i + 1} must be a name or a mapping`); return }
+    if (name === undefined) { out.push(`${label}: column ${i + 1} has no name`); return }
     if (seen.has(name)) out.push(`${label}: column "${name}" appears twice`)
     seen.add(name)
     if (!isMap(c)) return
@@ -176,7 +176,7 @@ function gridProblems(label: string, entry: Record<string, unknown>, out: string
   if (columns.length > DATA_MAX.columns) out.push(`${label}: ${columns.length} columns, at most ${DATA_MAX.columns}`)
   const rows = entry.rows
   if (!present(rows)) return
-  if (!Array.isArray(rows)) return out.push(`${label}: rows must be a list of rows`)
+  if (!Array.isArray(rows)) { out.push(`${label}: rows must be a list of rows`); return }
   rows.forEach((row, i) => {
     if (!Array.isArray(row) || row.some(cell => typeof cell !== 'string')) out.push(`${label}: row ${i + 1} must be a list of cells`)
     else if (row.length !== columns.length)
@@ -203,8 +203,8 @@ function hasNestedList(node: unknown): boolean {
 
 function sampleProblems(label: string, entry: Record<string, unknown>, out: string[]) {
   const sample = entry.sample
-  if (!isMap(sample)) return out.push(`${label}: sample must be a mapping of fields`)
-  if (Object.keys(sample).length === 0) return out.push(`${label}: sample is empty`)
+  if (!isMap(sample)) { out.push(`${label}: sample must be a mapping of fields`); return }
+  if (Object.keys(sample).length === 0) { out.push(`${label}: sample is empty`); return }
   if (hasNestedList(sample)) out.push(`${label}: sample has a list inside a list, which isn't shown`)
   const lines = linesOf(sample, {})
   const depth = Math.max(...lines.map(l => l.depth))
@@ -212,7 +212,7 @@ function sampleProblems(label: string, entry: Record<string, unknown>, out: stri
   if (lines.length > DATA_MAX.fields) out.push(`${label}: sample shows ${lines.length} fields, at most ${DATA_MAX.fields}`)
   const notes = entry.notes
   if (!present(notes)) return
-  if (!isMap(notes) || Object.values(notes).some(v => typeof v !== 'string')) return out.push(`${label}: notes must map a field to its note`)
+  if (!isMap(notes) || Object.values(notes).some(v => typeof v !== 'string')) { out.push(`${label}: notes must map a field to its note`); return }
   const paths = new Set(lines.map(l => l.path))
   for (const key of Object.keys(notes)) if (!paths.has(key)) out.push(`${label}: the note on "${key}" names no field of the sample`)
 }
@@ -228,7 +228,7 @@ export function dataProblems(o: FlowyObject): string[] {
   const out: string[] = []
   const names = new Set<string>()
   o.data.forEach((entry, i) => {
-    if (!isMap(entry)) return out.push(`data entry ${i + 1} must be a mapping`)
+    if (!isMap(entry)) { out.push(`data entry ${i + 1} must be a mapping`); return }
     const name = text(entry.name)
     if (name === undefined) out.push(`data entry ${i + 1} has no name`)
     else if (names.has(name)) out.push(`data "${name}" appears twice`)
