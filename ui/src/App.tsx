@@ -660,7 +660,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         if (!(e.key === 'Escape' && inNavigator && e.target instanceof HTMLInputElement && e.target.closest('.navfind') !== null)) return
       }
       const state: KeyState = {
-        editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, compare: comparing !== undefined, halfStep: recording?.from !== undefined,
+        editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, compare: comparing !== undefined, swap: comparing?.mode === 'swap', halfStep: recording?.from !== undefined,
         panel: detailsOpen || manyPicked || perfOpen || failuresOpen, inside: view !== ROOT && !comparing, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
         showFlows, showYaml, canPerf,
       }
@@ -673,6 +673,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         stopFlow: () => setPlaying(undefined),
         compare: toggleCompare,
         closeCompare,
+        swap: () => compareRef.current?.swap(),
         clearStep: () => { if (recording) setSide({ ...recording, from: undefined, to: undefined }) },
         closePanel: () => (detailsOpen || manyPicked ? closeDetails() : perfOpen ? closePerf() : closeFailures()),
         // A second press while a zoom out is still leaving goes up from where that one is heading.

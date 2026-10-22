@@ -103,11 +103,11 @@ test('the pick is ordered so the holder of the tag is second', () => {
   assert.deepEqual(pairOf(model, 'now', 'now'), { kind: 'flow', a: 'now', b: 'now', mode: 'side' }, 'a flow with itself still draws both panes')
 })
 
-test('an address opens a comparison of two flows that play, side by side', () => {
+test('an address opens a comparison of two flows that play, in the mode it names', () => {
   const model = modelOf({ a: plays('A'), b: plays('B'), empty: flow('Empty') })
   const named = (a: string, b: string, mode: Compare['mode'] = 'side', kind: Compare['kind'] = 'flow'): Compare => ({ kind, a, b, mode })
   assert.deepEqual(fromAddress(model, named('a', 'b')), { compare: named('a', 'b') })
-  assert.deepEqual(fromAddress(model, named('a', 'b', 'swap')), { compare: named('a', 'b') }, 'Swap is not built yet')
+  assert.deepEqual(fromAddress(model, named('a', 'b', 'swap')), { compare: named('a', 'b', 'swap') }, 'the address keeps its mode')
   assert.deepEqual(fromAddress(model, named('a', 'a')), { compare: named('a', 'a') })
   assert.deepEqual(fromAddress(model, named('a', 'empty')), { unplayable: true })
   assert.deepEqual(fromAddress(model, named('a', 'gone')), { unplayable: true })
