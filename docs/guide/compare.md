@@ -11,10 +11,11 @@ Plum has two pairs to try. The flow [Support refunds an order](../demo/flowy/flo
 [The refund is not recorded](../demo/flowy/flows/refund-not-recorded.yaml), and the run [Orders and pings, tested together](../demo/flowy/perf/together-measured.yaml) with
 [Orders and pings, added](../demo/flowy/perf/together.yaml). Press **C** while Support refunds an order plays, or while the Performance tab shows Orders and pings, tested together.
 
-**Opening it.** Every flow row in the Flows tab and the Explorer has a Compare button, and so does the player card. **C** does the same for the flow playing. A flow with a
-link opens beside the first flow it is linked to. A flow with none opens a picker: every other flow by name, with a field to find one. On the Performance tab,
-**Compare** (also **C**) does it for the run on show. A flow that can't play yet, and a link to something that isn't there (**Missing**), are greyed out in the picker, and
-Compare is greyed out in edit mode, with the reason in its tooltip. **Esc** or **Close** gets back to where you were.
+**Opening it.** Every flow row in the Flows tab and the Explorer has a Compare button. On a flow with a link it opens beside the first flow it is linked to; on a flow with none it
+opens a picker. **C** does the same for the flow playing. The Compare button on the player card always opens the picker: the flows it is linked to come first, then every other flow
+by name, with a field to find one, so any two flows can be put side by side. On the Performance tab, **Compare** (also **C**) does the same for the run on show. A flow that can't
+play yet, and a link to something that isn't there (**Missing**), are greyed out in the picker, and Compare is greyed out in edit mode, with the reason in its tooltip.
+**Esc** or **Close** gets back to where you were.
 
 ## Two ways to look
 
