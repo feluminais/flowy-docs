@@ -40,6 +40,9 @@ export function labelOffset(dx: number, dy: number, chars: number): { x: number;
 /** How long one round takes when several steps play together: the longest of them, then a rest, so they all start again at once. */
 export const cyclePeriod = (totals: Iterable<number>): number => Math.max(0, ...totals) + REST
 
+/** Whether a motion still needs a frame: until it has played through, and for as long as it repeats. A motion that is over holds its last frame. */
+export const keepsPlaying = (since: number, total: number, repeating: boolean): boolean => repeating || since < total
+
 /** How far through a beat the moment `t` is: 0 before it, 1 after it. */
 export const progress = (b: Span, t: number): number => Math.min(1, Math.max(0, (t - b.at) / b.dur))
 

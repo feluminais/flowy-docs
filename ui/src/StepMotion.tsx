@@ -10,7 +10,7 @@ import { nameOf, placeStep } from '../../src/core/views.ts'
 import { BOX } from './graph.ts'
 import type { BoxData, Rect } from './graph.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
-import { active, bump, cyclePeriod, distance, DWELL, ease, effectPose, entryPoint, litOpacity, markerSize, markerSpot, noteSpot, progress, squashTile, tintColor, tubeOpacity } from './motion.ts'
+import { active, bump, cyclePeriod, distance, DWELL, ease, effectPose, entryPoint, keepsPlaying, litOpacity, markerSize, markerSpot, noteSpot, progress, squashTile, tintColor, tubeOpacity } from './motion.ts'
 
 // The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
 const GLYPHS: Record<Glyph, string> = {
@@ -198,10 +198,15 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }
   done.current = onDone
   const again = useRef(repeat)
   again.current = repeat
+  const wake = useRef<(() => void) | undefined>(undefined)
   const still = reducedMotion()
   // The one who takes an intercepted request: a box when the view shows it, else a marker with a name.
   const named = by !== undefined && 'name' in by ? by.name : animation.by === undefined ? undefined : 'name' in animation.by ? animation.by.name : animation.by.shape
   const taker: Taker = taken ? { rect: rect(taken), path: outlineOf(taken) } : { name: named }
+
+  useEffect(() => {
+    if (repeat) wake.current?.()
+  }, [repeat])
 
   useEffect(() => {
     if (!still) return
@@ -354,10 +359,17 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }
         finished = true
         done.current()
       }
-      frameId = requestAnimationFrame(loop)
+      frameId = keepsPlaying(since, total, again.current) ? requestAnimationFrame(loop) : 0
     }
     frameId = requestAnimationFrame(loop)
+    // Repeat turned on after the motion is over plays it again from the start.
+    wake.current = () => {
+      if (frameId !== 0) return
+      start = undefined
+      frameId = requestAnimationFrame(loop)
+    }
     return () => {
+      wake.current = undefined
       running.delete(me)
       cancelAnimationFrame(frameId)
       canvas?.style.removeProperty('--lit')

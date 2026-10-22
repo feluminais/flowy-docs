@@ -59,6 +59,7 @@ import { saveState, vscode } from './host.ts'
 import { useReveal } from './reveal.ts'
 import { useColorMode } from './hosttheme.ts'
 import { createHistoryStore } from './historystore.ts'
+import { clearOutcome } from './historyclient.ts'
 import type { HistoryClient } from './historyclient.ts'
 import { useModel } from './useModel.ts'
 import { useEditSession } from './useEditSession.ts'
@@ -675,8 +676,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const spare = (other: number) => (canvas.current?.clientWidth ?? Infinity) - 160 - other
   const navTabs = <NavTabs tab={nav ?? 'explorer'} showFlows={showFlows} showYaml={showYaml} onPick={setTab} />
   const clearHistory = async () => {
-    await historyApi?.clear()
-    await yamlStore?.refresh()
+    const why = historyApi && await clearOutcome(historyApi)
+    if (why) setNotice(why)
+    await yamlStore?.refresh() // after a failure too, so the list shows what the server really has
   }
   return (
     <>

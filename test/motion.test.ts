@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { active, bump, cyclePeriod, distance, ease, entryPoint, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, effectPose, EFFECT, progress, REST, squish, STILL, tintColor, tubeOpacity } from '../ui/src/motion.ts'
+import { active, bump, cyclePeriod, distance, keepsPlaying, ease, entryPoint, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, effectPose, EFFECT, progress, REST, squish, STILL, tintColor, tubeOpacity } from '../ui/src/motion.ts'
 import { beatsFor, EFFECTS, TINTS } from '../src/core/animation.ts'
 import { COLORS } from '../src/core/look.ts'
 
@@ -200,4 +200,12 @@ test('what each effect does in the middle of a run', () => {
     const pose = effectPose(effect, true, 63, 0.37)
     assert.ok(pose.x === 1 && pose.y === 1 && pose.rotate === 0, effect)
   }
+})
+
+test('a motion keeps drawing frames until it is over, or for as long as it repeats', () => {
+  assert.equal(keepsPlaying(0, 1000, false), true)
+  assert.equal(keepsPlaying(999, 1000, false), true)
+  assert.equal(keepsPlaying(1000, 1000, false), false)
+  assert.equal(keepsPlaying(5000, 1000, false), false)
+  assert.equal(keepsPlaying(5000, 1000, true), true)
 })
