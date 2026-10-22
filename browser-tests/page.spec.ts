@@ -13,6 +13,9 @@ const ROUTES = [
   ['another system', '/#delivery'],
   ['the performance tab', '/#delivery/perf/dinner-rush/3'],
   ['the failures tab', '/#ordering/failures/ordering'],
+  ['two flows side by side', '/#root/compare/refund/refund-not-recorded'],
+  ['two flows swapped', '/#root/compare/refund/refund-not-recorded/swap'],
+  ['two runs side by side', '/#root/compare-runs/together/together-measured'],
 ] as const
 
 const THEMES = ['light', 'dark'] as const
