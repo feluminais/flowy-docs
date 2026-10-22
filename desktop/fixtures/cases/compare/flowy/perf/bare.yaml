@@ -1,0 +1,5 @@
+name: bare
+compare:
+levels:
+  - { load: 5 }
+  - { load: 10 }

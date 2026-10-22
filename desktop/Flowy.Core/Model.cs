@@ -53,6 +53,12 @@ public sealed record Flow(string? Name, string? View, IReadOnlyList<Step> Steps,
 {
     /// <summary>The paths to the keys the file left with no value in everything but the steps (the name, the groups, the states and any other key), which say their own.</summary>
     public IReadOnlyList<string[]> NoValue { get; init; } = EmptyKeys.Of(null);
+
+    /// <summary>The flow's <c>compare:</c> as the file held it: text, a mapping, or anything else a file can hold (the check says what is wrong with it); null when there is none.</summary>
+    public object? CompareRaw { get; init; }
+
+    /// <summary>The flow this one compares with, when <see cref="CompareRaw"/> reads as a tag.</summary>
+    public CompareTag? Compare => Compares.Of(CompareRaw);
 }
 
 /// <summary>The three ratings a failure mode keeps under <c>after</c>, as the text of a whole number from 1 to 10 (every file value is text).</summary>

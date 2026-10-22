@@ -1,0 +1,6 @@
+name: checkout-v3
+view: shop
+compare: { with: checkout-v2, note: "Adds a retry, and a receipt" }
+steps:
+  - { from: web, to: api, text: Sends the order }
+  - { from: api, to: web, text: Answers }

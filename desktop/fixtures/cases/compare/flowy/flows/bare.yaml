@@ -1,0 +1,6 @@
+name: bare
+view: shop
+compare:
+steps:
+  - { from: web, to: api, text: Sends the order }
+  - { from: api, to: web, text: Answers }

@@ -8277,6 +8277,247 @@
       "text": "name: Blank on purpose\nview: shop\nsteps:\n  - from: web\n    to: api\n    text:\n  - from: api\n    to: web\n    text:\n    description:\n"
     },
     {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "model.yaml",
+      "data": {
+        "objects": {
+          "customer": {
+            "type": "actor",
+            "name": "Customer"
+          },
+          "shop": {
+            "type": "system",
+            "name": "Shop"
+          },
+          "web": {
+            "type": "app",
+            "in": "shop",
+            "name": "Web app"
+          },
+          "api": {
+            "type": "app",
+            "in": "shop",
+            "name": "API"
+          }
+        },
+        "connections": [
+          {
+            "from": "customer",
+            "to": "web",
+            "label": "browses"
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "label": "calls"
+          }
+        ]
+      },
+      "text": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/bad-shape.yaml",
+      "data": {
+        "name": "bad-shape",
+        "view": "shop",
+        "compare": [
+          "checkout"
+        ],
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: bad-shape\nview: shop\ncompare:\n  - checkout\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/bare.yaml",
+      "data": {
+        "name": "bare",
+        "view": "shop",
+        "compare": "",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: bare\nview: shop\ncompare:\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/checkout-v2.yaml",
+      "data": {
+        "name": "checkout-v2",
+        "view": "shop",
+        "compare": "checkout",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: checkout-v2\nview: shop\ncompare: checkout\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/checkout-v3.yaml",
+      "data": {
+        "name": "checkout-v3",
+        "view": "shop",
+        "compare": {
+          "with": "checkout-v2",
+          "note": "Adds a retry, and a receipt"
+        },
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: checkout-v3\nview: shop\ncompare:\n  with: checkout-v2\n  note: Adds a retry, and a receipt\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/checkout.yaml",
+      "data": {
+        "name": "checkout",
+        "view": "shop",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: checkout\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/ghost.yaml",
+      "data": {
+        "name": "ghost",
+        "view": "shop",
+        "compare": "nowhere",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: ghost\nview: shop\ncompare: nowhere\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/mutual-a.yaml",
+      "data": {
+        "name": "mutual-a",
+        "view": "shop",
+        "compare": "mutual-b",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: mutual-a\nview: shop\ncompare: mutual-b\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/mutual-b.yaml",
+      "data": {
+        "name": "mutual-b",
+        "view": "shop",
+        "compare": "mutual-a",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: mutual-b\nview: shop\ncompare: mutual-a\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/selfish.yaml",
+      "data": {
+        "name": "selfish",
+        "view": "shop",
+        "compare": "selfish",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: selfish\nview: shop\ncompare: selfish\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
       "folder": "docs/demo/flowy",
       "rel": "model.yaml",
       "data": {

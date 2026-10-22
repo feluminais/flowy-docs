@@ -1,0 +1,5 @@
+name: after
+compare: base
+levels:
+  - { load: 5 }
+  - { load: 10 }

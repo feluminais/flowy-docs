@@ -5,7 +5,7 @@ public static partial class Perf
 {
     /// <summary>
     /// What a run says about other runs, which one run alone can't see: each run an adder lists must be a load run of its own (not missing, not a run over time, not another adder, not
-    /// tested with several sources), and two of them may not draw in one colour. An adder with fewer than two runs it can add can't be played: the loader leaves it out (see
+    /// tested with several sources), and two of them may not draw in one colour. A <c>compare</c> must name another run that is there. An adder with fewer than two runs it can add can't be played: the loader leaves it out (see
     /// <see cref="DialsOf"/>). Each problem names the run it is about.
     /// </summary>
     public static IReadOnlyList<Problem> CheckRuns(IdMap<LoadRun> runs)
@@ -13,8 +13,13 @@ public static partial class Perf
         var problems = new List<Problem>();
         foreach (var (id, run) in runs)
         {
-            if (run.Adds is not { } adds) continue;
             void Add(string message) => problems.Add(new Problem(FolderLayout.PerfFile(id), null, message));
+            if (run.Compare is { } tag)
+            {
+                if (tag.With == id) Add("compare points at this run itself");
+                else if (!runs.Contains(tag.With)) Add($"compare \"{Brief(tag.With)}\" is not a run");
+            }
+            if (run.Adds is not { } adds) continue;
             var good = new List<string>();
             foreach (var part in adds)
             {

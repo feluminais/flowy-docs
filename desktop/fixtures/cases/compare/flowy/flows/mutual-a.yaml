@@ -1,0 +1,6 @@
+name: mutual-a
+view: shop
+compare: mutual-b
+steps:
+  - { from: web, to: api, text: Sends the order }
+  - { from: api, to: web, text: Answers }
