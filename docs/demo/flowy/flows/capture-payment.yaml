@@ -20,6 +20,6 @@ steps:
     lane: The card is declined
     animation: { kind: send, outcome: fail }
     description: |
-      A decline is final: it is not retried. The hold is released, and the app asks the customer
+      A declined card is not retried. The hold is released and the app asks the customer
       for another card.
   - { from: order-api, to: customer-app, text: Asks the customer to try another card, group: outcome }
