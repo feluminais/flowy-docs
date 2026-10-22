@@ -4,6 +4,7 @@ groups:
   charge:
     kind: repeat
     times: 3
+    until: the bank answers
     text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.
   outcome:
     kind: branch
