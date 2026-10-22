@@ -80,4 +80,45 @@ public static class CompareUi
 
     /// <summary>Whether taking a tag out loses something the reader wrote: a note belongs to its link, so removing the link asks first. With no note, removing is one click.</summary>
     public static bool RemoveNeedsConfirm(CompareTag? tag) => tag?.Note is not null;
+
+    // ---- the flow form's Compare with --------------------------------------------------------------------------------
+
+    /// <summary>The tile of a flow that is there.</summary>
+    public static FlowTile FlowTile(Model model, string id) =>
+        new(id, model.Flows[id].Name is { Length: > 0 } name ? name : id, Views.NameOf(model, model.Flows[id].View ?? Names.Root));
+
+    // Name, lower-cased, then id: the ordinal compare of lower-case text matches localeCompare for the ids and names a project holds (as in CompareChoices).
+    private static int ByTileName(FlowTile x, FlowTile y)
+    {
+        var byName = string.CompareOrdinal(x.Name.ToLowerInvariant(), y.Name.ToLowerInvariant());
+        return byName != 0 ? byName : string.CompareOrdinal(x.Id, y.Id);
+    }
+
+    /// <summary>What the edit form's Compare with offers for flow <paramref name="flowId"/>: every other flow, by name. The flow itself is never offered, since a flow can't compare with itself.</summary>
+    public static IReadOnlyList<FlowTile> PartnerChoices(Model model, string flowId)
+    {
+        var tiles = model.Flows.Keys.Where(id => id != flowId).Select(id => FlowTile(model, id)).ToList();
+        tiles.Sort(ByTileName);
+        return tiles;
+    }
+
+    /// <summary>The flows that tag flow <paramref name="flowId"/> (its newer partners), by name. A flow that tags it and is tagged by it back is the form's own partner, so it is not listed again.</summary>
+    public static IReadOnlyList<FlowTile> TaggedBy(Model model, string flowId)
+    {
+        var tiles = Compares.Partners(CompareChoices.TagsOf(model, new Dictionary<string, LoadRun>(), "flow"), flowId)
+            .Where(p => p.Side == "after" && model.Flows.Contains(p.Id)).Select(p => FlowTile(model, p.Id)).ToList();
+        tiles.Sort(ByTileName);
+        return tiles;
+    }
+
+    /// <summary>The tag flow <paramref name="flowId"/> gets when <paramref name="partner"/> is picked, keeping the note it had; no partner is no tag.</summary>
+    public static CompareTag? TagWith(Model model, string flowId, string? partner) =>
+        TagKeepingNote(model.Flows.TryGetValue(flowId, out var flow) ? flow.CompareRaw : null, partner);
+
+    /// <summary>The same, from the <c>compare</c> value a flow holds now (the form's edit reads it from the document it is changing, not from the model it drew).</summary>
+    public static CompareTag? TagKeepingNote(object? current, string? partner) =>
+        partner is null ? null : new CompareTag(partner, Compares.Of(current)?.Note);
 }
+
+/// <summary>One flow the edit form can show as a tile: its id, its name (the id when it has none) and the name of the view it plays in.</summary>
+public sealed record FlowTile(string Id, string Name, string View);

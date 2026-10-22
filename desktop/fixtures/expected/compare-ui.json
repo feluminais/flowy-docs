@@ -4895,5 +4895,809 @@
       "tag": null,
       "result": false
     }
-  ]
+  ],
+  "partners": {
+    "tiles": [
+      {
+        "id": "bad-shape",
+        "name": "bad-shape",
+        "view": "Shop"
+      },
+      {
+        "id": "bare",
+        "name": "bare",
+        "view": "Shop"
+      },
+      {
+        "id": "checkout-v2",
+        "name": "checkout-v2",
+        "view": "Shop"
+      },
+      {
+        "id": "checkout-v3",
+        "name": "checkout-v3",
+        "view": "Shop"
+      },
+      {
+        "id": "checkout",
+        "name": "checkout",
+        "view": "Shop"
+      },
+      {
+        "id": "ghost",
+        "name": "ghost",
+        "view": "Shop"
+      },
+      {
+        "id": "mutual-a",
+        "name": "mutual-a",
+        "view": "Shop"
+      },
+      {
+        "id": "mutual-b",
+        "name": "mutual-b",
+        "view": "Shop"
+      },
+      {
+        "id": "selfish",
+        "name": "selfish",
+        "view": "Shop"
+      }
+    ],
+    "choices": [
+      {
+        "flowId": "bad-shape",
+        "result": [
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "bare",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "checkout-v2",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "checkout-v3",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "checkout",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "ghost",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "mutual-a",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "mutual-b",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "selfish",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "nope",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          }
+        ]
+      }
+    ],
+    "taggedBy": [
+      {
+        "flowId": "bad-shape",
+        "result": []
+      },
+      {
+        "flowId": "bare",
+        "result": []
+      },
+      {
+        "flowId": "checkout-v2",
+        "result": [
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "checkout-v3",
+        "result": []
+      },
+      {
+        "flowId": "checkout",
+        "result": [
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "ghost",
+        "result": []
+      },
+      {
+        "flowId": "mutual-a",
+        "result": []
+      },
+      {
+        "flowId": "mutual-b",
+        "result": []
+      },
+      {
+        "flowId": "selfish",
+        "result": []
+      },
+      {
+        "flowId": "nope",
+        "result": []
+      }
+    ],
+    "tagWith": [
+      {
+        "flowId": "bad-shape",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "bad-shape",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "bad-shape",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
+      {
+        "flowId": "bare",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "bare",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "bare",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
+      {
+        "flowId": "checkout-v2",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "checkout-v2",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "checkout-v2",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
+      {
+        "flowId": "checkout-v3",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "checkout-v3",
+        "partner": "x",
+        "result": {
+          "with": "x",
+          "note": "Adds a retry, and a receipt"
+        }
+      },
+      {
+        "flowId": "checkout-v3",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout",
+          "note": "Adds a retry, and a receipt"
+        }
+      },
+      {
+        "flowId": "checkout",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "checkout",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "checkout",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
+      {
+        "flowId": "ghost",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "ghost",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "ghost",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
+      {
+        "flowId": "mutual-a",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "mutual-a",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "mutual-a",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
+      {
+        "flowId": "mutual-b",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "mutual-b",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "mutual-b",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
+      {
+        "flowId": "selfish",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "selfish",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "selfish",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
+      {
+        "flowId": "nope",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "nope",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "nope",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      }
+    ]
+  }
 }
