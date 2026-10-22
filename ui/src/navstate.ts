@@ -5,11 +5,10 @@
 export type NavTab = 'flows' | 'explorer' | 'yaml' | 'performance' | 'failures'
 
 /**
- * The tab that opens: the one asked for, unless it is not there to show (no flows to list, no server that keeps the history for the YAML tab, or a
- * Performance panel while editing). Performance and Failures are there unless `shows` says they are not.
+ * The tab that opens: the one asked for, unless it is not there to show (a Performance panel while editing). Every tab is there unless `shows` says it is not.
  */
-export const openTab = (tab: NavTab | undefined, shows: { flows: boolean; yaml: boolean; performance?: boolean }): NavTab | undefined =>
-  (tab === 'flows' && !shows.flows) || (tab === 'yaml' && !shows.yaml) || (tab === 'performance' && shows.performance === false) ? undefined : tab
+export const openTab = (tab: NavTab | undefined, shows: { performance?: boolean }): NavTab | undefined =>
+  (tab === 'performance' && shows.performance === false) ? undefined : tab
 
 /** The tab that comes back with the page. Performance and Failures do not: the address says which run, analysis and mode were open, and brings the tab back with them. */
 export const rememberedTab = (tab: NavTab | undefined): NavTab | undefined => (tab === 'failures' || tab === 'performance' ? undefined : tab)

@@ -428,7 +428,7 @@ internal static class Expected
         "ctrl+y reading | left | same",
         "n in edit mode | taken | view=root edit=True panel=True tab= details=True perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "shift+n in edit mode | left | same",
-        "delete in edit mode with a box open | taken | same",
+        "delete in edit mode with a box open | taken | view=ordering edit=True panel=True tab= details=True perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "delete in edit mode with nothing open | taken | same",
         "ctrl+a in edit mode | taken | view=ordering edit=True panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=7 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "ctrl+shift+a in edit mode | left | same",

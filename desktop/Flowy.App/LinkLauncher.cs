@@ -27,6 +27,12 @@ internal static class LinkLauncher
         _ => null,
     };
 
+    /// <summary>What a launcher that answered "no" says: the system took no part in opening the link.</summary>
+    internal const string NotOpened = "Couldn't open it: no app took it";
+
+    /// <summary>What to tell the reader about a launcher's answer: nothing when it started, else <see cref="NotOpened"/>.</summary>
+    internal static string? Told(bool started) => started ? null : NotOpened;
+
     /// <summary>Does it. Returns what went wrong in words, or null when it started.</summary>
     internal static async Task<string?> RunAsync(TopLevel top, LinkAction action)
     {
@@ -35,20 +41,17 @@ internal static class LinkLauncher
             switch (action.Kind)
             {
                 case LinkKind.Web:
-                    await top.Launcher.LaunchUriAsync(new Uri(action.Target));
-                    break;
+                    return Told(await top.Launcher.LaunchUriAsync(new Uri(action.Target)));
                 case LinkKind.Folder:
-                    await top.Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(action.Target));
-                    break;
+                    return Told(await top.Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(action.Target)));
                 case LinkKind.DefaultApp:
-                    await top.Launcher.LaunchFileInfoAsync(new FileInfo(action.Target));
-                    break;
+                    return Told(await top.Launcher.LaunchFileInfoAsync(new FileInfo(action.Target)));
                 case LinkKind.CustomApp:
                     Process.Start(CustomAppStart(action.App!, action.Target))?.Dispose();
                     break;
                 case LinkKind.ShowInFolder:
                     if (ShowInFolderStart(action.Target, Current) is { } start) Process.Start(start)?.Dispose();
-                    else await top.Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(Path.GetDirectoryName(action.Target)!));
+                    else return Told(await top.Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(Path.GetDirectoryName(action.Target)!)));
                     break;
                 default:
                     return "That link doesn't point at anything Flowy can open.";

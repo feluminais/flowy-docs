@@ -37,6 +37,9 @@
           <SolidColorBrush x:Key="WarnBgBrush" Color="#fef3c7" />
           <SolidColorBrush x:Key="WarnFgBrush" Color="#78350f" />
           <SolidColorBrush x:Key="WarnBrush" Color="#d97706" />
+          <SolidColorBrush x:Key="KnowFgBrush" Color="#5b21b6" />
+          <SolidColorBrush x:Key="KnowBrush" Color="#7c3aed" />
+          <SolidColorBrush x:Key="KnowTintBrush" Color="#7c3aed" Opacity="0.10" />
           <SolidColorBrush x:Key="DangerBrush" Color="#b91c1c" />
           <SolidColorBrush x:Key="ActorBrush" Color="#7f77dd" />
           <SolidColorBrush x:Key="SystemBrush" Color="#378add" />
@@ -94,6 +97,9 @@
           <SolidColorBrush x:Key="WarnBgBrush" Color="#451a03" />
           <SolidColorBrush x:Key="WarnFgBrush" Color="#fde68a" />
           <SolidColorBrush x:Key="WarnBrush" Color="#f59e0b" />
+          <SolidColorBrush x:Key="KnowFgBrush" Color="#ddd6fe" />
+          <SolidColorBrush x:Key="KnowBrush" Color="#a78bfa" />
+          <SolidColorBrush x:Key="KnowTintBrush" Color="#a78bfa" Opacity="0.12" />
           <SolidColorBrush x:Key="DangerBrush" Color="#f87171" />
           <SolidColorBrush x:Key="ActorBrush" Color="#afa9ec" />
           <SolidColorBrush x:Key="SystemBrush" Color="#85b7eb" />
@@ -373,11 +379,31 @@
     <Setter Property="Height" Value="4" />
   </Style>
   <Style Selector="Border.seg.done"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
-  <!-- A group on the card: the bracket under the progress bar, a branch's lanes as tabs, a parallel stop's lane blocks, and the way back to the flow it was opened from. -->
-  <Style Selector="Border.bracket">
-    <Setter Property="BorderBrush" Value="{DynamicResource MutedBrush}" />
-    <Setter Property="BorderThickness" Value="0,1,0,0" />
+  <!-- A lane the stop shown is not in: hollow, as the browser draws it. A group is a box, dashed when it may stop early. -->
+  <Style Selector="Border.seg.off">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
   </Style>
+  <Style Selector="Border.seg.off.done"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Rectangle.box">
+    <Setter Property="Stroke" Value="{DynamicResource LineBrush}" />
+    <Setter Property="StrokeThickness" Value="1" />
+    <Setter Property="RadiusX" Value="6" />
+    <Setter Property="RadiusY" Value="6" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+  <Style Selector="Rectangle.box.maybe">
+    <Setter Property="Stroke" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="StrokeDashArray" Value="3,3" />
+  </Style>
+  <Style Selector="TextBlock.barlane">
+    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector="TextBlock.barlane.on"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+  <!-- A group on the card: the bracket under the progress bar, a branch's lanes as tabs, a parallel stop's lane blocks, and the way back to the flow it was opened from. -->
   <Style Selector="Border.tab">
     <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
     <Setter Property="BorderThickness" Value="1" />
@@ -499,11 +525,11 @@
   <Style Selector="ToggleButton.datahead:focus-visible /template/ ContentPresenter"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /><Setter Property="BorderThickness" Value="1.5" /></Style>
   <Style Selector="Border.datafill"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /><Setter Property="BorderThickness" Value="0,0,0,1" /></Style>
   <Style Selector="Border.datarule"><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /><Setter Property="BorderThickness" Value="0,1,0,0" /><Setter Property="Opacity" Value="0.6" /></Style>
-  <Style Selector="Ellipse.datadot"><Setter Property="Fill" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector="Ellipse.datadot"><Setter Property="Fill" Value="{DynamicResource KnowBrush}" /></Style>
   <Style Selector="Border.datacode"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /><Setter Property="CornerRadius" Value="4" /><Setter Property="Padding" Value="5,1" /></Style>
   <Style Selector="Border.datanote">
-    <Setter Property="Background" Value="{DynamicResource WarnTintBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+    <Setter Property="Background" Value="{DynamicResource KnowTintBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource KnowBrush}" />
     <Setter Property="BorderThickness" Value="3,0,0,0" />
     <Setter Property="CornerRadius" Value="0,6,6,0" />
     <Setter Property="Padding" Value="10,4" />
@@ -693,6 +719,10 @@
     <Setter Property="Opacity" Value="0.45" />
   </Style>
   <Style Selector=":is(Grid).box.fails, :is(Grid).box.affected"><Setter Property="Opacity" Value="1" /></Style>
+  <!-- The Used by panel: a shape about to go is outlined in red and dashed, and the one its focused row names in the accent colour. -->
+  <Style Selector=":is(Grid).box.going Path.failline, :is(Grid).box.flagged Path.failline"><Setter Property="IsVisible" Value="True" /></Style>
+  <Style Selector=":is(Grid).box.going Path.failline"><Setter Property="StrokeDashArray" Value="6,4" /></Style>
+  <Style Selector=":is(Grid).box.flagged Path.failline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector=":is(Grid).box.faildim"><Setter Property="Opacity" Value="0.15" /></Style>
   <!-- The marks of a key (the Performance panel and the Failures tab), each drawn as it looks on the chart or the canvas. -->
   <Style Selector="Border.sw.high, Border.sw.medium, Border.sw.low, Border.sw.unrated">

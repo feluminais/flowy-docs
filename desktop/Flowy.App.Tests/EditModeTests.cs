@@ -222,7 +222,7 @@ public class EditModeTests
     }
 
     [AvaloniaFact]
-    public async Task A_box_that_a_flow_uses_cannot_be_deleted_and_the_notice_names_the_flows()
+    public async Task A_box_that_a_flow_uses_opens_the_Used_by_panel_with_a_row_for_each_step_and_nothing_is_deleted_until_each_is_settled()
     {
         var (temp, dir, _, reader) = Open();
         using var _ = temp;
@@ -230,9 +230,28 @@ public class EditModeTests
         reader.OpenObject("customer");
         var before = Model(dir);
         await reader.DeleteSelectedAsync();
-        Assert.Contains("is used by flows browse, order", reader.NoticeText);
+        var used = reader.UsedByNow!;
+        Assert.Equal(["step:browse:1", "step:order:1"], used.RowKeys);
+        Assert.Equal(["Customer browses", "Customer orders"], used.RowWords.Select(r => r.Title));
+        Assert.False(used.CanDelete);
+        Assert.Equal("Choose for 2 more", used.Reason);
         Assert.Equal(before, Model(dir));
-        Assert.True(reader.HasPanel);
+
+        used.PressRemoveAll(); // browse has no other step, so the flow goes; order loses the one step
+        Assert.True(used.CanDelete);
+        Assert.Equal("deleteFlow", used.ChoiceOf("step:browse:1")!.Action);
+        Assert.Equal("removeStep", used.ChoiceOf("step:order:1")!.Action);
+        Assert.True(await used.PressDeleteAsync());
+        await Until(() => reader.Folder!.Model.GetObject("customer") is null);
+        Assert.False(File.Exists(Path.Combine(dir, "flows", "browse.yaml")));
+        Assert.Single(reader.Folder!.Model.Flows["order"].Steps);
+        Assert.Contains("Deleted Customer.", reader.NoticeText);
+        Assert.Equal("Undo", reader.NoticeNow!.ActionText);
+
+        reader.NoticeNow.PressAction(); // one step takes the whole delete back
+        await Until(() => reader.Folder!.Model.GetObject("customer") is not null);
+        Assert.True(File.Exists(Path.Combine(dir, "flows", "browse.yaml")));
+        Assert.Equal(2, reader.Folder!.Model.Flows["order"].Steps.Count);
     }
 
     [AvaloniaFact]

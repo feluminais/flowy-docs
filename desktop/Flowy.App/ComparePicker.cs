@@ -22,13 +22,13 @@ internal sealed class ComparePicker : Border
     private readonly IReadOnlyDictionary<string, LoadRun> _runs;
     private readonly Action<string> _pick;
     private readonly Action _close;
-    private readonly IReadOnlyList<Choice> _linked;
-    private readonly IReadOnlyList<Choice> _others;
+    private readonly IReadOnlyList<CompareChoice> _linked;
+    private readonly IReadOnlyList<CompareChoice> _others;
     private readonly TextBox _input;
     private readonly StackPanel _linkedRows = new();
     private readonly StackPanel _otherRows = new();
     private readonly TextBlock _nothing = new() { Text = "Nothing called that", Classes = { "muted" }, Margin = new Thickness(8, 4), IsVisible = false };
-    private List<Choice> _rows = []; // the choices on show, linked first
+    private List<CompareChoice> _rows = []; // the choices on show, linked first
     private int _at = -1; // the one the arrow keys are on, or -1
 
     /// <param name="kind"><c>flow</c> (the player's Compare) or <c>run</c> (the Performance panel's Compare and Link with; <paramref name="runs"/> are the runs to pick from).</param>
@@ -64,11 +64,11 @@ internal sealed class ComparePicker : Border
     }
 
     /// <summary>The choices on show, linked first: for the tests.</summary>
-    internal IReadOnlyList<Choice> Rows => _rows;
+    internal IReadOnlyList<CompareChoice> Rows => _rows;
 
     internal TextBox Field => _input;
 
-    private bool Can(Choice c) => !c.Missing && (_kind == "run" ? CompareChoices.Openable(_runs, c.Id) : CompareChoices.Playable(_model, c.Id));
+    private bool Can(CompareChoice c) => !c.Missing && (_kind == "run" ? CompareChoices.Openable(_runs, c.Id) : CompareChoices.Playable(_model, c.Id));
 
     private void Rebuild(bool typed)
     {
@@ -83,7 +83,7 @@ internal sealed class ComparePicker : Border
         _nothing.IsVisible = query != "" && found.Count == 0;
     }
 
-    private Button Row(Choice c, int index, bool linked)
+    private Button Row(CompareChoice c, int index, bool linked)
     {
         var off = c.Missing ? "Missing" : !Can(c) ? "Can't play yet" : null;
         var end = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, VerticalAlignment = VerticalAlignment.Center };

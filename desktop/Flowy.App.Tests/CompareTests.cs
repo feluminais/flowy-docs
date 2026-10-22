@@ -1499,7 +1499,7 @@ public class CompareTests
         ClickBar(reader.PerfPanelNow.CompareButton!);
         EditModeTests.Settle(window);
         var rows = reader.PerfPanelNow.RunPicker!.Rows;
-        Assert.Equal(new Choice("ghost", "ghost", "before", true), rows[0]);
+        Assert.Equal(new CompareChoice("ghost", "ghost", "before", true), rows[0]);
         Assert.False(FindButton(reader.PerfPanelNow.RunPicker, "ghost").IsEnabled);
         Assert.Null(reader.PerfPanelNow.LinkedMark); // a tag to nothing links nothing
     }
@@ -1990,7 +1990,7 @@ public class CompareTests
         using var _ = temp;
         Assert.Null(picker.Partner);
         Assert.DoesNotContain("refund", picker.OfferedIds); // a flow can't compare with itself
-        Assert.Equal(8, picker.OfferedIds.Count); // every other flow
+        Assert.Equal(13, picker.OfferedIds.Count); // every other flow: Plum's fourteen less this one
         ClickBar(picker.TileOf("place-order")!);
         await EditModeTests.Until(() => FlowFile(temp, "refund").Contains("compare: place-order"));
         await EditModeTests.Until(() => reader.Panel.CurrentRecorder!.PartnerPicker!.Partner is not null);
@@ -2111,7 +2111,7 @@ public class CompareTests
         Assert.Contains("Nothing called that", Words(picker));
         picker.Find.Text = "";
         EditModeTests.Settle(window);
-        Assert.Equal(8, picker.OfferedIds.Count);
+        Assert.Equal(13, picker.OfferedIds.Count);
     }
 
     [AvaloniaFact]

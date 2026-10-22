@@ -73,6 +73,47 @@ public class EditSessionTests
         Assert.False(session.CanUndo);
     }
 
+    /// <summary>A run that measured the actor "10" and the line from api to db, in a folder of its own: only the checker reads what is in it. A run needs two levels.</summary>
+    private static void WriteRun(string dir)
+    {
+        const string level = "    overall: { rate: 1, p50: 1, p95: 1, errors: 0 }\n    objects:\n      \"10\": { util: 0.1 }\n    connections:\n      - { from: api, to: db, rate: 1, p50: 1, p95: 1, errors: 0 }\n";
+        File.WriteAllText(Path.Combine(dir, "perf", "tenth-load.yaml"), "name: Tenth\nlevels:\n  - load: 1\n" + level + "  - load: 2\n" + level);
+    }
+
+    [Fact]
+    public void An_edit_that_leaves_a_run_naming_a_shape_or_a_line_that_is_gone_is_refused_and_names_the_run()
+    {
+        var (temp, dir) = Copy();
+        using var _ = temp;
+        Directory.CreateDirectory(Path.Combine(dir, "perf"));
+        WriteRun(dir);
+        var before = Read(dir, "model.yaml");
+        var session = new EditSession(dir);
+        var shape = session.Apply(d => EditOps.DeleteObject(d, "10")).Message;
+        Assert.StartsWith("Refused, nothing saved. This would add:", shape);
+        Assert.Contains("perf/tenth-load.yaml: unknown object \"10\"", shape);
+        Assert.EndsWith("Change or delete those runs first.", shape);
+        var line = session.Apply(d => EditOps.RemoveConnection(d, new ConnectionInput("api", "db"))).Message;
+        Assert.Contains("perf/tenth-load.yaml: api → db is not a connection in the model", line);
+        Assert.Equal(before, Read(dir, "model.yaml"));
+        Assert.False(session.CanUndo);
+        // Without the run the same edit goes through.
+        File.Delete(Path.Combine(dir, "perf", "tenth-load.yaml"));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.DeleteObject(d, "10")));
+    }
+
+    [Fact]
+    public void A_run_that_already_names_something_gone_does_not_stop_an_edit_that_has_nothing_to_do_with_it()
+    {
+        var (temp, dir) = Copy();
+        using var _ = temp;
+        Directory.CreateDirectory(Path.Combine(dir, "perf"));
+        WriteRun(dir);
+        var session = new EditSession(dir);
+        File.WriteAllText(Path.Combine(dir, "model.yaml"), Read(dir, "model.yaml").Replace("  \"10\": { type: actor, name: Tenth }\n", ""));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, new ObjectInput("api", Tech: "Fastify"))));
+    }
+
     [Fact]
     public void A_file_that_changed_since_it_was_read_is_never_overwritten()
     {
@@ -209,9 +250,11 @@ public class EditSessionTests
         var heard = 0;
         watcher.Changed += () => Interlocked.Increment(ref heard);
         Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, Fresh)));
-        Thread.Sleep(600);
+        // A busy runner can be slow to deliver the event, so wait for it, then give a second one time to show up.
+        SpinWait.SpinUntil(() => Volatile.Read(ref heard) > 0, TimeSpan.FromSeconds(10));
+        Thread.Sleep(300);
         Assert.Equal(1, saves);
-        Assert.Equal(1, heard);
+        Assert.Equal(1, Volatile.Read(ref heard));
     }
 
     private static (TempDir Temp, string Dir) CopyCase(string name)

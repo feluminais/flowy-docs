@@ -1,0 +1,65 @@
+# Weekly update pull requests. Updates of the same kind arrive as one pull request, and nothing newer than a week is offered:
+# the days just after a release are when a hijacked package does its damage. Security updates are not held back by the wait.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      # dependency-cruiser (npm run check:layers) can't read TypeScript 7 yet: it cruises 0 modules and still passes.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      # CI and the desktop app run Node 24, so its types stay on that line.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /vscode
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # Pinned to the oldest VS Code the extension supports (engines.vscode). vsce refuses a newer one.
+      - dependency-name: "@types/vscode"
+    groups:
+      vscode-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: nuget
+    directories:
+      - /desktop/Flowy.Core
+      - /desktop/Flowy.App
+      - /desktop/Flowy.Tests
+      - /desktop/Flowy.App.Tests
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      # xunit.v3 4 runs on Microsoft.Testing.Platform, which .NET 10 only runs through a new dotnet test setup (and a new coverage collector).
+      - dependency-name: xunit.v3
+        update-types: ["version-update:semver-major"]
+    groups:
+      nuget-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]

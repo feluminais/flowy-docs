@@ -4,10 +4,13 @@ import type { FlowyObject } from './model.ts'
 import { flowMap, flowSeq, flowTextLists, readYaml } from './yamltext.ts'
 
 /** How much of a store's data the section shows, so it stays a picture of the few tables that matter and never a dump. */
-export const DATA_MAX = { columns: 12, rows: 8, depth: 3, fields: 20 } as const
+export const DATA_MAX = { columns: 12, rows: 8, depth: 3, fields: 20, type: 40 } as const
 
-/** A column of a grid. `key` is only ever `primary`; `to` names the table a foreign key points to. */
-export type DataColumn = { name: string; key?: 'primary'; to?: string; note?: string }
+/**
+ * A column of a grid. `key` is only ever `primary`; `to` names the table a foreign key points to. `type` is the data type as the author
+ * writes it ("int", "text", "timestamp"); a trailing `?` in the file ("int?") says the column can be empty, and is `nullable` here, not part of `type`.
+ */
+export type DataColumn = { name: string; type?: string; nullable?: true; key?: 'primary'; to?: string; note?: string }
 /** One note under the data: the column's name, or the field's dotted path in a document, and what it says. */
 export type NoteLine = { name: string; text: string }
 /** One line of a sample document. `path` is missing for a line under a list item, which a note cannot address. */
@@ -35,12 +38,21 @@ const text = (v: unknown): string | undefined => (typeof v === 'string' && v.tri
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
+/** A written type split into the type and whether it can be empty: "int?" is `int` and nullable, "?" is nullable with no type. */
+function typeOf(raw: unknown): Pick<DataColumn, 'type' | 'nullable'> {
+  const written = text(raw)?.trim()
+  if (written === undefined) return {}
+  const nullable = written.endsWith('?')
+  const type = (nullable ? written.slice(0, -1) : written).trim()
+  return { ...(type === '' ? {} : { type }), ...(nullable ? { nullable: true as const } : {}) }
+}
+
 function columnOf(raw: unknown): DataColumn | undefined {
   if (typeof raw === 'string') return raw.trim() === '' ? undefined : { name: raw }
   if (!isMap(raw)) return undefined
   const name = text(raw.name)
   if (name === undefined) return undefined
-  const column: DataColumn = { name }
+  const column: DataColumn = { name, ...typeOf(raw.type) }
   if (raw.key === 'primary') column.key = 'primary'
   const to = text(raw.to)
   if (to !== undefined) column.to = to
@@ -103,7 +115,7 @@ export type DataInput = {
   kind?: string
   limits?: string
   note?: string
-  columns?: (string | { name: string; key?: 'primary'; to?: string; note?: string })[]
+  columns?: (string | { name: string; type?: string; key?: 'primary'; to?: string; note?: string })[]
   rows?: (string | number | boolean)[][]
   sample?: Record<string, unknown>
   notes?: Record<string, string>
@@ -125,9 +137,9 @@ const mapList = (v: unknown, f: (x: unknown) => unknown) => (Array.isArray(v) ? 
 
 function tidyColumn(c: unknown): unknown {
   if (!isMap(c)) return c
-  const { name, key, to, note, ...rest } = c
+  const { name, type, key, to, note, ...rest } = c
   const tidy: Record<string, unknown> = { name }
-  for (const [field, value] of [['key', key], ['to', to], ['note', note]] as const) if (value !== undefined && !blank(value)) tidy[field] = value
+  for (const [field, value] of [['type', type], ['key', key], ['to', to], ['note', note]] as const) if (value !== undefined && !blank(value)) tidy[field] = value
   // Spread, not Object.assign: a hand-written `__proto__` key must stay a key and not set the prototype.
   const column = { ...tidy, ...rest }
   return Object.keys(column).length === 1 && typeof name === 'string' ? name : column
@@ -147,7 +159,7 @@ function tidyEntry(e: unknown): unknown {
 
 /**
  * The entries of a `data` as they go to disk: keys in the order name, kind, limits, note, columns, rows, sample, notes (others after); a
- * blank kind, limits, note, key or `to` left out; a column with only a name written as the bare name; numbers and booleans as text.
+ * blank kind, limits, note, type, key or `to` left out (a column's keys go name, type, key, to, note); a column with only a name written as the bare name; numbers and booleans as text.
  * A value of the wrong shape, a `data` that is not a list included, is carried through unchanged for check() to report.
  */
 export function tidyData(input: DataInput[]): unknown[]
@@ -160,23 +172,24 @@ const present = (v: unknown) => v !== undefined && v !== ''
 
 function gridProblems(label: string, entry: Record<string, unknown>, out: string[]) {
   const columns = entry.columns
-  if (!Array.isArray(columns)) return out.push(`${label}: columns must be a list`)
+  if (!Array.isArray(columns)) { out.push(`${label}: columns must be a list`); return }
   if (columns.length === 0) out.push(`${label}: columns is empty`)
   const seen = new Set<string>()
   columns.forEach((c, i) => {
     const name = typeof c === 'string' ? text(c) : isMap(c) ? text(c.name) : undefined
-    if (typeof c !== 'string' && !isMap(c)) return out.push(`${label}: column ${i + 1} must be a name or a mapping`)
-    if (name === undefined) return out.push(`${label}: column ${i + 1} has no name`)
+    if (typeof c !== 'string' && !isMap(c)) { out.push(`${label}: column ${i + 1} must be a name or a mapping`); return }
+    if (name === undefined) { out.push(`${label}: column ${i + 1} has no name`); return }
     if (seen.has(name)) out.push(`${label}: column "${name}" appears twice`)
     seen.add(name)
     if (!isMap(c)) return
     if (present(c.key) && c.key !== 'primary') out.push(`${label}: column "${name}": key must be primary`)
-    for (const field of ['to', 'note']) if (c[field] !== undefined && typeof c[field] !== 'string') out.push(`${label}: column "${name}": "${field}" must be plain text`)
+    for (const field of ['type', 'to', 'note']) if (c[field] !== undefined && typeof c[field] !== 'string') out.push(`${label}: column "${name}": "${field}" must be plain text`)
+    if (typeof c.type === 'string' && c.type.trim().length > DATA_MAX.type) out.push(`${label}: column "${name}": type is longer than ${DATA_MAX.type} characters`)
   })
   if (columns.length > DATA_MAX.columns) out.push(`${label}: ${columns.length} columns, at most ${DATA_MAX.columns}`)
   const rows = entry.rows
   if (!present(rows)) return
-  if (!Array.isArray(rows)) return out.push(`${label}: rows must be a list of rows`)
+  if (!Array.isArray(rows)) { out.push(`${label}: rows must be a list of rows`); return }
   rows.forEach((row, i) => {
     if (!Array.isArray(row) || row.some(cell => typeof cell !== 'string')) out.push(`${label}: row ${i + 1} must be a list of cells`)
     else if (row.length !== columns.length)
@@ -203,8 +216,8 @@ function hasNestedList(node: unknown): boolean {
 
 function sampleProblems(label: string, entry: Record<string, unknown>, out: string[]) {
   const sample = entry.sample
-  if (!isMap(sample)) return out.push(`${label}: sample must be a mapping of fields`)
-  if (Object.keys(sample).length === 0) return out.push(`${label}: sample is empty`)
+  if (!isMap(sample)) { out.push(`${label}: sample must be a mapping of fields`); return }
+  if (Object.keys(sample).length === 0) { out.push(`${label}: sample is empty`); return }
   if (hasNestedList(sample)) out.push(`${label}: sample has a list inside a list, which isn't shown`)
   const lines = linesOf(sample, {})
   const depth = Math.max(...lines.map(l => l.depth))
@@ -212,7 +225,7 @@ function sampleProblems(label: string, entry: Record<string, unknown>, out: stri
   if (lines.length > DATA_MAX.fields) out.push(`${label}: sample shows ${lines.length} fields, at most ${DATA_MAX.fields}`)
   const notes = entry.notes
   if (!present(notes)) return
-  if (!isMap(notes) || Object.values(notes).some(v => typeof v !== 'string')) return out.push(`${label}: notes must map a field to its note`)
+  if (!isMap(notes) || Object.values(notes).some(v => typeof v !== 'string')) { out.push(`${label}: notes must map a field to its note`); return }
   const paths = new Set(lines.map(l => l.path))
   for (const key of Object.keys(notes)) if (!paths.has(key)) out.push(`${label}: the note on "${key}" names no field of the sample`)
 }
@@ -228,7 +241,7 @@ export function dataProblems(o: FlowyObject): string[] {
   const out: string[] = []
   const names = new Set<string>()
   o.data.forEach((entry, i) => {
-    if (!isMap(entry)) return out.push(`data entry ${i + 1} must be a mapping`)
+    if (!isMap(entry)) { out.push(`data entry ${i + 1} must be a mapping`); return }
     const name = text(entry.name)
     if (name === undefined) out.push(`data entry ${i + 1} has no name`)
     else if (names.has(name)) out.push(`data "${name}" appears twice`)

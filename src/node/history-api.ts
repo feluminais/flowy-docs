@@ -47,6 +47,21 @@ export function createHistoryApi(history: History, options: { gateMs?: number } 
     gate = undefined
   }
 
+  /**
+   * Records the step the gate was holding, and only then closes it. Closing first left a moment in which the folder watcher, seeing the
+   * edit's files with no gate up, recorded them as "First seen" or a change from outside, ahead of the step that names the edit.
+   */
+  const recordAndClose = async (label: string | undefined): Promise<boolean> => {
+    const mine = gate
+    clearTimeout(timer)
+    timer = undefined
+    try {
+      return (await history.record(label, 'you')) !== undefined
+    } finally {
+      if (gate === mine) gate = undefined
+    }
+  }
+
   async function post(req: IncomingMessage, pathname: string): Promise<Answer | undefined> {
     if (pathname !== '/api/history/steps' && pathname !== '/api/history/restore' && pathname !== '/api/history/clear') return undefined
     // Browsers only let a page send a custom header to its own origin, so other sites can't write.
@@ -59,8 +74,7 @@ export function createHistoryApi(history: History, options: { gateMs?: number } 
     const body = await objectBody(req)
     if (pathname === '/api/history/steps') {
       if (!body || !isLabel(body.label)) return bad(`the body needs "label": a sentence of 1 to ${MAX_LABEL} characters`)
-      closeGate()
-      return { status: 200, body: { recorded: (await history.record(body.label, 'you')) !== undefined } }
+      return { status: 200, body: { recorded: await recordAndClose(body.label) } }
     }
 
     const { id, versions, label } = body ?? {}
@@ -92,11 +106,13 @@ export function createHistoryApi(history: History, options: { gateMs?: number } 
     },
     beforeWrite() {
       if (!gate) {
-        gate = history.ensureCurrent('write').then(() => undefined)
-        timer = setTimeout(() => {
-          closeGate()
-          void history.record(undefined, 'you')
-        }, gateMs)
+        const opening = history.ensureCurrent('write').then(() => undefined)
+        gate = opening
+        // The wait for a label starts when the gate is open, not when it was asked for: a slow first look at the folder must not use it up,
+        // or the step is recorded before the edit's file is written and the file then shows up as "First seen".
+        void opening.then(() => {
+          if (gate === opening) timer = setTimeout(() => void recordAndClose(undefined).catch(() => undefined), gateMs)
+        })
       }
       return gate
     },

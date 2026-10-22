@@ -48,7 +48,7 @@ export function stateProblems(flow: Flow, stops: Stop[], exists: (id: string) =>
   const check = (raw: unknown, step?: number) => {
     const add = (message: string) => out.push(step === undefined ? { message } : { step, message })
     if (raw === undefined) return
-    if (!isMap(raw)) return add(SHAPE_MAP)
+    if (!isMap(raw)) { add(SHAPE_MAP); return }
     for (const [id, state] of Object.entries(raw)) {
       if (!exists(id)) add(`states: unknown shape "${id}"`)
       if (typeof state !== 'string') add(`states: "${id}" needs a state word (${USE})`)

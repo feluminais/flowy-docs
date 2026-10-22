@@ -31,7 +31,7 @@ export type Loaded = { model: Model; versions: Record<string, string | null>; ig
 
 /** The file changed since the caller read it. */
 export class VersionConflict extends Error {
-  name = 'VersionConflict'
+  override name = 'VersionConflict'
   /** The file's version now (null = missing). */
   version: string | null
   constructor(rel: string, version: string | null) {
@@ -52,7 +52,7 @@ export const hashBytes = (bytes: Uint8Array) => createHash('sha256').update(byte
 const utf8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true })
 
 /** Where `rel` really is: the real path of the file, or of the nearest folder above it that exists, with the rest of the path put back. */
-async function realPlace(dir: string, rel: string): Promise<string> {
+export async function realPlace(dir: string, rel: string): Promise<string> {
   let path = join(dir, rel)
   const rest: string[] = []
   for (;;) {
@@ -83,7 +83,7 @@ export async function pointsOutside(dir: string, rel: string): Promise<boolean> 
 
 /** A write that was refused because the file is, or sits behind, a link out of the model folder. */
 export class OutsideFolder extends Error {
-  name = 'OutsideFolder'
+  override name = 'OutsideFolder'
   constructor(rel: string) {
     super(`"${rel}" points outside the folder`)
   }

@@ -60,6 +60,61 @@ public static class ModelFolders
     }
 }
 
+/// <summary>One model folder a repo holds. <c>Id</c> and <c>Where</c> are its path from the repo root, with <c>/</c>; <c>Name</c> is what a switcher shows.</summary>
+public sealed record ModelEntry(string Id, string Name, string Where, string Dir);
+
+/// <summary>Finding the models a repo holds. The twin of src/node/models.ts: the same folders, in the same order, under the same names.</summary>
+public static class RepoModels
+{
+    private const int Deepest = 5;
+
+    /// <summary>Folders a model is never looked for in: dependencies, build output and the repo's own bookkeeping.</summary>
+    private static readonly HashSet<string> Skipped = ["node_modules", "dist", "build", "out", "bin", "obj", "target", "vendor", "coverage"];
+
+    /// <summary>The model folder at <paramref name="dir"/> as an entry: named for the repo folder or system it sits in.</summary>
+    public static ModelEntry EntryOf(string root, string dir)
+    {
+        var full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(dir));
+        var where = Path.GetRelativePath(Path.GetFullPath(root), full).Replace('\\', '/');
+        var parent = Path.GetFileName(Path.GetDirectoryName(full) ?? "");
+        var name = Path.GetFileName(full) == "flowy" && parent.Length > 0 ? parent : Path.GetFileName(full);
+        return new ModelEntry(where, name, where, full);
+    }
+
+    /// <summary>Every model folder under <paramref name="root"/>: a folder called <c>flowy</c> that holds a model.yaml, nearest the top first, then by path. Hidden folders and the skipped ones are not searched.</summary>
+    public static IReadOnlyList<ModelEntry> Find(string root)
+    {
+        var found = new List<ModelEntry>();
+        void Walk(string dir, int depth)
+        {
+            IEnumerable<string> children;
+            try { children = Directory.EnumerateDirectories(dir).ToList(); }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return; }
+            foreach (var child in children)
+            {
+                var name = Path.GetFileName(child);
+                if (name.StartsWith('.') || Skipped.Contains(name)) continue;
+                if (name == "flowy" && File.Exists(Path.Combine(child, FolderLayout.ModelFile))) found.Add(EntryOf(root, child));
+                else if (depth < Deepest) Walk(child, depth + 1);
+            }
+        }
+        Walk(Path.GetFullPath(root), 1);
+        return found.OrderBy(e => e.Where.Count(c => c == '/')).ThenBy(e => e.Where, StringComparer.Ordinal).ToList();
+    }
+
+    /// <summary>The repo a model folder is in: the nearest folder above it with a <c>.git</c>, else the folder it sits in.</summary>
+    public static string RootOf(string modelDir)
+    {
+        var full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(modelDir));
+        for (var dir = Path.GetDirectoryName(full); dir is not null; dir = Path.GetDirectoryName(dir))
+            if (Directory.Exists(Path.Combine(dir, ".git")) || File.Exists(Path.Combine(dir, ".git"))) return dir;
+        return Path.GetDirectoryName(full) ?? full;
+    }
+
+    /// <summary>The models of the repo that holds <paramref name="modelDir"/>, itself among them, or none when it is not a <c>flowy</c> folder of the repo (a demo, a folder opened by hand).</summary>
+    public static IReadOnlyList<ModelEntry> InRepoOf(string modelDir) => Find(RootOf(modelDir));
+}
+
 /// <summary>The folders opened lately, newest first.</summary>
 public static class Recents
 {

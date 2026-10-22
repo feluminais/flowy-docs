@@ -27,6 +27,15 @@ public class StoreDataTests
     }
 
     [Fact]
+    public void Shown_reads_a_column_type_and_a_trailing_question_mark_as_nullable()
+    {
+        var orders = Assert.Single(StoreData.Shown(Store("""
+            [{ "name": "t", "columns": [{ "name": "a", "type": "int" }, { "name": "b", "type": "text?" }, { "name": "c", "type": " ? " }, { "name": "d", "type": "  " }, { "name": "e", "type": ["x"] }, "f"] }]
+            """)));
+        Assert.Equal([("int", false), ("text", true), (null, true), (null, false), (null, false), (null, false)], orders.Columns.Select(c => (c.Type, c.Nullable)));
+    }
+
+    [Fact]
     public void Shown_lists_a_sample_document_line_by_line()
     {
         var doc = Assert.Single(StoreData.Shown(Store("""
@@ -57,6 +66,8 @@ public class StoreDataTests
     [Theory]
     [InlineData("""[{ "name": "a", "columns": ["x", "y"], "rows": [["1"]] }]""", "data \"a\": row 1 has 1 cell but there are 2 columns")]
     [InlineData("""[{ "name": "a", "columns": ["x"], "rows": [["1", "2", "3"]] }]""", "data \"a\": row 1 has 3 cells but there is 1 column")]
+    [InlineData("""[{ "name": "a", "columns": [{ "name": "x", "type": ["int"] }] }]""", "data \"a\": column \"x\": \"type\" must be plain text")]
+    [InlineData("""[{ "name": "a", "columns": [{ "name": "x", "type": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" }] }]""", "data \"a\": column \"x\": type is longer than 40 characters")]
     [InlineData("""[{ "name": "a" }]""", "data \"a\" needs columns or a sample")]
     [InlineData("""[{ "name": "a", "sample": { "grid": [["a"], ["b"]] } }]""", "data \"a\": sample has a list inside a list, which isn't shown")]
     [InlineData("""[{ "name": "a", "columns": ["x"], "rows": [["a\nb"]] }]""", "data \"a\": text can't hold a line break")]

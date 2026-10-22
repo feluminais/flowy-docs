@@ -17,7 +17,7 @@ namespace Flowy.App;
 /// It holds what the reader has chosen: the view they are in, the box or line open in the panel, the flow playing and its step, the line
 /// the pointer is on.
 /// </summary>
-internal sealed partial class ReaderView : Grid
+internal sealed partial class ReaderView : Grid, IDisposable
 {
     private const int DoubleClickMilliseconds = 250;
 
@@ -39,6 +39,9 @@ internal sealed partial class ReaderView : Grid
         public sealed record Add : Side;
 
         public sealed record Flow(Recording Rec) : Side;
+
+        /// <summary>What is waiting on the shapes or lines about to be deleted (the Used by panel). <c>Back</c> is what was picked before, which Cancel returns to.</summary>
+        public sealed record UsedBy(IReadOnlyList<Target> Targets, Side? Back) : Side;
     }
 
     /// <summary>The panel opened on the right besides what a pick opens: Details from its rail (the level you are in).</summary>
@@ -65,6 +68,9 @@ internal sealed partial class ReaderView : Grid
     private readonly Sash _detailsSash = new(false, "Resize the details panel");
     private Control? _zoomButtons;
     private readonly ComboBox _linePicker = new();
+    private readonly ComboBox _modelPicker = new() { IsVisible = false }; // the repo's other models; only there when it has several
+    private IReadOnlyList<ModelEntry> _models = [];
+    private string? _dir;
     private readonly Button _searchButton = new();
     private readonly Button _helpButton = new();
     private readonly Button _problemsButton = new();
@@ -96,6 +102,9 @@ internal sealed partial class ReaderView : Grid
     private bool _moving;
 
     public event Action<string?>? LinesPicked;
+
+    /// <summary>The reader picked another model of the repo, by its folder. The window opens it in a window of its own.</summary>
+    public event Action<string>? ModelPicked;
 
     /// <summary>The app the person chose to open linked files with, or null for the system's default. Read at every click.</summary>
     internal Func<string?> CustomApp { get; set; } = () => null;
@@ -268,7 +277,17 @@ internal sealed partial class ReaderView : Grid
         _problemsButton.IsVisible = false;
 
         _linePicker.Classes.Add("flat");
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _crumbs, _editTools } };
+        _modelPicker.Classes.Add("flat");
+        Avalonia.Automation.AutomationProperties.SetName(_modelPicker, "Model");
+        ToolTip.SetTip(_modelPicker, "Switch to another model in this repo");
+        _modelPicker.SelectionChanged += (_, _) =>
+        {
+            if (_syncing || _modelPicker.SelectedIndex < 0 || _modelPicker.SelectedIndex >= _models.Count) return;
+            var picked = _models[_modelPicker.SelectedIndex];
+            if (_dir is not null && ModelFolders.Key(picked.Dir) != ModelFolders.Key(_dir)) ModelPicked?.Invoke(picked.Dir);
+            ShowCurrentModel(); // this window stays on its own model; the picked one opens in its own window
+        };
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _modelPicker, _crumbs, _editTools } };
         var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, HorizontalAlignment = HorizontalAlignment.Right, Children = { _linePicker, _searchButton, _helpButton, _problemsButton, _editButton } };
         var dock = new DockPanel { LastChildFill = false };
         DockPanel.SetDock(right, Dock.Right);
@@ -309,9 +328,20 @@ internal sealed partial class ReaderView : Grid
 
     // ---- what is loaded ----------------------------------------------------------------------------------------
 
+    /// <summary>Lets go of the folder's watcher. The window calls this when it closes; without it the watcher outlives the window.</summary>
+    public void Dispose()
+    {
+        _disk?.Dispose();
+        _disk = null;
+    }
+
     public void Load(Folder folder, string dir)
     {
         _folder = folder;
+        _dir = dir;
+        _models = [];
+        ShowCurrentModel();
+        _ = LoadModels(dir);
         WarmCode(folder);
         _session = new EditSession(dir);
         _disk?.Dispose();
@@ -350,6 +380,29 @@ internal sealed partial class ReaderView : Grid
         if (await run(action) is { } problem) ShowNotice(problem);
     }
 
+    /// <summary>Looks for the repo's other models away from the UI thread, since a big repo takes a moment to walk. The picker shows only when there are several.</summary>
+    private async Task LoadModels(string dir)
+    {
+        var models = await Task.Run(() => RepoModels.InRepoOf(dir));
+        if (_dir != dir) return; // another folder was loaded while this one was being read
+        _models = models;
+        ShowCurrentModel();
+    }
+
+    /// <summary>The picker's items and the one selected: this window's model. A name another model shares shows its folder too.</summary>
+    private void ShowCurrentModel()
+    {
+        _syncing = true;
+        _modelPicker.ItemsSource = _models.Select(m => _models.Count(o => o.Name == m.Name) > 1 ? $"{m.Name} ({m.Where})" : m.Name).ToList();
+        _modelPicker.SelectedIndex = _dir is null ? -1 : _models.ToList().FindIndex(m => ModelFolders.Key(m.Dir) == ModelFolders.Key(_dir));
+        _modelPicker.IsVisible = _models.Count > 1 && _modelPicker.SelectedIndex >= 0;
+        _syncing = false;
+    }
+
+    internal ComboBox ModelPicker => _modelPicker;
+
+    internal IReadOnlyList<ModelEntry> Models => _models;
+
     private async Task LoadCodeBase(string dir)
     {
         var codeBase = await CodeLinks.BaseFor(FolderLoader.RepoRoot(dir));
@@ -384,10 +437,10 @@ internal sealed partial class ReaderView : Grid
     }
 
     /// <summary>Says what is happening in a card over the canvas. With <paramref name="seconds"/> it goes by itself.</summary>
-    public void ShowNotice(string text, double seconds = 0)
+    public void ShowNotice(string text, double seconds = 0, Action? undo = null)
     {
         DismissNotice();
-        var notice = new Notice(text, DismissNotice) { Margin = NoticeMargin };
+        var notice = new Notice(text, DismissNotice, undo is null ? null : "Undo", undo) { Margin = NoticeMargin };
         _notice = notice;
         _overlay.Children.Add(notice);
         if (seconds > 0)
@@ -411,12 +464,12 @@ internal sealed partial class ReaderView : Grid
     public string? MermaidText() =>
         _folder is not { } folder ? null : "```mermaid\n" + (PlayingFlow() is { } f ? Mermaid.Flow(folder.Model, f.Id) : Mermaid.View(folder.Model, CurrentView())) + "```\n";
 
-    /// <summary>The diagram as it is on screen, without the bar and the panel, as a PNG at <paramref name="scale"/> times the screen's size.</summary>
-    public void SavePicture(string path, double scale = 2)
+    /// <summary>The diagram as it is on screen, without the bar and the panel, as a PNG at <paramref name="scale"/> times the screen's size. False when there is nothing on screen to draw, and then no file is written.</summary>
+    public bool SavePicture(string path, double scale = 2)
     {
         var host = Comparing ? _compareHost : _motionHost;
         var size = host.Bounds.Size;
-        if (size.Width < 1 || size.Height < 1) return;
+        if (size.Width < 1 || size.Height < 1) return false;
         var was = host.Background;
         host.Background = this.TryFindResource("BgBrush", ActualThemeVariant, out var bg) && bg is IBrush brush ? brush : Brushes.White;
         try
@@ -424,12 +477,19 @@ internal sealed partial class ReaderView : Grid
             using var bitmap = new RenderTargetBitmap(new PixelSize((int)Math.Ceiling(size.Width * scale), (int)Math.Ceiling(size.Height * scale)), new Vector(96 * scale, 96 * scale));
             bitmap.Render(host);
             bitmap.Save(path, PngBitmapEncoderOptions.Default);
+            return true;
         }
         finally
         {
             host.Background = was;
         }
     }
+
+    /// <summary>What to tell the reader after Save Picture: "Saved" only when the file was written. No <paramref name="path"/> means the place picked is not a folder on this computer.</summary>
+    internal static string PictureNotice(string? path, bool saved) =>
+        path is null ? "Couldn't save the picture: pick a folder on this computer"
+        : saved ? $"Saved {Path.GetFileName(path)}."
+        : "Couldn't save the picture: nothing on screen to draw";
 
     /// <summary>The name a picture of what's on screen suggests: the model, then the level.</summary>
     public string PictureName(string model)
@@ -581,18 +641,51 @@ internal sealed partial class ReaderView : Grid
         return icon;
     }
 
+    private UsedByPanel? _usedByPanel;
+    private Side.UsedBy? _usedBySide;
+
     private void RefreshPanel(Model model, string view)
     {
+        if (_side is not Side.UsedBy && _usedByPanel is not null)
+        {
+            _usedByPanel = null;
+            _usedBySide = null;
+            _canvas.ShowUsed(new HashSet<string>(), new HashSet<string>());
+        }
         switch (_side)
         {
+            case Side.UsedBy used when Editing:
+                if (_usedByPanel is null || !ReferenceEquals(_usedBySide, used))
+                {
+                    _usedBySide = used;
+                    var fresh = new UsedByPanel(_panel, model, used.Targets, RunAsync);
+                    fresh.Marked += (going, flagged) => _canvas.ShowUsed(going, flagged);
+                    fresh.Done += text =>
+                    {
+                        CloseSide();
+                        ShowNotice(text, 0, () => _ = UndoAsync());
+                    };
+                    fresh.Cancelled += () =>
+                    {
+                        _side = used.Back;
+                        Refresh();
+                        Focus();
+                    };
+                    _usedByPanel = fresh;
+                    _panel.ShowUsedBy(fresh, model);
+                    fresh.Update(model); // now that the canvas is listening, it says which shapes are going
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => fresh.Focus());
+                }
+                else _panel.ShowUsedBy(_usedByPanel, model);
+                break;
             case Side.Box { Id: var id } when Editing:
-                _panel.ShowObjectEditor(model, id, _folder!.Problems, RunAsync, OpenObject, SetHover, CloseSide);
+                _panel.ShowObjectEditor(model, id, _folder!.Problems, RunAsync, OpenObject, SetHover, AskDelete);
                 break;
             case Side.Box { Id: var id }:
                 _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover, StateHere(id));
                 break;
             case Side.Line { From: var from, To: var to } when Editing:
-                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide);
+                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide, AskDelete);
                 break;
             case Side.Line { From: var from, To: var to, View: var lineView }:
                 _panel.ShowLine(model, lineView ?? view, from, to, _folder!.Problems);
@@ -617,8 +710,9 @@ internal sealed partial class ReaderView : Grid
     private void ShowViewDetails(Model model, string view)
     {
         if (_right != RightPanel.Details) _panel.Clear();
-        else if (view == Names.Root) _panel.ShowOverview(Totals());
-        else if (Editing) _panel.ShowObjectEditor(model, view, _folder!.Problems, RunAsync, OpenObject, SetHover, CloseSide);
+        else if (view == Names.Root && Editing) _panel.ShowProjectEditor(model, Totals(), RunAsync);
+        else if (view == Names.Root) _panel.ShowOverview(model, Totals());
+        else if (Editing) _panel.ShowObjectEditor(model, view, _folder!.Problems, RunAsync, OpenObject, SetHover, AskDelete);
         else _panel.ShowObject(model, view, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover);
     }
 

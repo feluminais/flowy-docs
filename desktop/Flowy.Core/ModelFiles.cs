@@ -158,19 +158,12 @@ public static class ModelFiles
         return new FailureAnalysis(Text(doc, "name") ?? "", Text(doc, "about"), Text(doc, "scope"), scale, modes);
     }
 
-    // ponytail: plain decimal numbers only. JavaScript's Number() also takes 0x10 and 0b11; layout.yaml is written
-    // by the canvas, which writes decimals. Accept the others here if a hand-written file ever needs them.
     private static LayoutPoint? ToPoint(object? v)
     {
         if (v is not List<object?> { Count: 2 } pair) return null;
-        double[] n = new double[2];
-        for (var i = 0; i < 2; i++)
-        {
-            // Past a million the line paths overflow to NaN and can't be drawn; nobody drags a box that far.
-            if (pair[i] is not string s || s.Trim() == "" || !double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out n[i]) || !double.IsFinite(n[i]) || Math.Abs(n[i]) > MaxCoordinate)
-                return null;
-        }
-        return new LayoutPoint(n[0], n[1]);
+        // Past a million the line paths overflow to NaN and can't be drawn; nobody drags a box that far.
+        if (JsCompat.PlainNumber(pair[0]) is not { } x || JsCompat.PlainNumber(pair[1]) is not { } y || Math.Abs(x) > MaxCoordinate || Math.Abs(y) > MaxCoordinate) return null;
+        return new LayoutPoint(x, y);
     }
 
     public static Dictionary<string, IReadOnlyDictionary<string, LayoutPoint>> ParseLayout(string text)
@@ -186,7 +179,7 @@ public static class ModelFiles
                 throw new ParseError(file, $"view \"{view}\" must map object ids to [x, y]");
             var points = new Dictionary<string, LayoutPoint>();
             foreach (var (id, p) in boxes)
-                points[id] = ToPoint(p) ?? throw new ParseError(file, $"{view} → {id} must be [x, y]");
+                points[id] = ToPoint(p) ?? throw new ParseError(file, $"{view} → {id} must be [x, y], each between -{MaxCoordinate} and {MaxCoordinate}");
             layout[view] = points;
         }
         return layout;

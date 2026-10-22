@@ -32,13 +32,8 @@ public static partial class Perf
     /// <summary>The lowest and highest a metric may be.</summary>
     private static (double Lo, double Hi) Range(string key) => key is "util" or "errors" ? (0, 1) : (0, double.PositiveInfinity);
 
-    // ponytail: plain decimal numbers only. JavaScript's Number() also takes 0x10, 0o7 and 0b11; a run is written by a tool that writes decimals.
-    // A file text hands over a number as text, so "0.35" is read here.
-    private static double? Num(object? v)
-    {
-        if (v is not string s || s.Trim() == "") return null;
-        return double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var n) && double.IsFinite(n) ? n : null;
-    }
+    // A file text hands over a number as text, so "0.35" is read here, as plain decimal text only (see JsCompat.PlainNumber).
+    private static double? Num(object? v) => JsCompat.PlainNumber(v);
 
 
     /// <summary>The numbers <paramref name="keys"/> name in <paramref name="raw"/>. One that isn't a number, or is out of range, is reported through <paramref name="add"/> and left out.</summary>
@@ -205,7 +200,7 @@ public static partial class Perf
         {
             if (!doc.TryGetValue(key, out var v)) return null;
             if (v is not string s) throw new ParseError(file, $"\"{key}\" must be plain text, not a list or a mapping");
-            return s.Trim() == "" ? null : s;
+            return JsCompat.Blank(s) ? null : s;
         }
         var name = Word("name");
         if (name is null) Add("name is missing");
@@ -331,12 +326,12 @@ public static partial class Perf
         var output = new List<string>();
         for (var i = 0; i < list.Count; i++)
         {
-            if (list[i] is not string { } item || item.Trim() == "")
+            if (list[i] is not string { } item || JsCompat.Blank(item))
             {
                 add($"adds: item {i + 1} must be a run id");
                 continue;
             }
-            var run = item.Trim();
+            var run = JsCompat.JsTrim(item);
             if (run == id) add($"adds: {id} can't add itself");
             else if (output.Contains(run)) add($"adds: {Brief(run)} is listed twice");
             else output.Add(run);
@@ -376,7 +371,7 @@ public static partial class Perf
                     add($"{label}: {key} must be plain text");
                     return null;
                 }
-                return s.Trim() == "" ? null : s;
+                return JsCompat.Blank(s) ? null : s;
             }
             var name = Text("name");
             if (name is null) add($"{label}: name is missing");

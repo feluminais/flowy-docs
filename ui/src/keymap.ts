@@ -30,8 +30,6 @@ export type KeyState = {
   failuresOpen: boolean
   analysis: boolean // the Failures tab has an analysis to step through
   readOnly: boolean
-  showFlows: boolean
-  showYaml: boolean
   canPerf: boolean
 }
 
@@ -135,6 +133,7 @@ export const KEYMAP: readonly Entry[] = [
       else if (layer === 'compare') act.closeCompare()
       else if (layer === 'up') act.up()
       else return false
+      return undefined
     },
     help: {
       reading: { text: "Close what's open, then go up a level. The navigator closes only if your last click was in it" },
@@ -232,7 +231,7 @@ export const KEYMAP: readonly Entry[] = [
   },
   {
     id: 'flows', keys: 'L',
-    when: c => tap(c, 'l') && c.s.showFlows,
+    when: c => tap(c, 'l'),
     run: c => c.act.toggleTab('flows'),
     help: { reading: { text: 'Show every flow, and play one' } },
   },
@@ -244,7 +243,7 @@ export const KEYMAP: readonly Entry[] = [
   },
   {
     id: 'yaml', keys: 'Y',
-    when: c => tap(c, 'y') && c.s.showYaml,
+    when: c => tap(c, 'y'),
     run: c => c.act.toggleTab('yaml'),
     help: { reading: { text: 'The files as YAML, and what changed' } },
   },

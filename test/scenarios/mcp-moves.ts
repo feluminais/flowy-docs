@@ -84,7 +84,7 @@ const write: McpMaker = ({ model }, rng) => {
  * Deleting something that the op takes. Most plain deletes are refused (a shape that is used, a line a mode names), which leaves untried what
  * happens when one goes through, so this looks for one that does.
  */
-const deleteSomething: McpMaker = ({ model }, rng) => {
+const deleteSomething: McpMaker = ({ model, runs }, rng) => {
   const candidates: Move[] = [
     ...ids(model.objects).map((id): Move => ({ op: 'delete_object', label: `deleteObject ${id}`, call: { tool: 'delete_object', args: { id } }, run: m => ops.deleteObject(m, id) })),
     ...ids(model.flows).map((id): Move => ({ op: 'delete_flow', label: `deleteFlow ${id}`, call: { tool: 'delete_flow', args: { id } }, run: m => ops.deleteFlow(m, id) })),
@@ -93,7 +93,7 @@ const deleteSomething: McpMaker = ({ model }, rng) => {
   ]
   for (const move of rng.some(candidates, 10)) {
     try {
-      refuseNewProblems(model, move.run(model))
+      refuseNewProblems(model, move.run(model), undefined, runs)
     } catch {
       continue
     }

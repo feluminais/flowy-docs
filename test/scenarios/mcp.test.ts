@@ -20,10 +20,7 @@ const STEPS = Number(process.env.FLOWY_MCP_STEPS ?? 14)
  * Real and known, by "rule:tool", with the same ratchet as ops.test.ts: when one is fixed this test fails until its line goes. A tool of "*" is any
  * tool, since several calls sent at once are named together and the call that broke the folder is not known.
  */
-const KNOWN_GAPS: Record<string, string> = {
-  // The same gap as in ops.test.ts, reached through the tools.
-  'run-dangling:*': 'delete_object and disconnect leave a run pointing at a shape or a line that is gone',
-}
+const KNOWN_GAPS: Record<string, string> = {}
 
 const known = (f: Finding) => Object.hasOwn(KNOWN_GAPS, signature(f)) || Object.hasOwn(KNOWN_GAPS, `${f.rule}:*`)
 

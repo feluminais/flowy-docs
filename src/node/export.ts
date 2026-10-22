@@ -3,7 +3,7 @@ import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { ParseError } from '../core/model.ts'
 import { STATE_ELEMENT } from '../core/state.ts'
 import type { State } from '../core/state.ts'
-import { loadState } from './files.ts'
+import { loadState, realPlace } from './files.ts'
 
 /** How an exported page's state starts. It also tells an earlier export from someone else's page. */
 const OPEN = `<script type="application/json" id="${STATE_ELEMENT}">`
@@ -19,11 +19,9 @@ export function inlineState(html: string, state: State): string {
   return `${html.slice(0, at)}${OPEN}${json}</script>\n${html.slice(at)}`
 }
 
-/** Whether `child` is `parent` or inside it. Real paths are compared, so a link or a short name can't hide it. */
+/** Whether `child` is `parent` or inside it. Real paths are compared, so a link or a short name can't hide it, even for a folder that doesn't exist yet. */
 async function within(child: string, parent: string): Promise<boolean> {
-  // Known limit: a folder that doesn't exist yet is compared as written, so a link in its parents slips past. It can't
-  // hold the model then, but it can land inside dist/ui; resolve its deepest existing parent if that ever matters.
-  const real = (p: string) => realpath(p).catch(() => resolve(p))
+  const real = (p: string) => realPlace(p, '').catch(() => resolve(p))
   const rel = relative(await real(parent), await real(child))
   return rel === '' || (rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel))
 }

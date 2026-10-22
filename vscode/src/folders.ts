@@ -6,19 +6,18 @@ import { repoPath } from './paths.ts'
 export const exists = (path: string) => access(path).then(() => true, () => false)
 
 /**
- * The flowy/ folders to offer. One at the top of a workspace folder is that repo's docs; only when there is none
- * is the workspace searched deeper, for a monorepo, nearest the top first.
+ * The flowy/ folders to offer: the one at the top of each workspace folder, then every other in the workspace (a monorepo with a model per
+ * system), nearest the top first. A model at the top does not hide the ones below it.
  */
 export async function findFolders(): Promise<string[]> {
-  const top: string[] = []
+  const found = await vscode.workspace.findFiles('**/flowy/model.yaml', '**/node_modules/**', 100)
+  const dirs = new Set(found.map(file => dirname(file.fsPath)))
   for (const folder of vscode.workspace.workspaceFolders ?? []) {
     const dir = join(folder.uri.fsPath, 'flowy')
-    if (await exists(join(dir, 'model.yaml'))) top.push(dir)
+    if (await exists(join(dir, 'model.yaml'))) dirs.add(dir) // findFiles honours the reader's excludes; a top folder is always theirs
   }
-  if (top.length > 0) return top
-  const found = await vscode.workspace.findFiles('**/flowy/model.yaml', '**/node_modules/**', 100)
   const depth = (dir: string) => dir.split(sep).length
-  return found.map(file => dirname(file.fsPath)).sort((a, b) => depth(a) - depth(b) || a.localeCompare(b))
+  return [...dirs].sort((a, b) => depth(a) - depth(b) || a.localeCompare(b))
 }
 
 /** The flowy/ folder to work with: the only one, or the one the reader picks. Tells the reader when there is none. */

@@ -1,5 +1,7 @@
 {
   "lineStyle": "straight",
+  "projectName": "",
+  "projectAbout": "",
   "objects": [
     {
       "id": "rect",

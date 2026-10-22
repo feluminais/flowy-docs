@@ -11,10 +11,12 @@ import { FILE_KINDS, kindOfPath, pathOf } from '../core/filekinds.ts'
 import { mcpLabel } from '../core/history.ts'
 import { ICON_GROUPS } from '../core/icons.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
-import { getObject, OBJECT_TYPES, ROOT } from '../core/model.ts'
+import { getObject, OBJECT_TYPES, projectAbout, projectName, ROOT } from '../core/model.ts'
 import { changedFiles } from '../core/modelfiles.ts'
 import type { Model } from '../core/model.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, disconnect, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems, setCompare } from '../core/ops.ts'
+import { describeDependent } from '../core/dependents.ts'
+import type { Dependent } from '../core/dependents.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deleteWith, disconnect, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems, setCompare, setProject } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
 import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
@@ -31,9 +33,9 @@ const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML fil
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
 Connect the most specific objects you know (e.g. component → store); zoomed-out views merge lines automatically.
 A flow is a step-by-step walkthrough played on one view: "root" (the top level) or an object with children.
-Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, put_failures and put_failure, put_icon, set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
+Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, put_failures and put_failure, put_project (the system's name and what it is), put_icon, set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
 What to document, and what to read for it:
-- A request that only says to document, map or describe the repo ("make Flowy docs") gets the default and nothing else: the people, apps, stores, components and outside services you can point to, how they connect, and three to five plain flows (no animation, no looks). Don't read the topic rules below, and don't write failure modes, data, snippets, animation or performance.
+- A request that only says to document, map or describe the repo ("make Flowy docs") gets the default and nothing else: the system's name and a short about (put_project), the people, apps, stores, components and outside services you can point to, how they connect, and three to five plain flows (no animation, no looks). Don't read the topic rules below, and don't write failure modes, data, snippets, animation or performance.
 - Everything beyond that is the user's to ask for by name. If they ask for more without saying what ("everything", "in detail", "make it complete"), ask which parts, listing these: flows with motion, repeats, branches or failed requests; what the stores hold; code on shapes; a failure analysis; looks. Performance runs are files a load test makes, which you can't write.
 - When they name a part, read its rules first and only those. They are resources: flowy://rules/flows (animation, outcomes, groups, states), flowy://rules/data, flowy://rules/code and flowy://rules/failures.
 - The last thing you say is the account in "After writing" and then what Flowy could add, from what you saw while reading and never as a general list: one line for each of data (a store with a schema or migration), code (a formula, a query or a payload that explains a shape), failures (outside services, retries, timeouts), motion in flows (call, send and event steps), performance (load-test results or a load-test tool in the repo) and more flows (name the ones you left out). Leave a part out when you saw nothing for it, and say that you did not write any of them.
@@ -83,11 +85,30 @@ function readout(model: Model, flow: FlowInput): string {
   return [`Saved flow ${flow.id}. On ${nameOf(model, flow.view)} it reads:`, ...steps.map(s => s.line), ...(steps.some(s => s.inside) ? [hint] : [])].join('\n')
 }
 
-type Result = { content: { type: 'text'; text: string }[]; isError?: boolean }
+type Result = { content: { type: 'text'; text: string }[]; structuredContent?: Record<string, unknown>; isError?: boolean }
 const ok = (value: unknown): Result => ({
   content: [{ type: 'text', text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }],
 })
-const fail = (e: unknown): Result => ({ ...ok(e instanceof Error ? e.message : String(e)), isError: true })
+
+/**
+ * A refusal because other parts depend on what was to be deleted says so in words, then lists each row that needs a decision with the actions it takes, and
+ * how to settle them: the same call again with `resolve`. The rows are also the result's structured content (`dependents`, as dependents() returns them).
+ */
+function refusedForDependents(message: string, rows: Dependent[]): Result {
+  const list = rows.map(r => `- ${r.key} (${describeDependent(r)}): ${r.actions.join(', ')}`).join('\n')
+  const how = 'To delete it anyway, call this tool again with "resolve": one { key, action, to } for each row above, taking one of the actions listed for it, the first being the usual one. "to" is the shape to send the step or mode to (reroute, repoint), a view for changeView, changeScope or moveOut ("root" is the top level), and is left out for the other actions. A row of a flow you delete needs nothing more. Lines, state entries and affects entries that name it go along without a choice. Nothing is saved until every row is settled.'
+  return { ...ok(`${message}\n\n${list}\n\n${how}`), structuredContent: { dependents: rows }, isError: true }
+}
+const fail = (e: unknown): Result =>
+  e instanceof OpError && e.dependents !== undefined && e.dependents.length > 0 ? refusedForDependents(e.message, e.dependents) : { ...ok(e instanceof Error ? e.message : String(e)), isError: true }
+
+/** How one row of a refusal is settled when the delete is asked again: the row's key, one of its actions, and where to when the action points somewhere. */
+const resolution = z.object({
+  key: z.string().max(200).describe('The key of a row of the refusal, e.g. "step:checkout:3"'),
+  action: z.enum(['removeStep', 'reroute', 'deleteFlow', 'changeView', 'removeMode', 'repoint', 'changeScope', 'moveOut', 'deleteWith']).describe('One of the actions the row lists'),
+  to: z.string().max(64).optional().describe('Where to, for reroute, repoint, changeView, changeScope and moveOut; "root" is the top level'),
+})
+const resolve = z.array(resolution).max(500).optional().describe('How to settle what depends on it, one entry for each row of an earlier refusal. Left out, the call is refused while anything depends on it.')
 
 /**
  * get_model shows every number and flag as the text the file holds ("7", "true"), so what was read can be sent straight back: digits are taken
@@ -107,6 +128,7 @@ const dataEntry = z.object({
   note: z.string().optional().describe('One line on why it is this way. Not what it is.'),
   columns: z.array(z.union([z.string(), z.object({
     name: z.string(),
+    type: z.string().optional().describe('The data type as the code names it, e.g. "int", "text", "timestamp". End it with ? when the column can be empty: "int?". At most 40 characters.'),
     key: z.literal('primary').optional().describe('Only "primary", for a primary key.'),
     to: z.string().optional().describe('The table this column points to, which makes it a foreign key.'),
     note: z.string().optional().describe('One line on why, shown under the data.'),
@@ -115,6 +137,9 @@ const dataEntry = z.object({
   sample: z.record(z.string(), sampleValue).optional().describe('A document: one invented sample, as nested fields (3 levels at most, 20 fields at most). Instead of columns.'),
   notes: z.record(z.string(), z.string()).optional().describe('For a sample: a field (a dotted path like "hours.mon" for a nested one) mapped to a one-line note.'),
 })
+
+/** The system's name and what it is, when the file has them, in the shape put_project takes. */
+const project = (m: Model) => ({ ...(projectName(m) ? { name: projectName(m) } : {}), ...(projectAbout(m) ? { about: projectAbout(m) } : {}) })
 
 /** `history`: when given, every write is also a step in the folder's history. A history that can't be written never fails a tool call. */
 export function createMcpServer(dir: string, history?: History): McpServer {
@@ -156,10 +181,10 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         const loaded = await loadDir(dir)
         const { model, versions } = loaded
         const next = op(model)
-        refuseNewProblems(model, next, missingPaths(dir, model, next)) // the canvas refuses the same edits, except missing code paths, which only Node can see
-        // A mode's run is a file in perf/, which the model doesn't hold, so only Node can tell that one doesn't exist.
+        // A run is a file in perf/, which the model doesn't hold: it can name a shape or a line the edit takes away, or be named by a failure mode.
+        const { runs } = await loadRuns(dir, model)
+        refuseNewProblems(model, next, missingPaths(dir, model, next), runs) // the canvas refuses the same edits, except missing code paths, which only Node can see
         if (next.failures !== model.failures) {
-          const { runs } = await loadRuns(dir, model)
           const links = (m: Model) => Object.entries(m.failures).flatMap(([aid, a]) => runLinkProblems(aid, a, runs))
           const added = newProblems(links(model), links(next))
           if (added.length > 0) {
@@ -209,6 +234,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     if (summary === true) {
       const objects = Object.entries(m.objects).map(([oid, o]) => ({ id: oid, type: o.type, name: o.name, ...(o.in ? { in: o.in } : {}), ...(o.tech ? { tech: o.tech } : {}), ...(o.external === 'true' ? { external: true } : {}) }))
       return {
+        ...project(m),
         objects,
         connections: m.connections.map(c => `${c.from} → ${c.to}${c.label ? `: ${c.label}` : ''}`),
         flows: Object.entries(m.flows).map(([fid, f]) => ({ id: fid, name: f.name, view: f.view, steps: f.steps.length, ...withTag(f.compare) })),
@@ -237,7 +263,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
       if (!Object.hasOwn(m.failures, analysis)) throw new Error(`unknown analysis "${analysis}"`)
       return { id: analysis, analysis: m.failures[analysis], problems: about(p => p.file === `failures/${analysis}.yaml`) }
     }
-    return { objects: m.objects, connections: m.connections, flows: m.flows, failures: m.failures, icons: customIcons(m.meta), runs: runList, problems }
+    return { ...project(m), objects: m.objects, connections: m.connections, flows: m.flows, failures: m.failures, icons: customIcons(m.meta), runs: runList, problems }
   }))
 
   server.registerTool('get_problems', {
@@ -301,6 +327,14 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     },
   }, input => write(m => putObject(m, input), before => `${getObject(before, input.id) ? 'Updated' : 'Created'} ${input.id}.`, mcpLabel('put_object', input)))
 
+  server.registerTool('put_project', {
+    description: 'Set the name of the system and what it is: the first thing a reader sees when nothing is selected. Omitted fields stay as they are, "" removes one.',
+    inputSchema: {
+      name: z.string().max(200).optional().describe('What the system is called, e.g. "Plum".'),
+      about: z.string().max(4000).optional().describe('Markdown. What the system is for and who uses it, in a paragraph or two. Long documents belong in links on the top-level system.'),
+    },
+  }, input => write(m => setProject(m, input), 'Saved the project details.', mcpLabel('put_project', input)))
+
   server.registerTool('put_icon', {
     description: `Define a custom icon for objects to use with put_object's icon. It is SVG path data on a 24x24 grid, drawn as a 2px round line like the built-in ones (copy the "d" of a Tabler or Lucide icon, joining several paths). Built-in names, which can't be reused: ${ICON_GROUPS.map(g => `${g.group}: ${g.names.join(', ')}`).join('. ')}.`,
     inputSchema: {
@@ -316,10 +350,10 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   }, input => write(m => deleteIcon(m, input.name), `Deleted icon ${input.name}.`, mcpLabel('delete_icon', input)))
 
   server.registerTool('delete_object', {
-    description: 'Delete an object, its connections, and the flow states and failure-mode affects entries that name it. Refused while it has children, a flow step or flow view uses it, or a failure mode names it.',
-    inputSchema: { id: id('Object id') },
+    description: 'Delete an object, its connections, and the flow states and failure-mode affects entries that name it. Refused while it has children, a flow step or flow view uses it, or a failure mode names it: the refusal lists each of those as a row with the actions that settle it (also as structured content), and the same call with `resolve` settles them and deletes in one edit, or saves nothing.',
+    inputSchema: { id: id('Object id'), resolve },
     annotations: destructive,
-  }, input => write(m => deleteObject(m, input.id), `Deleted ${input.id}.`, mcpLabel('delete_object', input)))
+  }, input => write(m => (input.resolve === undefined ? deleteObject(m, input.id) : deleteWith(m, [{ object: input.id }], input.resolve)), `Deleted ${input.id}.`, mcpLabel('delete_object', input)))
 
   server.registerTool('connect', {
     description: 'Add a connection. Direction matters: from → to. Duplicates and connecting an object to itself are refused.',
@@ -327,10 +361,10 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   }, input => write(m => connect(m, input), `Connected ${input.from} → ${input.to}.`, mcpLabel('connect', input)))
 
   server.registerTool('disconnect', {
-    description: 'Remove connections from → to.',
-    inputSchema: { ...ends, label: z.string().optional().describe('Only remove the ones with this label; "" means only the unlabelled ones. Leave it out to remove all.') },
+    description: 'Remove connections from → to. Refused while a failure mode is on that line and no other from → to line is left: the refusal lists the mode as a row, and the same call with `resolve` removes the mode and the line in one edit.',
+    inputSchema: { ...ends, label: z.string().optional().describe('Only remove the ones with this label; "" means only the unlabelled ones. Leave it out to remove all.'), resolve },
     annotations: destructive,
-  }, input => write(m => disconnect(m, input), `Disconnected ${input.from} → ${input.to}.`, mcpLabel('disconnect', input)))
+  }, input => write(m => (input.resolve === undefined ? disconnect(m, input) : deleteWith(m, [{ line: { from: input.from, to: input.to, ...(input.label === undefined ? {} : { label: input.label }), all: true } }], input.resolve)), `Disconnected ${input.from} → ${input.to}.`, mcpLabel('disconnect', input)))
 
   server.registerTool('put_flow', {
     description: 'Create or replace a flow: a step-by-step walkthrough played on one view. Answers with how each step reads there.',

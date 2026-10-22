@@ -10,10 +10,22 @@ canvas is in `ui/` (React and React Flow). Tests are in `test/` and use Node's o
 npm install
 npm test
 npm run typecheck
+npm run check:layers
+npm run check:unused
 node src/cli.ts check
 ```
 
 `check` lists every problem in `flowy/`, this repo's own model, and exits 1 if there is any. Run it after changing the model, a `code:` path or the checks.
+`check:layers` fails when `src/core` imports the server, the page or a Node built-in, or when files import each other in a circle. `check:unused` fails on a file or a
+dependency nothing uses.
+
+The same checks run on every pull request (`.github/workflows/ci.yml`): the tests on Windows and Linux, the layer and unused-code checks, an audit of the workflows,
+`dotnet test desktop` on both systems, and a browser run (`npm run test:browser`, needs `npx playwright install chromium` once) that opens the built page over the demo
+in light and dark and checks it draws, reports no error, fits its window, prints no shape or label over another, and has no serious accessibility problem. Its report
+keeps a picture of every page.
+
+`test/properties.test.ts` tries many generated texts (commas, quotes, line breaks, `__proto__`) through the writer and back. When it fails it prints the seed and the
+smallest text that breaks it; paste that text into a normal test next to the fix.
 
 Commit messages follow the existing style: `feat(ui): ...`, `fix: ...`, `docs: ...`.
 
@@ -41,7 +53,7 @@ and Stripe going down at 40 s and coming back at 85 s, a run over time; `togethe
 is a fourteen-mode failure analysis with made-up ratings, and it names shapes, connections, flows and a run in the same way. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one, 1280 by 1000 for the failures one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
-`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups, `--view ordering --flow stripe-outage --step 3` for `desktop-states.png`,
+`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --edit --delete orders-db` for `desktop-used-by.png`, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups, `--view ordering --flow stripe-outage --step 3` for `desktop-states.png`,
 `--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, `--view ordering --run stripe-outage --tab performance --at 70` (1280 by 760) for `desktop-time.png`, `--view delivery --run together --tab performance --at 800,400` (1280 by 760) for `desktop-sources.png`, `--view ordering --tab failures --select stripe-timeout` (1280 by 1000) for the failures one, `--compare refund,refund-not-recorded --changes` (1200 by 860) for `desktop-compare.png`, the same with `,swap` on the pair for `desktop-compare-swap.png`, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
 Retake them when the app changes how it looks.
 
@@ -276,8 +288,8 @@ Before merging a change to the app, look at what it could affect, in a real wind
       comment and the numbers in their own colours, and a Copy button that puts the lines on the clipboard. In edit mode press Add code, type
       a title and some SQL, pick nothing: the card reads "Auto: SQL" once there is code. Pick Go: the colours change and `language: go` is in
       the file. Pick Auto: the line goes. Remove the snippet: `snippets:` is gone.
-- [ ] On a copy of `docs/demo`, open Orders DB: its panel has a Data section, the orders table open with PK on id, FK customers on customer_id and a dot on
-      total whose note is under the table, and the other three tables closed to a line each ("4 columns", and how long they are kept). Click a closed line: it
+- [ ] On a copy of `docs/demo`, open Orders DB: its panel has a Data section, the orders table open with PK on id, FK customers on customer_id, a type (uuid, int) in small type under each of those names and a purple dot on
+      total whose note is under the table on a purple strip (open Refunds: NULL beside reason, whose type is `text?`), and the other three tables closed to a line each ("4 columns", and how long they are kept). Click a closed line: it
       opens. Open Menu cache (a key set with Key, Value and Expires) and Order events (a topic with Key and Value). For a document, paste the Restaurant profiles
       example from the guide's Data section under another store's `data:`: it shows its fields one to a line, indented, with the note under them. In edit mode the
       form has a Data box holding the same lines as the file: delete a column from `columns` but not from the rows and click elsewhere, and a notice says a row has
@@ -302,6 +314,9 @@ Reading:
       the view zooms into it, the breadcrumb reads Overview › Shop, a frame labelled Shop wraps Web
       app, API and Orders DB, and Customer and Mail service are faded and dashed outside it.
 - [ ] Double-click API, then press Backspace twice quickly: it zooms back out to the overview. Z does the same from any level.
+- [ ] On `docs/demo`, close every panel and click Details at the top level: the heading reads Plum, with the description and the counts under it. On `example` (no name)
+      it reads Overview with "Click a shape." and an O key for the Explorer. Press E: the same panel holds Name and About (Markdown). Type a name and leave
+      the field: the heading changes and `model.yaml` starts with `name:`. Clear it: the key goes. The same in the desktop app.
 - [ ] In edit mode, drag a box and press Esc (then try Backspace on another drag): the box goes back and the level stays; the next press goes
       up. A click in between, or a second edit, turns that off. In the app, press Esc while still holding a drag: the box returns, nothing is saved.
       Clicking the breadcrumb works too. The zoom buttons in the corner don't move while it zooms.
@@ -364,8 +379,8 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       along the line, bounce hops, pulse swells and settles, and wiggle rocks from side to side. Whatever it does, the pill stays level and whole: never sheared, one end up and
       one end down, and its words are never stretched. A step with no `effect` (Send with a word) keeps its shape. In the desktop app the same. The `effect` key is for fun
       and is deliberately left out of the guide and the README.
-- [ ] Open Repeat, Branch, Parallel and Flow link in Flow structure. Repeat says it repeats up to 3 times, Branch says One of 2 and dashes the
-      lane you are not in, Parallel lights three lanes together with a bolt each, and Flow link has an Open flow that lands on the other flow and a bar to come back.
+- [ ] Open Repeat, Branch, Parallel and Flow link in Flow structure. Repeat says it repeats up to 3 times, and its box on the bar is dashed. Branch says One of 2, boxes its two lanes on the bar by name
+      with the lane you are not in hollow, and dashes that lane on the canvas, Parallel lights three lanes together with a bolt each, and Flow link has an Open flow that lands on the other flow and a bar to come back.
 - [ ] Open Every state in Shape states (`#states/states`) and press P: Service starts out dotted and circling (Starting), settles with nothing drawn (Running), pulses amber with a
       triangle on its corner (Degraded), drains its outline with an hourglass (Stopping), goes grey and dashed with a power symbol (Stopped), shows a short arc circling it (Restarting) and
       is plain again. The key under the progress bar names only the states on screen. Open State inside a shape: at step 2 the Holder has a dashed ring with a power symbol that reads "Stopped inside" in the key,
@@ -419,6 +434,18 @@ Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
 - [ ] Press E with the tab open: it stays, beside Details, and gains New analysis, Add failure mode and a form for the mode picked. Copy as table and Copy as CSV put the ranked
       list on the clipboard. `node src/cli.ts failures --dir docs/demo/flowy` prints the same table and exits with 0. Light and dark both read.
 
+How a request ends in Plum (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
+
+- [ ] Play Mapbox turns the travel times away (`#dispatch/mapbox-rate-limit`): step 2 stops the call at a red bar by Mapbox and sends it back red, with "Rate limit" beside the bar.
+      The card says Rejected. In Failures, Mapbox calls fail at dinner rush has Show it and opens this step.
+- [ ] Play A double tap sends the order twice (`#ordering/order-sent-twice`): a second copy leaves the first, both wear one colour, and Order API takes both in. Play Hotel wifi
+      takes the order (`#ordering/hotel-wifi-takes-order`): the call leaves the line for a dashed marker named Hotel wifi portal, which lights. Play Dispatch hears about an order late
+      (`#delivery/events-arrive-late`): the bolt waits beside a turning dashed clock labelled Consumer lag, then goes on.
+- [ ] Play Stripe reports a charge (`#ordering/stripe-webhook`): a bolt drops onto Stripe first, then a bell runs to Order API with the words o_1042. The last step links to A paid order
+      is announced. In that flow the first step is an Event (a bolt, and Order events flashes), and the Dispatch lane is a Callback that flashes Order events first.
+- [ ] Click Stripe, Mapbox and Customer app: each has a link in Details (Provider status, Rate limits, Build and release notes). The last one opens the file in the repo. The courier has a truck
+      and Message templates is drawn as a document, in the browser and the desktop app, light and dark.
+
 Shape states (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
 
 - [ ] Play Stripe goes down and comes back (`#ordering/stripe-outage`). Step 1: Stripe's outline drains and an hourglass sits on its corner. Step 2: Stripe goes grey and dashed with a power symbol.
@@ -433,7 +460,7 @@ YAML (press Y, in a copy of `docs/demo` served with `FLOWY_STATE_DIR` pointing a
 - [ ] The left panel gains a YAML tab beside Explorer and Flows, with a tab for `model.yaml`, `failures/ordering.yaml` and each flow, and one step, First seen. Press E, change
       a shape's Tech, and press Tab: a "You" step appears, and the changed line shows red above green. Change a file in an editor: an "Outside" step appears.
 - [ ] Pick the older step: its files show with the marks against the step before it, and Restore is greyed out with "Edit to restore" beside it. Press E, then Restore: the
-      model goes back, a "Restored" step is on top, and Ctrl+Z puts the change back. Clear history asks first, and Clear empties the list. An exported page and the VS Code panel have no YAML tab.
+      model goes back, a "Restored" step is on top, and Ctrl+Z puts the change back. Clear history asks first, and Clear empties the list. On an exported page and in the VS Code panel the tab is there and says it has no history.
 
 Runs over time (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
 

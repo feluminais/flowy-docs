@@ -119,7 +119,7 @@ public class ModelFilesTests
     public void A_layout_point_too_far_out_to_draw_is_refused()
     {
         var e = Assert.Throws<ParseError>(() => ModelFiles.ParseLayout("root:\n  a: [1e308, 0]\n"));
-        Assert.Equal("layout.yaml: root → a must be [x, y]", e.Message);
+        Assert.Equal("layout.yaml: root → a must be [x, y], each between -1000000 and 1000000", e.Message);
     }
 
     [Fact]
@@ -135,11 +135,11 @@ public class ModelFilesTests
     [Theory]
     [InlineData("- a\n", "expected view → object → [x, y]")]
     [InlineData("root: nope\n", "view \"root\" must map object ids to [x, y]")]
-    [InlineData("root:\n  a: [1]\n", "root → a must be [x, y]")]
-    [InlineData("root:\n  a: [1, two]\n", "root → a must be [x, y]")]
-    [InlineData("root:\n  a: [1, Infinity]\n", "root → a must be [x, y]")]
-    [InlineData("root:\n  a: [1, '']\n", "root → a must be [x, y]")]
-    [InlineData("root:\n  a: 5\n", "root → a must be [x, y]")]
+    [InlineData("root:\n  a: [1]\n", "root → a must be [x, y], each between -1000000 and 1000000")]
+    [InlineData("root:\n  a: [1, two]\n", "root → a must be [x, y], each between -1000000 and 1000000")]
+    [InlineData("root:\n  a: [1, Infinity]\n", "root → a must be [x, y], each between -1000000 and 1000000")]
+    [InlineData("root:\n  a: [1, '']\n", "root → a must be [x, y], each between -1000000 and 1000000")]
+    [InlineData("root:\n  a: 5\n", "root → a must be [x, y], each between -1000000 and 1000000")]
     public void A_layout_file_of_the_wrong_shape_is_refused(string text, string reason)
     {
         var e = Assert.Throws<ParseError>(() => ModelFiles.ParseLayout(text));

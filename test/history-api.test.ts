@@ -184,3 +184,23 @@ test('other paths and methods are not for the history routes', async t => {
   assert.equal((await get('/api/history/nope')).status, 404)
   assert.equal((await post('/api/history', {})).status, 404)
 })
+
+test('the wait for a label starts once the folder has been looked at, not when the edit asked for it', async () => {
+  const events: string[] = []
+  const history = {
+    async ensureCurrent() {
+      await new Promise(done => setTimeout(done, 150))
+      events.push('looked')
+      return { saved: true }
+    },
+    async record() {
+      events.push('recorded')
+      return undefined
+    },
+  } as unknown as History
+  const api = createHistoryApi(history, { gateMs: 40 })
+  await api.beforeWrite()
+  await new Promise(done => setTimeout(done, 120))
+  api.close()
+  assert.deepEqual(events, ['looked', 'recorded'])
+})

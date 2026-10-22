@@ -24,6 +24,7 @@ export function firstBlocked(loaded: Loaded, rels: readonly string[]): { rel: st
     const blocking = blockedBy(loaded, rel)
     if (blocking !== undefined) return { rel, blocking }
   }
+  return undefined
 }
 
 /** The first of `changes` that would not read back as the file it is (a null text deletes and is never checked), with what went wrong. */
@@ -36,4 +37,5 @@ export function firstUnreadable(changes: readonly (readonly [rel: string, text: 
       return { rel, error }
     }
   }
+  return undefined
 }

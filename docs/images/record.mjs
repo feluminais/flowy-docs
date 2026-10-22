@@ -7,7 +7,7 @@
  *     node docs/images/record.mjs flows data # some of them
  *
  * Each one is the browser canvas on a throwaway copy of the Plum demo, driven by a script in headless Chrome (no window opens), then cut
- * into an animated WebP by ffmpeg. Needs ffmpeg on the PATH and Chrome or Edge (CHROME names the browser if it isn't found).
+ * into a lossless animated WebP by ffmpeg (a lossy one leaves blocks and colour smears on the dark theme). Needs ffmpeg on the PATH and Chrome or Edge (CHROME names the browser if it isn't found).
  * FORMAT=gif writes GIFs instead, about four times the size. The story of each one is its entry in `scenes` below. Retake them when the
  * canvas moves or looks different, and look at both themes before you commit.
  */
@@ -207,7 +207,7 @@ const scenes = {
       await s.park(); await s.key('Escape'); await s.wait(900)
     },
   },
-  // Draw a line, name it, add a shape, and try two shapes on it. Writes to the throwaway copy.
+  // One shape from start to finish: add it, try two shapes on it, draw a line to it from its neighbour and name the line. Writes to the throwaway copy.
   edit: {
     hash: '#ordering',
     copy: true,
@@ -215,34 +215,13 @@ const scenes = {
       await s.wait(500)
       await s.caption('Edit on the canvas')
       await s.key('e'); await s.wait(900)
-      await s.caption('Draw a line')
-      await s.drag(down('kitchen-tablet'), s.node('orders-db'), 600); await s.wait(700)
-      await s.click('input', 500); await s.type('sends receipts'); await s.key('Enter'); await s.wait(1300)
-      await s.caption('Add a shape')
       await s.click('::-p-text(Add)', 600); await s.wait(500)
-      await s.click('input', 500); await s.type('Receipts'); await s.key('Enter'); await s.wait(1400)
-      await s.caption('Change its look') // the new shape is already open in the panel
-      await s.wait(500)
-      await s.click('::-p-text(Diamond)', 700); await s.wait(1000)
-      await s.click('::-p-text(Hexagon)', 500); await s.wait(2000)
+      await s.click('input', 500); await s.type('Ticket printer'); await s.key('Enter'); await s.wait(1300) // the new shape is open in the panel
+      await s.click('::-p-text(Diamond)', 700); await s.wait(900)
+      await s.click('::-p-text(Hexagon)', 500); await s.wait(1300)
+      await s.drag(down('kitchen-tablet'), s.node('ticket-printer'), 700); await s.wait(1200)
+      await s.click('input', 500); await s.type('prints tickets'); await s.key('Enter'); await s.wait(2600)
       await s.park(); await s.caption(null); await s.wait(500)
-    },
-  },
-  // An MCP client writes to the same folder, and the canvas redraws as each call lands.
-  agents: {
-    hash: '#order-api',
-    copy: true,
-    async story(s, { agent }) {
-      await s.wait(900)
-      await s.caption('put_object  promo-codes')
-      await agent('put_object', { id: 'promo-codes', type: 'component', in: 'order-api', name: 'Promo codes', description: 'Checks a code and returns the discount.' }); await s.wait(1700)
-      await s.caption('connect  pricing → promo-codes')
-      await agent('connect', { from: 'pricing', to: 'promo-codes', label: 'checks codes' }); await s.wait(1900)
-      await s.caption('put_object  loyalty')
-      await agent('put_object', { id: 'loyalty', type: 'component', in: 'order-api', name: 'Loyalty points', description: 'Adds points when an order is paid.' }); await s.wait(1700)
-      await s.caption('connect  checkout → loyalty')
-      await agent('connect', { from: 'checkout', to: 'loyalty', label: 'adds points' }); await s.wait(2200)
-      await s.caption(null); await s.wait(400)
     },
   },
 }
@@ -263,24 +242,8 @@ async function serve(copy) {
   return { url, dir, stop: () => { server.kill(); rmSync(base, { recursive: true, force: true }) } }
 }
 
-/** The MCP server on the same folder, as an agent would use it. */
-async function connectAgent(dir) {
-  const { Client } = await import('@modelcontextprotocol/sdk/client/index.js')
-  const { StdioClientTransport } = await import('@modelcontextprotocol/sdk/client/stdio.js')
-  const client = new Client({ name: 'reel', version: '0.0.0' })
-  await client.connect(new StdioClientTransport({ command: process.execPath, args: [join(root, 'dist', 'cli.js'), 'mcp', '--dir', dir], cwd: root, stderr: 'ignore' }))
-  return {
-    call: async (tool, args) => {
-      const res = await client.callTool({ name: tool, arguments: args })
-      if (res.isError) throw new Error(`${tool} failed: ${JSON.stringify(res.content)}`)
-    },
-    close: () => client.close(),
-  }
-}
-
 async function record(browser, name, scene, theme) {
   const site = await serve(scene.copy)
-  const agent = scene.copy && name === 'agents' ? await connectAgent(site.dir) : undefined
   const frames = mkdtempSync(join(tmpdir(), 'flowy-reel-frames-'))
   let open = true // frames that arrive after a failed story must not write into a folder that is gone
   try {
@@ -305,7 +268,7 @@ async function record(browser, name, scene, theme) {
     await sleep(800)
     await cdp.send('Page.startScreencast', { format: 'png', everyNthFrame: 1 })
     try {
-      await scene.story(s, { agent: agent?.call })
+      await scene.story(s)
     } catch (error) {
       const shot = join(tmpdir(), `flowy-reel-${name}-${theme}-failed.png`)
       await page.screenshot({ path: shot }).catch(() => {})
@@ -321,14 +284,14 @@ async function record(browser, name, scene, theme) {
     mkdirSync(outDir, { recursive: true })
     const out = join(outDir, `${name}-${theme}.${FORMAT}`)
     const input = ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', join(frames, 'list.txt')]
-    if (FORMAT === 'webp') execFileSync('ffmpeg', [...input, '-vf', `fps=20,scale=${WIDTH}:-1:flags=lanczos`, '-c:v', 'libwebp_anim', '-quality', '85', '-compression_level', '6', '-loop', '0', out])
+    if (FORMAT === 'webp') execFileSync('ffmpeg', [...input, '-vf', `fps=20,scale=${WIDTH}:-1:flags=lanczos`, '-c:v', 'libwebp_anim', '-lossless', '1', '-compression_level', '6', '-loop', '0', out])
     else execFileSync('ffmpeg', [...input, '-vf', `fps=15,scale=${WIDTH}:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle`, out])
     console.log(`${name}-${theme}.${FORMAT}`)
   } finally {
     open = false
-    await agent?.close()
     site.stop()
-    rmSync(frames, { recursive: true, force: true })
+    if (process.env.KEEP_FRAMES) console.log(`frames kept in ${frames}`)
+    else rmSync(frames, { recursive: true, force: true })
   }
 }
 
@@ -339,7 +302,7 @@ const browser = await puppeteer.launch({ executablePath: findBrowser(), headless
 try {
   for (const [name, scene] of Object.entries(scenes)) {
     if (wanted.length && !wanted.includes(name)) continue
-    for (const theme of ['light', 'dark']) await record(browser, name, scene, theme)
+    for (const theme of (process.env.THEMES ?? 'light,dark').split(',')) await record(browser, name, scene, theme)
   }
 } finally {
   await browser.close()

@@ -5,7 +5,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteFlow, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setGroupKind, setLines, setStepAnimation, setStepGroup, setStepStates, updateFlow } from '../../src/core/ops.ts'
+import { connect, deleteFlow, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setGroupKind, setLines, setProject, setStepAnimation, setStepGroup, setStepStates, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
@@ -181,7 +181,15 @@ export const STEPS: Spec[] = [
   { op: 'setLines', style: 'angled' },
   { op: 'setLines', style: 'straight' },
   { op: 'setLines', style: 'curved' },
+  { op: 'setProject', about: 'Sells things.\n\nMore about it.\n' },
+  { op: 'setProject', name: ' Shop ' },
+  { op: 'setProject', name: 'Store' },
+  { op: 'setProject', about: 'Changed.' },
+  { op: 'setProject', name: '   ' },
+  { op: 'setProject' },
+  { op: 'setProject', name: 'Plum', about: '' },
   { op: 'setLines' },
+  { op: 'setProject', name: '', about: 'Last.' },
   { op: 'forgetLayout', view: 'shop' },
   { op: 'forgetLayout', view: 'shop' },
   { op: 'deleteObject', id: 'shop' },
@@ -254,6 +262,7 @@ function apply(model: Model, s: Spec): Model {
     case 'deleteFlow': return deleteFlow(model, s.id)
     case 'placeBoxes': return placeBoxes(model, s.view, s.boxes)
     case 'setLines': return setLines(model, s.style)
+    case 'setProject': return setProject(model, { name: s.name, about: s.about })
     case 'forgetLayout': return forgetLayout(model, s.view)
     default: throw new Error(`unknown op ${s.op}`)
   }

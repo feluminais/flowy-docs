@@ -257,8 +257,12 @@ const settingsChanged: Detector = (before, after) => {
   const iconsDeleted = Object.keys(iconsBefore).filter(name => !has(iconsAfter, name))
   if (iconsAdded.length + iconsDeleted.length === 1) return iconsAdded.length === 1 ? `Added the ${cut(iconsAdded[0])} icon` : `Deleted the ${cut(iconsDeleted[0])} icon`
   if (iconsAdded.length + iconsDeleted.length > 1) return 'Changed the icons'
-  if (canon(before.meta.lines) !== canon(after.meta.lines)) return 'Changed the line style'
-  const otherSettings = [...new Set([...Object.keys(before.meta), ...Object.keys(after.meta)])].some(key => key !== 'lines' && canon(before.meta[key]) !== canon(after.meta[key]))
+  const differs = (key: string) => canon(before.meta[key]) !== canon(after.meta[key])
+  if (differs('name') && differs('about')) return 'Changed the project name and description'
+  if (differs('name')) return 'Renamed the project'
+  if (differs('about')) return 'Changed the project description'
+  if (differs('lines')) return 'Changed the line style'
+  const otherSettings = [...new Set([...Object.keys(before.meta), ...Object.keys(after.meta)])].some(differs)
   return otherSettings ? 'Changed the settings' : undefined
 }
 

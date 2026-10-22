@@ -2,6 +2,9 @@ using Flowy.Core;
 
 namespace Flowy.App.Canvas;
 
+/// <summary>How the Used by panel marks a shape: it is about to be deleted, a row in focus names it, or neither.</summary>
+internal enum UsedMark { None, Going, Flagged }
+
 /// <summary>How a shape or a line shows a picked failure mode: it fails, it is hurt by it, it is faded, or nothing is picked.</summary>
 internal enum FailLight { None, Fails, Affects, Dim }
 

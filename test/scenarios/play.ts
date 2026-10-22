@@ -38,7 +38,7 @@ export function play(fixture: Fixture, seed: number, steps: number, makers: Reco
     let after: Model
     try {
       after = move.run(model)
-      refuseNewProblems(model, after)
+      refuseNewProblems(model, after, undefined, fixture.runs)
     } catch (e) {
       const mutated = !isDeepStrictEqual(model, given)
       if (e instanceof OpError) {

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using YamlDotNet.Core;
@@ -49,7 +50,7 @@ public static partial class RunCompareText
                 case '\r': sb.Append("\\r"); break;
                 case '\t': sb.Append("\\t"); break;
                 default:
-                    if (c < 0x20 || c == LineSeparator || c == ParagraphSeparator || IsLoneSurrogate(text, i)) sb.Append("\\u").Append(((int)c).ToString("x4"));
+                    if (c < 0x20 || c == LineSeparator || c == ParagraphSeparator || IsLoneSurrogate(text, i)) sb.Append("\\u").Append(((int)c).ToString("x4", CultureInfo.InvariantCulture));
                     else sb.Append(c);
                     break;
             }

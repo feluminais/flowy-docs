@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import type { StepFile, StepInfo } from '../src/core/history.ts'
-import { blockOf, canRestore, defaultFile, fileOrder, firstMark, neighbour, restoreLabel, rowsFor, scrollTarget, SOURCE_NAMES, timeLabel } from '../ui/src/yamlview.ts'
+import { blockOf, canRestore, defaultFile, fileOrder, firstMark, neighbour, noHistory, restoreLabel, rowsFor, scrollTarget, SOURCE_NAMES, timeLabel } from '../ui/src/yamlview.ts'
 import type { Row } from '../ui/src/yamlview.ts'
 
 const text = (t: string): StepFile => ({ text: t })
@@ -146,4 +146,13 @@ test('restore is allowed while editing, or while the model is broken and editing
   assert.equal(canRestore({ editing: false, broken: true }), true)
   assert.equal(canRestore({ editing: true, broken: true }), true)
   assert.equal(canRestore({ editing: false, broken: false }), false)
+})
+
+test('the YAML tab says why it has no history, and says nothing when it has one', () => {
+  const has = { live: true, inVscode: false, hasApi: true, unavailable: false }
+  assert.equal(noHistory(has), undefined)
+  assert.match(noHistory({ ...has, live: false }) ?? '', /exported page/)
+  assert.match(noHistory({ ...has, inVscode: true, hasApi: false }) ?? '', /VS Code/)
+  assert.match(noHistory({ ...has, unavailable: true }) ?? '', /server/)
+  assert.match(noHistory({ ...has, hasApi: false }) ?? '', /this page/)
 })

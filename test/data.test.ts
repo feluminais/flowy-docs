@@ -18,6 +18,16 @@ test('dataShown reads a grid', () => {
   assert.deepEqual(orders.lines, [])
 })
 
+test('a column type is read, and a trailing ? makes the column nullable', () => {
+  const [t] = dataShown(store([{
+    name: 't',
+    columns: [{ name: 'a', type: 'int' }, { name: 'b', type: 'text?' }, { name: 'c', type: ' ? ' }, { name: 'd', type: '  ' }, { name: 'e', type: ['x'] }, 'f'],
+  }]))
+  assert.deepEqual(t.columns, [
+    { name: 'a', type: 'int' }, { name: 'b', type: 'text', nullable: true }, { name: 'c', nullable: true }, { name: 'd' }, { name: 'e' }, { name: 'f' },
+  ])
+})
+
 test('a key other than primary is dropped, a blank kind or limits is left out, a kind is kept', () => {
   const [a, b] = dataShown(store([
     { name: 'a', kind: '', limits: '', note: '', columns: [{ name: 'x', key: 'foreign' }] },

@@ -207,6 +207,19 @@ test('put_flow answers with how each step reads on its view, naming the part ins
   assert.equal(inside.text, 'Saved flow check. On API it reads:\n1. Auth → Orders: Lets the order through')
 })
 
+test('put_project saves the name and about, get_model shows them, and "" removes one', async t => {
+  const { dir, call } = await setup(t)
+  await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
+  assert.equal((await call('put_project', { name: 'Plum', about: 'Food delivery.' })).error, false)
+  assert.match(await readFile(join(dir, 'model.yaml'), 'utf8'), /^name: Plum\nabout: Food delivery\.\nobjects:/)
+  const model = JSON.parse((await call('get_model')).text)
+  assert.deepEqual([model.name, model.about], ['Plum', 'Food delivery.'])
+  assert.equal(JSON.parse((await call('get_model', { summary: true })).text).name, 'Plum')
+  await call('put_project', { about: '' })
+  assert.equal(JSON.parse((await call('get_model')).text).about, undefined)
+  assert.equal(JSON.parse((await call('get_model')).text).name, 'Plum')
+})
+
 test('put_object draws an object its own way, and put_icon defines the icon it names', async t => {
   const { dir, call } = await setup(t)
   await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })

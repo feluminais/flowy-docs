@@ -22,11 +22,11 @@ public static class LinkText
         var result = new List<OrderedDictionary<string, object?>>();
         foreach (var raw in text.Split('\n'))
         {
-            var line = raw.Trim();
+            var line = JsCompat.JsTrim(raw);
             if (line == "") continue;
             var cut = line.LastIndexOf(" | ", StringComparison.Ordinal);
-            var title = cut == -1 ? "" : line[..cut].Trim();
-            var url = (cut == -1 ? line : line[(cut + 3)..]).Trim();
+            var title = cut == -1 ? "" : JsCompat.JsTrim(line[..cut]);
+            var url = JsCompat.JsTrim(cut == -1 ? line : line[(cut + 3)..]);
             var link = new OrderedDictionary<string, object?>();
             if (title != "") link["title"] = title;
             link["url"] = url;

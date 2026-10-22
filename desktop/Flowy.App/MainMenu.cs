@@ -169,11 +169,15 @@ internal sealed class MainMenu : IDisposable
             DefaultExtension = "png",
             FileTypeChoices = [FilePickerFileTypes.ImagePng],
         });
-        if (file?.TryGetLocalPath() is not { } path) return;
+        if (file is null) return; // the dialog was cancelled
+        if (file.TryGetLocalPath() is not { } path)
+        {
+            _reader.ShowNotice(ReaderView.PictureNotice(null, false));
+            return;
+        }
         try
         {
-            _reader.SavePicture(path);
-            _reader.ShowNotice($"Saved {Path.GetFileName(path)}.", 4);
+            _reader.ShowNotice(ReaderView.PictureNotice(path, _reader.SavePicture(path)), 4);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
