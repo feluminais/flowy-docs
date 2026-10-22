@@ -17,7 +17,7 @@ namespace Flowy.App;
 /// It holds what the reader has chosen: the view they are in, the box or line open in the panel, the flow playing and its step, the line
 /// the pointer is on.
 /// </summary>
-internal sealed partial class ReaderView : Grid
+internal sealed partial class ReaderView : Grid, IDisposable
 {
     private const int DoubleClickMilliseconds = 250;
 
@@ -306,6 +306,13 @@ internal sealed partial class ReaderView : Grid
     }
 
     // ---- what is loaded ----------------------------------------------------------------------------------------
+
+    /// <summary>Lets go of the folder's watcher. The window calls this when it closes; without it the watcher outlives the window.</summary>
+    public void Dispose()
+    {
+        _disk?.Dispose();
+        _disk = null;
+    }
 
     public void Load(Folder folder, string dir)
     {
