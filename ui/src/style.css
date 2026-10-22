@@ -364,7 +364,7 @@ svg { flex: none; }
 /* How the step's request ended, in the words every other place uses (outcomeLine): a fact the picture can't give, so it is text, with a mark beside it. */
 .player .player-outcome { display: flex; align-items: center; gap: 6px; color: var(--danger); font-weight: 600; }
 .player-outcome::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-.player-buttons { display: flex; gap: 8px; margin-top: 10px; }
+.player-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .player-buttons button:last-child { margin-left: auto; }
 /* How far a flow has got: a cell a stop, filled up to the one shown, a branch's lanes on rows of their own, and a bracket under each group. */
 .progress { display: grid; gap: 3px; margin: 8px 0; }
@@ -375,6 +375,12 @@ svg { flex: none; }
 .bracket { display: flex; justify-content: center; align-items: center; gap: 3px; padding-top: 1px; border-top: 1px solid var(--muted); font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; }
 .player .help { margin-left: auto; padding: 2px; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; line-height: 0; }
 .player .help:hover, .player .help[aria-pressed='true'] { color: var(--accent); }
+/* Compare sits in the card's top row, at the right, so the buttons below keep their room. */
+.player .compare-btn { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; padding: 1px 8px; border: 0; border-radius: 6px; background: none; color: var(--muted); font: inherit; font-size: 12px; line-height: 1.5; cursor: pointer; }
+.player .compare-btn + .help { margin-left: 4px; }
+.player .compare-btn:hover:not(:disabled), .player .compare-btn[aria-pressed='true'] { background: var(--tint); color: var(--accent); }
+.player .compare-btn:disabled { cursor: default; opacity: 0.4; }
+.player .compare-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
 .legend { margin: 8px 0 4px; padding: 8px 10px; max-height: 190px; overflow: auto; border-radius: 8px; background: color-mix(in srgb, var(--accent) 8%, transparent); font-size: 12.5px; }
 .legend dt { display: flex; align-items: center; gap: 6px; font-weight: 600; }
 .legend dd { margin: 0 0 6px 19px; color: var(--muted); }
@@ -1064,3 +1070,41 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .chooser ul { display: flex; flex-direction: column; max-height: 180px; margin: 0; padding: 0; overflow: auto; list-style: none; }
 .panel .chooser li button { display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; padding: 3px 6px; border: 0; background: none; text-align: left; }
 .usedby .hint span { white-space: nowrap; }
+
+/*
+ * Compare: two flows side by side. The container sits over the whole canvas and keeps clear of the navigator and the Details panel (which lie over the canvas) by their own
+ * widths. Each pane is a canvas of its own with the player at its foot; the one with the focus is outlined. Narrow, the panes stack.
+ */
+.compare { position: absolute; inset: 0; display: flex; flex-direction: column; box-sizing: border-box; background: var(--bg); container-type: inline-size; }
+.compare.nav { padding-left: min(var(--nav-w, 320px), 100%); }
+.compare.details { padding-right: min(var(--panel-w, 380px), 100%); }
+.compare .compare-bar { flex: none; }
+.compare .panes { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-height: 0; padding: 12px; }
+@container (max-width: 900px) { .compare .panes { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } }
+.pane { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.pane:focus { outline: none; }
+.pane.focused { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.pane-title { flex: none; margin: 0; padding: 7px 12px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pane.focused .pane-title { color: var(--accent); }
+.pane-canvas { position: relative; flex: 1; min-height: 0; }
+.pane-canvas > .react-flow { position: absolute; inset: 0; }
+.pane.states .box .shape, .pane.states .box .tile, .pane.states .box .box-text { transition: opacity 0.6s ease, filter 0.6s ease; }
+@media (prefers-reduced-motion: reduce) { .pane.states .box .shape, .pane.states .box .tile, .pane.states .box .box-text { transition: none; } }
+/* The zoom buttons sit at the pane's own corner, not beside the navigator. */
+.canvas.nav .compare .react-flow__controls { margin-left: 16px; }
+.pane .player { bottom: 12px; width: calc(100% - 24px); max-width: 460px; max-height: calc(100% - 24px); overflow: auto; }
+/* The popover of the Compare button: over the player, with the flows it is linked to first and a field to find any other. */
+.cpick { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; box-sizing: border-box; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--box); box-shadow: 0 6px 20px #0003; }
+.cpick ul { margin: 0; padding: 0; list-style: none; }
+.cpick-others { max-height: 220px; overflow: auto; }
+.cpick li button { all: unset; display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 8px; cursor: pointer; }
+.cpick li button:hover:not(:disabled), .cpick li button:focus-visible { background: var(--bg); }
+.cpick li button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.cpick li button:disabled { cursor: default; opacity: 0.4; }
+.cpick li .muted { margin-left: auto; font-size: 12px; white-space: nowrap; }
+.cpick .linked { display: inline-flex; color: var(--accent); }
+.cpick-find { display: flex; align-items: center; gap: 8px; padding: 2px 8px; color: var(--muted); }
+.cpick ul + .cpick-find { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--line); }
+.cpick-find input { flex: 1; min-width: 0; box-sizing: border-box; padding: 6px 4px; border: 0; background: none; color: var(--fg); font-size: 14px; }
+.cpick-find input:focus { outline: none; }
+.cpick p { margin: 6px 8px 2px; }
