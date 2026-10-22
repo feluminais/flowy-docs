@@ -1,10 +1,44 @@
+import { compareOf } from '../core/compare.ts'
+import { isRunPath } from '../core/filekinds.ts'
 import { ParseError } from '../core/model.ts'
 import { isRemovableFile, serializeFile } from '../core/modelfiles.ts'
 import { blockedMessage, firstBlocked, firstUnreadable } from './commit.ts'
-import { isAllowedPath, loadDir, OutsideFolder, saveFile, VersionConflict } from './files.ts'
+import { isAllowedPath, loadDir, OutsideFolder, saveFile, saveRunCompare, VersionConflict } from './files.ts'
 
 /** What to answer a write with: an HTTP status and the JSON that goes with it. */
 export type Answer = { status: number; body: unknown }
+
+/**
+ * `PUT /api/file/perf/<id>.yaml { version, data: { compare } }`: the one write a run takes. `compare` is an id, `{ with, note? }`, or null to take the
+ * tag out; the rest of the run file stays as it is. Answers like any write.
+ */
+async function applyRunCompare(dir: string, rel: string, body: unknown, beforeWrite?: () => Promise<void>): Promise<Answer> {
+  const { version, data } = (typeof body === 'object' && body !== null ? body : {}) as { version?: unknown; data?: unknown }
+  if (typeof version !== 'string' && version !== null)
+    return { status: 400, body: { error: 'the body needs "version": the file\'s version from /api/state' } }
+  const keys = typeof data === 'object' && data !== null && !Array.isArray(data) ? Object.keys(data) : []
+  if (keys.length !== 1 || keys[0] !== 'compare')
+    return { status: 400, body: { error: 'a run takes one write: "data": { "compare": an id, { "with", "note" } or null }' } }
+  const value = (data as { compare: unknown }).compare
+  const tag = value === null ? undefined : compareOf(value)
+  if (value !== null && tag === undefined) return { status: 400, body: { error: 'compare must be a run id, { "with", "note" } with text, or null' } }
+  try {
+    // Nothing is written while a model or flow file fails to parse, as for any other write.
+    const loaded = await loadDir(dir)
+    const blocked = firstBlocked(loaded, [rel])
+    if (blocked) return { status: 409, body: { error: blockedMessage(blocked.blocking, rel) } }
+  } catch (e) {
+    if (e instanceof ParseError) return { status: 409, body: { error: e.message } }
+    throw e
+  }
+  try {
+    return { status: 200, body: { version: await saveRunCompare(dir, rel, tag, version, beforeWrite) } }
+  } catch (e) {
+    if (e instanceof VersionConflict) return { status: 409, body: { version: e.version } }
+    if (e instanceof ParseError) return { status: 400, body: { error: `not a valid ${rel}: ${e.reason}` } }
+    throw e
+  }
+}
 
 /**
  * `PUT /api/file/<rel> { version, data }` writes a file; `DELETE /api/file/flows/<id>.yaml { version }` removes a flow, and failures/ likewise an analysis.
@@ -14,6 +48,7 @@ export type Answer = { status: number; body: unknown }
  * step history can keep the files as they are. Throws only for what goes wrong on the disk.
  */
 export async function applyWrite(dir: string, method: string, rel: string, body: unknown, beforeWrite?: () => Promise<void>): Promise<Answer> {
+  if (method === 'PUT' && isRunPath(rel)) return applyRunCompare(dir, rel, body, beforeWrite)
   if (!isAllowedPath(rel) || (method === 'DELETE' && !isRemovableFile(rel)))
     return { status: 400, body: { error: `can't write "${rel}"` } }
   const { version, data } = (typeof body === 'object' && body !== null ? body : {}) as { version?: unknown; data?: unknown }

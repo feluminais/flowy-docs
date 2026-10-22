@@ -83,5 +83,12 @@ export function isAllowedPath(rel: unknown): rel is string {
   return id !== undefined && isValidId(id)
 }
 
+/** Whether this path is a run file, `perf/<id>.yaml` with a valid id. Runs are read only except for their `compare` tag, so isAllowedPath refuses them. */
+export function isRunPath(rel: unknown): rel is string {
+  if (typeof rel !== 'string') return false
+  const id = idOfPath(FILE_KINDS.run, rel)
+  return id !== undefined && isValidId(id)
+}
+
 /** Whether a path may be absent and so can be created and deleted: a flow or a failure analysis. model.yaml and layout.yaml stay. */
 export const isRemovableFile = (rel: string): boolean => kindOfPath(rel)?.removable === true
