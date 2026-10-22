@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
-import { useReactFlow, useStore, useStoreApi } from '@xyflow/react'
+import { useReactFlow, useStore, useStoreApi, useUpdateNodeInternals } from '@xyflow/react'
 import { fitOptions, panIntoView, sizeOf } from './graph.ts'
 
 /**
@@ -18,6 +18,21 @@ export function Camera({ fitKey, count, player, reveal, panel, nav, refitOnResiz
   const size = useStore(s => `${s.width}x${s.height}`)
   const ready = measured && zoomable
   const fitted = useRef('')
+  const updateNodeInternals = useUpdateNodeInternals()
+
+  // React Flow measures a box when it first draws it, and now and then (about one load in fifty, in a pane of a comparison that mounts beside another) a box is drawn but its
+  // measurement never arrives: it stays hidden and the view never fits. Asked again, React Flow measures what is on screen, so while the boxes are not all measured it is asked
+  // every quarter of a second, a few times.
+  useEffect(() => {
+    if (measured) return
+    let tries = 0
+    const timer = setInterval(() => {
+      const ids = [...store.getState().nodeLookup.keys()]
+      if (ids.length > 0) updateNodeInternals(ids)
+      if (++tries >= 12) clearInterval(timer)
+    }, 250)
+    return () => clearInterval(timer)
+  }, [measured])
 
   const show = (id: string | undefined, animate: boolean) => {
     const box = id ? getInternalNode(id) : undefined
