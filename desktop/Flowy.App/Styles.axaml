@@ -1089,7 +1089,7 @@
     <Setter Property="BorderThickness" Value="0,0,0,2" />
     <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="CornerRadius" Value="0" />
-    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="Padding" Value="7,0" />
     <Setter Property="MinHeight" Value="34" />
     <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
     <Setter Property="FontWeight" Value="Medium" />

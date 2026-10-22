@@ -11,7 +11,7 @@ namespace Flowy.App;
 /// failures drawn on the canvas (a badge on each shape and line that carries a mode, and for the mode picked its part outlined and the rest faded). Details
 /// stays free on the right, so a shape picked on the canvas reads out there while it also narrows the list. A port of what App.tsx does for the Failures tab,
 /// with the same rules: it is there only where the folder has an analysis (or a file of one to complain about) and not while editing; a flow that was
-/// playing waits behind it; the Performance panel and it never show at once, because load and risk would draw over each other.
+/// playing waits behind it; the Performance tab and it never show at once, because load and risk would draw over each other.
 /// </summary>
 internal sealed partial class ReaderView
 {
@@ -44,7 +44,7 @@ internal sealed partial class ReaderView
         _ => null,
     };
 
-    /// <summary>Opens the tab beside Explorer and Flows. It closes the Performance panel on the right: its traffic and the failure marks would draw over each other.</summary>
+    /// <summary>Opens the tab beside Explorer and Flows. It takes Performance's place: its traffic and the failure marks would draw over each other.</summary>
     private void OpenFailures() => SetTab(PanelTab.Failures);
 
     private void CloseFailures() => CloseNav();
@@ -136,7 +136,6 @@ internal sealed partial class ReaderView
         if (_folder is not { } folder || FailuresView.ModeIn(folder.Model, AnalysisKey, id) is not { } mode) return;
         if (mode.Run is not { } name || folder.Runs is not { } runs || !runs.TryGetValue(name, out var run)) return;
         if (FailuresView.FirstErrorAt(folder.Model, run, mode) is not { } at) return;
-        if (_tab == PanelTab.Failures) _tab = null;
         _side = null;
         GoTo(Failures.HomeView(folder.Model, mode));
         _perf.StopRamp();

@@ -46,7 +46,7 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   load-test run or a failure analysis: with none, their panels offer to **Create** one. See [Performance](performance.md#performance) and
   [Failure modes](failures.md#failure-modes). Details, on the right (its own icon, or a click on a shape or a line), is what the
   click picked, and it is all the right-hand side holds. Drag the inner edge of either panel to resize it,
-  and double-click it to put the width back. (The desktop app puts Failures on the left too, but still puts Performance on the right, in Details' place.)
+  and double-click it to put the width back.
 - Pick a flow in the Flows tab to play it step by step: ← and → move, Home and End jump to the first
   and last step, Esc stops. A step can be one shape doing something on its own, and a step with more
   to say has a More you can open. When a step lands on a shape that stands for a part inside it, the
