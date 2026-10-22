@@ -51,6 +51,7 @@ public partial class MainWindow : Window, IDisposable
         Content = _frame;
         _frame.Children.Add(Welcome());
         _reader.LinesPicked += _shell.RememberLines;
+        _reader.ModelPicked += dir => _shell.Show(dir);
         _reader.NavigatorChanged += navigator =>
         {
             if (Dir is not null) _shell.RememberNavigator(Dir, navigator);
