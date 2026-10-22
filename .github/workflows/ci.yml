@@ -21,3 +21,21 @@ jobs:
       - run: npm test
       - run: npm run typecheck
       - run: node src/cli.ts check
+      - run: npm run build:ui
+      - run: npm ci --prefix vscode # its own devDependencies; the root install does not cover them
+      - run: npm run typecheck --prefix vscode
+
+  desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: npm ci
+      - run: npm test # includes the check that desktop/fixtures/expected still matches the TypeScript core
+      - run: dotnet test desktop
