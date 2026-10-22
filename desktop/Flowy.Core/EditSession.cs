@@ -38,7 +38,8 @@ public sealed class EditSession(string dir)
     /// <summary>Raised on the thread that did it, after files were written and the session is free for the next edit.</summary>
     public event Action? Saved;
 
-    private sealed record Disk(EditDoc Doc, Dictionary<string, string?> Versions);
+    /// <summary>The folder as read: its files as trees, each file's version, and each file's text as it was (what an edit puts back, byte for byte, to take itself back).</summary>
+    private sealed record Disk(EditDoc Doc, Dictionary<string, string?> Versions, Dictionary<string, string?> Texts);
 
     private static string Unreadable(ParseError e) =>
         $"Can't read {e.File}{(e.Line is { } line ? $" (line {line})" : "")}: {e.Reason}. Fix the file and the view updates.";
@@ -47,10 +48,12 @@ public sealed class EditSession(string dir)
     private Disk ReadDisk()
     {
         var versions = new Dictionary<string, string?>();
+        var texts = new Dictionary<string, string?>();
         string? Read(string rel)
         {
             var (text, version) = FileStore.Read(dir, rel);
             versions[rel] = version;
+            texts[rel] = text;
             return text;
         }
         var model = Read(FolderLayout.ModelFile);
@@ -74,9 +77,39 @@ public sealed class EditSession(string dir)
             catch (ParseError)
             {
                 versions.Remove(FolderLayout.FailureFile(id));
+                texts.Remove(FolderLayout.FailureFile(id));
             }
         }
-        return new Disk(EditDoc.Parse(model, layout, flows, failures), versions);
+        return new Disk(EditDoc.Parse(model, layout, flows, failures), versions, texts);
+    }
+
+    /// <summary>For tests: called with each file's path just before it is written, a file put back included, so a write can be made to fail.</summary>
+    internal Action<string>? BeforeWrite { get; set; }
+
+    /// <summary>Puts back the files of <paramref name="written"/>, newest first. Returns the ones that could not be put back, in the order they were written.</summary>
+    private List<Written> PutBack(List<Written> written)
+    {
+        var stuck = new List<Written>();
+        foreach (var w in Enumerable.Reverse(written))
+        {
+            try
+            {
+                BeforeWrite?.Invoke(w.Rel);
+                FileStore.Save(dir, w.Rel, w.Before, w.Version);
+            }
+            catch (Exception e) when (e is VersionConflict or IOException or UnauthorizedAccessException)
+            {
+                stuck.Insert(0, w);
+            }
+        }
+        return stuck;
+    }
+
+    /// <summary>What to tell the reader when a write failed and some files could not be put back: why it failed, and which files hold the new text.</summary>
+    private static EditResult Stuck(Exception why, List<Written> stuck)
+    {
+        var reason = why is VersionConflict ? ChangedOutside : $"Couldn't save: {why.Message}";
+        return new EditResult($"{(reason.EndsWith('.') ? reason : reason + ".")} {string.Join(", ", stuck.Select(w => w.Rel))} was saved first and could not be put back.", why is VersionConflict);
     }
 
     /// <summary>Does one edit. Says what to tell the reader (a refusal, or that a file changed under it), or that it is saved.</summary>
@@ -93,15 +126,32 @@ public sealed class EditSession(string dir)
                 EditOps.RefuseNewProblems(disk.Doc.ToModel(), next.ToModel());
                 var before = disk.Doc.ToFiles();
                 var after = next.ToFiles();
+                var changed = before.Keys.Union(after.Keys).Where(r => before.GetValueOrDefault(r) != after.GetValueOrDefault(r)).ToList();
+                // Every file must still be as it was read, before any is touched, so a file that moved on writes nothing.
+                foreach (var rel in changed)
+                    if (FileStore.Read(dir, rel).Version != disk.Versions.GetValueOrDefault(rel)) throw new VersionConflict(rel, null);
                 var written = new List<Written>();
-                foreach (var rel in before.Keys.Union(after.Keys).Where(r => before.GetValueOrDefault(r) != after.GetValueOrDefault(r)))
+                EditResult? halfDone = null;
+                try
                 {
-                    // layout.yaml and model.yaml always have a canonical text, so "not there" is told by the version.
-                    var existed = disk.Versions.GetValueOrDefault(rel) is not null;
-                    var text = after.GetValueOrDefault(rel);
-                    var version = FileStore.Save(dir, rel, text, disk.Versions.GetValueOrDefault(rel));
-                    // A file the edit created goes away again; one that was there goes back to its text before.
-                    written.Add(new Written(rel, existed ? before.GetValueOrDefault(rel) : null, text, version));
+                    foreach (var rel in changed)
+                    {
+                        // layout.yaml and model.yaml always have a canonical text, so "not there" is told by the version.
+                        var existed = disk.Versions.GetValueOrDefault(rel) is not null;
+                        var text = after.GetValueOrDefault(rel);
+                        BeforeWrite?.Invoke(rel);
+                        var version = FileStore.Save(dir, rel, text, disk.Versions.GetValueOrDefault(rel));
+                        // A file the edit created goes away again; one that was there goes back to the text it had, hand-written style and all.
+                        written.Add(new Written(rel, existed ? disk.Texts[rel] : null, text, version));
+                    }
+                }
+                catch (Exception e) when (e is VersionConflict or IOException or UnauthorizedAccessException)
+                {
+                    // Put back what was written, so the edit is never half done. A file that can't be put back holds the new text: it is the one thing left to undo.
+                    var stuck = PutBack(written);
+                    if (stuck.Count == 0) throw;
+                    written = stuck;
+                    halfDone = Stuck(e, stuck);
                 }
                 if (written.Count > 0)
                 {
@@ -109,7 +159,7 @@ public sealed class EditSession(string dir)
                     _redo.Clear();
                     saved = true;
                 }
-                result = EditResult.Ok;
+                result = halfDone ?? EditResult.Ok;
             }
             catch (ParseError e)
             {
@@ -151,12 +201,31 @@ public sealed class EditSession(string dir)
                 // Every file must still be as that edit left it, before any is touched.
                 if (entry.Any(w => FileStore.Read(dir, w.Rel).Version != w.Version)) return EditResult.Refused(stale);
                 var back = new List<Written>();
-                foreach (var w in Enumerable.Reverse(entry))
-                    back.Add(new Written(w.Rel, w.After, w.Before, FileStore.Save(dir, w.Rel, w.Before, w.Version)));
-                from.RemoveAt(from.Count - 1);
-                to.Add(back);
-                saved = true;
-                result = EditResult.Ok;
+                EditResult? halfDone = null;
+                try
+                {
+                    foreach (var w in Enumerable.Reverse(entry))
+                    {
+                        BeforeWrite?.Invoke(w.Rel);
+                        back.Add(new Written(w.Rel, w.After, w.Before, FileStore.Save(dir, w.Rel, w.Before, w.Version)));
+                    }
+                }
+                catch (Exception e) when (e is VersionConflict or IOException or UnauthorizedAccessException)
+                {
+                    // Put back what was already taken back, so the edit stays one step. A file that can't be put back stays as the failed attempt left it.
+                    var stuck = PutBack(back);
+                    if (stuck.Count == 0) throw;
+                    saved = true;
+                    var reason = e is VersionConflict ? stale : $"Couldn't {word}: {e.Message}";
+                    halfDone = new EditResult($"{(reason.EndsWith('.') ? reason : reason + ".")} {string.Join(", ", stuck.Select(w => w.Rel))} was {(word == "undo" ? "undone" : "redone")} first and could not be put back.", e is VersionConflict);
+                }
+                if (halfDone is null)
+                {
+                    from.RemoveAt(from.Count - 1);
+                    to.Add(back);
+                    saved = true;
+                }
+                result = halfDone ?? EditResult.Ok;
             }
             catch (ParseError e)
             {
