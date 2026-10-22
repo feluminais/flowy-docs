@@ -13,6 +13,9 @@ export function toHash(view: string, flow?: string, perf?: Perf, failures?: Fail
   return view === ROOT ? '' : `#${view}`
 }
 
+/** Whether a saved address is one `toHash` could have written: ids, `/`, and the digits, `.` and `,` of a run's places. A restored panel takes back nothing else. */
+export const isSavedHash = (text: string): boolean => /^#[a-z0-9][a-z0-9/.,-]*$/.test(text) && !text.includes('//') && !text.includes('..')
+
 /**
  * The run the Performance tab shows, and which tested level of it. For a run with several sources the address gives `levels`, a place for each dial (`level` is the first). An
  * address that gives a list that isn't one reads as an empty list, which the page takes for the opening place, as it does a list of the wrong length.

@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ROOT } from '../src/core/model.ts'
-import { addressChange, alongFailures, readHash, runAddress, toHash } from '../ui/src/hash.ts'
+import { addressChange, alongFailures, isSavedHash, readHash, runAddress, toHash } from '../ui/src/hash.ts'
 
 test('an address and what it names go both ways', () => {
   const cases: [string, string?][] = [[ROOT], ['shop'], ['shop', 'checkout'], [ROOT, 'tour']]
@@ -107,4 +107,16 @@ test('moving along a run is not a step to go back to, nor is picking another mod
   const failing = { quiet: false, address: '#shop/failures/a/two', current: '#shop/failures/a/one', view: 'shop', viewId: 'shop', perfOpen: false, runKey: '', failuresAt: { analysis: 'a', mode: 'two' } }
   assert.equal(addressChange(failing), 'replace')
   assert.equal(addressChange({ ...failing, current: '#shop', address: '#shop/failures/a/two' }), 'push', 'opening the tab is a step')
+})
+
+test('every address toHash writes is one a restored panel takes back, and anything else is not', () => {
+  const written = [
+    toHash('shop'),
+    toHash('shop', 'checkout'),
+    toHash('shop', undefined, { run: 'dinner-rush', level: 3 }),
+    toHash('shop', undefined, { run: 'dinner-rush', level: 3, levels: [2, 1.5] }),
+    toHash('shop', undefined, undefined, { analysis: 'checkout', mode: 'timeout' }),
+  ]
+  for (const address of written) assert.equal(isSavedHash(address), true, address)
+  for (const bad of ['', '#', 'shop', '#shop checkout', '#shop"x', '#a<b', '#javascript:alert(1)', '#//evil', '#shop/..']) assert.equal(isSavedHash(bad), false, bad)
 })

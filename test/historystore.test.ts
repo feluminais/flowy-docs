@@ -208,3 +208,17 @@ test('what get() returns stays the same until something changes', async t => {
   store.setCompare(true)
   assert.notEqual(store.get(), first)
 })
+
+test('a pick whose files cannot be read says why, keeps what is shown, and does not reject', async t => {
+  let fail = false
+  const client = { ...stub([listOf('b', 'a')]), step: async (id: string) => { if (fail && id === 'a') throw new Error('the server answered 500'); return { step: info(id), files: {} } } }
+  const store = createHistoryStore(client)
+  await store.refresh()
+  fail = true
+  await store.pick('a')
+  assert.equal(store.get().error, 'the server answered 500')
+  assert.deepEqual([store.get().picked, store.get().shownId], [undefined, 'b'])
+  fail = false
+  await store.pick('a')
+  assert.deepEqual([store.get().error, store.get().picked], [undefined, 'a'])
+})

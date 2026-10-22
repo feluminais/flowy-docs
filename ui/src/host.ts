@@ -1,4 +1,5 @@
 import { openMessage, openUrlMessage } from '../../src/core/host.ts'
+import { isSavedHash } from './hash.ts'
 
 /** The API VS Code gives a webview's page, which can be asked for once. */
 type VsCodeApi = { postMessage: (message: unknown) => void; getState: () => unknown; setState: (state: unknown) => void }
@@ -36,7 +37,7 @@ export function startFromSavedState(): void {
   const folder = document.querySelector('meta[name="flowy-folder"]')?.getAttribute('content')
   if (folder) saveState({ folder })
   const { hash } = savedState()
-  if (!location.hash && hash && /^#[a-z0-9/-]+$/.test(hash)) history.replaceState(null, '', hash)
+  if (!location.hash && hash && isSavedHash(hash)) history.replaceState(null, '', hash)
 }
 
 /** Open a path in the repo in the editor, if this page is in VS Code. Resolves to whether there is an editor to ask. */
