@@ -5,7 +5,7 @@ import type { FlowyObject } from '../../src/core/model.ts'
 import { Section } from './Chrome.tsx'
 import { Clock, Table } from './icons.tsx'
 
-/** A table, key set or topic: column headings over the sample rows. A mark after a name says a key; a dot says the column has a note below. */
+/** A table, key set or topic: column headings over the sample rows. A mark after a name says a key or that it can be empty, a dot says the column has a note below, and the type sits under the name. */
 function Grid({ entry }: { entry: DataShown }) {
   return (
     <div className="data-grid" tabIndex={0} role="region" aria-label={`${entry.name} rows`}>
@@ -17,7 +17,9 @@ function Grid({ entry }: { entry: DataShown }) {
                 {c.name}
                 {c.key === 'primary' && <abbr className="data-mark" title="Primary key">PK</abbr>}
                 {c.to && <abbr className="data-mark" title={`Foreign key to ${c.to}`}>FK {c.to}</abbr>}
+                {c.nullable && <abbr className="data-mark" title="Can be empty">NULL</abbr>}
                 {c.note && <span className="data-dot" aria-hidden="true" />}
+                {c.type && <span className="data-type">{c.type}</span>}
               </th>
             ))}
           </tr>

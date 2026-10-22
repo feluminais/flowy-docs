@@ -71,7 +71,7 @@
         },
         {
           "view": "notifications",
-          "text": "flowchart TB\n  n0[\"Notifier<br/>app · Node\"]\n  n1[(\"Message templates<br/>store · Postgres\")]\n  n2[\"Ordering<br/>system\"]\n  n3[\"Delivery<br/>system\"]\n  n4[\"Twilio<br/>system\"]\n  n2 -- \"2 connections\" --> n0\n  n3 -- \"sends the offer\" --> n0\n  n0 -- \"SMS\" --> n4\n  n0 -- \"reads the wording\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n2,n3,n4 outsider\n"
+          "text": "flowchart TB\n  n0[\"Notifier<br/>app · Node\"]\n  n1@{ shape: doc, label: \"Message templates<br/>store · Postgres\" }\n  n2[\"Ordering<br/>system\"]\n  n3[\"Delivery<br/>system\"]\n  n4[\"Twilio<br/>system\"]\n  n2 -- \"2 connections\" --> n0\n  n3 -- \"sends the offer\" --> n0\n  n0 -- \"SMS\" --> n4\n  n0 -- \"reads the wording\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n2,n3,n4 outsider\n"
         },
         {
           "view": "backoffice",
@@ -93,7 +93,7 @@
         },
         {
           "flow": "capture-payment",
-          "text": "sequenceDiagram\n  participant n0 as Order API\n  participant n1 as Stripe\n  participant n2 as Orders DB\n  participant n3 as Customer app\n  loop Up to 3 times: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n    n0->>n1: Captures the amount it held\n    Note over n0,n1: Times out\n    Note over n0: Gives up after five seconds and tries again\n  end\n  alt The charge goes through\n    n1->>n0: Confirms the charge\n    n0->>n2: Marks the order paid\n  else The card is declined\n    n1->>n0: Declines the card\n    Note over n1,n0: Fails\n    n0->>n3: Asks the customer to try another card\n  end\n"
+          "text": "sequenceDiagram\n  participant n0 as Order API\n  participant n1 as Stripe\n  participant n2 as Orders DB\n  participant n3 as Customer app\n  loop Up to 3 times, until the bank answers: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n    n0->>n1: Captures the amount it held\n    Note over n0,n1: Times out\n    Note over n0: Gives up after five seconds and tries again\n  end\n  alt The charge goes through\n    n1->>n0: Confirms the charge\n    n0->>n2: Marks the order paid\n  else The card is declined\n    n1->>n0: Declines the card\n    Note over n1,n0: Fails\n    n0->>n3: Asks the customer to try another card\n  end\n"
         },
         {
           "flow": "courier-pings-lost",
@@ -104,8 +104,24 @@
           "text": "sequenceDiagram\n  participant n0 as Ordering\n  participant n1 as Dispatch\n  participant n2 as Fleet DB\n  participant n3 as Notifications\n  actor n4 as Courier\n  participant n5 as Courier app\n  participant n6 as Live tracking\n  n0->>n1: Hears that an order was placed\n  n1->>n2: Finds idle couriers near the restaurant\n  Note over n1: Ranks them by how soon each could arrive\n  n1->>n3: Sends the offer as a push\n  n4->>n5: Accepts within 30 seconds\n  n5->>n6: Streams its position every 5 seconds\n  n6->>n0: The customer watches the courier come\n  n5->>n0: Marks the order delivered\n"
         },
         {
+          "flow": "events-arrive-late",
+          "text": "sequenceDiagram\n  participant n0 as Ordering\n  participant n1 as Dispatch\n  participant n2 as Fleet DB\n  n0->>n1: The placed event waits behind the dinner rush\n  Note over n0,n1: Delayed: Consumer lag\n  n1->>n2: Finds couriers minutes after the customer paid\n"
+        },
+        {
+          "flow": "hotel-wifi-takes-order",
+          "text": "sequenceDiagram\n  participant n0 as Customer app\n  participant n1 as Order API\n  n0->>n1: POST /orders reaches a sign-in page instead\n  Note over n0,n1: Taken by Hotel wifi portal\n  Note over n0: Waits for a reply and offers a Retry button\n"
+        },
+        {
+          "flow": "mapbox-rate-limit",
+          "text": "sequenceDiagram\n  participant n0 as Matcher\n  participant n1 as ETA\n  participant n2 as Mapbox\n  n0->>n1: Asks who is quickest\n  n1->>n2: Asks Mapbox for travel times and is turned away\n  Note over n1,n2: Rejected: Rate limit\n  Note over n1: Falls back to straight-line distance and ranks more roughly\n"
+        },
+        {
           "flow": "no-courier-answers",
           "text": "sequenceDiagram\n  participant n0 as Dispatch\n  participant n1 as Notifications\n  participant n2 as Courier app\n  loop Until a courier accepts, or the list runs out: One courier at a time, nearest first. Each has 30 seconds.\n    n0->>n1: Offers the job, and the nearest courier doesn't answer within 30 seconds\n    Note over n0: Moves on to the next courier on the list\n  end\n  alt A courier accepts\n    n2->>n0: Accepts, and the offers stop\n  else The list runs out\n    n0->>n1: Tells the customer that no courier is free yet\n    Note over n0: Searches again in a minute\n  end\n"
+        },
+        {
+          "flow": "order-sent-twice",
+          "text": "sequenceDiagram\n  participant n0 as Customer app\n  participant n1 as Order API\n  participant n2 as Orders DB\n  n0->>n1: The same order arrives twice\n  Note over n0,n1: Sent twice: Slow reply\n  n1->>n2: Saves the first copy and refuses the second\n"
         },
         {
           "flow": "place-order",
@@ -122,6 +138,10 @@
         {
           "flow": "stripe-outage",
           "text": "sequenceDiagram\n  participant n0 as Order API\n  participant n1 as Stripe\n  participant n2 as Customer app\n  participant n3 as Checkout\n  n0->>n1: The hold is slow while Stripe shuts down\n  Note over n1: Stopping\n  n0->>n1: The hold times out\n  Note over n0,n1: Times out\n  Note over n1: Stopped\n  n0->>n2: Offers pay at the door\n  Note over n3: Degraded\n  n0->>n1: The status page says Stripe is restarting\n  Note over n1: Restarting\n  n0->>n1: The next check finds it coming back up\n  Note over n1: Starting\n  n0->>n1: The hold goes through\n  Note over n1: Running\n  Note over n3: Running\n"
+        },
+        {
+          "flow": "stripe-webhook",
+          "text": "sequenceDiagram\n  participant n0 as Stripe\n  participant n1 as Order API\n  participant n2 as Orders DB\n  n0->>n1: Calls Plum's webhook to say the charge went through\n  n1->>n2: Marks the order paid\n  Note over n1: Carries on to announce the order\n  Note over n1: Continues in #quot;A paid order is announced#quot;\n"
         }
       ]
     },
@@ -216,7 +236,7 @@
       "flows": [
         {
           "flow": "bad",
-          "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Orders DB\n  loop Up to 2 times\n    n0->>n1: s1\n  end\n  n0->>n1: s2\n  n0->>n1: s3\n  loop Up to 2 times\n    n0->>n1: s4\n  end\n  opt A\n    n0->>n1: s5\n  end\n  loop Up to 1 times\n    n0->>n1: s6\n  end\n  loop\n    n0->>n1: s7\n  end\n  par only\n    n0->>n1: s8\n  end\n  loop Up to 2 times\n    n0->>n1: s9\n  end\n  alt\n    n0->>n1: s10\n  else A\n    n0->>n1: s11\n  else A\n    n0->>n1: s12\n  end\n  loop Up to 2 times\n    n0->>n1: s13\n  end\n  loop Up to 2 times\n    n0->>n1: s14\n  end\n  loop Up to 2 times\n    n0->>n1: s15\n  end\n  loop Up to 2 times\n    n0->>n1: s16\n  end\n  n0->>n1: s17\n  n0->>n1: s18\n  n0->>n1: s19\n  n0->>n1: s20\n"
+          "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Orders DB\n  loop 2 times\n    n0->>n1: s1\n  end\n  n0->>n1: s2\n  n0->>n1: s3\n  loop 2 times\n    n0->>n1: s4\n  end\n  opt A\n    n0->>n1: s5\n  end\n  loop 1 times\n    n0->>n1: s6\n  end\n  loop\n    n0->>n1: s7\n  end\n  par only\n    n0->>n1: s8\n  end\n  loop 2 times\n    n0->>n1: s9\n  end\n  alt\n    n0->>n1: s10\n  else A\n    n0->>n1: s11\n  else A\n    n0->>n1: s12\n  end\n  loop 2 times\n    n0->>n1: s13\n  end\n  loop 2 times\n    n0->>n1: s14\n  end\n  loop 2 times\n    n0->>n1: s15\n  end\n  loop 2 times\n    n0->>n1: s16\n  end\n  n0->>n1: s17\n  n0->>n1: s18\n  n0->>n1: s19\n  n0->>n1: s20\n"
         },
         {
           "flow": "blankish",
@@ -232,11 +252,11 @@
         },
         {
           "flow": "ok",
-          "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Stripe\n  participant n2 as Orders DB\n  participant n3 as Billing\n  participant n4 as Dispatch\n  loop Up to 3 times: Backs off 1 s, 2 s, 4 s between tries\n    n0->>n1: Charges the card\n    n1->>n0: Times out at the bank\n  end\n  alt Card accepted\n    n1->>n0: Reports the charge settled\n    n0->>n2: Marks the order paid\n  else Card declined\n    n1->>n0: Reports the final decline\n  end\n  par Billing\n    n0->>n3: Tells Billing\n    Note over n3: Continues in #quot;Capture a payment#quot;\n  and Dispatch\n    n0->>n4: Tells Dispatch\n  end\n"
+          "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Stripe\n  participant n2 as Orders DB\n  participant n3 as Billing\n  participant n4 as Dispatch\n  loop 3 times: Backs off 1 s, 2 s, 4 s between tries\n    n0->>n1: Charges the card\n    n1->>n0: Times out at the bank\n  end\n  alt Card accepted\n    n1->>n0: Reports the charge settled\n    n0->>n2: Marks the order paid\n  else Card declined\n    n1->>n0: Reports the final decline\n  end\n  par Billing\n    n0->>n3: Tells Billing\n    Note over n3: Continues in #quot;Capture a payment#quot;\n  and Dispatch\n    n0->>n4: Tells Dispatch\n  end\n"
         },
         {
           "flow": "shapes",
-          "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Billing\n  participant n2 as Dispatch\n  participant n3 as Orders DB\n  par Billing\n    n0->>n1: Starts together with Dispatch\n  and Dispatch\n    n0->>n2: Starts together with Billing\n  end\n  n0->>n1: Asks Billing for a total\n  par A\n    n0->>n1: Lane A one\n    n1->>n3: Lane A two\n  and B\n    n0->>n2: Lane B only\n  and C\n    n0->>n3: Lane C one\n    n3->>n0: Lane C two\n    n0->>n3: Lane C three\n  end\n  opt A courier is wanted\n    n0->>n2: Books a courier\n  end\n  loop Until the job is done\n    n0->>n3: Checks the job\n  end\n  loop Up to 2 times\n    n0->>n3: Saves\n    n0->>n3: Saves once more\n  end\n  opt Last\n    n0->>n1: Ends the flow\n  end\n"
+          "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Billing\n  participant n2 as Dispatch\n  participant n3 as Orders DB\n  par Billing\n    n0->>n1: Starts together with Dispatch\n  and Dispatch\n    n0->>n2: Starts together with Billing\n  end\n  n0->>n1: Asks Billing for a total\n  par A\n    n0->>n1: Lane A one\n    n1->>n3: Lane A two\n  and B\n    n0->>n2: Lane B only\n  and C\n    n0->>n3: Lane C one\n    n3->>n0: Lane C two\n    n0->>n3: Lane C three\n  end\n  opt A courier is wanted\n    n0->>n2: Books a courier\n  end\n  loop Until the job is done\n    n0->>n3: Checks the job\n  end\n  loop 2 times\n    n0->>n3: Saves\n    n0->>n3: Saves once more\n  end\n  opt Last\n    n0->>n1: Ends the flow\n  end\n"
         }
       ]
     },
@@ -310,7 +330,7 @@
         },
         {
           "flow": "repeat",
-          "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  loop Up to 3 times\n    n0->>n1: Tries\n    Note over n1: Starting\n    Note over n1: Is slow\n    Note over n1: Degraded\n  end\n  n0->>n1: Gives up\n  Note over n1: Running\n"
+          "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  loop 3 times\n    n0->>n1: Tries\n    Note over n1: Starting\n    Note over n1: Is slow\n    Note over n1: Degraded\n  end\n  n0->>n1: Gives up\n  Note over n1: Running\n"
         },
         {
           "flow": "shapes",

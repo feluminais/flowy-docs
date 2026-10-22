@@ -21,13 +21,7 @@ const STEPS = Number(process.env.FLOWY_SCENARIO_STEPS ?? 25)
  * Violations that are real and known, by "rule:op". Each line is a bug somebody is to fix; when it is fixed the test fails until its line is
  * taken out, so this list can only get shorter.
  */
-const KNOWN_GAPS: Record<string, string> = {
-  // Both refuse a shape or a line that a flow or a failure analysis uses, and say nothing about a load-test run (perf/*.yaml) that measures it.
-  'run-dangling:deleteObject': 'a run still names the deleted shape',
-  'run-dangling:deleteObjects': 'a run still names a deleted shape',
-  'run-dangling:disconnect': 'a run still measures the removed line',
-  'run-dangling:removeConnection': 'a run still measures the removed line',
-}
+const KNOWN_GAPS: Record<string, string> = {}
 
 const seeds = seedsOf(SCENARIOS)
 const played = fixtures.map(fixture => ({ fixture, runs: seeds.map(seed => play(fixture, seed, STEPS)) }))

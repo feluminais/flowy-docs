@@ -98,7 +98,7 @@ the data is kept. The rows are made up, and Flowy never connects to a database. 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/images/anim/edit-dark.webp">
-    <img alt="Edit mode: a line is drawn from one shape to another and labelled, a shape is added, and its shape is changed with the drawn picker" src="docs/images/anim/edit-light.webp">
+    <img alt="Edit mode: a shape is added and given another shape, then a line is drawn from it to Orders DB and labelled" src="docs/images/anim/edit-light.webp">
   </picture>
 </p>
 
@@ -106,13 +106,6 @@ Press **E** to draw lines, add shapes and restyle them from drawn pickers. Every
 be undone, so git sees the same change whether you made it by hand or in the app. [More](docs/guide/canvas.md#edit-it)
 
 ## AI agents
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/anim/agents-dark.webp">
-    <img alt="An MCP client adds Promo codes and Loyalty points to Order API and connects them, while the canvas redraws as each call lands" src="docs/images/anim/agents-light.webp">
-  </picture>
-</p>
 
 An MCP server lets any MCP client, such as Claude Code, read the model and write it: shapes, lines, flows and failure analyses. Each
 call is checked, so a change that would break the model is refused, and an open canvas redraws as the files change. From the

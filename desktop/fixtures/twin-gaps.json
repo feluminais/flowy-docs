@@ -141,6 +141,10 @@
     "takesOption",
     "timesOk"
   ],
+  "text": [
+    "isMap",
+    "own"
+  ],
   "views": [
     "chain",
     "hasChildren",

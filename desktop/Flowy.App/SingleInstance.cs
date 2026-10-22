@@ -44,31 +44,68 @@ internal static class SingleInstance
             return null;
         }
         var stop = new CancellationTokenSource();
-        _ = Task.Run(() => Listen(key, received, stop.Token));
+        var ready = TryOpen(key); // made here, not on the listener's thread: a launch right after this call finds a pipe to connect to
+        _ = Task.Run(() => Listen(key, received, ready, stop.Token));
         return new Owner(mutex, stop);
     }
 
-    private static async Task Listen(string key, Action<string[], string> received, CancellationToken token)
+    private static NamedPipeServerStream Open(string key) =>
+        new(PipeName(key), PipeDirection.In, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+
+    private static NamedPipeServerStream? TryOpen(string key)
     {
-        while (!token.IsCancellationRequested)
+        try
         {
-            try
+            return Open(key);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    // A pipe with no instance waiting turns a second launch away, which is a race when launches come one after another. So the next
+    // instance is made as soon as one is connected to, before its message is read, and the pipe is never without one while this runs.
+    private static async Task Listen(string key, Action<string[], string> received, NamedPipeServerStream? next, CancellationToken token)
+    {
+        try
+        {
+            while (!token.IsCancellationRequested)
             {
-                await using var server = new NamedPipeServerStream(PipeName(key), PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
-                await server.WaitForConnectionAsync(token);
-                using var reader = new StreamReader(server);
-                var line = await reader.ReadLineAsync(token);
-                if (line is not null && JsonSerializer.Deserialize<Message>(line) is { Args: not null, Cwd: not null } message) received(message.Args, message.Cwd);
+                try
+                {
+                    var current = next ?? Open(key);
+                    next = null;
+                    await using (current)
+                    {
+                        await current.WaitForConnectionAsync(token);
+                        next = TryOpen(key);
+                        using var reader = new StreamReader(current);
+                        var line = await reader.ReadLineAsync(token);
+                        if (line is not null && JsonSerializer.Deserialize<Message>(line) is { Args: not null, Cwd: not null } message) received(message.Args, message.Cwd);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch (Exception)
+                {
+                    // A client that left half way, sent nonsense, or a pipe that can't be made: wait for the next, without spinning on it.
+                    try
+                    {
+                        await Task.Delay(500, token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                }
             }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-            catch (Exception)
-            {
-                // A client that left half way, sent nonsense, or a pipe that can't be made: wait for the next, without spinning on it.
-                await Task.Delay(500, token).ContinueWith(_ => { });
-            }
+        }
+        finally
+        {
+            if (next is not null) await next.DisposeAsync();
         }
     }
 

@@ -1,7 +1,7 @@
 namespace Flowy.Core;
 
 /// <summary>One thing the Compare picker offers: the flow or run, which side of a tagged pair it stands on (null for a flow nothing links), and whether a tag points at something that is not there.</summary>
-public sealed record Choice(string Id, string Name, string? Side, bool Missing);
+public sealed record CompareChoice(string Id, string Name, string? Side, bool Missing);
 
 /// <summary>
 /// What a flow (or run) can be compared with, and in which order a pair reads: a port of <c>choicesFor</c> and <c>orderPair</c> in ui/src/compare.ts, so the picker lists the
@@ -11,20 +11,20 @@ public static class CompareChoices
 {
     /// <summary>
     /// What <paramref name="id"/> can be compared with: <c>Linked</c> are the ones it tags (the older) and then the ones that tag it (the newer), the order <see cref="Compares.Partners"/> gives; a tag to something that
-    /// is not there stays, marked <see cref="Choice.Missing"/> and named by its id. <c>Others</c> is every other flow (or run), by name without regard to case, then by id. <paramref name="id"/> is never listed.
+    /// is not there stays, marked <see cref="CompareChoice.Missing"/> and named by its id. <c>Others</c> is every other flow (or run), by name without regard to case, then by id. <paramref name="id"/> is never listed.
     /// <paramref name="kind"/> is <c>flow</c> or <c>run</c>.
     /// </summary>
-    public static (IReadOnlyList<Choice> Linked, IReadOnlyList<Choice> Others) For(Model model, IReadOnlyDictionary<string, LoadRun> runs, string kind, string id)
+    public static (IReadOnlyList<CompareChoice> Linked, IReadOnlyList<CompareChoice> Others) For(Model model, IReadOnlyDictionary<string, LoadRun> runs, string kind, string id)
     {
         var tags = TagsOf(model, runs, kind);
         string NameOf(string key) =>
             kind == "flow" ? (model.Flows.TryGetValue(key, out var flow) && !string.IsNullOrEmpty(flow.Name) ? flow.Name : key)
             : runs.TryGetValue(key, out var run) && !string.IsNullOrEmpty(run.Name) ? run.Name : key;
         var linked = Compares.Partners(tags, id)
-            .Select(p => tags.ContainsKey(p.Id) ? new Choice(p.Id, NameOf(p.Id), p.Side, false) : new Choice(p.Id, p.Id, p.Side, true))
+            .Select(p => tags.ContainsKey(p.Id) ? new CompareChoice(p.Id, NameOf(p.Id), p.Side, false) : new CompareChoice(p.Id, p.Id, p.Side, true))
             .ToList();
         var taken = new HashSet<string>(linked.Select(c => c.Id)) { id };
-        var others = tags.Keys.Where(key => !taken.Contains(key)).Select(key => new Choice(key, NameOf(key), null, false)).ToList();
+        var others = tags.Keys.Where(key => !taken.Contains(key)).Select(key => new CompareChoice(key, NameOf(key), null, false)).ToList();
         others.Sort(ByName);
         return (linked, others);
     }
@@ -97,7 +97,7 @@ public static class CompareChoices
             : Playable(model, a) && Playable(model, b) ? null : "That flow can't play yet.";
 
     // Name, lower-cased, then id: the ordinal compare of lower-case text matches localeCompare for the ids and names a project holds.
-    private static int ByName(Choice x, Choice y)
+    private static int ByName(CompareChoice x, CompareChoice y)
     {
         var byName = string.CompareOrdinal(x.Name.ToLowerInvariant(), y.Name.ToLowerInvariant());
         return byName != 0 ? byName : string.CompareOrdinal(x.Id, y.Id);

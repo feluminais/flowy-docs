@@ -14,7 +14,7 @@ public class CompareChoicesTests
     private static readonly Folder Case = FolderLoader.Load(Path.Combine(Repo.Root, Expected["folder"]!.GetValue<string>()));
     private static readonly IReadOnlyDictionary<string, LoadRun> Runs = Case.Runs?.ToDictionary(kv => kv.Key, kv => kv.Value) ?? new Dictionary<string, LoadRun>();
 
-    private static JsonObject Node(Choice c) => new() { ["id"] = c.Id, ["name"] = c.Name, ["side"] = c.Side, ["missing"] = c.Missing };
+    private static JsonObject Node(CompareChoice c) => new() { ["id"] = c.Id, ["name"] = c.Name, ["side"] = c.Side, ["missing"] = c.Missing };
 
     private static void Matches(JsonArray expected, string kind)
     {
@@ -106,7 +106,7 @@ public class CompareChoicesTests
     public void A_tag_to_something_missing_is_kept_and_greyed_and_the_id_itself_is_never_listed()
     {
         var (linked, others) = CompareChoices.For(Case.Model, Runs, "flow", "ghost");
-        Assert.Equal(new Choice("nowhere", "nowhere", "before", true), Assert.Single(linked));
+        Assert.Equal(new CompareChoice("nowhere", "nowhere", "before", true), Assert.Single(linked));
         Assert.DoesNotContain(others, c => c.Id == "ghost");
         var (selfLinked, selfOthers) = CompareChoices.For(Case.Model, Runs, "flow", "selfish");
         Assert.Empty(selfLinked);

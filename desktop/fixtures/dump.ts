@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { compareOf, compareProblem, linkedIds, partnersOf } from '../../src/core/compare.ts'
 import { dataShown } from '../../src/core/data.ts'
-import { lineStyle, ROOT } from '../../src/core/model.ts'
+import { lineStyle, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Analysis, Model } from '../../src/core/model.ts'
 import { computeView, isView, placeStep, stepEnds } from '../../src/core/views.ts'
@@ -45,6 +45,8 @@ export async function dumpFolder(dir: string): Promise<unknown> {
   const tags = model.flows as Record<string, { compare?: unknown }>
   return {
     lineStyle: lineStyle(model),
+    projectName: projectName(model),
+    projectAbout: projectAbout(model),
     objects: Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name, in: o.in, external: o.external, shape: o.shape, color: o.color, opacity: o.opacity, icon: o.icon, tech: o.tech, description: o.description, code: o.code, links: o.links, snippets: o.snippets, data: o.data, shown: shownOf(o) })),
     icons: model.meta.icons,
     connections: model.connections.map(c => ({ from: c.from, to: c.to, label: c.label })),

@@ -4,8 +4,8 @@ import { FILE_KINDS, FOLDER_KINDS, idUnder, kindOfPath, pathOf } from './filekin
 import type { WrittenKind } from './filekinds.ts'
 import { ParseError, orEmpty } from './model.ts'
 import type { Analysis, Connection, Flow, Layout, Mode, Model } from './model.ts'
-import { isMap, own } from './text.ts'
-import { dump, readYaml } from './yamltext.ts'
+import { isMap, own, plainNumber } from './text.ts'
+import { dump, quoteBlankFirstLines, readYaml } from './yamltext.ts'
 
 const TEXT_FIELDS = {
   object: ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description'],
@@ -99,10 +99,13 @@ export function parseAnalysisFile(id: string, text: string): Analysis {
   return analysis
 }
 
+/** The furthest a layout position may be from zero: past it the line paths overflow and cannot be drawn. The desktop app has the same bound. */
+const MAX_COORDINATE = 1_000_000
+
 function toPoint(v: unknown): [number, number] | undefined {
   if (!Array.isArray(v) || v.length !== 2) return undefined
-  const [x, y] = v.map(n => (typeof n === 'string' && n.trim() !== '' ? Number(n) : NaN))
-  return Number.isFinite(x) && Number.isFinite(y) ? [x, y] : undefined
+  const [x, y] = v.map(plainNumber)
+  return x !== undefined && y !== undefined && Math.abs(x) <= MAX_COORDINATE && Math.abs(y) <= MAX_COORDINATE ? [x, y] : undefined
 }
 
 export function parseLayoutFile(text: string): Layout {
@@ -114,7 +117,7 @@ export function parseLayoutFile(text: string): Layout {
     if (!isMap(boxes)) throw new ParseError(file, `view "${view}" must map object ids to [x, y]`)
     return [view, Object.fromEntries(Object.entries(boxes).map(([id, p]) => {
       const point = toPoint(p)
-      if (!point) throw new ParseError(file, `${view} → ${id} must be [x, y]`)
+      if (!point) throw new ParseError(file, `${view} → ${id} must be [x, y], each between -${MAX_COORDINATE} and ${MAX_COORDINATE}`)
       return [id, point]
     }))]
   }))
@@ -167,6 +170,7 @@ function compactData(doc: Document) {
 /** model.yaml's text: like the other files, plus the one-line forms a store's data is written in (see compactData). */
 function dumpModel(value: unknown): string {
   const doc = new Document(value, { schema: 'failsafe', aliasDuplicateObjects: false })
+  quoteBlankFirstLines(doc)
   compactData(doc)
   return doc.toString({ lineWidth: 0, flowCollectionPadding: false })
 }

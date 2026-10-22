@@ -4,6 +4,9 @@ import { encodePath } from '../core/paths.ts'
 
 const run = promisify(execFile)
 
+/** The environment without the GIT_* variables a parent git (a hook, `rebase --exec`) passes down: they would point `git -C` at that repo, not the folder asked about. */
+const cleanEnv = () => Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')))
+
 /**
  * The web address `code` paths link to, from the origin's URL, the branch (or commit) and the folder's
  * place in the repo (`git rev-parse --show-prefix`, "" at the top). Only github.com and gitlab.com.
@@ -22,7 +25,7 @@ const bases = new Map<string, Promise<string | undefined>>()
 export function codeBase(root: string): Promise<string | undefined> {
   let base = bases.get(root)
   if (!base) {
-    const git = async (...args: string[]) => (await run('git', ['-C', root, ...args], { timeout: 5000 })).stdout.trim()
+    const git = async (...args: string[]) => (await run('git', ['-C', root, ...args], { timeout: 5000, env: cleanEnv() })).stdout.trim()
     base = (async () => {
       try {
         const branch = await git('rev-parse', '--abbrev-ref', 'HEAD')

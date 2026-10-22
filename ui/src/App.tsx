@@ -63,9 +63,12 @@ import { cameFrom, closeFlow, followBack, openFlow as leaveFlow } from './trail.
 import type { Recording } from './Recorder.tsx'
 import { copyMessage } from '../../src/core/host.ts'
 import { saveState, vscode } from './host.ts'
+import { addressOf, fetchModels, labelOf, modelOfPage } from './models.ts'
+import type { ModelInfo } from './models.ts'
 import { useReveal } from './reveal.ts'
 import { useColorMode } from './hosttheme.ts'
 import { createHistoryStore } from './historystore.ts'
+import { noHistory } from './yamlview.ts'
 import { clearOutcome } from './historyclient.ts'
 import type { HistoryClient } from './historyclient.ts'
 import { useModel } from './useModel.ts'
@@ -188,6 +191,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     setNavTab(t)
   }
   const [details, setDetails] = useState(false)
+  const [models, setModels] = useState<ModelInfo[]>([]) // the models of the repo the server shows; a switcher only when there are several
+  useEffect(() => {
+    if (live && !vscode) void fetchModels().then(setModels)
+  }, [live])
   const [navWidth, setNavWidth] = useState(remembered.navWidth ?? NAV) // dragged by the sashes on the panels' edges
   const [detailsWidth, setDetailsWidth] = useState(remembered.detailsWidth ?? PANEL)
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches // no ramp and no traffic: the colours, thickness, badges and numbers say it all
@@ -241,15 +248,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const analysis = analysisKey === undefined ? undefined : model.failures[analysisKey]
   const mode = modeIn(model, analysisKey, modeId)
   const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
-  const showFlows = totals.flows > 0 || editing // the Flows tab is there whenever there is a flow to find
-  // The YAML tab needs a server that keeps the history: not an exported page, not the VS Code webview.
+  // The YAML tab is always there. Its files and steps need a server that keeps the history (not an exported page, not the VS Code webview); without one its panel says why.
   const yamlStore = useMemo(() => (live && historyApi ? createHistoryStore(historyApi) : undefined), [live, historyApi])
   useEffect(() => { void yamlStore?.refresh() }, [yamlStore, changes]) // after every load, whether it worked or not: a change may have left a file broken
   // A server that answers 404 keeps no history (an older flowy), and then there is nothing for the tab to show.
   const subscribeYaml = useMemo(() => (listener: () => void) => (yamlStore ? yamlStore.subscribe(listener) : () => undefined), [yamlStore])
   const yamlGone = useSyncExternalStore(subscribeYaml, () => yamlStore?.get().unavailable === true)
-  const showYaml = yamlStore !== undefined && !yamlGone
-  const nav = openTab(tab, { flows: showFlows, yaml: showYaml, performance: canPerf })
+  const yamlWhy = noHistory({ live, inVscode: vscode !== undefined, hasApi: historyApi !== undefined, unavailable: yamlGone })
+  const nav = openTab(tab, { performance: canPerf })
   const perfOpen = nav === 'performance' && loadTest !== undefined // a run is drawn on the canvas
   useEffect(() => {
     if (!perfOpen) perfRun.stopRamp()
@@ -759,7 +765,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       const state: KeyState = {
         editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, compare: comparing !== undefined, swap: comparing?.mode === 'swap', runCompare: comparing?.kind === 'run', halfStep: recording?.from !== undefined,
         panel: detailsOpen || manyPicked || perfOpen || failuresOpen, inside: view !== ROOT && !comparing, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
-        showFlows, showYaml, canPerf,
+        canPerf,
       }
       const act: KeyActions = {
         takeBack: () => void takeBack(),
@@ -816,7 +822,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
 
   /** What the canvas can give one panel: all of it but a strip to look at, and what the other panel takes. */
   const spare = (other: number) => (canvas.current?.clientWidth ?? Infinity) - 160 - other
-  const navTabs = <NavTabs tab={nav ?? 'explorer'} showFlows={showFlows} showYaml={showYaml} onPick={setTab} />
+  const navTabs = <NavTabs tab={nav ?? 'explorer'} onPick={setTab} />
   const clearHistory = async () => {
     const why = historyApi && await clearOutcome(historyApi)
     if (why) setNotice(why)
@@ -825,6 +831,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   return (
     <>
       <header className="bar">
+        {models.length > 1 && (
+          <select aria-label="Model" title="Switch to another model in this repo" value={modelOfPage() ?? models[0].id} onChange={e => location.assign(addressOf(e.target.value))}>
+            {models.map(m => <option key={m.id} value={m.id}>{labelOf(models, m)}</option>)}
+          </select>
+        )}
         <nav className="crumbs" aria-label="Zoom level">
           {chain(model, view).reverse().map((id, i) => (
             <Fragment key={id}>
@@ -863,7 +874,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}><Pencil size={16} />Edit</button>}
       </header>
       <div className="stage">
-        <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows} showYaml={showYaml}
+        <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes}
           perf={{ runs: Object.keys(runs).length, off: editing ? 'not while editing' : undefined }} failures={{ count: modeCount(model) }} onPick={toggleTab} />
         <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', ((flow && usesStates(flow)) || timeEvents) && 'states', scrubbing && 'scrubbing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
@@ -1006,7 +1017,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             <ObjectPanel model={model} id={side?.kind === 'object' ? side.id : view} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={closeDetails} onDelete={askDelete} state={side?.kind === 'object' && Object.hasOwn(stateMarks, side.id) ? stateMarks[side.id] : undefined}
               onPick={id => setSide({ kind: 'object', id })} onHover={setHovered} />
           )}
-          {detailsOpen && side === undefined && view === ROOT && !comparing && <OverviewPanel totals={totals} onClose={closeDetails} />}
+          {detailsOpen && side === undefined && view === ROOT && !comparing && <OverviewPanel model={model} totals={totals} editing={editing} run={run} onClose={closeDetails} />}
           {detailsOpen && side?.kind === 'line' && (
             <LinePanel model={model} view={side.view ?? view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closeDetails} onDelete={askDelete} />
           )}
@@ -1050,7 +1061,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
           {nav === 'flows' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
-              <FlowsTab model={model} view={view} editing={editing} current={recording?.id || (flow ? playing?.flow : undefined)} compare={rowCompare} onOpen={f => openFlow(f.id)} />
+              <FlowsTab model={model} view={view} editing={editing} canEdit={live && !readOnly} current={recording?.id || (flow ? playing?.flow : undefined)} compare={rowCompare} onOpen={f => openFlow(f.id)} />
               {rowPicker}
             </NavPanel>
           )}
@@ -1074,10 +1085,12 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 onShowFlow={showFlow} onSeenInRun={seenInRun} onCopy={copyFailures} editing={editing} run={run} onCreate={live && !readOnly ? toggleEdit : undefined} />
             </NavPanel>
           )}
-          {nav === 'yaml' && yamlStore && (
+          {nav === 'yaml' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
-              <Yaml store={yamlStore}editing={editing} broken={broken} flow={recording?.id || (flow ? playing?.flow : undefined) || undefined} selected={selectedBox}
-                onRestore={restoreVersion} onClear={clearHistory} />
+              {yamlStore && yamlWhy === undefined
+                ? <Yaml store={yamlStore} editing={editing} broken={broken} flow={recording?.id || (flow ? playing?.flow : undefined) || undefined} selected={selectedBox}
+                    onRestore={restoreVersion} onClear={clearHistory} />
+                : <p className="muted navnote">{yamlWhy}</p>}
             </NavPanel>
           )}
           {nav && <Sash side="nav" width={navWidth} onResize={w => setNavWidth(clampWidth(w, spare(detailsOpen ? detailsWidth : 0)))} onReset={() => setNavWidth(NAV)} />}
