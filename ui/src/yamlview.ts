@@ -135,5 +135,14 @@ export function neighbour(steps: StepInfo[], id: string | undefined, delta: -1 |
   return at < 0 ? steps[0].id : steps[at + delta]?.id
 }
 
+/** Why the YAML tab has no files and steps to show, in a line for its panel, or undefined when it has them. */
+export function noHistory(s: { live: boolean; inVscode: boolean; hasApi: boolean; unavailable: boolean }): string | undefined {
+  if (!s.live) return 'An exported page keeps no history.'
+  if (s.inVscode) return 'No history in VS Code. Open the folder in the browser to see it.'
+  if (s.unavailable) return 'This server keeps no history. Update Flowy.'
+  if (!s.hasApi) return 'No history on this page.'
+  return undefined
+}
+
 /** Putting an earlier version back is a write, so it needs edit mode, unless the model is broken and edit mode cannot be turned on. */
 export const canRestore = (s: { editing: boolean; broken: boolean }): boolean => s.editing || s.broken
