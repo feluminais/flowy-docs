@@ -1,6 +1,6 @@
 {
   "parseError": {
     "file": "layout.yaml",
-    "message": "root → a must be [x, y]"
+    "message": "root → a must be [x, y], each between -1000000 and 1000000"
   }
 }

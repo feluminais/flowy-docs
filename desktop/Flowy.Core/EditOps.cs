@@ -75,7 +75,7 @@ public static partial class EditOps
     private static OrderedDictionary<string, object?> NormalizeLink(OrderedDictionary<string, object?> link)
     {
         var result = new OrderedDictionary<string, object?>();
-        if (link.TryGetValue("title", out var t) && t is string title && title.Trim() != "") result["title"] = title;
+        if (link.TryGetValue("title", out var t) && t is string title && !JsCompat.Blank(title)) result["title"] = title;
         foreach (var (key, value) in link)
             if (key != "title") result[key] = value;
         return result;
@@ -196,7 +196,7 @@ public static partial class EditOps
         var step = new OrderedDictionary<string, object?> { ["from"] = from };
         if (to is not null) step["to"] = to;
         step["text"] = text;
-        if (description is not null && description.Trim() != "") step["description"] = description;
+        if (description is not null && !JsCompat.Blank(description)) step["description"] = description;
         return step;
     }
 
@@ -216,7 +216,7 @@ public static partial class EditOps
         {
             var copy = Clone(s);
             // A blank detail is no detail, as on the canvas, so the file stays as short as it can be.
-            if (copy.TryGetValue("description", out var detail) && detail is string text && text.Trim() == "") copy.Remove("description");
+            if (copy.TryGetValue("description", out var detail) && detail is string text && JsCompat.Blank(text)) copy.Remove("description");
             if (copy.TryGetValue("states", out var own) && own is OrderedDictionary<string, object?> { Count: 0 }) copy.Remove("states");
             copies.Add(copy);
         }

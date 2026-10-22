@@ -129,7 +129,7 @@ public static class Navigation
 
     /// <summary>The first paragraph of a description: everything up to the first blank line.</summary>
     public static string? Teaser(string? description) =>
-        description is null ? null : Regex.Split(description.Trim(), @"\n\s*\n")[0];
+        description is null ? null : Regex.Split(JsCompat.JsTrim(description), @"\n\s*\n")[0];
 
     /// <summary>
     /// Escape peels one layer per press: the shortcut list, the navigator (Flows and Explorer) when it is the last thing you used, a flow playing,

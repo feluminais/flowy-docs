@@ -22,7 +22,7 @@ public static class Checks
         return Names.ObjectTypes.Where(t => parent is null ? Parents[t].Length == 0 : Parents[t].Contains(parent.Type ?? "")).ToList();
     }
 
-    private static bool NonEmpty(string? v) => !string.IsNullOrWhiteSpace(v);
+    private static bool NonEmpty(string? v) => !JsCompat.Blank(v);
 
     /// <summary>Absent, or a key with nothing after it (<c>type:</c>), which reads as "".</summary>
     private static bool Missing(string? v) => string.IsNullOrEmpty(v);
@@ -102,7 +102,7 @@ public static class Checks
                     foreach (var entry in links.Cast<OrderedDictionary<string, object?>>())
                     {
                         entry.TryGetValue("url", out var raw);
-                        if (raw is not string url || string.IsNullOrWhiteSpace(url)) P("a link has no url");
+                        if (raw is not string url || JsCompat.Blank(url)) P("a link has no url");
                         else if (!IsWebAddress(url))
                         {
                             if (!IsRepoPath(url)) P($"link \"{url}\" must be a web address (http or https) or a path in the repo, relative, with / between folders and no \".\" or \"..\" parts");
