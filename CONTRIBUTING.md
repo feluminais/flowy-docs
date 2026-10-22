@@ -37,12 +37,12 @@ npm run dev:ui
 opens it. Its `code:` paths point at placeholder files beside it, so the canvas shows no problems. Its `flowy/perf/` holds
 seven runs with made-up numbers (a dinner rush where Delivery's ETA runs out of Mapbox calls at 900 orders a minute,
 the same test after a fix, customer orders alone, courier pings with a `source` that sets a colour and a dot scale, the two added together (`together`), the two tested together (`together-measured`),
-and Stripe going down at 40 s and coming back at 85 s, a run over time; the file names sort so the demo still opens on the dinner rush); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
+and Stripe going down at 40 s and coming back at 85 s, a run over time; `together-measured` is tagged as the newer of `together`, and the flow `refund` as the newer of `refund-not-recorded`, each with a note, so Compare has a pair of each to open; the file names sort so the demo still opens on the dinner rush); they name shapes and connections of the model, so a rename there is a run problem. Its `flowy/failures/ordering.yaml`
 is a fourteen-mode failure analysis with made-up ratings, and it names shapes, connections, flows and a run in the same way. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one, 1280 by 1000 for the failures one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
 `--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups, `--view ordering --flow stripe-outage --step 3` for `desktop-states.png`,
-`--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, `--view ordering --run stripe-outage --tab performance --at 70` (1280 by 760) for `desktop-time.png`, `--view delivery --run together --tab performance --at 800,400` (1280 by 760) for `desktop-sources.png`, `--view ordering --tab failures --select stripe-timeout` (1280 by 1000) for the failures one, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
+`--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, `--view ordering --run stripe-outage --tab performance --at 70` (1280 by 760) for `desktop-time.png`, `--view delivery --run together --tab performance --at 800,400` (1280 by 760) for `desktop-sources.png`, `--view ordering --tab failures --select stripe-timeout` (1280 by 1000) for the failures one, `--compare refund,refund-not-recorded --changes` (1200 by 860) for `desktop-compare.png`, the same with `,swap` on the pair for `desktop-compare-swap.png`, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
 Retake them when the app changes how it looks.
 
 `docs/images/anim/` holds the animations in the README, a light and a dark one for each feature (GitHub shows the dark one in its dark theme). They are
@@ -100,7 +100,7 @@ Put the folder in `conductor-oss/flowy`, open it with `node src/cli.ts --dir con
 `docs/showcase/` plays every animation Flowy has, so you can open it and see that each one works and looks right, in the browser and
 in the desktop app. `node src/cli.ts --dir docs/showcase/flowy` opens it, and so does
 `dotnet run --project desktop/Flowy.App -- docs/showcase`. Each shape is named for the animation it plays (Send · from, Flash · to), and its second line holds the tag that sets it off.
-It has seven views:
+It has eight views:
 
 - Step animations: a flow of one step for each way a step can travel (Send, Call, Event, Callback, Flash, Bolt drop, Send with a word, Fail, Timeout, Lost, Rejected, Intercepted twice, Duplicated, Delayed, Share of requests), so you can click through them, and Every step animation, which plays them all: press **P** to watch them one after the other, or **R** to play a step again.
 - Flow structure: a flow each for Repeat, Branch, Parallel and Flow link.
@@ -108,9 +108,10 @@ It has seven views:
 - Colour and scale: the run Colour and scale gives each shape one thing a run's `source` does (dots in proportion to the calls, the same dots at another pace, bigger calls, a line scaled down, lost calls, rejected calls).
 - Several sources: the runs Several sources added and Several sources tested together put two sources of requests on one line, add a shared shape past full, and leave one line with no source named.
 - Shape states: the flows Every state and State inside a shape.
+- Compare: the flows Compare before and Compare after are a pair (`compare:` on the newer one, with a note), built so Show changes marks every kind of change (New, Removed and Changed) on steps, shapes and lines.
 - Runs over time: the run Every state over time puts a service in all six states through events, and a part inside a holder in one: pick it in the Performance tab (**T**), then press **Play**, drag the slider or click an event.
 
-`test/showcase.test.ts` fails when an animation kind, an outcome, a kind of group, a load effect or a state has no place there. When you add one, add a
+`test/showcase.test.ts` fails when an animation kind, an outcome, a kind of group, a load effect, a state or a kind of change mark has no place there. When you add one, add a
 pair of shapes named for it, a step or a flow, and (for a load effect) numbers in `docs/showcase/flowy/perf/every-load-effect.yaml` (for several sources, `added.yaml` and `together-grid.yaml`), then add the check to that test.
 The folder is also one of the parity fixtures in `desktop/fixtures/fixtures.json`, so the desktop app has to read it the same way.
 
@@ -186,7 +187,7 @@ dotnet run --project desktop/Flowy.App -- docs/demo --shot out.png         # sav
 
 `--shot` takes flags that set up what the picture shows: `--view ordering`, `--select order-api`, `--line "web order-api"`,
 `--hover "web order-api"`, `--flow place-order --step 1`, `--search re`, `--shortcuts`, `--run stripe-outage --tab performance --at 70` (the Performance panel on
-a run, at a time or load; `--run together --at 800,400` puts each source of a run with several at a load), `--tab failures --select stripe-timeout` (with Failures open, `--select` picks a failure mode when the id is one), `--zoom ordering --delay 200` (a frame of the
+a run, at a time or load; `--run together --at 800,400` puts each source of a run with several at a load), `--tab failures --select stripe-timeout` (with Failures open, `--select` picks a failure mode when the id is one), `--compare refund,refund-not-recorded --changes` (two flows side by side with the marks on; the one that holds the tag reads second, `--compare a,b,swap` opens one canvas that flips and `--swapped` shows the other flow, `--compare run:a,b` compares two runs, `--note "text"` types a note, `--pair` asks Save as pair, `--leave` presses Close, `--edit-flow refund --remove-link` asks to remove a flow's link), `--zoom ordering --delay 200` (a frame of the
 zoom), `--lines curved`, `--theme dark`, `--size 1100x700`. Check a visual change by looking at pictures next to
 `docs/images/desktop-*.png`. `FLOWY_REDUCE_MOTION=1` turns animation off.
 
@@ -281,6 +282,9 @@ Before merging a change to the app, look at what it could affect, in a real wind
       example from the guide's Data section under another store's `data:`: it shows its fields one to a line, indented, with the note under them. In edit mode the
       form has a Data box holding the same lines as the file: delete a column from `columns` but not from the rows and click elsewhere, and a notice says a row has
       too many cells and the box keeps what you typed. Clear the box: `data:` is gone.
+- [ ] On a copy of `docs/demo`, open Support refunds an order from the Flows tab (**L**): the row has a link mark and a Compare button, quiet until you point at it. Press it: two panes open at once with the note under them (the row of a flow with no link opens a picker under the tabs), and Side by side, Swap, Show changes and Close in the bar. Show changes outlines New, Removed and Changed with the same key as the browser.
+      **X** in Swap glides the shapes, and **Esc** closes the comparison. Press **T** on Orders and pings, tested together, then **C**: two run panes, with Show changes greyed out. In edit mode every Compare button is greyed out
+      with "Not while editing". `--compare refund,refund-not-recorded --changes` (below) opens the first pair with its marks on.
 - [ ] While the app has a model open, change it in the browser (or save from an editor): the app shows it without a reload, and an edit
       made in the app after that starts from what is on disk.
 - [ ] Light and dark: change the system's theme while the app is open.
@@ -457,6 +461,21 @@ Several sources (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, th
 - [ ] With reduced motion on there are no dots and no Ramp buttons, and the sliders, numbers and the key's Busy, Waiting and Not measured stay. Both themes read.
 - [ ] In the showcase (`--dir docs/showcase/flowy`, Several sources, T): Several sources added at its highest has blue and green dots side by side on the line into Shared service, both scaled down together, and Shared service reads
       "Added use is over 100%". Several sources tested together has a grey line into Not split by source, and the key says Other calls.
+
+Compare (`--dir docs/demo/flowy`; `npm run build:ui` first):
+
+- [ ] In the Flows tab (**L**) Support refunds an order has a link mark and every row has a Compare button. Click it on that row: two panes open at once, The refund is not recorded on the left and Support refunds an order on the right, the address is
+      `#root/compare/refund-not-recorded/refund`, and the note about the two refunds is under the panes. The row of a flow with no link (Place an order) opens a picker with a field that says "Find a flow" instead. Each pane zooms, pans and plays on its own. Click a shape in one: Details opens, and a second click on it closes it. Press **Esc** twice: the panel, then the comparison.
+- [ ] Press **C** while a flow with no link plays: the picker opens. Press **C** on Support refunds an order: the comparison opens at once. ← → **P** **R** **F** act on the pane you clicked last, which has an outline.
+- [ ] Turn on **Show changes**: the key names New, Removed and Changed. Stripe is Changed in both panes, the left flow's other shapes are Removed and the right's are New, and the steps in the progress bars carry the same outlines.
+      Reload: the switch is still on. Pick two flows with no shape in common (The refund is not recorded and Courier pings are lost): the key says Nothing in common and no shape is outlined.
+- [ ] Press **Swap**, then **X**: one canvas flips between the two, shapes both draw glide, new ones fade in and removed ones fade out, and the bar names both flows with the one on show marked. With reduced motion on, it cuts.
+      The address ends in `/swap`.
+- [ ] Note: **Note** opens an editor on the saved note; change it and **Save**: `flows/refund.yaml` has the new text under `compare: note:`. On two flows with no tag, type a note and press **Save as pair**: the strip names the flow that
+      gets the tag, **Swap sides** changes it, **Save** writes it. Close the comparison with an unsaved note: it asks first. In an exported page the Note button is greyed out and its tooltip says "This page can't save".
+- [ ] E on a copy of `docs/demo`: Compare is greyed out ("Not while editing"). Open a flow for editing: its form has **Compare with** with its partner shown, **Remove** asks first because there is a note, and a flow that tags it is listed under **Compared by**.
+- [ ] Press **T**, pick Orders and pings, tested together: **Compare** and **Link with** are under the name, and **Compare** (or **C**) opens it beside Orders and pings, added (`#delivery/compare-runs/together/together-measured`), each pane with its own panel.
+      **Show changes** is greyed out. **Unlink** then **Link with** writes and removes only `compare:` in `perf/together-measured.yaml`. In the showcase, Compare after is compared with Compare before, and **Show changes** marks all three kinds.
 
 Editing (press E):
 

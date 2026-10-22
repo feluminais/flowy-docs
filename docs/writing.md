@@ -197,6 +197,15 @@ steps:
 
 What changed: the sender is the subject in every step, the endpoint moved into More, the hold is something the Order API does to Stripe rather than something Stripe does, the event step says nobody is waited for, and each step says what passes. The last step's text is in double quotes because it holds a comma (the last rule above).
 
+## Write a comparison note
+
+A pair of flows or runs can carry a note that says what the pair shows. The format is in [the guide](guide/compare.md#the-note).
+
+- **Say what differs and why it matters.** "Stripe returned the money and Orders DB didn't answer, so the order stays marked paid." gives a reader the difference before they look for it. "Compares two flows." gives nothing.
+- **Say which side is which.** The newer one is on the right. "On the right, what support sees; on the left, the day Orders DB is down." saves the reader working it out.
+- **Use the numbers the pair holds.** "Fleet DB reads 99% where the sum reads 93%." is checkable. "Much busier" is not.
+- **Keep it to a few lines.** A note longer than that belongs in More on the newer flow or in a document the shape links to.
+
 ## Failure modes
 
 A failure analysis ranks how the system breaks, for someone deciding what to fix first. The format is in

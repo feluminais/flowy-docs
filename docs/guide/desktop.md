@@ -24,6 +24,9 @@ step) with a step's animation, **R** to play it again and **P** to let the flow 
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a shape that sits
 beside the one you're in slides across instead of zooming in.** It doesn't have the browser's YAML tab (**Y**) yet.
 
+It compares too: the Compare button on a flow row and on the player card, **C** and **X**, Side by side and Swap, the marks, the note and the tag all work as in the
+browser, on flows and on runs. See [Compare](compare.md#in-the-desktop-app) for what differs.
+
 The links in a shape's panel open on your computer. A web address opens in the browser, a folder in the file explorer, and a file in your
 default app if it is a document (Markdown, text, PDF, a common image). Any other file, such as a script or a program, is shown in its
 folder and not run. A small folder button beside each file shows it in its folder. **File › Open Files With** picks an app of your own to

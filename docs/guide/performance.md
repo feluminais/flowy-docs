@@ -172,6 +172,9 @@ number, opens at the place the tab opens at. In the desktop app `--at 800,400` p
 Plum's [together](../demo/flowy/perf/together.yaml) adds customer orders and courier pings, and [together-measured](../demo/flowy/perf/together-measured.yaml) tests them at once. The showcase has
 [added](../showcase/flowy/perf/added.yaml) and [together-grid](../showcase/flowy/perf/together-grid.yaml).
 
+**Comparing runs.** **Compare** (**C**) under the run's name opens it beside another run, side by side or swapped, and **Link with** records the pair in the run's file as a `compare` tag; **Unlink** takes it away.
+Plum's [together-measured](../demo/flowy/perf/together-measured.yaml) is linked to [together](../demo/flowy/perf/together.yaml), and the note says what the difference is. See [Compare](compare.md).
+
 **What to remember.** This is a replay. Flowy never predicts a load nobody tested, so the slider stops at the highest one. How
 strained a shape looks is its `util`, or its failure rate counted twenty times (5% failing is as bad as full), whichever is
 worse. A line can pass behind a shape that isn't one of its ends, or under a label, and its dots keep going there as faint, smaller
