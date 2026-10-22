@@ -24,7 +24,7 @@ A `callback` takes no outcome. The step card says the outcome in a few words, an
 "Taken by Café wifi proxy", "Sent twice", "Delayed: Cold start", "30% lost". With reduced motion nothing moves, and the cross, the bar, the clock,
 the marker and the reason stay.
 
-Plum has a flow for each: [Courier pings are lost](../demo/flowy/flows/courier-pings-lost.yaml), [Mapbox turns the travel times away](../demo/flowy/flows/mapbox-rate-limit.yaml), [Hotel wifi takes the order](../demo/flowy/flows/hotel-wifi-takes-order.yaml), [A double tap sends the order twice](../demo/flowy/flows/order-sent-twice.yaml) and [Dispatch hears about an order late](../demo/flowy/flows/events-arrive-late.yaml). [Stripe reports a charge](../demo/flowy/flows/stripe-webhook.yaml) is a callback that something outside set off.
+Plum has a flow for each: [Courier pings are lost](../demo/flowy/flows/courier-pings-lost.yaml), [Mapbox turns the travel times away](../demo/flowy/flows/mapbox-rate-limit.yaml), [Hotel wifi takes the order](../demo/flowy/flows/hotel-wifi-takes-order.yaml), [A double tap sends the order twice](../demo/flowy/flows/order-sent-twice.yaml) and [Dispatch hears about an order late](../demo/flowy/flows/events-arrive-late.yaml). [Nobody accepts the order](../demo/flowy/flows/nobody-accepts.yaml) is a call that times out, and [The carrier drops the SMS](../demo/flowy/flows/sms-dropped.yaml) a message lost on the way to a customer. [Stripe reports a charge](../demo/flowy/flows/stripe-webhook.yaml) is a callback that something outside set off.
 
 These keys go inside `animation`, next to `outcome`:
 
@@ -168,7 +168,7 @@ A shape is Running unless a flow says otherwise. A step can say that a shape is 
 | Degraded | Up but not well | A slow pulse in the warning colour, with a warning triangle |
 
 The file holds the lowercase word. A step's `states` maps shape ids to states. Plum's
-[stripe-outage](../demo/flowy/flows/stripe-outage.yaml) uses all six:
+[stripe-outage](../demo/flowy/flows/stripe-outage.yaml) uses all six, and [Orders DB fails over](../demo/flowy/flows/orders-db-fails-over.yaml) is a shorter one:
 
 ```yaml
 name: Stripe goes down and comes back
