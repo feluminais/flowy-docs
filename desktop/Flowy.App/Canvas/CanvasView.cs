@@ -505,14 +505,53 @@ internal sealed class CanvasView : Border
     }
 
     /// <summary>The bounding box of everything drawn: the boxes, and the frame around them.</summary>
-    private Flowy.Core.Rect? Content()
+    private Flowy.Core.Rect? Content() => ContentOf(_scene);
+
+    private static Flowy.Core.Rect? ContentOf(Scene? scene)
     {
-        if (_scene is null || _scene.Boxes.Count == 0) return null;
-        var rects = _scene.Boxes.Select(b => b.Rect).ToList();
-        if (_scene.Frame is { } frame) rects.Add(frame);
+        if (scene is null || scene.Boxes.Count == 0) return null;
+        var rects = scene.Boxes.Select(b => b.Rect).ToList();
+        if (scene.Frame is { } frame) rects.Add(frame);
         var x = rects.Min(r => r.X);
         var y = rects.Min(r => r.Y);
         return new Flowy.Core.Rect(x, y, rects.Max(r => r.Right) - x, rects.Max(r => r.Bottom) - y);
+    }
+
+    // ---- swapping the canvas between two diagrams (see SwapStage) ----------------------------------------------------
+
+    /// <summary>The viewport a fit would give <paramref name="scene"/> (as the canvas is sized and padded now), or null when it has nothing or the canvas no size yet: where a swap takes the camera.</summary>
+    public Viewport? FitOf(Scene scene) =>
+        ContentOf(scene) is { } bounds && base.Bounds.Width > 0 && base.Bounds.Height > 0 ? Camera.Fit(bounds, base.Bounds.Width, base.Bounds.Height, FitRoom()) : null;
+
+    /// <summary>Puts a box at a place without touching the scene: a swap glides the boxes, frame by frame. A fit, a click or the lines see the scene as it was set.</summary>
+    public void PlaceBox(string id, double x, double y)
+    {
+        if (!_boxes.TryGetValue(id, out var box)) return;
+        Avalonia.Controls.Canvas.SetLeft(box, x);
+        Avalonia.Controls.Canvas.SetTop(box, y);
+    }
+
+    /// <summary>How much of a box shows, 0 to 1 (a swap fades boxes in and out). It is a mask, so a box that is already faint for being dimmed or outside stays so.</summary>
+    public void SetBoxPresence(string id, double presence)
+    {
+        if (_boxes.TryGetValue(id, out var box)) box.Presence = presence;
+    }
+
+    /// <summary>How much of the lines, their labels and the frame show, 0 to 1.</summary>
+    public double LinesOpacity
+    {
+        get => _back.Opacity;
+        set => _back.Opacity = value;
+    }
+
+    /// <summary>The boxes' presence and the lines' opacity, for the tests.</summary>
+    internal IReadOnlyDictionary<string, double> BoxPresence => _boxes.ToDictionary(b => b.Key, b => b.Value.Presence);
+
+    /// <summary>Puts everything a swap faded back: every box fully there, and the lines. Nothing else about the scene changes.</summary>
+    public void ClearSwap()
+    {
+        foreach (var box in _boxes.Values) box.Presence = 1;
+        _back.Opacity = 1;
     }
 
     /// <summary>How much room a fit leaves at the bottom for a player card, when it is not the usual 200 pixels: a pane of a comparison is short, and a card that size would leave no room for the diagram.</summary>

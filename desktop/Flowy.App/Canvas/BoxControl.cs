@@ -566,6 +566,24 @@ internal sealed class BoxControl : Grid
     /// <summary>What a test can look at: whether the strain outline is on, and the number of what is waiting (null when none are).</summary>
     internal (bool Strained, string? Queue) PerfShown => (Classes.Contains("strained"), _queue.IsVisible ? _queueText.Text : null);
 
+    private double _presence = 1;
+
+    /// <summary>
+    /// How much of the box shows, 0 to 1: a swap fades boxes in and out. It is a mask over the whole box rather than its Opacity, which the box's own classes set (dim and outside
+    /// boxes are faint by style), so a box that fades in is as faint as it is meant to be once it has.
+    /// </summary>
+    public double Presence
+    {
+        get => _presence;
+        set
+        {
+            value = Math.Clamp(value, 0, 1);
+            if (value == _presence) return;
+            _presence = value;
+            OpacityMask = value >= 1 ? null : new SolidColorBrush(Colors.Black, value);
+        }
+    }
+
     /// <summary>Called by the canvas as the selection changes.</summary>
     public void SetSelected(bool selected) => Classes.Set("selected", selected);
 
