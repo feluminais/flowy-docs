@@ -50,10 +50,10 @@ export const compareOff = (model: Model, editing: boolean): string | undefined =
 /** The first flow `id` is linked to that is there, or undefined: what C opens beside the flow playing. */
 export const firstLinked = (model: Model, id: string): string | undefined => choicesFor(model, {}, 'flow', id).linked.find(c => !c.missing)?.id
 
-/** The comparison an address names, side by side whatever mode it asked for (Swap is not built yet). `unplayable` when a flow of it is not there or can't play. */
+/** The comparison an address names, in the mode it asked for. `unplayable` when a flow of it is not there or can't play. */
 export function fromAddress(model: Model, named: Compare | undefined): { compare?: Compare; unplayable?: boolean } {
   if (named === undefined || named.kind !== 'flow') return {}
-  return playable(model, named.a) && playable(model, named.b) ? { compare: { ...named, mode: 'side' } } : { unplayable: true }
+  return playable(model, named.a) && playable(model, named.b) ? { compare: named } : { unplayable: true }
 }
 
 /** The two sides the other way round. */

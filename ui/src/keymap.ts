@@ -19,7 +19,8 @@ export type KeyState = {
   navigatorOpen: boolean
   navigatorUsed: boolean // the last click or key was in the navigator
   flow: boolean // a flow is playing
-  compare: boolean // two flows are side by side: the keys of a flow go to the pane last clicked
+  compare: boolean // two flows are open: side by side the keys of a flow go to the pane last clicked, swapped to the flow on show
+  swap: boolean // the two flows are in Swap, one canvas flipping between them
   halfStep: boolean // a step being recorded has its first end
   panel: boolean // a panel on the right is open, or several shapes are picked
   inside: boolean // not at the top level
@@ -44,6 +45,8 @@ export type KeyActions = {
   /** Compare on and off: close the comparison, or open it beside the flow playing (the picker when it has no linked flow). */
   compare(): void
   closeCompare(): void
+  /** In Swap: flip the canvas to the other flow. */
+  swap(): void
   clearStep(): void
   closePanel(): void
   up(): void
@@ -86,7 +89,7 @@ export type HelpGroupId = 'reading' | 'flows' | 'performance' | 'failures' | 'ed
 type Help = { keys?: string; text: string } // `keys` is the entry's own when left out
 
 export type KeyId =
-  | 'undo-move' | 'escape' | 'perf-step' | 'perf-ends' | 'perf-ramp' | 'failure-step' | 'flow-step' | 'flow-ends' | 'flow-play' | 'flow-replay' | 'compare'
+  | 'undo-move' | 'escape' | 'perf-step' | 'perf-ends' | 'perf-ramp' | 'failure-step' | 'flow-step' | 'flow-ends' | 'flow-play' | 'flow-replay' | 'compare' | 'swap'
   | 'enter' | 'shortcuts' | 'search' | 'fit' | 'flows' | 'explorer' | 'yaml' | 'perf' | 'failures' | 'edit' | 'add' | 'delete' | 'select-all' | 'redo' | 'undo' | 'up'
 
 export type Entry = {
@@ -191,6 +194,13 @@ export const KEYMAP: readonly Entry[] = [
     when: c => tap(c, 'c') && (c.s.flow || c.s.compare || c.s.editing),
     run: c => c.act.compare(),
     help: { flows: { text: 'Compare with another flow, or close the comparison' } },
+  },
+  // Only in Swap: side by side the key is left to the browser.
+  {
+    id: 'swap', keys: 'X',
+    when: c => tap(c, 'x') && c.s.swap,
+    run: c => c.act.swap(),
+    help: { flows: { text: 'Swap to the other flow of a comparison' } },
   },
   {
     id: 'enter', keys: 'Enter',
@@ -315,7 +325,7 @@ export const HELP_GROUPS: { id: HelpGroupId; title: string }[] = [
 /** The order of each group's rows. A row that is not a key (a click, a drag) is written out here. */
 const HELP_ORDER: Record<HelpGroupId, (KeyId | [string, string])[]> = {
   reading: ['enter', 'escape', 'up', 'search', 'fit', 'flows', 'explorer', 'yaml', 'perf', 'failures', 'shortcuts'],
-  flows: ['flow-step', 'flow-ends', 'flow-play', 'flow-replay', 'compare', 'escape'],
+  flows: ['flow-step', 'flow-ends', 'flow-play', 'flow-replay', 'compare', 'swap', 'escape'],
   performance: ['perf-step', 'perf-ends', 'perf-ramp', 'escape'],
   failures: ['failure-step'],
   editing: [
