@@ -1,3 +1,5 @@
+import { compareOf } from './compare.ts'
+import type { CompareTag } from './compare.ts'
 import { customIcons } from './look.ts'
 import { isMap } from './text.ts'
 import type { Analysis, Connection, Flow, Model } from './model.ts'
@@ -134,6 +136,27 @@ const linesChanged: Detector = (before, after) => {
   return `Removed ${gone.length} lines`
 }
 
+/**
+ * What a change of the `compare` tag of the flow `id` (the newer, which holds it) did, in a few words: linked, unlinked or noted. `was` and `now` are the tag before and after;
+ * `nameOf` gives the name the flow goes by. Undefined when the tag did not change.
+ */
+function compareLabel(was: CompareTag | undefined, now: CompareTag | undefined, id: string, nameOf: (id: string) => string): string | undefined {
+  const name = (key: string) => cut(nameOf(key))
+  if (was && !now) return `Unlinked ${name(id)}`
+  if (!now) return undefined
+  if (!was || was.with !== now.with) return `Linked ${name(now.with)} with ${name(id)}`
+  if (was.note === now.note) return undefined
+  const pair = `${name(now.with)} and ${name(id)}`
+  return now.note === undefined ? `Cleared the note on ${pair}` : `Noted ${pair}`
+}
+
+/** When the only difference between two versions of a flow is its `compare` tag, the link that makes. The holder is the newer flow, `with` the older. */
+function tagEdit(before: Model, after: Model, id: string): string | undefined {
+  const [b, a] = [before.flows[id], after.flows[id]]
+  if (canon({ ...b, compare: undefined }) !== canon({ ...a, compare: undefined })) return undefined
+  return compareLabel(compareOf(b.compare), compareOf(a.compare), id, key => after.flows[key]?.name || key)
+}
+
 const flowsChanged: Detector = (before, after) => {
   const flowName = (m: Model, id: string) => cut(m.flows[id]?.name || id)
   const changes: string[] = []
@@ -143,7 +166,8 @@ const flowsChanged: Detector = (before, after) => {
     else if (canon(before.flows[id]) !== canon(after.flows[id])) {
       const onlyTheName = canon({ ...before.flows[id], name: '' }) === canon({ ...after.flows[id], name: '' })
       const state = stateEdit(before.flows[id], after.flows[id])
-      changes.push(onlyTheName
+      const tag = tagEdit(before, after, id)
+      changes.push(tag !== undefined ? tag : onlyTheName
         ? `Renamed the flow ${flowName(before, id)} to ${flowName(after, id)}`
         : state === undefined ? `Changed the ${flowName(after, id)} flow` : state.state === undefined ? `Cleared ${nameOf(before, after, state.id)}'s state` : `Set ${nameOf(before, after, state.id)} to ${STATE_LABELS[state.state]}`)
     }
