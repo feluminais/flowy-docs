@@ -57,10 +57,52 @@ const failed = (what: string, file: string, reply: Reply) => `Couldn't ${what} $
  */
 export type Undo = { file: string; data: unknown; now: unknown; version: string | null }[]
 
+/** One file of a batch: what to write, the version it must still have, and what to put back if the batch fails. */
+type Step = { file: string; data: unknown; version: string | null; revert: unknown }
+
+/** What a batch came to: the files it wrote (each with the version it has now), and why it stopped, if it did. */
+type Batch = { written: Undo; failure?: { file: string; reply: Reply }; stuck: Undo }
+
+/**
+ * Writes the files of one edit in order, and when one fails puts back the ones already written, newest first, so the edit is never half done.
+ * `written` is then empty. A file that can't be put back (it changed since, or the server says no) is `stuck`: it holds the new text, and
+ * `written` is just those.
+ */
+async function writeBatch(transport: Transport, steps: readonly Step[]): Promise<Batch> {
+  const written: Undo = []
+  for (const { file, data, version, revert } of steps) {
+    const reply = await write(transport, file, data, version).catch((e): Reply => ({ status: 0, body: { error: text(e) } })) // a transport that throws is a failed write too
+    if (!ok(reply)) return { ...(await putBack(transport, written)), failure: { file, reply } }
+    written.unshift({ file, data: revert, now: data, version: versionOf(reply) })
+  }
+  return { written, stuck: [] }
+}
+
+/** Puts back every file of `written` (newest first). The ones that can't be put back are `stuck`, and `written` again. */
+async function putBack(transport: Transport, written: Undo): Promise<{ written: Undo; stuck: Undo }> {
+  const stuck: Undo = []
+  for (const w of written) {
+    const reply = await write(transport, w.file, w.data, w.version).catch((): Reply => ({ status: 0, body: {} }))
+    if (!ok(reply)) stuck.push(w)
+  }
+  return { written: stuck, stuck }
+}
+
+/** What to add to a failure when some files could not be put back. */
+const notPutBack = (why: string, stuck: Undo): string =>
+  stuck.length === 0 ? why : `${/[.!?]$/.test(why) ? why : `${why}.`} ${stuck.map(s => s.file).join(', ')} was saved first and could not be put back.`
+
 const stale = (word: 'undo' | 'redo') =>
   `Can't ${word}: this changed since, outside this page or in another tab. Nothing was ${word === 'undo' ? 'undone' : 'redone'}.`
 export const UNDO_STALE = stale('undo')
 export const REDO_STALE = stale('redo')
+
+/** Tells the history what a saved edit did and hands `onSaved` how to undo it, with the label. */
+async function record(transport: Transport, model: Model, next: Model, changes: { file: string }[], undo: Undo, onSaved?: (undo: Undo, label: string) => void): Promise<void> {
+  const label = describeEdit(model, next) ?? fallbackLabel(changes.map(c => c.file))
+  await transport.history?.record(label)
+  onSaved?.(undo, label)
+}
 
 /**
  * One canvas edit, done the way MCP does it: read the files fresh, apply `op`, refuse new problems,
@@ -74,22 +116,19 @@ export async function saveEdit(op: (model: Model) => Model, via: Via = '', onSav
     const { model, versions } = await fetchModel(transport)
     const next = op(model)
     refuseNewProblems(model, next)
-    const undo: Undo = []
     const changes = changesBetween(model, next)
-    for (const { file, data } of changes) {
-      const reply = await write(transport, file, data, versions[file] ?? null)
+    // A flow or analysis that didn't exist goes away again. model.yaml and layout.yaml can't be deleted, so they go back to empty.
+    const steps = changes.map(({ file, data }): Step => ({ file, data, version: versions[file] ?? null, revert: versions[file] == null && isRemovableFile(file) ? null : fileData(model, file) }))
+    const batch = await writeBatch(transport, steps)
+    const undo = batch.written
+    if (batch.failure) {
+      const { file, reply } = batch.failure
       // A 409 with nothing said is a file that moved on since it was read. One that says why (a file that can't be read, an analysis in the way) is told as it is.
-      if (reply.status === 409 && errorOf(reply) === undefined) return CHANGED_OUTSIDE
-      if (!ok(reply)) return failed('save', file, reply)
-      // A flow or analysis that didn't exist goes away again. model.yaml and layout.yaml can't be deleted, so they go back to empty.
-      const before = versions[file] == null && isRemovableFile(file) ? null : fileData(model, file)
-      undo.unshift({ file, data: before, now: data, version: versionOf(reply) })
+      const why = reply.status === 409 && errorOf(reply) === undefined ? CHANGED_OUTSIDE : failed('save', file, reply)
+      if (undo.length) await record(transport, model, next, changes, undo, onSaved)
+      return notPutBack(why, batch.stuck)
     }
-    if (undo.length) {
-      const label = describeEdit(model, next) ?? fallbackLabel(changes.map(c => c.file))
-      await transport.history?.record(label)
-      onSaved?.(undo, label)
-    }
+    if (undo.length) await record(transport, model, next, changes, undo, onSaved)
   } catch (e) {
     return text(e)
   }
@@ -104,17 +143,19 @@ export async function saveEdit(op: (model: Model) => Model, via: Via = '', onSav
 export async function undoEdit(undo: Undo, via: Via = '', onDone?: (back: Undo) => void, word: 'undo' | 'redo' = 'undo', label?: string): Promise<string | undefined> {
   try {
     const transport = transportOf(via)
-    const back: Undo = []
-    for (const { file, data, now, version } of undo) {
-      const reply = await write(transport, file, data, version)
+    const batch = await writeBatch(transport, undo.map(({ file, data, now, version }): Step => ({ file, data, version, revert: now })))
+    if (batch.failure) {
+      const { file, reply } = batch.failure
       // The server answers 409 both for a file that moved on and, with an error, while any file can't be read.
+      let why: string
       if (reply.status === 409) {
         const error = errorOf(reply)
-        return error === undefined ? stale(word) : `Can't ${word} while a file can't be read: ${error}`
-      }
-      if (!ok(reply)) return failed(word, file, reply)
-      back.unshift({ file, data: now, now: data, version: versionOf(reply) })
+        why = error === undefined ? stale(word) : `Can't ${word} while a file can't be read: ${error}`
+      } else why = failed(word, file, reply)
+      // Files that could not be put back stay as the failed attempt left them; the entry is no longer a clean undo, so it hands over no redo.
+      return notPutBack(why, batch.stuck)
     }
+    const back = batch.written
     if (label !== undefined) await transport.history?.record(`${word === 'undo' ? 'Undid' : 'Redid'}: ${label}`.slice(0, MAX_LABEL))
     onDone?.(back)
   } catch (e) {

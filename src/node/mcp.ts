@@ -18,7 +18,7 @@ import { STATE_NAMES } from '../core/states.ts'
 import { GROUP_KINDS } from '../core/structure.ts'
 import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
 import { blockedMessage, firstBlocked, firstUnreadable } from './commit.ts'
-import { loadDir, loadReport, loadRuns, missingPaths, saveFile, VersionConflict } from './files.ts'
+import { loadDir, loadReport, loadRuns, missingPaths, saveFiles, VersionConflict } from './files.ts'
 import type { Report } from './files.ts'
 import { registerGuidance } from './guidance.ts'
 import type { History } from './history.ts'
@@ -157,7 +157,6 @@ export function createMcpServer(dir: string, history?: History): McpServer {
             return fail(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}\n${known.length > 0 ? `The runs in perf/ are: ${known.join(', ')}.` : 'There are no load-test runs in perf/, so leave run out.'}`)
           }
         }
-        // Every op changes at most one file today, so a failure can't leave a half-applied multi-file change.
         const changes = changedFiles(model, next)
         // An analysis file that was skipped because it can't be read holds someone's work: it is never replaced or deleted.
         const blocked = firstBlocked(loaded, changes.map(([rel]) => rel))
@@ -166,7 +165,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         const unreadable = firstUnreadable(changes)
         if (unreadable) return fail(`Refused, nothing saved. The result couldn't be read back: ${unreadable.error instanceof Error ? unreadable.error.message : String(unreadable.error)}`)
         await history?.ensureCurrent('write')
-        for (const [rel, text] of changes) await saveFile(dir, rel, text, versions[rel] ?? null)
+        await saveFiles(dir, changes.map(([rel, text]) => ({ rel, text, expected: versions[rel] ?? null }))) // all or none
         await history?.record(label, 'ai')
         return ok(typeof done === 'function' ? done(model) : done)
       } catch (e) {

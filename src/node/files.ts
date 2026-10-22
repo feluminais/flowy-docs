@@ -251,6 +251,33 @@ export async function saveFile(dir: string, rel: string, text: string | null, ex
   return queued(dir, rel, () => saveNow(dir, rel, text, expected ?? null))
 }
 
+/** One file of a change to several: the text to write (null deletes it) and the version it must still have (null: it must not exist yet). */
+export type FileWrite = { rel: string; text: string | null; expected: string | null | undefined }
+
+/**
+ * Write the files of one change, all or none. Every file's version is checked first, so a conflict writes nothing. If a write then fails
+ * anyway (the disk, a path that may not be written), the files already written are put back, newest first, and the failure is thrown as it was.
+ * A file that can't be put back is named in the error, since it then holds the new text.
+ */
+export async function saveFiles(dir: string, writes: readonly FileWrite[]): Promise<void> {
+  const olds = new Map<string, string | null>()
+  for (const w of writes) {
+    const current = await readText(dir, w.rel)
+    const version = current === null ? null : hashText(current)
+    if (version !== (w.expected ?? null)) throw new VersionConflict(w.rel, version)
+    olds.set(w.rel, current)
+  }
+  const done: { rel: string; version: string | null }[] = []
+  try {
+    for (const w of writes) done.push({ rel: w.rel, version: await saveFile(dir, w.rel, w.text, w.expected) })
+  } catch (e) {
+    const stuck: string[] = []
+    for (const d of done.reverse()) await saveFile(dir, d.rel, olds.get(d.rel) ?? null, d.version).catch(() => stuck.push(d.rel))
+    if (stuck.length === 0) throw e
+    throw new Error(`${e instanceof Error ? e.message : String(e)}. ${stuck.join(', ')} was saved first and could not be put back.`)
+  }
+}
+
 /**
  * Like saveFile, for bytes: the file's version is the hash of its bytes, so a file that is not UTF-8 can be replaced (saveFile would
  * refuse to read it). Used to put a past version of the files back. Same queue, same VersionConflict.
