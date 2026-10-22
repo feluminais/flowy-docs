@@ -77,5 +77,5 @@ From the root of the repo you want to document, once the clone is built:
 claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
-Any other MCP client takes that command over stdio. Then ask Claude "map this repo into Flowy". [The guide](guide/claude.md#let-claude-build-it)
+Any other MCP client takes that command over stdio. Then ask Claude "map this repo into Flowy". [The guide](guide/ai.md#let-an-ai-build-it)
 says what it writes and lists the tools.
