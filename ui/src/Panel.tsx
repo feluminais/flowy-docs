@@ -10,8 +10,9 @@ import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } fr
 import { encodePath, isRepoPath, isWebAddress } from '../../src/core/paths.ts'
 import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
-import { deleteFlow, deleteObject, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeGroup, removeStep, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
+import type { Target } from '../../src/core/dependents.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.ts'
 import { nameOf, parentOf } from '../../src/core/views.ts'
@@ -122,8 +123,11 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
 
 type Lines = { onPick: (id: string) => void; onHover: (line?: string) => void }
 
+/** How a panel deletes: the app looks at what depends on the targets, and either deletes at once or asks (see UsedBy). `then` runs once they are gone. */
+export type Delete = (targets: Target[], then?: () => void) => void
+
 /** An object's description, code, links, source and connections, or in edit mode a form for its name, type, tech, description, code, source and links. */
-export function ObjectPanel({ model, id, editing, problems, codeBase, state, run, onClose, onPick, onHover }: Common & Lines & { id: string; editing: boolean; problems: Problem[]; codeBase?: string; state?: StateMark }) {
+export function ObjectPanel({ model, id, editing, problems, codeBase, state, run, onClose, onPick, onHover, onDelete }: Common & Lines & { onDelete: Delete; id: string; editing: boolean; problems: Problem[]; codeBase?: string; state?: StateMark }) {
   const object = getObject(model, id)
   if (!object) return null
   const save = (fields: Omit<ObjectInput, 'id'>) => run(m => putObject(m, { id, ...fields }))
@@ -183,13 +187,13 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, state, run
       </form>
       <LineList model={model} id={id} onPick={onPick} onHover={onHover} />
       <p className="muted">id: {id}</p>
-      <button className="danger" onClick={() => void run(m => deleteObject(m, id)).then(saved => saved && onClose())}><Trash size={16} />Delete</button>
+      <button className="danger" onClick={() => onDelete([{ object: id }], onClose)}><Trash size={16} />Delete</button>
     </Panel>
   )
 }
 
 /** The connections one line stands for (a zoomed-out line can merge several), each with its label. */
-export function LinePanel({ model, view, from, to, editing, problems, run, onClose }: Common & { view: string; from: string; to: string; editing: boolean; problems: Problem[] }) {
+export function LinePanel({ model, view, from, to, editing, problems, run, onClose, onDelete }: Common & { onDelete: Delete; view: string; from: string; to: string; editing: boolean; problems: Problem[] }) {
   const lines = connectionsOf(model, view, from, to)
   if (lines.length === 0) return null
   return (
@@ -216,7 +220,7 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
             {editing ? (
               <form className="form" onSubmit={e => e.preventDefault()}>
                 <Field label="Label" value={c.label ?? ''} onSave={label => run(m => relabel(m, which, label))} />
-                <button type="button" className="danger" onClick={() => void run(m => removeConnection(m, which))}><Trash size={16} />Delete</button>
+                <button type="button" className="danger" onClick={() => onDelete([{ line: which }])}><Trash size={16} />Delete</button>
               </form>
             ) : <p>{c.label || <span className="muted">No label</span>}</p>}
             <ProblemList problems={problems.filter(p => p.connection === index)} />

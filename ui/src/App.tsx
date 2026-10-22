@@ -6,7 +6,9 @@ import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import { getObject, LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
 import type { LineStyle, Model, Step } from '../../src/core/model.ts'
-import { connect, deleteObjects, forgetLayout, placeBoxes, removeConnection, setLines } from '../../src/core/ops.ts'
+import { dependents, needsDecision } from '../../src/core/dependents.ts'
+import type { Target } from '../../src/core/dependents.ts'
+import { connect, deleteWith, forgetLayout, placeBoxes, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { animationOf, followsLanding, leavesMarks } from '../../src/core/animation.ts'
 import { captionOf, progressOf } from '../../src/core/captions.ts'
@@ -44,6 +46,9 @@ import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, NavTitle, 
 import { PerfBody } from './Performance.tsx'
 import { clampPos, dialTop, settingOf, starterRun, stepFrom, top } from './perfview.ts'
 import { AddPanel, LinePanel, ObjectPanel, OverviewPanel } from './Panel.tsx'
+import type { Delete } from './Panel.tsx'
+import { UsedBy } from './UsedBy.tsx'
+import { doneText, planOf } from './usedby.ts'
 import { Recorder } from './Recorder.tsx'
 import { PickedBar } from './PickedBar.tsx'
 import { addsToSelection, banded, keepsSelection, toggled } from './selection.ts'
@@ -80,6 +85,7 @@ type Side =
   | { kind: 'objects'; ids: string[] } // several shapes picked in edit mode, to move or delete together
   | { kind: 'line'; from: string; to: string }
   | { kind: 'add' }
+  | { kind: 'usedby'; targets: Target[]; back: Side | undefined } // what is waiting on the shapes or lines about to be deleted (see UsedBy)
   | ({ kind: 'flow' } & Recording)
 
 /** The panel for a set of shapes: none shows nothing, one is an ordinary click on it. */
@@ -136,6 +142,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     return m !== undefined && !drawnIn(model, named.view, m) ? homeView(model, m) : named.view
   })
   const [side, setSide] = useState<Side>()
+  const [flagged, setFlagged] = useState<string[]>([]) // the shapes the row of the Used by panel in focus names
   // The left-hand panel's tab (the navigator: Explorer, Flows, Performance, Failures or YAML), and whether the right-hand Details panel was opened from its rail. Details shows
   // `side`, or the level you are in, so a `side` opens it too. The Performance and Failures panels are tabs of the navigator too, and an address that names one opens on it.
   const [remembered] = useState(loadNav)
@@ -166,7 +173,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey } = usePlayer({ initialFlow: () => readHash(location.hash).flow })
   // Edit mode, the notice, the boxes being dragged and the runner every edit goes through (see useEditSession.ts).
   const session = useEditSession({ edit, undo, redo, restore, readOnly })
-  const { editing, notice, setNotice, moved, run, takeBack, bringBack, restoreVersion, clearMoved, didSomethingElse } = session
+  const { editing, notice, setNotice, announce, undoable, moved, run, takeBack, bringBack, restoreVersion, clearMoved, didSomethingElse } = session
   // What each box measured. React Flow throws a box's measurements away when it gets a node object
   // it hasn't seen, which every render here is, and its lines have nowhere to land until the browser
   // has measured it again: they'd blink away for a frame on every drag, click and hover.
@@ -292,11 +299,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     [failuresOpen, model, analysis, view, filter.band, partKey], // `part` is `partKey` in words
   )
   const litClass = (id: string) => (lit === undefined ? undefined : lit.fails.includes(id) ? 'fails' : lit.affects.includes(id) ? 'affected' : 'dim')
+  // While the Used by panel is open, the shapes about to go are outlined in red and the ones its focused row names in the accent colour.
+  const going = side?.kind === 'usedby' ? side.targets.flatMap(t => ('object' in t ? [t.object] : [])) : []
+  const usedClass = (id: string) => (going.includes(id) ? 'going' : flagged.includes(id) ? 'flagged' : undefined)
   // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.
   const nodes = graph.nodes.map(n => ({
     ...n,
     data: loadTraffic || failMarks || scrubbing ? { ...n.data, ...(loadTraffic ? { perf: loadTraffic.boxes[n.id] } : {}), ...(failMarks && Object.hasOwn(failMarks.boxes, n.id) ? { fail: failMarks.boxes[n.id] } : {}), ...(scrubbing ? { snap: true } : {}) } : n.data,
-    className: [n.className, litClass(n.id)].filter(Boolean).join(' ') || undefined,
+    className: [n.className, litClass(n.id), usedClass(n.id)].filter(Boolean).join(' ') || undefined,
     position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id),
   }))
   // Inside a box, a frame named after it wraps its own boxes and follows them while they're dragged.
@@ -506,14 +516,24 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     const id = e.target instanceof Element ? e.target.closest<HTMLElement>('.react-flow__node-box')?.dataset.id : undefined
     if (id !== undefined && !keepsSelection(side.ids, id, addsToSelection(e))) setSide(undefined)
   }
+  /** Deletes shapes or lines: at once when nothing depends on them (the notice says what went with them, and Undo is beside it), else the Used by panel opens to settle what does. */
+  const askDelete: Delete = (targets, then) => {
+    if (dependents(model, targets).some(needsDecision)) return setSide({ kind: 'usedby', targets, back: side })
+    const text = doneText(model, planOf(model, targets, {}), {}, targets)
+    void run(m => deleteWith(m, targets, [])).then(saved => {
+      if (!saved) return
+      announce(text)
+      then?.()
+    })
+  }
   const remove = () => {
-    // One edit for the lot, so one undo brings them all back, and a shape that can't go (it has things inside, or a flow uses it) stops them all.
-    if (side?.kind === 'object' || side?.kind === 'objects') void run(m => deleteObjects(m, chosen)).then(saved => saved && close())
+    // One edit for the lot, so one undo brings them all back.
+    if (side?.kind === 'object' || side?.kind === 'objects') return askDelete(chosen.map(object => ({ object })), close)
     if (side?.kind !== 'line') return
     const merged = connectionsOf(model, view, side.from, side.to)
     if (merged.length > 1) return setNotice(`This line stands for ${merged.length} connections. Delete them one at a time in the panel.`)
     const c = merged[0]?.connection
-    if (c) void run(m => removeConnection(m, { from: c.from, to: c.to, label: c.label ?? '' })).then(saved => saved && close())
+    if (c) askDelete([{ line: { from: c.from, to: c.to, label: c.label ?? '' } }], close)
   }
   const jump = (p: Problem) => {
     const spot = locate(model, p)
@@ -826,16 +846,25 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {notice && (
             <div className="notice" role="status">
               <span>{notice}</span>
+              {undoable && <button className="undo" onClick={() => void takeBack()}><Undo size={16} />Undo</button>}
               <button aria-label="Dismiss" onClick={() => setNotice(undefined)}><Close size={16} /></button>
             </div>
           )}
           {detailsOpen && (side?.kind === 'object' || (side === undefined && view !== ROOT)) && (
-            <ObjectPanel model={model} id={side?.kind === 'object' ? side.id : view} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={closeDetails} state={side?.kind === 'object' && Object.hasOwn(stateMarks, side.id) ? stateMarks[side.id] : undefined}
+            <ObjectPanel model={model} id={side?.kind === 'object' ? side.id : view} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={closeDetails} onDelete={askDelete} state={side?.kind === 'object' && Object.hasOwn(stateMarks, side.id) ? stateMarks[side.id] : undefined}
               onPick={id => setSide({ kind: 'object', id })} onHover={setHovered} />
           )}
           {detailsOpen && side === undefined && view === ROOT && <OverviewPanel totals={totals} onClose={closeDetails} />}
           {detailsOpen && side?.kind === 'line' && (
-            <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closeDetails} />
+            <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closeDetails} onDelete={askDelete} />
+          )}
+          {editing && side?.kind === 'usedby' && (
+            <UsedBy model={model} targets={side.targets} run={run} onFlag={setFlagged}
+              onDone={text => {
+                announce(text)
+                close()
+              }}
+              onCancel={() => setSide(side.back)} />
           )}
           {editing && side?.kind === 'objects' && <PickedBar count={side.ids.length} onDelete={remove} onClear={closeDetails} />}
           {detailsOpen && editing && side?.kind === 'add' && (

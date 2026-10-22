@@ -472,8 +472,9 @@ Editing (press E):
       again, change the name in `example/model.yaml` by hand, then Ctrl+Z: the notice says it
       changed since, and your hand edit stays.
 - [ ] Press N: the Add panel opens.
-- [ ] Select API and press Delete: the notice says it still contains auth and orders. Select
-      Cache and press Delete: it goes.
+- [ ] Select API and press Delete: the Used by panel opens, with auth and orders as rows, and API is outlined in red. Click a row: the shapes
+      it names are outlined. Press Esc: nothing changed. Press Delete again, then Enter twice: Remove all fills every row, the second
+      Enter deletes, and one Ctrl+Z brings everything back. Select Cache and press Delete: it goes at once, and the notice has an Undo button.
 - [ ] Select API, type `src/cli.ts` under Source and press Tab: `example/model.yaml` gets a
       `code` list with `src/cli.ts`. Clear the field and press Tab: `code` is gone.
 - [ ] Press New flow, name it, click Customer then Web app, type a step and press Enter. Add a
