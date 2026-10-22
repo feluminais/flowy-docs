@@ -6,6 +6,7 @@
   --edge: #a8a29e;
   --box: #ffffff;
   --accent: #2563eb;
+  --accent-ink: #1d4ed8; /* the accent as text on its own tint: a shade darker, so it reads at 4.5 to 1 */
   --warn-bg: #fef3c7;
   --warn-fg: #78350f;
   --warn: #d97706;
@@ -36,6 +37,7 @@
     --edge: #78716c;
     --box: #292524;
     --accent: #60a5fa;
+    --accent-ink: #60a5fa;
     --warn-bg: #451a03;
     --warn-fg: #fde68a;
     --warn: #f59e0b;
@@ -62,6 +64,7 @@
   --edge: #78716c;
   --box: #292524;
   --accent: #60a5fa;
+  --accent-ink: #60a5fa;
   --warn-bg: #451a03;
   --warn-fg: #fde68a;
   --warn: #f59e0b;
@@ -122,7 +125,7 @@ svg { flex: none; }
   background: var(--hover);
 }
 .bar > button:hover:not(:disabled) svg, .panel button:hover:not(:disabled, .close, .link) svg, .player-buttons button:hover:not(:disabled) svg, .picked-bar button:hover:not(:disabled, .danger) svg { color: var(--fg); }
-.bar > button[aria-pressed='true'] { background: var(--tint); color: var(--accent); font-weight: 600; }
+.bar > button[aria-pressed='true'] { background: var(--tint); color: var(--accent-ink); font-weight: 600; }
 .bar > button[aria-pressed='true'] svg { color: inherit; }
 .player-buttons button[aria-pressed='true'] { background: var(--tint); color: var(--accent); }
 .player-buttons button[aria-pressed='true'] svg { color: inherit; }
@@ -869,6 +872,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .perf .modelabel { align-self: flex-start; padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 12.5px; }
 .dial { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px 4px 12px; border-left: 3px solid transparent; border-radius: 4px; }
 .dial.active { border-left-color: var(--src, var(--accent)); background: color-mix(in srgb, var(--fg) 4%, transparent); }
+.dial.active .muted { color: color-mix(in srgb, var(--muted) 82%, var(--fg)); } /* on the tint, the plain muted grey falls just under 4.5 to 1 */
 .dialname { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .dial .loadnum strong { font-size: 22px; }
 .dial .slide { padding-bottom: 18px; }
