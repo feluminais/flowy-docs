@@ -6,7 +6,7 @@ desktop app and a browser can be open on one model at once.
 ## The desktop app
 
 Download the installer for your system from [Releases](https://github.com/feluminais/flowy-docs/releases), start it, and open a repo with
-**File › Open Folder** (Ctrl+O). It finds the repo's `flowy/` folder, draws it, and redraws it whenever a file changes. No repo handy?
+**File › Open Folder** (Ctrl+O). It finds the repo's `flowy/` folder, draws it, and redraws it whenever a file changes. When the repo has several, a Model picker in the top bar opens another one in its own window. No repo handy?
 **Help › Open the Demo** shows Plum. [The guide](guide/desktop.md#the-desktop-app) lists what the app does.
 
 Windows is where it has been built and tried. The macOS and Linux packages are built by the same workflow but haven't been run.
@@ -33,7 +33,8 @@ node /path/to/flowy-docs/dist/cli.js
 
 It prints a local address (port 4321, or the next free one) and opens it in your browser. The model lives in `./flowy`,
 which Flowy creates if it's missing. `--dir <folder>` uses another folder, `--port <number>` picks the port, and
-`--no-open` skips the browser. It does everything the app does, plus the commands below, each of which takes `--dir`:
+`--no-open` skips the browser. A repo with a model per system (`services/billing/flowy`, `services/dispatch/flowy`) shows every
+`flowy/` folder it finds, with a Model picker in the top bar. Repeat `--dir` to show only some. The other commands take one `--dir`. It does everything the app does, plus the commands below, each of which takes `--dir`:
 
 | Command | Does |
 | --- | --- |

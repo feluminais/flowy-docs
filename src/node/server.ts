@@ -76,16 +76,24 @@ function listen(server: Server, port: number): Promise<number> {
   })
 }
 
+/** One model the server shows: its folder and, where the server keeps one, its history. `id` is what `?model=` names. */
+export type Served = { id: string; name: string; where: string; dir: string; history?: History }
+
+/** A served model with what the server holds for it: the history API, the pages listening for its changes and the folder watcher. */
+type Host = { served: Served; steps?: HistoryApi; clients: Set<ServerResponse>; close: () => void }
+
 /**
  * The local server behind the canvas, on 127.0.0.1 only, at `port` or the next free one (0 = any).
  * `dir` is the flowy/ folder, created if missing so it can be watched. `ui` is the built canvas.
  * `history` turns on the step history: the routes under /api/history, recording of the page's edits and of changes made outside.
+ * `models` serves several folders instead: every /api route takes `?model=<id>`, and the first one is the default when it is left out.
  * `gateMs` is how long an edit the page never labels waits before it is recorded without one.
  */
-export async function startServer({ dir, ui, port, history, gateMs }: { dir: string; ui: string; port: number; history?: History; gateMs?: number }): Promise<Running> {
+export async function startServer({ dir, ui, port, history, gateMs, models }: { dir: string; ui: string; port: number; history?: History; gateMs?: number; models?: Served[] }): Promise<Running> {
   const uiDir = resolve(ui) // serveUi's containment check needs a normalized path
-  const clients = new Set<ServerResponse>()
-  const steps = history ? createHistoryApi(history, { gateMs }) : undefined
+  const hosts = (models ?? [{ id: '', name: '', where: '', dir, history }]).map<Host>(served => ({
+    served, steps: served.history ? createHistoryApi(served.history, { gateMs }) : undefined, clients: new Set(), close: () => undefined,
+  }))
   let actualPort = 0
 
   const server = createServer(async (req, res) => {
@@ -94,22 +102,29 @@ export async function startServer({ dir, ui, port, history, gateMs }: { dir: str
       if (req.headers.host !== `127.0.0.1:${actualPort}` && req.headers.host !== `localhost:${actualPort}`)
         return send(res, 403, { error: 'wrong Host header' })
       const url = new URL(req.url ?? '/', 'http://localhost')
-      if (req.method === 'GET' && url.pathname === '/api/state') return send(res, 200, await loadState(dir))
-      if (req.method === 'GET' && url.pathname === '/api/events') {
-        res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store' })
-        // Reconnect 1 s after flowy restarts. Writing at once also pushes the headers through proxies (Vite's dev server).
-        res.write('retry: 1000\n\n')
-        clients.add(res)
-        req.on('close', () => clients.delete(res))
-        return
+      if (req.method === 'GET' && url.pathname === '/api/models') return send(res, 200, hosts.map(({ served: { id, name, where } }) => ({ id, name, where })))
+      const asked = url.searchParams.get('model')
+      const host = asked === null ? hosts[0] : hosts.find(h => h.served.id === asked)
+      if (url.pathname.startsWith('/api/') && !host) return send(res, 404, { error: 'unknown model' })
+      if (host) {
+        const { served: { dir }, steps, clients } = host
+        if (req.method === 'GET' && url.pathname === '/api/state') return send(res, 200, await loadState(dir))
+        if (req.method === 'GET' && url.pathname === '/api/events') {
+          res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store' })
+          // Reconnect 1 s after flowy restarts. Writing at once also pushes the headers through proxies (Vite's dev server).
+          res.write('retry: 1000\n\n')
+          clients.add(res)
+          req.on('close', () => clients.delete(res))
+          return
+        }
+        if ((req.method === 'PUT' || req.method === 'DELETE') && url.pathname.startsWith('/api/file/')) {
+          // Browsers only let a page send a custom header to its own origin, so other sites can't write.
+          if (req.headers['x-flowy'] !== '1') return send(res, 403, { error: 'missing X-Flowy: 1 header' })
+          return await write(dir, req, res, url.pathname.slice('/api/file/'.length), steps)
+        }
+        const answer = await steps?.handle(req, url)
+        if (answer) return send(res, answer.status, answer.body)
       }
-      if ((req.method === 'PUT' || req.method === 'DELETE') && url.pathname.startsWith('/api/file/')) {
-        // Browsers only let a page send a custom header to its own origin, so other sites can't write.
-        if (req.headers['x-flowy'] !== '1') return send(res, 403, { error: 'missing X-Flowy: 1 header' })
-        return await write(dir, req, res, url.pathname.slice('/api/file/'.length), steps)
-      }
-      const answer = await steps?.handle(req, url)
-      if (answer) return send(res, answer.status, answer.body)
       if (url.pathname.startsWith('/api/')) return send(res, 404, { error: 'not found' })
       if (req.method === 'GET' || req.method === 'HEAD') return await serveUi(uiDir, res, url.pathname)
       send(res, 405, { error: 'method not allowed' })
@@ -119,19 +134,27 @@ export async function startServer({ dir, ui, port, history, gateMs }: { dir: str
     }
   })
 
-  await mkdir(dir, { recursive: true })
-  await steps?.opened() // the first look at a folder, or what changed while nothing was watching, is a step before the first request is answered
-  let timer: ReturnType<typeof setTimeout> | undefined
-  const watcher = watch(dir, { recursive: true }, (_event, name) => {
-    if (name?.endsWith('.tmp')) return // saveFile's temp files; the rename that follows is reported on its own
-    clearTimeout(timer)
-    timer = setTimeout(async () => {
-      // A change nobody labelled is recorded before the page hears of it, so the list it then asks for already has the step.
-      await steps?.filesChanged().catch(() => undefined)
-      for (const client of clients) client.write('data: changed\n\n')
-    }, 100)
-  })
-  watcher.on('error', e => console.error(`Stopped watching ${dir} (${e.message}). Restart flowy to get live updates.`))
+  for (const host of hosts) {
+    const { served: { dir }, steps, clients } = host
+    await mkdir(dir, { recursive: true })
+    await steps?.opened() // the first look at a folder, or what changed while nothing was watching, is a step before the first request is answered
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const watcher = watch(dir, { recursive: true }, (_event, name) => {
+      if (name?.endsWith('.tmp')) return // saveFile's temp files; the rename that follows is reported on its own
+      clearTimeout(timer)
+      timer = setTimeout(async () => {
+        // A change nobody labelled is recorded before the page hears of it, so the list it then asks for already has the step.
+        await steps?.filesChanged().catch(() => undefined)
+        for (const client of clients) client.write('data: changed\n\n')
+      }, 100)
+    })
+    watcher.on('error', e => console.error(`Stopped watching ${dir} (${e.message}). Restart flowy to get live updates.`))
+    host.close = () => {
+      watcher.close()
+      clearTimeout(timer)
+      steps?.close()
+    }
+  }
 
   for (let p = port; ; p++) {
     try {
@@ -139,7 +162,7 @@ export async function startServer({ dir, ui, port, history, gateMs }: { dir: str
       break
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code !== 'EADDRINUSE' || p === 0 || p >= port + 20) {
-        watcher.close()
+        for (const host of hosts) host.close()
         throw e
       }
     }
@@ -148,9 +171,7 @@ export async function startServer({ dir, ui, port, history, gateMs }: { dir: str
   return {
     port: actualPort,
     close: () => new Promise(done => {
-      watcher.close()
-      clearTimeout(timer)
-      steps?.close()
+      for (const host of hosts) host.close()
       server.close(() => done())
       server.closeAllConnections()
     }),

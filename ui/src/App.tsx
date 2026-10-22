@@ -61,6 +61,8 @@ import { cameFrom, closeFlow, followBack, openFlow as leaveFlow } from './trail.
 import type { Recording } from './Recorder.tsx'
 import { copyMessage } from '../../src/core/host.ts'
 import { saveState, vscode } from './host.ts'
+import { addressOf, fetchModels, labelOf, modelOfPage } from './models.ts'
+import type { ModelInfo } from './models.ts'
 import { useReveal } from './reveal.ts'
 import { useColorMode } from './hosttheme.ts'
 import { createHistoryStore } from './historystore.ts'
@@ -158,6 +160,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     setNavTab(t)
   }
   const [details, setDetails] = useState(false)
+  const [models, setModels] = useState<ModelInfo[]>([]) // the models of the repo the server shows; a switcher only when there are several
+  useEffect(() => {
+    if (live && !vscode) void fetchModels().then(setModels)
+  }, [live])
   const [navWidth, setNavWidth] = useState(remembered.navWidth ?? NAV) // dragged by the sashes on the panels' edges
   const [detailsWidth, setDetailsWidth] = useState(remembered.detailsWidth ?? PANEL)
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches // no ramp and no traffic: the colours, thickness, badges and numbers say it all
@@ -703,6 +709,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   return (
     <>
       <header className="bar">
+        {models.length > 1 && (
+          <select aria-label="Model" title="Switch to another model in this repo" value={modelOfPage() ?? models[0].id} onChange={e => location.assign(addressOf(e.target.value))}>
+            {models.map(m => <option key={m.id} value={m.id}>{labelOf(models, m)}</option>)}
+          </select>
+        )}
         <nav className="crumbs" aria-label="Zoom level">
           {chain(model, view).reverse().map((id, i) => (
             <Fragment key={id}>

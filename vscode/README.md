@@ -42,8 +42,8 @@ That command is for Claude Code; any other MCP client takes the same command ove
 [guide](https://github.com/feluminais/flowy-docs/blob/main/docs/guide.md) and
 [Writing good Flowy docs](https://github.com/feluminais/flowy-docs/blob/main/docs/writing.md).
 
-If a workspace has no `flowy/` folder at its top, the extension looks for one deeper in the tree, which suits a monorepo,
-and asks which to open when it finds several.
+The extension finds every `flowy/` folder in the workspace, which suits a monorepo with a model per system, and asks which to
+open when it finds several. A model at the top does not hide the ones below it.
 
 ## Good to know
 
