@@ -7,8 +7,10 @@ import { flowGroups, outline, outlineKey } from '../../src/core/outline.ts'
 import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
-import { Activity, Bolt, ChevronRight, Close, FileCode, Home, Info, Pencil, Play, Route, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
+import type { PickAt } from './ComparePicker.tsx'
+import { Activity, Bolt, ChevronRight, Close, Columns, FileCode, Home, Info, Link, Pencil, Play, Route, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
 import { keyOf } from './keymap.ts'
+import { KeyItem, KeyRow } from './legend.tsx'
 import { MAX_WIDTH, MIN_WIDTH } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { scrollToRow, visibleRows } from './window.ts'
@@ -129,11 +131,56 @@ function SearchField({ value, label, onChange, inputRef, onKeyDown }: {
   )
 }
 
+/** What the Compare button on a flow's row needs: why it is greyed out (if it is), the flow whose picker is open, and what a press does. The picker itself is drawn by the page. */
+export type RowCompare = { off?: string; open?: string; onCompare: (flowId: string, at: PickAt) => void }
+
+/** The attribute (with its value) that marks one flow's Compare button: the picker's `toggle`, so Esc gives the focus back to that button and a press on it is not "outside". */
+export const compareRowAttr = (flowId: string) => `data-compare-row="${CSS.escape(flowId)}"`
+
+/** Where the popover of the button goes: under the row, or above it when there is no room below, as wide as the navigator. */
+function anchorOf(button: HTMLElement): PickAt {
+  const panel = (button.closest('.navpanel') ?? button).getBoundingClientRect()
+  const row = button.getBoundingClientRect()
+  const place = { left: panel.left + 8, width: panel.width - 16 }
+  return row.bottom + 340 > window.innerHeight ? { ...place, bottom: window.innerHeight - row.top + 6 } : { ...place, top: row.bottom + 6 }
+}
+
+/** The mark of a flow that is in a pair. Its name is what a screen reader reads on the row. */
+function LinkedMark() {
+  return <span className="linked-mark" role="img" aria-label="Linked" title="Linked"><Link size={13} /></span>
+}
+
+/** The foot of a list that has a flow in a pair: the mark and its name. */
+function LinkedKey() {
+  return (
+    <div className="navfoot">
+      <KeyRow><KeyItem swatch={<span className="linked-mark"><Link size={13} /></span>}>Linked</KeyItem></KeyRow>
+    </div>
+  )
+}
+
+/**
+ * The Compare button of a flow's row. It shows on hover and on focus within the row but is always there and can always be focused; when a mode blocks it
+ * it is greyed out with the reason in its tooltip (aria-disabled, so the keyboard can still reach the reason).
+ */
+function RowCompareButton({ flow, name, compare }: { flow: string; name: string; compare: RowCompare }) {
+  return (
+    <button type="button" className="row-compare" data-compare-row={flow} aria-label={`Compare ${name}`}
+      aria-disabled={compare.off !== undefined} aria-pressed={compare.open === flow} title={compare.off ?? 'Compare with another flow'}
+      onClick={e => {
+        e.stopPropagation() // a row of the tree also opens on a click
+        if (compare.off === undefined) compare.onCompare(flow, anchorOf(e.currentTarget))
+      }}>
+      <Columns size={14} />
+    </button>
+  )
+}
+
 /**
  * Every flow in the documentation: first those that play in the level you are in, then all the others under the level they play in.
- * Picking one goes to its level and plays it (or, while editing, opens it for editing).
+ * Picking one goes to its level and plays it (or, while editing, opens it for editing). A flow in a pair has a link mark, and its partners are listed together.
  */
-export function FlowsTab({ model, view, editing, current, onOpen }: { model: Model; view: string; editing: boolean; current?: string; onOpen: (flow: FlowRef) => void }) {
+export function FlowsTab({ model, view, editing, current, compare, onOpen }: { model: Model; view: string; editing: boolean; current?: string; compare: RowCompare; onOpen: (flow: FlowRef) => void }) {
   const [query, setQuery] = useState('')
   const [closed, setClosed] = useState<ReadonlySet<string>>(new Set())
   const groups = useMemo(() => flowGroups(model, view, { editing }), [model, view, editing])
@@ -142,13 +189,19 @@ export function FlowsTab({ model, view, editing, current, onOpen }: { model: Mod
   const here = groups.here.filter(keep)
   const elsewhere = groups.elsewhere.map(g => ({ ...g, flows: g.flows.filter(keep) })).filter(g => g.flows.length > 0)
   const row = (f: FlowRef) => (
-    <button key={f.id} className="flow-row" aria-current={f.id === current} onClick={() => onOpen(f)}>
-      {editing ? <Pencil size={15} /> : <Play size={15} />}
-      <span className="name">{f.name}</span>
-      <span className="muted">{f.steps === 0 ? 'no steps yet' : plural(f.steps, 'step')}</span>
-    </button>
+    <div key={f.id} className="flow-item">
+      <button className="flow-row" aria-current={f.id === current} onClick={() => onOpen(f)}>
+        {editing ? <Pencil size={15} /> : <Play size={15} />}
+        <span className="name">{f.name}</span>
+        {f.linked && <LinkedMark />}
+        <span className="muted">{f.steps === 0 ? 'no steps yet' : plural(f.steps, 'step')}</span>
+      </button>
+      <RowCompareButton flow={f.id} name={f.name} compare={compare} />
+    </div>
   )
   const otherCount = groups.total - groups.here.length
+  // The key shows a mark only while one is on the list: a flow in a group that is folded away is not.
+  const listed = [...here, ...elsewhere.filter(g => needle !== '' || !closed.has(g.view)).flatMap(g => g.flows)]
   return (
     <>
       <SearchField value={query} label="Find a flow" onChange={setQuery}
@@ -180,6 +233,7 @@ export function FlowsTab({ model, view, editing, current, onOpen }: { model: Mod
         {needle !== '' && here.length === 0 && elsewhere.length === 0 && <p className="muted navnote">No flow matches “{query.trim()}”.</p>}
         {groups.total === 0 && <p className="muted navnote">No flows yet. New flow in the bar starts one.</p>}
       </div>
+      {listed.some(f => f.linked) && <LinkedKey />}
     </>
   )
 }
@@ -201,13 +255,15 @@ type ExplorerProps = {
   /** A click on a row, and Enter or a double-click on one. */
   onPick: (row: OutlineRow) => void
   onOpen: (row: OutlineRow) => void
+  /** The Compare button on a flow's row. */
+  compare: RowCompare
 }
 
 /**
  * The whole documentation as a tree: a summary line, a filter, and the rows (see core/outline.ts), drawn a window at a time so a model of
  * thousands of shapes stays smooth. It keeps the row you are on in view as you zoom on the canvas, but not while you are using the tree.
  */
-export function Explorer({ model, problems, editing, expanded, onToggle, here, selected, playing, onPick, onOpen }: ExplorerProps) {
+export function Explorer({ model, problems, editing, expanded, onToggle, here, selected, playing, onPick, onOpen, compare }: ExplorerProps) {
   const [filter, setFilter] = useState('')
   const [focus, setFocus] = useState<string>()
   const [scrollTop, setScrollTop] = useState(0)
@@ -242,6 +298,7 @@ export function Explorer({ model, problems, editing, expanded, onToggle, here, s
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return
     const key = KEYS[e.key]
+    if (e.target !== e.currentTarget && e.key === 'Enter') return // a Compare button on a row takes its own Enter
     if (key) {
       using.current = true
       const result = outlineKey(rows, focus, key)
@@ -286,7 +343,7 @@ export function Explorer({ model, problems, editing, expanded, onToggle, here, s
         <div className="tree-rows" style={{ height: rows.length * ROW }}>
           {rows.slice(start, end).map((r, k) => (
             <div key={r.key} id={`nav-${r.key}`} role="treeitem" aria-level={r.depth + 1} aria-expanded={r.expandable ? r.expanded : undefined} aria-selected={r.key === current}
-              className={classes('tree-row', r.key === current && 'sel', r.key === focus && 'focus', !r.match && 'dim')}
+              className={classes('tree-row', r.kind === 'flow' && 'flow', r.key === current && 'sel', r.key === focus && 'focus', !r.match && 'dim')}
               style={{ top: (start + k) * ROW, paddingLeft: 6 + r.depth * 16 }}
               onClick={() => { setFocus(r.key); onPick(r) }} onDoubleClick={() => onOpen(r)}>
               {r.expandable
@@ -294,12 +351,15 @@ export function Explorer({ model, problems, editing, expanded, onToggle, here, s
                 : <span className="twist" aria-hidden="true" />}
               {icon(r)}
               <span className="name">{r.name}</span>
+              {r.linked && <LinkedMark />}
               {r.problem && <span className="dot" title="A problem in here" />}
               <span className="count">{counts(r)}</span>
+              {r.kind === 'flow' && <RowCompareButton flow={r.id} name={r.name} compare={compare} />}
             </div>
           ))}
         </div>
       </div>
+      {rows.some(r => r.linked) && <LinkedKey />}
     </>
   )
 }

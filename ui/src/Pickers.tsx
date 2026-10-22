@@ -8,7 +8,8 @@ import { isExternal } from '../../src/core/model.ts'
 import { STATE_LABELS, STATE_NAMES } from '../../src/core/states.ts'
 import type { StateName } from '../../src/core/states.ts'
 import { lookVars, TypeTile } from './Chrome.tsx'
-import { ChevronRight, PathIcon } from './icons.tsx'
+import type { FlowTile } from './compare.ts'
+import { ChevronRight, Close, Link, PathIcon, Route, Search as SearchIcon } from './icons.tsx'
 import type { IconProps } from './icons.tsx'
 import { PlainSwatch, Swatch } from './states.tsx'
 
@@ -243,6 +244,63 @@ export function KindPicker({ kinds, value, onPick }: { kinds: { id: string; name
           </button>
         ))}
       </div>
+    </div>
+  )
+}
+
+/** A flow as a tile, or a tag to one that is not there (`missing`, named by its id). */
+export type PartnerTile = FlowTile & { missing?: boolean }
+
+/**
+ * The flow a flow is compared with, for the edit form: the current partner as a tile with Remove, then every other flow as tiles under a search field, and the flows that
+ * compare with this one (read-only, each opens its own form). A pick or a removal is one edit. When `off` is set the tiles are greyed out and the reason is their tooltip.
+ */
+export function PartnerPicker({ partner, choices, comparedBy, hasNote, off, onPick, onRemove, onOpen }: {
+  partner?: PartnerTile; choices: FlowTile[]; comparedBy: FlowTile[]; hasNote: boolean; off?: string
+  onPick: (id: string) => void; onRemove: () => void; onOpen: (id: string) => void
+}) {
+  const [query, setQuery] = useState('')
+  const needle = query.trim().toLowerCase()
+  const found = needle === '' ? choices : choices.filter(c => c.name.toLowerCase().includes(needle) || c.id.includes(needle) || c.view.toLowerCase().includes(needle))
+  const tile = (c: PartnerTile) => (
+    <>
+      <Route size={16} />
+      <span className="partner-text"><span>{c.name}</span><span className="muted">{c.missing ? 'Missing' : c.view}</span></span>
+    </>
+  )
+  return (
+    <div className="pick-field partners" title={off}>
+      {partner
+        ? (
+          <div className={partner.missing ? 'partner-now missing' : 'partner-now'}>
+            <Link size={16} />
+            <span className="partner-text"><strong>{partner.name}</strong><span className="muted">{partner.missing ? 'Missing' : partner.view}</span></span>
+            <button type="button" className="partner-remove" disabled={off !== undefined} title={off ?? (hasNote ? 'Remove the link and its note' : 'Remove the link')} onClick={onRemove}><Close size={14} />Remove</button>
+          </div>
+        )
+        : <p className="muted partner-none">None</p>}
+      <label className="pick-find">
+        <SearchIcon size={15} />
+        <input type="search" value={query} disabled={off !== undefined} placeholder="Find a flow" aria-label="Find a flow" onChange={e => setQuery(e.target.value)} />
+      </label>
+      <div className="pick-grid partner-list" role="radiogroup" aria-label="Compare with">
+        {found.map(c => (
+          <button key={c.id} type="button" role="radio" aria-checked={c.id === partner?.id} disabled={off !== undefined} className="pick partner" title={off ?? c.name} onClick={() => c.id !== partner?.id && onPick(c.id)}>
+            {tile(c)}
+          </button>
+        ))}
+      </div>
+      {needle !== '' && found.length === 0 && <p className="muted partner-none">Nothing called that</p>}
+      {comparedBy.length > 0 && (
+        <>
+          <Head label="Compared by" value={comparedBy.length} />
+          <div className="pick-grid partner-list" aria-label="Compared by">
+            {comparedBy.map(c => (
+              <button key={c.id} type="button" className="pick partner" title={`Open ${c.name}`} onClick={() => onOpen(c.id)}>{tile(c)}</button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }

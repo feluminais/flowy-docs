@@ -32,6 +32,7 @@ import type { Compare } from './compare.ts'
 import { CompareView } from './CompareView.tsx'
 import type { CompareHandle } from './CompareView.tsx'
 import { ComparePicker } from './ComparePicker.tsx'
+import type { PickAt } from './ComparePicker.tsx'
 import { contextOf, dispatch } from './keymap.ts'
 import type { KeyActions, KeyState } from './keymap.ts'
 import { activeAnalysis, firstErrorAt, modeCount, modeIn, neighbour, rowsFor } from './failuresview.ts'
@@ -43,7 +44,7 @@ import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { clampWidth, openTab } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
 import { keepNav, loadNav } from './navstore.ts'
-import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, NavTitle, Sash } from './Navigator.tsx'
+import { compareRowAttr, DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, NavTitle, Sash } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
 import { clampPos, dialTop, starterRun, stepFrom, top } from './perfview.ts'
 import { AddPanel, LinePanel, ObjectPanel, OverviewPanel } from './Panel.tsx'
@@ -152,6 +153,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // The stop the flow that was playing was at when the comparison opened: its pane starts there.
   const [compareStart, setCompareStart] = useState<{ flow: string; step: number }>()
   const [picking, setPicking] = useState(false) // the popover of the player's Compare button
+  const [rowPicking, setRowPicking] = useState<{ flow: string; at: PickAt }>() // the popover of a flow row's Compare button, in the Flows tab or the Explorer
   const [pickingRun, setPickingRun] = useState<'compare' | 'link'>() // the popover under the Compare or the Link with button of the Performance tab's run header
   const [dropping, setDropping] = useState<{ id: string; other: string | undefined }>() // a run's link about to go with the note it holds, until the reader says yes
   const compareRef = useRef<CompareHandle>(null)
@@ -416,6 +418,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   /** Two flows side by side: `id` is the one that was playing, `other` the one picked to go with it. A flow that can't play doesn't open. */
   const openCompare = (id: string, other: string) => {
     setPicking(false)
+    setRowPicking(undefined)
     if (!playable(model, id) || !playable(model, other)) return setNotice("That flow can't play yet.")
     setSide(undefined)
     setCompareStart(flow && playing?.flow === id ? { flow: id, step: stopIndex } : undefined)
@@ -464,9 +467,24 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (other === undefined) setPicking(open => !open)
     else openCompare(id, other)
   }
+  /** The Compare button on a flow's row in the navigator: the comparison with the first flow it is linked to, or else the picker under that row. */
+  const compareRow = (id: string, at: PickAt) => {
+    if (compareOff(model, editing) !== undefined) return
+    if (unlessDraft(() => compareRow(id, at))) return
+    const other = firstLinked(model, id)
+    if (other === undefined) setRowPicking(open => (open?.flow === id ? undefined : { flow: id, at }))
+    else openCompare(id, other)
+  }
+  const rowCompare = { off: compareOff(model, editing), open: rowPicking?.flow, onCompare: compareRow }
+  const rowPicker = rowPicking && Object.hasOwn(model.flows, rowPicking.flow) && (
+    <ComparePicker model={model} id={rowPicking.flow} at={rowPicking.at} toggle={compareRowAttr(rowPicking.flow)} onPick={id => openCompare(rowPicking.flow, id)} onClose={() => setRowPicking(undefined)} />
+  )
   useEffect(() => {
     if (!flow) setPicking(false) // the popover hangs on the player
   }, [flow])
+  useEffect(() => {
+    setRowPicking(undefined) // and this one on a row of the Flows tab or the Explorer, which are gone when the tab is, or when editing starts
+  }, [nav, editing])
   useEffect(() => {
     if (!perfOpen) setPickingRun(undefined) // and these hang on the run header
   }, [perfOpen])
@@ -1005,7 +1023,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             <AddPanel model={model} view={view} run={run} onAdded={id => setSide({ kind: 'object', id })} onClose={closeDetails} />
           )}
           {detailsOpen && recording && (
-            <Recorder model={model} view={view} rec={recording} onChange={rec => setSide({ kind: 'flow', ...rec })} run={run} onClose={closeDetails} />
+            <Recorder model={model} view={view} rec={recording} onChange={rec => setSide({ kind: 'flow', ...rec })} onOpenFlow={openFlow} run={run} onClose={closeDetails} />
           )}
           {nav === 'performance' && (
             <NavPanel tabs={<NavTitle title="Performance" />} onClose={() => setTab(undefined)}>
@@ -1032,13 +1050,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
           {nav === 'flows' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
-              <FlowsTab model={model} view={view} editing={editing} current={recording?.id || (flow ? playing?.flow : undefined)} onOpen={f => openFlow(f.id)} />
+              <FlowsTab model={model} view={view} editing={editing} current={recording?.id || (flow ? playing?.flow : undefined)} compare={rowCompare} onOpen={f => openFlow(f.id)} />
+              {rowPicker}
             </NavPanel>
           )}
           {nav === 'explorer' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
               <Explorer model={model} problems={problems} editing={editing} expanded={expanded} onToggle={toggleOpen} here={view} selected={selectedBox}
-                playing={flow ? playing?.flow : undefined} onPick={pickRow} onOpen={openRow} />
+                playing={flow ? playing?.flow : undefined} onPick={pickRow} onOpen={openRow} compare={rowCompare} />
+              {rowPicker}
             </NavPanel>
           )}
           {nav === 'failures' && (
