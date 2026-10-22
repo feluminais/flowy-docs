@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
+import type { CompareTag } from '../../src/core/compare.ts'
 import type { Model } from '../../src/core/model.ts'
+import { setCompare } from '../../src/core/ops.ts'
 import { isChanged } from '../../src/core/host.ts'
 import { STATE_ELEMENT } from '../../src/core/state.ts'
 import type { State } from '../../src/core/state.ts'
 import { vscode } from './host.ts'
 import type { HistoryClient } from './historyclient.ts'
 import { fetchModel, fromState, restoreVersion, saveEdit } from './save.ts'
+import { saveCompare } from './saveCompare.ts'
 import { hostTransport, httpTransport } from './transport.ts'
 import type { Transport } from './transport.ts'
 import { entryAfterRestore, replay } from './undo.ts'
@@ -14,6 +17,9 @@ import type { Entry } from './undo.ts'
 
 /** Saves one edit and resolves to what to tell the user, or undefined once it's saved. */
 export type Edit = (op: (model: Model) => Model) => Promise<string | undefined>
+
+/** Writes the `compare` tag of the flow or run `id` (see saveCompare). Resolves to what to tell the user, or undefined once it is saved. */
+export type Tag = (kind: 'flow' | 'run', id: string, tag: CompareTag | undefined) => Promise<string | undefined>
 
 /** Puts an earlier version of the files back (see the YAML tab). `seen` is what the files were when the caller last read them. */
 export type Restore = (id: string, seen: Record<string, string | null>, label: string) => Promise<string | undefined>
@@ -71,7 +77,7 @@ function watch(onChange: () => void, onLost: () => void): () => void {
  */
 export function useModel(): {
   loaded?: Loaded; banner?: string; edit: Edit; undo: () => Promise<string | undefined>; redo: () => Promise<string | undefined>
-  restore: Restore; history?: HistoryClient; changes: number; live: boolean
+  restore: Restore; tag: Tag; history?: HistoryClient; changes: number; live: boolean
 } {
   const [loaded, setLoaded] = useState<Loaded>()
   const [banner, setBanner] = useState<string>()
@@ -113,6 +119,18 @@ export function useModel(): {
     return run
   }, [load])
 
+  // A flow's tag is an edit like the rest (it can be undone); a run's is written in place, in the same queue.
+  const tag = useCallback<Tag>((kind, id, value) => {
+    if (kind === 'flow') return edit(model => setCompare(model, id, value))
+    const run = queue.current.then(async () => {
+      const message = await saveCompare('run', id, value, transport)
+      await load()
+      return message
+    })
+    queue.current = run
+    return run
+  }, [edit, load])
+
   const restore = useCallback<Restore>((id, seen, label) => {
     const run = queue.current.then(async () => {
       const done = await restoreVersion(id, label, transport, seen)
@@ -148,6 +166,6 @@ export function useModel(): {
   const redo = useCallback(() => step(redos, undos, 'redo'), [step])
 
   return exported
-    ? { ...exported, edit, undo, redo, restore, changes: 0, live: false }
-    : { loaded, banner, edit, undo, redo, restore, history: transport.history, changes, live: true }
+    ? { ...exported, edit, undo, redo, restore, tag, changes: 0, live: false }
+    : { loaded, banner, edit, undo, redo, restore, tag, history: transport.history, changes, live: true }
 }
