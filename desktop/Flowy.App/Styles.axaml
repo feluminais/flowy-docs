@@ -140,7 +140,7 @@
   </Style>
 
   <!-- Icons share one stroke; their colours come from where they sit. -->
-  <Style Selector="Path.btnicon, Path.ticon, Path.pickicon, Path.chipicon, Path.sectionicon, Path.closeicon, Path.zoomicon, Path.dirnicon, Path.rowicon, Path.crumbicon, Path.warnicon, Path.railicon, Path.navicon, Path.twisticon">
+  <Style Selector="Path.btnicon, Path.ticon, Path.pickicon, Path.chipicon, Path.sectionicon, Path.closeicon, Path.zoomicon, Path.dirnicon, Path.rowicon, Path.crumbicon, Path.warnicon, Path.railicon, Path.navicon, Path.twisticon, Path.linkmark">
     <Setter Property="StrokeThickness" Value="2" />
     <Setter Property="StrokeLineCap" Value="Round" />
     <Setter Property="StrokeJoin" Value="Round" />
@@ -1251,4 +1251,51 @@
   <Style Selector="TextBlock.treename.sel"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="TextBlock.treename.dim, TextBlock.treecount"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Border.treedot"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <!--
+    Linked: the mark of a flow that is in a pair, and the foot of a list that shows one. A row's Compare button is quiet until it is pointed at; a mode that blocks it greys it out (its reason is
+    the tooltip), and it stays where it is. The flow form's Compare with: the partner as a ringed tile, and a question inside it when taking the link away would lose its note.
+  -->
+  <Style Selector="Path.linkmark"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.navfoot">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+  </Style>
+  <Style Selector="Button.rowcompare">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="26" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Opacity" Value="0.6" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.rowcompare Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector="Button.rowcompare:pointerover, Button.rowcompare:focus-visible"><Setter Property="Opacity" Value="1" /></Style>
+  <Style Selector="Button.rowcompare:pointerover /template/ ContentPresenter, Button.rowcompare:focus-visible /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
+  <Style Selector="Button.rowcompare:pointerover Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource FgBrush}" /></Style>
+  <Style Selector="Button.rowcompare.off, Button.rowcompare.off:pointerover"><Setter Property="Opacity" Value="0.35" /><Setter Property="Cursor" Value="Arrow" /></Style>
+  <Style Selector="Button.rowcompare.off:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+  <Style Selector="Border.partnernow">
+    <Setter Property="Background" Value="{DynamicResource AccentTintBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="1.5" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="10,8,8,8" />
+  </Style>
+  <Style Selector="Border.partnernow.missing">
+    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+  </Style>
+  <Style Selector="Border.partnernow.missing Path.linkmark"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector="Border.partnerask">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="Margin" Value="0,8,0,0" />
+    <Setter Property="Padding" Value="0,8,0,0" />
+  </Style>
+  <Style Selector="Button.pick.partner Path.pickicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
 </Styles>

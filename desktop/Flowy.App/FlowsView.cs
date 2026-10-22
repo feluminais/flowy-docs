@@ -3,6 +3,7 @@ using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
 
@@ -10,7 +11,7 @@ namespace Flowy.App;
 
 /// <summary>
 /// Every flow in the documentation: first those that play in the level you are in, then all the others under the level they play in.
-/// Picking one goes to its level and plays it (or, while editing, opens it for editing).
+/// Picking one goes to its level and plays it (or, while editing, opens it for editing). A flow in a pair has a link mark and its partners are listed together; each row has a Compare button.
 /// </summary>
 internal sealed class FlowsView : Grid
 {
@@ -24,8 +25,18 @@ internal sealed class FlowsView : Grid
     private string _view = Names.Root;
     private bool _editing;
     private string? _current;
+    private readonly Border _foot = LinkedKey();
 
     public event Action<FlowRef>? Opened;
+
+    /// <summary>The Compare button on a flow's row was pressed (never while a mode blocks it).</summary>
+    public event Action<string>? CompareRequested;
+
+    /// <summary>Why the Compare buttons are greyed out (their tooltip), or null when they are not.</summary>
+    internal string? CompareOff { get; private set; }
+
+    /// <summary>Whether the foot with the Linked key shows: a flow in a pair is on the list.</summary>
+    internal bool LinkedKeyShown => _foot.IsVisible;
 
     /// <summary>The flows on the list now, in the order they are drawn. What a test can look at.</summary>
     internal IReadOnlyList<FlowRef> Listed { get; private set; } = [];
@@ -44,7 +55,7 @@ internal sealed class FlowsView : Grid
 
     public FlowsView()
     {
-        RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)];
+        RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto)];
         RowSpacing = 8;
         Margin = new Thickness(12, 12, 0, 12); // no margin on the right: the list's scroll bar sits on the panel's edge, where the sash is
         var field = Field(_find, Icons.Search);
@@ -52,9 +63,56 @@ internal sealed class FlowsView : Grid
         _find.TextChanged += (_, _) => Rebuild();
         var scroll = new ScrollViewer { Content = _list, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
         SetRow(scroll, 1);
+        SetRow(_foot, 2);
+        _foot.IsVisible = false;
         Children.Add(field);
         Children.Add(scroll);
+        Children.Add(_foot);
     }
+
+    /// <summary>The mark of a flow that is in a pair. Its name is what a screen reader reads on the row.</summary>
+    internal static Control LinkedMark()
+    {
+        var mark = Icons.Make(Icons.Link, "linkmark", 13);
+        mark.VerticalAlignment = VerticalAlignment.Center;
+        AutomationProperties.SetName(mark, "Linked");
+        ToolTip.SetTip(mark, "Linked");
+        return mark;
+    }
+
+    /// <summary>The foot of a list that has a flow in a pair: the mark and its name.</summary>
+    internal static Border LinkedKey()
+    {
+        var glyph = Icons.Make(Icons.Link, "linkmark", 13);
+        glyph.VerticalAlignment = VerticalAlignment.Center;
+        var item = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { glyph, Muted("Linked") } };
+        var foot = new Border { Child = item, Padding = new Thickness(4, 8, 0, 0), Margin = new Thickness(0, 0, Inset, 0) };
+        foot.Classes.Add("navfoot");
+        return foot;
+    }
+
+    /// <summary>
+    /// The Compare button of a flow's row. It is always there and can always be focused: when a mode blocks it, it is greyed out with the reason in its tooltip and a press does nothing.
+    /// </summary>
+    internal static Button CompareButton(string flow, string name, string? off, Action<string> pressed)
+    {
+        var button = new Button { Content = Icons.Make(Icons.Columns, "btnicon", 14) };
+        button.Classes.Add("rowcompare");
+        button.Classes.Set("off", off is not null);
+        AutomationProperties.SetName(button, $"Compare {name}");
+        ToolTip.SetTip(button, off ?? "Compare with another flow");
+        button.Click += (_, _) =>
+        {
+            if (off is null) pressed(flow);
+        };
+        return button;
+    }
+
+    /// <summary>The Compare button of a flow's row, for the tests.</summary>
+    internal Button? CompareButtonOf(string flow) =>
+        this.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Classes.Contains("rowcompare") && AutomationProperties.GetName(b) == $"Compare {NameOf(flow)}");
+
+    private string NameOf(string flow) => Listed.FirstOrDefault(f => f.Id == flow)?.Name ?? flow;
 
     /// <summary>A bordered field with a magnifier before it, for the filter of each tab.</summary>
     internal static Border Field(TextBox box, string icon)
@@ -71,6 +129,7 @@ internal sealed class FlowsView : Grid
 
     public void Update(Model model, string view, bool editing, string? current)
     {
+        CompareOff = CompareChoices.Off(model, editing);
         _model = model;
         _view = view;
         _editing = editing;
@@ -98,15 +157,21 @@ internal sealed class FlowsView : Grid
         icon.VerticalAlignment = VerticalAlignment.Center;
         var name = new TextBlock { Text = f.Name, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center };
         var steps = Muted(f.Steps == 0 ? "no steps yet" : Plural(f.Steps, "step"));
-        var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8, Children = { icon, name, steps } };
+        var mark = LinkedMark();
+        mark.IsVisible = f.Linked;
+        var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8, Children = { icon, name, mark, steps } };
         SetColumn(name, 1);
-        SetColumn(steps, 2);
+        SetColumn(mark, 2);
+        SetColumn(steps, 3);
         var button = new Button { Content = grid, MinHeight = 32 };
         button.Classes.Add("flowrow");
         button.Classes.Set("current", f.Id == _current);
         AutomationProperties.SetName(button, f.Name);
         button.Click += (_, _) => Opened?.Invoke(f);
-        return button;
+        // The row opens the flow; the Compare button beside it is a control of its own, so neither takes the other's click.
+        var compare = CompareButton(f.Id, f.Name, CompareOff, id => CompareRequested?.Invoke(id));
+        SetColumn(compare, 1);
+        return new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 2, Children = { button, compare } };
     }
 
     private void Rebuild()
@@ -146,6 +211,7 @@ internal sealed class FlowsView : Grid
         if (needle != "" && here.Count == 0 && elsewhere.Count == 0) _list.Children.Add(Note($"No flow matches “{needle}”."));
         if (groups.Total == 0) _list.Children.Add(Note("No flows yet. New flow in the bar starts one."));
         Listed = shown;
+        _foot.IsVisible = shown.Any(f => f.Linked); // only while a flow in a pair is on the list: one in a group that is folded away is not
     }
 
     private static Control Note(string text) => new TextBlock { Text = text, FontSize = 13, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(6, 8), Classes = { "muted" } };

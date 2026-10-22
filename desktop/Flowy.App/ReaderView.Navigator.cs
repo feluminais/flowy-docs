@@ -185,6 +185,7 @@ internal sealed partial class ReaderView
 
     private void RefreshNavigator(Model model, string view, (string Id, Flow Flow)? flow)
     {
+        if (Editing && _picker is not null) DropPicker(); // Compare is blocked while editing, and so is a flyout it opened
         var totals = Totals();
         var tab = ShownTab;
         var showFlows = ShowFlows;

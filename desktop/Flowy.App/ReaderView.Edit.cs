@@ -162,6 +162,9 @@ internal sealed partial class ReaderView
         if (Editing) EditFlow(id);
     }
 
+    /// <summary>Presses Remove in the flow form's Compare with, which asks first when the link holds a note (--remove-link, for a picture).</summary>
+    public void AskToRemoveFlowLink() => _panel.CurrentRecorder?.PartnerPicker?.AskToRemove();
+
     private void OpenAdd()
     {
         if (!Editing) return;

@@ -511,3 +511,244 @@ internal sealed class IconPicker : StackPanel
         _none.Text = $"No icon called \"{needle}\".";
     }
 }
+
+/// <summary>A flow as a tile, or a tag to one that is not there (<c>Missing</c>, named by its id).</summary>
+internal sealed record PartnerTile(string Id, string Name, string View, bool Missing = false);
+
+/// <summary>
+/// The flow a flow is compared with, for the edit form: the partner now as a ringed tile with Remove, then every other flow as a tile under a search field, and the flows that compare with this one
+/// (read-only; each opens its own form). A pick or a removal is one edit, made by the owner. Remove on a link that holds a note asks first, inside the partner's tile. When <c>off</c> is set
+/// everything is greyed out and the reason is its tooltip. Desktop twin of PartnerPicker in ui/src/Pickers.tsx.
+/// </summary>
+internal sealed class PartnerPicker : StackPanel
+{
+    private readonly PartnerTile? _partner;
+    private readonly IReadOnlyList<FlowTile> _choices;
+    private readonly string? _off;
+    private readonly Func<string, Task<bool>> _pick;
+    private readonly Func<Task<bool>> _remove;
+    private readonly Action<string> _queryChanged;
+    private readonly TextBox _find = new() { PlaceholderText = "Find a flow", Classes = { "bare" } };
+    private readonly StackPanel _tiles = new() { Spacing = 4 };
+    private readonly TextBlock _nothing = new() { Text = "Nothing called that", FontSize = 13, Classes = { "muted" }, IsVisible = false };
+    private readonly List<(string Id, Button Cell)> _cells = [];
+    private readonly List<(string Id, Button Cell)> _comparedBy = [];
+    private Button? _removeButton;
+    private Border? _ask;
+    private Button? _confirm;
+    private Button? _keep;
+
+    /// <param name="partner">The flow now compared with, or null.</param>
+    /// <param name="hasNote">The link holds a note, which Remove would lose: it asks first.</param>
+    /// <param name="query">What the search field held before the form was drawn again, so a pick does not clear it.</param>
+    public PartnerPicker(PartnerTile? partner, IReadOnlyList<FlowTile> choices, IReadOnlyList<FlowTile> comparedBy, bool hasNote, string? off, string query,
+        Func<string, Task<bool>> pick, Func<Task<bool>> remove, Action<string> open, Action<string> queryChanged)
+    {
+        (_partner, _choices, _off, _pick, _remove, _queryChanged) = (partner, choices, off, pick, remove, queryChanged);
+        Spacing = 8;
+        AutomationProperties.SetName(this, "Compare with");
+        if (off is not null)
+        {
+            ToolTip.SetTip(this, off);
+            ToolTip.SetShowOnDisabled(this, true);
+        }
+
+        if (partner is null) Children.Add(new TextBlock { Text = "None", FontSize = 13, Classes = { "muted" }, Margin = new Thickness(2, 0) });
+        else Children.Add(PartnerNow(partner, hasNote));
+
+        var field = FlowsView.Field(_find, Icons.Search);
+        field.IsEnabled = off is null;
+        if (off is not null) ToolTip.SetShowOnDisabled(field, true);
+        _find.Text = query;
+        _find.TextChanged += (_, _) =>
+        {
+            _queryChanged(_find.Text ?? "");
+            Fill();
+        };
+        Children.Add(field);
+        Children.Add(new ScrollViewer { Content = _tiles, MaxHeight = 190, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled });
+        Children.Add(_nothing);
+        Fill();
+
+        if (comparedBy.Count > 0)
+        {
+            Children.Add(Pick.Head("Compared by", out var count));
+            count.Text = comparedBy.Count.ToString();
+            var list = new StackPanel { Spacing = 4 };
+            foreach (var c in comparedBy)
+            {
+                var cell = Cell(c.Name, c.View, false);
+                ToolTip.SetTip(cell, $"Open {c.Name}");
+                cell.Click += (_, _) => open(c.Id);
+                list.Children.Add(cell);
+                _comparedBy.Add((c.Id, cell));
+            }
+            Children.Add(new ScrollViewer { Content = list, MaxHeight = 150, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled });
+        }
+    }
+
+    // What a test can look at and do.
+    internal PartnerTile? Partner => _partner;
+
+    internal string? Off => _off;
+
+    internal TextBox Find => _find;
+
+    /// <summary>The flows offered as tiles now, in order.</summary>
+    internal IReadOnlyList<string> OfferedIds => [.. _cells.Select(c => c.Id)];
+
+    /// <summary>The flows that compare with this one, in order.</summary>
+    internal IReadOnlyList<string> ComparedByIds => [.. _comparedBy.Select(c => c.Id)];
+
+    internal Button? RemoveButton => _removeButton;
+
+    /// <summary>Whether the question "Remove the link and its note" is on screen.</summary>
+    internal bool Asking => _ask?.IsVisible == true;
+
+    internal Button? ConfirmButton => _confirm;
+
+    internal Button? KeepButton => _keep;
+
+    /// <summary>Presses Remove, as a click on it does.</summary>
+    internal void AskToRemove() => _removeButton?.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+
+    /// <summary>The tile of a flow on offer.</summary>
+    internal Button? TileOf(string id) => _cells.FirstOrDefault(c => c.Id == id).Cell;
+
+    /// <summary>The tile of a flow that compares with this one.</summary>
+    internal Button? ComparedByTileOf(string id) => _comparedBy.FirstOrDefault(c => c.Id == id).Cell;
+
+    /// <summary>The partner's own tile, which is ringed among the offered ones.</summary>
+    internal bool IsRinged(string id) => _cells.FirstOrDefault(c => c.Id == id).Cell?.Classes.Contains("on") == true;
+
+    /// <summary>One flow as a tile: its icon, its name and the view it plays in (or the word Missing). A tile is a wide cell of the pickers; the chosen one is ringed.</summary>
+    private Button Cell(string name, string view, bool on)
+    {
+        var glyph = Icons.Make(Icons.Route, "pickicon", 16);
+        glyph.VerticalAlignment = VerticalAlignment.Center;
+        var text = new StackPanel
+        {
+            Spacing = 1, VerticalAlignment = VerticalAlignment.Center,
+            Children =
+            {
+                new TextBlock { Text = name, FontSize = 13, TextTrimming = TextTrimming.CharacterEllipsis },
+                new TextBlock { Text = view, FontSize = 11, TextTrimming = TextTrimming.CharacterEllipsis, Classes = { "muted" } },
+            },
+        };
+        var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 8, Children = { glyph, text } };
+        Grid.SetColumn(text, 1);
+        var cell = Pick.Cell(name, grid, "wide", "partner");
+        cell.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+        cell.Classes.Set("on", on);
+        return cell;
+    }
+
+    private void Fill()
+    {
+        var needle = (_find.Text ?? "").Trim().ToLowerInvariant();
+        var found = needle == "" ? _choices : [.. _choices.Where(c => c.Name.ToLowerInvariant().Contains(needle) || c.Id.Contains(needle, StringComparison.Ordinal) || c.View.ToLowerInvariant().Contains(needle))];
+        _tiles.Children.Clear();
+        _cells.Clear();
+        foreach (var c in found)
+        {
+            var cell = Cell(c.Name, c.View, c.Id == _partner?.Id);
+            if (_off is not null)
+            {
+                cell.IsEnabled = false;
+                cell.Opacity = 0.4;
+                ToolTip.SetTip(cell, _off);
+                ToolTip.SetShowOnDisabled(cell, true);
+            }
+            cell.Click += async (_, _) =>
+            {
+                if (c.Id != _partner?.Id) await _pick(c.Id);
+            };
+            _tiles.Children.Add(cell);
+            _cells.Add((c.Id, cell));
+        }
+        _nothing.IsVisible = needle != "" && found.Count == 0;
+    }
+
+    /// <summary>The partner now: its tile, ringed in the accent (greyed out with the word Missing when the flow is not there), and Remove.</summary>
+    private Control PartnerNow(PartnerTile partner, bool hasNote)
+    {
+        var link = Icons.Make(Icons.Link, "linkmark", 16);
+        link.VerticalAlignment = VerticalAlignment.Center;
+        var text = new StackPanel
+        {
+            Spacing = 1, VerticalAlignment = VerticalAlignment.Center,
+            Children =
+            {
+                new TextBlock { Text = partner.Name, FontSize = 14, FontWeight = FontWeight.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis },
+                new TextBlock { Text = partner.Missing ? "Missing" : partner.View, FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis, Classes = { "muted" } },
+            },
+        };
+        var remove = new Button { VerticalAlignment = VerticalAlignment.Center };
+        remove.Classes.Add("tool");
+        Chrome.Fill(remove, Icons.Close, "Remove");
+        ToolTip.SetTip(remove, _off ?? (hasNote ? "Remove the link and its note" : "Remove the link"));
+        ToolTip.SetShowOnDisabled(remove, true);
+        remove.IsEnabled = _off is null;
+        _removeButton = remove;
+        var head = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { link, text, remove } };
+        Grid.SetColumn(text, 1);
+        Grid.SetColumn(remove, 2);
+
+        var body = new StackPanel { Children = { head } };
+        var now = new Border { Child = body };
+        now.Classes.Add("partnernow");
+        now.Classes.Set("missing", partner.Missing);
+        AutomationProperties.SetName(now, partner.Name);
+
+        if (hasNote)
+        {
+            var question = new TextBlock { Text = "Remove the link and its note", FontSize = 13, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
+            var confirm = new Button { VerticalAlignment = VerticalAlignment.Center };
+            confirm.Classes.Add("tool");
+            confirm.Classes.Add("danger");
+            Chrome.Fill(confirm, Icons.Trash, "Remove");
+            var keep = new Button { VerticalAlignment = VerticalAlignment.Center };
+            keep.Classes.Add("tool");
+            keep.Classes.Add("primary");
+            Chrome.Fill(keep, Icons.Check, "Keep");
+            var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { confirm, keep } };
+            var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8, Children = { question, buttons } };
+            Grid.SetColumn(buttons, 1);
+            var ask = new Border { Child = row, IsVisible = false };
+            ask.Classes.Add("partnerask");
+            AutomationProperties.SetName(ask, "Remove the link and its note");
+            (_ask, _confirm, _keep) = (ask, confirm, keep);
+            body.Children.Add(ask);
+            // Esc answers the question with Keep, and goes no further: it is not meant to close the form too.
+            ask.KeyDown += (_, e) =>
+            {
+                if (e.Key != Key.Escape) return;
+                e.Handled = true;
+                Keep();
+            };
+            keep.Click += (_, _) => Keep();
+            confirm.Click += async (_, _) =>
+            {
+                ask.IsVisible = false;
+                await _remove();
+            };
+            remove.Click += (_, _) =>
+            {
+                ask.IsVisible = true;
+                remove.IsEnabled = false;
+                Dispatcher.UIThread.Post(() => keep.Focus());
+            };
+        }
+        else remove.Click += async (_, _) => await _remove();
+        return now;
+    }
+
+    /// <summary>Keep: the question goes away and the link and its note stay.</summary>
+    private void Keep()
+    {
+        if (_ask is null || _removeButton is null) return;
+        _ask.IsVisible = false;
+        _removeButton.IsEnabled = _off is null;
+        _removeButton.Focus();
+    }
+}

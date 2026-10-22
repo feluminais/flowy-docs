@@ -1731,4 +1731,398 @@ public class CompareTests
         Assert.Null(reader.CompareNow);
         Assert.True(reader.HoldsNote); // closed without asking, and the draft is kept for when the pair is compared again
     }
+
+    // ---- Linked in the lists, Compare on a row, and Compare with in the flow form -----------------------------------------
+
+    private static IEnumerable<Control> Named(Control root, string name) =>
+        root.GetVisualDescendants().OfType<Control>().Where(c => Avalonia.Automation.AutomationProperties.GetName(c) == name);
+
+    private static IEnumerable<string> Words(Control root) => root.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsVisible).Select(t => t.Text ?? "");
+
+    private static string FlowFile(TempFolder temp, string id) => File.ReadAllText(Path.Combine(temp.Path, "flowy", "flows", $"{id}.yaml"));
+
+    /// <summary>The tagged pair with a note on it, as the form's tests need: the refund that is not recorded is the newer, and says why.</summary>
+    private static string LinkedWithNote(string rel, string text) =>
+        rel == "flows/refund-not-recorded.yaml" ? "compare: { with: refund, note: \"The ledger write was missed\" }\n" + text : text;
+
+    [AvaloniaFact]
+    public void The_Flows_tab_marks_both_flows_of_a_pair_and_shows_the_Linked_key_only_while_one_is_listed()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.ClickRail(PanelTab.Flows);
+        EditModeTests.Settle(window);
+        var flows = reader.Navigator.Flows;
+        Assert.Equal(["refund", "refund-not-recorded"], flows.Listed.Where(f => f.Linked).Select(f => f.Id).Order());
+        Assert.Equal(2, Named(flows, "Linked").Count(c => c.IsVisible && c is not TextBlock)); // a mark on each row of the pair, named for a screen reader
+        Assert.True(flows.LinkedKeyShown);
+        Assert.Contains("Linked", Words(flows));
+        flows.Filter = "unanswered"; // only a flow that is in no pair is left on the list
+        EditModeTests.Settle(window);
+        Assert.Equal(["no-courier-answers"], flows.Listed.Select(f => f.Id));
+        Assert.False(flows.LinkedKeyShown);
+        Assert.DoesNotContain(Named(flows, "Linked"), c => c.IsVisible);
+    }
+
+    [AvaloniaFact]
+    public void A_folder_with_no_pair_shows_no_Linked_mark_and_no_key_in_either_list()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.ClickRail(PanelTab.Flows);
+        EditModeTests.Settle(window);
+        Assert.False(reader.Navigator.Flows.LinkedKeyShown);
+        Assert.All(reader.Navigator.Flows.Listed, f => Assert.False(f.Linked));
+        reader.ClickRail(PanelTab.Explorer);
+        EditModeTests.Settle(window);
+        Assert.False(reader.Navigator.Explorer.LinkedKeyShown);
+        Assert.DoesNotContain(reader.Navigator.Explorer.Rows, r => r.Linked == true);
+    }
+
+    [AvaloniaFact]
+    public void The_Explorer_marks_the_pair_on_its_flow_rows_and_shows_the_Linked_key_while_one_is_among_the_rows()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.ClickRail(PanelTab.Explorer);
+        var explorer = reader.Navigator.Explorer;
+        explorer.Filter = "refund";
+        EditModeTests.Settle(window);
+        Assert.Equal(["flow:refund", "flow:refund-not-recorded"], explorer.Rows.Where(r => r.Linked == true).Select(r => r.Key).Order());
+        Assert.All(explorer.Rows.Where(r => r.Kind == "shape"), r => Assert.Null(r.Linked));
+        Assert.True(explorer.LinkedKeyShown);
+        Assert.Equal(2, Named(explorer, "Linked").Count(c => c.IsVisible && c is not TextBlock));
+        explorer.Filter = "stripe"; // a filter that leaves no flow of a pair
+        EditModeTests.Settle(window);
+        Assert.DoesNotContain(explorer.Rows, r => r.Linked == true);
+        Assert.False(explorer.LinkedKeyShown);
+    }
+
+    [AvaloniaFact]
+    public void Partners_in_one_view_are_listed_together_in_the_Flows_tab()
+    {
+        // The refund that is not recorded plays in the same view as the payment that is captured; tagging that one lists it right after.
+        var (temp, window, reader) = Open((rel, text) => rel == "flows/stripe-outage.yaml" ? "compare: announce-order\n" + text : text);
+        using var _ = temp;
+        reader.ClickRail(PanelTab.Flows);
+        EditModeTests.Settle(window);
+        var ordering = reader.Navigator.Flows.Listed.Select(f => f.Id).SkipWhile(id => id != "announce-order").Take(2).ToList();
+        Assert.Equal(["announce-order", "stripe-outage"], ordering);
+    }
+
+    [AvaloniaFact]
+    public void The_Compare_button_on_a_row_of_a_linked_flow_opens_the_comparison_and_leaves_the_row_alone()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.ClickRail(PanelTab.Flows);
+        EditModeTests.Settle(window);
+        var flows = reader.Navigator.Flows;
+        Assert.Null(flows.CompareOff);
+        var button = flows.CompareButtonOf("refund-not-recorded")!;
+        Assert.Equal("Compare with another flow", ToolTip.GetTip(button));
+        ClickBar(button);
+        EditModeTests.Settle(window);
+        Assert.Equal(new CompareState("flow", "refund", "refund-not-recorded", "side"), reader.CompareNow); // the one that holds the tag reads second
+        Assert.Null(reader.PickerShown);
+        Assert.Null(reader.PlayingFlowId); // the comparison, not the flow's own player
+    }
+
+    [AvaloniaFact]
+    public void The_Compare_button_on_a_row_of_a_flow_with_no_link_opens_the_picker_under_the_tabs_and_a_pick_opens_the_comparison()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.ClickRail(PanelTab.Flows);
+        EditModeTests.Settle(window);
+        ClickBar(reader.Navigator.Flows.CompareButtonOf("place-order")!);
+        EditModeTests.Settle(window);
+        var picker = reader.PickerShown!;
+        Assert.Same(picker, reader.Navigator.Picker);
+        Assert.Equal(("place-order", true), reader.PickerFor);
+        Assert.Null(reader.CompareNow);
+        Assert.DoesNotContain(picker.Rows, c => c.Id == "place-order"); // not with itself
+        // A second press on the same button closes it; a press on another row's moves it there.
+        ClickBar(reader.Navigator.Flows.CompareButtonOf("place-order")!);
+        Assert.Null(reader.PickerShown);
+        Assert.Null(reader.Navigator.Picker);
+        ClickBar(reader.Navigator.Flows.CompareButtonOf("place-order")!);
+        ClickBar(reader.Navigator.Flows.CompareButtonOf("capture-payment")!);
+        Assert.Equal(("capture-payment", true), reader.PickerFor);
+        picker = reader.PickerShown!;
+        EditModeTests.Settle(window);
+        ClickBar(Named(picker, "Customer places an order").OfType<Button>().Single());
+        EditModeTests.Settle(window);
+        Assert.Equal(new CompareState("flow", "capture-payment", "place-order", "side"), reader.CompareNow);
+        Assert.Null(reader.PickerShown);
+        Assert.Null(reader.Navigator.Picker);
+    }
+
+    [AvaloniaFact]
+    public void The_picker_of_a_row_stays_while_no_flow_plays_and_Esc_closes_it()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.ClickRail(PanelTab.Flows);
+        EditModeTests.Settle(window);
+        reader.CompareRow("place-order");
+        Assert.NotNull(reader.PickerShown);
+        reader.ClickRail(PanelTab.Explorer); // a redraw with no flow to show on the player: that must not take the flyout of a row away
+        reader.ClickRail(PanelTab.Flows);
+        EditModeTests.Settle(window);
+        Assert.NotNull(reader.PickerShown);
+        Assert.Same(reader.PickerShown, reader.Navigator.Picker);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Null(reader.PickerShown);
+        Assert.Null(reader.Navigator.Picker);
+    }
+
+    [AvaloniaFact]
+    public void Playing_a_flow_from_its_row_still_works_beside_its_Compare_button()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.ClickRail(PanelTab.Flows);
+        EditModeTests.Settle(window);
+        reader.Navigator.Flows.Open("place-order");
+        Assert.Equal("place-order", reader.PlayingFlowId);
+        reader.ClickRail(PanelTab.Explorer);
+        reader.ToggleRow("ordering", true);
+        EditModeTests.Settle(window);
+        reader.Navigator.Explorer.Pick("flow:capture-payment");
+        Assert.Equal("capture-payment", reader.PlayingFlowId);
+    }
+
+    [AvaloniaFact]
+    public void In_edit_mode_the_row_Compare_buttons_stay_and_are_greyed_out_with_the_reason_and_do_nothing()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.ClickRail(PanelTab.Flows);
+        reader.SetEditing(true);
+        EditModeTests.Settle(window);
+        var flows = reader.Navigator.Flows;
+        Assert.Equal("Not while editing", flows.CompareOff);
+        var button = flows.CompareButtonOf("refund-not-recorded")!;
+        Assert.True(button.IsVisible);
+        Assert.Contains("off", button.Classes);
+        Assert.True(button.Focusable);
+        Assert.Equal("Not while editing", ToolTip.GetTip(button));
+        ClickBar(button);
+        Assert.Null(reader.CompareNow);
+        Assert.Null(reader.PickerShown);
+        reader.ClickRail(PanelTab.Explorer);
+        reader.Navigator.Explorer.Filter = "refund";
+        EditModeTests.Settle(window);
+        Assert.Equal("Not while editing", reader.Navigator.Explorer.CompareOff);
+        var row = reader.Navigator.Explorer.CompareButtonOf("refund")!;
+        Assert.Contains("off", row.Classes);
+        Assert.Equal("Not while editing", ToolTip.GetTip(row));
+        reader.SetEditing(false);
+        EditModeTests.Settle(window);
+        Assert.Null(reader.Navigator.Explorer.CompareOff); // the rows are drawn again without it
+        Assert.DoesNotContain("off", reader.Navigator.Explorer.CompareButtonOf("refund")!.Classes);
+    }
+
+    [AvaloniaFact]
+    public void With_one_flow_only_the_row_Compare_button_says_there_is_no_other_flow()
+    {
+        TestApp.NoMotion();
+        using var temp = new TempFolder();
+        var dir = Path.Combine(temp.Path, "flowy");
+        var source = Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "compare", "flowy");
+        Directory.CreateDirectory(Path.Combine(dir, "flows"));
+        File.Copy(Path.Combine(source, "model.yaml"), Path.Combine(dir, "model.yaml"));
+        File.Copy(Path.Combine(source, "flows", "checkout.yaml"), Path.Combine(dir, "flows", "checkout.yaml"));
+        var reader = new ReaderView();
+        var window = new Window { Width = 1200, Height = 800, Content = reader };
+        window.Show();
+        reader.Load(FolderLoader.Load(dir), dir);
+        reader.ClickRail(PanelTab.Flows);
+        EditModeTests.Settle(window);
+        Assert.Equal("No other flow", reader.Navigator.Flows.CompareOff);
+        var button = reader.Navigator.Flows.CompareButtonOf("checkout")!;
+        Assert.Equal("No other flow", ToolTip.GetTip(button));
+        ClickBar(button);
+        Assert.Null(reader.PickerShown);
+    }
+
+    [AvaloniaFact]
+    public void Enter_on_a_Compare_button_in_the_Explorer_presses_it_and_does_not_open_the_row()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.ClickRail(PanelTab.Explorer);
+        var explorer = reader.Navigator.Explorer;
+        explorer.Filter = "refund";
+        EditModeTests.Settle(window);
+        var button = explorer.CompareButtonOf("refund-not-recorded")!;
+        button.Focus();
+        Press(window, Key.Enter, PhysicalKey.Enter);
+        EditModeTests.Settle(window);
+        Assert.NotNull(reader.CompareNow); // its own Enter: the pair opened, and the flow did not play on its own
+        Assert.Null(reader.PlayingFlowId);
+    }
+
+    // ---- the flow form's Compare with --------------------------------------------------------------------------------
+
+    /// <summary>Edit mode on a copy of Plum with <paramref name="flow"/>'s form open: the form's Compare with is the picker.</summary>
+    private static (TempFolder Temp, Window Window, ReaderView Reader, PartnerPicker Picker) OpenForm(string flow, Func<string, string, string>? change = null)
+    {
+        var (temp, window, reader) = Open(change);
+        reader.SetEditing(true);
+        reader.OpenFlowById(flow);
+        EditModeTests.Settle(window);
+        return (temp, window, reader, reader.Panel.CurrentRecorder!.PartnerPicker!);
+    }
+
+    [AvaloniaFact]
+    public async Task Picking_a_partner_in_the_flow_form_writes_the_tag_as_one_edit_that_undo_takes_back()
+    {
+        var (temp, window, reader, picker) = OpenForm("refund");
+        using var _ = temp;
+        Assert.Null(picker.Partner);
+        Assert.DoesNotContain("refund", picker.OfferedIds); // a flow can't compare with itself
+        Assert.Equal(8, picker.OfferedIds.Count); // every other flow
+        ClickBar(picker.TileOf("place-order")!);
+        await EditModeTests.Until(() => FlowFile(temp, "refund").Contains("compare: place-order"));
+        await EditModeTests.Until(() => reader.Panel.CurrentRecorder!.PartnerPicker!.Partner is not null);
+        EditModeTests.Settle(window);
+        var now = reader.Panel.CurrentRecorder!.PartnerPicker!;
+        Assert.Equal(new PartnerTile("place-order", "Customer places an order", "Ordering"), now.Partner);
+        Assert.True(now.IsRinged("place-order"));
+        await reader.UndoAsync(); // one edit: one undo
+        await EditModeTests.Until(() => !FlowFile(temp, "refund").Contains("compare"));
+        await EditModeTests.Until(() => reader.Panel.CurrentRecorder!.PartnerPicker!.Partner is null);
+    }
+
+    [AvaloniaFact]
+    public async Task Changing_the_partner_keeps_the_note_of_the_link_and_is_one_edit()
+    {
+        var (temp, window, reader, picker) = OpenForm("refund-not-recorded", LinkedWithNote);
+        using var _ = temp;
+        Assert.Equal("refund", picker.Partner!.Id);
+        ClickBar(picker.TileOf("place-order")!);
+        await EditModeTests.Until(() => FlowFile(temp, "refund-not-recorded").Contains("with: place-order"));
+        Assert.Contains("The ledger write was missed", FlowFile(temp, "refund-not-recorded"));
+        Assert.DoesNotContain("with: refund,", FlowFile(temp, "refund-not-recorded"));
+        await reader.UndoAsync();
+        await EditModeTests.Until(() => FlowFile(temp, "refund-not-recorded").Contains("with: refund"));
+        Assert.Contains("The ledger write was missed", FlowFile(temp, "refund-not-recorded"));
+        EditModeTests.Settle(window);
+    }
+
+    [AvaloniaFact]
+    public async Task Removing_a_link_with_no_note_is_one_click_and_one_undo_brings_it_back()
+    {
+        var (temp, window, reader, picker) = OpenForm("refund-not-recorded", Linked);
+        using var _ = temp;
+        Assert.True(picker.RemoveButton!.IsEnabled);
+        ClickBar(picker.RemoveButton!);
+        Assert.False(picker.Asking);
+        await EditModeTests.Until(() => !FlowFile(temp, "refund-not-recorded").Contains("compare"));
+        await reader.UndoAsync();
+        await EditModeTests.Until(() => FlowFile(temp, "refund-not-recorded").Contains("compare: refund"));
+        EditModeTests.Settle(window);
+    }
+
+    [AvaloniaFact]
+    public async Task Removing_a_link_that_has_a_note_asks_first_and_Keep_or_Esc_leaves_it_as_it_is()
+    {
+        var (temp, window, reader, picker) = OpenForm("refund-not-recorded", LinkedWithNote);
+        using var _ = temp;
+        Assert.False(picker.Asking);
+        ClickBar(picker.RemoveButton!);
+        EditModeTests.Settle(window);
+        Assert.True(picker.Asking);
+        Assert.Contains("Remove the link and its note", Words(picker));
+        Assert.False(picker.RemoveButton!.IsEnabled);
+        Assert.Contains("The ledger write was missed", FlowFile(temp, "refund-not-recorded")); // nothing has changed yet
+        ClickBar(picker.KeepButton!);
+        Assert.False(picker.Asking);
+        Assert.True(picker.RemoveButton.IsEnabled);
+        ClickBar(picker.RemoveButton);
+        EditModeTests.Settle(window);
+        Assert.True(picker.KeepButton!.IsFocused); // Keep is the answer the keyboard is on
+        Press(window, Key.Escape, PhysicalKey.Escape); // Esc answers with Keep
+        Assert.False(picker.Asking);
+        Assert.NotNull(reader.Panel.CurrentRecorder); // and does not close the form
+        Assert.Contains("The ledger write was missed", FlowFile(temp, "refund-not-recorded"));
+        ClickBar(picker.RemoveButton);
+        ClickBar(picker.ConfirmButton!);
+        await EditModeTests.Until(() => !FlowFile(temp, "refund-not-recorded").Contains("compare"));
+        await reader.UndoAsync(); // the note comes back with the link
+        await EditModeTests.Until(() => FlowFile(temp, "refund-not-recorded").Contains("The ledger write was missed"));
+    }
+
+    [AvaloniaFact]
+    public void The_form_lists_the_flows_that_compare_with_it_and_a_tile_opens_that_flows_form()
+    {
+        var (temp, window, reader, picker) = OpenForm("refund", Linked);
+        using var _ = temp;
+        Assert.Null(picker.Partner);
+        Assert.Equal(["refund-not-recorded"], picker.ComparedByIds);
+        Assert.Contains("Compared by", Words(picker));
+        ClickBar(picker.ComparedByTileOf("refund-not-recorded")!);
+        EditModeTests.Settle(window);
+        Assert.Equal("refund-not-recorded", reader.RecordingNow!.Id);
+        var other = reader.Panel.CurrentRecorder!.PartnerPicker!;
+        Assert.Equal("refund", other.Partner!.Id);
+        Assert.Empty(other.ComparedByIds);
+    }
+
+    [AvaloniaFact]
+    public async Task A_tag_to_a_flow_that_is_not_there_shows_as_Missing_and_can_be_removed_or_replaced()
+    {
+        var (temp, window, reader, picker) = OpenForm("refund", (rel, text) => rel == "flows/refund.yaml" ? "compare: nowhere\n" + text : text);
+        using var _ = temp;
+        Assert.Equal(new PartnerTile("nowhere", "nowhere", "", true), picker.Partner);
+        Assert.Contains("Missing", Words(picker));
+        Assert.DoesNotContain("nowhere", picker.OfferedIds); // only flows that are there are offered
+        Assert.True(picker.RemoveButton!.IsEnabled);
+        ClickBar(picker.TileOf("deliver-order")!);
+        await EditModeTests.Until(() => FlowFile(temp, "refund").Contains("compare: deliver-order"));
+        await EditModeTests.Until(() => reader.Panel.CurrentRecorder!.PartnerPicker!.Partner is { Id: "deliver-order", Missing: false });
+        EditModeTests.Settle(window);
+    }
+
+    [AvaloniaFact]
+    public void The_search_narrows_the_tiles_by_name_and_keeps_its_text_across_a_pick()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.SetEditing(true);
+        reader.OpenFlowById("refund");
+        EditModeTests.Settle(window);
+        var picker = reader.Panel.CurrentRecorder!.PartnerPicker!;
+        picker.Find.Text = "courier";
+        EditModeTests.Settle(window);
+        Assert.Equal(["courier-pings-lost", "deliver-order", "no-courier-answers"], picker.OfferedIds.Order()); // the name or the id has it
+        picker.Find.Text = "zzz";
+        EditModeTests.Settle(window);
+        Assert.Empty(picker.OfferedIds);
+        Assert.Contains("Nothing called that", Words(picker));
+        picker.Find.Text = "";
+        EditModeTests.Settle(window);
+        Assert.Equal(8, picker.OfferedIds.Count);
+    }
+
+    [AvaloniaFact]
+    public void A_flow_with_no_file_yet_has_the_section_greyed_out_with_the_reason()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.SetEditing(true);
+        ClickBar(Named(reader, "New flow").OfType<Button>().First());
+        EditModeTests.Settle(window);
+        var picker = reader.Panel.CurrentRecorder!.PartnerPicker!;
+        Assert.Equal("Name the flow first", picker.Off);
+        Assert.False(picker.RemoveButton?.IsEnabled ?? false);
+        Assert.False(picker.Find.IsEffectivelyEnabled);
+        Assert.All(picker.OfferedIds, id => Assert.False(picker.TileOf(id)!.IsEnabled));
+        Assert.Equal("Name the flow first", ToolTip.GetTip(picker.TileOf(picker.OfferedIds[0])!));
+        reader.Panel.CurrentRecorder!.StartNamed("Customer pays");
+        EditModeTests.Settle(window);
+        Assert.Equal("Record a step first", reader.Panel.CurrentRecorder!.PartnerPicker!.Off);
+    }
 }

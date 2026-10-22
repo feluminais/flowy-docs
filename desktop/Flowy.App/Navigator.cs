@@ -163,6 +163,18 @@ internal sealed class NavTabs : StackPanel
 internal sealed class NavigatorPanel : Border
 {
     private readonly ContentControl _body = new();
+    private readonly ContentControl _pickerHost = new();
+
+    /// <summary>The flyout of a Compare button on a flow's row: the flows to compare it with, under the tabs. Null when there is none.</summary>
+    public Control? Picker
+    {
+        get => _pickerHost.Content as Control;
+        set
+        {
+            _pickerHost.Content = value;
+            _pickerHost.Margin = value is null ? default : new Thickness(12, 8, 12, 0);
+        }
+    }
 
     public NavTabs Tabs { get; } = new();
 
@@ -197,8 +209,9 @@ internal sealed class NavigatorPanel : Border
         close.Classes.Add("close");
         close.Click += (_, _) => Closed?.Invoke();
         AutomationProperties.SetName(close, "Close");
-        var column = new Grid { RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)], Children = { Tabs, _body } };
-        Grid.SetRow(_body, 1);
+        var column = new Grid { RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)], Children = { Tabs, _pickerHost, _body } };
+        Grid.SetRow(_pickerHost, 1);
+        Grid.SetRow(_body, 2);
         Child = new Grid { Children = { column, close } };
     }
 
