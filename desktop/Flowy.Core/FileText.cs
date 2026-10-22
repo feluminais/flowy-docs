@@ -10,11 +10,12 @@ internal static class FileText
 
     /// <summary>
     /// The text of <paramref name="rel"/> in <paramref name="dir"/>, or null when it isn't there. It is read shared with an editor that is saving it, which
-    /// <c>File.ReadAllBytes</c> would refuse. Throws <see cref="ParseError"/> for text that isn't UTF-8; any other failure to read (a folder where a file should be, no access) is
-    /// the caller's to word.
+    /// <c>File.ReadAllBytes</c> would refuse. Throws <see cref="ParseError"/> for text that isn't UTF-8 or that a link sends outside the folder; any other failure to read (a folder
+    /// where a file should be, no access) is the caller's to word.
     /// </summary>
     public static string? Read(string dir, string rel)
     {
+        if (!FolderContainment.IsInside(dir, rel)) throw new ParseError(rel, FolderContainment.Outside);
         byte[] bytes;
         try
         {

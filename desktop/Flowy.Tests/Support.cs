@@ -28,7 +28,21 @@ internal sealed class TempDir : IDisposable
         return path;
     }
 
-    public void Dispose() => Directory.Delete(Dir, true);
+    // Directory.Delete(recursive) can't remove a junction on Windows, so links go first, as links and not as what they point at.
+    public void Dispose()
+    {
+        Unlink(new DirectoryInfo(Dir));
+        Directory.Delete(Dir, true);
+    }
+
+    private static void Unlink(DirectoryInfo folder)
+    {
+        foreach (var entry in folder.EnumerateFileSystemInfos())
+        {
+            if (entry.Attributes.HasFlag(FileAttributes.ReparsePoint)) entry.Delete();
+            else if (entry is DirectoryInfo sub) Unlink(sub);
+        }
+    }
 }
 
 internal static class TestModels
