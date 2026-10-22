@@ -6,7 +6,8 @@ import { basename, dirname, join, resolve, sep } from 'node:path'
 import { check } from '../core/check.ts'
 import type { Problem } from '../core/problem.ts'
 import { runLinkProblems } from '../core/failures.ts'
-import { FILE_KINDS, isAllowedPath, kindOfPath } from '../core/filekinds.ts'
+import type { CompareTag } from '../core/compare.ts'
+import { FILE_KINDS, idOfPath, isAllowedPath, isRunPath, kindOfPath } from '../core/filekinds.ts'
 import type { FolderKind } from '../core/filekinds.ts'
 import { emptyModel, ID_RULE, isValidId, linksOf, ParseError } from '../core/model.ts'
 import { fileData, parseAnalysisFile, parseFile, parseFlowFile, parseLayoutFile, parseModelFile, serializeFile } from '../core/modelfiles.ts'
@@ -14,6 +15,7 @@ import type { Model } from '../core/model.ts'
 import { isRepoPath } from '../core/paths.ts'
 import { checkRun, checkRuns } from '../core/perf/check.ts'
 import { dialsOf } from '../core/perf/dials.ts'
+import { setRunCompare } from '../core/perf/comparetag.ts'
 import { parseRun } from '../core/perf/parse.ts'
 import type { Run } from '../core/perf/types.ts'
 import type { State } from '../core/state.ts'
@@ -326,8 +328,29 @@ export async function saveRaw(dir: string, rel: string, bytes: Uint8Array | null
   return queued(dir, rel, () => saveRawNow(dir, rel, bytes, expected))
 }
 
+/**
+ * Set (or, with an undefined `tag`, take out) the `compare` tag of the run `rel`, which must exist and still have the version `expected`.
+ * It is the only write a run takes: the rest of the file stays as it is. Throws a ParseError when the run, or the run with the tag, can't
+ * be read, and writes nothing then. Same queue and same VersionConflict as saveFile, so the read and the write are one step.
+ */
+export function saveRunCompare(dir: string, rel: string, tag: CompareTag | undefined, expected: string | null, beforeWrite?: () => Promise<void>): Promise<string> {
+  const id = idOfPath(FILE_KINDS.run, rel)
+  if (!isRunPath(rel) || id === undefined) throw new Error(`refusing to write "${rel}"`)
+  return queued(dir, rel, async () => {
+    const current = await readText(dir, rel)
+    const version = current === null ? null : hashText(current)
+    if (current === null || version !== expected) throw new VersionConflict(rel, version)
+    const text = setRunCompare(current, tag)
+    parseRun(id, text) // never write what can't be played
+    if (text === current) return version as string
+    await beforeWrite?.() // the write is certain now
+    await replaceFile(join(dir, rel), text)
+    return hashText(text)
+  })
+}
+
 /** Runs one save of a file after the saves already waiting on it. */
-async function queued(dir: string, rel: string, work: () => Promise<string | null>): Promise<string | null> {
+async function queued<T extends string | null>(dir: string, rel: string, work: () => Promise<T>): Promise<T> {
   const key = resolve(dir, rel)
   const run = (queues.get(key) ?? Promise.resolve()).catch(() => undefined).then(work)
   queues.set(key, run)
