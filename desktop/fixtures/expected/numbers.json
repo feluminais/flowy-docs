@@ -1,0 +1,266 @@
+[
+  {
+    "text": "0",
+    "value": 0,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "12",
+    "value": 12,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "-3.5",
+    "value": -3.5,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "+7",
+    "value": 7,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": ".5",
+    "value": 0.5,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "5.",
+    "value": 5,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "-.5",
+    "value": -0.5,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "1e3",
+    "value": 1000,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "1E-3",
+    "value": 0.001,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "  42  ",
+    "value": 42,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "\t8\n",
+    "value": 8,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "007",
+    "value": 7,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "1.5e+2",
+    "value": 150,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "0x10",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "0b11",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "0o7",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "Infinity",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "-Infinity",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "NaN",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "1e999",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "-1e999",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "1_000",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "1,5",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "",
+    "value": null,
+    "blank": true,
+    "hasText": false
+  },
+  {
+    "text": " ",
+    "value": null,
+    "blank": true,
+    "hasText": false
+  },
+  {
+    "text": ".",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "+",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "--1",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "1 2",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "1e",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "e5",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "0x",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": " 5",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "　 5",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "﻿5",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "٣",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "１",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "5\u0000",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "﻿",
+    "value": null,
+    "blank": true,
+    "hasText": false
+  },
+  {
+    "text": "    ",
+    "value": null,
+    "blank": true,
+    "hasText": false
+  },
+  {
+    "text": "",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "\u001f",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "​",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  },
+  {
+    "text": "x",
+    "value": null,
+    "blank": false,
+    "hasText": true
+  }
+]

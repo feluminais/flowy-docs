@@ -16,6 +16,7 @@ import { buildTrail, dumpHistory } from './history.ts'
 import { dumpLayout } from './layout.ts'
 import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
+import { dumpNumbers } from './numbers.ts'
 import { dumpOutline } from './outline.ts'
 import { dumpPerf, dumpPerfView } from './perf.ts'
 import { dumpStates } from './states.ts'
@@ -44,6 +45,7 @@ await write('usedby', await dumpUsedBy())
 await write('beats', dumpBeats())
 await write('outline', await dumpOutline())
 await write('formula', dumpFormula())
+await write('numbers', dumpNumbers())
 await write('perf-runs', await dumpPerf())
 await write('perf-view', await dumpPerfView())
 await write('failures-core', await dumpFailures())

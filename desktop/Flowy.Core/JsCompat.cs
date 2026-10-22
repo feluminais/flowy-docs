@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Flowy.Core;
 
@@ -24,6 +25,15 @@ public static class JsCompat
         while (end > start && IsSpace(s[end - 1])) end--;
         return start == 0 && end == s.Length ? s : s[start..end];
     }
+
+    private static readonly Regex PlainNumberText = new(@"^[ \t\n\v\f\r]*[+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?[ \t\n\v\f\r]*\z");
+
+    /// <summary>
+    /// A number written in a file: decimal digits with an optional sign, fraction and exponent, and nothing else (not 0x10, not Infinity). Null for anything else,
+    /// and for a number too big to be finite. The same grammar as <c>plainNumber</c> in src/core/text.ts; desktop/fixtures/numbers.ts keeps the two equal.
+    /// </summary>
+    public static double? PlainNumber(object? v) =>
+        v is string s && PlainNumberText.IsMatch(s) && double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var n) && double.IsFinite(n) ? n : null;
 
     /// <summary>Whether a value says nothing: not text, or only white space. A blank group, lane, flow or option is the same as none.</summary>
     public static bool Blank(object? v) => v is not string s || JsTrim(s) == "";
