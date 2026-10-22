@@ -7,6 +7,8 @@ import type { State } from '../../src/core/state.ts'
 import { vscode } from './host.ts'
 import type { HistoryClient } from './historyclient.ts'
 import { fetchModel, fromState, restoreVersion, saveEdit } from './save.ts'
+import { apiUrl } from './apiurl.ts'
+import { modelOfPage } from './models.ts'
 import { hostTransport, httpTransport } from './transport.ts'
 import type { Transport } from './transport.ts'
 import { entryAfterRestore, replay } from './undo.ts'
@@ -36,7 +38,7 @@ const exported = (() => {
 const host = vscode // a closure can't keep the narrowing of an import
 const transport: Transport = host
   ? hostTransport(message => host.postMessage(message), handler => window.addEventListener('message', e => handler(e.data)))
-  : httpTransport()
+  : httpTransport('', modelOfPage())
 
 /**
  * Calls `onChange` whenever the page should read the folder again: once the connection is up, after every reconnection,
@@ -50,7 +52,7 @@ function watch(onChange: () => void, onLost: () => void): () => void {
     onChange()
     return () => window.removeEventListener('message', onMessage)
   }
-  const events = new EventSource('/api/events')
+  const events = new EventSource(apiUrl('', '/api/events', modelOfPage()))
   events.onopen = onChange // the first connection, and each reconnection after flowy restarts
   events.onmessage = onChange
   events.onerror = onLost

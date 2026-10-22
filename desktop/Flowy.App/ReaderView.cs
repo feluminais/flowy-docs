@@ -66,6 +66,9 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private readonly Sash _detailsSash = new(false, "Resize the details panel");
     private Control? _zoomButtons;
     private readonly ComboBox _linePicker = new();
+    private readonly ComboBox _modelPicker = new() { IsVisible = false }; // the repo's other models; only there when it has several
+    private IReadOnlyList<ModelEntry> _models = [];
+    private string? _dir;
     private readonly Button _searchButton = new();
     private readonly Button _helpButton = new();
     private readonly Button _problemsButton = new();
@@ -97,6 +100,9 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private bool _moving;
 
     public event Action<string?>? LinesPicked;
+
+    /// <summary>The reader picked another model of the repo, by its folder. The window opens it in a window of its own.</summary>
+    public event Action<string>? ModelPicked;
 
     /// <summary>The app the person chose to open linked files with, or null for the system's default. Read at every click.</summary>
     internal Func<string?> CustomApp { get; set; } = () => null;
@@ -266,7 +272,17 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _problemsButton.IsVisible = false;
 
         _linePicker.Classes.Add("flat");
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _crumbs, _editTools } };
+        _modelPicker.Classes.Add("flat");
+        Avalonia.Automation.AutomationProperties.SetName(_modelPicker, "Model");
+        ToolTip.SetTip(_modelPicker, "Switch to another model in this repo");
+        _modelPicker.SelectionChanged += (_, _) =>
+        {
+            if (_syncing || _modelPicker.SelectedIndex < 0 || _modelPicker.SelectedIndex >= _models.Count) return;
+            var picked = _models[_modelPicker.SelectedIndex];
+            if (_dir is not null && ModelFolders.Key(picked.Dir) != ModelFolders.Key(_dir)) ModelPicked?.Invoke(picked.Dir);
+            ShowCurrentModel(); // this window stays on its own model; the picked one opens in its own window
+        };
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _modelPicker, _crumbs, _editTools } };
         var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, HorizontalAlignment = HorizontalAlignment.Right, Children = { _linePicker, _searchButton, _helpButton, _problemsButton, _editButton } };
         var dock = new DockPanel { LastChildFill = false };
         DockPanel.SetDock(right, Dock.Right);
@@ -317,6 +333,10 @@ internal sealed partial class ReaderView : Grid, IDisposable
     public void Load(Folder folder, string dir)
     {
         _folder = folder;
+        _dir = dir;
+        _models = [];
+        ShowCurrentModel();
+        _ = LoadModels(dir);
         WarmCode(folder);
         _session = new EditSession(dir);
         _disk?.Dispose();
@@ -352,6 +372,29 @@ internal sealed partial class ReaderView : Grid, IDisposable
         var run = LinkRunner ?? (a => TopLevel.GetTopLevel(this) is { } top ? LinkLauncher.RunAsync(top, a) : Task.FromResult<string?>(null));
         if (await run(action) is { } problem) ShowNotice(problem);
     }
+
+    /// <summary>Looks for the repo's other models away from the UI thread, since a big repo takes a moment to walk. The picker shows only when there are several.</summary>
+    private async Task LoadModels(string dir)
+    {
+        var models = await Task.Run(() => RepoModels.InRepoOf(dir));
+        if (_dir != dir) return; // another folder was loaded while this one was being read
+        _models = models;
+        ShowCurrentModel();
+    }
+
+    /// <summary>The picker's items and the one selected: this window's model. A name another model shares shows its folder too.</summary>
+    private void ShowCurrentModel()
+    {
+        _syncing = true;
+        _modelPicker.ItemsSource = _models.Select(m => _models.Count(o => o.Name == m.Name) > 1 ? $"{m.Name} ({m.Where})" : m.Name).ToList();
+        _modelPicker.SelectedIndex = _dir is null ? -1 : _models.ToList().FindIndex(m => ModelFolders.Key(m.Dir) == ModelFolders.Key(_dir));
+        _modelPicker.IsVisible = _models.Count > 1 && _modelPicker.SelectedIndex >= 0;
+        _syncing = false;
+    }
+
+    internal ComboBox ModelPicker => _modelPicker;
+
+    internal IReadOnlyList<ModelEntry> Models => _models;
 
     private async Task LoadCodeBase(string dir)
     {
