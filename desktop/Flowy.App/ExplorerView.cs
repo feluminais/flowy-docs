@@ -32,6 +32,11 @@ internal sealed class ExplorerView : Grid
     private string? _focus;
     private bool _using; // the pointer is over the tree, or a key was just pressed in it
     private bool _settingSelection;
+    private readonly Border _foot = FlowsView.LinkedKey();
+    private string? _compareOff;
+
+    /// <summary>The Compare button on a flow's row was pressed (never while a mode blocks it).</summary>
+    public event Action<string>? CompareRequested;
 
     /// <summary>A click on a row, and Enter or a double-click on one.</summary>
     public event Action<OutlineRow>? Picked;
@@ -42,7 +47,7 @@ internal sealed class ExplorerView : Grid
 
     public ExplorerView()
     {
-        RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)];
+        RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto)];
         RowSpacing = 8;
         Margin = new Thickness(12, 12, 0, 12); // no margin on the right: the tree's scroll bar sits on the panel's edge, where the sash is
         var field = FlowsView.Field(_find, Icons.Search);
@@ -50,10 +55,13 @@ internal sealed class ExplorerView : Grid
         SetRow(field, 1);
         SetRow(_note, 2);
         SetRow(_list, 3);
+        SetRow(_foot, 4);
+        _foot.IsVisible = false;
         Children.Add(_summary);
         Children.Add(field);
         Children.Add(_note);
         Children.Add(_list);
+        Children.Add(_foot);
 
         _list.ItemTemplate = new FuncDataTemplate<OutlineRow>((row, _) => row is null ? null : BuildRow(row));
         _list.SelectionChanged += (_, _) =>
@@ -94,6 +102,17 @@ internal sealed class ExplorerView : Grid
 
     internal string SummaryText => _summary.Text ?? "";
 
+    /// <summary>Why the Compare buttons on the flow rows are greyed out (their tooltip), or null when they are not.</summary>
+    internal string? CompareOff => _compareOff;
+
+    /// <summary>Whether the foot with the Linked key shows: a flow in a pair is among the rows.</summary>
+    internal bool LinkedKeyShown => _foot.IsVisible;
+
+    /// <summary>The Compare button of a flow's row, if the row is on screen (the list draws a window of the rows).</summary>
+    internal Button? CompareButtonOf(string flow) =>
+        _list.GetRealizedContainers().SelectMany(c => c.GetVisualDescendants().OfType<Button>())
+            .FirstOrDefault(b => b.Classes.Contains("rowcompare") && AutomationProperties.GetName(b) == $"Compare {_rows.FirstOrDefault(r => r.Key == $"flow:{flow}")?.Name}");
+
     internal string Filter
     {
         get => _find.Text ?? "";
@@ -125,7 +144,9 @@ internal sealed class ExplorerView : Grid
         var current = playing is not null ? $"flow:{playing}" : $"shape:{selected ?? here}";
         var outline = Outlines.Build(model, problems, expanded, _find.Text, editing);
         _summary.Text = $"{Plural(outline.Totals.Shapes, "shape")} · {Plural(outline.Totals.Flows, "flow")}{(outline.Totals.Problems > 0 ? $" · {Plural(outline.Totals.Problems, "problem")}" : "")}";
-        var changed = current != _current || !outline.Rows.SequenceEqual(_rows);
+        var off = CompareChoices.Off(model, editing); // the buttons of the rows are drawn with it, so a row that did not change is drawn again when it does
+        var changed = current != _current || off != _compareOff || !outline.Rows.SequenceEqual(_rows);
+        _compareOff = off;
         _current = current;
         _rows = outline.Rows;
         _filterNote = (_find.Text ?? "").Trim();
@@ -164,6 +185,7 @@ internal sealed class ExplorerView : Grid
         if (scroll is not null) scroll.Offset = offset;
         _list.SelectedIndex = _focus is null ? -1 : IndexOf(_focus);
         _settingSelection = false;
+        _foot.IsVisible = _rows.Any(r => r.Linked == true); // only while a flow in a pair is among the rows
         _note.IsVisible = _rows.Count == 0;
         _note.Text = _filterNote == "" ? "Nothing here yet." : $"Nothing matches “{_filterNote}”.";
     }
@@ -197,6 +219,7 @@ internal sealed class ExplorerView : Grid
     private void OnListKey(object? sender, KeyEventArgs e)
     {
         if (e.KeyModifiers is not (KeyModifiers.None or KeyModifiers.Shift)) return;
+        if (e.Key == Key.Enter && e.Source is Button) return; // a Compare button on a row takes its own Enter
         if (Keys.TryGetValue(e.Key, out var key))
         {
             Press(key);
@@ -242,15 +265,26 @@ internal sealed class ExplorerView : Grid
             ? Plural(row.Steps ?? 0, "step")
             : string.Join(" · ", new[] { row.Shapes > 0 ? row.Shapes.ToString() : null, row.Flows > 0 ? Plural(row.Flows, "flow") : null }.Where(s => s is not null));
         var count = new TextBlock { Text = counts, FontSize = 12, VerticalAlignment = VerticalAlignment.Center, Classes = { "treecount" } };
+        var mark = FlowsView.LinkedMark();
+        mark.IsVisible = row.Linked == true;
         var grid = new Grid
         {
-            ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto)],
-            ColumnSpacing = 6, Height = RowHeight, Children = { twist, icon, name, dot, count },
+            ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto)],
+            ColumnSpacing = 6, Height = RowHeight, Children = { twist, icon, name, mark, dot, count },
         };
         SetColumn(icon, 1);
         SetColumn(name, 2);
-        SetColumn(dot, 3);
-        SetColumn(count, 4);
+        SetColumn(mark, 3);
+        SetColumn(dot, 4);
+        SetColumn(count, 5);
+        if (row.Kind == "flow")
+        {
+            // A button of its own beside the count: the row's click still plays the flow, and a press here never reaches it.
+            var compare = FlowsView.CompareButton(row.Id, row.Name, _compareOff, id => CompareRequested?.Invoke(id));
+            grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
+            SetColumn(compare, 6);
+            grid.Children.Add(compare);
+        }
         var border = new Border { Child = grid, Padding = new Thickness(6 + row.Depth * 16, 0, 8, 0), CornerRadius = new CornerRadius(6) };
         border.Classes.Add("treerow");
         border.Classes.Set("sel", row.Key == _current);

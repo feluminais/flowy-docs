@@ -21,6 +21,7 @@ internal sealed partial class ReaderView
     private (string Flow, int Step)? _compareStart; // the stop the flow that was playing was at, for its pane to start at
     private ComparePicker? _picker;
     private string? _pickerFlow;
+    private bool _pickerOnRow; // the flyout of a Compare button on a row of the navigator, not of the player's: it is hosted under the navigator's tabs
 
     // The note on the pair: what is typed in its editor is kept here, not in the strip, so it survives the strip going away (the Performance tab opening over the panes) and so leaving can ask
     // first. It belongs to one pair; another pair starts with none. A pair with no tag has no file to hold it, so there it is a draft. It is only dropped by Discard, by saving it, or by opening
@@ -491,6 +492,30 @@ internal sealed partial class ReaderView
         _player.Picker = _picker;
     }
 
+    /// <summary>
+    /// The Compare button on a flow's row (Flows tab or Explorer): the comparison of that flow with the first one it is linked to that is there, else the same flyout the player's button opens, hosted
+    /// under the navigator's tabs. A second press on the same row's button closes the flyout; on another row's, it moves there. Nothing opens while editing (the button is greyed out then).
+    /// </summary>
+    private void CompareFromRow(string flow)
+    {
+        if (_folder is not { } folder || CompareChoices.Off(folder.Model, Editing) is not null || !folder.Model.Flows.Contains(flow)) return;
+        if (_picker is not null && _pickerOnRow && _pickerFlow == flow)
+        {
+            ClosePicker();
+            return;
+        }
+        DropPicker();
+        if (CompareChoices.FirstLinked(folder.Model, flow) is { } other)
+        {
+            OpenCompare(flow, other);
+            return;
+        }
+        _pickerFlow = flow;
+        _pickerOnRow = true;
+        _picker = new ComparePicker(folder.Model, flow, partner => OpenCompare(flow, partner), ClosePicker);
+        _nav.Picker = _picker;
+    }
+
     /// <summary>Takes the flyout away and gives the keys back to the reader.</summary>
     private void ClosePicker()
     {
@@ -505,15 +530,18 @@ internal sealed partial class ReaderView
         if (_picker is null) return;
         _picker = null;
         _pickerFlow = null;
+        _pickerOnRow = false;
         _player.Picker = null;
+        _nav.Picker = null;
     }
 
-    /// <summary>A press anywhere but on the flyout or the button that opened it closes the flyout.</summary>
+    /// <summary>A press anywhere but on the flyout or a button that opens it (the player's, or one on a row, which decides for itself) closes the flyout.</summary>
     private void PressedOutsidePicker(object? source)
     {
         if (_picker is null || source is not Visual pressed) return;
         bool Inside(Control owner) => ReferenceEquals(pressed, owner) || pressed.GetVisualAncestors().Contains(owner);
         if (Inside(_picker) || (_player.CompareButton is { } button && Inside(button))) return;
+        if (pressed.GetSelfAndVisualAncestors().OfType<Button>().Any(b => b.Classes.Contains("rowcompare"))) return;
         ClosePicker();
     }
 
@@ -523,6 +551,12 @@ internal sealed partial class ReaderView
     internal CompareView? CompareShown => _compareView is not null && Comparing ? _compareView : null;
 
     internal ComparePicker? PickerShown => _picker;
+
+    /// <summary>The flow whose Compare button opened the flyout that is open, and whether it hangs on a row of the navigator (for tests).</summary>
+    internal (string? Flow, bool OnRow) PickerFor => (_pickerFlow, _pickerOnRow);
+
+    /// <summary>The Compare button on a flow's row, as a press on it does (for tests).</summary>
+    internal void CompareRow(string flow) => CompareFromRow(flow);
 
     /// <summary>The text of the draft held for the pair on show, or null (for tests).</summary>
     internal string? NoteDraftNow => _noteDraft is { } draft && draft.Pair == PairNow ? draft.Text : null;

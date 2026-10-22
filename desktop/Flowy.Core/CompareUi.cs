@@ -2,7 +2,8 @@ namespace Flowy.Core;
 
 /// <summary>
 /// What the comparison view decides before it draws: which kinds the key lists, what a stop of the progress bar is marked as, where a note on a pair is saved and whether it can be.
-/// A port of the pure functions in ui/src/compare.ts (keyItems, changeOfStop, noteOf, saveTarget, pairKey, unsaved, noteOff, pairOff, removeNeedsConfirm), so the app and the browser
+/// A port of the pure functions in ui/src/compare.ts (keyItems, changeOfStop, noteOf, saveTarget, pairKey, unsaved, noteOff, pairOff, removeNeedsConfirm, and the flow form's flowTile,
+/// partnerChoices, taggedBy and tagWith), so the app and the browser
 /// say the same thing about the same pair. desktop/fixtures/compare.ts keeps the two equal. Nothing here draws.
 /// </summary>
 public static class CompareUi
