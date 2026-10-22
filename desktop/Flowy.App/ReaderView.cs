@@ -40,8 +40,8 @@ internal sealed partial class ReaderView : Grid
         public sealed record Flow(Recording Rec) : Side;
     }
 
-    /// <summary>The panel opened on the right besides what a pick opens: Details from its rail (the level you are in), or Performance. One field, so the two never stand together.</summary>
-    private enum RightPanel { Closed, Details, Performance }
+    /// <summary>The panel opened on the right besides what a pick opens: Details from its rail (the level you are in).</summary>
+    private enum RightPanel { Closed, Details }
 
     private readonly CanvasView _canvas = new();
     private readonly Border _motionHost;
@@ -49,7 +49,7 @@ internal sealed partial class ReaderView : Grid
     private readonly TextBlock _emptyTitle = new() { Text = "Nothing to show yet", FontSize = 18, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center };
     private readonly TextBlock _emptyBody = new() { TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Classes = { "muted" } };
     private readonly SidePanel _panel = new();
-    private readonly PerfPanel _perfPanel = new();
+    private PerfPanel _perfPanel => _nav.Perf;
     private readonly PlayerCard _player = new();
     private readonly PickedBar _pickedBar = new();
     private readonly Grid _overlay = new();
@@ -160,15 +160,11 @@ internal sealed partial class ReaderView : Grid
         _canvas.PaneClicked += PaneClicked;
         _canvas.FrameClicked += () =>
         {
-            // While a flow is recorded, or a load shows, the outline is just empty canvas: the panel has its own work.
-            if (Recording is not null || PerfOpen) PaneClicked();
+            // While a flow is recorded, the outline is just empty canvas: the panel has its own work.
+            if (Recording is not null) PaneClicked();
             else ShowLevel();
         };
-        _panel.Closed += () =>
-        {
-            if (PerfOpen) ClosePerf();
-            else CloseDetails();
-        };
+        _panel.Closed += CloseDetails;
         _perf = new PerfSession(new PerfHooks(() => _folder?.Runs, snap => ApplyLoad(snap), () => _perfPanel.SnapSlider(),
             (places, active) => _perfPanel.SetPlaces(places, active, false), frame => TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ => frame()), () => Still));
         _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Refresh, (ms, then) => Anim.Run(this, ms, t => t, _ => InvalidateVisual(), then)));
@@ -323,7 +319,7 @@ internal sealed partial class ReaderView : Grid
         _side = null;
         _right = RightPanel.Closed;
         _perf.StopRamp();
-        if (_tab == PanelTab.Failures) _tab = null; // another folder's analyses start from the top
+        if (_tab is PanelTab.Failures or PanelTab.Performance) _tab = null; // another folder's analyses and runs start from the top
         _analysisId = "";
         _modeId = null;
         _band = null;
@@ -496,6 +492,7 @@ internal sealed partial class ReaderView : Grid
         RefreshBar(model, view, flow);
         RefreshEdit();
         RefreshPanel(model, view);
+        if (PerfOpen) ShowPerfPanel(model, view); // before ApplyLoad, which moves the panel to the load
         ApplyLoad();
         ApplyFailures();
         RefreshPlayer(model, view, flow, index, shown);
@@ -582,11 +579,6 @@ internal sealed partial class ReaderView : Grid
 
     private void RefreshPanel(Model model, string view)
     {
-        if (PerfOpen)
-        {
-            ShowPerfPanel(model, view);
-            return;
-        }
         switch (_side)
         {
             case Side.Box { Id: var id } when Editing:

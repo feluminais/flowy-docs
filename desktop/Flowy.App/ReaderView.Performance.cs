@@ -6,7 +6,7 @@ namespace Flowy.App;
 
 /// <summary>
 /// The Performance panel: which load-test run and where along it, the ramp (Play, for a run over time), and the load drawn on the canvas (traffic on the lines,
-/// strain on the shapes, and for a run over time the states its events leave). It takes Details' place on the right while it is open. A port of what App.tsx does for the Performance tab, with the same rules: it is
+/// strain on the shapes, and for a run over time the states its events leave). It is a tab of the navigator on the left, with Explorer, Flows and Failures, and Details stays free on the right. A port of what App.tsx does for the Performance tab, with the same rules: it is
 /// there only where the folder has a run (or a run file to complain about) and not while editing; a flow that was playing waits behind it; a click on
 /// the canvas picks what its panel reads out.
 /// </summary>
@@ -22,10 +22,10 @@ internal sealed partial class ReaderView
 
     private LoadRun? LoadTest => _perf.Run;
 
-    private bool PerfOpen => _right == RightPanel.Performance && CanPerf; // with only a broken run file there is no load to show, but the panel can say what is wrong
+    private bool PerfOpen => _tab == PanelTab.Performance && CanPerf; // with only a broken run file there is no load to show, but the panel can say what is wrong
 
-    /// <summary>A panel on the right, whichever it is.</summary>
-    private bool RightOpen => DetailsOpen || PerfOpen;
+    /// <summary>The panel on the right, which is Details.</summary>
+    private bool RightOpen => DetailsOpen;
 
     private static bool Still => MotionSettings.Reduced;
 
@@ -49,29 +49,16 @@ internal sealed partial class ReaderView
         _perfPanel.Used += () => Focus(); // a control in the panel took the keyboard: give it back, so the keys work
     }
 
-    private void OpenPerf()
-    {
-        if (!CanPerf || _folder?.Runs is null) return;
-        _perf.Open();
-        if (_tab == PanelTab.Failures) _tab = null; // its marks and the load's traffic would draw over each other
-        _right = RightPanel.Performance; // in Details' place, so closing it again doesn't leave Details open
-        Refresh();
-    }
+    private void OpenPerf() => SetTab(PanelTab.Performance);
 
-    /// <summary>The Performance panel gives way (editing, the Failures tab or Details takes over, or it is closed): a ramp stops with it.</summary>
+    /// <summary>The Performance tab gives way (editing starts): a ramp stops with it.</summary>
     private void LeavePerformance()
     {
-        if (_right == RightPanel.Performance) _right = RightPanel.Closed;
+        if (_tab == PanelTab.Performance) _tab = null;
         _perf.StopRamp();
     }
 
-    private void ClosePerf()
-    {
-        LeavePerformance();
-        _side = null; // what was picked for its readings is no reason for Details to open in its place
-        Refresh();
-        Focus();
-    }
+    private void ClosePerf() => CloseNav();
 
     private void TogglePerf()
     {
@@ -130,7 +117,6 @@ internal sealed partial class ReaderView
         };
         _perf.EnsurePlaces();
         _perfPanel.Show(new PerfPanelModel(model, view, folder.Runs!, folder.RunProblems ?? [], PerfView.ActiveRun(folder.Runs!, _perf.RunId), _perf.Pos, _perf.Ramping, Still, selection, Several is null ? null : _perf.Places, _perf.Active));
-        _panel.ShowControl(_perfPanel, "perf");
     }
 
     // What a test can look at.

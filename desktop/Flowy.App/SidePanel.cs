@@ -80,9 +80,6 @@ internal sealed class SidePanel : Border
         if (!same) _scroll.Offset = default;
     }
 
-    /// <summary>Puts a control of its own in the panel, in Details' place (the Performance panel is one, and lives as long as the reader).</summary>
-    public void ShowControl(Control content, string key) => Show(content, key);
-
     /// <summary>What Details shows at the top level when nothing is picked: how much there is, and where to go next.</summary>
     public void ShowOverview(OutlineTotals totals)
     {

@@ -74,8 +74,8 @@ internal static class Icons
     public const string Bell = "M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6M9 17v1a3 3 0 0 0 6 0v-1";
     public const string Pause = "M6 5m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1zM14 5m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z";
     public const string Reload = "M19.933 13.041a8 8 0 1 1 -9.925 -8.788c3.899 -1.002 7.935 1.007 9.425 4.747M20 4v5h-5";
-    // The rail's Details and Explorer icons.
-    public const string Info = "M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 7.5h.01M12 11.5v5";
+    // The rail's Details and Explorer icons: Details is an i in a rounded square, drawn to stay sharp at 18 pixels.
+    public const string Info = "M5.5 3h13a2.5 2.5 0 0 1 2.5 2.5v13a2.5 2.5 0 0 1 -2.5 2.5h-13a2.5 2.5 0 0 1 -2.5 -2.5v-13a2.5 2.5 0 0 1 2.5 -2.5zM12 7.5h.01M12 11.5v5";
     public const string Activity = "M3 12h4l3 8l4 -16l3 8h4";
     // Our own, drawn for the rail: a folder with what is in it hanging below, and an i with no serifs, which stays sharp at 18 pixels.
     public const string Explorer = "M4 3h4l2 2h9a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-15a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2zM7 11v9.5h3M7 15.5h3M13 15.5h8M13 20.5h8";

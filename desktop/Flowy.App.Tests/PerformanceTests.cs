@@ -52,12 +52,12 @@ public class PerformanceTests
     private static bool Strained(ReaderView reader, string id) => reader.Canvas.BoxControlFor(id)!.Classes.Contains("strained");
 
     [AvaloniaFact]
-    public void The_right_rail_has_a_Performance_button_where_there_are_runs_and_the_number_on_it_is_how_many()
+    public void The_left_rail_has_a_Performance_button_where_there_are_runs_and_the_number_on_it_is_how_many()
     {
         var (_, reader) = Open();
         var runs = FolderLoader.Load(Shop).Runs!.Count;
-        Assert.Equal(["Details", $"Performance, {runs}"], reader.DetailsRail.Shown.Select(i => i.Name));
-        Assert.All(reader.DetailsRail.Shown, i => Assert.True(i.Visible));
+        Assert.DoesNotContain(reader.DetailsRail.Shown, i => i.Name.StartsWith("Performance")); // Details' rail on the right has Details only
+        Assert.Contains($"Performance, {runs}", reader.Rail.Shown.Where(i => i.Visible).Select(i => i.Name));
         Assert.False(reader.PerfOpenNow); // nothing is open until the button is pressed
     }
 
@@ -76,7 +76,7 @@ public class PerformanceTests
         Assert.Empty(folder.RunProblems!);
         Assert.Equal(["dinner-rush", "eta-batched", "orders-only", "pings-climbing", "stripe-outage", "together-measured", "together"], folder.Runs!.Keys); // the file names sort so that the demo opens on the dinner rush
         var (window, reader) = Open(Plum);
-        Assert.Equal(["Details", "Performance, 7"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name));
+        Assert.Contains("Performance, 7", reader.Rail.Shown.Where(i => i.Visible).Select(i => i.Name));
         Press(window, Key.T, PhysicalKey.T);
         Assert.Equal(("dinner-rush", 3.0, false), reader.PerfState); // the load where ETA reaches 90%
         Assert.Contains("First struggles at 900 orders/min: ETA at 90% of capacity", string.Join("|", AllText(reader.PerfPanelNow)));
@@ -93,7 +93,7 @@ public class PerformanceTests
     {
         using var temp = Runless();
         var (window, reader) = Open(temp.Path);
-        Assert.False(reader.DetailsRail.Shown.First(i => i.Name.StartsWith("Performance")).Visible);
+        Assert.False(reader.Rail.Shown.First(i => i.Name.StartsWith("Performance")).Visible);
         Press(window, Key.T, PhysicalKey.T);
         Assert.False(reader.PerfOpenNow);
         Assert.False(reader.HasPanel);
@@ -133,20 +133,27 @@ public class PerformanceTests
         root.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "");
 
     [AvaloniaFact]
-    public void The_panel_takes_Details_place_and_the_Details_button_takes_it_back()
+    public void The_panel_is_a_tab_on_the_left_and_Details_stays_free_on_the_right()
     {
         var (window, reader) = Open();
         reader.Select("customer");
         Assert.True(reader.DetailsOpenNow);
         Press(window, Key.T, PhysicalKey.T);
         Assert.True(reader.PerfOpenNow);
-        Assert.False(reader.DetailsOpenNow);
+        Assert.Equal(PanelTab.Performance, reader.ShownTabNow);
+        Assert.True(reader.DetailsOpenNow); // what is picked still reads out on the right
         reader.ClickRail(PanelTab.Details);
+        Assert.False(reader.DetailsOpenNow);
+        Assert.True(reader.PerfOpenNow); // closing Details leaves the load where it is
+        reader.ClickRail(PanelTab.Details);
+        Assert.True(reader.DetailsOpenNow);
+        Assert.True(reader.PerfOpenNow);
+        reader.ClickRail(PanelTab.Explorer);
+        Assert.False(reader.PerfOpenNow); // one tab on the left at a time
+        reader.ClickRail(PanelTab.Performance);
+        Press(window, Key.Escape, PhysicalKey.Escape); // closes the Performance tab and leaves Details as it was
         Assert.False(reader.PerfOpenNow);
         Assert.True(reader.DetailsOpenNow);
-        reader.ClickRail(PanelTab.Performance);
-        Press(window, Key.Escape, PhysicalKey.Escape); // closes the Performance panel and does not leave Details open in its place
-        Assert.False(reader.HasPanel);
     }
 
     [AvaloniaFact]
@@ -342,7 +349,7 @@ public class PerformanceTests
         Assert.True(reader.PerfOpenNow);
         reader.SetEditing(true);
         Assert.False(reader.PerfOpenNow);
-        var button = reader.DetailsRail.Shown.First(i => i.Name.StartsWith("Performance"));
+        var button = reader.Rail.Shown.First(i => i.Name.StartsWith("Performance"));
         Assert.True(button.Visible); // it stays where it is
         Assert.False(button.Enabled);
         Press(window, Key.T, PhysicalKey.T);
@@ -350,7 +357,7 @@ public class PerformanceTests
         reader.ClickRail(PanelTab.Performance);
         Assert.False(reader.PerfOpenNow);
         reader.SetEditing(false);
-        button = reader.DetailsRail.Shown.First(i => i.Name.StartsWith("Performance"));
+        button = reader.Rail.Shown.First(i => i.Name.StartsWith("Performance"));
         Assert.True(button.Visible);
         Assert.True(button.Enabled);
         Assert.False(reader.PerfOpenNow); // it does not come back on its own
@@ -364,7 +371,7 @@ public class PerformanceTests
         Directory.CreateDirectory(Path.Combine(temp.Path, "perf"));
         File.WriteAllText(Path.Combine(temp.Path, "perf", "bad.yaml"), "name: Bad\nlevels:\n  - load: 1\n");
         var (window, reader) = Open(temp.Path);
-        Assert.True(reader.DetailsRail.Shown.First(i => i.Name.StartsWith("Performance")).Visible);
+        Assert.True(reader.Rail.Shown.First(i => i.Name.StartsWith("Performance")).Visible);
         Press(window, Key.T, PhysicalKey.T);
         Assert.True(reader.PerfOpenNow);
         var text = string.Join("|", AllText(reader.PerfPanelNow));
