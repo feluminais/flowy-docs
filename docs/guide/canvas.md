@@ -143,7 +143,7 @@ model on the canvas, or in your editor.
 
 **The files.** There is a tab for each file: `model.yaml`, `layout.yaml` when there is one, every `flows/<id>.yaml` and every
 `failures/<id>.yaml`. The text is the file as it is on disk, comments included, so you can see that saving drops them. Load-test runs in
-`perf/` are left out, because Flowy only reads them. The panel opens on the file that fits where you are, and picking a shape on the
+`perf/` are left out, because tools write them. The panel opens on the file that fits where you are, and picking a shape on the
 canvas takes it to that shape's block in `model.yaml`.
 
 **What the last change did.** When the files change, the panel marks the change in the file it shows: an added line in green, a removed

@@ -1,7 +1,11 @@
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { ANIMATION_KINDS, EFFECTS } from '../core/animation.ts'
 import { check, newProblems } from '../core/check.ts'
+import { compareOf } from '../core/compare.ts'
+import type { CompareTag } from '../core/compare.ts'
 import { analysisText, BAND_NAMES, bandOf, riskOf, runLinkProblems, STATUSES } from '../core/failures.ts'
 import { FILE_KINDS, kindOfPath, pathOf } from '../core/filekinds.ts'
 import { mcpLabel } from '../core/history.ts'
@@ -10,7 +14,7 @@ import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
 import { getObject, OBJECT_TYPES, ROOT } from '../core/model.ts'
 import { changedFiles } from '../core/modelfiles.ts'
 import type { Model } from '../core/model.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, disconnect, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems } from '../core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, disconnect, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems, setCompare } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
 import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
@@ -18,7 +22,7 @@ import { STATE_NAMES } from '../core/states.ts'
 import { GROUP_KINDS } from '../core/structure.ts'
 import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
 import { blockedMessage, firstBlocked, firstUnreadable } from './commit.ts'
-import { loadDir, loadReport, loadRuns, missingPaths, saveFiles, VersionConflict } from './files.ts'
+import { hashBytes, loadDir, loadReport, loadRuns, missingPaths, saveFiles, saveRunCompare, VersionConflict } from './files.ts'
 import type { Report } from './files.ts'
 import { registerGuidance } from './guidance.ts'
 import type { History } from './history.ts'
@@ -27,7 +31,7 @@ const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML fil
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
 Connect the most specific objects you know (e.g. component → store); zoomed-out views merge lines automatically.
 A flow is a step-by-step walkthrough played on one view: "root" (the top level) or an object with children.
-Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, put_failures and put_failure, put_icon, and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
+Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, put_failures and put_failure, put_icon, set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
 What to document, and what to read for it:
 - A request that only says to document, map or describe the repo ("make Flowy docs") gets the default and nothing else: the people, apps, stores, components and outside services you can point to, how they connect, and three to five plain flows (no animation, no looks). Don't read the topic rules below, and don't write failure modes, data, snippets, animation or performance.
 - Everything beyond that is the user's to ask for by name. If they ask for more without saying what ("everything", "in detail", "make it complete"), ask which parts, listing these: flows with motion, repeats, branches or failed requests; what the stores hold; code on shapes; a failure analysis; looks. Performance runs are files a load test makes, which you can't write.
@@ -58,6 +62,12 @@ Writing a flow, so it reads the way the code works:
 - A step's More (its description) holds why, timing, failure behaviour or limits, not a repeat of the step.
 - Write plain steps. Motion (animation), repeats, branches, parallel lanes and shape states are for a user who asked for them: read flowy://rules/flows first.
 After writing: every write is checked, and a write that would add a problem is refused and nothing is saved. Read the answer, fix the cause (find the right path, name or end) and write again. Don't repeat the same call or drop the field to get past it. After a run of writes, or after you change a file by hand, call get_problems: no problems means it is sound. Finish by saying what you read from the code, what you inferred and what you left out.`
+
+/** `{ compare }` when the flow or run has a readable tag, so an entry without one stays as it was. */
+const withTag = (value: unknown): { compare?: CompareTag } => {
+  const compare = compareOf(value)
+  return compare === undefined ? {} : { compare }
+}
 
 /**
  * What put_flow answers: each step as a reader will see it on the flow's view. When an end is drawn as
@@ -194,14 +204,14 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     annotations: readOnly,
   }, ({ summary, object, flow, analysis }) => reading(({ model: m, runs, problems }) => {
     if ([summary === true, object !== undefined, flow !== undefined, analysis !== undefined].filter(Boolean).length > 1) throw new Error('Give at most one of summary, object, flow and analysis.')
-    const runList = Object.entries(runs).map(([runId, r]) => ({ id: runId, name: r.name }))
+    const runList = Object.entries(runs).map(([runId, r]) => ({ id: runId, name: r.name, ...withTag(r.compare) }))
     const about = (pick: (p: Report['problems'][number]) => boolean) => problems.filter(pick)
     if (summary === true) {
       const objects = Object.entries(m.objects).map(([oid, o]) => ({ id: oid, type: o.type, name: o.name, ...(o.in ? { in: o.in } : {}), ...(o.tech ? { tech: o.tech } : {}), ...(o.external === 'true' ? { external: true } : {}) }))
       return {
         objects,
         connections: m.connections.map(c => `${c.from} → ${c.to}${c.label ? `: ${c.label}` : ''}`),
-        flows: Object.entries(m.flows).map(([fid, f]) => ({ id: fid, name: f.name, view: f.view, steps: f.steps.length })),
+        flows: Object.entries(m.flows).map(([fid, f]) => ({ id: fid, name: f.name, view: f.view, steps: f.steps.length, ...withTag(f.compare) })),
         failures: Object.entries(m.failures).map(([aid, a]) => ({ id: aid, name: a.name, modes: Object.keys(a.modes).length })),
         icons: Object.keys(customIcons(m.meta)),
         runs: runList,
@@ -362,6 +372,45 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     inputSchema: { id: id('Flow id (its file name without .yaml)') },
     annotations: destructive,
   }, input => write(m => deleteFlow(m, input.id), `Deleted flow ${input.id}.`, mcpLabel('delete_flow', input)))
+
+  /** A run is read-only except for its `compare` tag, which is written in place with the helper the app's own write uses. */
+  const setRunTag = (runId: string, tag: CompareTag | undefined, done: string, label: string) => inOrder(async () => {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const loaded = await loadDir(dir)
+        const { runs } = await loadRuns(dir, loaded.model)
+        if (!Object.hasOwn(runs, runId)) return fail(`unknown run "${runId}"`)
+        if (tag?.with === runId) return fail(`run "${runId}" cannot compare with itself`)
+        if (tag !== undefined && !Object.hasOwn(runs, tag.with)) return fail(`unknown run "${tag.with}"`)
+        const rel = pathOf(FILE_KINDS.run, runId)
+        const blocked = firstBlocked(loaded, [rel])
+        if (blocked) return fail(`Refused, nothing saved. ${blockedMessage(blocked.blocking, rel)}`)
+        const version = hashBytes(await readFile(join(dir, rel)))
+        await saveRunCompare(dir, rel, tag, version, async () => { await history?.ensureCurrent('write') })
+        await history?.record(label, 'claude')
+        return ok(done)
+      } catch (e) {
+        if (!(e instanceof VersionConflict)) return fail(e)
+        if (attempt === 2) return fail(`Nothing saved: ${e.message}, twice in a row. Try again.`)
+      }
+    }
+  })
+
+  server.registerTool('set_compare', {
+    description: 'Say which flow or load-test run this one compares with, or take that out. The one you tag is the newer one, the id you give in "with" the older one, and the reader opens the pair side by side. The tag only helps people find a pair; it limits nothing. A flow is changed like any write (an id that is not a flow is refused). A run is a file in perf/ that is otherwise read only: only its compare line is written, and the rest of the file stays as it is. Leave "with" out to remove the tag.',
+    inputSchema: {
+      kind: z.enum(['flow', 'run']).describe('What is tagged: a flow or a load-test run.'),
+      id: z.string().max(64).describe('The id of the flow or run that gets the tag, the newer one.'),
+      with: z.string().max(64).optional().describe('The id of the older flow or run it compares with, of the same kind. Leave it out to remove the tag.'),
+      note: z.string().optional().describe('A line on what changed between the two, shown with the pair. Needs "with".'),
+    },
+  }, input => {
+    if (input.with === undefined && input.note !== undefined) return inOrder(async () => fail('A note needs "with": the id it compares with.'))
+    const tag: CompareTag | undefined = input.with === undefined ? undefined : input.note === undefined ? { with: input.with } : { with: input.with, note: input.note }
+    const done = tag === undefined ? `Removed the compare tag of ${input.kind} ${input.id}.` : `Saved: ${input.kind} ${input.id} compares with ${tag.with}.`
+    const label = mcpLabel('set_compare', input)
+    return input.kind === 'flow' ? write(m => setCompare(m, input.id, tag), done, label) : setRunTag(input.id, tag, done, label)
+  })
 
   const rating = z.preprocess(asNumber, z.number().int().min(1).max(10))
   const modeFields = {

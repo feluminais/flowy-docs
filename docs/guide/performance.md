@@ -35,7 +35,7 @@ plain. `unit` says what a load counts, and `entry` can name the shape the load c
 
 Flowy checks a run the way it checks `code:` paths: a shape or connection it names that isn't in the model, or a number that
 isn't one, is a problem. A run it can't read at all is a problem too, listed in the Performance tab, and it never stops the model
-from loading. Flowy only reads runs. Tools write them, and nothing in Flowy changes a run file.
+from loading. Flowy reads runs, and writes only their `compare` field. Tools write the rest of a run file.
 
 **Reading it.** Open the Performance tab on the left edge, or press **T**. Pick a run if there are several. The slider has a stop
 for each tested load; ← and → move between them, and **Ramp** (**P**) sweeps up to the highest, at a pace that would cover the whole run in half a minute. Between two

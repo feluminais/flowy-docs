@@ -1,3 +1,6 @@
+import { parse } from 'yaml'
+import { compareOf } from '../../src/core/compare.ts'
+import { setRunCompare } from '../../src/core/perf/comparetag.ts'
 import type { Level, Metrics } from '../../src/core/perf/types.ts'
 
 /** A number as short as it can be at `digits` places: 12.30 is 12.3, 0.0004 at 3 places is 0. */
@@ -13,8 +16,11 @@ const flow = (m: Metrics, first = ''): string => {
 
 export type RunInfo = { name: string; about: string; unit: string; entry: string }
 
-/** A run as the text of a `flowy/perf/<id>.yaml` file, one object or connection to a line. */
-export function formatRun(info: RunInfo, levels: Level[]): string {
+/**
+ * A run as the text of a `flowy/perf/<id>.yaml` file, one object or connection to a line. `previous` is the text of the file this one replaces:
+ * its `compare` tag is the one thing a person sets on a run, so it stays.
+ */
+export function formatRun(info: RunInfo, levels: Level[], previous?: string): string {
   const lines = [`name: ${JSON.stringify(info.name)}`, `about: ${JSON.stringify(info.about)}`, `unit: ${info.unit}`, `entry: ${info.entry}`, 'levels:']
   for (const level of levels) {
     lines.push(`  - load: ${level.load}`)
@@ -29,5 +35,7 @@ export function formatRun(info: RunInfo, levels: Level[]): string {
       for (const { from, to, ...m } of level.connections) lines.push(`      - ${flow(m, `from: ${from}, to: ${to}`)}`)
     }
   }
-  return `${lines.join('\n')}\n`
+  const text = `${lines.join('\n')}\n`
+  const tag = previous === undefined ? undefined : compareOf((parse(previous, { schema: 'failsafe' }) as { compare?: unknown } | null)?.compare)
+  return tag === undefined ? text : setRunCompare(text, tag)
 }

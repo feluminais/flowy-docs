@@ -18,7 +18,7 @@ Flowy runs on your machine and touches only its model folder and its own folder 
   its own files and talks only to this server, and no other site may frame it. The server doesn't follow a link inside the model
   folder that leads outside it, to read or to write.
 - Saving, from the canvas or from an AI, writes `model.yaml`, `layout.yaml`, `flows/*.yaml` and `failures/*.yaml` in the model folder and
-  nothing else; the load-test runs in `perf/` are only ever read. `export` writes only to its output folder. The desktop app writes only when you edit, and only `model.yaml`, `layout.yaml` and `flows/*.yaml`, each
+  nothing else; in the load-test runs in `perf/`, the only thing it writes is `compare`. `export` writes only to its output folder. The desktop app writes only when you edit, and only `model.yaml`, `layout.yaml` and `flows/*.yaml`, each
   through a temporary file and only if the file is still as it was read, so it can't overwrite a change made elsewhere.
 - The browser version's YAML history is in its own folder under your application data (`FLOWY_STATE_DIR` moves it), never in the
   repo. Opening a folder stores a copy of its YAML there, and each change adds another.
@@ -32,7 +32,7 @@ Flowy runs on your machine and touches only its model folder and its own folder 
   document in its default app, anything else shown in its folder and not run (an app you pick under **File › Open Files
   With** may open any file in the repo). It keeps its recent folders, window size, line-style pick and that app in
   `state.json` in its own folder under your application data.
-- Through the `mcp` command, an AI client gets seventeen tools: five read the model and twelve change its objects, icons,
+- Through the `mcp` command, an AI client gets eighteen tools: five read the model and thirteen change its objects, icons,
   connections, flows and failure analyses. None runs a command or reads a file outside the model folder.
 
 Treat a `flowy/` folder you didn't write like any other text from that repo. In the browser, descriptions are Markdown. An

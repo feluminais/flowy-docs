@@ -13,7 +13,7 @@ A model is a folder, `flowy/` by default, next to the code it describes.
 | `model.yaml` | The shapes (`objects`), the lines between them (`connections`) and project settings | You, an AI, the canvas |
 | `flows/<id>.yaml` | One flow: a walkthrough of something happening | You, an AI, the canvas |
 | `failures/<id>.yaml` | One failure analysis | You, an AI, the canvas |
-| `perf/<id>.yaml` | One load-test run | A tool. Flowy only reads it |
+| `perf/<id>.yaml` | One load-test run | A tool. Flowy reads it, and writes only its `compare` |
 | `layout.yaml` | Where shapes were dragged | The canvas. Don't write it |
 
 A file name that ends in `.yml` is ignored, and `flowy check` says so. An `<id>` is lowercase letters, digits and dashes, not starting with a dash, and
@@ -73,6 +73,7 @@ A line from one object to another. It has a direction, and an arrow shows it.
 | `steps` | A list of steps, at least one |
 | `groups` | A mapping of group id to group ([the guide](guide/flows.md#repeats-branches-and-parallel-steps)) |
 | `states` | Where shapes stand before step 1: a mapping of object id to a state |
+| `compare` | The id of the older flow this one is compared with, or `{ with: <id>, note: "text" }` with a line on what changed. The holder is the newer one. It can't name this flow, and the id has to be a flow |
 
 ### A step
 
@@ -149,6 +150,17 @@ A load test, summarised: a `name`, a `unit`, optional `about`, `entry`, `source`
 connection measured. With `axis: time` the levels rise in `at` instead, and `events` say what happens at a time, such as a shape going down. `adds` lists two to four runs to play added together,
 and `sources` tests several at once. Tools write it. The format is in [the guide](guide/performance.md#performance).
 
+A run can also carry a `compare`, the id of the older run it is compared with: `compare: before-the-cache`, or a `with` and a `note` for a line on what changed:
+
+```yaml
+compare:
+  with: before-the-cache
+  note: "Cache added in front of the orders API"
+```
+
+The holder is the newer one. It can't name itself, and the id has to be a run. `compare` is the one key of a run that Flowy writes, in place (it adds, changes or removes that
+one entry and leaves the rest of the file as it is), and a tool that writes a run over an existing file keeps it.
+
 ## What writes what over MCP
 
 | To change | Use |
@@ -158,6 +170,7 @@ and `sources` tests several at once. Tools write it. The format is in [the guide
 | A connection | `connect`, `disconnect` |
 | A flow, with its groups, states and animations | `put_flow` |
 | A failure analysis, or one mode of it | `put_failures`, `put_failure` |
-| `lines`, `perf/`, `layout.yaml` | Not over MCP: write the file, or use the canvas |
+| The `compare` of a flow, or of a run | `set_compare` (a run is otherwise not written over MCP) |
+| `lines`, the rest of `perf/`, `layout.yaml` | Not over MCP: write the file, or use the canvas |
 
 [The guide](guide/ai.md#let-an-ai-build-it) lists all the tools.
