@@ -14,12 +14,12 @@ objects:
         limits: Kept 7 years, then archived
         note: One row per order. A refund adds a row to refunds; the order stays.
         columns:
-          - {name: id, key: primary}
-          - {name: customer_id, to: customers}
+          - {name: id, type: uuid, key: primary}
+          - {name: customer_id, type: uuid, to: customers}
           - status
-          - {name: total, note: "Cents, not decimals. Rounding broke the first tax run."}
-          - placed_at
-          - delivery_notes
+          - {name: total, type: int, note: "Cents, not decimals. Rounding broke the first tax run."}
+          - {name: placed_at, type: timestamp}
+          - {name: delivery_notes, type: "text?"}
         rows:
           - [o_1042, c_77, placed, 2490, 2026-10-19 18:02, "Ring twice, the bell is broken and the courier should leave it with the neighbour in flat 4 if nobody answers"]
           - [o_1043, c_12, accepted, 1380, 2026-10-19 18:05, ""]

@@ -117,7 +117,8 @@ A store's Data section is a picture of what it holds, for a developer who wants 
 - **Show the few tables a flow touches,** not all of them. A store with forty tables gets the four a reader meets in the flows. The
   rest stay in the migrations, which a `links:` entry can point at.
 - **Draw a table as a table.** Columns that tell the reader something (the key, what it points to, the money) and two or three sample
-  rows. Leave out the audit columns. Types, defaults and indexes are left out on purpose: a sample row says more than a type does.
+  rows. Leave out the audit columns. Give a column its `type` when the type is not obvious from the name or the sample row (`uuid`, `int` for
+  cents), and end it with `?` when it can be empty. Defaults and indexes are left out on purpose: a sample row says more than they do.
 - **Invent the rows.** Never paste rows from a real database, a dump or a log, and never use a real name, email or id. `o_1042`,
   `c_77` and `Noodle Bar` are enough to show what a row looks like.
 - **A note says why, in one line.** "Stored in cents because rounding broke the first tax run." explains a choice a reader would

@@ -24,19 +24,28 @@
           "columns": [
             {
               "name": "id",
+              "type": "uuid",
               "key": "primary"
             },
             {
               "name": "customer_id",
+              "type": "uuid",
               "to": "customers"
             },
             "status",
             {
               "name": "total",
+              "type": "int",
               "note": "Cents, not decimals. Rounding broke the first tax run."
             },
-            "placed_at",
-            "delivery_notes"
+            {
+              "name": "placed_at",
+              "type": "timestamp"
+            },
+            {
+              "name": "delivery_notes",
+              "type": "text?"
+            }
           ],
           "rows": [
             [
@@ -132,10 +141,12 @@
           "columns": [
             {
               "name": "id",
+              "type": "uuid",
               "key": "primary"
             },
             {
               "name": "customer_id",
+              "type": "uuid",
               "to": "customers"
             },
             {
@@ -143,13 +154,17 @@
             },
             {
               "name": "total",
+              "type": "int",
               "note": "Cents, not decimals. Rounding broke the first tax run."
             },
             {
-              "name": "placed_at"
+              "name": "placed_at",
+              "type": "timestamp"
             },
             {
-              "name": "delivery_notes"
+              "name": "delivery_notes",
+              "type": "text",
+              "nullable": true
             }
           ],
           "rows": [

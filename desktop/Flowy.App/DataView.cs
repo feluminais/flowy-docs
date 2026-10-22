@@ -100,7 +100,7 @@ internal static class DataView
         return new StackPanel { Children = { head, body } };
     }
 
-    /// <summary>A mark after a column's name: PK, or FK and the table it points to, with the full name as its tip.</summary>
+    /// <summary>A mark after a column's name: PK, FK and the table it points to, or NULL, with the full name as its tip.</summary>
     private static Control Mark(string text, string tip, Func<string, IBrush> resource)
     {
         var mark = new Border
@@ -117,14 +117,19 @@ internal static class DataView
         return mark;
     }
 
+    /// <summary>A column's heading: its name and marks on a line, its type under them in small type.</summary>
     private static Control Heading(DataColumn column, Func<string, IBrush> resource)
     {
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5 };
         row.Children.Add(new TextBlock { Text = column.Name, FontSize = 12, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center });
         if (column.Key == "primary") row.Children.Add(Mark("PK", "Primary key", resource));
         if (column.To is { } to) row.Children.Add(Mark($"FK {to}", $"Foreign key to {to}", resource));
+        if (column.Nullable) row.Children.Add(Mark("NULL", "Can be empty", resource));
         if (column.Note is not null) row.Children.Add(Dot());
-        return row;
+        if (column.Type is not { } type) return row;
+        var heading = new StackPanel { Children = { row } };
+        heading.Children.Add(new TextBlock { Text = type, FontFamily = Fonts.Mono, FontSize = 10.5, Foreground = resource("MutedBrush"), TextWrapping = TextWrapping.NoWrap });
+        return heading;
     }
 
     /// <summary>A table, key set or topic: headings on a faint fill over the sample rows. Cells do not wrap; a long one is cut and its whole text is its tip. A grid wider than the panel scrolls inside its frame.</summary>
@@ -209,7 +214,7 @@ internal static class DataView
         foreach (var n in entry.Notes)
         {
             var name = new Border { Child = new TextBlock { Text = n.Name, FontFamily = Fonts.Mono, FontSize = 11.5 }, VerticalAlignment = VerticalAlignment.Top, Classes = { "datacode" } };
-            var text = new TextBlock { Text = n.Text, FontSize = 12.5, Foreground = resource("WarnFgBrush"), TextWrapping = TextWrapping.Wrap };
+            var text = new TextBlock { Text = n.Text, FontSize = 12.5, Foreground = resource("KnowFgBrush"), TextWrapping = TextWrapping.Wrap };
             var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 6, Children = { name, text } };
             Grid.SetColumn(text, 1);
             list.Children.Add(new Border { Child = row, Classes = { "datanote" } });

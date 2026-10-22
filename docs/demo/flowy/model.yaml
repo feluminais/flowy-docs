@@ -111,38 +111,38 @@ objects:
         limits: Kept 7 years, then archived
         note: One row per order. A refund adds a row to refunds; the order stays.
         columns:
-          - {name: id, key: primary}
-          - {name: customer_id, to: customers}
-          - {name: total, note: "Stored in cents because rounding broke the first tax run."}
+          - {name: id, type: uuid, key: primary}
+          - {name: customer_id, type: uuid, to: customers}
+          - {name: total, type: int, note: "Stored in cents because rounding broke the first tax run."}
         rows:
           - [o_1042, c_77, 2490]
           - [o_1043, c_12, 1380]
           - [o_1044, c_77, 990]
       - name: order_items
         columns:
-          - {name: order_id, key: primary, to: orders}
-          - {name: item_id, key: primary}
-          - quantity
-          - {name: unit_price, note: Copied from the menu when the order is placed. Later menu changes leave it alone.}
+          - {name: order_id, type: uuid, key: primary, to: orders}
+          - {name: item_id, type: uuid, key: primary}
+          - {name: quantity, type: int}
+          - {name: unit_price, type: int, note: Copied from the menu when the order is placed. Later menu changes leave it alone.}
         rows:
           - [o_1042, i_31, 2, 1245]
           - [o_1043, i_8, 1, 1380]
       - name: refunds
         limits: Kept with its order
         columns:
-          - {name: id, key: primary}
-          - {name: order_id, to: orders}
-          - amount
-          - reason
+          - {name: id, type: uuid, key: primary}
+          - {name: order_id, type: uuid, to: orders}
+          - {name: amount, type: int}
+          - {name: reason, type: text?}
         rows:
           - [r_9, o_1044, 990, Wrong item]
       - name: baskets
         limits: Swept after 24 hours
         columns:
-          - {name: id, key: primary}
-          - {name: customer_id, to: customers}
-          - items
-          - expires_at
+          - {name: id, type: uuid, key: primary}
+          - {name: customer_id, type: uuid, to: customers}
+          - {name: items, type: json}
+          - {name: expires_at, type: timestamp}
   menu-cache:
     type: store
     in: ordering
