@@ -1,0 +1,4 @@
+name: anim-flash
+view: root
+steps:
+  - { from: a, to: b, text: First, animation: flash }

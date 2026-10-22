@@ -1,0 +1,8 @@
+objects:
+  a: { type: system, name: A }
+  b: { type: system, name: B }
+  c: { type: system, name: C }
+  d: { type: system, name: D }
+  e: { type: system, name: E }
+  f: { type: system, name: F }
+connections: []
