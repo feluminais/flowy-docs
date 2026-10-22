@@ -20,7 +20,7 @@ import { chain, isView, parentOf } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
 export class OpError extends Error {
-  name = 'OpError'
+  override name = 'OpError'
   /** When the edit was refused because other parts depend on what it deletes: the rows that need a decision (see dependents), so a caller can show or settle them. */
   dependents?: Dependent[]
   constructor(message: string, dependents?: Dependent[]) {

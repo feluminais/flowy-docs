@@ -29,7 +29,7 @@ export type Loaded = { model: Model; versions: Record<string, string | null>; ig
 
 /** The file changed since the caller read it. */
 export class VersionConflict extends Error {
-  name = 'VersionConflict'
+  override name = 'VersionConflict'
   /** The file's version now (null = missing). */
   version: string | null
   constructor(rel: string, version: string | null) {
@@ -81,7 +81,7 @@ export async function pointsOutside(dir: string, rel: string): Promise<boolean> 
 
 /** A write that was refused because the file is, or sits behind, a link out of the model folder. */
 export class OutsideFolder extends Error {
-  name = 'OutsideFolder'
+  override name = 'OutsideFolder'
   constructor(rel: string) {
     super(`"${rel}" points outside the folder`)
   }

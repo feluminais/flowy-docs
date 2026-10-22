@@ -29,7 +29,11 @@
     "lab:run": "node perf-lab/load/run.ts",
     "lab:smoke": "node --test perf-lab/test/smoke.test.ts",
     "prepack": "npm run build",
-    "prepublishOnly": "npm test && npm run typecheck"
+    "prepublishOnly": "npm test && npm run typecheck",
+    "test:coverage": "node --test --experimental-test-coverage \"test/**/*.test.ts\"",
+    "test:browser": "playwright test --config browser-tests/playwright.config.ts",
+    "check:layers": "depcruise src ui/src --config .dependency-cruiser.cjs",
+    "check:unused": "knip --no-progress"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
@@ -37,13 +41,19 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@dagrejs/dagre": "^3.1.1",
+    "@playwright/test": "^1.64.1",
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "@xyflow/react": "^12.12.0",
+    "@xyflow/system": "^0.0.83",
+    "dependency-cruiser": "^18.7.0",
+    "fast-check": "^4.10.2",
     "highlight.js": "^11.12.0",
+    "knip": "^6.42.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-markdown": "^10.1.0",
