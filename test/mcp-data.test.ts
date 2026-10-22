@@ -40,6 +40,14 @@ test('put_object saves a store\'s data, get_model gives it back as text, and the
   assert.match(await readFile(join(dir, 'model.yaml'), 'utf8'), /^ {10}- \[o_1042, 2490\]$/m)
 })
 
+test('a column type goes in as text and is written on the column line', async t => {
+  const { dir, call, dataOf } = await setup(t)
+  const saved = await call('put_object', { id: 'db', data: [{ name: 'orders', columns: [{ name: 'id', type: 'uuid', key: 'primary' }, { name: 'note', type: 'text?' }] }] })
+  assert.equal(saved.error, false, saved.text)
+  assert.deepEqual((await dataOf())[0].columns, [{ name: 'id', type: 'uuid', key: 'primary' }, { name: 'note', type: 'text?' }])
+  assert.match(await readFile(join(dir, 'model.yaml'), 'utf8'), /^ {10}- \{name: id, type: uuid, key: primary\}$/m)
+})
+
 test('a second put_object replaces the data, and an empty list removes it', async t => {
   const { call, dataOf } = await setup(t)
   await call('put_object', { id: 'db', data: [orders] })

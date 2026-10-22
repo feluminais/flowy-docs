@@ -39,6 +39,8 @@ const cases: [string, unknown, string][] = [
   ['a column with no name', [{ name: 'a', columns: [{ key: 'primary' }] }], 'data "a": column 1 has no name'],
   ['two columns with one name', [{ name: 'a', columns: ['x', 'x'] }], 'data "a": column "x" appears twice'],
   ['a key that is not primary', [{ name: 'a', columns: [{ name: 'x', key: 'foreign' }] }], 'data "a": column "x": key must be primary'],
+  ['a column type that is not text', [{ name: 'a', columns: [{ name: 'x', type: ['int'] }] }], 'data "a": column "x": "type" must be plain text'],
+  ['a column type that is too long', [{ name: 'a', columns: [{ name: 'x', type: 'x'.repeat(41) }] }], 'data "a": column "x": type is longer than 40 characters'],
   ['a column note that is not text', [{ name: 'a', columns: [{ name: 'x', note: ['n'] }] }], 'data "a": column "x": "note" must be plain text'],
   ['too many columns', [{ name: 'a', columns: names(13) }], 'data "a": 13 columns, at most 12'],
   ['rows that are not a list', [{ name: 'a', columns: ['x'], rows: 'r' }], 'data "a": rows must be a list of rows'],

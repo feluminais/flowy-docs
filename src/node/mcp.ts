@@ -118,6 +118,7 @@ const dataEntry = z.object({
   note: z.string().optional().describe('One line on why it is this way. Not what it is.'),
   columns: z.array(z.union([z.string(), z.object({
     name: z.string(),
+    type: z.string().optional().describe('The data type as the code names it, e.g. "int", "text", "timestamp". End it with ? when the column can be empty: "int?". At most 40 characters.'),
     key: z.literal('primary').optional().describe('Only "primary", for a primary key.'),
     to: z.string().optional().describe('The table this column points to, which makes it a foreign key.'),
     note: z.string().optional().describe('One line on why, shown under the data.'),
