@@ -7,17 +7,30 @@ import { depthIn } from './graph.ts'
 import type { BoxData, Outline, Rect } from './graph.ts'
 import { outline, pathBetween, rect } from './Line.tsx'
 import { extend, flatten, pointAt } from './pathpoints.ts'
-import { advance, ghost, howBehind, moteLook, newStream, swallow, visibility, wentIn } from './traffic.ts'
+import { advance, cutBy, ghost, howBehind, moteLook, newStream, visibility } from './traffic.ts'
 import type { Stream } from './traffic.ts'
 
 /** A shape a line runs behind: where it is and its outline. */
 type Shape = { rect: Rect; edge: Outline }
 
-/** How far a particle runs on into a shape that opens, and out of one, while it thins away or comes in (in the diagram's units, whatever the zoom). */
-const REACH = 24
+/** How far a particle runs on into a shape that opens, and starts out inside one, so it is wholly hidden before it is gone (in the diagram's units, whatever the zoom). */
+const REACH = 48
 
-/** A line's way for the layer: the path that runs on into the shapes at its ends that open, the same without the run into its end (a rejected call stops at the bar there), and how far each runs. */
-type Way = { path: ReturnType<typeof flatten>; bounce: ReturnType<typeof flatten>; before: number; after: number; shapes: Shape[] }
+/**
+ * A line's way for the layer: the path that runs on into the shapes at its ends that open, the same without the run into its end (a rejected call stops at the
+ * bar there), the shapes at its start and end that open, and the shapes it runs behind.
+ */
+type Way = { path: ReturnType<typeof flatten>; bounce: ReturnType<typeof flatten>; from?: Shape; to?: Shape; shapes: Shape[] }
+
+/** Cuts the drawing to what is outside `s`: a particle that goes into a shape that opens is not seen on it. Undo it with `ctx.restore()`. */
+const outside = (ctx: CanvasRenderingContext2D, s: Shape): void => {
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(-1e6, -1e6, 2e6, 2e6)
+  if (s.edge.length === 0) ctx.rect(s.rect.x, s.rect.y, s.rect.width, s.rect.height)
+  else s.edge.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(s.rect.x + x, s.rect.y + y) : ctx.lineTo(s.rect.x + x, s.rect.y + y)))
+  ctx.clip('evenodd')
+}
 
 /**
  * How far behind something the particle at (x, y) is, 0 to 1: the most of any shape its line runs behind, or label, which sits on its line with
@@ -50,8 +63,8 @@ const labelsIn = (el: HTMLElement, [tx, ty, zoom]: [number, number, number]): Re
  * the same camera as the shapes. Each line's path is flattened once, because asking the browser for a point on a path takes
  * about 28 µs and a busy view has thousands of particles a frame. Where its line runs behind a shape that is not one of its ends,
  * or under a label, a particle is still drawn, going faint and a little smaller as it goes behind and back as it comes out, so the
- * flow reads through what covers it. A line that ends at a shape that opens runs on a little way into it, thinning away as it goes in, and one that
- * starts at such a shape comes out of it the same way, so the flow goes into and out of the shape and is not cut off at its edge. A run's source sets the particles' colour and size (a line's `color` and `radius`), and a line that
+ * flow reads through what covers it. A line that ends at a shape that opens runs on into it, and one that starts at such a shape comes out of it, but a particle is only drawn
+ * outside the shape (cut by its outline), so the flow goes in and out of it and is never seen on it. A run's source sets the particles' colour and size (a line's `color` and `radius`), and a line that
  * says how its failing share fails draws a lost call as a ring where it pops and a rejected one as a call that stops at a bar at the end
  * of the line and comes back in the danger tone. A line that several sources share has a stream for each (a line's `source`), drawn in that
  * source's colour and running a little to its side of the path (its `offset`). A line with none of these draws in a loop of its own that
@@ -78,7 +91,13 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
           if (a && b) {
             const path = flatten(pathBetween(style, a, b))
             const [before, after] = [opens(a) ? REACH : 0, opens(b) ? REACH : 0]
-            made.set(key, { path: extend(path, before, after), bounce: extend(path, before, 0), before, after, shapes: shapes.filter(s => s.id !== l.from && s.id !== l.to) })
+            made.set(key, {
+              path: extend(path, before, after),
+              bounce: extend(path, before, 0),
+              from: opens(a) ? shapes.find(s => s.id === l.from) : undefined,
+              to: opens(b) ? shapes.find(s => s.id === l.to) : undefined,
+              shapes: shapes.filter(s => s.id !== l.from && s.id !== l.to),
+            })
           } else made.set(key, undefined)
         }
         return made.get(key)
@@ -141,8 +160,8 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
         const way = paths[i]!
         // A rejected call stops at the bar at the end of the line, so it doesn't run on into the shape there.
         const path = line.failure === 'rejected' ? way.bounce : way.path
-        const reach = { before: way.before, after: line.failure === 'rejected' ? 0 : way.after }
         const { shapes } = way
+        const opening = [way.from, line.failure === 'rejected' ? undefined : way.to].filter(s => s !== undefined)
         // One stream for each source on a line (a run with one source has none to name).
         const key = line.source === undefined ? `${line.from} ${line.to}` : `${line.from} ${line.to} ${line.source}`
         alive.add(key)
@@ -156,22 +175,32 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
         const colour = tint(line.color)
         ctx.fillStyle = colour
         ctx.beginPath()
-        const faint: [number, number, number, number][] = [] // the ones behind something or going into a shape that opens, drawn after the rest one at a time
-        const other: { x: number; y: number; bad: boolean; alpha: number; pop?: number; behind: number; into: number }[] = [] // the ones failing, drawn one at a time
-        const into = (at: number) => wentIn(at * path.total, path.total, reach)
+        const faint: [number, number, number, Shape | undefined][] = [] // the ones behind something or going into a shape that opens (the shape they are cut by), drawn after the rest one at a time
+        const other: { x: number; y: number; bad: boolean; alpha: number; pop?: number; behind: number; cut?: Shape }[] = [] // the ones failing, drawn one at a time
+        /** Where a particle is against the shapes it goes into or comes out of: wholly inside one (not drawn), or cut by the outline of one. */
+        const against = (x: number, y: number): { gone: boolean; cut?: Shape } => {
+          let cut: Shape | undefined
+          for (const s of opening) {
+            const how = cutBy(depthIn(s.rect, s.edge, x, y), radius)
+            if (how === 'gone') return { gone: true }
+            if (how === 'cut') cut = s
+          }
+          return { gone: false, cut }
+        }
         let bar = 0 // how strongly the bar at the end of a rejected line shows: the strongest of its particles
         if (line.failure === undefined && aside === 0) {
           // The bare line: no style for its failures and none to share it with, so a particle is where it is, and one that fails fades. No object is made for a particle that doesn't fail.
           for (const m of stream.motes) {
             const [x, y] = pointAt(path, m.s)
+            const here = against(x, y)
+            if (here.gone) continue
             const b = behindOf(shapes, labels, x, y, ramp)
-            const inward = into(m.s)
             if (m.fails !== 0) {
-              other.push({ x, y, bad: true, alpha: visibility(m), behind: b, into: inward })
+              other.push({ x, y, bad: true, alpha: visibility(m), behind: b, cut: here.cut })
               continue
             }
-            if (b > 0 || inward > 0) {
-              faint.push([x, y, b, inward])
+            if (b > 0 || here.cut) {
+              faint.push([x, y, b, here.cut])
               continue
             }
             ctx.moveTo(x + radius, y)
@@ -190,14 +219,15 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
               y += ((bx - ax) / length) * aside
             }
             if (look.bar !== undefined && look.bar > bar) bar = look.bar
+            const here = against(x, y)
+            if (here.gone) continue
             const b = behindOf(shapes, labels, x, y, ramp)
-            const inward = into(look.at)
             if (look.bad || look.alpha < 1 || look.pop !== undefined) {
-              other.push({ x, y, bad: look.bad, alpha: look.alpha, pop: look.pop, behind: b, into: inward })
+              other.push({ x, y, bad: look.bad, alpha: look.alpha, pop: look.pop, behind: b, cut: here.cut })
               continue
             }
-            if (b > 0 || inward > 0) {
-              faint.push([x, y, b, inward])
+            if (b > 0 || here.cut) {
+              faint.push([x, y, b, here.cut])
               continue
             }
             ctx.moveTo(x + radius, y)
@@ -205,30 +235,34 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
           }
         }
         ctx.fill()
-        for (const [x, y, b, inward] of faint) {
-          const [g, s] = [ghost(b), swallow(inward)]
-          ctx.globalAlpha = g.alpha * s.alpha
+        for (const [x, y, b, cut] of faint) {
+          const g = ghost(b)
+          if (cut) outside(ctx, cut)
+          ctx.globalAlpha = g.alpha
           ctx.beginPath()
-          ctx.arc(x, y, radius * g.scale * s.scale, 0, Math.PI * 2)
+          ctx.arc(x, y, radius * g.scale, 0, Math.PI * 2)
           ctx.fill()
+          if (cut) ctx.restore()
         }
         for (const o of other) {
-          const [g, s] = [ghost(o.behind), swallow(o.into)]
+          const g = ghost(o.behind)
+          if (o.cut) outside(ctx, o.cut)
           if (o.pop !== undefined) {
             // A lost call: a ring where it died, growing and fading.
-            ctx.globalAlpha = (1 - o.pop) * g.alpha * s.alpha
+            ctx.globalAlpha = (1 - o.pop) * g.alpha
             ctx.strokeStyle = colours.bad
             ctx.lineWidth = 1.6 / zoom
             ctx.beginPath()
-            ctx.arc(o.x, o.y, radius * g.scale * s.scale * (0.9 + 1.8 * o.pop), 0, Math.PI * 2)
+            ctx.arc(o.x, o.y, radius * g.scale * (0.9 + 1.8 * o.pop), 0, Math.PI * 2)
             ctx.stroke()
-            continue
+          } else {
+            ctx.fillStyle = o.bad ? colours.bad : colour
+            ctx.globalAlpha = o.alpha * g.alpha
+            ctx.beginPath()
+            ctx.arc(o.x, o.y, radius * g.scale, 0, Math.PI * 2)
+            ctx.fill()
           }
-          ctx.fillStyle = o.bad ? colours.bad : colour
-          ctx.globalAlpha = o.alpha * g.alpha * s.alpha
-          ctx.beginPath()
-          ctx.arc(o.x, o.y, radius * g.scale * s.scale, 0, Math.PI * 2)
-          ctx.fill()
+          if (o.cut) ctx.restore()
         }
         if (bar > 0) {
           // A rejected call meets a bar across the end of the line, strongest while one is at it.

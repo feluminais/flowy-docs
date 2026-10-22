@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { advance, BACK, ghost, GHOST, HOLD, howBehind, moteLook, MOST, newStream, POP, REJECTED_END, swallow, visibility, wentIn } from '../ui/src/traffic.ts'
+import { advance, BACK, cutBy, ghost, GHOST, HOLD, howBehind, moteLook, MOST, newStream, POP, REJECTED_END, visibility } from '../ui/src/traffic.ts'
 import type { Failure } from '../src/core/perf/types.ts'
 
 /** Run a stream for `ms` in frames of 16 ms, like a screen would. */
@@ -86,29 +86,14 @@ test('a particle behind something is a fainter, smaller one, and in front it is 
   assert.ok(half.alpha < 1 && half.alpha > GHOST && half.scale < 1 && half.scale > 0.75)
 })
 
-test('a particle goes into a shape that opens from the outline, and is all the way in at the end of the run on', () => {
-  const reach = { before: 0, after: 24 } // a line that ends at one: 24 run on past the outline of a run of 124
-  assert.equal(wentIn(0, 124, reach), 0)
-  assert.equal(wentIn(100, 124, reach), 0) // at the outline
-  assert.equal(wentIn(112, 124, reach), 0.5)
-  assert.equal(wentIn(124, 124, reach), 1)
-  assert.equal(wentIn(130, 124, reach), 1)
-})
-
-test('a particle comes out of a shape that opens from all the way in to the outline, and a line with no such end has none going in', () => {
-  const reach = { before: 24, after: 0 }
-  assert.equal(wentIn(0, 124, reach), 1)
-  assert.equal(wentIn(12, 124, reach), 0.5)
-  assert.equal(wentIn(24, 124, reach), 0)
-  assert.equal(wentIn(124, 124, reach), 0)
-  assert.equal(wentIn(60, 124, { before: 0, after: 0 }), 0)
-  assert.equal(wentIn(0, 100, { before: 0, after: 0 }), 0)
-})
-
-test('a particle going in thins away and shrinks a little, and one on the line is as always', () => {
-  assert.deepEqual(swallow(0), { alpha: 1, scale: 1 })
-  assert.deepEqual(swallow(1), { alpha: 0, scale: 0.75 })
-  assert.equal(swallow(0.5).alpha, 0.5)
+test('a particle going into a shape that opens is whole outside it, cut by the outline while it crosses, and gone once it is wholly in', () => {
+  assert.equal(cutBy(-30, 3), 'clear')
+  assert.equal(cutBy(-3, 3), 'clear') // just touching the outline from outside
+  assert.equal(cutBy(-2.9, 3), 'cut')
+  assert.equal(cutBy(0, 3), 'cut') // half way in
+  assert.equal(cutBy(2.9, 3), 'cut')
+  assert.equal(cutBy(3, 3), 'gone') // all of it inside
+  assert.equal(cutBy(40, 3), 'gone')
 })
 
 // ---- A source's numbers drawn: dots at once, the cap, and how a failing share fails

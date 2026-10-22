@@ -117,33 +117,15 @@ public class ParticlesTests
     }
 
     [Fact]
-    public void A_particle_goes_into_a_shape_that_opens_from_the_outline_and_is_all_the_way_in_at_the_end_of_the_run_on()
+    public void A_particle_going_into_a_shape_that_opens_is_whole_outside_it_cut_by_the_outline_while_it_crosses_and_gone_once_it_is_wholly_in()
     {
-        // a line that ends at one: 24 run on past the outline of a run of 124
-        Assert.Equal(0, Particles.WentIn(0, 124, 0, 24));
-        Assert.Equal(0, Particles.WentIn(100, 124, 0, 24)); // at the outline
-        Assert.Equal(0.5, Particles.WentIn(112, 124, 0, 24));
-        Assert.Equal(1, Particles.WentIn(124, 124, 0, 24));
-        Assert.Equal(1, Particles.WentIn(130, 124, 0, 24));
-    }
-
-    [Fact]
-    public void A_particle_comes_out_of_a_shape_that_opens_from_all_the_way_in_to_the_outline_and_a_line_with_no_such_end_has_none_going_in()
-    {
-        Assert.Equal(1, Particles.WentIn(0, 124, 24, 0));
-        Assert.Equal(0.5, Particles.WentIn(12, 124, 24, 0));
-        Assert.Equal(0, Particles.WentIn(24, 124, 24, 0));
-        Assert.Equal(0, Particles.WentIn(124, 124, 24, 0));
-        Assert.Equal(0, Particles.WentIn(60, 124, 0, 0));
-        Assert.Equal(0, Particles.WentIn(0, 100, 0, 0));
-    }
-
-    [Fact]
-    public void A_particle_going_in_thins_away_and_shrinks_a_little_and_one_on_the_line_is_as_always()
-    {
-        Assert.Equal((1.0, 1.0), Particles.Swallow(0));
-        Assert.Equal((0.0, 0.75), Particles.Swallow(1));
-        Assert.Equal(0.5, Particles.Swallow(0.5).Alpha);
+        Assert.Equal(Particles.Cut.Clear, Particles.CutBy(-30, 3));
+        Assert.Equal(Particles.Cut.Clear, Particles.CutBy(-3, 3)); // just touching the outline from outside
+        Assert.Equal(Particles.Cut.Cut, Particles.CutBy(-2.9, 3));
+        Assert.Equal(Particles.Cut.Cut, Particles.CutBy(0, 3)); // half way in
+        Assert.Equal(Particles.Cut.Cut, Particles.CutBy(2.9, 3));
+        Assert.Equal(Particles.Cut.Gone, Particles.CutBy(3, 3)); // all of it inside
+        Assert.Equal(Particles.Cut.Gone, Particles.CutBy(40, 3));
     }
 
     // ---- a source's numbers drawn: dots at once, the cap, and how a failing share fails -----------------------------------

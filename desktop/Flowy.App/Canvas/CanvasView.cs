@@ -371,10 +371,15 @@ internal sealed class CanvasView : Border
         if (_scene is null || RectOf(line.From) is not { } a || RectOf(line.To) is not { } b) return null;
         double[]? Outline(string id) => Look.DefOf(_scene.Boxes.First(x => x.Id == id).Object).Edge;
         var path = PathPoints.Flatten(LinePaths.Build(LineStyle, a, b, Outline(line.From), Outline(line.To)).Data);
-        // A line that ends at a shape that opens runs on into it, and one that starts at one comes out of it (see Particles.WentIn).
-        bool Opens(string id) => _scene.Boxes.First(x => x.Id == id).Inside > 0;
-        var (before, after) = (Opens(line.From) ? TrafficLayer.Reach : 0, Opens(line.To) ? TrafficLayer.Reach : 0);
-        return new TrafficLayer.Way(PathPoints.Extend(path, before, after), PathPoints.Extend(path, before, 0), before, after);
+        // A line that ends at a shape that opens runs on into it, and one that starts at one comes out of it, drawn only outside it (see Particles.CutBy).
+        TrafficLayer.ShapeCover? Opening(string id)
+        {
+            var box = _scene.Boxes.First(x => x.Id == id);
+            return box.Inside > 0 ? new TrafficLayer.ShapeCover(box.Id, box.Rect, Look.DefOf(box.Object).Edge) : null;
+        }
+        var (from, to) = (Opening(line.From), Opening(line.To));
+        var (before, after) = (from is null ? 0 : TrafficLayer.Reach, to is null ? 0 : TrafficLayer.Reach);
+        return new TrafficLayer.Way(PathPoints.Extend(path, before, after), PathPoints.Extend(path, before, 0), from, to);
     }
 
     /// <summary>The scene with the boxes that are being (or were just) dragged where they are now, and the frame around the members following them.</summary>
