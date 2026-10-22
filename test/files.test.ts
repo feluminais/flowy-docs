@@ -262,6 +262,6 @@ test('a run that adds others loads when it has two runs to add, and is left out 
   ])
 })
 
-test('runs are read, never written: perf/ is not a path the server or MCP may save', () => {
+test('a whole-file write of a run is still refused: only its compare field is written, by its own route', () => {
   assert.equal(isAllowedPath('perf/ramp.yaml'), false)
 })

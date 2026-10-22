@@ -36,6 +36,15 @@ export function formatRun(info: RunInfo, levels: Level[], previous?: string): st
     }
   }
   const text = `${lines.join('\n')}\n`
-  const tag = previous === undefined ? undefined : compareOf((parse(previous, { schema: 'failsafe' }) as { compare?: unknown } | null)?.compare)
+  const tag = previous === undefined ? undefined : previousTag(previous)
   return tag === undefined ? text : setRunCompare(text, tag)
+}
+
+/** The tag the replaced file had. A file that is not valid YAML (a conflict marker, a half edit) has none: the run just measured is still worth writing. */
+function previousTag(previous: string): ReturnType<typeof compareOf> {
+  try {
+    return compareOf((parse(previous, { schema: 'failsafe' }) as { compare?: unknown } | null)?.compare)
+  } catch {
+    return undefined
+  }
 }

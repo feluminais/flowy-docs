@@ -46,3 +46,10 @@ test('formatRun adds no compare to a file that had none, or when nothing is ther
   assert.doesNotMatch(formatRun(INFO, LEVELS, 'name: Old\nunit: req/s\n'), /compare/)
   assert.doesNotMatch(formatRun(INFO, LEVELS), /compare/)
 })
+
+test('formatRun writes the run when the file it replaces is not valid YAML, without a tag', () => {
+  const broken = 'name: Old\n<<<<<<< HEAD\ncompare: [earlier\n=======\ncompare: later\n>>>>>>> branch\n'
+  const text = formatRun(INFO, LEVELS, broken)
+  assert.doesNotMatch(text, /compare/)
+  assert.deepEqual(parseRun('x', text).problems, [])
+})

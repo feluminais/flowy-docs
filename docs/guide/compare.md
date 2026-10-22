@@ -44,7 +44,7 @@ The marks are on shapes, on lines and on the steps in the progress bar. Steps ar
 Changed when its animation or its description differs. A step with the same ends and different words is Changed too, and a step with no match is New or Removed. A shape or a line both flows draw is Changed
 when any step on it is marked.
 
-Two flows with no shape in common have no marks, and the key says **Nothing in common** instead of calling everything changed. Two that match step for step say **No changes**.
+Two flows with no shape in common have no marks, and the key says **Nothing in common** instead of calling everything changed. Two that match step for step say **No step changes**.
 Runs have no marks: **Show changes** is greyed out for them, with the reason in its tooltip.
 
 ## The note
@@ -54,7 +54,7 @@ Say what changed and why, in a sentence or two; [Writing good Flowy docs](../wri
 
 A note is saved with the pair's tag, on the newer flow. Two flows with no tag between them have nowhere to put it, so what you type is a draft that stays until you save or
 discard it. **Save as pair** names the flow that will hold the tag and writes the tag with the draft as its note. If that flow already links elsewhere, the confirm says so before it replaces the link. Closing the
-comparison with a draft asks first.
+comparison with a draft asks first. Each pair keeps its own draft, so a draft on one pair stays when you compare another. Closing the browser tab, or the desktop window, with a draft that was never saved asks too.
 
 A page that can't save (an exported page, or a read-only one) shows the notes and greys the controls out, with "This page can't save" in the tooltip.
 
@@ -87,7 +87,7 @@ A flow in a pair has a link mark in the Flows tab and the Explorer, with **Linke
 ## Making a pair
 
 - **In the Flows tab or the Explorer.** Compare on a row of a flow with no link, pick the other flow, and write a note with **Save as pair**. This is the quickest way to tag a flow.
-- **In edit mode.** A flow's form has **Compare with**: tiles of the other flows and a field to find one. Picking one writes the tag and keeps the note. **Remove** takes it away, and asks first when a note would go with it. Flows that tag this one are listed under **Compared by**.
+- **In edit mode.** A flow's form has **Compare with**: tiles of the other flows and a field to find one. Picking one writes the tag and keeps the note. **Remove** takes it away, and asks first when a note would go with it. Flows that tag this one are listed under **Compared by**. Deleting a flow takes the tag off the flows that tagged it. If one of those tags holds a note, the delete is refused until that link is removed.
 - **In YAML.** Add the `compare` key above to the newer flow, in the YAML tab or in the file.
 - **Over MCP.** The `set_compare` tool sets or removes the tag of a flow or a run, with a note. See [AI and MCP](ai.md#let-an-ai-build-it).
 - **For runs.** The Performance tab has **Link with** and **Unlink** beside **Compare**. They write only the `compare` field of the run file, in place, and a tool that writes the run again keeps it. A run called `null` can't be linked.
