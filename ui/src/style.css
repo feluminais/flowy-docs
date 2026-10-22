@@ -1034,3 +1034,33 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 /* The slider of a run over time is being dragged: a state changes at once, with no fade in or out and no drain (the loops that mark a state keep going). */
 .canvas.scrubbing .box .shape, .canvas.scrubbing .box .tile, .canvas.scrubbing .box .box-text { transition: none; }
 .canvas.scrubbing .state-outline, .canvas.scrubbing .state-stopping .state-outline path { animation-duration: 1ms; }
+
+/* Used by: what is waiting on the shapes about to be deleted, and a choice for each. The shapes going are outlined in red, the ones the focused row names in the accent colour. */
+.react-flow__node.going .shape path { stroke: var(--danger); stroke-width: 3; stroke-dasharray: 6 4; }
+.react-flow__node.flagged .shape path { stroke: var(--accent); stroke-width: 3; }
+.notice button { flex: none; }
+.notice button.undo { display: inline-flex; align-items: center; gap: 4px; width: auto; padding: 0 8px; font-weight: 600; }
+.usedby { display: flex; flex-direction: column; gap: 10px; outline: none; }
+.usedby h2, .usedby p { margin: 0; }
+.usedby-rows { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.usedby-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 6px; border: 1px solid var(--line); border-left-width: 3px; border-radius: 8px; }
+.usedby-row.open { border-left-color: var(--warn); }
+.usedby-row.done { border-left-color: var(--accent); }
+.usedby-row.active { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.panel button.usedby-main { display: flex; flex: 1 1 160px; align-items: center; justify-content: flex-start; gap: 8px; min-width: 0; padding: 2px; border: 0; background: none; text-align: left; }
+.usedby-text { display: flex; flex-direction: column; min-width: 0; }
+.usedby-text > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.usedby-mark { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; }
+.usedby-mark.flow { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.usedby-mark.mode { color: var(--warn); background: color-mix(in srgb, var(--warn) 16%, transparent); }
+.usedby-actions { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 100%; }
+.panel .usedby-actions button.pick { flex-direction: row; padding: 3px 8px; font-size: 12px; }
+.panel .usedby-actions button.pick.remove[aria-checked='true'] { color: var(--danger); }
+.usedby-to, .usedby-with { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.usedby-along { display: flex; gap: 8px; align-items: baseline; }
+.usedby-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.usedby-foot .spacer { margin-left: auto; }
+.chooser { display: flex; flex-direction: column; gap: 4px; flex: 1 1 100%; padding: 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.chooser ul { display: flex; flex-direction: column; max-height: 180px; margin: 0; padding: 0; overflow: auto; list-style: none; }
+.panel .chooser li button { display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; padding: 3px 6px; border: 0; background: none; text-align: left; }
+.usedby .hint span { white-space: nowrap; }

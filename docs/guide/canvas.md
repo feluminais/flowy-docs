@@ -89,12 +89,16 @@ checks, and write the same text, so a change made in one looks the same in git a
   (http or https) or a path in the repo, relative to the folder that holds `flowy/`. Anything else
   is refused.
 - "Outside service" in a shape's panel marks it `external: true`, for things you use but don't own.
-- Delete (the key, or the button in the panel) removes the selected shape or line. A shape that still
-  contains others, or that a flow uses, stays, and a notice says why.
+- Delete (the key, or the button in the panel) removes the selected shape or line, with its lines. When nothing else depends on it, it goes at
+  once, and the notice says what went with it and has an Undo button. When something does (shapes inside it, flow steps, a flow's view, a failure
+  mode), the Used by panel opens with a row for each. Pick what to do with a row: remove the step, reroute it to another shape, delete the flow,
+  remove the mode, repoint it. Click a row to outline the shapes it names. Remove all (Enter) settles every row by removing, Reroute all (R)
+  sends steps and modes to one shape, and Delete stays grey until each row has a choice. Esc closes the panel and changes nothing. All of it
+  is one edit, so Ctrl+Z puts everything back.
 - To work on several shapes at once, Ctrl+click (or Shift+click) adds a shape to the selection and takes it out again, Shift and drag on
   the empty canvas draws a box round the shapes to select, and Ctrl+A selects every shape in the view. Dragging any selected shape moves
-  them all, and Esc straight after takes the whole move back. Delete removes them all as one edit: if one of them can't go (it has shapes
-  inside, or a flow uses it), none do. Ctrl+Z puts back everything at once. The desktop app does all of this too.
+  them all, and Esc straight after takes the whole move back. Delete removes them all as one edit, and what depends on any of them
+  shows in one Used by panel. Ctrl+Z puts back everything at once. The desktop app does all of this too.
 - Lines, in edit mode, sets the project's style for everyone: a `lines:` key at the top of
   `model.yaml`, which takes `straight` (the default, so it's left out), `curved` or `angled`.
 - Esc or Backspace, straight after dragging a shape, take the drag back: whoever has just moved a shape and got it wrong reaches for them.
