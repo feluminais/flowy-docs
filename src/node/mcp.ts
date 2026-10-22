@@ -387,7 +387,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         if (blocked) return fail(`Refused, nothing saved. ${blockedMessage(blocked.blocking, rel)}`)
         const version = hashBytes(await readFile(join(dir, rel)))
         await saveRunCompare(dir, rel, tag, version, async () => { await history?.ensureCurrent('write') })
-        await history?.record(label, 'claude')
+        await history?.record(label, 'ai')
         return ok(done)
       } catch (e) {
         if (!(e instanceof VersionConflict)) return fail(e)
