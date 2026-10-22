@@ -12,9 +12,9 @@ import { STATE_LABELS } from '../../src/core/states.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { Section } from './Chrome.tsx'
-import { Activity, Alert, Bolt, Clock, Info, Pause, Play, Plus } from './icons.tsx'
+import { Activity, Alert, Bolt, ChevronRight, Clock, Info, Pause, Play, Plus } from './icons.tsx'
 import {
-  activeSeries, boxAt, boxAtLevel, boxSeries, boxSeriesIn, BOX_KEYS, bracketOf, cursorX, dialTicks, dialTop, eventFractions, eventRows, failureMarks, fmtLoad, gridOf, heldText, isTested, isTime, levelLabels, levelX,
+  ABOUT_FOLDS_OVER, activeSeries, boxAt, boxAtLevel, boxSeries, boxSeriesIn, BOX_KEYS, bracketOf, cursorX, dialTicks, dialTop, eventFractions, eventRows, failureMarks, fmtLoad, gridOf, heldText, isTested, isTime, levelLabels, levelX,
   lineAt, lineAtLevel, lineSeries, lineSeriesIn, LINE_KEYS, loadAt, METRICS, modeLabel, openingPositions, overText, pathOf, posAt, scaleOf, settingOf, slideDial, slidePos, sliderRange, sliderValue, sourceCss, tickLabels, top, xAt,
 } from './perfview.ts'
 import type { Area } from './perfview.ts'
@@ -243,7 +243,9 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
       {ids.length > 1
         ? <select aria-label="Run" value={runId} onChange={e => { onRun(e.target.value); e.target.blur() }}>{ids.map(id => <option key={id} value={id}>{runs[id].name}</option>)}</select>
         : <h2>{run.name}</h2>}
-      {run.about && <details className="about"><summary>About this run</summary><p>{run.about}</p></details>}
+      {run.about && (run.about.length > ABOUT_FOLDS_OVER
+        ? <details className="about"><summary><ChevronRight size={14} />About this run</summary><p>{run.about}</p></details>
+        : <p className="about">{run.about}</p>)}
       {label !== undefined && <p className="modelabel">{label}</p>}
 
       <Section icon={timed ? Clock : Activity} title={timed ? 'Time' : 'Load'} />

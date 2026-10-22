@@ -597,13 +597,25 @@ internal sealed class PerfPanel : StackPanel
         if (run.About is { } about)
         {
             var note = Muted(about);
+            if (about.Length <= PerfView.AboutFoldsOver)
+            {
+                Children.Add(note);
+                return;
+            }
+            // The twist sits where a section's icon does and the words where its title does, so the fold lines up with the headings below.
             note.IsVisible = false;
-            var header = new Button { Content = "▸ About this run" };
+            note.Margin = new Thickness(22, 6, 0, 0);
+            var chevron = Icons.Make(Icons.ChevronRight, "sectionicon", 14);
+            chevron.RenderTransform = new RotateTransform(0);
+            chevron.VerticalAlignment = VerticalAlignment.Center;
+            var title = new TextBlock { Text = "About this run", VerticalAlignment = VerticalAlignment.Center };
+            var header = new Button { Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { chevron, title } } };
             header.Classes.Add("disclosure");
+            AutomationProperties.SetName(header, "About this run");
             header.Click += (_, _) =>
             {
                 note.IsVisible = !note.IsVisible;
-                header.Content = note.IsVisible ? "▾ About this run" : "▸ About this run";
+                chevron.RenderTransform = new RotateTransform(note.IsVisible ? 90 : 0);
                 Used?.Invoke();
             };
             Children.Add(new StackPanel { Children = { header, note } });
