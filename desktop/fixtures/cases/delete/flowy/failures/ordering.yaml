@@ -1,0 +1,32 @@
+name: Ordering
+scope: shop
+modes:
+  db-down:
+    mode: The database is unreachable
+    on: db
+    severity: "9"
+    occurrence: "2"
+    detection: "3"
+    affects: [web, db]
+    flow: checkout
+    step: "3"
+  mail-late:
+    mode: The receipt arrives late
+    from: api
+    to: mail
+    flow: checkout
+    step: "4"
+  api-slow:
+    mode: The API answers slowly
+    on: api
+    flow: pay
+    step: "2"
+  web-glitch:
+    mode: The page flickers
+    on: web
+    flow: checkout
+    step: "2"
+  cache-cold:
+    mode: The cache is cold
+    on: cache
+    affects: [web]

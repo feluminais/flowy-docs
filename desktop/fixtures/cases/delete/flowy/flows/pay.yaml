@@ -1,0 +1,5 @@
+name: Customer pays
+view: shop
+steps:
+  - { from: web, to: api, text: Asks for payment }
+  - { from: api, to: web, text: Answers }
