@@ -24,8 +24,23 @@ const TYPES: Record<string, string> = {
   '.md': 'text/plain; charset=utf-8',
 }
 
+/**
+ * Sent with every answer. The canvas loads only its own files, draws images from them or inline, and talks only to this server. A model's Markdown can
+ * name any image address, so an outside one must not load (the desktop app and the VS Code panel already refuse it). No other site may frame the page.
+ * Style attributes stay allowed because the canvas positions its shapes with them.
+ */
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': [
+    "default-src 'none'", "script-src 'self'", "style-src 'self' 'unsafe-inline'", "img-src 'self' data:", "font-src 'self'", "connect-src 'self'",
+    "base-uri 'none'", "form-action 'none'", "frame-ancestors 'none'",
+  ].join('; '),
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer',
+}
+
 function send(res: ServerResponse, status: number, body: unknown) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' })
+  res.writeHead(status, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' })
   res.end(JSON.stringify(body))
 }
 
@@ -43,10 +58,10 @@ async function serveUi(ui: string, res: ServerResponse, pathname: string) {
   try {
     if (!file.startsWith(ui + sep)) throw new Error('outside the UI folder')
     const body = await readFile(file)
-    res.writeHead(200, { 'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream' })
+    res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream' })
     res.end(body)
   } catch {
-    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' })
+    res.writeHead(404, { ...SECURITY_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' })
     res.end(pathname === '/' ? 'The canvas is not built yet. Run: npm run build:ui' : 'Not found')
   }
 }
@@ -81,7 +96,7 @@ export async function startServer({ dir, ui, port, history, gateMs }: { dir: str
       const url = new URL(req.url ?? '/', 'http://localhost')
       if (req.method === 'GET' && url.pathname === '/api/state') return send(res, 200, await loadState(dir))
       if (req.method === 'GET' && url.pathname === '/api/events') {
-        res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store' })
+        res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store' })
         // Reconnect 1 s after flowy restarts. Writing at once also pushes the headers through proxies (Vite's dev server).
         res.write('retry: 1000\n\n')
         clients.add(res)
