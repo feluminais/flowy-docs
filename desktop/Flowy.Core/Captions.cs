@@ -7,11 +7,14 @@ namespace Flowy.Core;
 /// </summary>
 public sealed record Caption(string Chip, string Text, IReadOnlyList<string> Tabs, int Tab, IReadOnlyList<string> Lanes, IReadOnlyList<string> Marks);
 
-/// <summary>A stop's cell in the progress bar, and what hovering it says (the lane it is in).</summary>
-public sealed record Cell(int Stop, int Col, int Row, string Title);
+/// <summary>A stop's cell in the progress bar, and what hovering it says (the lane it is in). <c>Group</c> is the bracket that holds it, -1 for none.</summary>
+public sealed record Cell(int Stop, int Col, int Row, string Title, int Group);
 
-/// <summary>A group's bracket under the progress bar: the columns it covers, its short words and what hovering it says.</summary>
-public sealed record Bracket(string Kind, int From, int To, string Text, string Title);
+/// <summary>
+/// A group's bracket under the progress bar: the columns it covers, its short words and what hovering it says. A branch names its rows in <c>Lanes</c> and has
+/// no words of its own. A repeat is <c>Maybe</c> when it can stop before its last time (it has an <c>until</c>), so its line is drawn dashed.
+/// </summary>
+public sealed record Bracket(string Kind, int From, int To, string Text, string Title, IReadOnlyList<string> Lanes, bool Maybe);
 
 public sealed record Progress(int Cols, int Rows, IReadOnlyList<Cell> Cells, IReadOnlyList<Bracket> Brackets);
 
@@ -24,17 +27,18 @@ public static class Captions
     /// <summary>What each thing on the card means, in plain words: the legend the card opens.</summary>
     public static readonly IReadOnlyList<LegendRow> Legend =
     [
-        new("repeat", "Repeat", "The same steps again. The chip says how many times, or what stops it."),
-        new("branch", "Branch", "Only one lane happens. Each tab is a lane, and the one you are in is marked. The others are dashed on the canvas."),
+        new("repeat", "Repeat", "The same steps again. A solid line is a set number of times, a dashed one can stop sooner. The chip says how many times, or what stops it."),
+        new("branch", "Branch", "Only one lane happens. Each row of the bar is a lane, named for what decides it. The lanes you are not in are hollow on the bar and dashed on the canvas."),
         new("parallel", "Same time", "Lanes that run together. Each stop lights the next step of every lane."),
-        new(null, "The bar", "One cell for each stop, and a row for each lane of a branch. A bracket under it names each group. Point at one for more."),
+        new(null, "The bar", "One cell for each stop, and a row for each lane of a branch. A box holds the stops of each group, and the line under it says what the group is. Point at one for more."),
         new(null, "The label on a line", "Which lane, or which repeat, the step is in."),
     ];
 
-    /// <summary>What a repeat does, in words: "up to 3 times, until it works", or "" when it says neither. A heading that starts the line asks for <paramref name="capital"/>: "Up to 3 times, until it works".</summary>
+    /// <summary>What a repeat does, in words. <c>times</c> alone is a rule: "3 times". With <c>until</c> it is a limit that may not be reached: "up to 3 times, until it works". <c>until</c> alone is "until it works", and "" says neither. A heading that starts the line asks for <paramref name="capital"/>.</summary>
     public static string RepeatWords(Structure.GroupInfo? g, bool capital = false)
     {
-        var words = string.Join(", ", new[] { g?.Times is null ? "" : $"up to {g.Times} times", g?.Until is null ? "" : $"until {g.Until}" }.Where(w => w != ""));
+        var times = g?.Times is null ? "" : g.Until is null ? $"{g.Times} times" : $"up to {g.Times} times";
+        var words = string.Join(", ", new[] { times, g?.Until is null ? "" : $"until {g.Until}" }.Where(w => w != ""));
         return capital && words != "" ? char.ToUpperInvariant(words[0]) + words[1..] : words;
     }
 
@@ -51,7 +55,7 @@ public static class Captions
             var times = group?.Times ?? "";
             var until = group?.Until ?? "";
             var words = RepeatWords(group);
-            var mark = times != "" ? $"up to {times}" : until != "" ? $"until {until}" : "";
+            var mark = times != "" ? (until != "" ? $"up to {times}" : $"×{times}") : until != "" ? $"until {until}" : "";
             return none with { Chip = words == "" ? "Repeats" : $"Repeats {words}", Text = text, Marks = stop.Steps.Select(_ => mark).ToList() };
         }
         if (stop.Kind == "branch")
@@ -83,13 +87,14 @@ public static class Captions
             var s = stops[k];
             if (s.Group is null || s.Kind is null)
             {
-                cells.Add(new Cell(k, col++, 0, ""));
+                cells.Add(new Cell(k, col++, 0, "", -1));
                 k++;
                 continue;
             }
             var end = k;
             while (end + 1 < stops.Count && stops[end + 1].Group == s.Group) end++;
             var start = col;
+            var groupIndex = brackets.Count;
             if (s.Kind == "branch")
             {
                 var lanes = s.LaneLabels?.Count ?? 1;
@@ -98,27 +103,28 @@ public static class Captions
                 {
                     var lane = stops[j].Lanes is { Count: > 0 } l ? l[0] : 0;
                     while (used.Count <= lane) used.Add(0);
-                    cells.Add(new Cell(j, start + used[lane], lane, s.LaneLabels is { } labels && lane < labels.Count ? labels[lane] : ""));
+                    cells.Add(new Cell(j, start + used[lane], lane, s.LaneLabels is { } labels && lane < labels.Count ? labels[lane] : "", groupIndex));
                     used[lane]++;
                 }
                 var longest = Math.Max(1, used.Count == 0 ? 0 : used.Max());
                 rows = Math.Max(rows, lanes);
                 var only = s.LaneLabels is { Count: > 0 } first ? first[0] : "";
-                brackets.Add(new Bracket("branch", start, start + longest - 1,
-                    lanes > 1 ? $"one of {lanes} lanes" : "only if",
-                    lanes > 1 ? "Alternatives: only one of these lanes happens" : only == "" ? "Happens only sometimes" : $"Happens only if: {only}"));
+                brackets.Add(new Bracket("branch", start, start + longest - 1, "",
+                    lanes > 1 ? "Alternatives: only one of these lanes happens" : only == "" ? "Happens only sometimes" : $"Happens only if: {only}",
+                    s.LaneLabels ?? [], false));
                 col = start + longest;
             }
             else
             {
                 for (var j = k; j <= end; j++)
-                    cells.Add(new Cell(j, col++, 0, stops[j].Lanes is { } named ? string.Join(" + ", named.Select(n => s.LaneLabels is { } labels && n >= 0 && n < labels.Count ? labels[n] : "")) : ""));
+                    cells.Add(new Cell(j, col++, 0, stops[j].Lanes is { } named ? string.Join(" + ", named.Select(n => s.LaneLabels is { } labels && n >= 0 && n < labels.Count ? labels[n] : "")) : "", groupIndex));
                 var group = Structure.GroupOf(flow, s.Group);
                 var times = group?.Times ?? "";
+                var maybe = group?.Until is not null;
                 var words = RepeatWords(group);
                 brackets.Add(s.Kind == "repeat"
-                    ? new Bracket(s.Kind, start, col - 1, times == "" ? "" : $"×{times}", words == "" ? "Repeats" : $"Repeats {words}")
-                    : new Bracket(s.Kind, start, col - 1, "same time", "The lanes happen at the same time: each stop shows the next step of every lane"));
+                    ? new Bracket(s.Kind, start, col - 1, times == "" ? "" : maybe ? $"up to {times}" : $"×{times}", words == "" ? "Repeats" : $"Repeats {words}", [], maybe)
+                    : new Bracket(s.Kind, start, col - 1, "same time", "The lanes happen at the same time: each stop shows the next step of every lane", [], false));
             }
             k = end + 1;
         }

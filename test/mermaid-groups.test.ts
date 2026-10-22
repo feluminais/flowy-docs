@@ -31,7 +31,7 @@ test('groups become loop, alt/else and par blocks, with the steps indented and a
     ...HEAD,
     '  participant n3 as Mail service',
     '  actor n4 as Customer',
-    '  loop Up to 3 times: Backs off',
+    '  loop 3 times: Backs off',
     '    n0->>n1: Posts',
     '    n1->>n2: Saves',
     '  end',
