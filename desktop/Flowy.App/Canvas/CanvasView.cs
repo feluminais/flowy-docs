@@ -309,6 +309,9 @@ internal sealed class CanvasView : Border
         _back.SetChanges(_changes?.Lines);
     }
 
+    /// <summary>The shapes drawn as selected now (for tests).</summary>
+    internal IReadOnlyList<string> SelectedNow => _selected;
+
     /// <summary>The kind a shape is marked as now, or null (for tests).</summary>
     internal Change? ChangeOnBox(string id) => _boxes.TryGetValue(id, out var box) ? box.ChangeShown : null;
 
@@ -566,6 +569,13 @@ internal sealed class CanvasView : Border
     {
         get => _back.Opacity;
         set => _back.Opacity = value;
+    }
+
+    /// <summary>How much of the traffic (the particles running along the lines) shows, 0 to 1: a swap between two runs fades one run's out and the other's in.</summary>
+    public double TrafficOpacity
+    {
+        get => _traffic.Opacity;
+        set => _traffic.Opacity = value;
     }
 
     /// <summary>The boxes' presence and the lines' opacity, for the tests.</summary>

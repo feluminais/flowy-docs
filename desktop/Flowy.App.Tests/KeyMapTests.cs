@@ -41,7 +41,17 @@ public class KeyMapTests
     private static string Snap(ReaderView r) =>
         $"view={r.View} edit={r.Editing} panel={r.HasPanel} tab={r.ShownTabNow} details={r.DetailsOpenNow} perf={r.PerfOpenNow} fail={r.FailuresOpenNow} flow={r.PlayingFlowId}/{r.PlayingStep} " +
         $"short={r.ShortcutsOpen} search={r.SearchOpen} box={r.SelectedBoxId} picked={r.PickedNow.Count} undo={r.CanUndo} redo={r.CanRedo} " +
-        $"pos={r.PerfState.Pos} ramp={r.PerfState.Ramping} mode={r.FailuresState.Mode} rec={r.RecordingNow is not null}";
+        $"pos={r.PerfState.Pos} ramp={r.PerfState.Ramping} mode={r.FailuresState.Mode} rec={r.RecordingNow is not null}" +
+        // A comparison of two runs: which, how they are viewed, and where each run stands (the pane that has the focus, or the one on show in Swap, is the one a key moves).
+        (r.CompareNow is { Kind: "run" } c ? $" runs={c.A}/{c.B}:{c.Mode} at={string.Join('/', RunPlaces(r))}" : "") +
+        (r.PerfPanelNow.RunPicker is not null ? " runpicker=open" : "");
+
+    private static IEnumerable<string> RunPlaces(ReaderView r)
+    {
+        static string Pos(double pos) => pos.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (r.CompareShown is not { } view) return [];
+        return view.RunStage is { } stage ? stage.Keys.Select(k => Pos(stage.Run(k).Session.Pos) + (k == stage.OnKey ? "*" : "")) : view.RunPanes.Select(p => Pos(p.Session.Pos) + (p.Focused ? "*" : ""));
+    }
 
     private sealed record Case(string Name, Action<Window, ReaderView> Setup, Key Key, PhysicalKey Physical, RawInputModifiers Mods = RawInputModifiers.None, string? Symbol = null);
 
@@ -63,6 +73,11 @@ public class KeyMapTests
     private static void Perf(Window w, ReaderView r) => w.KeyPress(Key.T, RawInputModifiers.None, PhysicalKey.T, null);
 
     private static void Failures(Window w, ReaderView r) => w.KeyPress(Key.M, RawInputModifiers.None, PhysicalKey.M, null);
+
+    /// <summary>Two runs side by side (the first has the focus), or in Swap.</summary>
+    private static void TwoRuns(Window w, ReaderView r) => r.OpenRunCompareById("dinner-rush", "eta-batched");
+
+    private static void TwoRunsSwap(Window w, ReaderView r) => r.OpenRunCompareById("dinner-rush", "eta-batched", swap: true);
 
     private static Action<Window, ReaderView> Then(params Action<Window, ReaderView>[] steps) => (w, r) =>
     {
@@ -190,6 +205,22 @@ public class KeyMapTests
         new("failures: p", Failures, Key.P, PhysicalKey.P),
         new("failures: t", Failures, Key.T, PhysicalKey.T),
         new("failures while a flow plays: right", Then(Flow, Failures), Key.Right, PhysicalKey.ArrowRight),
+
+        // C with a run on show is for the run: the picker (this run is linked to none). Two runs compared take the keys of the Performance panel, for the pane last clicked, and the keys of a flow stay out
+        new("perf: c", Perf, Key.C, PhysicalKey.C),
+        new("two runs: right", TwoRuns, Key.Right, PhysicalKey.ArrowRight),
+        new("two runs: left", Then(TwoRuns, Type(Key.Right, PhysicalKey.ArrowRight)), Key.Left, PhysicalKey.ArrowLeft),
+        new("two runs: home", Then(TwoRuns, Type(Key.Right, PhysicalKey.ArrowRight)), Key.Home, PhysicalKey.Home),
+        new("two runs: end", TwoRuns, Key.End, PhysicalKey.End),
+        new("two runs: p", TwoRuns, Key.P, PhysicalKey.P),
+        new("two runs: r", TwoRuns, Key.R, PhysicalKey.R),
+        new("two runs: f", TwoRuns, Key.F, PhysicalKey.F),
+        new("two runs: x side by side", TwoRuns, Key.X, PhysicalKey.X),
+        new("two runs in swap: x", Then(TwoRunsSwap), Key.X, PhysicalKey.X),
+        new("two runs in swap: left after x", Then(TwoRunsSwap, Type(Key.X, PhysicalKey.X)), Key.Left, PhysicalKey.ArrowLeft),
+        new("two runs: c", TwoRuns, Key.C, PhysicalKey.C),
+        new("two runs: esc", TwoRuns, Key.Escape, PhysicalKey.Escape),
+        new("two runs: t", TwoRuns, Key.T, PhysicalKey.T),
     ];
 
     [AvaloniaFact]
@@ -242,6 +273,18 @@ public class KeyMapTests
         Assert.Equal("perf-ramp", Pick(Key.P, PhysicalKey.P, State(perf: true, flow: true)));
         Assert.Equal("flow-play", Pick(Key.P, PhysicalKey.P, State(flow: true)));
         Assert.Equal("edit", Pick(Key.E, PhysicalKey.E, State(perf: true)));
+        // Two runs compared take the keys of the Performance panel (for the pane last clicked), and the keys of a flow stay out; two flows compared take the keys of a flow.
+        var runs = State() with { Compare = true, RunCompare = true, HasLoad = false };
+        Assert.Equal("perf-step", Pick(Key.Left, PhysicalKey.ArrowLeft, runs));
+        Assert.Equal("perf-ends", Pick(Key.Home, PhysicalKey.Home, runs));
+        Assert.Equal("perf-ends", Pick(Key.End, PhysicalKey.End, runs));
+        Assert.Equal("perf-ramp", Pick(Key.P, PhysicalKey.P, runs));
+        Assert.Null(Pick(Key.R, PhysicalKey.R, runs));
+        Assert.Equal("flow-step", Pick(Key.Left, PhysicalKey.ArrowLeft, State() with { Compare = true }));
+        Assert.Equal("flow-replay", Pick(Key.R, PhysicalKey.R, State() with { Compare = true }));
+        // C is taken with the Performance panel open (for the run on show), and not with nothing open.
+        Assert.Equal("compare", Pick(Key.C, PhysicalKey.C, State(perf: true)));
+        Assert.Null(Pick(Key.C, PhysicalKey.C, State()));
         Assert.Equal("redo", Pick(Key.Z, PhysicalKey.Z, State(editing: true), KeyModifiers.Control | KeyModifiers.Shift));
         Assert.Equal("undo", Pick(Key.Z, PhysicalKey.Z, State(editing: true), KeyModifiers.Control));
         Assert.Null(Pick(Key.Z, PhysicalKey.Z, State(), KeyModifiers.Control));
@@ -425,7 +468,21 @@ internal static class Expected
         "failures: home | left | same",
         "failures: p | left | same",
         "failures: t | taken | view=root edit=False panel=True tab=Performance details=False perf=True fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=3 ramp=False mode= rec=False",
-        "failures while a flow plays: right | taken | view=delivery edit=False panel=True tab=Failures details=False perf=False fail=True flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode=eta-mapbox-fails rec=False"
+        "failures while a flow plays: right | taken | view=delivery edit=False panel=True tab=Failures details=False perf=False fail=True flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode=eta-mapbox-fails rec=False",
+        "perf: c | taken | view=root edit=False panel=True tab=Performance details=False perf=True fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=3 ramp=False mode= rec=False runpicker=open",
+        "two runs: right | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False runs=dinner-rush/eta-batched:side at=4*/4",
+        "two runs: left | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False runs=dinner-rush/eta-batched:side at=3*/4",
+        "two runs: home | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False runs=dinner-rush/eta-batched:side at=0*/4",
+        "two runs: end | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False runs=dinner-rush/eta-batched:side at=4*/4",
+        "two runs: p | taken | same",
+        "two runs: r | left | same",
+        "two runs: f | taken | same",
+        "two runs: x side by side | left | same",
+        "two runs in swap: x | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False runs=dinner-rush/eta-batched:swap at=3/4*",
+        "two runs in swap: left after x | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False runs=dinner-rush/eta-batched:swap at=3/3*",
+        "two runs: c | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
+        "two runs: esc | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
+        "two runs: t | taken | view=root edit=False panel=True tab=Performance details=False perf=True fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=3 ramp=False mode= rec=False runs=dinner-rush/eta-batched:side at="
     ];
 
     public static readonly string[] Shortcuts =

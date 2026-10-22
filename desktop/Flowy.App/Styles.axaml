@@ -1012,6 +1012,8 @@
     <Setter Property="BorderThickness" Value="2" />
     <Setter Property="CornerRadius" Value="10" />
   </Style>
+  <!-- The Performance panel of a run in a pane of a comparison: a line between it and the canvas (its thickness is set by where the panel sits). -->
+  <Style Selector="Border.runpanel"><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /></Style>
   <Style Selector="Grid.compare">
     <Setter Property="Background" Value="{DynamicResource BgBrush}" />
   </Style>

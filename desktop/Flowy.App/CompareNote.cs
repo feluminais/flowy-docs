@@ -12,10 +12,10 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>
-/// What the note strip needs to know about the pair: every flow's raw <c>compare</c> tag (see <see cref="CompareChoices.TagsOf"/>), how to name a flow, the pair as it reads (<c>A</c> first,
+/// What the note strip needs to know about the pair (two flows, or two runs): every flow's (or run's) raw <c>compare</c> tag (see <see cref="CompareChoices.TagsOf"/>), how to name a flow, the pair as it reads (<c>A</c> first,
 /// <c>B</c> second: with no tag the line goes to <c>B</c>), why a note can't be written (null when it can) and the draft the reader holds for this pair (null while no editor is open).
 /// </summary>
-internal sealed record NoteInput(IReadOnlyDictionary<string, object?> Tags, Func<string, string> NameOf, string A, string B, string? Off, string? Draft);
+internal sealed record NoteInput(IReadOnlyDictionary<string, object?> Tags, Func<string, string> NameOf, string A, string B, string? Off, string? Draft, string Kind = "flow");
 
 /// <summary>
 /// Asked when a note that isn't saved is about to be lost: Discard it and go on, or Keep it (focused, so Enter keeps) and stay. A small card over the top of the canvas, under the bar, so the
@@ -23,7 +23,8 @@ internal sealed record NoteInput(IReadOnlyDictionary<string, object?> Tags, Func
 /// </summary>
 internal sealed class DraftAsk : Border
 {
-    public DraftAsk(Action discard, Action keep)
+    /// <summary>Asks "Discard the note?", or, with the words given, another question with the same two answers: the first goes ahead and loses something, Keep stays.</summary>
+    public DraftAsk(Action discard, Action keep, string ask = "Discard the note?", string discardLabel = "Discard", string discardTip = "Throw the note away", string keepTip = "Keep the note (Esc)")
     {
         Classes.Add("card");
         HorizontalAlignment = HorizontalAlignment.Center;
@@ -32,12 +33,12 @@ internal sealed class DraftAsk : Border
         Padding = new Thickness(14, 6, 8, 6);
         Discard = new Button();
         Keep = new Button();
-        CompareBar.Make(Discard, null, "Discard", "Discard", "Throw the note away", discard);
-        CompareBar.Make(Keep, null, "Keep", "Keep", "Keep the note (Esc)", keep);
+        CompareBar.Make(Discard, null, discardLabel, discardLabel, discardTip, discard);
+        CompareBar.Make(Keep, null, "Keep", "Keep", keepTip, keep);
         Keep.Classes.Add("primary");
-        var question = new TextBlock { Text = "Discard the note?", FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) };
+        var question = new TextBlock { Text = ask, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) };
         Child = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { question, Discard, Keep } };
-        AutomationProperties.SetName(this, "Discard the note?");
+        AutomationProperties.SetName(this, ask);
         // Once it is on screen: a control can't take the focus before it has been laid out.
         AttachedToVisualTree += (_, _) => Dispatcher.UIThread.Post(() => Keep.Focus(), DispatcherPriority.Loaded);
     }
@@ -216,8 +217,8 @@ internal sealed class CompareNote : Border
         if (editing) CancelButton = Tool("Cancel", null, () => SetDraft(null), !_busy);
         if (!tagged)
         {
-            var same = CompareUi.PairOff("flow", input.A, input.B);
-            PairButton = Tool("Save as pair", off ?? same ?? "Link these flows", () =>
+            var same = CompareUi.PairOff(input.Kind, input.A, input.B);
+            PairButton = Tool("Save as pair", off ?? same ?? $"Link these {input.Kind}s", () =>
             {
                 _confirming = true;
                 Rebuild(actionsOnly: true);

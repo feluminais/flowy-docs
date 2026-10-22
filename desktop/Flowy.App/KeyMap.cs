@@ -37,6 +37,7 @@ internal readonly record struct KeyState(
     bool Flow, // a flow is playing
     bool Compare, // two flows are compared: the keys of a flow go to the pane last clicked
     bool Swap, // ... and set to Swap, one canvas flipping between them: the keys of a flow go to the flow on show
+    bool RunCompare, // the comparison is of two runs: the keys of the Performance panel go to the pane last clicked, and the keys of a flow stay out
     bool PerfOpen,
     bool HasLoad,
     bool FailuresOpen,
@@ -79,7 +80,7 @@ internal interface IKeyActions
 
     void CloseCompare();
 
-    /// <summary>Swap: puts the other flow of the comparison on show.</summary>
+    /// <summary>Swap: puts the other flow (or run) of the comparison on show.</summary>
     void SwapCompare();
 
     void ClosePanel();
@@ -147,6 +148,9 @@ internal static class KeyMap
     private static KeyHelp Failures(string what) => new(HelpGroup.Failures, what);
     private static KeyHelp Editing(string what) => new(HelpGroup.Editing, what);
 
+    /// <summary>The keys of a flow apply: one is playing, or two are compared. Two runs have no steps: their comparison takes the keys of the Performance panel.</summary>
+    private static bool FlowKeys(KeyState s) => s.Flow || (s.Compare && !s.RunCompare);
+
     public static readonly IReadOnlyList<KeyEntry> Entries =
     [
         // Esc peels one layer a press (see Escape). Straight after a drag in edit mode, Backspace takes the drag back as Esc does.
@@ -163,20 +167,20 @@ internal static class KeyMap
         Do("redo", "Ctrl+Y  Ctrl+Shift+Z", (p, s) => s.Editing && p.Command && (p.Physical == PhysicalKey.Y || (p.Physical == PhysicalKey.Z && p.Shift)), (_, _, a) => a.Redo(), Editing("Redo")),
         Do("undo", "Ctrl+Z", (p, s) => s.Editing && p.Command && p.Physical == PhysicalKey.Z && !p.Shift, (_, _, a) => a.Undo(), Editing("Undo the last change")),
 
-        // A load-test run takes the arrows before a flow does: a flow is not playing while one is open.
-        Do("perf-step", "→  ←", (p, s) => s.PerfOpen && p.Arrow, (p, _, a) => a.PerfStep(p.By), Performance("Next and previous tested level")),
-        Do("perf-ends", "Home  End", (p, s) => s.PerfOpen && (p.Key == Key.Home || (p.Key == Key.End && s.HasLoad)), (p, _, a) => { if (p.Key == Key.Home) a.PerfFirst(); else a.PerfLast(); },
+        // A load-test run takes the arrows before a flow does: a flow is not playing while one is open. Two runs compared take them too, for the pane last clicked.
+        Do("perf-step", "→  ←", (p, s) => (s.PerfOpen || s.RunCompare) && p.Arrow, (p, _, a) => a.PerfStep(p.By), Performance("Next and previous tested level")),
+        Do("perf-ends", "Home  End", (p, s) => (s.PerfOpen || s.RunCompare) && (p.Key == Key.Home || (p.Key == Key.End && (s.HasLoad || s.RunCompare))), (p, _, a) => { if (p.Key == Key.Home) a.PerfFirst(); else a.PerfLast(); },
             Performance("First and last tested level")),
-        Do("perf-ramp", "P", (p, s) => s.PerfOpen && p.Tap(PhysicalKey.P), (_, _, a) => a.PerfRamp(), Performance("Ramp the load or play the time, or pause")),
+        Do("perf-ramp", "P", (p, s) => (s.PerfOpen || s.RunCompare) && p.Tap(PhysicalKey.P), (_, _, a) => a.PerfRamp(), Performance("Ramp the load or play the time, or pause")),
         new("failure-step", "→  ←", (p, s) => s.FailuresOpen && p.Arrow, (p, _, a) => a.StepFailures(p.Key), Failures("Next and previous failure")),
 
-        // The keys of a flow apply while one is playing, and while two are compared (they act on the pane last clicked).
-        Do("flow-step", "→  ←", (p, s) => (s.Flow || s.Compare) && p.Arrow, (p, _, a) => a.FlowStep(p.By), Flows("Next and previous step")),
-        Do("flow-ends", "Home  End", (p, s) => (s.Flow || s.Compare) && p.Key is Key.Home or Key.End, (p, _, a) => { if (p.Key == Key.Home) a.FlowFirst(); else a.FlowLast(); }, Flows("First and last step")),
-        Do("flow-play", "P", (p, s) => (s.Flow || s.Compare) && p.Tap(PhysicalKey.P), (_, _, a) => a.FlowPlay(), Flows("Step through the flow on its own, or pause")),
-        Do("flow-replay", "R", (p, s) => (s.Flow || s.Compare) && p.Tap(PhysicalKey.R), (_, _, a) => a.FlowReplay(), Flows("Replay the step")),
-        // In edit mode the key is still taken, to say why it does nothing there.
-        Do("compare", "C", (p, s) => p.Tap(PhysicalKey.C) && (s.Flow || s.Compare || s.Editing), (_, _, a) => a.ToggleCompare(), Flows("Compare with another flow, or close the comparison")),
+        // The keys of a flow apply while one is playing, and while two are compared (they act on the pane last clicked). Two runs have no steps: their comparison takes the keys of the Performance panel.
+        Do("flow-step", "→  ←", (p, s) => FlowKeys(s) && p.Arrow, (p, _, a) => a.FlowStep(p.By), Flows("Next and previous step")),
+        Do("flow-ends", "Home  End", (p, s) => FlowKeys(s) && p.Key is Key.Home or Key.End, (p, _, a) => { if (p.Key == Key.Home) a.FlowFirst(); else a.FlowLast(); }, Flows("First and last step")),
+        Do("flow-play", "P", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.P), (_, _, a) => a.FlowPlay(), Flows("Step through the flow on its own, or pause")),
+        Do("flow-replay", "R", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.R), (_, _, a) => a.FlowReplay(), Flows("Replay the step")),
+        // In edit mode the key is still taken, to say why it does nothing there. With the Performance panel open it is for the run on show.
+        Do("compare", "C", (p, s) => p.Tap(PhysicalKey.C) && (s.Flow || s.Compare || s.Editing || s.PerfOpen), (_, _, a) => a.ToggleCompare(), Flows("Compare with another flow, or close the comparison")),
         // Only in Swap: side by side the key is not taken.
         Do("swap", "X", (p, s) => p.Tap(PhysicalKey.X) && s.Swap, (_, _, a) => a.SwapCompare(), Flows("Swap to the other flow of a comparison")),
 

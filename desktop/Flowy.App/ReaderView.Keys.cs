@@ -19,6 +19,7 @@ internal sealed partial class ReaderView
     {
         var inside = InNavigator(e.Source);
         PressedOutsidePicker(e.Source);
+        _perfPanel.PressedOutside(e.Source);
         _navUsed = inside;
         if (!inside && InNavigator(TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement())) Focus();
     }
@@ -26,7 +27,7 @@ internal sealed partial class ReaderView
     /// <summary>What the keys' conditions ask about, as the reader is now. <paramref name="inNavigator"/>: the press came from inside the navigator.</summary>
     private KeyState KeyStateNow(bool inNavigator) => new(
         Editing, ReadOnly, _undoMove, _search is not null, _shortcuts is not null, _side is Side.Boxes, Recording is not null,
-        PlayingFlow() is not null, Comparing, Comparing && _compare is { Mode: "swap" }, PerfOpen, LoadTest is not null, FailuresOpen, ShowFlows, CanPerf, CanFailures,
+        PlayingFlow() is not null, Comparing, Comparing && _compare is { Mode: "swap" }, ComparingRuns, PerfOpen, LoadTest is not null, FailuresOpen, ShowFlows, CanPerf, CanFailures,
         ShownTab is not null, _navUsed, inNavigator, RightOpen, CurrentView() != Names.Root);
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
@@ -35,6 +36,12 @@ internal sealed partial class ReaderView
         if (_ask is not null && e.Key == Key.Escape)
         {
             KeepNote(); // the question is the innermost layer, and Esc answers it with Keep
+            e.Handled = true;
+            return;
+        }
+        if (_unlinkAsk is not null && e.Key == Key.Escape)
+        {
+            KeepLink(); // the same, for the question about a link and its note
             e.Handled = true;
             return;
         }
@@ -53,6 +60,9 @@ internal sealed partial class ReaderView
         if (_nav.Explorer.Holds(e.Source) && e.Key != Key.Escape) return; // the tree has its own keys, and a letter typed in it goes to its filter
         if (KeyMap.Dispatch(KeyPress.Of(e), KeyStateNow(inNavigator), _keyActions ??= new KeyActions(this))) e.Handled = true;
     }
+
+    /// <summary>What the keys of the Performance panel act on while two runs are compared: the pane with the focus, or the run on show in Swap. Null otherwise.</summary>
+    private IRunKeys? RunKeys => ComparingRuns && _compareView is { } view ? view.RunTarget : null;
 
     private void Up()
     {
@@ -118,16 +128,30 @@ internal sealed partial class ReaderView
 
         public void Redo() => _ = r.RedoAsync();
 
-        public void PerfStep(int by) => r._perf.StepLevel(PerfView.StepFrom(r._perf.ActivePos, by));
+        // While two runs are compared the keys of the Performance panel act on the run of the pane that has the focus (or the run on show in Swap).
+        public void PerfStep(int by)
+        {
+            if (r.RunKeys is { } runs) runs.Step(by);
+            else r._perf.StepLevel(PerfView.StepFrom(r._perf.ActivePos, by));
+        }
 
-        public void PerfFirst() => r._perf.StepLevel(0);
+        public void PerfFirst()
+        {
+            if (r.RunKeys is { } runs) runs.End("first");
+            else r._perf.StepLevel(0);
+        }
 
         public void PerfLast()
         {
-            if (r.LoadTest is { } top) r._perf.StepLevel(r._perf.ActiveTop(top));
+            if (r.RunKeys is { } runs) runs.End("last");
+            else if (r.LoadTest is { } top) r._perf.StepLevel(r._perf.ActiveTop(top));
         }
 
-        public void PerfRamp() => r._perf.ToggleRamp();
+        public void PerfRamp()
+        {
+            if (r.RunKeys is { } runs) runs.Ramp();
+            else r._perf.ToggleRamp();
+        }
 
         public bool StepFailures(Key key) => r.StepFailures(key);
 

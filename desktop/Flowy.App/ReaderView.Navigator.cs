@@ -134,13 +134,13 @@ internal sealed partial class ReaderView
         // A comparison of flows stays open: the Details show the shape, where it is drawn or not.
         if (row.Id == Names.Root)
         {
-            if (!Comparing && CurrentView() != Names.Root) GoTo(Names.Root);
+            if (!ComparingFlows && CurrentView() != Names.Root) GoTo(Names.Root);
             _side = null;
             Refresh();
             return;
         }
         var parent = Views.ParentOf(_folder.Model, row.Id);
-        if (!Comparing && parent != CurrentView()) GoTo(parent);
+        if (!ComparingFlows && parent != CurrentView()) GoTo(parent);
         OpenObject(row.Id);
     }
 

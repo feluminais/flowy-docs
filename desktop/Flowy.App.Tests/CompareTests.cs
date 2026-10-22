@@ -341,6 +341,30 @@ public class CompareTests
         }
     }
 
+    /// <summary>
+    /// The animations' clock, moved by hand. On the wall clock an animation ends when the machine says, so a test that asks "is it still under way" after a sleep is a race, and a slow frame
+    /// can step over a part of it altogether. <see cref="Pass"/> lets time go by in frames of 10 ms. Every read of the clock moves it on a little: the headless window only asks for another
+    /// frame when the last one changed what is drawn, so a frame that saw the same time as the one before it (a key press runs a few of its own) would end the chain of frames.
+    /// </summary>
+    private sealed class ManualClock : IDisposable
+    {
+        private double _now;
+
+        public ManualClock() => Flowy.App.Canvas.Anim.TestClock = () => _now += 0.5;
+
+        public void Pass(double milliseconds)
+        {
+            for (var left = milliseconds; left > 0; left -= 10)
+            {
+                _now += Math.Min(10, left);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Dispatcher.UIThread.RunJobs();
+            }
+        }
+
+        public void Dispose() => Flowy.App.Canvas.Anim.TestClock = null;
+    }
+
     /// <summary>The boxes of the canvas where they sit, and how much of each shows, for a comparison of what is drawn with what the flow on show says it should be.</summary>
     private static void AssertDrawn(SwapStage stage)
     {
@@ -521,19 +545,23 @@ public class CompareTests
         Assert.NotEmpty(shared);
         Assert.NotEmpty(onlyA); // the two flows are different views: some shapes leave
         Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
+        using var clock = new ManualClock(); // by hand, so a slow frame can't step over a part of the swap
         try
         {
             stage.Swap();
             Assert.True(stage.Swapping);
             Assert.Null(stage.CardShown); // the card is the flow's once it is on
-            // First the lines fade out; then the boxes of both diagrams are on the stage, the old ones fading and no lines drawn.
-            Run(() => stage.Canvas.Scene!.Edges.Count == 0 || !stage.Swapping);
+            // First the lines fade out (150 ms); then the boxes of both diagrams are on the stage, the old ones fading and no lines drawn.
+            clock.Pass(SwapPlans.FadeMs + 30);
             Assert.True(stage.Swapping);
+            Assert.Empty(stage.Canvas.Scene!.Edges);
             Assert.Equal(0, stage.LinesNow);
             Assert.All(onlyA, id => Assert.Contains(id, stage.Canvas.BoxPresence.Keys));
-            Run(() => stage.Canvas.BoxPresence.Values.Any(p => p is > 0 and < 1) || !stage.Swapping);
+            clock.Pass(SwapPlans.SwapMs / 3); // a third of the way through the glide
             Assert.True(stage.Swapping);
-            Run(() => !stage.Swapping);
+            Assert.Contains(stage.Canvas.BoxPresence.Values, p => p is > 0 and < 1);
+            clock.Pass(SwapPlans.SwapMs + 2 * SwapPlans.FadeMs); // longer than the rest of it
+            Assert.False(stage.Swapping);
             AssertDrawn(stage);
             Assert.Equal("refund-not-recorded", stage.OnKey);
             Assert.DoesNotContain(onlyA, id => stage.Canvas.BoxPresence.ContainsKey(id));
@@ -557,29 +585,17 @@ public class CompareTests
         var stage = reader.CompareShown!.Stage!;
         Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
         // The animation clock is moved by hand: on the wall clock a slow frame could end a swap before the test asked whether it was still under way.
-        var now = 0.0;
-        // Every read moves it on a little: the headless window only asks for another frame when the last one changed what is drawn, so a frame that sees the same
-        // time as the one before it (the key press runs a few of its own) would end the chain of frames and the swap would never get anywhere.
-        Flowy.App.Canvas.Anim.TestClock = () => now += 0.5;
-        void Pass(double ms)
-        {
-            for (var left = ms; left > 0; left -= 10)
-            {
-                now += Math.Min(10, left);
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                Dispatcher.UIThread.RunJobs();
-            }
-        }
+        using var clock = new ManualClock();
         try
         {
             // The second press comes while the lines are still fading out; each later one comes a little further into the glide.
             for (var i = 0; i < presses; i++)
             {
                 Press(window, Key.X, PhysicalKey.X);
-                Pass(120 * (i + 1));
+                clock.Pass(120 * (i + 1));
                 Assert.True(stage.Swapping);
             }
-            Pass(SwapPlans.SwapMs + 2 * SwapPlans.FadeMs); // longer than any swap takes
+            clock.Pass(SwapPlans.SwapMs + 2 * SwapPlans.FadeMs); // longer than any swap takes
             Assert.False(stage.Swapping);
             Assert.Equal(endsOn, stage.OnKey);
             AssertDrawn(stage);
@@ -587,7 +603,6 @@ public class CompareTests
         }
         finally
         {
-            Flowy.App.Canvas.Anim.TestClock = null;
             Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1");
         }
     }
@@ -1085,4 +1100,635 @@ public class CompareTests
 
     private static Button FindButton(Control root, string name) =>
         root.GetVisualDescendants().OfType<Button>().First(b => Avalonia.Automation.AutomationProperties.GetName(b) == name);
+
+    // ---- two runs --------------------------------------------------------------------------------------------------
+
+    private const string Dinner = "dinner-rush";
+    private const string Batched = "eta-batched";
+
+    private static string RunText(TempFolder temp, string id) => File.ReadAllText(Path.Combine(temp.Path, "flowy", "perf", id + ".yaml"));
+
+    /// <summary>The batched run holds a tag that names the dinner rush, with a note or without.</summary>
+    /// <summary>Every file is given LF line breaks, so the text of a run can be compared as it is written; the batched run gets <paramref name="tag"/> at its end, when there is one.</summary>
+    private static Func<string, string, string> BatchedTags(string? tag = "compare: dinner-rush\n") =>
+        (rel, text) => text.Replace("\r\n", "\n") + (rel == "perf/eta-batched.yaml" ? tag : null);
+
+    private static string Place(PerfComparePane pane) => pane.Panel.LoadText;
+
+    [AvaloniaFact]
+    public void Two_runs_open_as_two_panes_each_with_its_own_place_along_its_run()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        Assert.Equal(new CompareState("run", Dinner, Batched, "side"), reader.CompareNow);
+        var view = reader.CompareShown!;
+        Assert.Equal(["Dinner rush", "Dinner rush, ETA calls batched"], view.RunPanes.Select(p => p.TitleText).ToArray());
+        Assert.All(view.RunPanes, p => Assert.True(p.Canvas.Scene!.Boxes.Count > 0));
+        Assert.True(view.RunPanes[0].Focused);
+        Assert.False(view.RunPanes[1].Focused);
+        Assert.False(reader.PerfOpenNow); // the panel leaves: each pane has its own
+        Assert.Null(reader.PlayingFlowId);
+        var (left, right) = (view.RunPanes[0], view.RunPanes[1]);
+        Assert.NotSame(left.Session, right.Session);
+        Assert.Null(left.Panel.Picker); // the run is the pane's own: no picker and no Compare in its header
+        Assert.Null(left.Panel.CompareButton);
+        Assert.NotNull(left.Canvas.Load);
+        Assert.NotNull(right.Canvas.Load);
+
+        // Moving one run does not move the other.
+        var (before, rightAt) = (Place(left), right.Session.Pos);
+        left.Session.StepLevel(0);
+        Assert.Equal(0, left.Session.Pos);
+        Assert.NotEqual(before, Place(left));
+        Assert.Equal(rightAt, right.Session.Pos);
+        var rightText = Place(right);
+        left.Step(1);
+        Assert.Equal(1, left.Session.Pos);
+        Assert.Equal(rightText, Place(right));
+    }
+
+    [AvaloniaFact]
+    public void The_Performance_keys_reach_the_focused_pane_only_and_the_keys_of_a_flow_stay_out()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        var view = reader.CompareShown!;
+        var (left, right) = (view.RunPanes[0], view.RunPanes[1]);
+        var (leftAt, rightAt) = (left.Session.Pos, right.Session.Pos);
+        Press(window, Key.Left, PhysicalKey.ArrowLeft);
+        Assert.Equal((leftAt - 1, rightAt), (left.Session.Pos, right.Session.Pos));
+        Press(window, Key.R, PhysicalKey.R); // Replay is a flow's key: left to the reader
+        Press(window, Key.Right, PhysicalKey.ArrowRight);
+        Assert.Equal((leftAt, rightAt), (left.Session.Pos, right.Session.Pos));
+
+        // A press in the other pane gives it the focus, and the keys follow.
+        Click(window, right.TranslatePoint(new Point(30, 14), window)!.Value);
+        Assert.True(right.Focused);
+        Assert.False(left.Focused);
+        Press(window, Key.Home, PhysicalKey.Home);
+        Assert.Equal((leftAt, 0), (left.Session.Pos, right.Session.Pos));
+        Press(window, Key.End, PhysicalKey.End);
+        Assert.Equal((leftAt, right.Session.Run!.Levels.Count - 1), (left.Session.Pos, right.Session.Pos));
+        Press(window, Key.F, PhysicalKey.F); // F fits the focused pane: it neither throws nor moves a run
+        Assert.Equal(leftAt, left.Session.Pos);
+
+        Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
+        try
+        {
+            Press(window, Key.P, PhysicalKey.P);
+            Assert.True(right.Session.Ramping);
+            Assert.False(left.Session.Ramping);
+            Press(window, Key.P, PhysicalKey.P);
+            Assert.False(right.Session.Ramping);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1");
+        }
+    }
+
+    [AvaloniaFact]
+    public void Swap_for_runs_is_one_pane_at_full_width_and_each_run_keeps_its_own_place_across_swaps()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.OpenRunCompareById(Dinner, Batched, swap: true);
+        EditModeTests.Settle(window);
+        var view = reader.CompareShown!;
+        var stage = view.RunStage!;
+        Assert.Empty(view.RunPanes);
+        Assert.Equal(Dinner, stage.OnKey);
+        Assert.Equal("Dinner rush", stage.TitleText);
+        Assert.True(stage.Body.Beside); // one pane at full width: the panel sits beside the canvas
+        Assert.Same(stage.Run(Dinner).Panel, stage.Body.PanelShown);
+        Assert.Equal(["Dinner rush", "Dinner rush, ETA calls batched"], FlowNames(view.Bar));
+        var (dinnerAt, batchedAt) = (stage.Run(Dinner).Session.Pos, stage.Run(Batched).Session.Pos);
+
+        Press(window, Key.Left, PhysicalKey.ArrowLeft); // acts on the run on show
+        Assert.Equal((dinnerAt - 1, batchedAt), (stage.Run(Dinner).Session.Pos, stage.Run(Batched).Session.Pos));
+        Press(window, Key.X, PhysicalKey.X);
+        Assert.False(stage.Swapping); // reduced motion cuts
+        Assert.Equal(Batched, stage.OnKey);
+        Assert.Equal("Dinner rush, ETA calls batched", stage.TitleText);
+        Assert.Same(stage.Run(Batched).Panel, stage.Body.PanelShown);
+        Press(window, Key.Home, PhysicalKey.Home);
+        Assert.Equal((dinnerAt - 1, 0), (stage.Run(Dinner).Session.Pos, stage.Run(Batched).Session.Pos));
+        Press(window, Key.X, PhysicalKey.X);
+        Assert.Equal(Dinner, stage.OnKey);
+        Assert.Equal((dinnerAt - 1, 0), (stage.Run(Dinner).Session.Pos, stage.Run(Batched).Session.Pos)); // each kept its own place
+        Assert.True(On(view.Bar.FlowButtons[0]));
+        Assert.NotNull(stage.Canvas.Load); // the run on show draws its load
+    }
+
+    [AvaloniaFact]
+    public void A_run_that_goes_off_in_Swap_stops_its_ramp()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.OpenRunCompareById(Dinner, Batched, swap: true);
+        EditModeTests.Settle(window);
+        var stage = reader.CompareShown!.RunStage!;
+        Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
+        try
+        {
+            Press(window, Key.P, PhysicalKey.P);
+            Assert.True(stage.Run(Dinner).Session.Ramping);
+            Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1"); // the swap itself cuts, so no animation is left running behind the test
+            stage.Swap();
+            Assert.False(stage.Run(Dinner).Session.Ramping);
+            Assert.False(stage.Run(Batched).Session.Ramping);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1");
+        }
+    }
+
+    [AvaloniaFact]
+    public void With_motion_a_swap_of_runs_fades_the_traffic_out_hands_the_canvas_over_and_fades_it_back_in()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.OpenRunCompareById(Dinner, Batched, swap: true);
+        EditModeTests.Settle(window);
+        var stage = reader.CompareShown!.RunStage!;
+        Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
+        using var clock = new ManualClock();
+        try
+        {
+            Assert.Equal(300, SwapPlans.CrossfadeDuration(false));
+            Press(window, Key.X, PhysicalKey.X);
+            Assert.True(stage.Swapping);
+            Assert.Equal(Batched, stage.OnKey); // the name and the panel are the new run's from the start
+            clock.Pass(100); // the first third: the old run's traffic is going
+            Assert.True(stage.Swapping);
+            Assert.InRange(stage.Canvas.TrafficOpacity, 0.01, 0.99);
+            Assert.True(stage.Run(Dinner).Drawing);
+            Assert.False(stage.Run(Batched).Drawing);
+            clock.Pass(100); // past the middle: the canvas is the new run's, and its traffic is coming
+            Assert.True(stage.Swapping);
+            Assert.True(stage.Run(Batched).Drawing);
+            Assert.False(stage.Run(Dinner).Drawing);
+            Assert.InRange(stage.Canvas.TrafficOpacity, 0.01, 0.99);
+            clock.Pass(400);
+            Assert.False(stage.Swapping);
+            Assert.Equal(1, stage.Canvas.TrafficOpacity);
+            Assert.NotNull(stage.Canvas.Load);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1");
+        }
+    }
+
+    [AvaloniaFact]
+    public void Swap_sides_and_the_way_to_view_keep_each_runs_session()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        var view = reader.CompareShown!;
+        var (dinner, batched) = (view.RunPanes[0].Session, view.RunPanes[1].Session);
+        dinner.StepLevel(1);
+        batched.StepLevel(2);
+        ClickBar(view.Bar.FlipButton);
+        EditModeTests.Settle(window);
+        Assert.Equal(new CompareState("run", Batched, Dinner, "side"), reader.CompareNow);
+        Assert.Equal([Batched, Dinner], view.RunPanes.Select(p => p.RunId).ToArray());
+        Assert.Same(batched, view.RunPanes[0].Session);
+        Assert.Same(dinner, view.RunPanes[1].Session);
+        Assert.Equal((2, 1), (batched.Pos, dinner.Pos));
+
+        ClickBar(view.Bar.SwapButton);
+        EditModeTests.Settle(window);
+        var stage = view.RunStage!;
+        Assert.Equal(Batched, stage.OnKey); // Swap starts on the run whose pane has the focus: the first, which is the batched run now
+        Assert.Same(dinner, stage.Run(Dinner).Session);
+        Assert.Same(batched, stage.Run(Batched).Session);
+        Assert.Equal((2, 1), (batched.Pos, dinner.Pos));
+        ClickBar(view.Bar.SideButton);
+        EditModeTests.Settle(window);
+        Assert.Null(view.RunStage);
+        Assert.Same(batched, view.RunPanes[0].Session);
+        Assert.Equal((2, 1), (view.RunPanes[0].Session.Pos, view.RunPanes[1].Session.Pos));
+        Assert.Equal(1, view.RunPanes[1].Panel.SliderValue); // the panel is the run's own in both ways of viewing
+    }
+
+    [AvaloniaFact]
+    public void The_Details_panel_is_shared_a_shape_is_outlined_in_both_panes_and_both_follow_the_level()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.GoTo("delivery");
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        var view = reader.CompareShown!;
+        Assert.All(view.RunPanes, p => Assert.Equal("delivery", p.Canvas.Scene!.View)); // both draw the level the reader is on
+        reader.ComparePicked(view.RunPanes[1].Key, new ReaderView.Side.Box("dispatch"));
+        EditModeTests.Settle(window);
+        Assert.Equal("dispatch", reader.SelectedBoxId);
+        Assert.True(reader.HasPanel); // one Details panel
+        Assert.All(view.RunPanes, p => Assert.Equal(["dispatch"], p.Canvas.SelectedNow.ToArray())); // outlined in both
+        Assert.All(view.RunPanes, p => Assert.NotEmpty(p.Panel.Readings)); // each panel reads the shape out for its own run
+        Assert.True(view.RunPanes[1].Focused);
+        reader.GoTo(Names.Root); // going to another level moves both panes; the comparison stays
+        EditModeTests.Settle(window);
+        Assert.NotNull(reader.CompareNow);
+        Assert.All(view.RunPanes, p => Assert.Equal(Names.Root, p.Canvas.Scene!.View));
+    }
+
+    [AvaloniaFact]
+    public void The_marks_of_changes_are_for_flows_only_so_the_switch_is_greyed_out_with_the_reason()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.SetShowChanges(true);
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        var bar = reader.CompareShown!.Bar;
+        Assert.False(bar.ChangesButton.IsEnabled);
+        Assert.Equal("Not for runs", ToolTip.GetTip(bar.ChangesButton));
+        Assert.False(On(bar.ChangesButton));
+        Assert.Null(bar.KeyShown);
+        Assert.Equal("Two runs next to each other", ToolTip.GetTip(bar.SideButton));
+        Assert.Equal("One canvas that flips between the runs", ToolTip.GetTip(bar.SwapButton));
+        reader.TryCloseCompare();
+        reader.OpenCompareById("refund", "refund-not-recorded"); // for flows the switch is as it was
+        EditModeTests.Settle(window);
+        Assert.True(reader.CompareShown!.Bar.ChangesButton.IsEnabled);
+        Assert.Equal("Two flows next to each other", ToolTip.GetTip(reader.CompareShown.Bar.SideButton));
+    }
+
+    [AvaloniaFact]
+    public void A_run_that_is_not_there_gives_the_notice_and_no_comparison_and_the_launch_option_says_the_same()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.OpenRunCompareById(Dinner, "nope");
+        Assert.Null(reader.CompareNow);
+        Assert.Equal("That run can't open.", reader.NoticeText);
+        Assert.False(reader.PerfOpenNow);
+
+        reader.OpenRunCompareById("nope", Batched, swap: true);
+        Assert.Null(reader.CompareNow);
+    }
+
+    [AvaloniaFact]
+    public async Task The_launch_option_run_colon_a_comma_b_opens_two_runs_and_a_third_part_opens_them_in_Swap()
+    {
+        var (temp, window, reader) = Open(BatchedTags());
+        using var _ = temp;
+        await new LaunchScript(window, reader).RunAsync(LaunchOptions.Parse(["--compare", "run:eta-batched,dinner-rush"]));
+        Assert.Equal(new CompareState("run", Dinner, Batched, "side"), reader.CompareNow); // the one that holds the tag reads second
+        reader.TryCloseCompare();
+        await new LaunchScript(window, reader).RunAsync(LaunchOptions.Parse(["--compare", "run:dinner-rush,eta-batched,swap", "--swapped"]));
+        Assert.Equal(new CompareState("run", Dinner, Batched, "swap"), reader.CompareNow);
+        EditModeTests.Settle(window);
+        Assert.Equal(Batched, reader.CompareShown!.RunStage!.OnKey);
+        reader.TryCloseCompare();
+        await new LaunchScript(window, reader).RunAsync(LaunchOptions.Parse(["--compare", "run:dinner-rush,nope"]));
+        Assert.Null(reader.CompareNow);
+        Assert.Equal("That run can't open.", reader.NoticeText);
+        await new LaunchScript(window, reader).RunAsync(LaunchOptions.Parse(["--compare", "refund,refund-not-recorded"]));
+        Assert.Equal("flow", reader.CompareNow!.Kind); // without run: it is still two flows
+    }
+
+    [AvaloniaFact]
+    public void Two_runs_do_not_mix_with_edit_mode_or_a_playing_flow()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.SetEditing(true);
+        reader.OpenRunCompareById(Dinner, Batched);
+        Assert.Null(reader.CompareNow); // never while editing
+        reader.SetEditing(false);
+        reader.GoTo("root");
+        reader.Play("refund", 1);
+        EditModeTests.Settle(window);
+        Assert.Equal("refund", reader.PlayingFlowId);
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        Assert.Null(reader.PlayingFlowId); // the flow waits behind the panes
+        Assert.False(reader.Card.IsVisible);
+        reader.SetEditing(true); // starting to edit ends the comparison
+        Assert.Null(reader.CompareNow);
+    }
+
+    [AvaloniaFact]
+    public void A_pane_puts_its_panel_beside_the_canvas_when_it_is_wide_and_under_it_when_it_is_narrow()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        Assert.All(reader.CompareShown!.RunPanes, p => Assert.False(p.Body.Beside)); // two panes side by side, each narrow
+        reader.TryCloseCompare();
+        var (temp2, window2, reader2) = Open(width: 800);
+        using var _2 = temp2;
+        reader2.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window2);
+        var view = reader2.CompareShown!;
+        Assert.True(view.Stacked); // under about 900 px the panes stack, each wide and short
+        Assert.All(view.RunPanes, p => Assert.True(p.Body.Beside));
+    }
+
+    [AvaloniaFact]
+    public void The_run_picker_and_the_header_show_Linked_for_the_runs_in_a_pair()
+    {
+        var (temp, window, reader) = Open(BatchedTags());
+        using var _ = temp;
+        reader.OpenTab("performance");
+        EditModeTests.Settle(window);
+        var panel = reader.PerfPanelNow;
+        Assert.Equal(["Dinner rush", "Dinner rush, ETA calls batched"], panel.RunChoices.Where(c => c.Linked).Select(c => c.Name).Order().ToArray());
+        Assert.Equal(7, panel.RunChoices.Count);
+        Assert.Equal(2, panel.RunChoices.Count(c => c.Linked));
+        reader.PickRunById("orders-only");
+        EditModeTests.Settle(window);
+        Assert.Null(reader.PerfPanelNow.LinkedMark); // not in a pair
+        reader.PickRunById(Batched);
+        EditModeTests.Settle(window);
+        Assert.NotNull(reader.PerfPanelNow.LinkedMark);
+    }
+
+    [AvaloniaFact]
+    public void Compare_in_the_run_header_opens_a_picker_over_the_runs_with_the_linked_one_first_and_picking_opens_the_comparison()
+    {
+        var (temp, window, reader) = Open(BatchedTags("compare: dinner-rush\n"));
+        using var _ = temp;
+        reader.OpenTab("performance");
+        reader.PickRunById(Dinner);
+        EditModeTests.Settle(window);
+        var panel = reader.PerfPanelNow;
+        Assert.True(panel.CompareButton!.IsEnabled);
+        ClickBar(panel.CompareButton);
+        EditModeTests.Settle(window);
+        Assert.Equal("compare", panel.PickerOpen);
+        var rows = panel.RunPicker!.Rows;
+        Assert.Equal(Batched, rows[0].Id); // the run that tags this one is listed first
+        Assert.Equal("after", rows[0].Side);
+        Assert.DoesNotContain(rows, c => c.Id == Dinner); // never itself
+        Assert.Equal(["orders-only", "pings-climbing", "stripe-outage", "together", "together-measured"], rows.Skip(1).Select(c => c.Id).Order().ToArray()); // then every other run
+        ClickBar(FindButton(panel.RunPicker, "Dinner rush, ETA calls batched"));
+        EditModeTests.Settle(window);
+        Assert.Equal(new CompareState("run", Dinner, Batched, "side"), reader.CompareNow);
+        Assert.False(reader.PerfOpenNow);
+        Assert.Null(reader.PerfPanelNow.RunPicker);
+    }
+
+    [AvaloniaFact]
+    public void A_tag_to_a_run_that_is_not_there_is_listed_greyed_out_as_Missing_and_still_opens_the_picker()
+    {
+        var (temp, window, reader) = Open(BatchedTags("compare: ghost\n"));
+        using var _ = temp;
+        reader.OpenTab("performance");
+        reader.PickRunById(Batched);
+        EditModeTests.Settle(window);
+        ClickBar(reader.PerfPanelNow.CompareButton!);
+        EditModeTests.Settle(window);
+        var rows = reader.PerfPanelNow.RunPicker!.Rows;
+        Assert.Equal(new Choice("ghost", "ghost", "before", true), rows[0]);
+        Assert.False(FindButton(reader.PerfPanelNow.RunPicker, "ghost").IsEnabled);
+        Assert.Null(reader.PerfPanelNow.LinkedMark); // a tag to nothing links nothing
+    }
+
+    [AvaloniaFact]
+    public void C_with_the_Performance_panel_open_opens_the_first_linked_run_directly_else_the_picker()
+    {
+        var (temp, window, reader) = Open(BatchedTags());
+        using var _ = temp;
+        reader.OpenTab("performance");
+        reader.PickRunById(Batched);
+        EditModeTests.Settle(window);
+        Press(window, Key.C, PhysicalKey.C);
+        EditModeTests.Settle(window);
+        Assert.Equal(new CompareState("run", Dinner, Batched, "side"), reader.CompareNow); // the holder of the tag reads second
+        Assert.False(reader.PerfOpenNow);
+        Press(window, Key.C, PhysicalKey.C); // C again closes it
+        Assert.Null(reader.CompareNow);
+
+        reader.OpenTab("performance");
+        reader.PickRunById("orders-only");
+        EditModeTests.Settle(window);
+        Press(window, Key.C, PhysicalKey.C);
+        Assert.Null(reader.CompareNow);
+        Assert.Equal("compare", reader.PerfPanelNow.PickerOpen); // no linked run: the picker, over the runs
+        EditModeTests.Settle(window); // its field takes the keyboard once it is on screen
+        Press(window, Key.Escape, PhysicalKey.Escape); // Esc closes the picker first
+        Assert.Null(reader.PerfPanelNow.RunPicker);
+        Assert.True(reader.PerfOpenNow);
+    }
+
+    [AvaloniaFact]
+    public async Task Link_with_writes_only_the_compare_line_of_that_run_file_and_Unlink_gives_the_file_back()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        var (dinnerBefore, batchedBefore) = (RunText(temp, Dinner), RunText(temp, Batched));
+        reader.OpenTab("performance");
+        reader.PickRunById(Batched);
+        EditModeTests.Settle(window);
+        var panel = reader.PerfPanelNow;
+        Assert.True(panel.LinkButton!.IsEnabled);
+        Assert.False(panel.UnlinkButton!.IsEnabled);
+        Assert.Equal("Not linked", ToolTip.GetTip(panel.UnlinkButton));
+        ClickBar(panel.LinkButton);
+        EditModeTests.Settle(window);
+        Assert.Equal("link", panel.PickerOpen);
+        ClickBar(FindButton(panel.RunPicker!, "Dinner rush"));
+        await EditModeTests.Until(() => RunText(temp, Batched).Contains("compare: dinner-rush"));
+        Assert.Equal(batchedBefore + "compare: dinner-rush\n", RunText(temp, Batched)); // one line added, nothing else touched
+        Assert.Equal(dinnerBefore, RunText(temp, Dinner));
+        Assert.Empty(Directory.GetFiles(temp.Path, "*.tmp", SearchOption.AllDirectories));
+        await EditModeTests.Until(() => reader.PerfPanelNow.LinkedMark is not null); // the folder is read again
+        Assert.Equal(new CompareTag("dinner-rush"), reader.Folder!.Runs![Batched].Compare);
+        Assert.Null(reader.PerfPanelNow.RunPicker);
+
+        // Unlink: no note, so it goes at once, and the file is as it was.
+        Assert.True(reader.PerfPanelNow.UnlinkButton!.IsEnabled);
+        ClickBar(reader.PerfPanelNow.UnlinkButton);
+        await EditModeTests.Until(() => !RunText(temp, Batched).Contains("compare"));
+        Assert.Equal(batchedBefore, RunText(temp, Batched));
+        Assert.Null(reader.UnlinkAskShown);
+    }
+
+    [AvaloniaFact]
+    public async Task Unlink_asks_first_when_the_link_holds_a_note_and_Keep_leaves_the_file_as_it_is()
+    {
+        var (temp, window, reader) = Open(BatchedTags("compare:\n  with: dinner-rush\n  note: Batching the calls\n"));
+        using var _ = temp;
+        var tagged = RunText(temp, Batched);
+        reader.OpenTab("performance");
+        reader.PickRunById(Batched);
+        EditModeTests.Settle(window);
+        ClickBar(reader.PerfPanelNow.UnlinkButton!);
+        EditModeTests.Settle(window);
+        var ask = reader.UnlinkAskShown!;
+        Assert.Equal("Remove the link and its note", Avalonia.Automation.AutomationProperties.GetName(ask));
+        Assert.Equal(tagged, RunText(temp, Batched)); // nothing is written until it is answered
+        ClickBar(ask.Keep);
+        Assert.Null(reader.UnlinkAskShown);
+        await Task.Delay(50);
+        Assert.Equal(tagged, RunText(temp, Batched));
+
+        ClickBar(reader.PerfPanelNow.UnlinkButton!);
+        Press(window, Key.Escape, PhysicalKey.Escape); // Esc is Keep
+        Assert.Null(reader.UnlinkAskShown);
+        Assert.Equal(tagged, RunText(temp, Batched));
+
+        ClickBar(reader.PerfPanelNow.UnlinkButton!);
+        ClickBar(reader.UnlinkAskShown!.Discard); // Remove
+        await EditModeTests.Until(() => !RunText(temp, Batched).Contains("compare"));
+        Assert.DoesNotContain("note", RunText(temp, Batched).Replace("notes", ""));
+        Assert.Null(reader.UnlinkAskShown);
+    }
+
+    [AvaloniaFact]
+    public void A_folder_that_cannot_be_written_greys_out_Link_with_and_Unlink_with_the_reason()
+    {
+        var (temp, window, reader) = Open(BatchedTags());
+        using var _ = temp;
+        reader.CanEdit = false; // a sample inside the install
+        reader.OpenTab("performance");
+        reader.PickRunById(Batched);
+        EditModeTests.Settle(window);
+        var panel = reader.PerfPanelNow;
+        Assert.False(panel.LinkButton!.IsEnabled);
+        Assert.False(panel.UnlinkButton!.IsEnabled);
+        Assert.Equal("This page can't save", ToolTip.GetTip(panel.LinkButton)); // the same words as the note editor
+        Assert.Equal("This page can't save", ToolTip.GetTip(panel.UnlinkButton));
+        Assert.True(panel.CompareButton!.IsEnabled); // comparing writes nothing
+        Assert.False(panel.TogglePicker("link")); // the control is greyed out: nothing opens
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        var note = reader.CompareShown!.Note;
+        Assert.False(note.NoteButton!.IsEnabled); // the note strip says the same
+        Assert.Equal("This page can't save", ToolTip.GetTip(note.NoteButton));
+    }
+
+    [AvaloniaFact]
+    public async Task A_run_file_that_changed_since_it_was_read_is_not_written_and_says_so()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        var path = Path.Combine(temp.Path, "flowy", "perf", Batched + ".yaml");
+        reader.BeforeRunWrite = () => File.AppendAllText(path, "# edited elsewhere\n");
+        var saved = await reader.WriteRunTagForTest(Batched, new CompareTag(Dinner));
+        Assert.False(saved);
+        Assert.Equal("This file changed outside Flowy. Reloaded.", reader.NoticeText);
+        Assert.DoesNotContain("compare:", RunText(temp, Batched));
+        Assert.EndsWith("# edited elsewhere\n", RunText(temp, Batched)); // the other writer's change stays
+        reader.BeforeRunWrite = null;
+        Assert.True(await reader.WriteRunTagForTest(Batched, new CompareTag(Dinner)));
+        Assert.EndsWith("# edited elsewhere\ncompare: dinner-rush\n", RunText(temp, Batched));
+        Assert.False(await reader.WriteRunTagForTest(Batched, new CompareTag(Batched))); // the refusals are a flow's, in the same words
+        Assert.Equal("run \"eta-batched\" cannot compare with itself", reader.NoticeText);
+        Assert.False(await reader.WriteRunTagForTest(Batched, new CompareTag("nope")));
+        Assert.Equal("unknown run \"nope\"", reader.NoticeText);
+    }
+
+    [AvaloniaFact]
+    public async Task A_run_that_adds_other_runs_can_be_linked_too_and_still_loads()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        var added = RunText(temp, "together");
+        Assert.Contains("adds:", added);
+        Assert.True(await reader.WriteRunTagForTest("together", new CompareTag("together-measured")));
+        Assert.Equal(added + "compare: together-measured\n", RunText(temp, "together"));
+        Assert.Equal(new CompareTag("together-measured"), reader.Folder!.Runs!["together"].Compare);
+        Assert.Empty(reader.Folder.RunProblems!); // it still plays
+        reader.OpenRunCompareById("together", "together-measured");
+        EditModeTests.Settle(window);
+        Assert.Equal(new CompareState("run", "together-measured", "together", "side"), reader.CompareNow); // the one that holds the tag reads second
+        Assert.All(reader.CompareShown!.RunPanes, p => Assert.NotNull(p.Canvas.Load));
+    }
+
+    [AvaloniaFact]
+    public void A_ramp_ends_with_its_comparison()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        var left = reader.CompareShown!.RunPanes[0].Session;
+        Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
+        try
+        {
+            Press(window, Key.P, PhysicalKey.P);
+            Assert.True(left.Ramping);
+            Press(window, Key.T, PhysicalKey.T); // another tab in front of the comparison stops it too
+            Assert.False(left.Ramping);
+            Press(window, Key.T, PhysicalKey.T);
+            Press(window, Key.C, PhysicalKey.C);
+            Assert.Null(reader.CompareNow);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1");
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task A_note_on_a_pair_of_runs_is_written_into_the_run_that_holds_the_tag()
+    {
+        var (temp, window, reader) = Open(BatchedTags());
+        using var _ = temp;
+        var (dinnerBefore, batchedBefore) = (RunText(temp, Dinner), RunText(temp, Batched));
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        var note = reader.CompareShown!.Note;
+        Assert.Null(note.PairButton); // the pair is tagged already
+        ClickBar(note.NoteButton!);
+        EditModeTests.Settle(window);
+        note.Field.Text = "Batching halves the calls";
+        EditModeTests.Settle(window);
+        ClickBar(note.SaveButton!);
+        await EditModeTests.Until(() => RunText(temp, Batched).Contains("Batching halves"));
+        Assert.Equal(batchedBefore.Replace("compare: dinner-rush\n", "") + "compare:\n  with: dinner-rush\n  note: \"Batching halves the calls\"\n", RunText(temp, Batched)); // a one-line note is double-quoted
+        Assert.Equal(dinnerBefore, RunText(temp, Dinner));
+        await EditModeTests.Until(() => reader.CompareShown!.Note.SavedView is not null); // the strip shows it once the folder is read again
+        Assert.NotNull(reader.CompareNow);
+    }
+
+    [AvaloniaFact]
+    public async Task Save_as_pair_on_two_untagged_runs_tags_the_one_on_the_right()
+    {
+        var (temp, window, reader) = Open(BatchedTags(null));
+        using var _ = temp;
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        var note = reader.CompareShown!.Note;
+        Assert.Equal("Link these runs", ToolTip.GetTip(note.PairButton!));
+        ClickBar(note.PairButton!);
+        EditModeTests.Settle(window);
+        Assert.Equal(["Tag Dinner rush, ETA calls batched as the newer of Dinner rush"], note.ConfirmLines);
+        ClickBar(note.SaveButton!);
+        await EditModeTests.Until(() => RunText(temp, Batched).Contains("compare: dinner-rush"));
+        Assert.DoesNotContain("compare", RunText(temp, Dinner));
+    }
+
+    [AvaloniaFact]
+    public void Closing_the_run_comparison_with_an_unsaved_note_asks_first_and_a_run_that_goes_away_closes_it()
+    {
+        var (temp, window, reader) = Open(BatchedTags());
+        using var _ = temp;
+        reader.OpenRunCompareById(Dinner, Batched);
+        EditModeTests.Settle(window);
+        reader.PrefillNote("Draft");
+        EditModeTests.Settle(window);
+        reader.TryCloseCompare();
+        Assert.NotNull(reader.AskShown); // the same question as for flows
+        Press(window, Key.Escape, PhysicalKey.Escape); // Keep
+        Assert.NotNull(reader.CompareNow);
+        File.Delete(Path.Combine(temp.Path, "flowy", "perf", Batched + ".yaml")); // a change on disk takes a run away
+        reader.Reload(FolderLoader.Load(Path.Combine(temp.Path, "flowy")));
+        Assert.Null(reader.CompareNow);
+        Assert.True(reader.HoldsNote); // closed without asking, and the draft is kept for when the pair is compared again
+    }
 }

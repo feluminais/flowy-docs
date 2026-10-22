@@ -47,7 +47,13 @@ internal sealed partial class ReaderView
         _perfPanel.PlacePicked += _perf.PlaceAll;
         _perfPanel.DialActivated += _perf.Activate; // pressing a slider makes it the dial the keys act on
         _perfPanel.Used += () => Focus(); // a control in the panel took the keyboard: give it back, so the keys work
+        _perfPanel.CompareChosen += other => OpenRunCompare(PerfRunId, other);
+        _perfPanel.LinkChosen += other => LinkRun(PerfRunId, other);
+        _perfPanel.Unlinked += () => LinkRun(PerfRunId, null);
     }
+
+    /// <summary>The run the Performance panel shows (the first when none was picked).</summary>
+    private string PerfRunId => _folder?.Runs is { } runs ? PerfView.ActiveRun(runs, _perf.RunId) : _perf.RunId;
 
     private void OpenPerf() => SetTab(PanelTab.Performance);
 
@@ -70,11 +76,7 @@ internal sealed partial class ReaderView
     /// The states a run over time leaves at the position on show: the latest event at or before it, for each shape (see <see cref="Perf.RunStates"/>). Null while the
     /// panel is closed or when the run has no events, so a run that has none leaves the canvas as it was.
     /// </summary>
-    private IReadOnlyDictionary<string, StateMark>? RunMarks(Model model)
-    {
-        if (!PerfOpen || LoadTest is not { IsTime: true, Events.Count: > 0 } run) return null;
-        return States.Marks(model, Perf.RunStates(run, PerfView.LoadAt(run, PerfView.ClampPos(run, _perf.Pos))));
-    }
+    private IReadOnlyDictionary<string, StateMark>? RunMarks(Model model) => PerfOpen ? RunDrawing.Marks(model, LoadTest, _perf.Pos) : null;
 
     /// <summary>
     /// Draws the load on the canvas and moves the panel to it, without building either again: what a step of a ramp, or a key, changes. With <paramref name="snap"/>
@@ -82,28 +84,12 @@ internal sealed partial class ReaderView
     /// </summary>
     private void ApplyLoad(bool snap = false)
     {
-        if (!PerfOpen || _folder is not { } folder || LoadTest is not { } run)
+        if (!PerfOpen || _folder is not { } folder || LoadTest is null)
         {
             _canvas.ShowLoad(null);
             return;
         }
-        if (Several is { } several)
-        {
-            // A run with several sources: the level at where every dial stands, worked out once, for the canvas and the panel's readouts both.
-            _perf.EnsurePlaces();
-            var runs = folder.Runs!;
-            var setting = PerfView.SettingOf(several.Items, [.. several.Items.Select((d, i) => PerfView.ClampDial(d, _perf.Places[i]))]);
-            var made = Perf.FrameOf(folder.Model, runs, PerfView.ActiveRun(runs, _perf.RunId), setting, CurrentView());
-            _canvas.ShowLoad(made.Traffic);
-            _canvas.ShowStates(RunMarks(folder.Model), snap);
-            _perfPanel.SetPlaces(_perf.Places, _perf.Active, _perf.Ramping, made, _canvas.StatesShown);
-            return;
-        }
-        _perf.Clamp(run);
-        var frame = Perf.FrameAt(folder.Model, run, PerfView.LoadAt(run, _perf.Pos), CurrentView()); // worked out once, for the canvas and the panel's readouts both
-        _canvas.ShowLoad(frame.Traffic);
-        _canvas.ShowStates(RunMarks(folder.Model), snap);
-        _perfPanel.SetPos(_perf.Pos, _perf.Ramping, frame, _canvas.StatesShown); // the key lists the states that are on the canvas now
+        RunDrawing.Apply(_canvas, _perfPanel, _perf, folder, CurrentView(), snap);
     }
 
     private void ShowPerfPanel(Model model, string view)
@@ -116,7 +102,10 @@ internal sealed partial class ReaderView
             _ => null,
         };
         _perf.EnsurePlaces();
-        _perfPanel.Show(new PerfPanelModel(model, view, folder.Runs!, folder.RunProblems ?? [], PerfView.ActiveRun(folder.Runs!, _perf.RunId), _perf.Pos, _perf.Ramping, Still, selection, Several is null ? null : _perf.Places, _perf.Active));
+        // Compare and Link with are greyed out with their reasons, never hidden: no second run, editing, or a folder that can't be written.
+        var actions = new RunActions(CompareChoices.RunOff(RunMap, Editing), SaveOff);
+        _perfPanel.Show(new PerfPanelModel(model, view, folder.Runs!, folder.RunProblems ?? [], PerfView.ActiveRun(folder.Runs!, _perf.RunId), _perf.Pos, _perf.Ramping, Still, selection, Several is null ? null : _perf.Places, _perf.Active,
+            Actions: actions));
     }
 
     // What a test can look at.

@@ -22,6 +22,7 @@ internal sealed class CompareBar : Border
     private readonly Button[] _names = [new(), new()];
     private readonly StackPanel _namesRow = new() { Orientation = Orientation.Horizontal, Spacing = 2, Margin = new Thickness(10, 0, 8, 0), IsVisible = false };
     private string _mode = "side";
+    private string _kind = "flow";
 
     /// <summary>The reader chose a way to view: <c>side</c> or <c>swap</c>.</summary>
     public event Action<string>? ModePicked;
@@ -79,6 +80,19 @@ internal sealed class CompareBar : Border
         ToolTip.SetTip(button, tip);
         ToolTip.SetShowOnDisabled(button, true);
         button.Click += (_, _) => click();
+    }
+
+    /// <summary>What is compared, <c>flow</c> or <c>run</c>: the words of the tooltips of the two ways to view.</summary>
+    public string Kind
+    {
+        get => _kind;
+        set
+        {
+            if (_kind == value) return;
+            _kind = value;
+            ToolTip.SetTip(_side, $"Two {value}s next to each other");
+            ToolTip.SetTip(_swap, $"One canvas that flips between the {value}s");
+        }
     }
 
     /// <summary>The way the comparison is viewed now, <c>side</c> or <c>swap</c>: that button looks pressed.</summary>
