@@ -11,7 +11,7 @@ import { isExternal } from '../../src/core/model.ts'
 import { languageOf } from '../../src/core/snippets.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { CodeBlock } from './Code.tsx'
-import { CHANGE_NAMES } from './compare.ts'
+import { CHANGE_NAMES, changeAt } from './compare.ts'
 import { lookVars } from './Chrome.tsx'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { PathIcon, ZoomIn } from './icons.tsx'
@@ -46,9 +46,6 @@ export function FailBadge({ mark, className, style }: { mark: Mark; className?: 
 
 /** What differs from the other flow of a comparison, on the canvas that draws this side of it. Without it (the usual canvas, or the marks off) nothing is marked. */
 export const ChangeMarksContext = createContext<SideMarks | undefined>(undefined)
-
-/** The kind of change a record marks for `key`, or nothing. The key may be any text an id can be, so only its own entries count. */
-export const changeAt = <K extends string | number>(marks: Record<K, Change> | undefined, key: K): Change | undefined => (marks && Object.hasOwn(marks, key) ? marks[key] : undefined)
 
 const CHANGE_GLYPHS: Record<Change, string> = { new: '+', removed: '−', changed: '~' }
 

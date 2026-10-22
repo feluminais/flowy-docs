@@ -7,7 +7,7 @@ import { ArrowsLeftRight, Close } from './icons.tsx'
 export type SwapChoice = { names: [string, string]; on: 0 | 1; onShow: (side: 0 | 1) => void }
 
 /** The switch for the change marks: whether they are on, why it is greyed out when it can't apply, and (while on) what differs, for the key beside it. */
-export type ChangesSwitch = { on: boolean; onToggle: () => void; off?: string; diff?: FlowDiff }
+export type ChangesSwitch = { on: boolean; onToggle: () => void; off?: string; diff?: FlowDiff; sides: ('older' | 'newer')[] }
 
 /**
  * The bar over the two panes, in the look of the top bar: the two ways to view (Side by side, or Swap, which flips one canvas between the flows), a control that puts the
@@ -31,7 +31,7 @@ export function CompareBar({ mode, onMode, onFlip, onClose, swap, changes }: { m
       <span className="sep" aria-hidden="true" />
       <span className="marks-label">Marks</span>
       <button aria-pressed={changes.on} disabled={changes.off !== undefined} title={changes.off ?? 'Mark what differs between the flows'} onClick={changes.onToggle}>Show changes</button>
-      {changes.on && changes.diff && <CompareKey diff={changes.diff} />}
+      {changes.on && changes.diff && <CompareKey diff={changes.diff} sides={changes.sides} />}
       <span className="grow" />
       <button title="Close the comparison (Esc)" onClick={onClose}><Close size={16} />Close</button>
     </div>

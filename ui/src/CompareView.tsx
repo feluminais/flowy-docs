@@ -86,11 +86,13 @@ export function CompareView({ model, compare, problems, colorMode, lines, still,
   const marksOn = marksPref === 'on' && marksOff === undefined
   const [older, newer] = orderPair('flow', model.flows, compare.a, compare.b)
   const diff = useMemo(() => (marksOn ? diffFlows(model.flows[older], model.flows[newer]) : undefined), [marksOn, model.flows[older], model.flows[newer]])
-  const marksOf = (id: string): SideMarks | undefined => diff && marksFor(diff, id === newer ? 'newer' : 'older')
+  const sideOf = (id: string): 'older' | 'newer' => (id === newer ? 'newer' : 'older')
+  const marksOf = (id: string): SideMarks | undefined => diff && marksFor(diff, sideOf(id))
+  const onScreen = swap ? [sideOf(places[on])] : [sideOf(flows[0]), sideOf(flows[1])] // the key lists only what is drawn: in Swap, the flow on show
   return (
     <div className={['compare', nav && 'nav', details && 'details'].filter(Boolean).join(' ')}>
       <CompareBar mode={compare.mode} onMode={mode} onFlip={onFlip} onClose={onClose} swap={{ names, on: placeOf(0) === on ? 0 : 1, onShow: side => setOn(placeOf(side)) }}
-        changes={{ on: marksOn, onToggle: () => setMarksPref(marksOn ? 'off' : 'on'), off: marksOff, diff }} />
+        changes={{ on: marksOn, onToggle: () => setMarksPref(marksOn ? 'off' : 'on'), off: marksOff, diff, sides: onScreen }} />
       {swap ? (
         <div className="panes one">
           <SwapCanvas key={places.join('|')} ref={swapRef} model={model} paneId={`${places[0]}-${places[1]}`.replace(/[^A-Za-z0-9_-]/g, '_')} flows={[places[0], places[1]]} index={on} start={start} shown={shown}

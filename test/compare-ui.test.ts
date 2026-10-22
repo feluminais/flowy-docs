@@ -5,7 +5,7 @@ import type { Flow } from '../src/core/model.ts'
 import type { Run } from '../src/core/perf/types.ts'
 import { diffFlows } from '../src/core/flowdiff.ts'
 import type { FlowDiff } from '../src/core/flowdiff.ts'
-import { CHANGE_NAMES, choicesFor, compareOff, firstLinked, flipped, fromAddress, keyItems, marksFor, orderPair, pairOf, playable, samePick } from '../ui/src/compare.ts'
+import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, flipped, fromAddress, keyItems, marksFor, orderPair, pairOf, playable, samePick } from '../ui/src/compare.ts'
 import type { Compare } from '../ui/src/compare.ts'
 
 const flow = (name: string, compare?: unknown): Flow => ({ name, view: 'root', steps: [], ...(compare === undefined ? {} : { compare }) })
@@ -138,6 +138,27 @@ test('the key lists the kinds on screen, New then Removed then Changed', () => {
   assert.deepEqual(keyItems(diffOf({}, { steps: { 2: 'new' }, shapes: { fee: 'changed' } })), { items: ['new', 'changed'], related: true })
   assert.deepEqual(keyItems(diffOf({ lines: { 'a b': 'removed' } }, { shapes: { b: 'changed' }, steps: { 0: 'new' } })).items, ['new', 'removed', 'changed'], 'either side counts, whatever the order they were found in')
   assert.deepEqual(keyItems(diffOf({ steps: { 1: 'removed' } }, {})).items, ['removed'], 'a kind on the older side alone still shows')
+})
+
+test('the key lists only the sides on screen', () => {
+  const diff = diffOf({ shapes: { gone: 'removed' } }, { steps: { 0: 'new' } })
+  assert.deepEqual(keyItems(diff, ['newer']).items, ['new'], 'Swap with the newer flow on show: no Removed')
+  assert.deepEqual(keyItems(diff, ['older']).items, ['removed'])
+  assert.deepEqual(keyItems(diff, ['older', 'newer']).items, ['new', 'removed'])
+  assert.deepEqual(keyItems(diffOf({ shapes: { gone: 'removed' } }, {}), ['newer']), { items: [], related: true }, 'a mark on the older side alone gives nothing while only the newer shows')
+  assert.deepEqual(keyItems(diffOf({}, {}, false), ['newer']), { items: [], related: false }, 'related comes straight from the diff')
+})
+
+test('a stop takes the mark of its steps, by file step number', () => {
+  const changes = { 0: 'new', 2: 'removed', 3: 'changed' } as const
+  assert.equal(changeOfStop([2], changes), 'removed', 'one marked step gives its kind')
+  assert.equal(changeOfStop([0, 2], changes), 'changed', 'mixed kinds read as changed')
+  assert.equal(changeOfStop([3, 3], changes), 'changed')
+  assert.equal(changeOfStop([0, 1], changes), 'new', 'an unmarked step beside a marked one does not mix')
+  assert.equal(changeOfStop([1], changes), undefined, 'no marks gives none')
+  assert.equal(changeOfStop([], changes), undefined)
+  assert.equal(changeOfStop([1], {}), undefined)
+  assert.equal(changeOfStop([0], { 1: 'new' }), undefined, 'the numbers are file step numbers, not stops')
 })
 
 test('an empty diff has nothing in its key', () => {
