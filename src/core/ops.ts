@@ -1,4 +1,6 @@
 import { check, newProblems } from './check.ts'
+import { withCompare } from './compare.ts'
+import type { CompareTag } from './compare.ts'
 import { tidyData } from './data.ts'
 import type { DataInput } from './data.ts'
 import { dependents, describeDependent, lineIndices, needsDecision } from './dependents.ts'
@@ -379,6 +381,20 @@ export function updateFlow(model: Model, id: string, changes: Partial<Pick<Flow,
   return withFlow(model, id, old => {
     const flow = { ...old, ...rest }
     return 'groups' in changes ? withGroups(flow, groups) : flow
+  })
+}
+
+/**
+ * Set the flow `flowId` to compare with the flow `tag.with` (and a note if the tag has one), or take its tag out when `tag` is undefined.
+ * Refused for an unknown flow, an unknown target, or the flow itself. Every other key of the flow keeps its place.
+ */
+export function setCompare(model: Model, flowId: string, tag: CompareTag | undefined): Model {
+  return withFlow(model, flowId, flow => {
+    if (tag !== undefined) {
+      if (tag.with === flowId) throw new OpError(`flow "${flowId}" cannot compare with itself`)
+      if (!Object.hasOwn(model.flows, tag.with)) throw new OpError(`unknown flow "${tag.with}"`)
+    }
+    return withCompare(flow, tag)
   })
 }
 

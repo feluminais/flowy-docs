@@ -78,6 +78,7 @@
     "putAnalysis",
     "putIcon",
     "putMode",
+    "setCompare",
     "updateAnalysis",
     "updateMode"
   ],
