@@ -1,5 +1,6 @@
 import { lineKey } from './failures.ts'
 import type { Flow, Step } from './model.ts'
+import { isMap, own } from './text.ts'
 
 /**
  * What changed between two flows: an older one and a newer one. The change marks of the compare view read this. A C# twin must give the
@@ -14,14 +15,21 @@ import type { Flow, Step } from './model.ts'
  * 2. The steps of the two flows are matched in order with a longest common subsequence of keys. When the older step and the newer step
  *    at the cursor have the same key they are matched. Otherwise, if skipping the older step keeps the best length (it is at least as
  *    long as skipping the newer step), the older step is skipped; if not, the newer step is skipped. So a tie skips the older step.
- * 3. A matched pair is `changed` on both sides when its `animation` or its `description` differ, compared as JSON text. Otherwise it
- *    carries no mark.
+ * 3. A matched pair is `changed` on both sides when its `animation` or its `description` differ, compared in a canonical form:
+ *    a missing value (or, for the animation, an empty text) equals nothing; a bare text animation counts as a mapping with that text as
+ *    its `kind` (the model reads it so); then the value is written as JSON text with the keys of every mapping sorted in code point
+ *    order, at every level, and lists kept in order. So reordered keys, or `pulse` against `{kind: pulse}`, are not a change. Otherwise
+ *    the pair carries no mark.
  * 4. An older step with no match is `removed`, a newer one `new`. Then, taking the unmatched older steps in order, each one is paired
- *    with the first still unpaired unmatched newer step that has the same `from` and `to`. A pair is `changed` on both sides.
+ *    with the first still unpaired unmatched newer step that has the same `from` and `to`. A pair is `changed` on both sides. This is
+ *    by position among the leftovers with those ends, and need not keep the order of the two flows (older A, B against newer D, C can
+ *    pair A with C and B with D).
  *
  * Shapes and lines: one that only the older flow's steps use is `removed` (marked on the older side); one that only the newer flow's
  * steps use is `new` (marked on the newer side). One that both flows use is `changed` on both sides when any step of either flow that
  * uses it is marked (changed, new or removed), and unmarked otherwise.
+ *
+ * Known limit: fields other than `from`, `to`, `text`, `animation` and `description` (states, group, lane, flow and any extra) are not compared.
  *
  * `related` is true when the flows share a shape. When they share none, every record is empty: nothing is "everything changed".
  */
@@ -34,7 +42,21 @@ const none = (): SideMarks => ({ steps: {}, shapes: {}, lines: {} })
 
 const keyOf = (s: Step): string => `${s.from}\u0000${s.to ?? ''}\u0000${s.text}`
 const endsOf = (s: Step): string => `${s.from}\u0000${s.to ?? ''}`
-const sameJson = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b)
+const byCodePoint = (a: string, b: string): number => {
+  const x = Array.from(a)
+  const y = Array.from(b)
+  for (let i = 0; i < Math.min(x.length, y.length); i++) if (x[i] !== y[i]) return x[i].codePointAt(0)! - y[i].codePointAt(0)!
+  return x.length - y.length
+}
+/** The value as JSON text with the keys of every mapping sorted by code point, so equal values give equal text. */
+function canon(v: unknown): string {
+  if (Array.isArray(v)) return `[${v.map(canon).join(',')}]`
+  if (isMap(v)) return `{${Object.keys(v).sort(byCodePoint).map(k => `${JSON.stringify(k)}:${canon(v[k])}`).join(',')}}`
+  return JSON.stringify(v) ?? 'undefined'
+}
+const animationText = (v: unknown): string => canon(v === '' ? undefined : typeof v === 'string' ? { kind: v } : v)
+const sameAnimation = (a: unknown, b: unknown): boolean => animationText(a) === animationText(b)
+const sameText = (a: unknown, b: unknown): boolean => canon(a) === canon(b)
 
 /** Pairs of step indexes (older, newer) that the longest common subsequence matches, in order. */
 function matchSteps(older: Step[], newer: Step[]): [number, number][] {
@@ -91,7 +113,7 @@ export function diffFlows(older: Flow, newer: Flow): FlowDiff {
     matchedNewer.add(j)
     const o = older.steps[i]
     const n = newer.steps[j]
-    if (!sameJson(o.animation, n.animation) || !sameJson(o.description, n.description)) {
+    if (!sameAnimation(o.animation, n.animation) || !sameText(o.description, n.description)) {
       result.older.steps[i] = 'changed'
       result.newer.steps[j] = 'changed'
     }
@@ -116,10 +138,10 @@ export function diffFlows(older: Flow, newer: Flow): FlowDiff {
     const n = use.newer[kind]
     for (const [id, steps] of o) {
       const other = n.get(id)
-      if (!other) result.older[kind][id] = 'removed'
-      else if (marked('older', steps) || marked('newer', other)) { result.older[kind][id] = 'changed'; result.newer[kind][id] = 'changed' }
+      if (!other) own(result.older[kind], id, 'removed')
+      else if (marked('older', steps) || marked('newer', other)) { own(result.older[kind], id, 'changed'); own(result.newer[kind], id, 'changed') }
     }
-    for (const id of n.keys()) if (!o.has(id)) result.newer[kind][id] = 'new'
+    for (const id of n.keys()) if (!o.has(id)) own(result.newer[kind], id, 'new')
   }
   mark('shapes')
   mark('lines')

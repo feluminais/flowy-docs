@@ -68,10 +68,49 @@ test('a step with no to touches only its from shape and no line', () => {
   assert.deepEqual(d.older, { steps: {}, shapes: { a: 'changed' }, lines: {} })
 })
 
-test('a matched step whose animation or description differs is changed', () => {
-  const older = flow([{ from: 'a', to: 'b', text: 'one', animation: 'pulse' }, { from: 'b', to: 'c', text: 'two' }])
-  const newer = flow([{ from: 'a', to: 'b', text: 'one', animation: { kind: 'pulse' } }, { from: 'b', to: 'c', text: 'two', description: 'more' }])
-  const d = diffFlows(older, newer)
+const animated = (animation?: unknown, description?: string): Flow => {
+  const step: Step = { from: 'a', to: 'b', text: 'one' }
+  if (animation !== undefined) step.animation = animation
+  if (description !== undefined) step.description = description
+  return flow([step])
+}
+
+test('an animation with its keys reordered is not changed', () => {
+  const d = diffFlows(animated({ kind: 'send', a: '1', b: { y: '2', x: '3' } }), animated({ b: { x: '3', y: '2' }, a: '1', kind: 'send' }))
+  assert.deepEqual(d.older, empty)
+  assert.deepEqual(d.newer, empty)
+})
+
+test('a bare animation text equals a mapping with that kind', () => {
+  assert.deepEqual(diffFlows(animated('pulse'), animated({ kind: 'pulse' })).newer, empty)
+  assert.deepEqual(diffFlows(animated(''), animated()).newer, empty)
+})
+
+test('a different animation is changed, and so is a missing one against a real one', () => {
+  assert.deepEqual(diffFlows(animated('pulse'), animated('flash')).newer.steps, { 0: 'changed' })
+  assert.deepEqual(diffFlows(animated('pulse'), animated()).older.steps, { 0: 'changed' })
+})
+
+test('a different description is changed', () => {
+  const d = diffFlows(animated(undefined, 'before'), animated(undefined, 'after'))
+  assert.deepEqual(d.older.steps, { 0: 'changed' })
+  assert.deepEqual(d.newer.steps, { 0: 'changed' })
+  assert.deepEqual(diffFlows(animated(undefined, 'same'), animated(undefined, 'same')).newer, empty)
+})
+
+test('a shape id of __proto__ keeps its mark as data', () => {
+  const step = (text: string): Step => ({ from: '__proto__', to: 'b', text })
+  const d = diffFlows(flow([step('one')]), flow([step('two')]))
+  assert.deepEqual(Object.keys(d.older.shapes).sort(), ['__proto__', 'b'])
+  assert.equal(Object.getOwnPropertyDescriptor(d.older.shapes, '__proto__')?.value, 'changed')
+  assert.equal(Object.getOwnPropertyDescriptor(d.newer.shapes, '__proto__')?.value, 'changed')
+  assert.deepEqual(Object.keys(d.newer.lines), [lineKey('__proto__', 'b')])
+})
+
+test('leftover pairing is by ends and need not keep order', () => {
+  const s = (from: string, to: string, text: string): Step => ({ from, to, text })
+  const d = diffFlows(flow([s('a', 'b', 'A'), s('c', 'd', 'B')]), flow([s('c', 'd', 'D'), s('a', 'b', 'C')]))
+  // A pairs with C and B with D, crossing. Keeping the order would leave A removed and D new.
   assert.deepEqual(d.older.steps, { 0: 'changed', 1: 'changed' })
   assert.deepEqual(d.newer.steps, { 0: 'changed', 1: 'changed' })
 })
