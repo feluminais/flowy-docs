@@ -68,9 +68,10 @@ const labelsIn = (el: HTMLElement, [tx, ty, zoom]: [number, number, number]): Re
  * says how its failing share fails draws a lost call as a ring where it pops and a rejected one as a call that stops at a bar at the end
  * of the line and comes back in the danger tone. A line that several sources share has a stream for each (a line's `source`), drawn in that
  * source's colour and running a little to its side of the path (its `offset`). A line with none of these draws in a loop of its own that
- * makes no object for a particle that doesn't fail. Reduced motion draws none: the caller leaves this out.
+ * makes no object for a particle that doesn't fail. Reduced motion draws none: the caller leaves this out. `fade` is for the swap of two runs, which lays two layers over each other
+ * for a moment: the one for the run coming on fades in, the one for the run going off fades out.
  */
-export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: LineStyle }) {
+export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; style: LineStyle; fade?: 'in' | 'out' }) {
   const store = useStoreApi()
   // Where every shape is and how big it is, as text: it changes exactly when a line's path would, and only then does the layer draw itself again.
   const where = useStore(s => [...s.nodeLookup.values()].map(n => `${n.id} ${n.internals.positionAbsolute.x} ${n.internals.positionAbsolute.y} ${n.measured.width} ${n.measured.height}`).join(','))
@@ -288,5 +289,5 @@ export function TrafficLayer({ lines, style }: { lines: LineTraffic[]; style: Li
     return () => cancelAnimationFrame(frame)
   }, [store])
 
-  return <canvas ref={canvas} className="traffic" aria-hidden="true" />
+  return <canvas ref={canvas} className={fade ? `traffic fade-${fade}` : 'traffic'} aria-hidden="true" />
 }

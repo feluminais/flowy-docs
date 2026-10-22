@@ -3,7 +3,7 @@ import type { Compare } from './compare.ts'
 import { CompareKey } from './CompareKey.tsx'
 import { ArrowsLeftRight, Close } from './icons.tsx'
 
-/** What the bar adds in Swap: the two flows' names, in the order they read, and which one is on show. */
+/** What the bar adds in Swap: the two flows' (or runs') names, in the order they read, and which one is on show. */
 export type SwapChoice = { names: [string, string]; on: 0 | 1; onShow: (side: 0 | 1) => void }
 
 /** The switch for the change marks: whether they are on, why it is greyed out when it can't apply, and (while on) what differs, for the key beside it. */
@@ -13,11 +13,11 @@ export type ChangesSwitch = { on: boolean; onToggle: () => void; off?: string; d
  * The bar over the two panes, in the look of the top bar: the two ways to view (Side by side, or Swap, which flips one canvas between the flows), a control that puts the
  * flows on each other's side, the switch for the change marks with their key, and Close. In Swap it names the two flows, the one on show marked, and a click on the other swaps to it.
  */
-export function CompareBar({ mode, onMode, onFlip, onClose, swap, changes }: { mode: Compare['mode']; onMode: (mode: Compare['mode']) => void; onFlip: () => void; onClose: () => void; swap: SwapChoice; changes: ChangesSwitch }) {
+export function CompareBar({ kind, mode, onMode, onFlip, onClose, swap, changes }: { kind: Compare['kind']; mode: Compare['mode']; onMode: (mode: Compare['mode']) => void; onFlip: () => void; onClose: () => void; swap: SwapChoice; changes: ChangesSwitch }) {
   return (
     <div className="bar compare-bar" role="group" aria-label="Compare">
       <button aria-pressed={mode === 'side'} onClick={() => onMode('side')}>Side by side</button>
-      <button aria-pressed={mode === 'swap'} title="One canvas that flips between the flows" onClick={() => onMode('swap')}>Swap</button>
+      <button aria-pressed={mode === 'swap'} title={`One canvas that flips between the ${kind}s`} onClick={() => onMode('swap')}>Swap</button>
       {mode === 'swap' && (
         <>
           <span className="sep" aria-hidden="true" />

@@ -98,10 +98,37 @@ export const compareOff = (model: Model, editing: boolean): string | undefined =
 /** The first flow `id` is linked to that is there, or undefined: what C opens beside the flow playing. */
 export const firstLinked = (model: Model, id: string): string | undefined => choicesFor(model, {}, 'flow', id).linked.find(c => !c.missing)?.id
 
-/** The comparison an address names, in the mode it asked for. `unplayable` when a flow of it is not there or can't play. */
-export function fromAddress(model: Model, named: Compare | undefined): { compare?: Compare; unplayable?: boolean } {
-  if (named === undefined || named.kind !== 'flow') return {}
-  return playable(model, named.a) && playable(model, named.b) ? { compare: named } : { unplayable: true }
+/** Why the Compare button of the Performance tab is blocked, or undefined: there has to be a second run. */
+export const runCompareOff = (runs: Record<string, Run>, editing: boolean): string | undefined =>
+  editing ? 'Not while editing' : Object.keys(runs).length < 2 ? 'No other run' : undefined
+
+/** The first run `id` is linked to that is there, or undefined: what C opens beside the run the Performance tab shows. */
+export const firstLinkedRun = (model: Model, runs: Record<string, Run>, id: string): string | undefined => choicesFor(model, runs, 'run', id).linked.find(c => !c.missing)?.id
+
+/** The runs that are linked to another run that is there, either way round: the Performance tab's run picker marks them. */
+export function linkedRuns(runs: Record<string, Run>): Set<string> {
+  const linked = new Set<string>()
+  for (const id of Object.keys(runs)) {
+    const to = compareOf(runs[id].compare)?.with
+    if (to !== undefined && to !== id && Object.hasOwn(runs, to)) {
+      linked.add(id)
+      linked.add(to)
+    }
+  }
+  return linked
+}
+
+/** A run the comparison can open: it is there. (A run needs no steps to be played: it is drawn at any place along it.) */
+export const openable = (runs: Record<string, Run>, id: string): boolean => Object.hasOwn(runs, id)
+
+/**
+ * The comparison an address names, in the mode it asked for. `notice` says why none opened when a flow of it is not there or can't play, or a run of it is not there: a link
+ * to a comparison that can't open shows it, and the page stays as it was.
+ */
+export function fromAddress(model: Model, runs: Record<string, Run>, named: Compare | undefined): { compare?: Compare; notice?: string } {
+  if (named === undefined) return {}
+  if (named.kind === 'run') return openable(runs, named.a) && openable(runs, named.b) ? { compare: named } : { notice: "That run can't open." }
+  return playable(model, named.a) && playable(model, named.b) ? { compare: named } : { notice: "That flow can't play yet." }
 }
 
 /** The two sides the other way round. */
@@ -111,6 +138,12 @@ export const flipped = (c: Compare): Compare => ({ ...c, a: c.b, b: c.a })
 export function pairOf(model: Model, id: string, other: string): Compare {
   const [a, b] = orderPair('flow', model.flows, id, other)
   return { kind: 'flow', a, b, mode: 'side' }
+}
+
+/** The comparison of run `id` with the pick `other`: the one that holds the tag (the newer) second, else `id` first. */
+export function runPairOf(runs: Record<string, Run>, id: string, other: string): Compare {
+  const [a, b] = orderPair('run', runs, id, other)
+  return { kind: 'run', a, b, mode: 'side' }
 }
 
 /** What the key and the marks call each kind of change. */

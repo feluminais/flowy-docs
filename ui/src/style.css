@@ -720,11 +720,11 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
  * Performance. A load-test run is drawn on the diagram: particles run along the lines (TrafficLayer), a shape's outline goes from green to red
  * with how strained it is (--strain, 0 to 1, set on the box), and a number on it says how many are waiting. The tab's panel is Performance.tsx.
  */
-.canvas.loaded .react-flow__edge-path { transition: stroke-width 0.25s; }
+.canvas.loaded .react-flow__edge-path, .pane.loaded .react-flow__edge-path { transition: stroke-width 0.25s; }
 .traffic { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
 .box.strained .shape path { stroke: light-dark(hsl(calc(150 - 150 * var(--strain)) 70% 38%), hsl(calc(150 - 150 * var(--strain)) 75% 62%)); stroke-width: 3; transition: stroke 0.25s; }
 .box.strained .shape { filter: drop-shadow(0 0 calc(2px + 9px * var(--strain)) light-dark(hsl(calc(150 - 150 * var(--strain)) 70% 45% / 0.6), hsl(calc(150 - 150 * var(--strain)) 75% 60% / 0.6))); }
-@media (prefers-reduced-motion: reduce) { .canvas.loaded .react-flow__edge-path, .box.strained .shape path { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .canvas.loaded .react-flow__edge-path, .pane.loaded .react-flow__edge-path, .box.strained .shape path { transition: none; } }
 .queue-badge { position: absolute; top: -9px; right: -7px; min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 10px; background: var(--warn); color: #fff; font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
 
 .perf { flex: 1; min-height: 0; overflow: auto; padding: 14px 18px 26px; display: flex; flex-direction: column; gap: 12px; }
@@ -1038,8 +1038,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
   .box.state-leaving .state-outline, .box.state-leaving .state-glyph { display: none; }
 }
 /* The slider of a run over time is being dragged: a state changes at once, with no fade in or out and no drain (the loops that mark a state keep going). */
-.canvas.scrubbing .box .shape, .canvas.scrubbing .box .tile, .canvas.scrubbing .box .box-text { transition: none; }
-.canvas.scrubbing .state-outline, .canvas.scrubbing .state-stopping .state-outline path { animation-duration: 1ms; }
+.canvas.scrubbing .box .shape, .canvas.scrubbing .box .tile, .canvas.scrubbing .box .box-text, .pane.scrubbing .box .shape, .pane.scrubbing .box .tile, .pane.scrubbing .box .box-text { transition: none; }
+.canvas.scrubbing .state-outline, .canvas.scrubbing .state-stopping .state-outline path, .pane.scrubbing .state-outline, .pane.scrubbing .state-stopping .state-outline path { animation-duration: 1ms; }
 
 /* Used by: what is waiting on the shapes about to be deleted, and a choice for each. The shapes going are outlined in red, the ones the focused row names in the accent colour. */
 .react-flow__node.going .shape path { stroke: var(--danger); stroke-width: 3; stroke-dasharray: 6 4; }
@@ -1171,3 +1171,31 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .cpick-find input { flex: 1; min-width: 0; box-sizing: border-box; padding: 6px 4px; border: 0; background: none; color: var(--fg); font-size: 14px; }
 .cpick-find input:focus { outline: none; }
 .cpick p { margin: 6px 8px 2px; }
+
+/*
+ * Two runs compared (PerfComparePane). A pane is the run's name over its model canvas and its own Performance panel: under the canvas, or beside it once the pane is wide. Swap
+ * lays the traffic of the run going off over the one coming on for a moment, and fades one out while the other fades in; the boxes do not move, as both runs draw the same level.
+ */
+.run-pane { container-type: inline-size; }
+.run-pane .run-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.run-pane .pane-canvas { flex: 1 1 58%; min-height: 150px; }
+.run-pane .run-panel { flex: 0 1 42%; min-height: 0; display: flex; border-top: 1px solid var(--line); }
+@container (min-width: 820px) {
+  .run-pane .run-body { flex-direction: row; }
+  .run-pane .pane-canvas { flex: 1 1 auto; min-width: 0; }
+  .run-pane .run-panel { flex: 0 0 340px; border-top: 0; border-left: 1px solid var(--line); }
+}
+.traffic.fade-in { animation: traffic-in var(--fade-ms, 150ms) ease both; }
+.traffic.fade-out { animation: traffic-out var(--fade-ms, 150ms) ease both; }
+@keyframes traffic-in { from { opacity: 0; } }
+@keyframes traffic-out { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .traffic.fade-in, .traffic.fade-out { animation: none; } }
+
+/* Compare, Link with and Unlink under the run's name on the Performance tab. */
+.run-actions { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.run-actions button { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 6px; background: none; color: var(--fg); font: inherit; font-size: 12.5px; cursor: pointer; }
+.run-actions button:hover:not(:disabled), .run-actions button[aria-pressed='true'] { background: var(--tint); color: var(--accent); }
+.run-actions button:disabled { cursor: default; opacity: 0.4; }
+.run-actions button:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.run-actions .linked { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; color: var(--accent); font-size: 12.5px; }
+.cpick.down { top: calc(100% + 6px); bottom: auto; z-index: 6; }
