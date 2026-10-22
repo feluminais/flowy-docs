@@ -11,40 +11,40 @@ From the root of the repo you want to document, once the clone is built as
 claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
-Any other MCP client takes the same command over stdio. Its config looks like this:
+That command is for Claude Code. Any other MCP client takes the same command over stdio. Its config looks like this:
 
 ```json
 { "mcpServers": { "flowy": { "command": "node", "args": ["/path/to/flowy-docs/dist/cli.js", "mcp"] } } }
 ```
 
-Then ask Claude something like "map this repo into Flowy". It writes `flowy/model.yaml` and
+Then ask the AI something like "map this repo into Flowy". It writes `flowy/model.yaml` and
 `flowy/flows/*.yaml`, and refuses any change that would break the model. Ask how the system fails and it can write a
 [failure analysis](failures.md#failure-modes) in `flowy/failures/` too, leaving a rating out rather than guessing it. Add `--dir <folder>`
 after `mcp` to keep the files somewhere other than `./flowy`.
 
-**What to ask for.** "Map this repo into Flowy" or "make Flowy docs" gets the default: the people, apps, stores, components and outside services in the repo, how they connect, and three to five plain flows. Nothing else is written until you name it: flows with motion, repeats, branches or failed requests ([Flows](flows.md)), what the stores hold ([Data](data.md)), code on shapes ([Code](code.md)), a failure analysis ([Failure modes](failures.md)) or a look ([Shapes, colour and icons](shapes.md)). Ask for "everything" and Claude asks which. It reads the rules for a part only when you ask for that part, and ends by naming what Flowy could add that it saw material for in the repo.
+**What to ask for.** "Map this repo into Flowy" or "make Flowy docs" gets the default: the people, apps, stores, components and outside services in the repo, how they connect, and three to five plain flows. Nothing else is written until you name it: flows with motion, repeats, branches or failed requests ([Flows](flows.md)), what the stores hold ([Data](data.md)), code on shapes ([Code](code.md)), a failure analysis ([Failure modes](failures.md)) or a look ([Shapes, colour and icons](shapes.md)). Ask for "everything" and it asks which. It reads the rules for a part only when you ask for that part, and ends by naming what Flowy could add that it saw material for in the repo.
 
-Claude can also note where each shape lives in the code (`code: [src/api/]`). A path that doesn't
+The AI can also note where each shape lives in the code (`code: [src/api/]`). A path that doesn't
 exist is refused, so the model can't quietly point at code that's gone. When code moves later,
 the shape gets a "!" until someone fixes the path.
 
-Claude can also link a shape to its long documents (`links: [{ title: Runbook, url: docs/runbook.md }]`).
+The AI can also link a shape to its long documents (`links: [{ title: Runbook, url: docs/runbook.md }]`).
 A repo path must exist, and a web address is taken as given.
 
-Claude can also add a few lines of code that explain a shape (`snippets:`, see [Code](code.md#code)). It copies them from the repo as they are,
-leaves out secrets and real data, and keeps to the limits. `put_object` replaces the whole list, so Claude reads the shape first and
+The AI can also add a few lines of code that explain a shape (`snippets:`, see [Code](code.md#code)). It copies them from the repo as they are,
+leaves out secrets and real data, and keeps to the limits. `put_object` replaces the whole list, so it reads the shape first and
 sends the snippets to keep.
 
-Claude can write what a store holds (`data:`, see [Data](data.md#data)) from a migration, a schema file or the code that builds the keys. It
+The AI can write what a store holds (`data:`, see [Data](data.md#data)) from a migration, a schema file or the code that builds the keys. It
 is told to show only the few tables a reader needs to follow the flows, to invent the sample rows and never copy them from a real
-database or a log, and to keep a note to one line that says why. `put_object` replaces a store's whole list of entries, so Claude reads
+database or a log, and to keep a note to one line that says why. `put_object` replaces a store's whole list of entries, so it reads
 the store first and sends the ones to keep.
 
-Claude marks outside services (a payment provider, a third-party API) with `external: true`, so
+The AI marks outside services (a payment provider, a third-party API) with `external: true`, so
 they show grey. It is told to leave `shape`, `color`, `opacity` and `icon` alone unless one says something the type
 doesn't, and to keep a colour to one meaning across the model, so a model it builds looks like the type defaults until you choose otherwise.
 
-When Claude saves a flow, Flowy answers with how each step will read on the flow's view, the
+When the AI saves a flow, Flowy answers with how each step will read on the flow's view, the
 way the player shows it ("2. Alert channels → Text and speech in Core: …"). Its instructions ask
 for steps that say what passes between the two shapes and whether the sender waits, so a flow
 reads the way the code works.
@@ -74,7 +74,7 @@ Besides tools, the server offers the guides as resources (`flowy://docs/guide.md
 it has the clone) and the rules for the parts most requests leave out (`flowy://rules/flows`, `data`, `code` and `failures`) and five prompts for the usual jobs: `map-repo`, `update-after-change`, `write-flow`, `failure-analysis` and `review-model`.
 [The file format](../format.md) lists every key, for writing the files by hand.
 
-If you or Claude write the YAML by hand, put double quotes around the text of a one-line step when it holds a comma:
+If you or the AI write the YAML by hand, put double quotes around the text of a one-line step when it holds a comma:
 `{ from: app, to: api, text: "Sets the time zone, if the request has one" }`. Unquoted, the comma ends the text and what follows
 becomes a key with no value. The file still loads, with the step cut short, but it can't be saved again, so Flowy lists the key as a
 problem (`step 3: "if the request has one" has no value`) instead of leaving it to fail on the next edit.
