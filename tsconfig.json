@@ -4,6 +4,8 @@
     "lib": ["es2023"],
     "module": "nodenext",
     "strict": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
