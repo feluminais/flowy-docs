@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { check } from '../src/core/check.ts'
 import { checkRuns } from '../src/core/perf/check.ts'
+import { parseFlowFile } from '../src/core/modelfiles.ts'
 import { parseRun } from '../src/core/perf/parse.ts'
 import type { Run } from '../src/core/perf/types.ts'
 import { shop } from './fixtures.ts'
@@ -58,6 +59,18 @@ test('a run that adds others keeps its tag too', () => {
 
 const run = (compare?: Run['compare']): Run => ({ name: 'R', unit: 'load', levels: [], ...(compare ? { compare } : {}) })
 const said = (runs: Record<string, Run>) => checkRuns(runs).map(p => `${p.file} ${p.message}`)
+
+test('a bare compare on a run is no tag and no problem', () => {
+  const read = parseRun('r', 'name: Run\ncompare:\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n')
+  assert.equal('compare' in read.run, false)
+  assert.deepEqual(read.problems, [])
+})
+
+test('a bare compare on a flow file gives the shape problem and no empty-key one', () => {
+  const m = shop()
+  m.flows.bare = parseFlowFile('bare', 'name: Bare\nview: shop\ncompare:\nsteps:\n  - { from: customer, to: web, text: Opens the shop }\n')
+  assert.deepEqual(messages(m), ['flows/bare.yaml compare must be a flow id, or { with, note } with text'])
+})
 
 test('checkRuns names a compare that is not a run, or the run itself', () => {
   assert.deepEqual(said({ a: run({ with: 'b' }) }), ['perf/a.yaml compare "b" is not a run'])
