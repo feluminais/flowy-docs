@@ -1,41 +1,139 @@
 name: ci
 
+# Every action is pinned to a commit (the version is in the comment); Dependabot moves the pin and the comment together.
+# One OS is not enough here: the fixes in this project's history include links, line endings, case and temp-file bugs that only
+# show on Windows, so the tests run on Windows and Linux. macOS is left out until the desktop app has been run there.
+
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  web:
+    name: web (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm test
-      - run: npm run typecheck
+      - run: npm run test:coverage # the whole suite, with a coverage table in the log
       - run: node src/cli.ts check
       - run: npm run build:ui
-      - run: npm ci --prefix vscode # its own devDependencies; the root install does not cover them
-      - run: npm run typecheck --prefix vscode
 
-  desktop:
+  static:
+    name: static checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
-      - uses: actions/setup-dotnet@v4
+      - run: npm ci
+      - run: npm ci --prefix vscode # its own devDependencies; the root install does not cover them
+      - run: npm run typecheck
+      - run: npm run typecheck --prefix vscode
+      - run: npm run check:layers # src/core must not reach into the server, the page or the desktop folder
+      - run: npm run check:unused # files, exports and dependencies nothing uses
+      - name: Workflow security audit
+        run: pipx run zizmor==1.31.1 --min-severity medium --format plain .github/workflows
+      - name: Workflow syntax check
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color
+
+  desktop:
+    name: desktop (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
       - run: npm ci
-      - run: npm test # includes the check that desktop/fixtures/expected still matches the TypeScript core
-      - run: dotnet test desktop
+      - run: dotnet test desktop --collect:"XPlat Code Coverage" --results-directory desktop/coverage
+      - name: Coverage
+        if: always() && matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          for f in desktop/coverage/*/coverage.cobertura.xml; do
+            rates=$(head -c 600 "$f" | grep -oE 'line-rate="[0-9.]+" branch-rate="[0-9.]+"' | head -1)
+            echo "- $(grep -oE '<package name="[^"]+"' "$f" | head -1 | cut -d'"' -f2): $rates" >> "$GITHUB_STEP_SUMMARY"
+          done
+      - name: Known vulnerabilities
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          dotnet list desktop/Flowy.slnx package --vulnerable --include-transitive | tee vulnerable.txt
+          ! grep -q 'has the following vulnerable packages' vulnerable.txt
+
+  browser:
+    name: browser (ui smoke, accessibility, screenshots)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - if: always() # the report holds a picture of every page, to look at, pass or fail
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: browser-test-report
+          path: |
+            browser-tests/results
+            browser-tests/report
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # The one check a branch rule needs to name. It is green only when every job above is, and it still runs when one of them failed.
+  ok:
+    name: ci passed
+    if: always()
+    needs: [web, static, desktop, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "job results: $RESULTS"
+          for r in $RESULTS; do [ "$r" = success ] || exit 1; done

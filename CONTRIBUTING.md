@@ -10,10 +10,22 @@ canvas is in `ui/` (React and React Flow). Tests are in `test/` and use Node's o
 npm install
 npm test
 npm run typecheck
+npm run check:layers
+npm run check:unused
 node src/cli.ts check
 ```
 
 `check` lists every problem in `flowy/`, this repo's own model, and exits 1 if there is any. Run it after changing the model, a `code:` path or the checks.
+`check:layers` fails when `src/core` imports the server, the page or a Node built-in, or when files import each other in a circle. `check:unused` fails on a file or a
+dependency nothing uses.
+
+The same checks run on every pull request (`.github/workflows/ci.yml`): the tests on Windows and Linux, the layer and unused-code checks, an audit of the workflows,
+`dotnet test desktop` on both systems, and a browser run (`npm run test:browser`, needs `npx playwright install chromium` once) that opens the built page over the demo
+in light and dark and checks it draws, reports no error, fits its window, prints no shape or label over another, and has no serious accessibility problem. Its report
+keeps a picture of every page.
+
+`test/properties.test.ts` tries many generated texts (commas, quotes, line breaks, `__proto__`) through the writer and back. When it fails it prints the seed and the
+smallest text that breaks it; paste that text into a normal test next to the fix.
 
 Commit messages follow the existing style: `feat(ui): ...`, `fix: ...`, `docs: ...`.
 
