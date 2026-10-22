@@ -75,13 +75,22 @@ const CHANGE_ORDER: Change[] = ['new', 'removed', 'changed']
 /** The marks one side of the comparison draws: the older flow's pane takes `older`, the newer flow's pane (the one that holds the tag) takes `newer`. */
 export const marksFor = (diff: FlowDiff, which: 'older' | 'newer'): SideMarks => diff[which]
 
+/** The kind of change a record marks for `key`, or nothing. The key may be any text an id can be, so only its own entries count. */
+export const changeAt = <K extends string | number>(marks: Record<K, Change> | undefined, key: K): Change | undefined => (marks && Object.hasOwn(marks, key) ? marks[key] : undefined)
+
+/** The mark of a stop's cell in the progress bar, from the file step numbers it plays: that of its steps when they agree, else Changed (parallel steps can hold a new one and an old one). */
+export function changeOfStop(steps: number[], changes: Record<number, Change>): Change | undefined {
+  const kinds = new Set(steps.flatMap(i => changeAt(changes, i) ?? []))
+  return kinds.size === 0 ? undefined : kinds.size === 1 ? [...kinds][0] : 'changed'
+}
+
 /**
- * The kinds of change the key lists: those present on either side, in a fixed order. Flows that share no shape have no marks and no key items, only `related: false`,
- * for the key to say so; it is never "everything changed".
+ * The kinds of change the key lists: those present on the sides on screen (both side by side, the one on show in Swap), in a fixed order. Flows that share no shape have no marks
+ * and no key items, only `related: false`, for the key to say so; it is never "everything changed".
  */
-export function keyItems(diff: FlowDiff): { items: Change[]; related: boolean } {
+export function keyItems(diff: FlowDiff, sides: ('older' | 'newer')[] = ['older', 'newer']): { items: Change[]; related: boolean } {
   if (!diff.related) return { items: [], related: false }
   const present = new Set<Change>()
-  for (const side of [diff.older, diff.newer]) for (const marks of [side.steps, side.shapes, side.lines]) for (const kind of Object.values(marks)) present.add(kind)
+  for (const side of sides.map(which => diff[which])) for (const marks of [side.steps, side.shapes, side.lines]) for (const kind of Object.values(marks)) present.add(kind)
   return { items: CHANGE_ORDER.filter(kind => present.has(kind)), related: true }
 }
