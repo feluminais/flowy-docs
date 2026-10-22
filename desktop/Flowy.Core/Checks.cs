@@ -156,7 +156,13 @@ public static class Checks
             if (Missing(f.View)) P("view is missing");
             else if (!viewOk) P($"view \"{f.View}\" must be \"root\" or an object with children");
             if (f.Steps.Count == 0) P("has no steps");
-            foreach (var path in f.NoValue) P(EmptyKeys.Message(path)); // the steps are read one at a time below, so each says its own number
+            foreach (var path in f.NoValue) P(EmptyKeys.Message(path)); // the steps are read one at a time below, so each says its own number; compare says what is wrong with it next
+            if (Compares.Problem(f.CompareRaw, "flow") is { } compareWhy) P(compareWhy);
+            else if (f.Compare is { } tag)
+            {
+                if (tag.With == fid) P("compare points at this flow itself");
+                else if (!model.Flows.Contains(tag.With)) P($"compare \"{tag.With}\" is not a flow");
+            }
             for (var i = 0; i < f.Steps.Count; i++)
             {
                 var s = f.Steps[i];

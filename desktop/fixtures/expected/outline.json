@@ -37945,6 +37945,1440 @@
           ]
         }
       ]
+    },
+    "compare": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 9,
+            "problems": 4
+          }
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 9,
+            "problems": 4
+          }
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "shop"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad-shape",
+              "kind": "flow",
+              "id": "bad-shape",
+              "parent": "shop",
+              "depth": 2,
+              "name": "bad-shape",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bare",
+              "kind": "flow",
+              "id": "bare",
+              "parent": "shop",
+              "depth": 2,
+              "name": "bare",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout",
+              "kind": "flow",
+              "id": "checkout",
+              "parent": "shop",
+              "depth": 2,
+              "name": "checkout",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout-v2",
+              "kind": "flow",
+              "id": "checkout-v2",
+              "parent": "shop",
+              "depth": 2,
+              "name": "checkout-v2",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout-v3",
+              "kind": "flow",
+              "id": "checkout-v3",
+              "parent": "shop",
+              "depth": 2,
+              "name": "checkout-v3",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ghost",
+              "kind": "flow",
+              "id": "ghost",
+              "parent": "shop",
+              "depth": 2,
+              "name": "ghost",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:mutual-a",
+              "kind": "flow",
+              "id": "mutual-a",
+              "parent": "shop",
+              "depth": 2,
+              "name": "mutual-a",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:mutual-b",
+              "kind": "flow",
+              "id": "mutual-b",
+              "parent": "shop",
+              "depth": 2,
+              "name": "mutual-b",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:selfish",
+              "kind": "flow",
+              "id": "selfish",
+              "parent": "shop",
+              "depth": 2,
+              "name": "selfish",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 9,
+            "problems": 4
+          }
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "web",
+            "api"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad-shape",
+              "kind": "flow",
+              "id": "bad-shape",
+              "parent": "shop",
+              "depth": 2,
+              "name": "bad-shape",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bare",
+              "kind": "flow",
+              "id": "bare",
+              "parent": "shop",
+              "depth": 2,
+              "name": "bare",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout",
+              "kind": "flow",
+              "id": "checkout",
+              "parent": "shop",
+              "depth": 2,
+              "name": "checkout",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout-v2",
+              "kind": "flow",
+              "id": "checkout-v2",
+              "parent": "shop",
+              "depth": 2,
+              "name": "checkout-v2",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout-v3",
+              "kind": "flow",
+              "id": "checkout-v3",
+              "parent": "shop",
+              "depth": 2,
+              "name": "checkout-v3",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ghost",
+              "kind": "flow",
+              "id": "ghost",
+              "parent": "shop",
+              "depth": 2,
+              "name": "ghost",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:mutual-a",
+              "kind": "flow",
+              "id": "mutual-a",
+              "parent": "shop",
+              "depth": 2,
+              "name": "mutual-a",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:mutual-b",
+              "kind": "flow",
+              "id": "mutual-b",
+              "parent": "shop",
+              "depth": 2,
+              "name": "mutual-b",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:selfish",
+              "kind": "flow",
+              "id": "selfish",
+              "parent": "shop",
+              "depth": 2,
+              "name": "selfish",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 9,
+            "problems": 4
+          }
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "web",
+            "api"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad-shape",
+              "kind": "flow",
+              "id": "bad-shape",
+              "parent": "shop",
+              "depth": 2,
+              "name": "bad-shape",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bare",
+              "kind": "flow",
+              "id": "bare",
+              "parent": "shop",
+              "depth": 2,
+              "name": "bare",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout",
+              "kind": "flow",
+              "id": "checkout",
+              "parent": "shop",
+              "depth": 2,
+              "name": "checkout",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout-v2",
+              "kind": "flow",
+              "id": "checkout-v2",
+              "parent": "shop",
+              "depth": 2,
+              "name": "checkout-v2",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:checkout-v3",
+              "kind": "flow",
+              "id": "checkout-v3",
+              "parent": "shop",
+              "depth": 2,
+              "name": "checkout-v3",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ghost",
+              "kind": "flow",
+              "id": "ghost",
+              "parent": "shop",
+              "depth": 2,
+              "name": "ghost",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:mutual-a",
+              "kind": "flow",
+              "id": "mutual-a",
+              "parent": "shop",
+              "depth": 2,
+              "name": "mutual-a",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:mutual-b",
+              "kind": "flow",
+              "id": "mutual-b",
+              "parent": "shop",
+              "depth": 2,
+              "name": "mutual-b",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:selfish",
+              "kind": "flow",
+              "id": "selfish",
+              "parent": "shop",
+              "depth": 2,
+              "name": "selfish",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 9,
+            "problems": 4
+          }
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad-shape",
+              "kind": "flow",
+              "id": "bad-shape",
+              "parent": "shop",
+              "depth": 2,
+              "name": "bad-shape",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bare",
+              "kind": "flow",
+              "id": "bare",
+              "parent": "shop",
+              "depth": 2,
+              "name": "bare",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:mutual-a",
+              "kind": "flow",
+              "id": "mutual-a",
+              "parent": "shop",
+              "depth": 2,
+              "name": "mutual-a",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:mutual-b",
+              "kind": "flow",
+              "id": "mutual-b",
+              "parent": "shop",
+              "depth": 2,
+              "name": "mutual-b",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 9,
+            "problems": 4
+          }
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 9,
+            "problems": 4
+          }
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 4,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 2,
+              "flows": 9,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 4,
+            "flows": 9,
+            "problems": 4
+          }
+        }
+      ],
+      "groups": [
+        {
+          "view": "root",
+          "editing": false,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "bad-shape",
+                  "name": "bad-shape",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "bare",
+                  "name": "bare",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "checkout",
+                  "name": "checkout",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "checkout-v2",
+                  "name": "checkout-v2",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "checkout-v3",
+                  "name": "checkout-v3",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "ghost",
+                  "name": "ghost",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "mutual-a",
+                  "name": "mutual-a",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "mutual-b",
+                  "name": "mutual-b",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "selfish",
+                  "name": "selfish",
+                  "steps": 2,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "root",
+          "editing": true,
+          "here": [],
+          "elsewhere": [
+            {
+              "view": "shop",
+              "name": "Shop",
+              "path": [
+                "Shop"
+              ],
+              "flows": [
+                {
+                  "id": "bad-shape",
+                  "name": "bad-shape",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "bare",
+                  "name": "bare",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "checkout",
+                  "name": "checkout",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "checkout-v2",
+                  "name": "checkout-v2",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "checkout-v3",
+                  "name": "checkout-v3",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "ghost",
+                  "name": "ghost",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "mutual-a",
+                  "name": "mutual-a",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "mutual-b",
+                  "name": "mutual-b",
+                  "steps": 2,
+                  "view": "shop"
+                },
+                {
+                  "id": "selfish",
+                  "name": "selfish",
+                  "steps": 2,
+                  "view": "shop"
+                }
+              ]
+            }
+          ],
+          "total": 9
+        },
+        {
+          "view": "shop",
+          "editing": false,
+          "here": [
+            {
+              "id": "bad-shape",
+              "name": "bad-shape",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "bare",
+              "name": "bare",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "checkout",
+              "name": "checkout",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "checkout-v2",
+              "name": "checkout-v2",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "checkout-v3",
+              "name": "checkout-v3",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "ghost",
+              "name": "ghost",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "mutual-a",
+              "name": "mutual-a",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "mutual-b",
+              "name": "mutual-b",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "selfish",
+              "name": "selfish",
+              "steps": 2,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [],
+          "total": 9
+        },
+        {
+          "view": "shop",
+          "editing": true,
+          "here": [
+            {
+              "id": "bad-shape",
+              "name": "bad-shape",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "bare",
+              "name": "bare",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "checkout",
+              "name": "checkout",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "checkout-v2",
+              "name": "checkout-v2",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "checkout-v3",
+              "name": "checkout-v3",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "ghost",
+              "name": "ghost",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "mutual-a",
+              "name": "mutual-a",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "mutual-b",
+              "name": "mutual-b",
+              "steps": 2,
+              "view": "shop"
+            },
+            {
+              "id": "selfish",
+              "name": "selfish",
+              "steps": 2,
+              "view": "shop"
+            }
+          ],
+          "elsewhere": [],
+          "total": 9
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": true,
+          "opened": [
+            "customer",
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": true,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": true,
+          "opened": [
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "api",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "api",
+          "self": true,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
     }
   },
   "keys": {

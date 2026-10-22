@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { compareOf, compareProblem, linkedIds, partnersOf } from '../../src/core/compare.ts'
 import { dataShown } from '../../src/core/data.ts'
 import { lineStyle, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
@@ -41,6 +42,7 @@ export async function dumpFolder(dir: string): Promise<unknown> {
   const state = await loadState(dir)
   if ('parseError' in state) return { parseError: state.parseError }
   const model: Model = modelOf(state)
+  const tags = model.flows as Record<string, { compare?: unknown }>
   return {
     lineStyle: lineStyle(model),
     objects: Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name, in: o.in, external: o.external, shape: o.shape, color: o.color, opacity: o.opacity, icon: o.icon, tech: o.tech, description: o.description, code: o.code, links: o.links, snippets: o.snippets, data: o.data, shown: shownOf(o) })),
@@ -57,11 +59,17 @@ export async function dumpFolder(dir: string): Promise<unknown> {
       }),
       groups: f.groups,
       states: f.states,
+      // Left out when the file has no compare, so every older fixture is unchanged. The tag as read, and what is wrong with it, are two things.
+      ...(f.compare === undefined ? {} : { compare: compareOf(f.compare) ?? null, compareProblem: compareProblem(f.compare, 'flow') ?? null }),
     })),
     problems: state.problems,
     // Left out when there is none, so every older fixture is unchanged.
     ...(Object.keys(model.failures).length === 0 ? {} : { failures: Object.entries(model.failures).map(([id, a]) => analysisDump(id, a)) }),
     ...((state.failureProblems ?? []).length === 0 ? {} : { failureProblems: state.failureProblems }),
+    // The partners of each flow and the linked ones, left out when no flow has a compare.
+    ...(Object.values(model.flows).every(f => f.compare === undefined) ? {} : { partners: Object.fromEntries(Object.keys(model.flows).map(id => [id, partnersOf(tags, id)])), linked: [...linkedIds(tags)].sort() }),
+    // The load-test runs are not dumped here (perf-runs does), except in a folder where one of them holds a compare tag.
+    ...(Object.values(state.runs ?? {}).some(r => r.compare !== undefined) ? { runs: Object.entries(state.runs ?? {}).map(([id, r]) => ({ id, name: r.name, compare: r.compare ?? null })), runProblems: state.runProblems ?? [] } : {}),
     views: Object.fromEntries([ROOT, ...Object.keys(model.objects)].filter(id => isView(model, id)).map(id => [id, computeView(model, id)])),
   }
 }

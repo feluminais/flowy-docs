@@ -1,0 +1,5 @@
+name: noted
+compare: { with: base, note: "Fewer retries" }
+levels:
+  - { load: 5 }
+  - { load: 10 }

@@ -83,6 +83,9 @@ public sealed record LoadRun(string Name, string? About, string Unit, string? En
 {
     public bool IsTime { get; init; }
 
+    /// <summary>The run this one compares with, or null when the file has no readable <c>compare</c>. Whether that run exists is for <see cref="Perf.CheckRuns"/>.</summary>
+    public CompareTag? Compare { get; init; }
+
     /// <summary>The ids of the runs this run adds (and it has no levels of its own), or null. Read what a run means through <see cref="Perf.DialsOf"/>, never from this.</summary>
     public IReadOnlyList<string>? Adds { get; init; }
 

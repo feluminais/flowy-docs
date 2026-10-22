@@ -1,0 +1,488 @@
+{
+  "lineStyle": "straight",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web app",
+      "in": "shop"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "web",
+      "to": "api",
+      "label": "calls"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "bad-shape",
+      "name": "bad-shape",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "compare": null,
+      "compareProblem": "compare must be a flow id, or { with, note } with text"
+    },
+    {
+      "id": "bare",
+      "name": "bare",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "compare": null,
+      "compareProblem": "compare must be a flow id, or { with, note } with text"
+    },
+    {
+      "id": "checkout-v2",
+      "name": "checkout-v2",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "compare": {
+        "with": "checkout"
+      },
+      "compareProblem": null
+    },
+    {
+      "id": "checkout-v3",
+      "name": "checkout-v3",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "compare": {
+        "with": "checkout-v2",
+        "note": "Adds a retry, and a receipt"
+      },
+      "compareProblem": null
+    },
+    {
+      "id": "checkout",
+      "name": "checkout",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ]
+    },
+    {
+      "id": "ghost",
+      "name": "ghost",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "compare": {
+        "with": "nowhere"
+      },
+      "compareProblem": null
+    },
+    {
+      "id": "mutual-a",
+      "name": "mutual-a",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "compare": {
+        "with": "mutual-b"
+      },
+      "compareProblem": null
+    },
+    {
+      "id": "mutual-b",
+      "name": "mutual-b",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "compare": {
+        "with": "mutual-a"
+      },
+      "compareProblem": null
+    },
+    {
+      "id": "selfish",
+      "name": "selfish",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "compare": {
+        "with": "selfish"
+      },
+      "compareProblem": null
+    }
+  ],
+  "problems": [
+    {
+      "file": "flows/bad-shape.yaml",
+      "message": "compare must be a flow id, or { with, note } with text"
+    },
+    {
+      "file": "flows/bare.yaml",
+      "message": "compare must be a flow id, or { with, note } with text"
+    },
+    {
+      "file": "flows/ghost.yaml",
+      "message": "compare \"nowhere\" is not a flow"
+    },
+    {
+      "file": "flows/selfish.yaml",
+      "message": "compare points at this flow itself"
+    }
+  ],
+  "partners": {
+    "bad-shape": [],
+    "bare": [],
+    "checkout-v2": [
+      {
+        "id": "checkout",
+        "side": "before"
+      },
+      {
+        "id": "checkout-v3",
+        "side": "after",
+        "note": "Adds a retry, and a receipt"
+      }
+    ],
+    "checkout-v3": [
+      {
+        "id": "checkout-v2",
+        "side": "before",
+        "note": "Adds a retry, and a receipt"
+      }
+    ],
+    "checkout": [
+      {
+        "id": "checkout-v2",
+        "side": "after"
+      }
+    ],
+    "ghost": [
+      {
+        "id": "nowhere",
+        "side": "before"
+      }
+    ],
+    "mutual-a": [
+      {
+        "id": "mutual-b",
+        "side": "before"
+      }
+    ],
+    "mutual-b": [
+      {
+        "id": "mutual-a",
+        "side": "before"
+      }
+    ],
+    "selfish": []
+  },
+  "linked": [
+    "checkout",
+    "checkout-v2",
+    "checkout-v3",
+    "mutual-a",
+    "mutual-b"
+  ],
+  "runs": [
+    {
+      "id": "after",
+      "name": "after",
+      "compare": {
+        "with": "base"
+      }
+    },
+    {
+      "id": "bad-shape",
+      "name": "bad-shape",
+      "compare": null
+    },
+    {
+      "id": "bare",
+      "name": "bare",
+      "compare": null
+    },
+    {
+      "id": "base",
+      "name": "base",
+      "compare": null
+    },
+    {
+      "id": "lost",
+      "name": "lost",
+      "compare": {
+        "with": "nope"
+      }
+    },
+    {
+      "id": "noted",
+      "name": "noted",
+      "compare": {
+        "with": "base",
+        "note": "Fewer retries"
+      }
+    },
+    {
+      "id": "same",
+      "name": "same",
+      "compare": {
+        "with": "same"
+      }
+    }
+  ],
+  "runProblems": [
+    {
+      "file": "perf/bad-shape.yaml",
+      "message": "compare must be a run id, or { with, note } with text"
+    },
+    {
+      "file": "perf/lost.yaml",
+      "message": "compare \"nope\" is not a run"
+    },
+    {
+      "file": "perf/same.yaml",
+      "message": "compare points at this run itself"
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "shop"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "api"
+      ],
+      "outsiders": [
+        "customer"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "calls",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

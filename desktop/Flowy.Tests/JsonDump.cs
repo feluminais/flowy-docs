@@ -73,6 +73,10 @@ internal static class JsonDump
                 ("outsiders", Arr(v.Outsiders)),
                 ("edges", Arr(v.Edges.Select(e => Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count)))))));
         });
+        // Partners and links are dumped only where some flow holds a compare, and the runs only where some run reads one, so older cases dump as before.
+        var tags = m.Flows.ToDictionary(kv => kv.Key, kv => kv.Value.CompareRaw);
+        var tagged = tags.Values.Any(v => v is not null);
+        var runsTagged = folder.Runs is { } loaded && loaded.Any(kv => kv.Value.Compare is not null);
         var result = Obj(
             ("lineStyle", m.LineStyle),
             ("objects", Arr(m.Objects.Select(kv => Obj(
@@ -84,22 +88,50 @@ internal static class JsonDump
             ("connections", Arr(m.Connections.Select(c => Obj(("from", c.From), ("to", c.To), ("label", c.Label))))),
             ("layout", new JsonObject(m.Layout.Select(view => KeyValuePair.Create(view.Key, (JsonNode?)new JsonObject(
                 view.Value.Select(box => KeyValuePair.Create(box.Key, (JsonNode?)Arr([box.Value.X, box.Value.Y])))))))),
-            ("flows", Arr(m.Flows.Select(kv => Obj(
-                ("id", kv.Key), ("name", kv.Value.Name), ("view", kv.Value.View), ("groups", Raw(kv.Value.Groups)), ("states", Raw(kv.Value.States)),
-                ("steps", Arr(kv.Value.Steps.Select(s =>
-                {
-                    var placed = Views.PlaceStep(m, kv.Value.View, s.From, s.To);
-                    var step = Obj(("from", s.From), ("to", s.To), ("text", s.Text), ("description", s.Description), ("animation", Raw(s.Animation)), ("group", s.Group), ("lane", s.Lane), ("flow", s.FlowId), ("states", Raw(s.States)));
-                    step["placed"] = Pair(placed); // null stays in the JSON here, as it does in dump.ts
-                    step["ends"] = s.From is null ? null : JsonValue.Create(Views.StepEnds(m, s.From, s.To, placed));
-                    return step;
-                }))))))),
+            ("flows", Arr(m.Flows.Select(kv => FlowNode(kv.Key, kv.Value, m)))),
             ("problems", Arr(folder.Problems.Select(p => Obj(("file", p.File), ("id", p.Id), ("message", p.Message), ("connection", p.Connection), ("step", p.Step))))),
             // Left out when there is none, as in dump.ts.
             ("failures", m.Failures.Count == 0 ? null : Arr(m.Failures.Select(kv => AnalysisNode(kv.Key, kv.Value)))),
             ("failureProblems", folder.FailureProblems is not { Count: > 0 } found ? null : Arr(found.Select(p => Obj(("file", p.File), ("id", p.Id), ("message", p.Message))))),
+            ("partners", tagged ? PartnersNode(tags) : null),
+            ("linked", tagged ? Arr(Compares.Linked(tags).Order(StringComparer.Ordinal)) : null),
+            ("runs", runsTagged ? Arr(folder.Runs!.Select(kv => RunNode(kv.Key, kv.Value))) : null),
+            ("runProblems", runsTagged ? Arr((folder.RunProblems ?? []).Select(p => Obj(("file", p.File), ("id", p.Id), ("message", p.Message)))) : null),
             ("views", new JsonObject(views)));
         return result;
+    }
+
+    private static JsonNode TagNode(CompareTag tag) => Obj(("with", tag.With), ("note", tag.Note));
+
+    /// <summary>A flow as dump.ts shows it. Its compare and the problem with it are left out when the file has none, so a flow without the key dumps as before.</summary>
+    private static JsonNode FlowNode(string id, Flow flow, Model m)
+    {
+        var node = Obj(
+                ("id", id), ("name", flow.Name), ("view", flow.View), ("groups", Raw(flow.Groups)), ("states", Raw(flow.States)),
+                ("steps", Arr(flow.Steps.Select(s =>
+                {
+                    var placed = Views.PlaceStep(m, flow.View, s.From, s.To);
+                    var step = Obj(("from", s.From), ("to", s.To), ("text", s.Text), ("description", s.Description), ("animation", Raw(s.Animation)), ("group", s.Group), ("lane", s.Lane), ("flow", s.FlowId), ("states", Raw(s.States)));
+                    step["placed"] = Pair(placed); // null stays in the JSON here, as it does in dump.ts
+                    step["ends"] = s.From is null ? null : JsonValue.Create(Views.StepEnds(m, s.From, s.To, placed));
+                    return step;
+                }))));
+        if (flow.CompareRaw is not null)
+        {
+            node["compare"] = flow.Compare is { } tag ? TagNode(tag) : null;
+            node["compareProblem"] = Compares.Problem(flow.CompareRaw, "flow");
+        }
+        return node;
+    }
+
+    private static JsonNode PartnersNode(IReadOnlyDictionary<string, object?> tags) =>
+        new JsonObject(tags.Keys.Select(id => KeyValuePair.Create(id, (JsonNode?)Arr(Compares.Partners(tags, id).Select(p => Obj(("id", p.Id), ("side", p.Side), ("note", p.Note)))))));
+
+    private static JsonNode RunNode(string id, LoadRun run)
+    {
+        var node = Obj(("id", id), ("name", run.Name));
+        node["compare"] = run.Compare is { } tag ? TagNode(tag) : null; // null stays in the JSON, as it does in dump.ts
+        return node;
     }
 
     private static JsonNode AnalysisNode(string id, FailureAnalysis a) => Obj(

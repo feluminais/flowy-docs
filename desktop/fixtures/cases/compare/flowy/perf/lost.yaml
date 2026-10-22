@@ -1,0 +1,5 @@
+name: lost
+compare: nope
+levels:
+  - { load: 5 }
+  - { load: 10 }

@@ -17,6 +17,9 @@
     "check",
     "newProblems"
   ],
+  "compare": [
+    "withCompare"
+  ],
   "data": [
     "DATA_MAX",
     "compactEntries",
