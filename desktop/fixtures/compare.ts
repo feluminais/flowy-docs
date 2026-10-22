@@ -6,6 +6,8 @@ import { setRunCompare } from '../../src/core/perf/comparetag.ts'
 import type { CompareTag } from '../../src/core/compare.ts'
 import { modelOf } from '../../src/core/state.ts'
 import { loadState } from '../../src/node/files.ts'
+import { choicesFor, orderPair } from '../../ui/src/compare.ts'
+import type { Choice } from '../../ui/src/compare.ts'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
 
@@ -41,6 +43,33 @@ export async function dumpFlowDiffs(): Promise<unknown> {
       const diff = diffFlows(model.flows[older], model.flows[newer])
       return { older, newer, related: diff.related, olderMarks: marksDump(diff.older), newerMarks: marksDump(diff.newer) }
     }),
+  }
+}
+
+const COMPARE = 'desktop/fixtures/cases/compare/flowy'
+
+/** Every flow's and every run's choices of the compare case, and the order every pair of them reads in: the C# CompareChoices must give the same. */
+export async function dumpCompareChoices(): Promise<unknown> {
+  const state = await loadState(join(root, COMPARE))
+  if ('parseError' in state) throw new Error(`${COMPARE} can't be read`)
+  const model = modelOf(state)
+  const runs = state.runs ?? {}
+  const choice = (c: Choice) => ({ id: c.id, name: c.name, side: c.side ?? null, missing: c.missing === true })
+  const choices = (kind: 'flow' | 'run', ids: string[]) =>
+    ids.map(id => {
+      const { linked, others } = choicesFor(model, runs, kind, id)
+      return { id, linked: linked.map(choice), others: others.map(choice) }
+    })
+  const orders = (kind: 'flow' | 'run', items: Record<string, { name?: string; compare?: unknown }>) => {
+    const ids = Object.keys(items)
+    return ids.flatMap(a => ids.map(b => ({ a, b, order: orderPair(kind, items, a, b) })))
+  }
+  return {
+    folder: COMPARE,
+    flows: choices('flow', Object.keys(model.flows)),
+    runs: choices('run', Object.keys(runs)),
+    flowOrders: orders('flow', model.flows),
+    runOrders: orders('run', runs),
   }
 }
 
