@@ -1,12 +1,12 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { diffFlows } from '../../src/core/flowdiff.ts'
-import type { SideMarks } from '../../src/core/flowdiff.ts'
+import type { Change, FlowDiff, SideMarks } from '../../src/core/flowdiff.ts'
 import { setRunCompare } from '../../src/core/perf/comparetag.ts'
 import type { CompareTag } from '../../src/core/compare.ts'
 import { modelOf } from '../../src/core/state.ts'
 import { loadState } from '../../src/node/files.ts'
-import { choicesFor, orderPair } from '../../ui/src/compare.ts'
+import { CHANGE_NAMES, changeOfStop, choicesFor, keyItems, noteOf, noteOff, orderPair, pairKey, pairOff, removeNeedsConfirm, saveTarget, unsaved } from '../../ui/src/compare.ts'
 import type { Choice } from '../../ui/src/compare.ts'
 import { crossfadeDuration, FADE_MS, planSwap, SWAP_MS, swapDuration } from '../../ui/src/swap.ts'
 import type { GraphNode } from '../../ui/src/swap.ts'
@@ -131,6 +131,93 @@ export function dumpRunCompareText(): unknown {
       return { name, text, tag, error: true }
     }
   })
+}
+
+type Tags = Record<string, unknown>
+const itemsOf = (tags: Tags): Record<string, { name?: string; compare?: unknown }> => Object.fromEntries(Object.entries(tags).map(([id, compare]) => [id, compare === null ? { name: id } : { name: id, compare }]))
+
+/** Sets of flows (each id with its raw `compare`, null for none): every ordered pair of each is asked for its note and its save target. */
+const TAG_SETS: { name: string; tags: Tags }[] = [
+  { name: 'tagged with a note', tags: { old: null, now: { with: 'old', note: 'After the fix' }, other: null } },
+  { name: 'tagged without a note', tags: { old: null, now: 'old', other: null } },
+  { name: 'the older holds the tag', tags: { a: 'b', b: null } },
+  { name: 'both link elsewhere', tags: { x: null, y: 'z', z: null, w: 'v', v: null } },
+  { name: 'a mutual pair with notes', tags: { a: { with: 'b', note: 'from a' }, b: { with: 'a', note: 'from b' } } },
+  { name: 'a mutual pair, one note', tags: { a: 'b', b: { with: 'a', note: 'from b' } } },
+  { name: 'a mutual pair, no notes', tags: { a: 'b', b: 'a' } },
+  { name: 'tags to flows that are not there', tags: { a: 'gone2', b: 'gone', c: null } },
+  { name: 'a tag to another flow', tags: { old: null, now: 'gone', other: null } },
+  { name: 'a blank note', tags: { old: null, now: { with: 'old', note: '   ' } } },
+]
+
+const NOTES = ['', 'N', '  Padded  ', '  \n']
+
+/** Every pair of each tag set, asked for its note, its key and its save target (for each note). The C# CompareUi must say the same. */
+function dumpTagCases() {
+  return TAG_SETS.map(({ name, tags }) => {
+    const items = itemsOf(tags)
+    const ids = Object.keys(tags)
+    return {
+      name,
+      tags,
+      pairs: ids.flatMap(a => ids.map(b => ({
+        a,
+        b,
+        note: noteOf(items, a, b),
+        key: pairKey(a, b),
+        targets: NOTES.map(text => ({ text, ...saveTarget('flow', items, a, b, text) })),
+      }))),
+    }
+  })
+}
+
+const diffDump = (d: FlowDiff) => ({ related: d.related, older: marksDump(d.older), newer: marksDump(d.newer) })
+const SIDE_CHOICES: ('older' | 'newer')[][] = [['older', 'newer'], ['newer'], ['older'], []]
+
+/** Hand-made diffs, for the cases a pair of real flows doesn't reach. */
+const KEY_DIFFS: { name: string; diff: FlowDiff }[] = [
+  { name: 'new step and changed shape', diff: { related: true, older: { steps: {}, shapes: {}, lines: {} }, newer: { steps: { 2: 'new' }, shapes: { fee: 'changed' }, lines: {} } } },
+  { name: 'every kind, found in a different order', diff: { related: true, older: { steps: {}, shapes: {}, lines: { 'a b': 'removed' } }, newer: { steps: { 0: 'new' }, shapes: { b: 'changed' }, lines: {} } } },
+  { name: 'a kind on the older side alone', diff: { related: true, older: { steps: { 1: 'removed' }, shapes: {}, lines: {} }, newer: { steps: {}, shapes: {}, lines: {} } } },
+  { name: 'both sides', diff: { related: true, older: { steps: {}, shapes: { gone: 'removed' }, lines: {} }, newer: { steps: { 0: 'new' }, shapes: {}, lines: {} } } },
+  { name: 'nothing differs', diff: { related: true, older: { steps: {}, shapes: {}, lines: {} }, newer: { steps: {}, shapes: {}, lines: {} } } },
+  { name: 'nothing in common', diff: { related: false, older: { steps: {}, shapes: {}, lines: {} }, newer: { steps: {}, shapes: {}, lines: {} } } },
+]
+
+const STOP_CASES: { name: string; steps: number[]; changes: Record<number, Change> }[] = [
+  { name: 'one marked step', steps: [2], changes: { 0: 'new', 2: 'removed', 3: 'changed' } },
+  { name: 'mixed kinds read as changed', steps: [0, 2], changes: { 0: 'new', 2: 'removed', 3: 'changed' } },
+  { name: 'the same changed twice', steps: [3, 3], changes: { 0: 'new', 2: 'removed', 3: 'changed' } },
+  { name: 'an unmarked step beside a marked one', steps: [0, 1], changes: { 0: 'new', 2: 'removed', 3: 'changed' } },
+  { name: 'no marks', steps: [1], changes: { 0: 'new', 2: 'removed', 3: 'changed' } },
+  { name: 'no steps', steps: [], changes: { 0: 'new' } },
+  { name: 'no changes', steps: [1], changes: {} },
+  { name: 'file step numbers, not stops', steps: [0], changes: { 1: 'new' } },
+]
+
+const UNSAVED: [string | null, string][] = [[null, 'x'], ['', ''], ['  \n', ''], ['x', ''], ['x', 'x'], ['', 'x'], ['x', 'x\n'], ['x\n', 'x\n'], ['y', 'x\n']]
+const TAGS_FOR_REMOVE: (CompareTag | null)[] = [{ with: 'a', note: 'why' }, { with: 'a' }, null]
+
+/** What the comparison's key, stop marks, note and save target say, for the C# CompareUi to say the same. */
+export async function dumpCompareUi(): Promise<unknown> {
+  const state = await loadState(join(root, FLOWDIFF))
+  if ('parseError' in state) throw new Error(`${FLOWDIFF} can't be read`)
+  const model = modelOf(state)
+  const real = PAIRS.map(([older, newer]) => ({ name: `${older} to ${newer}`, diff: diffFlows(model.flows[older], model.flows[newer]) }))
+  return {
+    names: CHANGE_NAMES,
+    keys: [...KEY_DIFFS, ...real].map(({ name, diff }) => ({
+      name,
+      diff: diffDump(diff),
+      results: SIDE_CHOICES.map(sides => ({ sides, ...keyItems(diff, sides) })),
+    })),
+    stops: STOP_CASES.map(c => ({ ...c, result: changeOfStop(c.steps, c.changes) ?? null })),
+    tagCases: dumpTagCases(),
+    unsaved: UNSAVED.map(([draft, saved]) => ({ draft, saved, result: unsaved(draft ?? undefined, saved) })),
+    noteOff: [[true, false], [false, false], [true, true], [false, true]].map(([live, readOnly]) => ({ live, readOnly, result: noteOff(live, readOnly) ?? null })),
+    pairOff: [['flow', 'old', 'old'], ['flow', 'old', 'other'], ['run', 'r1', 'r1']].map(([kind, a, b]) => ({ kind, a, b, result: pairOff(kind as 'flow' | 'run', a, b) ?? null })),
+    removeNeedsConfirm: TAGS_FOR_REMOVE.map(tag => ({ tag, result: removeNeedsConfirm(tag ?? undefined) })),
+  }
 }
 
 const N = (id: string, x = 0, y = 0): GraphNode => ({ id, position: { x, y } })

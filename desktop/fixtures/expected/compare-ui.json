@@ -1,0 +1,4899 @@
+{
+  "names": {
+    "new": "New",
+    "removed": "Removed",
+    "changed": "Changed"
+  },
+  "keys": [
+    {
+      "name": "new step and changed shape",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        },
+        "newer": {
+          "steps": {
+            "2": "new"
+          },
+          "shapes": {
+            "fee": "changed"
+          },
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "new",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "new",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "every kind, found in a different order",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {},
+          "shapes": {},
+          "lines": {
+            "a b": "removed"
+          }
+        },
+        "newer": {
+          "steps": {
+            "0": "new"
+          },
+          "shapes": {
+            "b": "changed"
+          },
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "new",
+            "removed",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "new",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "removed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "a kind on the older side alone",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "1": "removed"
+          },
+          "shapes": {},
+          "lines": {}
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "removed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "removed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "both sides",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {},
+          "shapes": {
+            "gone": "removed"
+          },
+          "lines": {}
+        },
+        "newer": {
+          "steps": {
+            "0": "new"
+          },
+          "shapes": {},
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "new",
+            "removed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "new"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "removed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "nothing differs",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "nothing in common",
+      "diff": {
+        "related": false,
+        "older": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [],
+          "related": false
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [],
+          "related": false
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [],
+          "related": false
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": false
+        }
+      ]
+    },
+    {
+      "name": "base to same",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "base to base",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "base to appended",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {},
+          "shapes": {
+            "d": "changed"
+          },
+          "lines": {}
+        },
+        "newer": {
+          "steps": {
+            "3": "new"
+          },
+          "shapes": {
+            "d": "changed",
+            "e": "new"
+          },
+          "lines": {
+            "d e": "new"
+          }
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "new",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "new",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "base to inserted",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {},
+          "shapes": {
+            "b": "changed"
+          },
+          "lines": {}
+        },
+        "newer": {
+          "steps": {
+            "1": "new"
+          },
+          "shapes": {
+            "b": "changed",
+            "e": "new"
+          },
+          "lines": {
+            "b e": "new"
+          }
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "new",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "new",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "base to removed",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "1": "removed"
+          },
+          "shapes": {
+            "b": "changed",
+            "c": "changed"
+          },
+          "lines": {
+            "b c": "removed"
+          }
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {
+            "b": "changed",
+            "c": "changed"
+          },
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "removed",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "removed",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "base to retexted",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "1": "changed"
+          },
+          "shapes": {
+            "b": "changed",
+            "c": "changed"
+          },
+          "lines": {
+            "b c": "changed"
+          }
+        },
+        "newer": {
+          "steps": {
+            "1": "changed"
+          },
+          "shapes": {
+            "b": "changed",
+            "c": "changed"
+          },
+          "lines": {
+            "b c": "changed"
+          }
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "appended to base",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "3": "removed"
+          },
+          "shapes": {
+            "d": "changed",
+            "e": "removed"
+          },
+          "lines": {
+            "d e": "removed"
+          }
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {
+            "d": "changed"
+          },
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "removed",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "removed",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "anim-pulse to anim-flash",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "a": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "a b": "changed"
+          }
+        },
+        "newer": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "a": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "a b": "changed"
+          }
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "anim-pulse to anim-kind-pulse",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "anim-order-1 to anim-order-2",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "desc-1 to desc-2",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "a": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "a b": "changed"
+          }
+        },
+        "newer": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "a": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "a b": "changed"
+          }
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "cross-old to cross-new",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "0": "changed",
+            "1": "changed"
+          },
+          "shapes": {
+            "a": "changed",
+            "b": "changed",
+            "c": "changed",
+            "d": "changed"
+          },
+          "lines": {
+            "a b": "changed",
+            "c d": "changed"
+          }
+        },
+        "newer": {
+          "steps": {
+            "0": "changed",
+            "1": "changed"
+          },
+          "shapes": {
+            "a": "changed",
+            "b": "changed",
+            "c": "changed",
+            "d": "changed"
+          },
+          "lines": {
+            "a b": "changed",
+            "c d": "changed"
+          }
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "base to apart",
+      "diff": {
+        "related": false,
+        "older": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [],
+          "related": false
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [],
+          "related": false
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [],
+          "related": false
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": false
+        }
+      ]
+    },
+    {
+      "name": "alone-old to alone-new",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "a": "changed"
+          },
+          "lines": {}
+        },
+        "newer": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "a": "changed"
+          },
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "proto-old to proto-new",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "__proto__": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "__proto__ b": "changed"
+          }
+        },
+        "newer": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "__proto__": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "__proto__ b": "changed"
+          }
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "dup-old to dup-new",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "1": "removed"
+          },
+          "shapes": {
+            "a": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "a b": "changed"
+          }
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {
+            "a": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "a b": "changed"
+          }
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "removed",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "removed",
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    }
+  ],
+  "stops": [
+    {
+      "name": "one marked step",
+      "steps": [
+        2
+      ],
+      "changes": {
+        "0": "new",
+        "2": "removed",
+        "3": "changed"
+      },
+      "result": "removed"
+    },
+    {
+      "name": "mixed kinds read as changed",
+      "steps": [
+        0,
+        2
+      ],
+      "changes": {
+        "0": "new",
+        "2": "removed",
+        "3": "changed"
+      },
+      "result": "changed"
+    },
+    {
+      "name": "the same changed twice",
+      "steps": [
+        3,
+        3
+      ],
+      "changes": {
+        "0": "new",
+        "2": "removed",
+        "3": "changed"
+      },
+      "result": "changed"
+    },
+    {
+      "name": "an unmarked step beside a marked one",
+      "steps": [
+        0,
+        1
+      ],
+      "changes": {
+        "0": "new",
+        "2": "removed",
+        "3": "changed"
+      },
+      "result": "new"
+    },
+    {
+      "name": "no marks",
+      "steps": [
+        1
+      ],
+      "changes": {
+        "0": "new",
+        "2": "removed",
+        "3": "changed"
+      },
+      "result": null
+    },
+    {
+      "name": "no steps",
+      "steps": [],
+      "changes": {
+        "0": "new"
+      },
+      "result": null
+    },
+    {
+      "name": "no changes",
+      "steps": [
+        1
+      ],
+      "changes": {},
+      "result": null
+    },
+    {
+      "name": "file step numbers, not stops",
+      "steps": [
+        0
+      ],
+      "changes": {
+        "1": "new"
+      },
+      "result": null
+    }
+  ],
+  "tagCases": [
+    {
+      "name": "tagged with a note",
+      "tags": {
+        "old": null,
+        "now": {
+          "with": "old",
+          "note": "After the fix"
+        },
+        "other": null
+      },
+      "pairs": [
+        {
+          "a": "old",
+          "b": "old",
+          "note": {
+            "text": ""
+          },
+          "key": "old|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "old",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "old",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "old",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "old",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "old",
+          "b": "now",
+          "note": {
+            "text": "After the fix",
+            "holder": "now"
+          },
+          "key": "now|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "old",
+          "b": "other",
+          "note": {
+            "text": ""
+          },
+          "key": "old|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "now",
+          "b": "old",
+          "note": {
+            "text": "After the fix",
+            "holder": "now"
+          },
+          "key": "now|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "now",
+          "b": "now",
+          "note": {
+            "text": ""
+          },
+          "key": "now|now",
+          "targets": [
+            {
+              "text": "",
+              "id": "now",
+              "tag": {
+                "with": "now"
+              },
+              "replaces": "old"
+            },
+            {
+              "text": "N",
+              "id": "now",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              },
+              "replaces": "old"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "now",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              },
+              "replaces": "old"
+            },
+            {
+              "text": "  \n",
+              "id": "now",
+              "tag": {
+                "with": "now"
+              },
+              "replaces": "old"
+            }
+          ]
+        },
+        {
+          "a": "now",
+          "b": "other",
+          "note": {
+            "text": ""
+          },
+          "key": "now|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            }
+          ]
+        },
+        {
+          "a": "other",
+          "b": "old",
+          "note": {
+            "text": ""
+          },
+          "key": "old|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "old",
+              "tag": {
+                "with": "other"
+              }
+            },
+            {
+              "text": "N",
+              "id": "old",
+              "tag": {
+                "with": "other",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "old",
+              "tag": {
+                "with": "other",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "old",
+              "tag": {
+                "with": "other"
+              }
+            }
+          ]
+        },
+        {
+          "a": "other",
+          "b": "now",
+          "note": {
+            "text": ""
+          },
+          "key": "now|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            }
+          ]
+        },
+        {
+          "a": "other",
+          "b": "other",
+          "note": {
+            "text": ""
+          },
+          "key": "other|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "other"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "other",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "other",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tagged without a note",
+      "tags": {
+        "old": null,
+        "now": "old",
+        "other": null
+      },
+      "pairs": [
+        {
+          "a": "old",
+          "b": "old",
+          "note": {
+            "text": ""
+          },
+          "key": "old|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "old",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "old",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "old",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "old",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "old",
+          "b": "now",
+          "note": {
+            "text": "",
+            "holder": "now"
+          },
+          "key": "now|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "old",
+          "b": "other",
+          "note": {
+            "text": ""
+          },
+          "key": "old|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "now",
+          "b": "old",
+          "note": {
+            "text": "",
+            "holder": "now"
+          },
+          "key": "now|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "now",
+          "b": "now",
+          "note": {
+            "text": ""
+          },
+          "key": "now|now",
+          "targets": [
+            {
+              "text": "",
+              "id": "now",
+              "tag": {
+                "with": "now"
+              },
+              "replaces": "old"
+            },
+            {
+              "text": "N",
+              "id": "now",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              },
+              "replaces": "old"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "now",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              },
+              "replaces": "old"
+            },
+            {
+              "text": "  \n",
+              "id": "now",
+              "tag": {
+                "with": "now"
+              },
+              "replaces": "old"
+            }
+          ]
+        },
+        {
+          "a": "now",
+          "b": "other",
+          "note": {
+            "text": ""
+          },
+          "key": "now|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            }
+          ]
+        },
+        {
+          "a": "other",
+          "b": "old",
+          "note": {
+            "text": ""
+          },
+          "key": "old|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "old",
+              "tag": {
+                "with": "other"
+              }
+            },
+            {
+              "text": "N",
+              "id": "old",
+              "tag": {
+                "with": "other",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "old",
+              "tag": {
+                "with": "other",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "old",
+              "tag": {
+                "with": "other"
+              }
+            }
+          ]
+        },
+        {
+          "a": "other",
+          "b": "now",
+          "note": {
+            "text": ""
+          },
+          "key": "now|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            }
+          ]
+        },
+        {
+          "a": "other",
+          "b": "other",
+          "note": {
+            "text": ""
+          },
+          "key": "other|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "other"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "other",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "other",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the older holds the tag",
+      "tags": {
+        "a": "b",
+        "b": null
+      },
+      "pairs": [
+        {
+          "a": "a",
+          "b": "a",
+          "note": {
+            "text": ""
+          },
+          "key": "a|a",
+          "targets": [
+            {
+              "text": "",
+              "id": "a",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "N",
+              "id": "a",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "a",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "  \n",
+              "id": "a",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "b"
+            }
+          ]
+        },
+        {
+          "a": "a",
+          "b": "b",
+          "note": {
+            "text": "",
+            "holder": "a"
+          },
+          "key": "a|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "a",
+              "tag": {
+                "with": "b"
+              }
+            },
+            {
+              "text": "N",
+              "id": "a",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "a",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "a",
+              "tag": {
+                "with": "b"
+              }
+            }
+          ]
+        },
+        {
+          "a": "b",
+          "b": "a",
+          "note": {
+            "text": "",
+            "holder": "a"
+          },
+          "key": "a|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "a",
+              "tag": {
+                "with": "b"
+              }
+            },
+            {
+              "text": "N",
+              "id": "a",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "a",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "a",
+              "tag": {
+                "with": "b"
+              }
+            }
+          ]
+        },
+        {
+          "a": "b",
+          "b": "b",
+          "note": {
+            "text": ""
+          },
+          "key": "b|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "b",
+              "tag": {
+                "with": "b"
+              }
+            },
+            {
+              "text": "N",
+              "id": "b",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "b",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "b",
+              "tag": {
+                "with": "b"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "both link elsewhere",
+      "tags": {
+        "x": null,
+        "y": "z",
+        "z": null,
+        "w": "v",
+        "v": null
+      },
+      "pairs": [
+        {
+          "a": "x",
+          "b": "x",
+          "note": {
+            "text": ""
+          },
+          "key": "x|x",
+          "targets": [
+            {
+              "text": "",
+              "id": "x",
+              "tag": {
+                "with": "x"
+              }
+            },
+            {
+              "text": "N",
+              "id": "x",
+              "tag": {
+                "with": "x",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "x",
+              "tag": {
+                "with": "x",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "x",
+              "tag": {
+                "with": "x"
+              }
+            }
+          ]
+        },
+        {
+          "a": "x",
+          "b": "y",
+          "note": {
+            "text": ""
+          },
+          "key": "x|y",
+          "targets": [
+            {
+              "text": "",
+              "id": "x",
+              "tag": {
+                "with": "y"
+              }
+            },
+            {
+              "text": "N",
+              "id": "x",
+              "tag": {
+                "with": "y",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "x",
+              "tag": {
+                "with": "y",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "x",
+              "tag": {
+                "with": "y"
+              }
+            }
+          ]
+        },
+        {
+          "a": "x",
+          "b": "z",
+          "note": {
+            "text": ""
+          },
+          "key": "x|z",
+          "targets": [
+            {
+              "text": "",
+              "id": "z",
+              "tag": {
+                "with": "x"
+              }
+            },
+            {
+              "text": "N",
+              "id": "z",
+              "tag": {
+                "with": "x",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "z",
+              "tag": {
+                "with": "x",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "z",
+              "tag": {
+                "with": "x"
+              }
+            }
+          ]
+        },
+        {
+          "a": "x",
+          "b": "w",
+          "note": {
+            "text": ""
+          },
+          "key": "w|x",
+          "targets": [
+            {
+              "text": "",
+              "id": "x",
+              "tag": {
+                "with": "w"
+              }
+            },
+            {
+              "text": "N",
+              "id": "x",
+              "tag": {
+                "with": "w",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "x",
+              "tag": {
+                "with": "w",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "x",
+              "tag": {
+                "with": "w"
+              }
+            }
+          ]
+        },
+        {
+          "a": "x",
+          "b": "v",
+          "note": {
+            "text": ""
+          },
+          "key": "v|x",
+          "targets": [
+            {
+              "text": "",
+              "id": "v",
+              "tag": {
+                "with": "x"
+              }
+            },
+            {
+              "text": "N",
+              "id": "v",
+              "tag": {
+                "with": "x",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "v",
+              "tag": {
+                "with": "x",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "v",
+              "tag": {
+                "with": "x"
+              }
+            }
+          ]
+        },
+        {
+          "a": "y",
+          "b": "x",
+          "note": {
+            "text": ""
+          },
+          "key": "x|y",
+          "targets": [
+            {
+              "text": "",
+              "id": "x",
+              "tag": {
+                "with": "y"
+              }
+            },
+            {
+              "text": "N",
+              "id": "x",
+              "tag": {
+                "with": "y",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "x",
+              "tag": {
+                "with": "y",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "x",
+              "tag": {
+                "with": "y"
+              }
+            }
+          ]
+        },
+        {
+          "a": "y",
+          "b": "y",
+          "note": {
+            "text": ""
+          },
+          "key": "y|y",
+          "targets": [
+            {
+              "text": "",
+              "id": "y",
+              "tag": {
+                "with": "y"
+              },
+              "replaces": "z"
+            },
+            {
+              "text": "N",
+              "id": "y",
+              "tag": {
+                "with": "y",
+                "note": "N"
+              },
+              "replaces": "z"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "y",
+              "tag": {
+                "with": "y",
+                "note": "Padded"
+              },
+              "replaces": "z"
+            },
+            {
+              "text": "  \n",
+              "id": "y",
+              "tag": {
+                "with": "y"
+              },
+              "replaces": "z"
+            }
+          ]
+        },
+        {
+          "a": "y",
+          "b": "z",
+          "note": {
+            "text": "",
+            "holder": "y"
+          },
+          "key": "y|z",
+          "targets": [
+            {
+              "text": "",
+              "id": "y",
+              "tag": {
+                "with": "z"
+              }
+            },
+            {
+              "text": "N",
+              "id": "y",
+              "tag": {
+                "with": "z",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "y",
+              "tag": {
+                "with": "z",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "y",
+              "tag": {
+                "with": "z"
+              }
+            }
+          ]
+        },
+        {
+          "a": "y",
+          "b": "w",
+          "note": {
+            "text": ""
+          },
+          "key": "w|y",
+          "targets": [
+            {
+              "text": "",
+              "id": "w",
+              "tag": {
+                "with": "y"
+              },
+              "replaces": "v"
+            },
+            {
+              "text": "N",
+              "id": "w",
+              "tag": {
+                "with": "y",
+                "note": "N"
+              },
+              "replaces": "v"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "w",
+              "tag": {
+                "with": "y",
+                "note": "Padded"
+              },
+              "replaces": "v"
+            },
+            {
+              "text": "  \n",
+              "id": "w",
+              "tag": {
+                "with": "y"
+              },
+              "replaces": "v"
+            }
+          ]
+        },
+        {
+          "a": "y",
+          "b": "v",
+          "note": {
+            "text": ""
+          },
+          "key": "v|y",
+          "targets": [
+            {
+              "text": "",
+              "id": "v",
+              "tag": {
+                "with": "y"
+              }
+            },
+            {
+              "text": "N",
+              "id": "v",
+              "tag": {
+                "with": "y",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "v",
+              "tag": {
+                "with": "y",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "v",
+              "tag": {
+                "with": "y"
+              }
+            }
+          ]
+        },
+        {
+          "a": "z",
+          "b": "x",
+          "note": {
+            "text": ""
+          },
+          "key": "x|z",
+          "targets": [
+            {
+              "text": "",
+              "id": "x",
+              "tag": {
+                "with": "z"
+              }
+            },
+            {
+              "text": "N",
+              "id": "x",
+              "tag": {
+                "with": "z",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "x",
+              "tag": {
+                "with": "z",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "x",
+              "tag": {
+                "with": "z"
+              }
+            }
+          ]
+        },
+        {
+          "a": "z",
+          "b": "y",
+          "note": {
+            "text": "",
+            "holder": "y"
+          },
+          "key": "y|z",
+          "targets": [
+            {
+              "text": "",
+              "id": "y",
+              "tag": {
+                "with": "z"
+              }
+            },
+            {
+              "text": "N",
+              "id": "y",
+              "tag": {
+                "with": "z",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "y",
+              "tag": {
+                "with": "z",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "y",
+              "tag": {
+                "with": "z"
+              }
+            }
+          ]
+        },
+        {
+          "a": "z",
+          "b": "z",
+          "note": {
+            "text": ""
+          },
+          "key": "z|z",
+          "targets": [
+            {
+              "text": "",
+              "id": "z",
+              "tag": {
+                "with": "z"
+              }
+            },
+            {
+              "text": "N",
+              "id": "z",
+              "tag": {
+                "with": "z",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "z",
+              "tag": {
+                "with": "z",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "z",
+              "tag": {
+                "with": "z"
+              }
+            }
+          ]
+        },
+        {
+          "a": "z",
+          "b": "w",
+          "note": {
+            "text": ""
+          },
+          "key": "w|z",
+          "targets": [
+            {
+              "text": "",
+              "id": "z",
+              "tag": {
+                "with": "w"
+              }
+            },
+            {
+              "text": "N",
+              "id": "z",
+              "tag": {
+                "with": "w",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "z",
+              "tag": {
+                "with": "w",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "z",
+              "tag": {
+                "with": "w"
+              }
+            }
+          ]
+        },
+        {
+          "a": "z",
+          "b": "v",
+          "note": {
+            "text": ""
+          },
+          "key": "v|z",
+          "targets": [
+            {
+              "text": "",
+              "id": "v",
+              "tag": {
+                "with": "z"
+              }
+            },
+            {
+              "text": "N",
+              "id": "v",
+              "tag": {
+                "with": "z",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "v",
+              "tag": {
+                "with": "z",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "v",
+              "tag": {
+                "with": "z"
+              }
+            }
+          ]
+        },
+        {
+          "a": "w",
+          "b": "x",
+          "note": {
+            "text": ""
+          },
+          "key": "w|x",
+          "targets": [
+            {
+              "text": "",
+              "id": "x",
+              "tag": {
+                "with": "w"
+              }
+            },
+            {
+              "text": "N",
+              "id": "x",
+              "tag": {
+                "with": "w",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "x",
+              "tag": {
+                "with": "w",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "x",
+              "tag": {
+                "with": "w"
+              }
+            }
+          ]
+        },
+        {
+          "a": "w",
+          "b": "y",
+          "note": {
+            "text": ""
+          },
+          "key": "w|y",
+          "targets": [
+            {
+              "text": "",
+              "id": "y",
+              "tag": {
+                "with": "w"
+              },
+              "replaces": "z"
+            },
+            {
+              "text": "N",
+              "id": "y",
+              "tag": {
+                "with": "w",
+                "note": "N"
+              },
+              "replaces": "z"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "y",
+              "tag": {
+                "with": "w",
+                "note": "Padded"
+              },
+              "replaces": "z"
+            },
+            {
+              "text": "  \n",
+              "id": "y",
+              "tag": {
+                "with": "w"
+              },
+              "replaces": "z"
+            }
+          ]
+        },
+        {
+          "a": "w",
+          "b": "z",
+          "note": {
+            "text": ""
+          },
+          "key": "w|z",
+          "targets": [
+            {
+              "text": "",
+              "id": "z",
+              "tag": {
+                "with": "w"
+              }
+            },
+            {
+              "text": "N",
+              "id": "z",
+              "tag": {
+                "with": "w",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "z",
+              "tag": {
+                "with": "w",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "z",
+              "tag": {
+                "with": "w"
+              }
+            }
+          ]
+        },
+        {
+          "a": "w",
+          "b": "w",
+          "note": {
+            "text": ""
+          },
+          "key": "w|w",
+          "targets": [
+            {
+              "text": "",
+              "id": "w",
+              "tag": {
+                "with": "w"
+              },
+              "replaces": "v"
+            },
+            {
+              "text": "N",
+              "id": "w",
+              "tag": {
+                "with": "w",
+                "note": "N"
+              },
+              "replaces": "v"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "w",
+              "tag": {
+                "with": "w",
+                "note": "Padded"
+              },
+              "replaces": "v"
+            },
+            {
+              "text": "  \n",
+              "id": "w",
+              "tag": {
+                "with": "w"
+              },
+              "replaces": "v"
+            }
+          ]
+        },
+        {
+          "a": "w",
+          "b": "v",
+          "note": {
+            "text": "",
+            "holder": "w"
+          },
+          "key": "v|w",
+          "targets": [
+            {
+              "text": "",
+              "id": "w",
+              "tag": {
+                "with": "v"
+              }
+            },
+            {
+              "text": "N",
+              "id": "w",
+              "tag": {
+                "with": "v",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "w",
+              "tag": {
+                "with": "v",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "w",
+              "tag": {
+                "with": "v"
+              }
+            }
+          ]
+        },
+        {
+          "a": "v",
+          "b": "x",
+          "note": {
+            "text": ""
+          },
+          "key": "v|x",
+          "targets": [
+            {
+              "text": "",
+              "id": "x",
+              "tag": {
+                "with": "v"
+              }
+            },
+            {
+              "text": "N",
+              "id": "x",
+              "tag": {
+                "with": "v",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "x",
+              "tag": {
+                "with": "v",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "x",
+              "tag": {
+                "with": "v"
+              }
+            }
+          ]
+        },
+        {
+          "a": "v",
+          "b": "y",
+          "note": {
+            "text": ""
+          },
+          "key": "v|y",
+          "targets": [
+            {
+              "text": "",
+              "id": "v",
+              "tag": {
+                "with": "y"
+              }
+            },
+            {
+              "text": "N",
+              "id": "v",
+              "tag": {
+                "with": "y",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "v",
+              "tag": {
+                "with": "y",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "v",
+              "tag": {
+                "with": "y"
+              }
+            }
+          ]
+        },
+        {
+          "a": "v",
+          "b": "z",
+          "note": {
+            "text": ""
+          },
+          "key": "v|z",
+          "targets": [
+            {
+              "text": "",
+              "id": "z",
+              "tag": {
+                "with": "v"
+              }
+            },
+            {
+              "text": "N",
+              "id": "z",
+              "tag": {
+                "with": "v",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "z",
+              "tag": {
+                "with": "v",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "z",
+              "tag": {
+                "with": "v"
+              }
+            }
+          ]
+        },
+        {
+          "a": "v",
+          "b": "w",
+          "note": {
+            "text": "",
+            "holder": "w"
+          },
+          "key": "v|w",
+          "targets": [
+            {
+              "text": "",
+              "id": "w",
+              "tag": {
+                "with": "v"
+              }
+            },
+            {
+              "text": "N",
+              "id": "w",
+              "tag": {
+                "with": "v",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "w",
+              "tag": {
+                "with": "v",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "w",
+              "tag": {
+                "with": "v"
+              }
+            }
+          ]
+        },
+        {
+          "a": "v",
+          "b": "v",
+          "note": {
+            "text": ""
+          },
+          "key": "v|v",
+          "targets": [
+            {
+              "text": "",
+              "id": "v",
+              "tag": {
+                "with": "v"
+              }
+            },
+            {
+              "text": "N",
+              "id": "v",
+              "tag": {
+                "with": "v",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "v",
+              "tag": {
+                "with": "v",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "v",
+              "tag": {
+                "with": "v"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a mutual pair with notes",
+      "tags": {
+        "a": {
+          "with": "b",
+          "note": "from a"
+        },
+        "b": {
+          "with": "a",
+          "note": "from b"
+        }
+      },
+      "pairs": [
+        {
+          "a": "a",
+          "b": "a",
+          "note": {
+            "text": ""
+          },
+          "key": "a|a",
+          "targets": [
+            {
+              "text": "",
+              "id": "a",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "N",
+              "id": "a",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "a",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "  \n",
+              "id": "a",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "b"
+            }
+          ]
+        },
+        {
+          "a": "a",
+          "b": "b",
+          "note": {
+            "text": "from a",
+            "holder": "a"
+          },
+          "key": "a|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "a",
+              "tag": {
+                "with": "b"
+              }
+            },
+            {
+              "text": "N",
+              "id": "a",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "a",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "a",
+              "tag": {
+                "with": "b"
+              }
+            }
+          ]
+        },
+        {
+          "a": "b",
+          "b": "a",
+          "note": {
+            "text": "from b",
+            "holder": "b"
+          },
+          "key": "a|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "b",
+              "tag": {
+                "with": "a"
+              }
+            },
+            {
+              "text": "N",
+              "id": "b",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "b",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "b",
+              "tag": {
+                "with": "a"
+              }
+            }
+          ]
+        },
+        {
+          "a": "b",
+          "b": "b",
+          "note": {
+            "text": ""
+          },
+          "key": "b|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "b",
+              "tag": {
+                "with": "b"
+              },
+              "replaces": "a"
+            },
+            {
+              "text": "N",
+              "id": "b",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              },
+              "replaces": "a"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "b",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              },
+              "replaces": "a"
+            },
+            {
+              "text": "  \n",
+              "id": "b",
+              "tag": {
+                "with": "b"
+              },
+              "replaces": "a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a mutual pair, one note",
+      "tags": {
+        "a": "b",
+        "b": {
+          "with": "a",
+          "note": "from b"
+        }
+      },
+      "pairs": [
+        {
+          "a": "a",
+          "b": "a",
+          "note": {
+            "text": ""
+          },
+          "key": "a|a",
+          "targets": [
+            {
+              "text": "",
+              "id": "a",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "N",
+              "id": "a",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "a",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "  \n",
+              "id": "a",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "b"
+            }
+          ]
+        },
+        {
+          "a": "a",
+          "b": "b",
+          "note": {
+            "text": "from b",
+            "holder": "b"
+          },
+          "key": "a|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "b",
+              "tag": {
+                "with": "a"
+              }
+            },
+            {
+              "text": "N",
+              "id": "b",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "b",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "b",
+              "tag": {
+                "with": "a"
+              }
+            }
+          ]
+        },
+        {
+          "a": "b",
+          "b": "a",
+          "note": {
+            "text": "from b",
+            "holder": "b"
+          },
+          "key": "a|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "b",
+              "tag": {
+                "with": "a"
+              }
+            },
+            {
+              "text": "N",
+              "id": "b",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "b",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "b",
+              "tag": {
+                "with": "a"
+              }
+            }
+          ]
+        },
+        {
+          "a": "b",
+          "b": "b",
+          "note": {
+            "text": ""
+          },
+          "key": "b|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "b",
+              "tag": {
+                "with": "b"
+              },
+              "replaces": "a"
+            },
+            {
+              "text": "N",
+              "id": "b",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              },
+              "replaces": "a"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "b",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              },
+              "replaces": "a"
+            },
+            {
+              "text": "  \n",
+              "id": "b",
+              "tag": {
+                "with": "b"
+              },
+              "replaces": "a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a mutual pair, no notes",
+      "tags": {
+        "a": "b",
+        "b": "a"
+      },
+      "pairs": [
+        {
+          "a": "a",
+          "b": "a",
+          "note": {
+            "text": ""
+          },
+          "key": "a|a",
+          "targets": [
+            {
+              "text": "",
+              "id": "a",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "N",
+              "id": "a",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "a",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              },
+              "replaces": "b"
+            },
+            {
+              "text": "  \n",
+              "id": "a",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "b"
+            }
+          ]
+        },
+        {
+          "a": "a",
+          "b": "b",
+          "note": {
+            "text": "",
+            "holder": "a"
+          },
+          "key": "a|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "a",
+              "tag": {
+                "with": "b"
+              }
+            },
+            {
+              "text": "N",
+              "id": "a",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "a",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "a",
+              "tag": {
+                "with": "b"
+              }
+            }
+          ]
+        },
+        {
+          "a": "b",
+          "b": "a",
+          "note": {
+            "text": "",
+            "holder": "b"
+          },
+          "key": "a|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "b",
+              "tag": {
+                "with": "a"
+              }
+            },
+            {
+              "text": "N",
+              "id": "b",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "b",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "b",
+              "tag": {
+                "with": "a"
+              }
+            }
+          ]
+        },
+        {
+          "a": "b",
+          "b": "b",
+          "note": {
+            "text": ""
+          },
+          "key": "b|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "b",
+              "tag": {
+                "with": "b"
+              },
+              "replaces": "a"
+            },
+            {
+              "text": "N",
+              "id": "b",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              },
+              "replaces": "a"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "b",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              },
+              "replaces": "a"
+            },
+            {
+              "text": "  \n",
+              "id": "b",
+              "tag": {
+                "with": "b"
+              },
+              "replaces": "a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tags to flows that are not there",
+      "tags": {
+        "a": "gone2",
+        "b": "gone",
+        "c": null
+      },
+      "pairs": [
+        {
+          "a": "a",
+          "b": "a",
+          "note": {
+            "text": ""
+          },
+          "key": "a|a",
+          "targets": [
+            {
+              "text": "",
+              "id": "a",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "gone2"
+            },
+            {
+              "text": "N",
+              "id": "a",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              },
+              "replaces": "gone2"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "a",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              },
+              "replaces": "gone2"
+            },
+            {
+              "text": "  \n",
+              "id": "a",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "gone2"
+            }
+          ]
+        },
+        {
+          "a": "a",
+          "b": "b",
+          "note": {
+            "text": ""
+          },
+          "key": "a|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "b",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "gone"
+            },
+            {
+              "text": "N",
+              "id": "b",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              },
+              "replaces": "gone"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "b",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              },
+              "replaces": "gone"
+            },
+            {
+              "text": "  \n",
+              "id": "b",
+              "tag": {
+                "with": "a"
+              },
+              "replaces": "gone"
+            }
+          ]
+        },
+        {
+          "a": "a",
+          "b": "c",
+          "note": {
+            "text": ""
+          },
+          "key": "a|c",
+          "targets": [
+            {
+              "text": "",
+              "id": "c",
+              "tag": {
+                "with": "a"
+              }
+            },
+            {
+              "text": "N",
+              "id": "c",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "c",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "c",
+              "tag": {
+                "with": "a"
+              }
+            }
+          ]
+        },
+        {
+          "a": "b",
+          "b": "a",
+          "note": {
+            "text": ""
+          },
+          "key": "a|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "a",
+              "tag": {
+                "with": "b"
+              },
+              "replaces": "gone2"
+            },
+            {
+              "text": "N",
+              "id": "a",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              },
+              "replaces": "gone2"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "a",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              },
+              "replaces": "gone2"
+            },
+            {
+              "text": "  \n",
+              "id": "a",
+              "tag": {
+                "with": "b"
+              },
+              "replaces": "gone2"
+            }
+          ]
+        },
+        {
+          "a": "b",
+          "b": "b",
+          "note": {
+            "text": ""
+          },
+          "key": "b|b",
+          "targets": [
+            {
+              "text": "",
+              "id": "b",
+              "tag": {
+                "with": "b"
+              },
+              "replaces": "gone"
+            },
+            {
+              "text": "N",
+              "id": "b",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              },
+              "replaces": "gone"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "b",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              },
+              "replaces": "gone"
+            },
+            {
+              "text": "  \n",
+              "id": "b",
+              "tag": {
+                "with": "b"
+              },
+              "replaces": "gone"
+            }
+          ]
+        },
+        {
+          "a": "b",
+          "b": "c",
+          "note": {
+            "text": ""
+          },
+          "key": "b|c",
+          "targets": [
+            {
+              "text": "",
+              "id": "c",
+              "tag": {
+                "with": "b"
+              }
+            },
+            {
+              "text": "N",
+              "id": "c",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "c",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "c",
+              "tag": {
+                "with": "b"
+              }
+            }
+          ]
+        },
+        {
+          "a": "c",
+          "b": "a",
+          "note": {
+            "text": ""
+          },
+          "key": "a|c",
+          "targets": [
+            {
+              "text": "",
+              "id": "c",
+              "tag": {
+                "with": "a"
+              }
+            },
+            {
+              "text": "N",
+              "id": "c",
+              "tag": {
+                "with": "a",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "c",
+              "tag": {
+                "with": "a",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "c",
+              "tag": {
+                "with": "a"
+              }
+            }
+          ]
+        },
+        {
+          "a": "c",
+          "b": "b",
+          "note": {
+            "text": ""
+          },
+          "key": "b|c",
+          "targets": [
+            {
+              "text": "",
+              "id": "c",
+              "tag": {
+                "with": "b"
+              }
+            },
+            {
+              "text": "N",
+              "id": "c",
+              "tag": {
+                "with": "b",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "c",
+              "tag": {
+                "with": "b",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "c",
+              "tag": {
+                "with": "b"
+              }
+            }
+          ]
+        },
+        {
+          "a": "c",
+          "b": "c",
+          "note": {
+            "text": ""
+          },
+          "key": "c|c",
+          "targets": [
+            {
+              "text": "",
+              "id": "c",
+              "tag": {
+                "with": "c"
+              }
+            },
+            {
+              "text": "N",
+              "id": "c",
+              "tag": {
+                "with": "c",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "c",
+              "tag": {
+                "with": "c",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "c",
+              "tag": {
+                "with": "c"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a tag to another flow",
+      "tags": {
+        "old": null,
+        "now": "gone",
+        "other": null
+      },
+      "pairs": [
+        {
+          "a": "old",
+          "b": "old",
+          "note": {
+            "text": ""
+          },
+          "key": "old|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "old",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "old",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "old",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "old",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "old",
+          "b": "now",
+          "note": {
+            "text": ""
+          },
+          "key": "now|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "old",
+              "tag": {
+                "with": "now"
+              }
+            },
+            {
+              "text": "N",
+              "id": "old",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "old",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "old",
+              "tag": {
+                "with": "now"
+              }
+            }
+          ]
+        },
+        {
+          "a": "old",
+          "b": "other",
+          "note": {
+            "text": ""
+          },
+          "key": "old|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "now",
+          "b": "old",
+          "note": {
+            "text": ""
+          },
+          "key": "now|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "old",
+              "tag": {
+                "with": "now"
+              }
+            },
+            {
+              "text": "N",
+              "id": "old",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "old",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "old",
+              "tag": {
+                "with": "now"
+              }
+            }
+          ]
+        },
+        {
+          "a": "now",
+          "b": "now",
+          "note": {
+            "text": ""
+          },
+          "key": "now|now",
+          "targets": [
+            {
+              "text": "",
+              "id": "now",
+              "tag": {
+                "with": "now"
+              },
+              "replaces": "gone"
+            },
+            {
+              "text": "N",
+              "id": "now",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              },
+              "replaces": "gone"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "now",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              },
+              "replaces": "gone"
+            },
+            {
+              "text": "  \n",
+              "id": "now",
+              "tag": {
+                "with": "now"
+              },
+              "replaces": "gone"
+            }
+          ]
+        },
+        {
+          "a": "now",
+          "b": "other",
+          "note": {
+            "text": ""
+          },
+          "key": "now|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            }
+          ]
+        },
+        {
+          "a": "other",
+          "b": "old",
+          "note": {
+            "text": ""
+          },
+          "key": "old|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "old",
+              "tag": {
+                "with": "other"
+              }
+            },
+            {
+              "text": "N",
+              "id": "old",
+              "tag": {
+                "with": "other",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "old",
+              "tag": {
+                "with": "other",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "old",
+              "tag": {
+                "with": "other"
+              }
+            }
+          ]
+        },
+        {
+          "a": "other",
+          "b": "now",
+          "note": {
+            "text": ""
+          },
+          "key": "now|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "now"
+              }
+            }
+          ]
+        },
+        {
+          "a": "other",
+          "b": "other",
+          "note": {
+            "text": ""
+          },
+          "key": "other|other",
+          "targets": [
+            {
+              "text": "",
+              "id": "other",
+              "tag": {
+                "with": "other"
+              }
+            },
+            {
+              "text": "N",
+              "id": "other",
+              "tag": {
+                "with": "other",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "other",
+              "tag": {
+                "with": "other",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "other",
+              "tag": {
+                "with": "other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a blank note",
+      "tags": {
+        "old": null,
+        "now": {
+          "with": "old",
+          "note": "   "
+        }
+      },
+      "pairs": [
+        {
+          "a": "old",
+          "b": "old",
+          "note": {
+            "text": ""
+          },
+          "key": "old|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "old",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "old",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "old",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "old",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "old",
+          "b": "now",
+          "note": {
+            "text": "",
+            "holder": "now"
+          },
+          "key": "now|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "now",
+          "b": "old",
+          "note": {
+            "text": "",
+            "holder": "now"
+          },
+          "key": "now|old",
+          "targets": [
+            {
+              "text": "",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            },
+            {
+              "text": "N",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "N"
+              }
+            },
+            {
+              "text": "  Padded  ",
+              "id": "now",
+              "tag": {
+                "with": "old",
+                "note": "Padded"
+              }
+            },
+            {
+              "text": "  \n",
+              "id": "now",
+              "tag": {
+                "with": "old"
+              }
+            }
+          ]
+        },
+        {
+          "a": "now",
+          "b": "now",
+          "note": {
+            "text": ""
+          },
+          "key": "now|now",
+          "targets": [
+            {
+              "text": "",
+              "id": "now",
+              "tag": {
+                "with": "now"
+              },
+              "replaces": "old"
+            },
+            {
+              "text": "N",
+              "id": "now",
+              "tag": {
+                "with": "now",
+                "note": "N"
+              },
+              "replaces": "old"
+            },
+            {
+              "text": "  Padded  ",
+              "id": "now",
+              "tag": {
+                "with": "now",
+                "note": "Padded"
+              },
+              "replaces": "old"
+            },
+            {
+              "text": "  \n",
+              "id": "now",
+              "tag": {
+                "with": "now"
+              },
+              "replaces": "old"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "unsaved": [
+    {
+      "draft": null,
+      "saved": "x",
+      "result": false
+    },
+    {
+      "draft": "",
+      "saved": "",
+      "result": false
+    },
+    {
+      "draft": "  \n",
+      "saved": "",
+      "result": false
+    },
+    {
+      "draft": "x",
+      "saved": "",
+      "result": true
+    },
+    {
+      "draft": "x",
+      "saved": "x",
+      "result": false
+    },
+    {
+      "draft": "",
+      "saved": "x",
+      "result": true
+    },
+    {
+      "draft": "x",
+      "saved": "x\n",
+      "result": false
+    },
+    {
+      "draft": "x\n",
+      "saved": "x\n",
+      "result": false
+    },
+    {
+      "draft": "y",
+      "saved": "x\n",
+      "result": true
+    }
+  ],
+  "noteOff": [
+    {
+      "live": true,
+      "readOnly": false,
+      "result": null
+    },
+    {
+      "live": false,
+      "readOnly": false,
+      "result": "This page can't save"
+    },
+    {
+      "live": true,
+      "readOnly": true,
+      "result": "This page can't save"
+    },
+    {
+      "live": false,
+      "readOnly": true,
+      "result": "This page can't save"
+    }
+  ],
+  "pairOff": [
+    {
+      "kind": "flow",
+      "a": "old",
+      "b": "old",
+      "result": "Needs two different flows"
+    },
+    {
+      "kind": "flow",
+      "a": "old",
+      "b": "other",
+      "result": null
+    },
+    {
+      "kind": "run",
+      "a": "r1",
+      "b": "r1",
+      "result": "Needs two different runs"
+    }
+  ],
+  "removeNeedsConfirm": [
+    {
+      "tag": {
+        "with": "a",
+        "note": "why"
+      },
+      "result": true
+    },
+    {
+      "tag": {
+        "with": "a"
+      },
+      "result": false
+    },
+    {
+      "tag": null,
+      "result": false
+    }
+  ]
+}
