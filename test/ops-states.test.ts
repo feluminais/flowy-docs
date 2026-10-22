@@ -48,16 +48,18 @@ test('ops: putFlow writes states after the view, and an empty states or a blank 
   assert.deepEqual(Object.keys(putFlow(shop(), { id: 'plain', name: 'Plain', view: 'shop', states: {}, steps: [] }).flows.plain), ['name', 'view', 'steps'])
 })
 
-test('ops: deleteObject refuses a shape only a flow\'s states names', () => {
+test('ops: deleteObject takes a shape out of the states that name it', () => {
   const m = shop()
   m.objects.cache = { type: 'component', in: 'api', name: 'Cache' }
   m.flows.checkout.states = { cache: 'stopped' }
-  assert.throws(() => deleteObject(m, 'cache'), refused(/^"cache" is used by flow checkout\. Change or delete those first\.$/))
+  const gone = deleteObject(m, 'cache')
+  assert.equal(gone.objects.cache, undefined)
+  assert.equal('states' in gone.flows.checkout, false)
 
   const onStep = shop()
   onStep.objects.cache = { type: 'component', in: 'api', name: 'Cache' }
-  onStep.flows.checkout.steps[2].states = { cache: 'degraded' }
-  assert.throws(() => deleteObject(onStep, 'cache'), refused(/used by flow checkout/))
+  onStep.flows.checkout.steps[2].states = { cache: 'degraded', db: 'stopped' }
+  assert.deepEqual(deleteObject(onStep, 'cache').flows.checkout.steps[2].states, { db: 'stopped' })
 
   // A list or a text there names nothing, and a shape the states leave alone still goes.
   const odd = shop()

@@ -9,13 +9,20 @@ public class EditOpsTests
 {
     private static JsonNode Expected() => JsonNode.Parse(File.ReadAllText(Path.Combine(Repo.Root, "desktop", "fixtures", "expected", "ops.json")))!;
 
-    private static EditDoc Start()
+    private static EditDoc Start(string name = "edit")
     {
-        var dir = Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "edit", "flowy");
-        var flows = Directory.GetFiles(Path.Combine(dir, "flows"), "*.yaml").OrderBy(f => f, StringComparer.Ordinal)
-            .Select(f => KeyValuePair.Create(Path.GetFileNameWithoutExtension(f), File.ReadAllText(f)));
-        return EditDoc.Parse(File.ReadAllText(Path.Combine(dir, "model.yaml")), File.ReadAllText(Path.Combine(dir, "layout.yaml")), flows);
+        var dir = Path.Combine(Repo.Root, "desktop", "fixtures", "cases", name, "flowy");
+        KeyValuePair<string, string>[] Read(string sub) => Directory.Exists(Path.Combine(dir, sub))
+            ? Directory.GetFiles(Path.Combine(dir, sub), "*.yaml").OrderBy(f => f, StringComparer.Ordinal).Select(f => KeyValuePair.Create(Path.GetFileNameWithoutExtension(f), File.ReadAllText(f))).ToArray()
+            : [];
+        return EditDoc.Parse(File.ReadAllText(Path.Combine(dir, "model.yaml")), File.ReadAllText(Path.Combine(dir, "layout.yaml")), Read("flows"), Read("failures"));
     }
+
+    private static List<Target> Targets(JsonNode? list) => list!.AsArray().Select(t => t!["line"] is { } l
+        ? new Target(Line: new LineTarget(l["from"]!.GetValue<string>(), l["to"]!.GetValue<string>(), l["label"]?.GetValue<string>(), l["all"]?.GetValue<bool>() ?? false))
+        : new Target(Object: t["object"]!.GetValue<string>())).ToList();
+
+    private static List<Resolution> Resolutions(JsonNode? list) => list!.AsArray().Select(r => new Resolution(r!["key"]!.GetValue<string>(), r["action"]!.GetValue<string>(), r["to"]?.GetValue<string>())).ToList();
 
     private static string? Str(JsonNode s, string key) => s[key]?.GetValue<string>();
 
@@ -41,6 +48,7 @@ public class EditOpsTests
                     s["snippets"] is null ? null : Entries(s["snippets"])));
             case "deleteObject": return EditOps.DeleteObject(doc, Str(s, "id")!);
             case "deleteObjects": return EditOps.DeleteObjects(doc, s["ids"]!.AsArray().Select(i => i!.GetValue<string>()).ToList());
+            case "deleteWith": return EditOps.DeleteWith(doc, Targets(s["targets"]), Resolutions(s["resolutions"]));
             case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label")));
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));
             case "relabel": return EditOps.Relabel(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "label")!);
@@ -89,12 +97,9 @@ public class EditOpsTests
         Assert.StartsWith("lines: curved\nowner: platform-team\nobjects:\n", files["model.yaml"]);
     }
 
-    [Fact]
-    public void Every_edit_writes_what_the_typescript_ops_write_and_a_refused_one_says_the_same_words()
+    private static void RunScript(EditDoc doc, JsonArray results, int atLeast)
     {
-        var doc = Start();
-        var results = Expected()["results"]!.AsArray();
-        Assert.True(results.Count > 40);
+        Assert.True(results.Count > atLeast);
         for (var i = 0; i < results.Count; i++)
         {
             var spec = results[i]!["spec"]!;
@@ -122,6 +127,23 @@ public class EditOpsTests
             var actual = doc.ToFiles();
             Assert.True(Differences(expected, actual) == "", $"{step}\n{Differences(expected, actual)}");
         }
+    }
+
+    [Fact]
+    public void Every_edit_writes_what_the_typescript_ops_write_and_a_refused_one_says_the_same_words()
+    {
+        RunScript(Start(), Expected()["results"]!.AsArray(), 40);
+    }
+
+    [Fact]
+    public void Deleting_what_others_depend_on_settles_each_row_as_the_typescript_does_and_a_refusal_says_the_same_words()
+    {
+        var remove = Expected()["remove"]!;
+        var files = Start("delete").ToFiles();
+        var initial = Files(remove["initial"]!);
+        Assert.True(Differences(initial, files) == "", Differences(initial, files));
+        Assert.Contains("failures/ordering.yaml", files.Keys);
+        RunScript(Start("delete"), remove["results"]!.AsArray(), 20);
     }
 
     [Fact]

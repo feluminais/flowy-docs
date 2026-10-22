@@ -16,7 +16,7 @@ public sealed record ConnectionInput(string From, string To, string? Label = nul
 /// The edits, as functions from a <see cref="EditDoc"/> to a changed copy: a C# twin of src/core/ops.ts with the same rules, the same order of
 /// keys in what they write and the same words in what they refuse. A script run through both (desktop/fixtures/ops.ts) must write equal files.
 /// </summary>
-public static class EditOps
+public static partial class EditOps
 {
     private static readonly string[] CopiedFields = ["type", "name", "in", "external", "shape", "color", "opacity", "icon", "tech", "description", "code", "links", "snippets", "data"];
     private static readonly string[] Clearable = ["in", "shape", "color", "opacity", "icon", "tech", "description"];
@@ -81,27 +81,23 @@ public static class EditOps
         return result;
     }
 
+    /// <summary>
+    /// Delete a shape and what only exists because of it: its lines, and any state entry or <c>affects</c> entry that names it. Refused while anything that needs a decision depends
+    /// on it (shapes inside it, flow steps and views, failure modes), in the words of whatever is in the way; <see cref="DeleteWith"/> is how those are settled. The twin of <c>deleteObject</c> in src/core/ops.ts.
+    /// </summary>
     public static EditDoc DeleteObject(EditDoc doc, string id)
     {
         if (id == Names.Root && doc.Objects.ContainsKey(Names.Root))
             throw new OpError("\"root\" is reserved, so this object can't be changed here. Rename or delete it in model.yaml by hand.");
         if (ObjectOf(doc, id) is null) throw new OpError($"unknown object \"{id}\"");
-        var children = JsCompat.OrderKeys(doc.Objects.Keys).Where(other => other != id && Text(Entry(doc.Objects[other]), "in") == id).ToList();
+        var rows = Dependents.Of(doc.ToModel(), [new Target(Object: id)]).Where(r => r.NeedsDecision).ToList();
+        var children = rows.Where(r => r.Kind == "child").Select(r => r.Child).ToList();
         if (children.Count > 0) throw new OpError($"\"{id}\" still contains {string.Join(", ", children)}. Delete or move those first.");
-        // A shape that only a `states` names (the flow's or a step's) is used too: its state would be left pointing at nothing.
-        bool Staged(object? states) => states is OrderedDictionary<string, object?> map && map.ContainsKey(id);
-        var flows = JsCompat.OrderKeys(doc.Flows.Keys).Where(fid =>
-        {
-            var flow = Entry(doc.Flows[fid]);
-            return Text(flow, "view") == id
-                || (flow.TryGetValue("steps", out var steps) && steps is List<object?> list && list.Any(s => Text(Entry(s), "from") == id || Text(Entry(s), "to") == id || (Entry(s).TryGetValue("states", out var own) && Staged(own))))
-                || (flow.TryGetValue("states", out var start) && Staged(start));
-        }).ToList();
+        var flows = rows.Where(r => r.Flow is not null).Select(r => r.Flow).Distinct().ToList();
         if (flows.Count > 0) throw new OpError($"\"{id}\" is used by flow{(flows.Count > 1 ? "s" : "")} {string.Join(", ", flows)}. Change or delete those first.");
-        var d = doc.Clone();
-        d.Objects.Remove(id);
-        d.Connections.RemoveAll(c => Text(Entry(c), "from") == id || Text(Entry(c), "to") == id);
-        return d;
+        var analyses = rows.Where(r => r.Analysis is not null).Select(r => r.Analysis!).Distinct().ToList();
+        if (analyses.Count > 0) throw new OpError($"\"{id}\" is used by {Failures.AnalysesText(analyses)}. Change or delete those first.");
+        return DeleteWith(doc, [new Target(Object: id)], []);
     }
 
     /// <summary>
@@ -365,6 +361,7 @@ public static class EditOps
             var groups = LeaveGroup(flow, steps, index);
             steps.RemoveAt(index);
             d.Flows[id] = WithGroups(flow, groups);
+            RenumberModes(d, id, index + 1);
             return d;
         });
     }
