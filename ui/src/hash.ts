@@ -1,14 +1,17 @@
 import { isValidId, ROOT } from '../../src/core/model.ts'
+import type { Compare } from './compare.ts'
 
 /**
  * The address of what's on screen: `#<view>`, `#<view>/<flow>` while a flow plays, or `#<view>/perf/<run>/<level>` while the
  * Performance tab shows a run at one of its tested levels (the level's place in the run, from 0). A run with several sources has a place for each,
  * in dial order and separated by commas: `#<view>/perf/<run>/2,1.5`. The overview has no hash, so it's the page's own address, and a flow or a run
- * there is `#root/...`. Ids are [a-z0-9-], so nothing needs escaping.
+ * there is `#root/...`. A comparison is `#<view>/compare/<a>/<b>` for two flows and `#<view>/compare/run/<a>/<b>` for two runs, each with `/swap` on the end for the swapped
+ * mode. Ids are [a-z0-9-], so nothing needs escaping. A run or an analysis on show wins over a comparison, which wins over a flow.
  */
-export function toHash(view: string, flow?: string, perf?: Perf, failures?: Failures): string {
+export function toHash(view: string, flow?: string, perf?: Perf, failures?: Failures, compare?: Compare): string {
   if (perf !== undefined) return `#${view}/perf/${perf.run}/${perf.levels === undefined ? perf.level : perf.levels.join(',')}`
   if (failures !== undefined) return `#${view}/failures/${failures.analysis}${failures.mode === undefined ? '' : `/${failures.mode}`}`
+  if (compare !== undefined) return `#${view}/compare/${compare.kind === 'run' ? 'run/' : ''}${compare.a}/${compare.b}${compare.mode === 'swap' ? '/swap' : ''}`
   if (flow !== undefined) return `#${view}/${flow}`
   return view === ROOT ? '' : `#${view}`
 }
@@ -35,8 +38,11 @@ export type Failures = { analysis: string; mode?: string }
 export const alongFailures = (was: Failures | undefined, now: Failures | undefined): boolean =>
   was !== undefined && now !== undefined && was.analysis === now.analysis && was.mode !== now.mode
 
-/** What an address names. One that isn't made of ids opens the overview. A flow can be called `perf` or `failures`: only the longer forms name a run or an analysis. */
-export function readHash(hash: string): { view: string; flow?: string; perf?: Perf; failures?: Failures } {
+/**
+ * What an address names. One that isn't made of ids opens the overview. A flow can be called `perf`, `failures`, `compare`, `run` or `swap`: only the longer forms name a run, an
+ * analysis or a comparison. Of the one address that reads two ways, `compare/run/<a>/swap` (two runs, `a` and one called `swap`, or the flows `run` and `a` swapped), the flows win.
+ */
+export function readHash(hash: string): { view: string; flow?: string; perf?: Perf; failures?: Failures; compare?: Compare } {
   const parts = hash.replace(/^#/, '').split('/')
   const [view, flow, third, fourth] = parts
   if (!(view === ROOT || isValidId(view))) return { view: ROOT }
@@ -48,6 +54,16 @@ export function readHash(hash: string): { view: string; flow?: string; perf?: Pe
   }
   if (flow === 'failures' && (parts.length === 3 || parts.length === 4) && isValidId(third) && (parts.length === 3 || isValidId(fourth)))
     return { view, failures: { analysis: third, ...(parts.length === 4 ? { mode: fourth } : {}) } }
+  if (flow === 'compare') {
+    const swapped = parts[parts.length - 1] === 'swap'
+    const compare: Compare | undefined =
+      parts.length === 4 ? { kind: 'flow', a: third, b: fourth, mode: 'side' }
+      : parts.length === 5 && swapped ? { kind: 'flow', a: third, b: fourth, mode: 'swap' }
+      : parts.length === 5 && third === 'run' ? { kind: 'run', a: fourth, b: parts[4], mode: 'side' }
+      : parts.length === 6 && third === 'run' && swapped ? { kind: 'run', a: fourth, b: parts[4], mode: 'swap' }
+      : undefined
+    if (compare !== undefined && isValidId(compare.a) && isValidId(compare.b)) return { view, compare }
+  }
   if (parts.length > 2) return { view: ROOT }
   return flow !== undefined && isValidId(flow) ? { view, flow } : { view }
 }
@@ -62,13 +78,21 @@ export function runAddress(run: string, here: number[], multi: boolean, ramping:
 }
 
 /**
+ * Whether the address moves along a comparison rather than to a new place: the same kind of comparison with another flow or run picked, or the other mode. Such a step replaces the
+ * entry, so Back still undoes opening or closing the comparison, and a zoom, which is a step even with a comparison open (the caller checks the view).
+ */
+export const alongCompare = (was: Compare | undefined, now: Compare | undefined): boolean =>
+  was !== undefined && now !== undefined && was.kind === now.kind && (was.a !== now.a || was.b !== now.b || was.mode !== now.mode)
+
+/**
  * How the address should change to `address`, given the one in the bar (`current`), or undefined when it should be left alone. A step the reader takes pushes an entry, so Back goes
  * back. Anything else replaces the address: the page opening (`quiet`, which also drops a part that named nothing), Back or a typed address, E, a live reload that falls back
- * to another view than the one asked for (`view` is not `viewId`), moving along a run (not a step to go back to), or picking another mode. A zoom with a mode picked is a step.
+ * to another view than the one asked for (`view` is not `viewId`), moving along a run (not a step to go back to), or picking another mode or another flow or run in a comparison. A zoom with a mode picked is a step.
  */
-export function addressChange(a: { quiet: boolean; address: string; current: string; view: string; viewId: string; perfOpen: boolean; runKey: string; failuresAt: Failures | undefined }): 'push' | 'replace' | undefined {
+export function addressChange(a: { quiet: boolean; address: string; current: string; view: string; viewId: string; perfOpen: boolean; runKey: string; failuresAt: Failures | undefined; compareAt?: Compare }): 'push' | 'replace' | undefined {
   if (!a.quiet && a.address === a.current) return undefined
   const was = readHash(a.current)
   const alongRun = a.perfOpen && was.perf?.run === a.runKey && was.view === a.view
-  return a.quiet || a.view !== a.viewId || alongRun || alongFailures(was.failures, a.failuresAt) ? 'replace' : 'push'
+  const alongPair = was.view === a.view && alongCompare(was.compare, a.compareAt)
+  return a.quiet || a.view !== a.viewId || alongRun || alongFailures(was.failures, a.failuresAt) || alongPair ? 'replace' : 'push'
 }
