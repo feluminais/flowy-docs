@@ -15,6 +15,6 @@ steps:
     text: Streams its position every 5 seconds
     description: |
       Only while a job is open. A position older than a minute is dropped, so a courier who loses
-      signal stops moving on the customer's map instead of jumping when it comes back.
+      signal stops moving on the customer's map until a fresh position comes in.
   - { from: tracking, to: customer-app, text: The customer watches the courier come }
   - { from: courier-app, to: order-api, text: Marks the order delivered }
