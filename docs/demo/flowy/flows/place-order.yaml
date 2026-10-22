@@ -7,7 +7,7 @@ steps:
     text: POST /orders with the basket
     description: |
       The app sends an idempotency key with the request, so a double tap or a retry on a bad
-      connection places one order, not two.
+      connection places a single order.
   - from: order-api
     to: stripe
     text: Holds the amount on the card
