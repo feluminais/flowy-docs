@@ -19,33 +19,102 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/zoom-dark.gif">
-    <img alt="The browser version on Plum, a food-delivery service: zooming into Ordering and then Order API, back out, a flow playing step by step, a sideways move to Delivery, and a load test stepping up from 100 to 1200 orders a minute until Dispatch turns red" src="docs/images/zoom-light.gif" width="900">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/anim/zoom-dark.webp">
+    <img alt="The browser version on Plum, a food-delivery service: zooming into Ordering and Order API, back out, sideways to Delivery and into Dispatch, and out to the overview" src="docs/images/anim/zoom-light.webp">
   </picture>
 </p>
 
 Flowy Docs draws a system as shapes you zoom into: people, systems, apps, stores and components, the connections between
-them, and step-by-step flows. The model is plain YAML in a `flowy/` folder, so it goes through git and review like the code it
-describes. You read it in the desktop app, a browser or VS Code. Claude can write it, or you can draw it on the canvas.
+them, and step-by-step flows. Double-click a shape to open what is inside it. Esc or the breadcrumb takes you back up, and a
+faded shape beside you slides across instead. The model is plain YAML in a `flowy/` folder, so it goes through git and review
+like the code it describes. You read it in the desktop app, a browser or VS Code, and you or an AI agent write it.
 
-The animation is the browser version and the screenshots are the desktop app. Both show Plum, a made-up delivery service whose
-model is in [docs/demo/flowy](docs/demo/flowy).
+The animations are the browser version on Plum, a made-up delivery service whose model is in [docs/demo/flowy](docs/demo/flowy).
 
-## Features
+## Flows
 
-| | |
-| --- | --- |
-| [Zoom](docs/guide/canvas.md#read-it) | Double-click a shape to open what is inside it. Esc or the breadcrumb takes you back up |
-| [Flows](docs/guide/canvas.md#read-it) | Play a request step by step, including failures, repeats, branches and parallel lanes |
-| [Performance](docs/guide/performance.md#performance) | Replay a load test on the diagram and see where the system first struggles |
-| [Failure modes](docs/guide/failures.md#failure-modes) | Rate how each part fails and read the ranked list on the canvas |
-| [Data](docs/guide/data.md#data) | Show what a store holds: tables with sample rows, topics, key sets |
-| [Source links](docs/guide/canvas.md#read-it) | A shape lists the files it lives in, and a path that no longer exists is reported |
-| [Claude](docs/guide/claude.md#let-claude-build-it) | An MCP server lets Claude map a repo into the model, and it refuses a change that would break the model |
-| [Edit](docs/guide/canvas.md#edit-it) | Drag, connect and record flows on the canvas. Every save goes through the same checks |
-| [Share](docs/guide/share.md#share-it) | Export a read-only site, or copy a view as a Mermaid diagram for a README or a pull request |
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/anim/flows-dark.webp">
+    <img alt="The payment is captured, a flow with a retry and a branch, played one step at a time with the line animations" src="docs/images/anim/flows-light.webp">
+  </picture>
+</p>
 
-![Flowy Docs on Plum, a food-delivery service: the Ordering view with a store's tables open in its panel, search, a flow playing, the shape pickers of edit mode, a load-test replay, and the dark theme behind](docs/images/hero.png)
+Play a request one step at a time. A step can call, send or fail, and a group of steps can repeat, branch or run in parallel.
+[More](docs/guide/flows.md)
+
+## Performance
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/anim/performance-dark.webp">
+    <img alt="The Delivery view while a load test steps up from 100 to 1200 orders a minute: dots speed up along the lines, shape outlines go from green to red, and a click on Dispatch reads its numbers" src="docs/images/anim/performance-light.webp">
+  </picture>
+</p>
+
+Put a load test's results in `flowy/perf/` and replay them on the diagram. Dots run along the lines, outlines go from green to
+red as a shape fills up, and the panel says where the system first struggles. [More](docs/guide/performance.md)
+
+## Failure modes
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/anim/failures-dark.webp">
+    <img alt="The Failures tab on the Ordering view: picking a mode outlines the part that fails and what it affects, and Show it plays the flow that tells it" src="docs/images/anim/failures-light.webp">
+  </picture>
+</p>
+
+Rate how each part can fail on severity, likelihood and how hard it is to spot. The canvas badges the worst parts, outlines
+what a mode touches and plays the flow that tells it. [More](docs/guide/failures.md)
+
+## Data
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/anim/data-dark.webp">
+    <img alt="Orders DB's panel: the orders table with sample rows and a note, then order_items and refunds opened" src="docs/images/anim/data-light.webp">
+  </picture>
+</p>
+
+A store shows what it holds: tables as tables, with sample rows, a short note where a choice needs explaining, and how long
+the data is kept. The rows are made up, and Flowy never connects to a database. [More](docs/guide/data.md)
+
+## Edit
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/anim/edit-dark.webp">
+    <img alt="Edit mode: a line is drawn from one shape to another and labelled, a shape is added, and its shape is changed with the drawn picker" src="docs/images/anim/edit-light.webp">
+  </picture>
+</p>
+
+Press **E** to draw lines, add shapes and restyle them from drawn pickers. Every save is checked, written as plain YAML and can
+be undone, so git sees the same change whether you made it by hand or in the app. [More](docs/guide/canvas.md#edit-it)
+
+## AI agents
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/anim/agents-dark.webp">
+    <img alt="An MCP client adds Promo codes and Loyalty points to Order API and connects them, while the canvas redraws as each call lands" src="docs/images/anim/agents-light.webp">
+  </picture>
+</p>
+
+An MCP server lets Claude or any other MCP client read the model and write it: shapes, lines, flows and failure analyses. Each
+call is checked, so a change that would break the model is refused, and an open canvas redraws as the files change. From the
+root of the repo you want to document:
+
+```bash
+claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
+```
+
+Another MCP client runs `node /path/to/flowy-docs/dist/cli.js mcp` over stdio. Then ask the agent to "map this repo into Flowy". [More](docs/guide/ai.md)
+
+## Also
+
+- **Source links.** A shape lists the files it lives in, and a path that no longer exists is reported. [More](docs/guide/canvas.md#read-it)
+- **Share.** Export a read-only site, or copy a view as a Mermaid diagram for a README or a pull request. [More](docs/guide/share.md)
+- **Search and history.** Ctrl+K finds a shape anywhere, and the YAML tab keeps every change to the files. [More](docs/guide/canvas.md#yaml-and-history)
 
 ## Install
 
@@ -75,7 +144,7 @@ To look at Plum first, run `node dist/cli.js --dir docs/demo/flowy` in the clone
 
 ## What a model looks like
 
-This is Checkout from the demo, a component of Order API with a line to Stripe:
+This is Checkout from the demo, a component of Order API with a line to Stripe. You can write the files by hand too.
 
 ```yaml
 objects:
@@ -89,19 +158,11 @@ connections:
   - { from: checkout, to: stripe, label: holds the card }
 ```
 
-Ask Claude to write the rest. From the root of the repo you want to document:
-
-```bash
-claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
-```
-
-Then say "map this repo into Flowy". [The guide](docs/guide/claude.md#let-claude-build-it) lists what it can change.
-
 ## Documentation
 
 | Page | Covers |
 | --- | --- |
-| [Guide](docs/guide.md) | Everything the canvas does, and how editing, Claude and sharing work |
+| [Guide](docs/guide.md) | Everything the canvas does, and how editing, agents and sharing work |
 | [Writing good Flowy docs](docs/writing.md) | What to put in a model, shape by shape |
 | [File format](docs/format.md) | Every key of the YAML files |
 | [Install](docs/install.md) | The desktop app, the browser version, the VS Code extension |
