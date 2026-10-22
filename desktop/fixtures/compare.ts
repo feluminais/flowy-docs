@@ -8,6 +8,8 @@ import { modelOf } from '../../src/core/state.ts'
 import { loadState } from '../../src/node/files.ts'
 import { choicesFor, orderPair } from '../../ui/src/compare.ts'
 import type { Choice } from '../../ui/src/compare.ts'
+import { crossfadeDuration, FADE_MS, planSwap, SWAP_MS, swapDuration } from '../../ui/src/swap.ts'
+import type { GraphNode } from '../../ui/src/swap.ts'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
 
@@ -129,4 +131,46 @@ export function dumpRunCompareText(): unknown {
       return { name, text, tag, error: true }
     }
   })
+}
+
+const N = (id: string, x = 0, y = 0): GraphNode => ({ id, position: { x, y } })
+const MANY = (count: number, shift: number): GraphNode[] => Array.from({ length: count }, (_, i) => N(`n${i * 2 + shift}`, (i * 37) % 900, (i * 53) % 700))
+
+/** Cases for planSwap: what two diagrams' shapes do when the canvas swaps from one to the other. */
+const SWAP_CASES: { name: string; from: GraphNode[]; to: GraphNode[] }[] = [
+  { name: 'a,b to b,c', from: [N('a', 0, 0), N('b', 10, 20)], to: [N('b', 30, 40), N('c', 50, 60)] },
+  { name: 'identical', from: [N('a', 1, 2), N('b', 3, 4)], to: [N('a', 1, 2), N('b', 3, 4)] },
+  { name: 'empty from', from: [], to: [N('a', 1, 2), N('b', 3, 4)] },
+  { name: 'empty to', from: [N('a', 1, 2), N('b', 3, 4)], to: [] },
+  { name: 'both empty', from: [], to: [] },
+  { name: 'reordered', from: [N('a', 0, 0), N('b', 1, 1), N('c', 2, 2)], to: [N('c', 5, 5), N('a', 6, 6), N('b', 7, 7)] },
+  { name: 'duplicate ids in from', from: [N('a', 0, 0), N('a', 9, 9), N('b', 1, 1)], to: [N('a', 5, 5)] },
+  { name: 'duplicate ids in to', from: [N('a', 0, 0)], to: [N('a', 1, 1), N('a', 2, 2), N('z', 3, 3), N('z', 4, 4)] },
+  { name: 'duplicate leaving ids', from: [N('a', 0, 0), N('a', 1, 1), N('b', 2, 2)], to: [N('c', 3, 3)] },
+  { name: '__proto__ stays', from: [N('__proto__', 1, 2), N('toString', 3, 4)], to: [N('__proto__', 5, 6), N('constructor', 7, 8)] },
+  { name: '__proto__ enters and leaves', from: [N('__proto__', 1, 2)], to: [N('hasOwnProperty', 3, 4)] },
+  { name: 'changed positions', from: [N('a', 0, 0), N('b', 100, 0)], to: [N('a', -50.5, 12.25), N('b', 100, 0)] },
+  { name: 'fractions and negatives', from: [N('a', -1.5, -2.5)], to: [N('a', 0.0000001, 123456.789)] },
+  { name: 'many nodes', from: MANY(400, 0), to: MANY(400, 1) },
+]
+
+/** What planSwap says for each case, with the swap's constants and durations: the C# SwapPlans must give the same. */
+export function dumpSwapPlans(): unknown {
+  const xy = (p: { x: number; y: number }) => ({ x: p.x, y: p.y })
+  return {
+    swapMs: SWAP_MS,
+    fadeMs: FADE_MS,
+    durations: { swap: swapDuration(false), swapReduced: swapDuration(true), crossfade: crossfadeDuration(false), crossfadeReduced: crossfadeDuration(true) },
+    cases: SWAP_CASES.map(({ name, from, to }) => {
+      const plan = planSwap(from, to)
+      return {
+        name,
+        from: from.map(n => ({ id: n.id, ...xy(n.position) })),
+        to: to.map(n => ({ id: n.id, ...xy(n.position) })),
+        stay: plan.stay.map(s => ({ id: s.id, from: xy(s.from), to: xy(s.to) })),
+        entering: plan.entering,
+        leaving: plan.leaving,
+      }
+    }),
+  }
 }
