@@ -30,10 +30,10 @@ test('a new store gets its keys in the file order, data last', () => {
 test('a column with only a name is written bare, and the keys of a column are ordered', () => {
   const [entry] = tidyData([{
     name: 'a',
-    columns: [{ note: 'n', to: 't', key: 'primary', name: 'id' }, { name: 'x' }, { name: 'y', to: '', note: '' }],
+    columns: [{ note: 'n', to: 't', key: 'primary', type: 'uuid', name: 'id' }, { name: 'x' }, { name: 'y', to: '', note: '', type: '' }],
   }]) as { columns: unknown[] }[]
-  assert.deepEqual(entry.columns, [{ name: 'id', key: 'primary', to: 't', note: 'n' }, 'x', 'y'])
-  assert.deepEqual(Object.keys(entry.columns[0] as object), ['name', 'key', 'to', 'note'])
+  assert.deepEqual(entry.columns, [{ name: 'id', type: 'uuid', key: 'primary', to: 't', note: 'n' }, 'x', 'y'])
+  assert.deepEqual(Object.keys(entry.columns[0] as object), ['name', 'type', 'key', 'to', 'note'])
 })
 
 test('a blank kind or limits is dropped and an entry\'s keys are ordered', () => {
