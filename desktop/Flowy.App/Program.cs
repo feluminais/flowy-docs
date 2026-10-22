@@ -10,7 +10,7 @@ namespace Flowy.App;
 /// </summary>
 internal sealed record LaunchOptions(IReadOnlyList<string> Arguments, IReadOnlyDictionary<string, string> Values, IReadOnlySet<string> Flags)
 {
-    private static readonly HashSet<string> WithValue = ["--shot", "--view", "--select", "--tab", "--size", "--theme", "--lines", "--flow", "--step", "--search", "--hover", "--line", "--zoom", "--delay", "--scale", "--edit-flow", "--run", "--at"];
+    private static readonly HashSet<string> WithValue = ["--shot", "--view", "--select", "--tab", "--size", "--theme", "--lines", "--flow", "--step", "--search", "--hover", "--line", "--zoom", "--delay", "--scale", "--edit-flow", "--run", "--at", "--delete"];
 
     public static LaunchOptions Parse(string[] args)
     {

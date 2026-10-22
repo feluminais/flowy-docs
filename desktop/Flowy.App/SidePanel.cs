@@ -24,6 +24,7 @@ internal sealed class SidePanel : Border
     private LineEditor? _lineEditor;
     private AddForm? _addForm;
     private Recorder? _recorder;
+    private UsedByPanel? _usedBy;
 
     // What a test can look at.
 
@@ -34,6 +35,8 @@ internal sealed class SidePanel : Border
     internal AddForm? CurrentAddForm => _addForm;
 
     internal Recorder? CurrentRecorder => _recorder;
+
+    internal UsedByPanel? CurrentUsedBy => _usedBy;
 
     public event Action? Closed;
 
@@ -63,6 +66,7 @@ internal sealed class SidePanel : Border
         _lineEditor = null;
         _addForm = null;
         _recorder = null;
+        _usedBy = null;
     }
 
     /// <summary>Puts <paramref name="content"/> in the panel. Showing the same thing again (by <paramref name="key"/>) keeps where the reader had scrolled to.</summary>
@@ -75,6 +79,7 @@ internal sealed class SidePanel : Border
         _lineEditor = null;
         _addForm = null;
         _recorder = null;
+        _usedBy = null;
         _shown = key;
         IsVisible = true;
         if (!same) _scroll.Offset = default;
@@ -389,8 +394,20 @@ internal sealed class SidePanel : Border
 
     // ---- edit mode ---------------------------------------------------------------------------------------------
 
+    /// <summary>What is waiting on a delete (see <see cref="UsedByPanel"/>). Showing the same one again keeps its choices and gives it the folder as it is now.</summary>
+    public void ShowUsedBy(UsedByPanel panel, Model model)
+    {
+        if (_usedBy is { } open && ReferenceEquals(open, panel) && _shown == "usedby")
+        {
+            open.Update(model);
+            return;
+        }
+        Show(panel, "usedby");
+        _usedBy = panel;
+    }
+
     /// <summary>The form for a box. Showing the same box again updates its fields in place, except one being typed in.</summary>
-    public void ShowObjectEditor(Model model, string id, IReadOnlyList<Problem> problems, EditRun run, Action<string> pick, Action<string?> hover, Action deleted)
+    public void ShowObjectEditor(Model model, string id, IReadOnlyList<Problem> problems, EditRun run, Action<string> pick, Action<string?> hover, Action<IReadOnlyList<Target>, Action?> askDelete)
     {
         if (model.GetObject(id) is null)
         {
@@ -402,14 +419,14 @@ internal sealed class SidePanel : Border
             editor.Update(model, problems);
             return;
         }
-        var fresh = new ObjectEditor(this, id, run, pick, hover, deleted);
+        var fresh = new ObjectEditor(this, id, run, pick, hover, askDelete);
         fresh.Update(model, problems);
         Show(fresh, $"edit-object:{id}");
         _objectEditor = fresh;
     }
 
     /// <summary>The forms for the connections one line stands for: a label each, and delete.</summary>
-    public void ShowLineEditor(Model model, string view, string from, string to, IReadOnlyList<Problem> problems, EditRun run, Action closed)
+    public void ShowLineEditor(Model model, string view, string from, string to, IReadOnlyList<Problem> problems, EditRun run, Action closed, Action<IReadOnlyList<Target>, Action?> askDelete)
     {
         if (Navigation.ConnectionsOf(model, view, from, to).Count == 0)
         {
@@ -422,7 +439,7 @@ internal sealed class SidePanel : Border
             editor.Update(model, view, problems);
             return;
         }
-        var fresh = new LineEditor(this, from, to, run, closed);
+        var fresh = new LineEditor(this, from, to, run, closed, askDelete);
         fresh.Update(model, view, problems);
         Show(fresh, key);
         _lineEditor = fresh;

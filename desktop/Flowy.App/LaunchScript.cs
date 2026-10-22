@@ -63,6 +63,9 @@ internal sealed class LaunchScript
         if (options.Value("--search") is { } search) _reader.OpenSearch(search);
         if (options.Has("--shortcuts")) _reader.ShowShortcuts();
         if (options.Value("--zoom") is { } zoom) _reader.OpenBox(zoom);
+        // --delete asks to delete the shapes named (separated by commas), which opens the Used by panel when something depends on them; --remove-all then settles every row.
+        if (options.Value("--delete") is { } delete) _reader.AskDelete([.. delete.Split(',').Select(id => new Flowy.Core.Target(Object: id))]);
+        if (options.Has("--remove-all")) _reader.UsedByNow?.PressRemoveAll();
     }
 
     private void Save(string path, double scale)

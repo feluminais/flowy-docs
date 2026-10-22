@@ -9,6 +9,7 @@ import { dumpDependents } from './dependents.ts'
 import { dumpDetect, dumpHighlight } from './detect.ts'
 import { dumpEditLabels } from './editlabel.ts'
 import { dumpFailures, dumpFailuresView } from './failures.ts'
+import { dumpUsedBy } from './usedby.ts'
 import { dumpFormula } from './formula.ts'
 import { dumpGeometry } from './geometry.ts'
 import { buildTrail, dumpHistory } from './history.ts'
@@ -39,6 +40,7 @@ await write('mermaid', await dumpMermaid())
 await write('yaml-write', await dumpYamlWrite())
 await write('ops', await dumpOps())
 await write('dependents', await dumpDependents())
+await write('usedby', await dumpUsedBy())
 await write('beats', dumpBeats())
 await write('outline', await dumpOutline())
 await write('formula', dumpFormula())

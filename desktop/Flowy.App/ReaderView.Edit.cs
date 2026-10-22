@@ -289,19 +289,41 @@ internal sealed partial class ReaderView
 
     private void CloseSide() => CloseDetails();
 
+    /// <summary>
+    /// Deletes shapes or lines. With nothing depending on them they go at once, and the notice says what went along and has an Undo button. Otherwise the Used by
+    /// panel opens to settle what does (see <see cref="UsedByPanel"/>). <paramref name="then"/> runs once they are gone.
+    /// </summary>
+    internal void AskDelete(IReadOnlyList<Target> targets, Action? then = null) => _ = AskDeleteAsync(targets, then);
+
+    internal async Task AskDeleteAsync(IReadOnlyList<Target> targets, Action? then = null)
+    {
+        if (_folder is not { } folder || !Editing) return;
+        if (Dependents.Of(folder.Model, targets).Any(r => r.NeedsDecision))
+        {
+            _side = new Side.UsedBy(targets, _side);
+            Refresh();
+            return;
+        }
+        var none = new Dictionary<string, Choice>();
+        var text = UsedBy.DoneText(folder.Model, UsedBy.PlanOf(folder.Model, targets, none), none, targets);
+        if (!await RunAsync(d => EditOps.DeleteWith(d, targets, []))) return;
+        then?.Invoke();
+        ShowNotice(text, 0, () => _ = UndoAsync());
+    }
+
     /// <summary>Delete: the open box, or the open line when it stands for just one connection.</summary>
     internal async Task DeleteSelectedAsync()
     {
         if (_folder is not { } folder || !Editing) return;
         if (_side is Side.Box { Id: var id })
         {
-            if (await RunAsync(d => EditOps.DeleteObject(d, id))) CloseSide();
+            await AskDeleteAsync([new Target(Object: id)], CloseSide);
             return;
         }
         if (_side is Side.Boxes { Ids: var picked })
         {
-            // One edit for the lot, so one undo brings them all back, and a box that can't go (it has boxes inside, or a flow uses it) stops them all.
-            if (await RunAsync(d => EditOps.DeleteObjects(d, picked))) CloseSide();
+            // One edit for the lot, so one undo brings them all back, and what depends on any of them is settled in one panel.
+            await AskDeleteAsync(picked.Select(p => new Target(Object: p)).ToList(), CloseSide);
             return;
         }
         if (_side is not Side.Line { From: var from, To: var to }) return;
@@ -314,9 +336,13 @@ internal sealed partial class ReaderView
         if (merged.Count == 1)
         {
             var c = merged[0].Connection;
-            if (await RunAsync(d => EditOps.RemoveConnection(d, new ConnectionInput(c.From ?? "", c.To ?? "", c.Label ?? "")))) CloseSide();
+            await AskDeleteAsync([new Target(Line: new LineTarget(c.From ?? "", c.To ?? "", c.Label ?? ""))], CloseSide);
         }
     }
+
+    internal Notice? NoticeNow => _notice;
+
+    internal UsedByPanel? UsedByNow => _panel.CurrentUsedBy;
 
     // What a test can look at.
     internal SidePanel Panel => _panel;

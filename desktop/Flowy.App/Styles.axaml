@@ -693,6 +693,10 @@
     <Setter Property="Opacity" Value="0.45" />
   </Style>
   <Style Selector=":is(Grid).box.fails, :is(Grid).box.affected"><Setter Property="Opacity" Value="1" /></Style>
+  <!-- The Used by panel: a shape about to go is outlined in red and dashed, and the one its focused row names in the accent colour. -->
+  <Style Selector=":is(Grid).box.going Path.failline, :is(Grid).box.flagged Path.failline"><Setter Property="IsVisible" Value="True" /></Style>
+  <Style Selector=":is(Grid).box.going Path.failline"><Setter Property="StrokeDashArray" Value="6,4" /></Style>
+  <Style Selector=":is(Grid).box.flagged Path.failline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector=":is(Grid).box.faildim"><Setter Property="Opacity" Value="0.15" /></Style>
   <!-- The marks of a key (the Performance panel and the Failures tab), each drawn as it looks on the chart or the canvas. -->
   <Style Selector="Border.sw.high, Border.sw.medium, Border.sw.low, Border.sw.unrated">

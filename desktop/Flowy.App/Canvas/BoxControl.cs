@@ -315,6 +315,16 @@ internal sealed class BoxControl : Grid
     /// What the Failures tab draws on this shape: a badge with how many failure modes it carries, in the colour of the worst, and for a picked mode a red
     /// outline when it fails, a fainter one when it is hurt, and a fade when it is neither. The badge's label says the count and the band in words.
     /// </summary>
+    /// <summary>How the Used by panel marks this shape: about to go, named by the row in focus, or not at all.</summary>
+    public void SetUsed(UsedMark mark)
+    {
+        Classes.Set("going", mark == UsedMark.Going);
+        Classes.Set("flagged", mark == UsedMark.Flagged);
+    }
+
+    /// <summary>What a test can look at: how the Used by panel marks this shape.</summary>
+    internal UsedMark UsedShown => Classes.Contains("going") ? UsedMark.Going : Classes.Contains("flagged") ? UsedMark.Flagged : UsedMark.None;
+
     public void SetFailure(FailureMark? mark, FailLight light)
     {
         _failMark = mark;

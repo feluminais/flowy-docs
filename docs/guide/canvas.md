@@ -95,6 +95,8 @@ checks, and write the same text, so a change made in one looks the same in git a
   remove the mode, repoint it. Click a row to outline the shapes it names. Remove all (Enter) settles every row by removing, Reroute all (R)
   sends steps and modes to one shape, and Delete stays grey until each row has a choice. Esc closes the panel and changes nothing. All of it
   is one edit, so Ctrl+Z puts everything back.
+
+  ![Orders DB about to be deleted in edit mode: the Used by panel with a row for each flow step and failure mode that names it, Remove step, Reroute to and Delete flow beside each, and Delete greyed out until every row has a choice](../images/desktop-used-by.png)
 - To work on several shapes at once, Ctrl+click (or Shift+click) adds a shape to the selection and takes it out again, Shift and drag on
   the empty canvas draws a box round the shapes to select, and Ctrl+A selects every shape in the view. Dragging any selected shape moves
   them all, and Esc straight after takes the whole move back. Delete removes them all as one edit, and what depends on any of them

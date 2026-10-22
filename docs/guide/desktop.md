@@ -11,7 +11,7 @@ with the reason in a banner, and while it is there editing is off.
 
 Editing in the app: **E** (or the Edit button) turns it on, and the bar gains New flow, Add, Undo, Redo and Tidy. A shape's panel becomes
 a form (name, type, outside service, tech, look, description, code, links, source, and a store's data), and a line's panel has a label field and a delete for each connection it
-stands for. Drag a shape to move it; the dot under a shape starts a connection, which you drop on another shape. Each edit is checked first:
+stands for. Delete works as it does in the browser: a shape nothing depends on goes at once, with an Undo button in the notice, and one that flows or failure modes use opens the Used by panel ([Edit it](canvas.md#edit-it)). Drag a shape to move it; the dot under a shape starts a connection, which you drop on another shape. Each edit is checked first:
 one that would add a problem is refused and a notice says why. A file changed elsewhere since the app read it is never overwritten: the
 edit is dropped, and the view reloads. **Ctrl+Z** and **Ctrl+Y** undo and redo, but only where the files are still as that edit left
 them. The sample model that ships with the app can't be edited.
