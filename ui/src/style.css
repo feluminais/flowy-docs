@@ -460,6 +460,26 @@ svg { flex: none; }
 .panel button.pick.taker { flex-direction: row; justify-content: flex-start; gap: 8px; padding: 4px 8px 4px 4px; font-size: 12px; }
 .panel button.pick.taker > span:not(.tile) { flex: 1; text-align: left; }
 .pick-grid.states { grid-template-columns: repeat(4, 1fr); }
+/* Compare with: the partner now, a search over the other flows drawn as tiles, and the flows that compare with this one. */
+.pick-field.partners { display: flex; flex-direction: column; gap: 8px; }
+.partner-now { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; border: 1.5px solid var(--accent); border-radius: 10px; background: var(--tint); color: var(--accent); }
+.partner-now.missing { border-color: var(--line); background: var(--hover); color: var(--muted); }
+.partner-now > svg { flex: none; }
+.partner-text { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 1px; text-align: left; }
+.partner-text > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.partner-text strong { color: var(--fg); font-size: 14px; }
+.partner-text .muted { font-size: 12px; }
+.panel button.partner-remove { flex: none; min-height: 26px; gap: 4px; padding: 0 8px; font-size: 12px; }
+.partner-none { margin: 0; font-size: 13px; }
+.pick-find { display: flex; align-items: center; gap: 8px; padding: 0 10px; border-radius: 8px; background: var(--hover); color: var(--muted); }
+.pick-find input { flex: 1; min-width: 0; padding: 7px 0; border: 0; background: none; color: var(--fg); font-size: 14px; }
+.pick-find input:focus-visible { outline: none; }
+.pick-find:focus-within { box-shadow: 0 0 0 2px var(--accent); }
+.pick-grid.partner-list { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); max-height: 168px; margin-top: 0; overflow-y: auto; }
+.panel button.pick.partner { flex-direction: row; justify-content: flex-start; gap: 8px; padding: 6px 8px; font-size: 13px; }
+.panel button.pick.partner > svg { flex: none; color: var(--muted); }
+.panel button.pick.partner > .partner-text { max-width: none; }
+.panel button.pick.partner .partner-text > span:first-child { color: var(--fg); }
 .panel button.pick {
   flex-direction: column; gap: 5px; min-height: 0; padding: 8px 4px 6px; border: 1.5px solid transparent; border-radius: 10px;
   background: var(--hover); font-size: 11px; line-height: 1.2; min-width: 0;
@@ -699,6 +719,22 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .panel .group-head svg { transition: transform 0.12s; }
 .panel .group-head[aria-expanded='true'] svg { transform: rotate(90deg); }
 .flow-group .flow-row { padding-left: 24px; }
+/* The link mark of a flow in a pair, and the foot that names it. */
+.linked-mark { flex: none; display: inline-flex; align-items: center; color: var(--accent); }
+.panel .flow-row .linked-mark svg, .tree-row .linked-mark svg { color: inherit; top: 0; }
+.navfoot { padding-top: 8px; border-top: 1px solid var(--line); }
+/* The Compare button of a flow's row: always in the row and always focusable, drawn when the pointer or the focus is in the row. */
+.flow-item { position: relative; display: flex; }
+/* The button sits where the step count is, and the count steps aside while it shows. */
+.flow-item:hover .flow-row .muted, .flow-item:focus-within .flow-row .muted, .tree-row.flow:hover .count, .tree-row.flow:focus-within .count, .flow-item:has([aria-pressed='true']) .flow-row .muted, .tree-row.flow:has([aria-pressed='true']) .count { visibility: hidden; }
+.panel .row-compare { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 26px; min-height: 26px; padding: 0; opacity: 0; }
+.flow-item:hover .row-compare, .flow-item:focus-within .row-compare, .tree-row:hover .row-compare, .tree-row:focus-within .row-compare, .panel .row-compare[aria-pressed='true'] { opacity: 1; }
+.panel .row-compare[aria-disabled='true'] { cursor: default; }
+.flow-item:hover .row-compare[aria-disabled='true'], .flow-item:focus-within .row-compare[aria-disabled='true'], .tree-row:hover .row-compare[aria-disabled='true'], .tree-row:focus-within .row-compare[aria-disabled='true'] { opacity: 0.4; }
+.panel .row-compare[aria-pressed='true'] { background: var(--tint); color: var(--accent); }
+.panel .row-compare[aria-pressed='true'] svg { color: inherit; }
+.panel .row-compare[aria-disabled='true']:hover { background: none; }
+.cpick.pop { position: fixed; right: auto; z-index: 20; }
 
 .tree { flex: 1; min-height: 0; overflow: auto; position: relative; outline: 0; margin: 0 -4px; border-radius: 6px; }
 .tree-rows { position: relative; }
