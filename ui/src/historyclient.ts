@@ -25,6 +25,16 @@ type Body = { error?: string; recorded?: boolean; versions?: Record<string, stri
 /** The HTTP status an error from this client carries, if it came from an answer: 404 means the server keeps no history. */
 export const statusOf = (e: unknown): number | undefined => (e instanceof Error && typeof (e as Error & { status?: unknown }).status === 'number' ? (e as Error & { status: number }).status : undefined)
 
+/** What to tell the reader when the history could not be cleared, or undefined once it is. Never rejects: the page shows it as a notice, like a failed save. */
+export async function clearOutcome(client: Pick<HistoryClient, 'clear'>): Promise<string | undefined> {
+  try {
+    await client.clear()
+    return undefined
+  } catch (e) {
+    return `Couldn't clear history: ${e instanceof Error ? e.message : String(e)}`
+  }
+}
+
 const refused = (status: number) => Object.assign(new Error(`the server answered ${status}`), { status })
 
 /** The history client for the local server at `base`: '' for the page's own origin, or an address, for tests. */
