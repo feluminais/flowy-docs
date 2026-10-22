@@ -3,9 +3,10 @@ import assert from 'node:assert/strict'
 import { emptyModel } from '../src/core/model.ts'
 import type { Flow } from '../src/core/model.ts'
 import type { Run } from '../src/core/perf/types.ts'
+import { nameOf } from '../src/core/views.ts'
 import { diffFlows } from '../src/core/flowdiff.ts'
 import type { FlowDiff } from '../src/core/flowdiff.ts'
-import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, firstLinkedRun, flipped, fromAddress, keyItems, linkedRuns, marksFor, noteOf, noteOff, orderPair, pairKey, pairOf, pairOff, playable, runCompareOff, runPairOf, samePick, saveTarget, unsaved } from '../ui/src/compare.ts'
+import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, firstLinkedRun, flipped, fromAddress, keyItems, linkedRuns, marksFor, noteOf, noteOff, orderPair, pairKey, pairOf, pairOff, partnerChoices, playable, runCompareOff, runPairOf, samePick, saveTarget, taggedBy, tagWith, unsaved } from '../ui/src/compare.ts'
 import type { Compare } from '../ui/src/compare.ts'
 
 const flow = (name: string, compare?: unknown): Flow => ({ name, view: 'root', steps: [], ...(compare === undefined ? {} : { compare }) })
@@ -312,4 +313,29 @@ test('a note counts as unsaved when it has text and is not what the pair holds',
   assert.equal(unsaved('x', 'x\n'), false, 'a hand-written block note ends in a newline: opening it is not a change')
   assert.equal(unsaved('x\n', 'x\n'), false)
   assert.equal(unsaved('y', 'x\n'), true)
+})
+
+test('partner choices are every other flow by name, each with its view, and never the flow itself', () => {
+  const model = modelOf({ me: flow('Me'), zed: flow('Zed'), Alpha: { ...flow('Alpha'), view: 'shop' }, beta: flow('beta'), nameless: flow('') })
+  model.objects.shop = { type: 'system', name: 'Shop' }
+  const choices = partnerChoices(model, 'me')
+  assert.deepEqual(choices.map(c => c.id), ['Alpha', 'beta', 'nameless', 'zed'], 'by name, ignoring case, a flow with no name by its id')
+  assert.deepEqual(choices[0], { id: 'Alpha', name: 'Alpha', view: 'Shop' })
+  assert.equal(choices[1].view, nameOf(model, 'root'))
+})
+
+test('the tag a pick writes keeps the note, and no partner takes the tag out', () => {
+  const model = modelOf({ a: flow('A', { with: 'old', note: 'why' }), b: flow('B'), c: flow('C', 'b'), old: flow('Old') })
+  assert.deepEqual(tagWith(model, 'a', 'b'), { with: 'b', note: 'why' })
+  assert.deepEqual(tagWith(model, 'c', 'old'), { with: 'old' }, 'no note to keep')
+  assert.equal(tagWith(model, 'a', undefined), undefined)
+  assert.deepEqual(tagWith(model, 'old', 'a'), { with: 'a' })
+})
+
+test('the flows that tag a flow are listed by name with their view, a mutual pair once, a tag to nothing not at all', () => {
+  const model = modelOf({ base: flow('Base'), y: flow('Y', 'base'), x: flow('X', { with: 'base', note: 'n' }), self: flow('S', 'self'), other: flow('O', 'gone') })
+  assert.deepEqual(taggedBy(model, 'base').map(c => c.id), ['x', 'y'], 'by name')
+  assert.deepEqual(taggedBy(model, 'self'), [])
+  const mutual = modelOf({ a: flow('A', 'b'), b: flow('B', 'a') })
+  assert.deepEqual(taggedBy(mutual, 'a'), [], 'b is already its own partner: a mutual pair lists once')
 })

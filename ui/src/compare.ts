@@ -3,7 +3,7 @@ import type { CompareTag } from '../../src/core/compare.ts'
 import type { Change, FlowDiff, SideMarks } from '../../src/core/flowdiff.ts'
 import type { Model } from '../../src/core/model.ts'
 import type { Run } from '../../src/core/perf/types.ts'
-import { isView } from '../../src/core/views.ts'
+import { isView, nameOf } from '../../src/core/views.ts'
 
 /** What the comparison view shows: two flows or two runs, `a` first, side by side or swapped (one pane, flipping between them). The tag holder is `b`. */
 export type Compare = { kind: 'flow' | 'run'; a: string; b: string; mode: 'side' | 'swap' }
@@ -24,6 +24,26 @@ export function choicesFor(model: Model, runs: Record<string, Run>, kind: 'flow'
   const taken = new Set([id, ...linked.map(c => c.id)])
   const others: Choice[] = Object.keys(items).filter(key => !taken.has(key)).map(key => ({ id: key, name: nameOf(key) })).sort(byName)
   return { linked, others }
+}
+
+/** One flow the edit form can show as a tile: its id, its name (the id when it has none) and the name of the view it plays in. */
+export type FlowTile = { id: string; name: string; view: string }
+
+const tileOf = (model: Model, id: string): FlowTile => ({ id, name: model.flows[id].name || id, view: nameOf(model, model.flows[id].view) })
+const byTileName = (x: FlowTile, y: FlowTile): number => x.name.toLowerCase().localeCompare(y.name.toLowerCase()) || (x.id < y.id ? -1 : x.id > y.id ? 1 : 0)
+
+/** What the edit form's Compare with offers for flow `flowId`: every other flow, by name. The flow itself is never offered, since a flow can't compare with itself. */
+export const partnerChoices = (model: Model, flowId: string): FlowTile[] => Object.keys(model.flows).filter(id => id !== flowId).map(id => tileOf(model, id)).sort(byTileName)
+
+/** The flows that tag flow `flowId` (its newer partners), by name. A flow that tags it and is tagged by it back is the form's own partner, so it is not listed again. */
+export const taggedBy = (model: Model, flowId: string): FlowTile[] =>
+  partnersOf(model.flows as Record<string, { name?: string; compare?: unknown }>, flowId).filter(p => p.side === 'after' && Object.hasOwn(model.flows, p.id)).map(p => tileOf(model, p.id)).sort(byTileName)
+
+/** The tag flow `flowId` gets when `partner` is picked, keeping the note it had; no partner is no tag. */
+export function tagWith(model: Model, flowId: string, partner: string | undefined): CompareTag | undefined {
+  if (partner === undefined) return undefined
+  const note = Object.hasOwn(model.flows, flowId) ? compareOf(model.flows[flowId].compare)?.note : undefined
+  return note === undefined ? { with: partner } : { with: partner, note }
 }
 
 /** The pair in the order it reads: the one that holds the tag (the newer) second. With no tag between them, the order given. */

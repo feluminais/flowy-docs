@@ -154,6 +154,73 @@ test('flowGroups: the flows here, and every other flow under the view it plays i
   assert.deepEqual(flowGroups({ ...shop(), flows: {} }, ROOT), { here: [], elsewhere: [], total: 0 })
 })
 
+/** A model with flows tagged to each other, all on the shop view, named so that plain name order is a, b, c, d, e. */
+function paired(): Model {
+  const m = shop()
+  const steps = [{ from: 'customer', to: 'web', text: 'x' }]
+  m.flows = {
+    e: { name: 'E alone', view: 'shop', steps },
+    c: { name: 'C newest', view: 'shop', steps, compare: 'b' },
+    a: { name: 'A oldest', view: 'shop', steps },
+    d: { name: 'D other', view: 'shop', steps },
+    b: { name: 'B middle', view: 'shop', steps, compare: { with: 'a', note: 'n' } },
+  }
+  return m
+}
+
+test('flowGroups: a flow in a pair is linked, one that is tagged by nothing and tags nothing is not', () => {
+  const { here } = flowGroups(paired(), 'shop')
+  assert.deepEqual(here.map(f => [f.id, f.linked]), [['a', true], ['b', true], ['c', true], ['d', false], ['e', false]])
+})
+
+test('flowGroups: a newer flow is listed right after its older partner, and a chain lists oldest first', () => {
+  const m = paired()
+  m.flows.a.name = 'Z oldest'
+  m.flows.d.name = 'A first'
+  // By name alone: A first, B middle, C newest, E alone, Z oldest. The chain moves together, oldest first, to where its first member sorts.
+  assert.deepEqual(flowGroups(m, 'shop').here.map(f => f.id), ['d', 'a', 'b', 'c', 'e'])
+})
+
+test('flowGroups: a flow tagged by many lists them after it in key order, and a mutual pair lists once each', () => {
+  const m = paired()
+  m.flows.c.compare = 'a' // b and c both tag a
+  assert.deepEqual(flowGroups(m, 'shop').here.map(f => f.id), ['a', 'c', 'b', 'd', 'e'], 'c comes before b in the keys')
+  m.flows.c.compare = 'b'
+  m.flows.a.compare = 'b' // a and b tag each other
+  assert.deepEqual(flowGroups(m, 'shop').here.map(f => f.id), ['a', 'b', 'c', 'd', 'e'])
+})
+
+test('flowGroups: flows with no links keep their order exactly', () => {
+  const m = paired()
+  delete m.flows.b.compare
+  delete m.flows.c.compare
+  assert.deepEqual(flowGroups(m, 'shop').here.map(f => f.id), ['a', 'b', 'c', 'd', 'e'])
+  assert.ok(flowGroups(m, 'shop').here.every(f => !f.linked))
+})
+
+test('flowGroups: partners on different views stay in their own groups, each marked linked', () => {
+  const m = paired()
+  m.flows.c.view = 'api'
+  const groups = flowGroups(m, 'shop')
+  assert.deepEqual(groups.here.map(f => f.id), ['a', 'b', 'd', 'e'])
+  assert.deepEqual(groups.elsewhere.map(g => [g.view, g.flows.map(f => [f.id, f.linked])]), [['api', [['c', true]]]])
+  assert.equal(groups.here.find(f => f.id === 'b')!.linked, true)
+})
+
+test('flowGroups: a tag to itself or to a flow that is not there links nothing', () => {
+  const m = paired()
+  m.flows.d.compare = 'd'
+  m.flows.e.compare = 'gone'
+  const here = flowGroups(m, 'shop').here
+  assert.deepEqual(here.map(f => [f.id, f.linked]), [['a', true], ['b', true], ['c', true], ['d', false], ['e', false]])
+})
+
+test('outline: a flow row says whether it is linked, a shape row does not', () => {
+  const rows = outline(paired(), { expanded: open('shop') }).rows
+  assert.deepEqual(rows.filter(r => r.kind === 'flow').map(r => [r.id, r.linked]), [['a', true], ['b', true], ['c', true], ['d', false], ['e', false]])
+  assert.ok(rows.filter(r => r.kind === 'shape').every(r => r.linked === undefined))
+})
+
 const R = (key: string, depth: number, extra: Partial<OutlineRow> = {}): OutlineRow => ({
   key, kind: key.startsWith('flow') ? 'flow' : 'shape', id: key.split(':')[1], depth, name: key, external: false, shapes: 0, flows: 0,
   problem: false, expandable: false, expanded: false, match: true, ...extra,

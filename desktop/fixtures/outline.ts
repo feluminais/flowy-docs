@@ -2,7 +2,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
 import { expandTo, flowGroups, outline, outlineKey } from '../../src/core/outline.ts'
-import type { OutlineKey, OutlineRow } from '../../src/core/outline.ts'
+import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { isView } from '../../src/core/views.ts'
 import { loadState } from '../../src/node/files.ts'
 import { fixtureDirs } from './dump.ts'
@@ -17,6 +17,12 @@ const KEY_ROWS = [
   row('shape:c', 2), row('flow:f', 2), row('shape:d', 1),
 ]
 const KEYS: OutlineKey[] = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter']
+
+/**
+ * `linked` is left out of the dump on purpose: the desktop twin does not read it until the desktop lists mark linked flows, so the fields are named here.
+ */
+const unlinkedRow = ({ linked: _, ...row }: OutlineRow): Omit<OutlineRow, 'linked'> => row
+const unlinkedRef = ({ linked: _, ...ref }: FlowRef): Omit<FlowRef, 'linked'> => ref
 
 /**
  * What the TypeScript says about the navigator for every fixture folder: the rows in several states (closed, one branch open, all open,
@@ -46,8 +52,14 @@ export async function dumpOutline(): Promise<unknown> {
       { name: 'filter-blank', expanded: [ROOT], filter: '  ', editing: false },
     ]
     folders[name] = {
-      outlines: states.map(s => ({ ...s, ...outline(model, { expanded: new Set(s.expanded), filter: s.filter, editing: s.editing, problems: state.problems }) })),
-      groups: views.flatMap(view => [false, true].map(editing => ({ view, editing, ...flowGroups(model, view, { editing }) }))),
+      outlines: states.map(s => {
+        const { rows, totals } = outline(model, { expanded: new Set(s.expanded), filter: s.filter, editing: s.editing, problems: state.problems })
+        return { ...s, rows: rows.map(unlinkedRow), totals }
+      }),
+      groups: views.flatMap(view => [false, true].map(editing => {
+        const { here, elsewhere, total } = flowGroups(model, view, { editing })
+        return { view, editing, here: here.map(unlinkedRef), elsewhere: elsewhere.map(g => ({ ...g, flows: g.flows.map(unlinkedRef) })), total }
+      })),
       expandTo: [...everything, 'nope'].flatMap(id => [false, true].map(self => ({ id, self, opened: [...expandTo(model, id, new Set(), self)].sort() }))),
     }
   }
