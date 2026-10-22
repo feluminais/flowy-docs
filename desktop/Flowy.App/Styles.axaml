@@ -373,11 +373,31 @@
     <Setter Property="Height" Value="4" />
   </Style>
   <Style Selector="Border.seg.done"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
-  <!-- A group on the card: the bracket under the progress bar, a branch's lanes as tabs, a parallel stop's lane blocks, and the way back to the flow it was opened from. -->
-  <Style Selector="Border.bracket">
-    <Setter Property="BorderBrush" Value="{DynamicResource MutedBrush}" />
-    <Setter Property="BorderThickness" Value="0,1,0,0" />
+  <!-- A lane the stop shown is not in: hollow, as the browser draws it. A group is a box, dashed when it may stop early. -->
+  <Style Selector="Border.seg.off">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
   </Style>
+  <Style Selector="Border.seg.off.done"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Rectangle.box">
+    <Setter Property="Stroke" Value="{DynamicResource LineBrush}" />
+    <Setter Property="StrokeThickness" Value="1" />
+    <Setter Property="RadiusX" Value="6" />
+    <Setter Property="RadiusY" Value="6" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+  <Style Selector="Rectangle.box.maybe">
+    <Setter Property="Stroke" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="StrokeDashArray" Value="3,3" />
+  </Style>
+  <Style Selector="TextBlock.barlane">
+    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector="TextBlock.barlane.on"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+  <!-- A group on the card: the bracket under the progress bar, a branch's lanes as tabs, a parallel stop's lane blocks, and the way back to the flow it was opened from. -->
   <Style Selector="Border.tab">
     <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
     <Setter Property="BorderThickness" Value="1" />

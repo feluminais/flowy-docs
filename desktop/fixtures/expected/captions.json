@@ -3,12 +3,12 @@
     {
       "kind": "repeat",
       "title": "Repeat",
-      "text": "The same steps again. The chip says how many times, or what stops it."
+      "text": "The same steps again. A solid line is a set number of times, a dashed one can stop sooner. The chip says how many times, or what stops it."
     },
     {
       "kind": "branch",
       "title": "Branch",
-      "text": "Only one lane happens. Each tab is a lane, and the one you are in is marked. The others are dashed on the canvas."
+      "text": "Only one lane happens. Each row of the bar is a lane, named for what decides it. The lanes you are not in are hollow on the bar and dashed on the canvas."
     },
     {
       "kind": "parallel",
@@ -18,7 +18,7 @@
     {
       "kind": null,
       "title": "The bar",
-      "text": "One cell for each stop, and a row for each lane of a branch. A bracket under it names each group. Point at one for more."
+      "text": "One cell for each stop, and a row for each lane of a branch. A box holds the stops of each group, and the line under it says what the group is. Point at one for more."
     },
     {
       "kind": null,
@@ -31,13 +31,13 @@
       "id": "bad",
       "captions": [
         {
-          "chip": "Repeats up to 2 times",
+          "chip": "Repeats 2 times",
           "text": "",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 2"
+            "×2"
           ]
         },
         {
@@ -61,13 +61,13 @@
           ]
         },
         {
-          "chip": "Repeats up to 2 times",
+          "chip": "Repeats 2 times",
           "text": "",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 2"
+            "×2"
           ]
         },
         {
@@ -83,13 +83,13 @@
           ]
         },
         {
-          "chip": "Repeats up to 1 times",
+          "chip": "Repeats 1 times",
           "text": "",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 1"
+            "×1"
           ]
         },
         {
@@ -115,13 +115,13 @@
           ]
         },
         {
-          "chip": "Repeats up to 2 times",
+          "chip": "Repeats 2 times",
           "text": "",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 2"
+            "×2"
           ]
         },
         {
@@ -167,43 +167,43 @@
           ]
         },
         {
-          "chip": "Repeats up to 2 times",
+          "chip": "Repeats 2 times",
           "text": "",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 2"
+            "×2"
           ]
         },
         {
-          "chip": "Repeats up to 2 times",
+          "chip": "Repeats 2 times",
           "text": "",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 2"
+            "×2"
           ]
         },
         {
-          "chip": "Repeats up to 2 times",
+          "chip": "Repeats 2 times",
           "text": "",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 2"
+            "×2"
           ]
         },
         {
-          "chip": "Repeats up to 2 times",
+          "chip": "Repeats 2 times",
           "text": "",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 2"
+            "×2"
           ]
         },
         {
@@ -255,121 +255,141 @@
             "stop": 0,
             "col": 0,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 0
           },
           {
             "stop": 1,
             "col": 1,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           },
           {
             "stop": 2,
             "col": 2,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           },
           {
             "stop": 3,
             "col": 3,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 1
           },
           {
             "stop": 4,
             "col": 4,
             "row": 0,
-            "title": "A"
+            "title": "A",
+            "group": 2
           },
           {
             "stop": 5,
             "col": 5,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 3
           },
           {
             "stop": 6,
             "col": 6,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 4
           },
           {
             "stop": 7,
             "col": 7,
             "row": 0,
-            "title": "only"
+            "title": "only",
+            "group": 5
           },
           {
             "stop": 8,
             "col": 8,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 6
           },
           {
             "stop": 9,
             "col": 9,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 7
           },
           {
             "stop": 10,
             "col": 9,
             "row": 1,
-            "title": "A"
+            "title": "A",
+            "group": 7
           },
           {
             "stop": 11,
             "col": 9,
             "row": 2,
-            "title": "A"
+            "title": "A",
+            "group": 7
           },
           {
             "stop": 12,
             "col": 10,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 8
           },
           {
             "stop": 13,
             "col": 11,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 9
           },
           {
             "stop": 14,
             "col": 12,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 10
           },
           {
             "stop": 15,
             "col": 13,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 11
           },
           {
             "stop": 16,
             "col": 14,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           },
           {
             "stop": 17,
             "col": 15,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           },
           {
             "stop": 18,
             "col": 16,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           },
           {
             "stop": 19,
             "col": 17,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           }
         ],
         "brackets": [
@@ -378,84 +398,114 @@
             "from": 0,
             "to": 0,
             "text": "×2",
-            "title": "Repeats up to 2 times"
+            "title": "Repeats 2 times",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "repeat",
             "from": 3,
             "to": 3,
             "text": "×2",
-            "title": "Repeats up to 2 times"
+            "title": "Repeats 2 times",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "branch",
             "from": 4,
             "to": 4,
-            "text": "only if",
-            "title": "Happens only if: A"
+            "text": "",
+            "title": "Happens only if: A",
+            "lanes": [
+              "A"
+            ],
+            "maybe": false
           },
           {
             "kind": "repeat",
             "from": 5,
             "to": 5,
             "text": "×1",
-            "title": "Repeats up to 1 times"
+            "title": "Repeats 1 times",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "repeat",
             "from": 6,
             "to": 6,
             "text": "",
-            "title": "Repeats"
+            "title": "Repeats",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "parallel",
             "from": 7,
             "to": 7,
             "text": "same time",
-            "title": "The lanes happen at the same time: each stop shows the next step of every lane"
+            "title": "The lanes happen at the same time: each stop shows the next step of every lane",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "repeat",
             "from": 8,
             "to": 8,
             "text": "×2",
-            "title": "Repeats up to 2 times"
+            "title": "Repeats 2 times",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "branch",
             "from": 9,
             "to": 9,
-            "text": "one of 3 lanes",
-            "title": "Alternatives: only one of these lanes happens"
+            "text": "",
+            "title": "Alternatives: only one of these lanes happens",
+            "lanes": [
+              "",
+              "A",
+              "A"
+            ],
+            "maybe": false
           },
           {
             "kind": "repeat",
             "from": 10,
             "to": 10,
             "text": "×2",
-            "title": "Repeats up to 2 times"
+            "title": "Repeats 2 times",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "repeat",
             "from": 11,
             "to": 11,
             "text": "×2",
-            "title": "Repeats up to 2 times"
+            "title": "Repeats 2 times",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "repeat",
             "from": 12,
             "to": 12,
             "text": "×2",
-            "title": "Repeats up to 2 times"
+            "title": "Repeats 2 times",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "repeat",
             "from": 13,
             "to": 13,
             "text": "×2",
-            "title": "Repeats up to 2 times"
+            "title": "Repeats 2 times",
+            "lanes": [],
+            "maybe": false
           }
         ]
       }
@@ -514,25 +564,29 @@
             "stop": 0,
             "col": 0,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           },
           {
             "stop": 1,
             "col": 1,
             "row": 0,
-            "title": "ok"
+            "title": "ok",
+            "group": 0
           },
           {
             "stop": 2,
             "col": 2,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           },
           {
             "stop": 3,
             "col": 3,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           }
         ],
         "brackets": [
@@ -540,8 +594,12 @@
             "kind": "branch",
             "from": 1,
             "to": 1,
-            "text": "only if",
-            "title": "Happens only if: ok"
+            "text": "",
+            "title": "Happens only if: ok",
+            "lanes": [
+              "ok"
+            ],
+            "maybe": false
           }
         ]
       }
@@ -578,13 +636,15 @@
             "stop": 0,
             "col": 0,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           },
           {
             "stop": 1,
             "col": 1,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           }
         ],
         "brackets": []
@@ -632,19 +692,22 @@
             "stop": 0,
             "col": 0,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           },
           {
             "stop": 1,
             "col": 1,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           },
           {
             "stop": 2,
             "col": 2,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           }
         ],
         "brackets": []
@@ -654,23 +717,23 @@
       "id": "ok",
       "captions": [
         {
-          "chip": "Repeats up to 3 times",
+          "chip": "Repeats 3 times",
           "text": "Backs off 1 s, 2 s, 4 s between tries",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 3"
+            "×3"
           ]
         },
         {
-          "chip": "Repeats up to 3 times",
+          "chip": "Repeats 3 times",
           "text": "Backs off 1 s, 2 s, 4 s between tries",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 3"
+            "×3"
           ]
         },
         {
@@ -735,37 +798,43 @@
             "stop": 0,
             "col": 0,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 0
           },
           {
             "stop": 1,
             "col": 1,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 0
           },
           {
             "stop": 2,
             "col": 2,
             "row": 0,
-            "title": "Card accepted"
+            "title": "Card accepted",
+            "group": 1
           },
           {
             "stop": 3,
             "col": 3,
             "row": 0,
-            "title": "Card accepted"
+            "title": "Card accepted",
+            "group": 1
           },
           {
             "stop": 4,
             "col": 2,
             "row": 1,
-            "title": "Card declined"
+            "title": "Card declined",
+            "group": 1
           },
           {
             "stop": 5,
             "col": 4,
             "row": 0,
-            "title": "Billing + Dispatch"
+            "title": "Billing + Dispatch",
+            "group": 2
           }
         ],
         "brackets": [
@@ -774,21 +843,30 @@
             "from": 0,
             "to": 1,
             "text": "×3",
-            "title": "Repeats up to 3 times"
+            "title": "Repeats 3 times",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "branch",
             "from": 2,
             "to": 3,
-            "text": "one of 2 lanes",
-            "title": "Alternatives: only one of these lanes happens"
+            "text": "",
+            "title": "Alternatives: only one of these lanes happens",
+            "lanes": [
+              "Card accepted",
+              "Card declined"
+            ],
+            "maybe": false
           },
           {
             "kind": "parallel",
             "from": 4,
             "to": 4,
             "text": "same time",
-            "title": "The lanes happen at the same time: each stop shows the next step of every lane"
+            "title": "The lanes happen at the same time: each stop shows the next step of every lane",
+            "lanes": [],
+            "maybe": false
           }
         ]
       }
@@ -885,23 +963,23 @@
           ]
         },
         {
-          "chip": "Repeats up to 2 times",
+          "chip": "Repeats 2 times",
           "text": "",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 2"
+            "×2"
           ]
         },
         {
-          "chip": "Repeats up to 2 times",
+          "chip": "Repeats 2 times",
           "text": "",
           "tabs": [],
           "tab": -1,
           "lanes": [],
           "marks": [
-            "up to 2"
+            "×2"
           ]
         },
         {
@@ -925,61 +1003,71 @@
             "stop": 0,
             "col": 0,
             "row": 0,
-            "title": "Billing + Dispatch"
+            "title": "Billing + Dispatch",
+            "group": 0
           },
           {
             "stop": 1,
             "col": 1,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": -1
           },
           {
             "stop": 2,
             "col": 2,
             "row": 0,
-            "title": "A + B + C"
+            "title": "A + B + C",
+            "group": 1
           },
           {
             "stop": 3,
             "col": 3,
             "row": 0,
-            "title": "A + C"
+            "title": "A + C",
+            "group": 1
           },
           {
             "stop": 4,
             "col": 4,
             "row": 0,
-            "title": "C"
+            "title": "C",
+            "group": 1
           },
           {
             "stop": 5,
             "col": 5,
             "row": 0,
-            "title": "A courier is wanted"
+            "title": "A courier is wanted",
+            "group": 2
           },
           {
             "stop": 6,
             "col": 6,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 3
           },
           {
             "stop": 7,
             "col": 7,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 4
           },
           {
             "stop": 8,
             "col": 8,
             "row": 0,
-            "title": ""
+            "title": "",
+            "group": 4
           },
           {
             "stop": 9,
             "col": 9,
             "row": 0,
-            "title": "Last"
+            "title": "Last",
+            "group": 5
           }
         ],
         "brackets": [
@@ -988,42 +1076,58 @@
             "from": 0,
             "to": 0,
             "text": "same time",
-            "title": "The lanes happen at the same time: each stop shows the next step of every lane"
+            "title": "The lanes happen at the same time: each stop shows the next step of every lane",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "parallel",
             "from": 2,
             "to": 4,
             "text": "same time",
-            "title": "The lanes happen at the same time: each stop shows the next step of every lane"
+            "title": "The lanes happen at the same time: each stop shows the next step of every lane",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "branch",
             "from": 5,
             "to": 5,
-            "text": "only if",
-            "title": "Happens only if: A courier is wanted"
+            "text": "",
+            "title": "Happens only if: A courier is wanted",
+            "lanes": [
+              "A courier is wanted"
+            ],
+            "maybe": false
           },
           {
             "kind": "repeat",
             "from": 6,
             "to": 6,
             "text": "",
-            "title": "Repeats until the job is done"
+            "title": "Repeats until the job is done",
+            "lanes": [],
+            "maybe": true
           },
           {
             "kind": "repeat",
             "from": 7,
             "to": 8,
             "text": "×2",
-            "title": "Repeats up to 2 times"
+            "title": "Repeats 2 times",
+            "lanes": [],
+            "maybe": false
           },
           {
             "kind": "branch",
             "from": 9,
             "to": 9,
-            "text": "only if",
-            "title": "Happens only if: Last"
+            "text": "",
+            "title": "Happens only if: Last",
+            "lanes": [
+              "Last"
+            ],
+            "maybe": false
           }
         ]
       }
