@@ -5,13 +5,13 @@ import type { Compare } from './compare.ts'
  * The address of what's on screen: `#<view>`, `#<view>/<flow>` while a flow plays, or `#<view>/perf/<run>/<level>` while the
  * Performance tab shows a run at one of its tested levels (the level's place in the run, from 0). A run with several sources has a place for each,
  * in dial order and separated by commas: `#<view>/perf/<run>/2,1.5`. The overview has no hash, so it's the page's own address, and a flow or a run
- * there is `#root/...`. A comparison is `#<view>/compare/<a>/<b>` for two flows and `#<view>/compare/run/<a>/<b>` for two runs, each with `/swap` on the end for the swapped
+ * there is `#root/...`. A comparison is `#<view>/compare/<a>/<b>` for two flows and `#<view>/compare-runs/<a>/<b>` for two runs, each with `/swap` on the end for the swapped
  * mode. Ids are [a-z0-9-], so nothing needs escaping. A run or an analysis on show wins over a comparison, which wins over a flow.
  */
 export function toHash(view: string, flow?: string, perf?: Perf, failures?: Failures, compare?: Compare): string {
   if (perf !== undefined) return `#${view}/perf/${perf.run}/${perf.levels === undefined ? perf.level : perf.levels.join(',')}`
   if (failures !== undefined) return `#${view}/failures/${failures.analysis}${failures.mode === undefined ? '' : `/${failures.mode}`}`
-  if (compare !== undefined) return `#${view}/compare/${compare.kind === 'run' ? 'run/' : ''}${compare.a}/${compare.b}${compare.mode === 'swap' ? '/swap' : ''}`
+  if (compare !== undefined) return `#${view}/${compare.kind === 'run' ? 'compare-runs' : 'compare'}/${compare.a}/${compare.b}${compare.mode === 'swap' ? '/swap' : ''}`
   if (flow !== undefined) return `#${view}/${flow}`
   return view === ROOT ? '' : `#${view}`
 }
@@ -39,8 +39,8 @@ export const alongFailures = (was: Failures | undefined, now: Failures | undefin
   was !== undefined && now !== undefined && was.analysis === now.analysis && was.mode !== now.mode
 
 /**
- * What an address names. One that isn't made of ids opens the overview. A flow can be called `perf`, `failures`, `compare`, `run` or `swap`: only the longer forms name a run, an
- * analysis or a comparison. Of the one address that reads two ways, `compare/run/<a>/swap` (two runs, `a` and one called `swap`, or the flows `run` and `a` swapped), the flows win.
+ * What an address names. One that isn't made of ids opens the overview. A flow can be called `perf`, `failures`, `compare`, `compare-runs`, `run` or `swap`: only the longer forms name a
+ * run, an analysis or a comparison. No address reads two ways: `compare` names flows, `compare-runs` names runs, and `compare/run/<a>/swap` is the flows `run` and `a`, swapped.
  */
 export function readHash(hash: string): { view: string; flow?: string; perf?: Perf; failures?: Failures; compare?: Compare } {
   const parts = hash.replace(/^#/, '').split('/')
@@ -54,15 +54,10 @@ export function readHash(hash: string): { view: string; flow?: string; perf?: Pe
   }
   if (flow === 'failures' && (parts.length === 3 || parts.length === 4) && isValidId(third) && (parts.length === 3 || isValidId(fourth)))
     return { view, failures: { analysis: third, ...(parts.length === 4 ? { mode: fourth } : {}) } }
-  if (flow === 'compare') {
-    const swapped = parts[parts.length - 1] === 'swap'
-    const compare: Compare | undefined =
-      parts.length === 4 ? { kind: 'flow', a: third, b: fourth, mode: 'side' }
-      : parts.length === 5 && swapped ? { kind: 'flow', a: third, b: fourth, mode: 'swap' }
-      : parts.length === 5 && third === 'run' ? { kind: 'run', a: fourth, b: parts[4], mode: 'side' }
-      : parts.length === 6 && third === 'run' && swapped ? { kind: 'run', a: fourth, b: parts[4], mode: 'swap' }
-      : undefined
-    if (compare !== undefined && isValidId(compare.a) && isValidId(compare.b)) return { view, compare }
+  if (flow === 'compare' || flow === 'compare-runs') {
+    const swapped = parts.length === 5 && parts[4] === 'swap'
+    if ((parts.length === 4 || swapped) && isValidId(third) && isValidId(fourth))
+      return { view, compare: { kind: flow === 'compare' ? 'flow' : 'run', a: third, b: fourth, mode: swapped ? 'swap' : 'side' } }
   }
   if (parts.length > 2) return { view: ROOT }
   return flow !== undefined && isValidId(flow) ? { view, flow } : { view }
