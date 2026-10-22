@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowy.Core;
 using Xunit;
@@ -23,6 +24,12 @@ public class ReentrancyTests
         var window = new Window { Width = 1100, Height = 700, Content = reader };
         window.Show();
         reader.Load(FolderLoader.Load(Plum), Plum);
+        // The model picker appears once the repo's models are found, and moves the crumbs. Let it settle before anything is clicked.
+        for (var i = 0; i < 200 && reader.Models.Count == 0; i++)
+        {
+            Thread.Sleep(10);
+            Dispatcher.UIThread.RunJobs();
+        }
         window.UpdateLayout();
         return (window, reader);
     }

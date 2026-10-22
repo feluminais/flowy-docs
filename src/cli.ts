@@ -11,6 +11,7 @@ import { modelOf } from './core/state.ts'
 import { exportSite } from './node/export.ts'
 import { loadDir, loadReport, loadState } from './node/files.ts'
 import { openHistory } from './node/history.ts'
+import { entryOf, findModels } from './node/models.ts'
 import { createMcpServer } from './node/mcp.ts'
 import { startServer } from './node/server.ts'
 
@@ -20,7 +21,7 @@ const args = (() => {
       allowPositionals: true,
       allowNegative: true,
       options: {
-        dir: { type: 'string', default: 'flowy' },
+        dir: { type: 'string', multiple: true }, // repeat it in server mode to show several models
         port: { type: 'string', default: '4321' },
         open: { type: 'boolean', default: true }, // --no-open leaves the browser alone
         out: { type: 'string', default: 'flowy-site' },
@@ -44,6 +45,9 @@ function openBrowser(url: string) {
 
 // Vite builds the canvas into dist/ui (npm run build:ui). This path works from src/ and from a compiled dist/.
 const ui = fileURLToPath(new URL('../dist/ui', import.meta.url))
+
+/** The one folder every command but the server works on: the last --dir, else flowy. */
+const oneDir = resolve(args?.values.dir?.at(-1) ?? 'flowy')
 
 const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
@@ -99,12 +103,12 @@ async function printCheck(dir: string): Promise<number> {
 }
 
 if (args?.positionals[0] === 'mcp') {
-  const dir = resolve(args.values.dir)
+  const dir = oneDir
   await createMcpServer(dir, openHistory(dir, { app: 'mcp' })).connect(new StdioServerTransport())
 } else if (args?.positionals[0] === 'export' && args.positionals.length === 1 && !mermaidFlags && !failuresFlags) {
   const out = resolve(args.values.out)
   try {
-    const { boxes, flows, problems } = await exportSite({ dir: resolve(args.values.dir), ui, out })
+    const { boxes, flows, problems } = await exportSite({ dir: oneDir, ui, out })
     const found = problems === 0 ? '' : ` It has ${count(problems, 'problem')}, listed on the page.`
     console.log(`Exported ${count(boxes, 'shape', 'shapes')} and ${count(flows, 'flow')} to ${out}.${found}\n` +
       "Put the folder on any static host, such as GitHub Pages. Browsers won't run it straight from disk.")
@@ -114,7 +118,7 @@ if (args?.positionals[0] === 'mcp') {
   }
 } else if (args?.positionals[0] === 'mermaid' && args.positionals.length === 1 && !failuresFlags && (args.values.flow === undefined) !== (args.values.view === undefined)) {
   try {
-    const { model } = await loadDir(resolve(args.values.dir))
+    const { model } = await loadDir(oneDir)
     process.stdout.write(args.values.flow === undefined ? viewToMermaid(model, args.values.view!) : flowToMermaid(model, args.values.flow))
   } catch (e) {
     console.error(e instanceof Error ? e.message : String(e))
@@ -122,30 +126,33 @@ if (args?.positionals[0] === 'mcp') {
   }
 } else if (args?.positionals[0] === 'check' && args.positionals.length === 1 && !mermaidFlags && !failuresFlags) {
   try {
-    process.exitCode = await printCheck(resolve(args.values.dir))
+    process.exitCode = await printCheck(oneDir)
   } catch (e) {
     console.error(e instanceof Error ? e.message : String(e))
     process.exitCode = 1
   }
 } else if (args?.positionals[0] === 'failures' && args.positionals.length === 1 && !mermaidFlags) {
   try {
-    process.exitCode = await printFailures(resolve(args.values.dir), args.values.analysis, args.values.format ?? 'markdown')
+    process.exitCode = await printFailures(oneDir, args.values.analysis, args.values.format ?? 'markdown')
   } catch (e) {
     console.error(e instanceof Error ? e.message : String(e))
     process.exitCode = 1
   }
 } else if (args?.positionals.length === 0 && !mermaidFlags && !failuresFlags && /^\d{1,5}$/.test(args.values.port) && Number(args.values.port) <= 65535) {
   try {
-    const dir = resolve(args.values.dir)
-    const { port } = await startServer({ dir, ui, port: Number(args.values.port), history: openHistory(dir, { app: 'browser' }) })
+    const named = args.values.dir ?? []
+    // Without --dir every flowy/ folder in the repo is shown; with it, only the ones named.
+    const found = named.length > 0 ? named.map(d => entryOf(process.cwd(), resolve(d))) : await findModels(process.cwd())
+    const models = (found.length > 0 ? found : [entryOf(process.cwd(), oneDir)]).map(e => ({ ...e, history: openHistory(e.dir, { app: 'browser' }) }))
+    const { port } = await startServer({ dir: models[0].dir, ui, port: Number(args.values.port), history: models[0].history, models })
     const url = `http://127.0.0.1:${port}/`
-    console.log(`Flowy Docs: ${url}\nShowing ${dir}. Press Ctrl+C to stop.`)
+    console.log(`Flowy Docs: ${url}\nShowing ${models.length === 1 ? models[0].dir : `${count(models.length, 'model')}: ${models.map(m => m.where).join(', ')}`}. Press Ctrl+C to stop.`)
     if (args.values.open) openBrowser(url)
   } catch (e) {
     console.error(e instanceof Error ? e.message : String(e))
     process.exitCode = 1
   }
 } else {
-  console.error('Usage: flowy [--dir flowy] [--port 4321] [--no-open]\n       flowy export [--dir flowy] [--out flowy-site]\n       flowy mermaid (--flow <id> | --view <id>) [--dir flowy]\n       flowy check [--dir flowy]\n       flowy failures [--analysis <id>] [--format markdown|csv] [--dir flowy]\n       flowy mcp [--dir flowy]')
+  console.error('Usage: flowy [--dir flowy ...] [--port 4321] [--no-open]\n       flowy export [--dir flowy] [--out flowy-site]\n       flowy mermaid (--flow <id> | --view <id>) [--dir flowy]\n       flowy check [--dir flowy]\n       flowy failures [--analysis <id>] [--format markdown|csv] [--dir flowy]\n       flowy mcp [--dir flowy]')
   process.exitCode = 1
 }
