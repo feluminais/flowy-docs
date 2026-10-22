@@ -2,6 +2,7 @@ import { COLOR_NAMES, iconProblem, isColor, isKnownIcon, isOpacity, isShape, OBJ
 import { getObject, ID_RULE, isValidId, LINE_STYLES, OBJECT_TYPES, ROOT } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
 import { animationProblem, interceptorProblem } from './animation.ts'
+import { compareOf, compareProblem } from './compare.ts'
 import { dataProblems } from './data.ts'
 import { analysisProblems } from './failures.ts'
 import { FILE_KINDS, pathOf } from './filekinds.ts'
@@ -144,7 +145,13 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     if (missing(f.view)) p('view is missing')
     else if (!viewOk) p(`view "${f.view}" must be "root" or an object with children`)
     if (f.steps.length === 0) p('has no steps')
-    for (const path of emptyKeys({ ...f, steps: [] })) p(emptyKeyMessage(path)) // the steps are read one at a time below, so each says its own number
+    // The steps are read one at a time below, so each says its own number; compare says what is wrong with it in the lines after.
+    for (const path of emptyKeys({ ...f, steps: [], compare: undefined })) p(emptyKeyMessage(path))
+    const compareWhy = compareProblem(f.compare, 'flow')
+    const tag = compareOf(f.compare)
+    if (compareWhy !== undefined) p(compareWhy)
+    else if (tag?.with === fid) p('compare points at this flow itself')
+    else if (tag && !Object.hasOwn(model.flows, tag.with)) p(`compare "${tag.with}" is not a flow`)
     f.steps.forEach((s, i) => {
       const sp = (message: string) => at(message, i)
       for (const path of emptyKeys(s)) sp(emptyKeyMessage(path))
