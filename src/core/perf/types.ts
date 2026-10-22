@@ -1,3 +1,4 @@
+import type { CompareTag } from '../compare.ts'
 import type { StateName } from '../states.ts'
 
 /**
@@ -56,6 +57,8 @@ export type SourceInfo = { name: string; entry?: string; unit: string; source?: 
 export type Run = {
   name: string; about?: string; unit: string; entry?: string; source?: Source; axis?: Axis; events?: RunEvent[]
   adds?: string[]; sources?: Record<string, SourceInfo>; levels: Level[]
+  /** The run it compares with (see compare.ts). Left out when the file has no readable `compare`. */
+  compare?: CompareTag
 }
 
 /** Whether the run is measured over time. */
