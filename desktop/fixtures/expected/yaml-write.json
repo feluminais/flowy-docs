@@ -2988,6 +2988,7 @@
           "charge": {
             "kind": "repeat",
             "times": "3",
+            "until": "the bank answers",
             "text": "Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three."
           },
           "outcome": {
@@ -3043,7 +3044,7 @@
           }
         ]
       },
-      "text": "name: The payment is captured\nview: ordering\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Gives up after five seconds and tries again\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A decline is final: it is not retried. The hold is released, and the app asks the customer\n      for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try another card\n    group: outcome\n"
+      "text": "name: The payment is captured\nview: ordering\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    until: the bank answers\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Gives up after five seconds and tries again\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A decline is final: it is not retried. The hold is released, and the app asks the customer\n      for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try another card\n    group: outcome\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -8971,6 +8972,7 @@
           "charge": {
             "kind": "repeat",
             "times": "3",
+            "until": "the bank answers",
             "text": "Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three."
           },
           "outcome": {
@@ -9026,7 +9028,7 @@
           }
         ]
       },
-      "text": "name: The payment is captured\nview: ordering\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Gives up after five seconds and tries again\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A decline is final: it is not retried. The hold is released, and the app asks the customer\n      for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try another card\n    group: outcome\n"
+      "text": "name: The payment is captured\nview: ordering\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    until: the bank answers\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Gives up after five seconds and tries again\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A decline is final: it is not retried. The hold is released, and the app asks the customer\n      for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try another card\n    group: outcome\n"
     },
     {
       "folder": "docs/demo/flowy",

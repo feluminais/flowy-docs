@@ -133,6 +133,9 @@ public class GroupsTests
 
     private static List<string> Words(ReaderView reader) => reader.Card.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToList();
 
+    /// <summary>The boxes of the progress bar: one around each group.</summary>
+    private static List<Avalonia.Controls.Shapes.Rectangle> Boxes(ReaderView reader) => reader.Card.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Rectangle>().Where(r => r.Classes.Contains("box")).ToList();
+
     private static List<Border> Borders(ReaderView reader, string cls) => reader.Card.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains(cls)).ToList();
 
     private static Button? Named(ReaderView reader, string name) =>
@@ -147,7 +150,7 @@ public class GroupsTests
         reader.Play("capture-payment");
         Assert.Contains("Step 1 of 2", Words(reader));
         Assert.Equal(2, Borders(reader, "seg").Count);
-        Assert.DoesNotContain(Borders(reader, "bracket"), _ => true);
+        Assert.Empty(Boxes(reader));
         Assert.DoesNotContain(Borders(reader, "tab"), _ => true);
         Assert.DoesNotContain(Borders(reader, "laneblock"), _ => true);
         Assert.NotNull(Named(reader, "Back"));
@@ -192,7 +195,7 @@ public class GroupsTests
         Assert.Contains("Billing", words);
         Assert.Contains("Dispatch", words);
         Assert.Equal(2, Borders(reader, "laneblock").Count);
-        Assert.Equal(3, Borders(reader, "bracket").Count);
+        Assert.Equal(3, Boxes(reader).Count);
         Assert.Equal(6, Borders(reader, "seg").Count); // a cell for each stop
         Assert.NotNull(Named(reader, "Open flow: Capture a payment"));
         Assert.False(Named(reader, "Next")!.IsEnabled);
@@ -209,6 +212,11 @@ public class GroupsTests
         Assert.Equal(2, tabs.Count);
         Assert.Equal(["Card declined"], tabs.Where(t => t.Classes.Contains("on")).Select(t => ((TextBlock)t.Child!).Text).ToList());
         Assert.Contains("One of 2", Words(reader));
+        // The bar names its rows by the lanes, marks the one shown, and draws the lane that is not shown hollow.
+        var rows = reader.Card.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Classes.Contains("barlane")).ToList();
+        Assert.Equal(["Card accepted", "Card declined"], rows.Select(t => t.Text).ToList());
+        Assert.Equal(["Card declined"], rows.Where(t => t.Classes.Contains("on")).Select(t => t.Text).ToList());
+        Assert.Equal(2, Borders(reader, "off").Count); // both cells of the first lane
     }
 
     [AvaloniaFact]

@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Flowy.App.Canvas;
@@ -56,50 +57,79 @@ internal sealed class PlayerCard : Border
     }
 
     /// <summary>
-    /// How far a flow has got: a cell for each stop, filled up to the stop shown, a branch's lanes on rows of their own, and under them a
-    /// bracket for each group. A cell says its lane and a bracket says what its group means when you point at it.
+    /// How far a flow has got: a cell for each stop, filled up to the stop shown. A group is boxed, with the line that says what it is at the foot of the
+    /// box, and a box with an <c>until</c> is dashed (it may stop before its last time). A branch's lanes are rows of their own, each named, and the lanes the
+    /// stop shown is not in are hollow. A cell says its lane and a box says what its group means when you point at it.
     /// </summary>
     private static Control Bar(Progress progress, int now)
     {
-        Grid Columns()
-        {
-            var grid = new Grid { ColumnSpacing = 3 };
-            for (var c = 0; c < progress.Cols; c++) grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
-            return grid;
-        }
-        var cells = Columns();
-        cells.RowSpacing = 0;
-        for (var r = 0; r < Math.Max(1, progress.Rows); r++) cells.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-        foreach (var cell in progress.Cells)
+        var here = progress.Cells.FirstOrDefault(c => c.Stop == now);
+        Control Cell(Cell cell)
         {
             var segment = new Border();
             segment.Classes.Add("seg");
             if (cell.Stop <= now) segment.Classes.Add("done");
+            if (here is not null && cell.Group >= 0 && cell.Group == here.Group && progress.Brackets[cell.Group].Kind == "branch" && cell.Row != here.Row) segment.Classes.Add("off");
             // A strip four pixels high is hard to point at, so each sits in a taller one that takes the pointer.
             var hit = new Border { Background = Brushes.Transparent, Padding = new Thickness(0, 2), Child = segment };
             if (cell.Title != "") ToolTip.SetTip(hit, cell.Title);
-            Grid.SetColumn(hit, cell.Col);
-            Grid.SetRow(hit, cell.Row);
-            cells.Children.Add(hit);
+            return hit;
         }
-        var bar = new StackPanel { Children = { cells } };
-        if (progress.Brackets.Count == 0) return bar;
-        var brackets = Columns();
-        brackets.Margin = new Thickness(0, -1, 0, 4);
-        foreach (var b in progress.Brackets)
+        var parts = new List<(int At, int Group)>();
+        for (var col = 0; col < progress.Cols;)
         {
-            var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Center };
-            label.Children.Add(Icons.Make(Icons.ForKind(b.Kind), "chipicon", 11));
-            label.Children.Add(new TextBlock { Text = b.Text, FontSize = 10.5, Classes = { "muted" } });
-            var bracket = new Border { Child = label, Padding = new Thickness(0, 1, 0, 0), Background = Brushes.Transparent };
-            bracket.Classes.Add("bracket");
-            ToolTip.SetTip(bracket, b.Title);
-            Grid.SetColumn(bracket, b.From);
-            Grid.SetColumnSpan(bracket, b.To - b.From + 1);
-            brackets.Children.Add(bracket);
+            var group = progress.Cells.FirstOrDefault(c => c.Col == col && c.Row == 0 && c.Group >= 0)?.Group ?? -1;
+            parts.Add((col, group));
+            col = group < 0 ? col + 1 : progress.Brackets[group].To + 1;
         }
-        bar.Children.Add(brackets);
-        return bar;
+        var strip = new Grid { ColumnSpacing = 3, Margin = new Thickness(0, 4) };
+        for (var i = 0; i < parts.Count; i++)
+        {
+            var (at, group) = parts[i];
+            Control part;
+            if (group < 0)
+                part = Cell(progress.Cells.First(c => c.Col == at && c.Group < 0));
+            else
+            {
+                var b = progress.Brackets[group];
+                var span = b.To - b.From + 1;
+                var branch = b.Kind == "branch";
+                var mine = progress.Cells.Where(c => c.Group == group).ToList();
+                var rows = branch ? Math.Max(b.Lanes.Count, mine.Max(c => c.Row) + 1) : 1;
+                var cells = new Grid { ColumnSpacing = 3 };
+                for (var c = 0; c < span; c++) cells.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+                for (var r = 0; r < (branch ? rows * 2 : 1); r++) cells.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+                if (branch)
+                    for (var r = 0; r < rows; r++)
+                    {
+                        var name = new TextBlock { Text = r < b.Lanes.Count ? b.Lanes[r] : "" };
+                        name.Classes.Add("barlane");
+                        if (here is not null && here.Group == group && here.Row == r) name.Classes.Add("on");
+                        Grid.SetRow(name, r * 2);
+                        Grid.SetColumnSpan(name, span);
+                        cells.Children.Add(name);
+                    }
+                foreach (var cell in mine)
+                {
+                    var hit = Cell(cell);
+                    Grid.SetColumn(hit, cell.Col - b.From);
+                    Grid.SetRow(hit, branch ? cell.Row * 2 + 1 : 0);
+                    cells.Children.Add(hit);
+                }
+                var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) };
+                label.Children.Add(Icons.Make(Icons.ForKind(b.Kind), "chipicon", 11));
+                label.Children.Add(new TextBlock { Text = b.Text, FontSize = 10.5, Classes = { "muted" } });
+                var box = new Rectangle();
+                box.Classes.Add("box");
+                if (b.Maybe) box.Classes.Add("maybe");
+                part = new Grid { Margin = new Thickness(5, 0), VerticalAlignment = VerticalAlignment.Top, Background = Brushes.Transparent, Children = { box, new StackPanel { Margin = new Thickness(5, 3, 5, 0), Children = { cells, label } } } };
+                ToolTip.SetTip(part, b.Title);
+            }
+            strip.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(group < 0 ? 1 : progress.Brackets[group].To - progress.Brackets[group].From + 1, GridUnitType.Star)));
+            Grid.SetColumn(part, i);
+            strip.Children.Add(part);
+        }
+        return strip;
     }
 
     /// <summary>What the chips, the bar and the labels on lines mean, in the words core gives it (see <see cref="Captions.Legend"/>).</summary>

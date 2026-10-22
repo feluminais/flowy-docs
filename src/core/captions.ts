@@ -21,19 +21,20 @@ export type Caption = { chip: string; text: string; tabs: string[]; tab: number;
 export type LegendRow = { kind: GroupKind | null; title: string; text: string }
 
 export const LEGEND: LegendRow[] = [
-  { kind: 'repeat', title: 'Repeat', text: 'The same steps again. The chip says how many times, or what stops it.' },
-  { kind: 'branch', title: 'Branch', text: 'Only one lane happens. Each tab is a lane, and the one you are in is marked. The others are dashed on the canvas.' },
+  { kind: 'repeat', title: 'Repeat', text: 'The same steps again. A solid line is a set number of times, a dashed one can stop sooner. The chip says how many times, or what stops it.' },
+  { kind: 'branch', title: 'Branch', text: 'Only one lane happens. Each row of the bar is a lane, named for what decides it. The lanes you are not in are hollow on the bar and dashed on the canvas.' },
   { kind: 'parallel', title: 'Same time', text: "Lanes that run together. Each stop lights the next step of every lane." },
-  { kind: null, title: 'The bar', text: 'One cell for each stop, and a row for each lane of a branch. A bracket under it names each group. Point at one for more.' },
+  { kind: null, title: 'The bar', text: 'One cell for each stop, and a row for each lane of a branch. A box holds the stops of each group, and the line under it says what the group is. Point at one for more.' },
   { kind: null, title: 'The label on a line', text: 'Which lane, or which repeat, the step is in.' },
 ]
 
 /**
- * What a repeat does, in words: "up to 3 times, until it works", or "" when it says neither. A heading that starts the line asks for
- * `capital`: "Up to 3 times, until it works".
+ * What a repeat does, in words. `times` alone is a rule: "3 times". With `until` it is a limit that may not be reached: "up to 3 times,
+ * until it works". `until` alone is "until it works", and "" says neither. A heading that starts the line asks for `capital`.
  */
 export function repeatWords(g: { times?: string; until?: string } | undefined, capital = false): string {
-  const words = [g?.times === undefined ? '' : `up to ${g.times} times`, g?.until === undefined ? '' : `until ${g.until}`].filter(w => w !== '').join(', ')
+  const times = g?.times === undefined ? '' : g.until === undefined ? `${g.times} times` : `up to ${g.times} times`
+  const words = [times, g?.until === undefined ? '' : `until ${g.until}`].filter(w => w !== '').join(', ')
   return capital ? words.charAt(0).toUpperCase() + words.slice(1) : words
 }
 
@@ -48,7 +49,7 @@ export function captionOf(flow: Flow, stop: Stop): Caption {
     const times = g?.times ?? ''
     const until = g?.until ?? ''
     const words = repeatWords(g)
-    const mark = times !== '' ? `up to ${times}` : until !== '' ? `until ${until}` : ''
+    const mark = times !== '' ? (until !== '' ? `up to ${times}` : `×${times}`) : until !== '' ? `until ${until}` : ''
     return { ...none, chip: words === '' ? 'Repeats' : `Repeats ${words}`, text, marks: stop.steps.map(() => mark) }
   }
   if (stop.kind === 'branch') {
@@ -60,15 +61,17 @@ export function captionOf(flow: Flow, stop: Stop): Caption {
 
 /**
  * The progress bar: a cell for each stop, in `col` and `row`, and a bracket for each group over the columns it covers. A `title` is what a
- * reader sees on hovering a cell (the lane it is in) or a bracket (what the group means). Most stops take the next
+ * reader sees on hovering a cell (the lane it is in) or a bracket (what the group means). A cell's `group` is the bracket that holds it, -1
+ * for none, so a reader can box a group's cells. A branch bracket names its rows in `lanes`, and says nothing in `text`: the names are
+ * its words. A repeat is `maybe` when it can stop before its last time (it has an `until`), so a reader draws its line dashed. Most stops take the next
  * column on row 0. The lanes of a branch start in the same column and sit on rows of their own, each lane's stops in the columns after it,
  * and what follows the branch starts after its longest lane. `rows` is the most any branch needs, and at least 1.
  */
 export type Progress = {
   cols: number
   rows: number
-  cells: { stop: number; col: number; row: number; title: string }[]
-  brackets: { kind: GroupKind; from: number; to: number; text: string; title: string }[]
+  cells: { stop: number; col: number; row: number; title: string; group: number }[]
+  brackets: { kind: GroupKind; from: number; to: number; text: string; title: string; lanes: string[]; maybe: boolean }[]
 }
 
 export function progressOf(flow: Flow, stops: Stop[]): Progress {
@@ -79,20 +82,21 @@ export function progressOf(flow: Flow, stops: Stop[]): Progress {
   for (let k = 0; k < stops.length;) {
     const s = stops[k]
     if (s.group === undefined || s.kind === undefined) {
-      cells.push({ stop: k, col: col++, row: 0, title: '' })
+      cells.push({ stop: k, col: col++, row: 0, title: '', group: -1 })
       k++
       continue
     }
     let end = k
     while (end + 1 < stops.length && stops[end + 1].group === s.group) end++
     const start = col
+    const group = brackets.length
     if (s.kind === 'branch') {
       const lanes = s.laneLabels?.length ?? 1
       const used: number[] = []
       for (let j = k; j <= end; j++) {
         const lane = stops[j].lanes?.[0] ?? 0
         const at = used[lane] ?? 0
-        cells.push({ stop: j, col: start + at, row: lane, title: s.laneLabels?.[lane] ?? '' })
+        cells.push({ stop: j, col: start + at, row: lane, title: s.laneLabels?.[lane] ?? '', group })
         used[lane] = at + 1
       }
       const longest = Math.max(1, ...used.map(n => n ?? 0))
@@ -100,18 +104,20 @@ export function progressOf(flow: Flow, stops: Stop[]): Progress {
       const only = s.laneLabels?.[0] ?? ''
       brackets.push({
         kind: 'branch', from: start, to: start + longest - 1,
-        text: lanes > 1 ? `one of ${lanes} lanes` : 'only if',
+        text: '',
         title: lanes > 1 ? 'Alternatives: only one of these lanes happens' : only === '' ? 'Happens only sometimes' : `Happens only if: ${only}`,
+        lanes: s.laneLabels ?? [], maybe: false,
       })
       col = start + longest
     } else {
-      for (let j = k; j <= end; j++) cells.push({ stop: j, col: col++, row: 0, title: stops[j].lanes?.map(l => s.laneLabels?.[l] ?? '').join(' + ') ?? '' })
+      for (let j = k; j <= end; j++) cells.push({ stop: j, col: col++, row: 0, title: stops[j].lanes?.map(l => s.laneLabels?.[l] ?? '').join(' + ') ?? '', group })
       const g = groupOf(flow, s.group)
       const times = g?.times ?? ''
+      const maybe = g?.until !== undefined
       const words = repeatWords(g)
       brackets.push(s.kind === 'repeat'
-        ? { kind: s.kind, from: start, to: col - 1, text: times === '' ? '' : `×${times}`, title: words === '' ? 'Repeats' : `Repeats ${words}` }
-        : { kind: s.kind, from: start, to: col - 1, text: 'same time', title: 'The lanes happen at the same time: each stop shows the next step of every lane' })
+        ? { kind: s.kind, from: start, to: col - 1, text: times === '' ? '' : maybe ? `up to ${times}` : `×${times}`, title: words === '' ? 'Repeats' : `Repeats ${words}`, lanes: [], maybe }
+        : { kind: s.kind, from: start, to: col - 1, text: 'same time', title: 'The lanes happen at the same time: each stop shows the next step of every lane', lanes: [], maybe: false })
     }
     k = end + 1
   }

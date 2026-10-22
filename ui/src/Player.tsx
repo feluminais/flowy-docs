@@ -46,22 +46,50 @@ type Props = {
   onBack: () => void
 }
 
-/** How far a flow has got: a cell a stop, a branch's lanes on rows of their own, and a bracket under each group. */
+/**
+ * How far a flow has got: a cell for each stop, filled up to the stop shown. A group is boxed, with the line that says what it is at the
+ * foot of the box, and a box with an `until` is dashed (it may stop before its last time). A branch's lanes are rows of their own, each
+ * named, and the lanes the stop shown is not in are dashed, as they are on the canvas.
+ */
 function Bar({ progress, now }: { progress: Progress; now: number }) {
-  const columns = `repeat(${progress.cols}, 1fr)`
+  const here = progress.cells.find(c => c.stop === now)
+  const parts: ({ at: number; plain: true } | { at: number; plain: false; group: number })[] = []
+  for (let col = 0; col < progress.cols;) {
+    const group = progress.cells.find(c => c.col === col && c.row === 0 && c.group >= 0)?.group ?? -1
+    if (group < 0) {
+      parts.push({ at: col, plain: true })
+      col++
+    } else {
+      parts.push({ at: col, plain: false, group })
+      col = progress.brackets[group].to + 1
+    }
+  }
+  const cell = (c: Progress['cells'][number], row: number) => {
+    const off = here !== undefined && c.group >= 0 && c.group === here.group && progress.brackets[c.group].kind === 'branch' && c.row !== here.row
+    const className = ['cell', c.stop <= now ? 'done' : '', off ? 'off' : ''].filter(Boolean).join(' ')
+    return <span key={c.stop} title={c.title || undefined} className={className} style={{ gridColumn: c.col - (c.group >= 0 ? progress.brackets[c.group].from : c.col) + 1, gridRow: row }} />
+  }
   return (
-    <div>
-      <div className="progress" style={{ gridTemplateColumns: columns, gridTemplateRows: `repeat(${progress.rows}, 4px)` }}>
-        {progress.cells.map(c => <span key={c.stop} title={c.title || undefined} className={c.stop <= now ? 'done' : undefined} style={{ gridColumn: c.col + 1, gridRow: c.row + 1 }} />)}
-      </div>
-      {progress.brackets.length > 0 && (
-        <div className="brackets" style={{ gridTemplateColumns: columns }}>
-          {progress.brackets.map((b, i) => {
-            const Icon = KIND_ICON[b.kind]
-            return <span key={i} title={b.title} className={`bracket ${b.kind}`} style={{ gridColumn: `${b.from + 1} / ${b.to + 2}` }}><Icon size={11} />{b.text}</span>
-          })}
-        </div>
-      )}
+    <div className="progress">
+      {parts.map(part => {
+        if (part.plain) return <div key={part.at} className="stretch" style={{ flex: 1 }}>{progress.cells.filter(c => c.col === part.at && c.group < 0).map(c => cell(c, 1))}</div>
+        const b = progress.brackets[part.group]
+        const Icon = KIND_ICON[b.kind]
+        const mine = progress.cells.filter(c => c.group === part.group)
+        const branch = b.kind === 'branch'
+        const rows = branch ? Math.max(b.lanes.length, ...mine.map(c => c.row + 1)) : 1
+        return (
+          <div key={part.at} className={`stretch grp ${b.kind}${b.maybe ? ' maybe' : ''}`} style={{ flex: b.to - b.from + 1 }} title={b.title}>
+            <div className="runs" style={{ gridTemplateColumns: `repeat(${b.to - b.from + 1}, 1fr)`, gridTemplateRows: branch ? `repeat(${rows}, auto 4px)` : '4px' }}>
+              {branch && Array.from({ length: rows }, (_, r) => (
+                <div key={r} className={`lane${here?.group === part.group && here.row === r ? ' on' : ''}`} style={{ gridColumn: '1 / -1', gridRow: r * 2 + 1 }}>{b.lanes[r] ?? ''}</div>
+              ))}
+              {mine.map(c => cell(c, branch ? c.row * 2 + 2 : 1))}
+            </div>
+            <span className="bracket"><Icon size={11} />{b.text}</span>
+          </div>
+        )
+      })}
     </div>
   )
 }

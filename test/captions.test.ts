@@ -15,13 +15,14 @@ const example = flowOf({ charge: { kind: 'repeat', times: '3', text: 'Backs off'
   step({ group: 'tell', lane: 'Billing' }), step({ group: 'tell', lane: 'Dispatch' }),
 ])
 
-test('a repeat says how often, and what it has: times, until, both or neither', () => {
+test('a repeat says how often, and what it has: times is a rule, until makes it a limit, and either may be missing', () => {
   const chip = (g: Record<string, string>) => captions(flowOf({ r: { kind: 'repeat', ...g } }, [step({ group: 'r' })]))[0]
-  assert.equal(chip({ times: '3' }).chip, 'Repeats up to 3 times')
+  assert.equal(chip({ times: '3' }).chip, 'Repeats 3 times')
   assert.equal(chip({ until: 'it works' }).chip, 'Repeats until it works')
   assert.equal(chip({ times: '3', until: 'it works' }).chip, 'Repeats up to 3 times, until it works')
   assert.equal(chip({ text: 'only words' }).chip, 'Repeats')
-  assert.deepEqual(chip({ times: '3', text: ' Backs off ' }), { chip: 'Repeats up to 3 times', text: 'Backs off', tabs: [], tab: -1, lanes: [], marks: ['up to 3'] })
+  assert.deepEqual(chip({ times: '3', text: ' Backs off ' }), { chip: 'Repeats 3 times', text: 'Backs off', tabs: [], tab: -1, lanes: [], marks: ['×3'] })
+  assert.deepEqual(chip({ times: '3', until: 'it works' }).marks, ['up to 3'])
   assert.deepEqual(chip({ until: 'x' }).marks, ['until x'])
   assert.deepEqual(chip({}).marks, [''])
 })
@@ -47,26 +48,36 @@ test('a stop in no group says nothing', () => {
   assert.deepEqual(captionOf(example, stopsOf(flowOf(undefined, [step()]))[0]), { chip: '', text: '', tabs: [], tab: -1, lanes: [], marks: [''] })
 })
 
-test('the progress bar has a column for each stop, the branch\'s lanes on rows of their own, and a bracket for each group', () => {
+test('the progress bar has a column for each stop, the lanes of a branch on rows of their own, and a bracket for each group', () => {
   assert.deepEqual(progressOf(example, stopsOf(example)), {
     cols: 5,
     rows: 2,
     cells: [
-      { stop: 0, col: 0, row: 0, title: '' }, { stop: 1, col: 1, row: 0, title: '' },
-      { stop: 2, col: 2, row: 0, title: 'Card accepted' }, { stop: 3, col: 3, row: 0, title: 'Card accepted' }, { stop: 4, col: 2, row: 1, title: 'Card declined' },
-      { stop: 5, col: 4, row: 0, title: 'Billing + Dispatch' },
+      { stop: 0, col: 0, row: 0, title: '', group: 0 }, { stop: 1, col: 1, row: 0, title: '', group: 0 },
+      { stop: 2, col: 2, row: 0, title: 'Card accepted', group: 1 }, { stop: 3, col: 3, row: 0, title: 'Card accepted', group: 1 }, { stop: 4, col: 2, row: 1, title: 'Card declined', group: 1 },
+      { stop: 5, col: 4, row: 0, title: 'Billing + Dispatch', group: 2 },
     ],
     brackets: [
-      { kind: 'repeat', from: 0, to: 1, text: '×3', title: 'Repeats up to 3 times' },
-      { kind: 'branch', from: 2, to: 3, text: 'one of 2 lanes', title: 'Alternatives: only one of these lanes happens' },
-      { kind: 'parallel', from: 4, to: 4, text: 'same time', title: 'The lanes happen at the same time: each stop shows the next step of every lane' },
+      { kind: 'repeat', from: 0, to: 1, text: '×3', title: 'Repeats 3 times', lanes: [], maybe: false },
+      { kind: 'branch', from: 2, to: 3, text: '', title: 'Alternatives: only one of these lanes happens', lanes: ['Card accepted', 'Card declined'], maybe: false },
+      { kind: 'parallel', from: 4, to: 4, text: 'same time', title: 'The lanes happen at the same time: each stop shows the next step of every lane', lanes: [], maybe: false },
     ],
   })
-  assert.deepEqual(progressOf(flowOf(undefined, [step(), step()]), stopsOf(flowOf(undefined, [step(), step()]))), { cols: 2, rows: 1, cells: [{ stop: 0, col: 0, row: 0, title: '' }, { stop: 1, col: 1, row: 0, title: '' }], brackets: [] })
+  const plain = flowOf(undefined, [step(), step()])
+  assert.deepEqual(progressOf(plain, stopsOf(plain)), { cols: 2, rows: 1, cells: [{ stop: 0, col: 0, row: 0, title: '', group: -1 }, { stop: 1, col: 1, row: 0, title: '', group: -1 }], brackets: [] })
   const lone = flowOf({ b: { kind: 'branch' } }, [step({ group: 'b', lane: 'x' })])
-  assert.deepEqual([progressOf(lone, stopsOf(lone)).brackets[0].text, progressOf(lone, stopsOf(lone)).brackets[0].title], ['only if', 'Happens only if: x'])
-  const until = flowOf({ r: { kind: 'repeat', until: 'it works' } }, [step({ group: 'r' })])
-  assert.deepEqual([progressOf(until, stopsOf(until)).brackets[0].text, progressOf(until, stopsOf(until)).brackets[0].title], ['', 'Repeats until it works'])
+  const [only] = progressOf(lone, stopsOf(lone)).brackets
+  assert.deepEqual([only.text, only.title, only.lanes], ['', 'Happens only if: x', ['x']])
+})
+
+test('a repeat with an until is drawn as one that may stop early, and one with only times as a rule', () => {
+  const bracket = (g: Record<string, string>) => {
+    const flow = flowOf({ r: { kind: 'repeat', ...g } }, [step({ group: 'r' })])
+    return progressOf(flow, stopsOf(flow)).brackets[0]
+  }
+  assert.deepEqual([bracket({ times: '3' }).text, bracket({ times: '3' }).maybe], ['×3', false])
+  assert.deepEqual([bracket({ times: '3', until: 'it works' }).text, bracket({ times: '3', until: 'it works' }).maybe], ['up to 3', true])
+  assert.deepEqual([bracket({ until: 'it works' }).text, bracket({ until: 'it works' }).maybe, bracket({ until: 'it works' }).title], ['', true, 'Repeats until it works'])
 })
 
 test('stopIndexOf finds the stop that holds a step, and answers the first stop for a step that is nowhere', () => {

@@ -61,7 +61,7 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   the system asks for less motion, and a step's text always says the same thing. The desktop app
   plays each step once.
 - A flow whose steps are grouped (see [Repeats, branches and parallel steps](flows.md#repeats-branches-and-parallel-steps)) is played in
-  stops: a chip names the group, a branch shows its lanes as tabs, the bar has a bracket under each group, and the lanes of a parallel
+  stops: a chip names the group, a branch shows its lanes as tabs, the bar boxes each group, and the lanes of a parallel
   group are one stop, lit and moving together. A step that says `flow:` has an Open flow button, and a bar to come back.
 - F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Shapes with
