@@ -57,11 +57,12 @@ public static class FileStore
 
     /// <summary>
     /// Writes one file (text null deletes it), but only if it still has version <paramref name="expected"/>. Returns the new version.
-    /// Saves to one file run one at a time. Throws <see cref="VersionConflict"/>.
+    /// Saves to one file run one at a time. Throws <see cref="VersionConflict"/>, and <see cref="OpError"/> for a file that a link sends outside the folder.
     /// </summary>
     public static string? Save(string dir, string rel, string? text, string? expected)
     {
         if (!IsAllowed(rel)) throw new InvalidOperationException($"refusing to write \"{rel}\"");
+        if (!FolderContainment.IsInside(dir, rel)) throw new OpError($"\"{rel}\" {FolderContainment.Outside}");
         var path = Path.Combine(dir, rel);
         lock (Locks.GetOrAdd(Path.GetFullPath(path), _ => new object()))
         {

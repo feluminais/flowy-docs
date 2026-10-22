@@ -233,6 +233,10 @@ public sealed class EditSession(string dir)
             {
                 result = EditResult.Refused($"Can't {word} while a file can't be read: {Unreadable(e)}");
             }
+            catch (OpError e)
+            {
+                result = EditResult.Refused(e.Message);
+            }
             catch (VersionConflict)
             {
                 result = EditResult.Refused(stale);
