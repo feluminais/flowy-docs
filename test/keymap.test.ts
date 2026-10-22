@@ -9,7 +9,7 @@ const press = (key: string, more: Partial<KeyEvent> = {}): KeyEvent => ({
 })
 
 const nothing: KeyState = {
-  editing: false, justMoved: false, shortcuts: false, navigatorOpen: false, navigatorUsed: false, flow: false, halfStep: false, panel: false, inside: false, recording: false,
+  editing: false, justMoved: false, shortcuts: false, navigatorOpen: false, navigatorUsed: false, flow: false, compare: false, halfStep: false, panel: false, inside: false, recording: false,
   perfOpen: false, failuresOpen: false, analysis: false, readOnly: false, showFlows: false, showYaml: false, canPerf: false,
 }
 
@@ -93,6 +93,10 @@ test('Escape peels one layer per press, in escapeStep order', () => {
   assert.deepEqual(r.calls, ['clearStep'])
   r = reach(esc, { ...all, shortcuts: false, navigatorOpen: false, flow: false, halfStep: false })
   assert.deepEqual(r.calls, ['closePanel'])
+  r = reach(esc, { ...nothing, compare: true, inside: true })
+  assert.deepEqual(r.calls, ['closeCompare'], 'a comparison closes before the level is left')
+  r = reach(esc, { ...nothing, compare: true, panel: true })
+  assert.deepEqual(r.calls, ['closePanel'], 'the panel over a comparison goes first')
   r = reach(esc, { ...nothing, inside: true })
   assert.deepEqual(r.calls, ['up'])
   assert.deepEqual(reach(esc, { navigatorUsed: true }).calls, [], 'a navigator that is not open is not closed')
@@ -167,6 +171,33 @@ test('a flow playing takes the arrows, Home, End, P and R', () => {
   assert.deepEqual(reach(press('End'), flow).calls, ['flowEnd(last)'])
   assert.deepEqual(reach(press('p'), flow).calls, ['play'])
   assert.deepEqual(reach(press('r'), flow).calls, ['replay'])
+})
+
+test('C compares the flow playing, or closes the comparison, and is taken in edit mode to say why it does nothing', () => {
+  assert.equal(idOf(press('c')), undefined, 'no flow, no comparison')
+  assert.equal(idOf(press('c'), { flow: true }), 'compare')
+  assert.equal(idOf(press('c'), { compare: true }), 'compare')
+  assert.equal(idOf(press('c'), { editing: true }), 'compare')
+  assert.equal(idOf(press('c', { repeat: true }), { flow: true }), undefined)
+  assert.equal(idOf(press('c', { ctrlKey: true }), { flow: true }), undefined, "Ctrl+C is the browser's copy")
+  assert.equal(idOf(press('с', { code: 'KeyC' }), { flow: true }), 'compare', 'a Cyrillic layout')
+  assert.deepEqual(reach(press('c'), { flow: true }).calls, ['compare'])
+  assert.deepEqual(reach(press('c')).calls, [])
+})
+
+test('with two flows side by side, the keys of a flow reach the actions that act on the pane last clicked', () => {
+  const side = { compare: true }
+  assert.equal(idOf(press('ArrowRight'), side), 'flow-step')
+  assert.equal(idOf(press('Home'), side), 'flow-ends')
+  assert.equal(idOf(press('p'), side), 'flow-play')
+  assert.equal(idOf(press('r'), side), 'flow-replay')
+  assert.deepEqual(reach(press('ArrowLeft'), side).calls, ['stepFlow(-1)'])
+  assert.deepEqual(reach(press('End'), side).calls, ['flowEnd(last)'])
+  assert.deepEqual(reach(press('p'), side).calls, ['play'])
+  assert.deepEqual(reach(press('r'), side).calls, ['replay'])
+  assert.deepEqual(reach(press('f'), side).calls, ['fit'], 'F fits the pane too')
+  assert.equal(idOf(press('ArrowRight')), undefined, 'no flow and no comparison: nothing to step')
+  assert.equal(idOf(press('ArrowRight'), { ...side, perfOpen: true }), 'perf-step', 'a load-test run still comes first')
 })
 
 test('Enter opens the box in focus, unless a button, link or summary has it, or a flow is being recorded', () => {
@@ -266,6 +297,7 @@ test('the shortcut list says what it said before the table was built from the ke
     ['Home  End', 'First and last step'],
     ['P', 'Step through the flow on its own, or pause'],
     ['R', 'Replay the step'],
+    ['C', 'Compare with another flow, or close the comparison'],
     ['Esc', 'Stop the flow'],
   ])
   assert.deepEqual(rows.performance, [

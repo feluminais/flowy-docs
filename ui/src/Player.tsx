@@ -7,7 +7,8 @@ import { isView, nameOf, stepEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import type { StateMark } from '../../src/core/states.ts'
 import { Chip } from './Chrome.tsx'
-import { ArrowLeft, ArrowRight, ArrowsSplit, Close, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
+import type { ReactNode } from 'react'
+import { ArrowLeft, ArrowRight, ArrowsSplit, Close, Columns, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
 import { StateKey } from './states.tsx'
 import { usePref } from './store.ts'
 
@@ -41,10 +42,15 @@ type Props = {
   onAuto: () => void
   onReplay: () => void
   onRepeat: () => void
-  onStop: () => void
-  onOpenFlow: (id: string) => void
-  onBack: () => void
+  /** Compare with another flow: `off` is why the button is greyed out, `picker` the popover `open` shows above the card. Without it there is no Compare button (a pane of a comparison has none). */
+  compare?: { off?: string; open: boolean; onToggle: () => void; picker: ReactNode }
+  /** Stop, open a linked flow and go back to the one it was opened from. A pane of a comparison has none of them: its Stop and Open flow are greyed out, as it never leaves its flow. */
+  onStop?: () => void
+  onOpenFlow?: (id: string) => void
+  onBack?: () => void
 }
+
+const IN_A_PANE = 'Not while comparing'
 
 /** How far a flow has got: a cell a stop, a branch's lanes on rows of their own, and a bracket under each group. */
 function Bar({ progress, now }: { progress: Progress; now: number }) {
@@ -67,7 +73,7 @@ function Bar({ progress, now }: { progress: Progress; now: number }) {
 }
 
 /** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
-export function Player({ model, flow, stops, stop, ends, caption, progress, marks, auto, moving, repeat, trail, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
+export function Player({ model, flow, stops, stop, ends, caption, progress, marks, auto, moving, repeat, trail, compare, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
   const [legendPref, setLegendPref] = usePref(LEGEND_KEY, 'closed')
   const legend = legendPref === 'open'
@@ -76,11 +82,14 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
   const GroupIcon = here.kind === undefined ? undefined : KIND_ICON[here.kind]
   return (
     <section className="player" aria-live="polite">
-      {trail && <button className="trail" onClick={onBack}><ArrowLeft size={14} />Back to “{trail.name}”, step {trail.step}</button>}
+      {trail && onBack && <button className="trail" onClick={onBack}><ArrowLeft size={14} />Back to “{trail.name}”, step {trail.step}</button>}
       <div className="chips">
         <Chip icon={Play}>{flow.name}</Chip>
         <Chip kind="accent">Step {stop + 1} of {stops.length}</Chip>
         {caption.chip !== '' && <Chip icon={GroupIcon}>{caption.chip}</Chip>}
+        {compare && (
+          <button className="compare-btn" data-compare-toggle aria-pressed={compare.open} disabled={compare.off !== undefined} title={compare.off ?? 'Compare with another flow (C)'} onClick={compare.onToggle}><Columns size={14} />Compare</button>
+        )}
         {grouped && (
           <button className="help" aria-label="What do these mean?" title="What do these mean?" aria-pressed={legend} onClick={toggleLegend}><Help size={15} /></button>
         )}
@@ -124,7 +133,7 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
             )}
             {target && (
               <div className="player-buttons flow-link">
-                <button disabled={target.steps.length === 0 || !isView(model, target.view)} onClick={() => onOpenFlow(link!)}><Route size={16} />Open flow: {target.name || link}</button>
+                <button disabled={onOpenFlow === undefined || target.steps.length === 0 || !isView(model, target.view)} title={onOpenFlow === undefined ? IN_A_PANE : undefined} onClick={() => onOpenFlow?.(link!)}><Route size={16} />Open flow: {target.name || link}</button>
               </div>
             )}
           </div>
@@ -136,8 +145,9 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
         <button onClick={onAuto} title="Step through the flow on its own (P)">{auto ? <><Pause size={16} />Pause</> : <><Play size={16} />Autoplay</>}</button>
         {moving && <button aria-label="Replay this step" title="Replay this step (R)" onClick={onReplay}><Reload size={16} /></button>}
         {moving && <button aria-label="Repeat" aria-pressed={repeat} title={repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>}
-        <button onClick={onStop}><Close size={16} />Stop</button>
+        <button disabled={onStop === undefined} title={onStop === undefined ? 'Close the comparison to stop' : undefined} onClick={onStop}><Close size={16} />Stop</button>
       </div>
+      {compare?.open && compare.picker}
     </section>
   )
 }
