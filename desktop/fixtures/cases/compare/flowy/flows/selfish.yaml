@@ -1,0 +1,6 @@
+name: selfish
+view: shop
+compare: selfish
+steps:
+  - { from: web, to: api, text: Sends the order }
+  - { from: api, to: web, text: Answers }

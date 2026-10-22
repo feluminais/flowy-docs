@@ -211,6 +211,10 @@ public static partial class Perf
         if (name is null) Add("name is missing");
         var about = Word("about");
         var axisValue = JsCompat.OrEmpty(doc.TryGetValue("axis", out var a) ? a : null, null);
+        // The run it compares with. Whether that run exists is for CheckRuns, which sees the other runs.
+        var compareValue = JsCompat.OrEmpty(doc.TryGetValue("compare", out var c) ? c : null, null);
+        if (Compares.Problem(compareValue, "run") is { } compareWhy) Add(compareWhy);
+        var compare = Compares.Of(compareValue);
 
         // A run that adds others is a list of runs and nothing else: no levels of its own, no source (each run it adds has its own).
         if (JsCompat.OrEmpty(doc.TryGetValue("adds", out var addsValue) ? addsValue : null, null) is { } addsText)
@@ -220,7 +224,7 @@ public static partial class Perf
             foreach (var own in new[] { "levels", "sources", "source" })
                 if (JsCompat.OrEmpty(doc.TryGetValue(own, out var ownValue) ? ownValue : null, null) is not null) Add($"a run that adds others has no {own} of its own");
             if (axisValue is "time") Add("a run that adds others is measured over load, not time");
-            return (new LoadRun(name ?? id, about, "", null, [], null) { Adds = adds }, problems);
+            return (new LoadRun(name ?? id, about, "", null, [], null) { Adds = adds, Compare = compare }, problems);
         }
 
         // A run tested with several sources at once: its levels name a load for each.
@@ -315,7 +319,7 @@ public static partial class Perf
         if (axis == "load" && rawEvents is not null) Add("events are only for a time run (set axis: time)");
         var runUnit = sources is null ? unit ?? (axis == "time" ? "s" : "load") : ""; // a run with sources has no unit of its own: each source has one
         var events = axis == "time" ? ReadEvents(rawEvents, levels[0].Load, levels[^1].Load, runUnit, Add) : [];
-        return (new LoadRun(name ?? id, about, runUnit, sources is null ? entry : null, levels, source) { IsTime = axis == "time", Events = events, Sources = sources }, problems);
+        return (new LoadRun(name ?? id, about, runUnit, sources is null ? entry : null, levels, source) { IsTime = axis == "time", Events = events, Sources = sources, Compare = compare }, problems);
     }
 
     /// <summary>

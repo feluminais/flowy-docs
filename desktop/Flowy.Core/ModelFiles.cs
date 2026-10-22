@@ -98,8 +98,10 @@ public static class ModelFiles
             return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"), animation, Text(m, "group"), Text(m, "lane"), Text(m, "flow"), states) { NoValue = EmptyKeys.Of(m) };
         }).ToList();
         doc.TryGetValue("states", out var flowStates);
-        var head = new OrderedDictionary<string, object?>(doc.Where(kv => kv.Key != "steps")); // the steps say their own
-        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups, flowStates) { NoValue = EmptyKeys.Of(head) };
+        // The steps say their own; so does compare, whose shape problem (a bare "compare:" included) is for Checks, never a parse error or an empty key.
+        var head = new OrderedDictionary<string, object?>(doc.Where(kv => kv.Key is not ("steps" or "compare")));
+        doc.TryGetValue("compare", out var compare);
+        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups, flowStates) { NoValue = EmptyKeys.Of(head), CompareRaw = compare };
     }
 
     /// <summary>

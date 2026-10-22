@@ -1,0 +1,5 @@
+name: bad-shape
+compare: [base]
+levels:
+  - { load: 5 }
+  - { load: 10 }

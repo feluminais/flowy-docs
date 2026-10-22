@@ -1,0 +1,6 @@
+name: checkout-v2
+view: shop
+compare: checkout
+steps:
+  - { from: web, to: api, text: Sends the order }
+  - { from: api, to: web, text: Answers }
