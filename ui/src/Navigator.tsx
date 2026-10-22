@@ -18,11 +18,11 @@ const ROW = 30 // px: every row of the tree is this tall, which is what lets it 
 const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-export function NavTabs({ tab, showFlows, showYaml, onPick }: { tab: NavTab; showFlows: boolean; showYaml: boolean; onPick: (tab: NavTab) => void }) {
+export function NavTabs({ tab, showFlows, onPick }: { tab: NavTab; showFlows: boolean; onPick: (tab: NavTab) => void }) {
   const tabs: [NavTab, string][] = [
     ['explorer', 'Explorer'],
     ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []),
-    ...(showYaml ? [['yaml', 'YAML'] as [NavTab, string]] : []),
+    ['yaml', 'YAML'],
   ]
   return (
     <div className="navtabs" role="tablist" aria-label="Panel">
@@ -51,11 +51,11 @@ function RailButton({ label, hint, Icon, pressed, count, off, onClick }: { label
 
 /**
  * The slim column of icons on the left edge for the Explorer tree, the Flows list, the Performance panel, the Failures panel and the YAML. It is always there, and the counts
- * on it say how much the documentation holds. Performance and Failures are there whether or not there is a run or an analysis: their panels offer to make one.
+ * on it say how much the documentation holds. Performance, Failures and YAML are there whether or not there is a run, an analysis or a history: their panels offer to make one or say why there is none.
  * `perf.off` greys the Performance button out and says why in its tooltip: the tab stays where it is while the panel can't be used.
  */
-export function NavRail({ tab, flows, shapes, showFlows, showYaml, perf, failures, onPick }: {
-  tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean; showYaml: boolean
+export function NavRail({ tab, flows, shapes, showFlows, perf, failures, onPick }: {
+  tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean
   perf: { runs: number; off?: string }; failures: { count: number }; onPick: (tab: NavTab) => void
 }) {
   return (
@@ -64,7 +64,7 @@ export function NavRail({ tab, flows, shapes, showFlows, showYaml, perf, failure
       {showFlows && <RailButton label="Flows" hint={keyOf('flows')} Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
       <RailButton label="Performance" hint={keyOf('perf')} Icon={Activity} count={perf.runs > 0 ? perf.runs : undefined} pressed={tab === 'performance'} off={perf.off} onClick={() => onPick('performance')} />
       <RailButton label="Failures" hint={keyOf('failures')} Icon={Bolt} count={failures.count > 0 ? failures.count : undefined} pressed={tab === 'failures'} onClick={() => onPick('failures')} />
-      {showYaml && <RailButton label="YAML" hint={keyOf('yaml')} Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />}
+      <RailButton label="YAML" hint={keyOf('yaml')} Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />
     </nav>
   )
 }

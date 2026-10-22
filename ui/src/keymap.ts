@@ -28,7 +28,6 @@ export type KeyState = {
   analysis: boolean // the Failures tab has an analysis to step through
   readOnly: boolean
   showFlows: boolean
-  showYaml: boolean
   canPerf: boolean
 }
 
@@ -220,7 +219,7 @@ export const KEYMAP: readonly Entry[] = [
   },
   {
     id: 'yaml', keys: 'Y',
-    when: c => tap(c, 'y') && c.s.showYaml,
+    when: c => tap(c, 'y'),
     run: c => c.act.toggleTab('yaml'),
     help: { reading: { text: 'The files as YAML, and what changed' } },
   },

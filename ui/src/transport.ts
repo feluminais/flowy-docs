@@ -17,7 +17,7 @@ export type Transport = {
   state: () => Promise<State>
   /** PUT a file's content (`body` is `{ version, data }`) or DELETE a flow (`{ version }`). Resolves to the answer, whatever its status. */
   write: (method: 'PUT' | 'DELETE', file: string, body: unknown) => Promise<Reply>
-  /** The folder's history, where there is a server that keeps it. The VS Code webview has none, and so no YAML tab. */
+  /** The folder's history, where there is a server that keeps it. The VS Code webview has none, so its YAML tab says why there is no history. */
   history?: HistoryClient
 }
 

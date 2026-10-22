@@ -22,13 +22,12 @@ test('scrolling to a row moves as little as it can, and not at all when the row 
   assert.equal(scrollToRow(0, 0, 300, 30), undefined)
 })
 
-test('Review Focus: a remembered tab opens only where it exists (not YAML on an exported page or in VS Code)', () => {
-  assert.equal(openTab('yaml', { flows: true, yaml: false }), undefined)
-  assert.equal(openTab('yaml', { flows: false, yaml: true }), 'yaml')
-  assert.equal(openTab('flows', { flows: false, yaml: true }), undefined)
-  assert.equal(openTab('flows', { flows: true, yaml: false }), 'flows')
-  assert.equal(openTab('explorer', { flows: false, yaml: false }), 'explorer')
-  assert.equal(openTab(undefined, { flows: true, yaml: true }), undefined)
+test('Review Focus: a remembered tab opens only where it exists (YAML always does: its panel says when there is no history)', () => {
+  assert.equal(openTab('yaml', { flows: false }), 'yaml')
+  assert.equal(openTab('flows', { flows: false }), undefined)
+  assert.equal(openTab('flows', { flows: true }), 'flows')
+  assert.equal(openTab('explorer', { flows: false }), 'explorer')
+  assert.equal(openTab(undefined, { flows: true }), undefined)
 })
 
 test('the Performance and Failures tabs are never remembered: the address brings them back', () => {
@@ -43,10 +42,10 @@ test('the Performance and Failures tabs are never remembered: the address brings
 })
 
 test('the Performance and Failures tabs open without a run or an analysis, and Performance only while not editing', () => {
-  assert.equal(openTab('performance', { flows: false, yaml: false }), 'performance')
-  assert.equal(openTab('performance', { flows: false, yaml: false, performance: true }), 'performance')
-  assert.equal(openTab('performance', { flows: true, yaml: true, performance: false }), undefined)
-  assert.equal(openTab('failures', { flows: false, yaml: false, performance: false }), 'failures')
+  assert.equal(openTab('performance', { flows: false }), 'performance')
+  assert.equal(openTab('performance', { flows: false, performance: true }), 'performance')
+  assert.equal(openTab('performance', { flows: true, performance: false }), undefined)
+  assert.equal(openTab('failures', { flows: false, performance: false }), 'failures')
 })
 
 test('stored navigator state is read as far as it can be trusted', () => {
